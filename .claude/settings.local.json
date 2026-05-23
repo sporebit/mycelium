@@ -9,7 +9,8 @@
       "Bash(git -C /home/phil/mycelium config user.email \"pwhelanonline@gmail.com\")",
       "Bash(git -C /home/phil/mycelium config user.name \"Phil\")",
       "Bash(git -C /home/phil/mycelium add -A)",
-      "Bash(git -C /home/phil/mycelium commit -m ' *)"
+      "Bash(git -C /home/phil/mycelium commit -m ' *)",
+      "Bash(mkdir -p /home/phil/.claude/projects/-home-phil-mycelium/memory)"
     ]
   }
 }

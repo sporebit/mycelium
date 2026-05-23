@@ -1,37 +1,57 @@
 @import "tailwindcss";
 
 @theme {
-  /* Neutral ink scale — ink-0 darkest, ink-4 lightest */
-  --color-ink-0: oklch(10% 0 0);
-  --color-ink-1: oklch(16% 0 0);
-  --color-ink-2: oklch(26% 0 0);
-  --color-ink-3: oklch(55% 0 0);
-  --color-ink-4: oklch(95% 0 0);
+  /* Neutral ink scale */
+  --color-ink-0: oklch(0.10 0 0);
+  --color-ink-1: oklch(0.13 0 0);
+  --color-ink-2: oklch(0.18 0 0);
+  --color-ink-3: oklch(0.45 0 0);
+  --color-ink-4: oklch(0.92 0 0);
 
-  /* Primary accent — violet-blue */
-  --color-accent: oklch(66% 0.2 262);
-  --color-accent-muted: oklch(55% 0.15 262);
+  /* Accent — mint/teal */
+  --color-accent: oklch(0.78 0.13 165);
+  --color-accent-muted: oklch(0.62 0.10 165);
 
   /* Semantic */
-  --color-ok: oklch(65% 0.18 145);
-  --color-warn: oklch(75% 0.18 80);
-  --color-danger: oklch(60% 0.22 25);
+  --color-ok: oklch(0.72 0.16 145);
+  --color-warn: oklch(0.78 0.16 75);
+  --color-danger: oklch(0.65 0.20 25);
 
   /* Fonts (injected by next/font) */
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-display: var(--font-instrument-serif);
 }
 
-/* Force dark as the default — no media query flip */
 :root {
   color-scheme: dark;
 }
 
 html {
-  background-color: oklch(10% 0 0);
-  color: oklch(95% 0 0);
+  background-color: oklch(0.10 0 0);
+  color: oklch(0.92 0 0);
 }
 
 body {
   font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+}
+
+/* Hairline divider used inside cards */
+.hairline {
+  border-color: oklch(0.18 0 0);
+}
+
+@keyframes habit-count-pulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.habit-count-pulse {
+  animation: habit-count-pulse 300ms ease-out;
 }

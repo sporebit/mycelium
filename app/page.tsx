@@ -1,12 +1,35 @@
+import { Shell } from "@/components/dashboard/Shell";
+import { Operator } from "@/components/dashboard/cards/Operator";
+import { Session } from "@/components/dashboard/cards/Session";
+import { Habits } from "@/components/dashboard/cards/Habits";
+import { Calendar } from "@/components/dashboard/cards/Calendar";
+import { FinancePulse } from "@/components/dashboard/cards/FinancePulse";
+import { Goals } from "@/components/dashboard/cards/Goals";
+import { KeyBlockers } from "@/components/dashboard/cards/KeyBlockers";
+import { Nutrition } from "@/components/dashboard/cards/Nutrition";
+
 export default function DashboardPage() {
+  const apiSecret = process.env.API_SECRET ?? "";
+
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-ink-0">
-      <div className="flex flex-col items-center gap-3">
-        <h1 className="text-3xl font-semibold text-ink-4 tracking-tight">
-          Dashboard
-        </h1>
-        <p className="text-ink-3 text-sm">Foundation ready.</p>
-      </div>
-    </main>
+    <Shell
+      active="HOME"
+      left={
+        <>
+          <Operator />
+          <FinancePulse />
+          <Goals />
+          <KeyBlockers />
+        </>
+      }
+      centre={
+        <>
+          <Session apiSecret={apiSecret} />
+          <Habits />
+          <Calendar />
+        </>
+      }
+      right={<Nutrition />}
+    />
   );
 }
