@@ -34,14 +34,12 @@ function writeLocalCache(key: string, value: string[]): void {
 }
 
 export function Habits() {
-  const [done, setDone] = useState<Set<string>>(() => new Set());
+  // Lazy init reads localStorage on first render (client-only — readLocalCache
+  // returns [] when window is undefined).
+  const [done, setDone] = useState<Set<string>>(
+    () => new Set(readLocalCache(cacheKeyForToday()))
+  );
   const [error, setError] = useState<string | null>(null);
-
-  // 1. Load from localStorage on mount (instant)
-  useEffect(() => {
-    const cached = readLocalCache(cacheKeyForToday());
-    if (cached.length > 0) setDone(new Set(cached));
-  }, []);
 
   // 2. Then fetch server — server wins
   useEffect(() => {

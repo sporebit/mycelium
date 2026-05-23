@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Task, TaskUrgency } from "@/lib/types/task";
 import { ViewSwitcher, type CrmView } from "./ViewSwitcher";
@@ -27,18 +27,11 @@ export function TasksClient() {
   const searchParams = useSearchParams();
   const focusId = searchParams.get("focus");
   const filterMode = searchParams.get("filter");
-  const consumedFocus = useRef<string | null>(null);
 
-  const [view, setView] = useState<CrmView>("kanban");
+  const [view, setView] = useState<CrmView>(() => readView());
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [search, setSearch] = useState("");
-  const [drawer, setDrawer] = useState<DrawerMode | null>(null);
   const [toast, setToast] = useState<Toast>(null);
-
-  // Restore view preference
-  useEffect(() => {
-    setView(readView());
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -71,16 +64,29 @@ export function TasksClient() {
     setToast({ kind, text });
   }
 
-  // Auto-open drawer when ?focus=ID is present
-  useEffect(() => {
-    if (!tasks || !focusId) return;
-    if (consumedFocus.current === focusId) return;
+  // Drawer state derives purely from the URL focus param + the task list.
+  // No useEffect / no setDrawer — opening/closing the drawer is done via
+  // setDrawerUrl below, which only touches the URL.
+  const drawer = useMemo<DrawerMode | null>(() => {
+    if (!focusId) return null;
+    if (focusId === "new") return { kind: "create" };
+    if (!tasks) return null;
     const t = tasks.find((x) => x.id === focusId);
-    if (t) {
-      setDrawer({ kind: "edit", task: t });
-      consumedFocus.current = focusId;
+    return t ? { kind: "edit", task: t } : null;
+  }, [focusId, tasks]);
+
+  function setDrawerUrl(next: DrawerMode | null) {
+    const p = new URLSearchParams(searchParams.toString());
+    if (next === null) {
+      p.delete("focus");
+    } else if (next.kind === "create") {
+      p.set("focus", "new");
+    } else {
+      p.set("focus", next.task.id);
     }
-  }, [tasks, focusId]);
+    const s = p.toString();
+    router.replace(`/crm/tasks${s ? `?${s}` : ""}`);
+  }
 
   function clearBlockerFilter() {
     const p = new URLSearchParams(searchParams.toString());
@@ -143,16 +149,11 @@ export function TasksClient() {
       setTasks((cur) =>
         (cur ?? []).map((t) => (t.id === id ? j.task! : t))
       );
-      // If this task is open in the drawer, sync
-      setDrawer((d) =>
-        d && d.kind === "edit" && d.task.id === id
-          ? { kind: "edit", task: j.task! }
-          : d
-      );
+      // The drawer derives from tasks.find(focusId), so no manual sync needed.
       // If the task got completed (mark done), remove from open list & close drawer
       if (j.task.completed_at) {
         setTasks((cur) => (cur ?? []).filter((t) => t.id !== id));
-        setDrawer(null);
+        setDrawerUrl(null);
         showToast("Marked done", "success");
       }
       return j.task;
@@ -176,7 +177,7 @@ export function TasksClient() {
         return null;
       }
       setTasks((cur) => [j.task!, ...(cur ?? [])]);
-      setDrawer(null);
+      setDrawerUrl(null);
       showToast("Task created", "success");
       return j.task;
     } catch (err) {
@@ -188,7 +189,7 @@ export function TasksClient() {
   async function deleteTask(id: string): Promise<boolean> {
     const prev = tasks ?? [];
     setTasks((cur) => (cur ?? []).filter((t) => t.id !== id));
-    setDrawer(null);
+    setDrawerUrl(null);
     try {
       const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
       if (!res.ok) {
@@ -240,7 +241,7 @@ export function TasksClient() {
         <div className="flex-1" />
         <button
           type="button"
-          onClick={() => setDrawer({ kind: "create" })}
+          onClick={() => setDrawerUrl({ kind: "create" })}
           className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
         >
           + NEW
@@ -256,26 +257,28 @@ export function TasksClient() {
       ) : view === "kanban" ? (
         <TaskBoard
           tasks={filteredTasks}
-          onCardClick={(t) => setDrawer({ kind: "edit", task: t })}
+          onCardClick={(t) => setDrawerUrl({ kind: "edit", task: t })}
           onMove={handleMove}
         />
       ) : view === "smart" ? (
         <TaskSmart
-          onCardClick={(t) => setDrawer({ kind: "edit", task: t })}
+          onCardClick={(t) => setDrawerUrl({ kind: "edit", task: t })}
           onError={(m) => showToast(m)}
         />
       ) : (
         <TaskCategory
           tasks={filteredTasks}
-          onCardClick={(t) => setDrawer({ kind: "edit", task: t })}
+          onCardClick={(t) => setDrawerUrl({ kind: "edit", task: t })}
         />
       )}
 
-      {/* Drawer */}
+      {/* Drawer — keyed so it remounts (and re-reads task into local draft
+          state) when the focused task changes. */}
       {drawer && (
         <TaskDrawer
+          key={drawer.kind === "edit" ? drawer.task.id : "create"}
           mode={drawer}
-          onClose={() => setDrawer(null)}
+          onClose={() => setDrawerUrl(null)}
           onPatch={patchTask}
           onCreate={createTask}
           onDelete={deleteTask}

@@ -41,7 +41,7 @@ function fmtTime(d: Date): string {
 }
 
 export function Session({ apiSecret }: { apiSecret: string }) {
-  const [now, setNow] = useState<Date | null>(null);
+  const [now, setNow] = useState<Date>(() => new Date());
 
   const [oneThing, setOneThing] = useState<string>("");
   const [oneThingLoaded, setOneThingLoaded] = useState(false);
@@ -53,7 +53,6 @@ export function Session({ apiSecret }: { apiSecret: string }) {
   const [topTasks, setTopTasks] = useState<TopTask[] | null>(null);
 
   useEffect(() => {
-    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
@@ -135,9 +134,7 @@ export function Session({ apiSecret }: { apiSecret: string }) {
       status="ACTIVE"
       statusTone="ok"
       topRight={
-        <span suppressHydrationWarning>
-          {now ? fmtDate(now).toUpperCase() : "—"}
-        </span>
+        <span suppressHydrationWarning>{fmtDate(now).toUpperCase()}</span>
       }
     >
       <div className="flex items-start justify-between gap-6">
@@ -147,7 +144,7 @@ export function Session({ apiSecret }: { apiSecret: string }) {
             style={{ fontSize: "clamp(28px, 3.4vw, 44px)" }}
             suppressHydrationWarning
           >
-            {now ? greeting(now) : "Welcome back"}, {OPERATOR.firstName}
+            {greeting(now)}, {OPERATOR.firstName}
           </h1>
           <p className="mt-1 text-sm text-ink-3">
             Session opened. Capture anything below.
@@ -160,7 +157,7 @@ export function Session({ apiSecret }: { apiSecret: string }) {
             style={{ fontSize: "clamp(28px, 3vw, 40px)" }}
             suppressHydrationWarning
           >
-            {now ? fmtTime(now) : "--:--:--"}
+            {fmtTime(now)}
           </div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
             Local · {OPERATOR.timezone}

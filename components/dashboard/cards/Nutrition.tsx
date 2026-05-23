@@ -105,58 +105,51 @@ function MealRow({
   onChange: (next: Meal) => void;
   onDelete: () => void;
 }) {
-  const [draft, setDraft] = useState<Meal>(meal);
+  // Local-only override while user is typing in the kcal field. Null when
+  // the user isn't actively editing kcal — display falls back to meal.kcal.
+  const [kcalDraft, setKcalDraft] = useState<number | null>(null);
   const redistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastKcalRef = useRef<number>(meal.kcal);
 
-  // Sync from parent when collapsed or meal changes externally
-  useEffect(() => {
-    setDraft(meal);
-    lastKcalRef.current = meal.kcal;
-  }, [meal]);
-
+  // Cleanup pending redistribute timer when meal switches identity or unmounts.
   useEffect(() => {
     return () => {
       if (redistTimer.current) clearTimeout(redistTimer.current);
     };
   }, []);
 
-  function commit(next: Meal) {
-    setDraft(next);
-    onChange(next);
-  }
-
   function changeKcal(v: number) {
-    const next: Meal = { ...draft, kcal: v, estimated: false };
-    setDraft(next);
+    setKcalDraft(v);
     if (redistTimer.current) clearTimeout(redistTimer.current);
+    const name = meal.n;
     redistTimer.current = setTimeout(async () => {
-      if (v === lastKcalRef.current) return;
-      lastKcalRef.current = v;
       try {
         const res = await fetch("/api/nutrition/redistribute", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: draft.n, kcal: v }),
+          body: JSON.stringify({ name, kcal: v }),
         });
         if (!res.ok) {
-          commit({ ...next });
+          onChange({ ...meal, kcal: v, estimated: false });
+          setKcalDraft(null);
           return;
         }
         const j = (await res.json()) as { p: number; c: number; f: number };
-        commit({ ...next, p: j.p, c: j.c, f: j.f });
+        onChange({ ...meal, kcal: v, p: j.p, c: j.c, f: j.f, estimated: false });
+        setKcalDraft(null);
       } catch {
-        commit(next);
+        onChange({ ...meal, kcal: v, estimated: false });
+        setKcalDraft(null);
       }
     }, 600);
   }
 
   function changeMacro(field: "p" | "c" | "f", v: number) {
-    const next = { ...draft, [field]: v, estimated: false };
+    const next = { ...meal, [field]: v, estimated: false };
     next.kcal = kcalFromMacros(next.p, next.c, next.f);
-    lastKcalRef.current = next.kcal;
-    commit(next);
+    onChange(next);
   }
+
+  const displayKcal = kcalDraft ?? meal.kcal;
 
   return (
     <li className="border-b border-ink-2 last:border-b-0">
@@ -187,22 +180,22 @@ function MealRow({
         <div className="px-1 py-2 grid grid-cols-4 gap-2 items-end border-t border-ink-2/50">
           <NumberField
             label="kcal"
-            value={draft.kcal}
+            value={displayKcal}
             onChange={(v) => changeKcal(v)}
           />
           <NumberField
             label="P"
-            value={draft.p}
+            value={meal.p}
             onChange={(v) => changeMacro("p", v)}
           />
           <NumberField
             label="C"
-            value={draft.c}
+            value={meal.c}
             onChange={(v) => changeMacro("c", v)}
           />
           <NumberField
             label="F"
-            value={draft.f}
+            value={meal.f}
             onChange={(v) => changeMacro("f", v)}
           />
           <div className="col-span-4 flex items-center justify-end gap-2 pt-1">
@@ -258,11 +251,10 @@ export function Nutrition() {
   const [input, setInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [now, setNow] = useState<Date | null>(null);
+  const [now, setNow] = useState<Date>(() => new Date());
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
   }, []);
@@ -406,7 +398,7 @@ export function Nutrition() {
         : "on target";
   const deltaTone = delta <= 0 ? "text-ok" : "text-warn";
 
-  const cutoff = now ? cutoffStatus(now) : { label: "—", tone: "ok" as const };
+  const cutoff = cutoffStatus(now);
 
   return (
     <Panel

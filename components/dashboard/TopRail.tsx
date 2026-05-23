@@ -37,7 +37,7 @@ export function TopRail({ active = "HOME" }: { active?: string }) {
       <div className="mx-auto max-w-[1400px] flex items-center gap-6 px-6 py-3">
         {/* Brand */}
         <div className="text-[11px] font-[family-name:var(--font-mono)] tracking-[0.2em] text-ink-4">
-          MYCELIUM OS <span className="text-ink-3">// V3.1</span>
+          MYCELIUM OS <span className="text-ink-3">{"//"} V3.1</span>
         </div>
 
         {/* Tabs */}

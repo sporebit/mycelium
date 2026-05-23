@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   DndContext,
   PointerSensor,
@@ -151,16 +151,15 @@ export function TaskBoard({
     [tasks]
   );
 
-  const [columns, setColumns] = useState<Columns>(() =>
-    groupByUrgency(nonOverdueTasks)
+  const baseColumns = useMemo(
+    () => groupByUrgency(nonOverdueTasks),
+    [nonOverdueTasks]
   );
+  // While a drag is in progress we mirror baseColumns and mutate the mirror.
+  // When the drag ends we clear the override so baseColumns (from props) wins.
+  const [dragOverride, setDragOverride] = useState<Columns | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
-
-  // Sync from props when not actively dragging
-  useEffect(() => {
-    if (draggingId) return;
-    setColumns(groupByUrgency(nonOverdueTasks));
-  }, [nonOverdueTasks, draggingId]);
+  const columns = dragOverride ?? baseColumns;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -168,6 +167,7 @@ export function TaskBoard({
 
   function handleDragStart(e: DragStartEvent) {
     setDraggingId(String(e.active.id));
+    setDragOverride(baseColumns);
   }
 
   function handleDragOver(e: DragOverEvent) {
@@ -176,15 +176,16 @@ export function TaskBoard({
     const activeId = String(active.id);
     const overId = String(over.id);
 
-    setColumns((prev) => {
-      const activeCol = findColumnIn(prev, activeId);
-      const overCol = findColumnIn(prev, overId);
-      if (!activeCol || !overCol || activeCol === overCol) return prev;
+    setDragOverride((prev) => {
+      const source = prev ?? baseColumns;
+      const activeCol = findColumnIn(source, activeId);
+      const overCol = findColumnIn(source, overId);
+      if (!activeCol || !overCol || activeCol === overCol) return source;
 
-      const activeTask = prev[activeCol].find((t) => t.id === activeId);
-      if (!activeTask) return prev;
+      const activeTask = source[activeCol].find((t) => t.id === activeId);
+      if (!activeTask) return source;
 
-      const overTasks = prev[overCol];
+      const overTasks = source[overCol];
       let newIdx: number;
       if (overId.startsWith("column-")) {
         newIdx = overTasks.length;
@@ -194,8 +195,8 @@ export function TaskBoard({
       }
 
       return {
-        ...prev,
-        [activeCol]: prev[activeCol].filter((t) => t.id !== activeId),
+        ...source,
+        [activeCol]: source[activeCol].filter((t) => t.id !== activeId),
         [overCol]: [
           ...overTasks.slice(0, newIdx),
           activeTask,
@@ -208,27 +209,31 @@ export function TaskBoard({
   function handleDragEnd(e: DragEndEvent) {
     const { active, over } = e;
     setDraggingId(null);
-    if (!over) return;
+    if (!over) {
+      setDragOverride(null);
+      return;
+    }
     const activeId = String(active.id);
     const overId = String(over.id);
 
-    setColumns((prev) => {
-      const activeCol = findColumnIn(prev, activeId);
-      const overCol = findColumnIn(prev, overId);
-      if (!activeCol || !overCol) return prev;
+    setDragOverride((prev) => {
+      const source = prev ?? baseColumns;
+      const activeCol = findColumnIn(source, activeId);
+      const overCol = findColumnIn(source, overId);
+      if (!activeCol || !overCol) return null;
 
-      let nextCols = prev;
+      let nextCols = source;
       if (
         activeCol === overCol &&
         activeId !== overId &&
         !overId.startsWith("column-")
       ) {
-        const colTasks = prev[activeCol];
+        const colTasks = source[activeCol];
         const oldIdx = colTasks.findIndex((t) => t.id === activeId);
         const newIdx = colTasks.findIndex((t) => t.id === overId);
         if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
           nextCols = {
-            ...prev,
+            ...source,
             [activeCol]: arrayMove(colTasks, oldIdx, newIdx),
           };
         }
@@ -247,7 +252,9 @@ export function TaskBoard({
         onMove(activeId, overCol, newScore);
       }
 
-      return nextCols;
+      // Clear override — the parent will optimistically update props, and
+      // baseColumns will re-derive from the new task list.
+      return null;
     });
   }
 
@@ -287,7 +294,10 @@ export function TaskBoard({
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
-        onDragCancel={() => setDraggingId(null)}
+        onDragCancel={() => {
+          setDraggingId(null);
+          setDragOverride(null);
+        }}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           {URGENCIES.map((u) => (

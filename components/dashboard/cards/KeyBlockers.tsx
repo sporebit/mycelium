@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Panel } from "../Panel";
@@ -45,30 +45,34 @@ export function KeyBlockers() {
   const router = useRouter();
   const [data, setData] = useState<Response | null>(null);
 
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await fetch("/api/blockers", { cache: "no-store" });
-      if (!res.ok) return;
-      const j = (await res.json()) as Response;
-      setData({
-        blockers: Array.isArray(j?.blockers) ? j.blockers : [],
-        total: typeof j?.total === "number" ? j.total : 0,
-      });
-    } catch {
-      /* keep prior data */
-    }
-  }, []);
-
   useEffect(() => {
-    void fetchData();
-    const id = setInterval(fetchData, 60_000);
-    const onFocus = () => void fetchData();
+    let mounted = true;
+
+    async function load() {
+      try {
+        const res = await fetch("/api/blockers", { cache: "no-store" });
+        if (!res.ok || !mounted) return;
+        const j = (await res.json()) as Response;
+        if (!mounted) return;
+        setData({
+          blockers: Array.isArray(j?.blockers) ? j.blockers : [],
+          total: typeof j?.total === "number" ? j.total : 0,
+        });
+      } catch {
+        /* keep prior data */
+      }
+    }
+
+    void load();
+    const id = setInterval(load, 60_000);
+    const onFocus = () => void load();
     window.addEventListener("focus", onFocus);
     return () => {
+      mounted = false;
       clearInterval(id);
       window.removeEventListener("focus", onFocus);
     };
-  }, [fetchData]);
+  }, []);
 
   const total = data?.total ?? 0;
   const shown = data?.blockers ?? [];

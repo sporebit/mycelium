@@ -61,17 +61,13 @@ function hexAlpha(hex: string, alphaHex: string): string {
 }
 
 export function Calendar() {
-  const [today, setToday] = useState<Date | null>(null);
-  const [nowMin, setNowMin] = useState<Date | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [today] = useState<Date>(() => new Date());
+  const [nowMin, setNowMin] = useState<Date>(() => new Date());
+  const [selected, setSelected] = useState<string>(() => ymd(new Date()));
   const [events, setEvents] = useState<CalendarEvent[] | null>(null);
   const [failedCalendars, setFailedCalendars] = useState<string[]>([]);
 
   useEffect(() => {
-    const d = new Date();
-    setToday(d);
-    setNowMin(d);
-    setSelected(ymd(d));
     const id = setInterval(() => setNowMin(new Date()), 60_000);
     return () => clearInterval(id);
   }, []);
@@ -95,25 +91,23 @@ export function Calendar() {
     };
   }, []);
 
-  const week = useMemo(() => (today ? getWeek(today) : []), [today]);
+  const week = useMemo(() => getWeek(today), [today]);
   const monthLabel = today
-    ? today
-        .toLocaleDateString("en-GB", { month: "long", year: "numeric" })
-        .toUpperCase()
-    : "";
+    .toLocaleDateString("en-GB", { month: "long", year: "numeric" })
+    .toUpperCase();
 
   const dayEvents = useMemo(() => {
-    if (!events || !selected) return [];
+    if (!events) return [];
     return events
       .filter((e) => ymd(new Date(e.start)) === selected)
       .sort((a, b) => a.start.localeCompare(b.start));
   }, [events, selected]);
 
-  const todayKey = today ? ymd(today) : null;
-  const isTodaySelected = selected !== null && selected === todayKey;
+  const todayKey = ymd(today);
+  const isTodaySelected = selected === todayKey;
 
   let nowMarkerIndex = -1;
-  if (isTodaySelected && nowMin && dayEvents.length > 0) {
+  if (isTodaySelected && dayEvents.length > 0) {
     const idx = dayEvents.findIndex((e) => new Date(e.start) > nowMin);
     nowMarkerIndex = idx === -1 ? dayEvents.length : idx;
   }
@@ -122,22 +116,14 @@ export function Calendar() {
     <Panel
       number="04"
       title="CALENDAR"
-      topRight={<Mono>{monthLabel || "—"}</Mono>}
+      topRight={<Mono>{monthLabel}</Mono>}
       bottomCTA={
         <span className="cursor-pointer hover:text-ink-4">OPEN CALENDAR →</span>
       }
     >
       {/* Week strip */}
       <div className="grid grid-cols-7 gap-1.5">
-        {(week.length > 0 ? week : Array.from({ length: 7 })).map((d, i) => {
-          if (!(d instanceof Date)) {
-            return (
-              <div
-                key={i}
-                className="rounded-lg border border-ink-2 bg-ink-0/40 px-2 py-2 h-[60px] animate-pulse"
-              />
-            );
-          }
+        {week.map((d, i) => {
           const key = ymd(d);
           const isToday = todayKey === key;
           const isSelected = selected === key;
@@ -196,7 +182,7 @@ export function Calendar() {
         <ul className="mt-5 flex flex-col divide-y divide-ink-2">
           {dayEvents.flatMap((e, idx) => {
             const rows = [];
-            if (idx === nowMarkerIndex && isTodaySelected && nowMin) {
+            if (idx === nowMarkerIndex && isTodaySelected) {
               rows.push(
                 <li
                   key={`now-${idx}`}
@@ -241,7 +227,7 @@ export function Calendar() {
             );
             return rows;
           })}
-          {nowMarkerIndex === dayEvents.length && isTodaySelected && nowMin && (
+          {nowMarkerIndex === dayEvents.length && isTodaySelected && (
             <li className="flex items-center gap-2 py-1">
               <span className="h-1.5 w-1.5 rounded-full bg-accent shrink-0" />
               <div className="flex-1 h-px bg-accent/40" />

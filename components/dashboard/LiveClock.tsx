@@ -37,10 +37,9 @@ export function LiveClock({
   className?: string;
   intervalMs?: number;
 }) {
-  const [now, setNow] = useState<Date | null>(null);
+  const [now, setNow] = useState<Date>(() => new Date());
 
   useEffect(() => {
-    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), intervalMs);
     return () => clearInterval(id);
   }, [intervalMs]);
@@ -50,7 +49,7 @@ export function LiveClock({
       suppressHydrationWarning
       className={`font-[family-name:var(--font-mono)] tabular-nums ${className}`}
     >
-      {now ? format(now, mode) : "--:--:--"}
+      {format(now, mode)}
     </span>
   );
 }

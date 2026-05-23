@@ -25,6 +25,7 @@ export function TaskDrawer({
   onError: (msg: string) => void;
 }) {
   const isCreate = mode.kind === "create";
+  const initialTask = mode.kind === "edit" ? mode.task : null;
 
   // Local draft state for create mode
   const [draftTitle, setDraftTitle] = useState("");
@@ -38,23 +39,23 @@ export function TaskDrawer({
   const [draftEntity, setDraftEntity] = useState<Entity | null>(null);
   const [creating, setCreating] = useState(false);
 
-  // Edit mode mirrors task in editable fields
-  const [editTitle, setEditTitle] = useState("");
-  const [editDesc, setEditDesc] = useState("");
-  const [editTagsStr, setEditTagsStr] = useState("");
+  // Edit mode mirrors the task's text fields when the drawer mounts.
+  // Parent remounts the drawer with a key={task.id} when switching tasks,
+  // so lazy init is sufficient — no useEffect sync needed.
+  const [editTitle, setEditTitle] = useState<string>(
+    () => initialTask?.title ?? ""
+  );
+  const [editDesc, setEditDesc] = useState<string>(
+    () => initialTask?.description ?? ""
+  );
+  const [editTagsStr, setEditTagsStr] = useState<string>(
+    () => (initialTask?.tags ?? []).join(", ")
+  );
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingDesc, setEditingDesc] = useState(false);
 
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const descInputRef = useRef<HTMLTextAreaElement | null>(null);
-
-  useEffect(() => {
-    if (mode.kind === "edit") {
-      setEditTitle(mode.task.title);
-      setEditDesc(mode.task.description ?? "");
-      setEditTagsStr((mode.task.tags ?? []).join(", "));
-    }
-  }, [mode]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
