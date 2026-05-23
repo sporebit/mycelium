@@ -58,13 +58,24 @@ export async function middleware(req: NextRequest) {
 
   if (isPublic(pathname)) return NextResponse.next();
 
-  // API secret header — for cron / CLI programmatic access
+  // API secret header — for CLI programmatic access
   const apiSecret = req.headers.get("x-api-secret");
   const expectedApiSecret = process.env.API_SECRET;
   if (
     apiSecret &&
     expectedApiSecret &&
     timingSafeEqual(apiSecret, expectedApiSecret)
+  ) {
+    return NextResponse.next();
+  }
+
+  // Authorization: Bearer ${CRON_SECRET} — used by Vercel scheduled functions
+  const authHeader = req.headers.get("authorization");
+  const cronSecret = process.env.CRON_SECRET;
+  if (
+    authHeader &&
+    cronSecret &&
+    timingSafeEqual(authHeader, `Bearer ${cronSecret}`)
   ) {
     return NextResponse.next();
   }

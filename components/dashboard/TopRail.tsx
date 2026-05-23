@@ -7,6 +7,7 @@ const TABS = [
   { label: "FINANCE", href: "/finance" },
   { label: "REVIEW", href: "/review" },
   { label: "HEALTH", href: "/health" },
+  { label: "BRAIN", href: "/brain" },
 ];
 
 function Ticker({

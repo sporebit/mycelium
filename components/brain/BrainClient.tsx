@@ -1,0 +1,287 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Panel } from "@/components/dashboard/Panel";
+import { SearchResults } from "./SearchResults";
+import { AskAnswer } from "./AskAnswer";
+import type { AskSource, SearchMatch } from "@/lib/memory/types";
+
+type Mode = "search" | "ask";
+
+const EXAMPLE_QUERIES = [
+  "what did I capture about Sarah?",
+  "decisions I made about pricing",
+  "tasks from 2 weeks ago",
+];
+
+async function streamAsk(
+  question: string,
+  handlers: {
+    onSources: (sources: AskSource[]) => void;
+    onToken: (token: string) => void;
+    onDone: () => void;
+    onError: (msg: string) => void;
+  },
+  signal: AbortSignal
+): Promise<void> {
+  let res: Response;
+  try {
+    res = await fetch("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+      signal,
+    });
+  } catch (err) {
+    if ((err as Error).name === "AbortError") return;
+    handlers.onError(err instanceof Error ? err.message : "Network error");
+    return;
+  }
+  if (!res.ok || !res.body) {
+    handlers.onError(`Ask failed (${res.status})`);
+    return;
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split("\n\n");
+    buffer = events.pop() ?? "";
+    for (const event of events) {
+      const lines = event.split("\n").filter((l) => l.startsWith("data: "));
+      for (const line of lines) {
+        try {
+          const data = JSON.parse(line.slice(6)) as {
+            type: string;
+            content?: string;
+            sources?: AskSource[];
+            message?: string;
+          };
+          if (data.type === "sources" && data.sources) {
+            handlers.onSources(data.sources);
+          } else if (data.type === "token" && typeof data.content === "string") {
+            handlers.onToken(data.content);
+          } else if (data.type === "done") {
+            handlers.onDone();
+          } else if (data.type === "error") {
+            handlers.onError(data.message ?? "stream error");
+          }
+        } catch {
+          /* ignore malformed event */
+        }
+      }
+    }
+  }
+}
+
+export function BrainClient() {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q") ?? "";
+
+  const [mode, setMode] = useState<Mode>("ask");
+  const [query, setQuery] = useState(initialQuery);
+  const [submitting, setSubmitting] = useState(false);
+  const [memoryCount, setMemoryCount] = useState<number | null>(null);
+
+  // Search state
+  const [matches, setMatches] = useState<SearchMatch[] | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
+  // Ask state
+  const [askAnswer, setAskAnswer] = useState("");
+  const [askSources, setAskSources] = useState<AskSource[]>([]);
+  const [askError, setAskError] = useState<string | null>(null);
+  const askAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    fetch("/api/memory/stats")
+      .then((r) => r.json())
+      .then((j: { count?: number }) => {
+        if (typeof j?.count === "number") setMemoryCount(j.count);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      askAbortRef.current?.abort();
+    };
+  }, []);
+
+  async function runSearch(q: string) {
+    setSearchError(null);
+    setMatches(null);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/memory/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q }),
+      });
+      const j = await res.json();
+      if (!res.ok) {
+        setSearchError(j.error ?? `Search failed (${res.status})`);
+        setMatches([]);
+        return;
+      }
+      setMatches(Array.isArray(j.matches) ? j.matches : []);
+    } catch (err) {
+      setSearchError(err instanceof Error ? err.message : "Network error");
+      setMatches([]);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function runAsk(q: string) {
+    askAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    askAbortRef.current = ctrl;
+
+    setAskError(null);
+    setAskAnswer("");
+    setAskSources([]);
+    setSubmitting(true);
+
+    await streamAsk(
+      q,
+      {
+        onSources: (s) => setAskSources(s),
+        onToken: (t) => setAskAnswer((cur) => cur + t),
+        onDone: () => setSubmitting(false),
+        onError: (m) => {
+          setAskError(m);
+          setSubmitting(false);
+        },
+      },
+      ctrl.signal
+    );
+  }
+
+  function submit(qOverride?: string) {
+    const q = (qOverride ?? query).trim();
+    if (!q || submitting) return;
+    setQuery(q);
+    if (mode === "search") void runSearch(q);
+    else void runAsk(q);
+  }
+
+  const noMemory = memoryCount === 0;
+  const hasResults =
+    (mode === "search" && matches !== null) ||
+    (mode === "ask" && (askAnswer !== "" || askSources.length > 0 || submitting));
+
+  return (
+    <div className="max-w-3xl mx-auto flex flex-col gap-6">
+      {/* Mode tabs */}
+      <div className="flex items-center justify-center gap-1">
+        {(["search", "ask"] as Mode[]).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => setMode(m)}
+            className={`px-4 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] rounded-md transition-colors ${
+              mode === m
+                ? "bg-ink-2 text-ink-4"
+                : "text-ink-3 hover:text-ink-4"
+            }`}
+          >
+            {m.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
+      {/* Input */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          submit();
+        }}
+        className="rounded-2xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl px-5 py-4 flex items-center gap-3 shadow-lg"
+      >
+        <input
+          autoFocus
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={
+            mode === "ask"
+              ? "Ask your OS anything…"
+              : "Search your memory…"
+          }
+          disabled={submitting}
+          className="flex-1 bg-transparent outline-none text-base text-ink-4 placeholder:text-ink-3 italic font-[family-name:var(--font-display)]"
+        />
+        <button
+          type="submit"
+          disabled={!query.trim() || submitting}
+          className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+        >
+          {submitting
+            ? "…"
+            : mode === "ask"
+              ? "ASK →"
+              : "SEARCH →"}
+        </button>
+      </form>
+
+      {/* Empty memory state */}
+      {noMemory && (
+        <Panel title="Empty memory">
+          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+            Start capturing to build your memory. Every Telegram message, web
+            capture, and task you create gets embedded and becomes searchable
+            here.
+          </p>
+        </Panel>
+      )}
+
+      {/* Example queries (only when nothing submitted yet) */}
+      {!hasResults && !noMemory && (
+        <div className="flex flex-col gap-3">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] text-center">
+            Try
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {EXAMPLE_QUERIES.map((ex) => (
+              <button
+                key={ex}
+                type="button"
+                onClick={() => {
+                  setQuery(ex);
+                  submit(ex);
+                }}
+                className="px-3 py-1.5 rounded-full border border-ink-2 bg-ink-0/40 text-sm text-ink-3 hover:border-ink-3 hover:text-ink-4 transition-colors italic font-[family-name:var(--font-display)]"
+              >
+                {ex}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Results */}
+      {mode === "search" ? (
+        <SearchResults
+          loading={submitting}
+          matches={matches}
+          error={searchError}
+        />
+      ) : (
+        <AskAnswer
+          streaming={submitting}
+          answer={askAnswer}
+          sources={askSources}
+          error={askError}
+          highlightedSource={null}
+        />
+      )}
+    </div>
+  );
+}

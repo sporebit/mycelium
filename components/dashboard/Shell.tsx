@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { TopRail } from "./TopRail";
+import { GlobalSearch } from "./GlobalSearch";
 
 export function Shell({
   active = "HOME",
@@ -29,6 +30,8 @@ export function Shell({
           </div>
         )}
       </main>
+
+      <GlobalSearch />
     </div>
   );
 }
