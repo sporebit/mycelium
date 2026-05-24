@@ -10,6 +10,16 @@ export async function transcribeAudio(
   form.append("file", new Blob([buffer], { type: contentType }), filename);
   form.append("model", "whisper-1");
   form.append("response_format", "json");
+  // Force English. Without this, Whisper occasionally mis-detects short
+  // English clips with accent variation as Welsh / other languages.
+  form.append("language", "en");
+  // Vocabulary hint — biases Whisper toward spelling of frequent terms.
+  form.append(
+    "prompt",
+    "A personal capture, possibly about tasks, ideas, meetings, reflections, or daily observations. Names of people and places may include: Phil, Sporebit, Mycelium, Armthorpe, Doncaster."
+  );
+  // Deterministic output (default is 0, but we set it explicitly).
+  form.append("temperature", "0");
 
   const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
     method: "POST",
