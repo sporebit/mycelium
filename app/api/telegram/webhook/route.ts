@@ -139,6 +139,15 @@ async function handleMessage(message: TgMessage): Promise<void> {
     text: rawText,
   });
 
+  // Journal entries are reflective, not actionable — no urgency/key buttons.
+  if (classification.kind === "journal") {
+    await sendMessage(
+      chatId,
+      `📓 Journal entry saved — ${classification.title}`
+    );
+    return;
+  }
+
   const label = classification.kind.toUpperCase();
   const reply = `✓ Captured as ${label} — ${classification.urgency}: ${classification.title}`;
   await sendMessage(chatId, reply, {
