@@ -1,12 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Task } from "@/lib/types/task";
 
-type RawTaskRow = Omit<Task, "entity_name"> & {
+type RawTaskRow = Omit<Task, "entity_name" | "sub_tasks"> & {
   entities: { name: string } | { name: string }[] | null;
 };
 
 export const TASK_SELECT =
-  "id, user_id, title, description, urgency, key, priority_score, time_estimate_min, tags, due_date, owner, entity_id, completed_at, created_at, updated_at, entities(name)";
+  "id, user_id, title, description, urgency, key, priority_score, time_estimate_min, tags, due_date, owner, entity_id, completed_at, created_at, updated_at, parent_task_id, entities(name)";
 
 export function serializeTask(row: RawTaskRow): Task {
   const ent = Array.isArray(row.entities) ? row.entities[0] : row.entities;

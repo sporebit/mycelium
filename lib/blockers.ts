@@ -9,6 +9,8 @@ export type BlockerRow = {
   key: boolean;
   isOverdue: boolean;
   priority_score: number | null;
+  parent_task_id: string | null;
+  parent_title: string | null;
 };
 
 export function isBlocker(t: Task, todayKey: string): boolean {
@@ -31,7 +33,12 @@ function isoToLocalKey(iso: string, tz: string): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(d);
 }
 
-export function toBlockerRow(t: Task, todayKey: string, tz: string): BlockerRow {
+export function toBlockerRow(
+  t: Task,
+  todayKey: string,
+  tz: string,
+  parentTitleLookup?: Map<string, string>
+): BlockerRow {
   const overdue = !!(t.due_date && t.due_date < todayKey);
   let stuckDays: number;
   if (overdue && t.due_date) {
@@ -40,6 +47,10 @@ export function toBlockerRow(t: Task, todayKey: string, tz: string): BlockerRow 
     const updatedKey = isoToLocalKey(t.updated_at, tz);
     stuckDays = Math.max(0, daysBetweenKeys(todayKey, updatedKey));
   }
+  const parentTitle =
+    t.parent_task_id && parentTitleLookup
+      ? (parentTitleLookup.get(t.parent_task_id) ?? null)
+      : null;
   return {
     id: t.id,
     title: t.title,
@@ -49,6 +60,8 @@ export function toBlockerRow(t: Task, todayKey: string, tz: string): BlockerRow 
     key: t.key,
     isOverdue: overdue,
     priority_score: t.priority_score,
+    parent_task_id: t.parent_task_id,
+    parent_title: parentTitle,
   };
 }
 

@@ -15,9 +15,11 @@ const EXAMPLES = [
 export function TaskSmart({
   onCardClick,
   onError,
+  tasksById,
 }: {
   onCardClick: (t: Task) => void;
   onError: (msg: string) => void;
+  tasksById?: Map<string, Task>;
 }) {
   const [query, setQuery] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -120,11 +122,26 @@ export function TaskSmart({
             </div>
           ) : (
             <ul className="flex flex-col gap-2">
-              {results.map((t) => (
-                <li key={t.id}>
-                  <TaskCard task={t} onClick={() => onCardClick(t)} />
-                </li>
-              ))}
+              {results.map((t) => {
+                const parent =
+                  t.parent_task_id && tasksById
+                    ? tasksById.get(t.parent_task_id)
+                    : null;
+                return (
+                  <li key={t.id}>
+                    {parent && (
+                      <button
+                        type="button"
+                        onClick={() => onCardClick(parent)}
+                        className="block w-full text-left text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] mb-1 pl-1"
+                      >
+                        ↑ {parent.title}
+                      </button>
+                    )}
+                    <TaskCard task={t} onClick={() => onCardClick(t)} />
+                  </li>
+                );
+              })}
             </ul>
           )}
         </>

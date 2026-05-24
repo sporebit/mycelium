@@ -30,9 +30,13 @@ export async function GET() {
     const tasks = (data ?? []).map((row) =>
       serializeTask(row as Parameters<typeof serializeTask>[0])
     );
+    // Title lookup so sub-task blockers can render "↑ Parent · Sub-task".
+    const titleById = new Map<string, string>();
+    for (const t of tasks) titleById.set(t.id, t.title);
+
     const matching = tasks.filter((t) => isBlocker(t, todayKey));
     const rows = sortBlockers(
-      matching.map((t) => toBlockerRow(t, todayKey, tz))
+      matching.map((t) => toBlockerRow(t, todayKey, tz, titleById))
     );
 
     return NextResponse.json({

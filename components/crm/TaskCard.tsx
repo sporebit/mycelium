@@ -34,15 +34,23 @@ export function TaskCard({
   onClick,
   dragging = false,
   compact = false,
+  muted = false,
+  subStats,
 }: {
   task: Task;
   onClick?: () => void;
   dragging?: boolean;
   compact?: boolean;
+  muted?: boolean;
+  subStats?: { done: number; total: number } | null;
 }) {
   const tone = pillToneFor(task);
   const due = dueLabel(task.due_date);
   const tags = (task.tags ?? []).slice(0, 2);
+  const titleClass = muted ? "text-ink-3" : "text-ink-4";
+  const cardClass = muted
+    ? "border-ink-2/60 bg-ink-1/40 hover:border-ink-3"
+    : "border-ink-2 hover:border-ink-3";
 
   return (
     <div
@@ -50,12 +58,17 @@ export function TaskCard({
       className={`group rounded-lg border bg-ink-1/70 backdrop-blur-sm px-3 py-2.5 flex flex-col gap-2 cursor-pointer transition-colors ${
         dragging
           ? "border-accent/60 shadow-2xl shadow-accent/10"
-          : "border-ink-2 hover:border-ink-3"
-      } ${compact ? "py-2" : ""}`}
+          : cardClass
+      } ${compact ? "py-1.5" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="text-sm text-ink-4 leading-snug min-w-0 break-words">
+        <div className={`text-sm leading-snug min-w-0 break-words ${titleClass}`}>
           {task.title}
+          {subStats && subStats.total > 0 && (
+            <Mono className="ml-2 text-[10px] text-ink-3">
+              {subStats.done}/{subStats.total}
+            </Mono>
+          )}
         </div>
         <UrgencyPill tone={tone} />
       </div>

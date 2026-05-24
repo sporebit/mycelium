@@ -31,6 +31,11 @@ import { TaskCard } from "./TaskCard";
 
 type Columns = Record<TaskUrgency, Task[]>;
 
+/**
+ * Display order per column: each parent immediately followed by its
+ * sub-tasks (sorted by created_at). Parents sorted by priority_score desc.
+ * Sub-tasks ignore their own urgency and live with their parent.
+ */
 function groupByUrgency(tasks: Task[]): Columns {
   const out: Columns = {
     today: [],
@@ -38,12 +43,28 @@ function groupByUrgency(tasks: Task[]): Columns {
     this_month: [],
     someday: [],
   };
+  const topLevel = tasks.filter((t) => !t.parent_task_id);
+  const subsByParent = new Map<string, Task[]>();
   for (const t of tasks) {
-    const u = (t.urgency ?? "someday") as TaskUrgency;
-    if (URGENCIES.includes(u)) out[u].push(t);
+    if (!t.parent_task_id) continue;
+    const list = subsByParent.get(t.parent_task_id) ?? [];
+    list.push(t);
+    subsByParent.set(t.parent_task_id, list);
   }
+
   for (const u of URGENCIES) {
-    out[u].sort((a, b) => (b.priority_score ?? 0) - (a.priority_score ?? 0));
+    const parents = topLevel
+      .filter((t) => (t.urgency ?? "someday") === u)
+      .sort(
+        (a, b) => (b.priority_score ?? 0) - (a.priority_score ?? 0)
+      );
+    for (const parent of parents) {
+      out[u].push(parent);
+      const kids = (subsByParent.get(parent.id) ?? []).sort((a, b) =>
+        a.created_at.localeCompare(b.created_at)
+      );
+      out[u].push(...kids);
+    }
   }
   return out;
 }
@@ -62,9 +83,13 @@ function findColumnIn(cols: Columns, idOrCol: string): TaskUrgency | null {
 function SortableTaskCard({
   task,
   onClick,
+  isSubTask,
+  subStats,
 }: {
   task: Task;
   onClick: (t: Task) => void;
+  isSubTask: boolean;
+  subStats: { done: number; total: number } | null;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: task.id });
@@ -76,8 +101,26 @@ function SortableTaskCard({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskCard task={task} onClick={() => onClick(task)} />
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={isSubTask ? "pl-6 relative" : ""}
+    >
+      {isSubTask && (
+        <span
+          aria-hidden
+          className="absolute left-2 top-0 bottom-0 w-px bg-ink-2"
+        />
+      )}
+      <TaskCard
+        task={task}
+        onClick={() => onClick(task)}
+        compact={isSubTask}
+        muted={isSubTask}
+        subStats={subStats}
+      />
     </div>
   );
 }
@@ -86,21 +129,25 @@ function Column({
   urgency,
   tasks,
   onCardClick,
+  subStatsById,
 }: {
   urgency: TaskUrgency;
   tasks: Task[];
   onCardClick: (t: Task) => void;
+  subStatsById: Map<string, { done: number; total: number }>;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `column-${urgency}` });
   const ids = tasks.map((t) => t.id);
   const isEmpty = tasks.length === 0;
+  // The column header counts top-level tasks only — sub-tasks are nested.
+  const topLevelCount = tasks.filter((t) => !t.parent_task_id).length;
 
   return (
     <div className="flex flex-col gap-2 min-w-0">
       <div className="flex items-center justify-between px-1">
         <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
           {URGENCY_LABEL[urgency]}{" "}
-          <span className="text-ink-4">{tasks.length}</span>
+          <span className="text-ink-4">{topLevelCount}</span>
         </span>
       </div>
       <div
@@ -116,7 +163,15 @@ function Column({
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
           <div className="flex flex-col gap-2">
             {tasks.map((t) => (
-              <SortableTaskCard key={t.id} task={t} onClick={onCardClick} />
+              <SortableTaskCard
+                key={t.id}
+                task={t}
+                onClick={onCardClick}
+                isSubTask={!!t.parent_task_id}
+                subStats={
+                  !t.parent_task_id ? (subStatsById.get(t.id) ?? null) : null
+                }
+              />
             ))}
             {isEmpty && (
               <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] text-center py-6">
@@ -137,26 +192,47 @@ export function TaskBoard({
 }: {
   tasks: Task[];
   onCardClick: (t: Task) => void;
-  onMove: (id: string, urgency: TaskUrgency, priorityScore: number) => void;
+  onMove: (
+    id: string,
+    urgency: TaskUrgency,
+    priorityScore: number,
+    extra?: Partial<Task>
+  ) => void;
 }) {
+  // Overdue row shows top-level tasks only — sub-task overdue inherits parent
+  // visibility by being grouped under it in the column.
   const overdueTasks = useMemo(
     () =>
       tasks
-        .filter((t) => isOverdue(t))
+        .filter((t) => isOverdue(t) && !t.parent_task_id)
         .sort((a, b) => (b.priority_score ?? 0) - (a.priority_score ?? 0)),
     [tasks]
   );
   const nonOverdueTasks = useMemo(
-    () => tasks.filter((t) => !isOverdue(t)),
+    () =>
+      tasks.filter(
+        (t) => t.parent_task_id !== null || !isOverdue(t)
+      ),
     [tasks]
   );
+
+  // Per-parent stats: how many sub-tasks are done / total.
+  const subStatsById = useMemo(() => {
+    const m = new Map<string, { done: number; total: number }>();
+    for (const t of tasks) {
+      if (!t.parent_task_id) continue;
+      const prev = m.get(t.parent_task_id) ?? { done: 0, total: 0 };
+      prev.total += 1;
+      if (t.completed_at) prev.done += 1;
+      m.set(t.parent_task_id, prev);
+    }
+    return m;
+  }, [tasks]);
 
   const baseColumns = useMemo(
     () => groupByUrgency(nonOverdueTasks),
     [nonOverdueTasks]
   );
-  // While a drag is in progress we mirror baseColumns and mutate the mirror.
-  // When the drag ends we clear the override so baseColumns (from props) wins.
   const [dragOverride, setDragOverride] = useState<Columns | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const columns = dragOverride ?? baseColumns;
@@ -215,6 +291,8 @@ export function TaskBoard({
     }
     const activeId = String(active.id);
     const overId = String(over.id);
+    const draggedTask = tasks.find((t) => t.id === activeId);
+    const wasSubTask = !!draggedTask?.parent_task_id;
 
     setDragOverride((prev) => {
       const source = prev ?? baseColumns;
@@ -222,6 +300,28 @@ export function TaskBoard({
       const overCol = findColumnIn(source, overId);
       if (!activeCol || !overCol) return null;
 
+      // Sub-task moved within its current column → ignore (no persist).
+      // Sub-task moved across columns → promote to top-level.
+      if (wasSubTask) {
+        if (activeCol !== overCol) {
+          // Promote: clear parent_task_id, adopt destination urgency.
+          // Compute a midpoint score against the destination column's
+          // top-level neighbours (ignore sub-tasks of other parents).
+          const colTasks = source[overCol];
+          const finalIdx = colTasks.findIndex((t) => t.id === activeId);
+          const above =
+            finalIdx > 0 ? colTasks[finalIdx - 1].priority_score : null;
+          const below =
+            finalIdx < colTasks.length - 1
+              ? colTasks[finalIdx + 1].priority_score
+              : null;
+          const newScore = midpointScore(above, below);
+          onMove(activeId, overCol, newScore, { parent_task_id: null });
+        }
+        return null;
+      }
+
+      // Top-level task: existing reorder/move logic.
       let nextCols = source;
       if (
         activeCol === overCol &&
@@ -252,14 +352,13 @@ export function TaskBoard({
         onMove(activeId, overCol, newScore);
       }
 
-      // Clear override — the parent will optimistically update props, and
-      // baseColumns will re-derive from the new task list.
       return null;
     });
   }
 
   const draggingTask =
     draggingId !== null ? tasks.find((t) => t.id === draggingId) ?? null : null;
+  const draggingIsSub = !!draggingTask?.parent_task_id;
 
   return (
     <div className="flex flex-col gap-4">
@@ -282,6 +381,7 @@ export function TaskBoard({
                 task={t}
                 onClick={() => onCardClick(t)}
                 compact
+                subStats={subStatsById.get(t.id) ?? null}
               />
             ))}
           </div>
@@ -306,12 +406,18 @@ export function TaskBoard({
               urgency={u}
               tasks={columns[u]}
               onCardClick={onCardClick}
+              subStatsById={subStatsById}
             />
           ))}
         </div>
         <DragOverlay>
           {draggingTask ? (
-            <TaskCard task={draggingTask} dragging />
+            <TaskCard
+              task={draggingTask}
+              dragging
+              compact={draggingIsSub}
+              muted={draggingIsSub}
+            />
           ) : null}
         </DragOverlay>
       </DndContext>

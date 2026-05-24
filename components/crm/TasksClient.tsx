@@ -206,8 +206,40 @@ export function TasksClient() {
     }
   }
 
-  function handleMove(id: string, urgency: TaskUrgency, priorityScore: number) {
-    void patchTask(id, { urgency, priority_score: priorityScore });
+  function handleMove(
+    id: string,
+    urgency: TaskUrgency,
+    priorityScore: number,
+    extra?: Partial<Task>
+  ) {
+    void patchTask(id, { urgency, priority_score: priorityScore, ...extra });
+    if (extra && "parent_task_id" in extra && extra.parent_task_id === null) {
+      showToast("Promoted to top-level task", "success");
+    }
+  }
+
+  // Look-up maps for the drawer + smart view
+  const tasksById = useMemo(() => {
+    const m = new Map<string, Task>();
+    for (const t of tasks ?? []) m.set(t.id, t);
+    return m;
+  }, [tasks]);
+
+  const childrenForDrawer: Task[] = useMemo(() => {
+    if (!drawer || drawer.kind !== "edit") return [];
+    const parentId = drawer.task.id;
+    return (tasks ?? []).filter((t) => t.parent_task_id === parentId);
+  }, [drawer, tasks]);
+
+  const parentForDrawer: Task | null = useMemo(() => {
+    if (!drawer || drawer.kind !== "edit") return null;
+    const pid = drawer.task.parent_task_id;
+    return pid ? (tasksById.get(pid) ?? null) : null;
+  }, [drawer, tasksById]);
+
+  function jumpToTask(id: string) {
+    const t = tasksById.get(id);
+    if (t) setDrawerUrl({ kind: "edit", task: t });
   }
 
   return (
@@ -264,6 +296,7 @@ export function TasksClient() {
         <TaskSmart
           onCardClick={(t) => setDrawerUrl({ kind: "edit", task: t })}
           onError={(m) => showToast(m)}
+          tasksById={tasksById}
         />
       ) : (
         <TaskCategory
@@ -283,6 +316,9 @@ export function TasksClient() {
           onCreate={createTask}
           onDelete={deleteTask}
           onError={(m) => showToast(m)}
+          parent={parentForDrawer}
+          subTasks={childrenForDrawer}
+          onJumpToTask={jumpToTask}
         />
       )}
 

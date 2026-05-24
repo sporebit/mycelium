@@ -16,6 +16,9 @@ export function TaskDrawer({
   onCreate,
   onDelete,
   onError,
+  parent,
+  subTasks: childTasks,
+  onJumpToTask,
 }: {
   mode: DrawerMode;
   onClose: () => void;
@@ -23,6 +26,9 @@ export function TaskDrawer({
   onCreate: (payload: Partial<Task>) => Promise<Task | null>;
   onDelete: (id: string) => Promise<boolean>;
   onError: (msg: string) => void;
+  parent?: Task | null;
+  subTasks?: Task[];
+  onJumpToTask?: (taskId: string) => void;
 }) {
   const isCreate = mode.kind === "create";
   const initialTask = mode.kind === "edit" ? mode.task : null;
@@ -136,6 +142,13 @@ export function TaskDrawer({
 
   async function handleMarkDone() {
     if (!task) return;
+    const openKids = (childTasks ?? []).filter((c) => !c.completed_at);
+    if (openKids.length > 0) {
+      const proceed = window.confirm(
+        `Mark parent done? ${openKids.length} sub-task${openKids.length === 1 ? "" : "s"} ${openKids.length === 1 ? "is" : "are"} still open. They'll remain visible until completed individually.`
+      );
+      if (!proceed) return;
+    }
     const result = await onPatch(task.id, {
       completed_at: new Date().toISOString(),
     });
@@ -144,9 +157,43 @@ export function TaskDrawer({
 
   async function handleDelete() {
     if (!task) return;
-    if (!window.confirm(`Delete "${task.title}"? This cannot be undone.`)) return;
+    const kidsCount = childTasks?.length ?? 0;
+    const msg =
+      kidsCount > 0
+        ? `Delete this task and ${kidsCount} sub-task${kidsCount === 1 ? "" : "s"}? This cannot be undone.`
+        : `Delete "${task.title}"? This cannot be undone.`;
+    if (!window.confirm(msg)) return;
     const ok = await onDelete(task.id);
     if (!ok) onError("Failed to delete");
+  }
+
+  // Inline sub-task add (only meaningful when editing a top-level task)
+  const [subDraft, setSubDraft] = useState("");
+  const [addingSub, setAddingSub] = useState(false);
+  const canHaveChildren = !!task && !task.parent_task_id;
+
+  async function addSubTask() {
+    if (!task || !subDraft.trim() || addingSub) return;
+    setAddingSub(true);
+    try {
+      const created = await onCreate({
+        title: subDraft.trim(),
+        parent_task_id: task.id,
+      });
+      if (!created) {
+        onError("Failed to add sub-task");
+        return;
+      }
+      setSubDraft("");
+    } finally {
+      setAddingSub(false);
+    }
+  }
+
+  async function toggleSubDone(sub: Task) {
+    await onPatch(sub.id, {
+      completed_at: sub.completed_at ? null : new Date().toISOString(),
+    });
   }
 
   return (
@@ -175,6 +222,18 @@ export function TaskDrawer({
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
+          {/* PARENT REFERENCE (when editing a sub-task) */}
+          {!isCreate && parent && (
+            <button
+              type="button"
+              onClick={() => onJumpToTask?.(parent.id)}
+              className="text-left text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-accent transition-colors font-[family-name:var(--font-mono)] flex items-center gap-1.5"
+            >
+              <span aria-hidden>↑</span>
+              <span>Parent · {parent.title}</span>
+            </button>
+          )}
+
           {/* TITLE */}
           <Field label="Title">
             {isCreate ? (
@@ -383,6 +442,76 @@ export function TaskDrawer({
               onError={onError}
             />
           </Field>
+
+          {/* SUB-TASKS (only for top-level tasks being edited) */}
+          {!isCreate && canHaveChildren && (
+            <Field
+              label={`Sub-tasks${
+                childTasks && childTasks.length > 0
+                  ? ` · ${childTasks.filter((c) => c.completed_at).length}/${childTasks.length}`
+                  : ""
+              }`}
+            >
+              <ul className="flex flex-col divide-y divide-ink-2">
+                {(childTasks ?? []).length === 0 ? (
+                  <li className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-1">
+                    None yet.
+                  </li>
+                ) : (
+                  (childTasks ?? []).map((sub) => {
+                    const done = !!sub.completed_at;
+                    return (
+                      <li
+                        key={sub.id}
+                        className="flex items-center gap-2 py-1.5"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleSubDone(sub)}
+                          aria-label={done ? "Mark not done" : "Mark done"}
+                          className={`h-4 w-4 shrink-0 rounded-sm border flex items-center justify-center text-[10px] leading-none transition-colors ${
+                            done
+                              ? "border-ok bg-ok text-ink-0"
+                              : "border-ink-3 hover:border-ink-4"
+                          }`}
+                        >
+                          {done && "✓"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onJumpToTask?.(sub.id)}
+                          className={`flex-1 text-left text-sm leading-snug min-w-0 break-words ${
+                            done
+                              ? "text-ink-3 line-through"
+                              : "text-ink-4 hover:text-accent"
+                          } transition-colors`}
+                        >
+                          {sub.title}
+                        </button>
+                      </li>
+                    );
+                  })
+                )}
+              </ul>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  addSubTask();
+                }}
+                className="flex items-center gap-2 mt-2"
+              >
+                <span className="text-ink-3 text-sm shrink-0">+</span>
+                <input
+                  type="text"
+                  value={subDraft}
+                  onChange={(e) => setSubDraft(e.target.value)}
+                  disabled={addingSub}
+                  placeholder="add a sub-task"
+                  className="flex-1 bg-transparent outline-none text-sm text-ink-4 placeholder:text-ink-3 italic font-[family-name:var(--font-display)] border-b border-transparent focus:border-ink-2 pb-0.5"
+                />
+              </form>
+            </Field>
+          )}
         </div>
 
         <footer className="border-t border-ink-2 px-4 py-3 flex items-center gap-2">

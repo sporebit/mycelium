@@ -12,13 +12,15 @@ const SYSTEM_PROMPT = `You are a task-search assistant. The user is searching th
 
 You will receive:
 - The user's query.
-- A JSON array of their open tasks. Each task has: id, title, description, urgency, key (critical flag), tags, entity_name (person/org), due_date, priority_score.
+- A JSON array of their open tasks. Each task has: id, title, description, urgency, key (critical flag), tags, entity_name (person/org), due_date, priority_score, parent_task_id (uuid if it's a sub-task, null otherwise), parent_title (the title of the parent task if applicable).
+
+Some tasks have parent_task_id pointing to a parent task — those are sub-tasks broken out of a larger piece of work. When returning a relevant sub-task, the explanation should mention the parent ("Book restaurant, part of Plan party").
 
 Your job: return JSON in this exact shape:
 { "task_ids": string[], "explanation": string }
 
 - "task_ids" is an array of task IDs (UUID strings) ordered by relevance, max 20 items. Only include real ids from the list.
-- "explanation" is one short sentence summarising your interpretation.
+- "explanation" is one short sentence summarising your interpretation; reference parent context when matches are sub-tasks.
 
 Respond ONLY with the JSON. No markdown, no preface.`;
 
@@ -33,10 +35,13 @@ type SmartTask = Pick<
   | "entity_name"
   | "due_date"
   | "priority_score"
->;
+  | "parent_task_id"
+> & { parent_title: string | null };
 
-function pickForLLM(t: Task): SmartTask {
-  return {
+function buildPickForLLM(
+  titleById: Map<string, string>
+): (t: Task) => SmartTask {
+  return (t) => ({
     id: t.id,
     title: t.title,
     description: t.description,
@@ -46,7 +51,11 @@ function pickForLLM(t: Task): SmartTask {
     entity_name: t.entity_name,
     due_date: t.due_date,
     priority_score: t.priority_score,
-  };
+    parent_task_id: t.parent_task_id,
+    parent_title: t.parent_task_id
+      ? (titleById.get(t.parent_task_id) ?? null)
+      : null,
+  });
 }
 
 function extractJson(text: string): unknown {
@@ -114,6 +123,9 @@ async function callClaude(
   const model = process.env.ANTHROPIC_MODEL;
   if (!apiKey || !model) return null;
 
+  const titleById = new Map<string, string>();
+  for (const t of tasks) titleById.set(t.id, t.title);
+  const pickForLLM = buildPickForLLM(titleById);
   const userMessage = `Query: ${query}\n\nTasks (JSON):\n${JSON.stringify(tasks.map(pickForLLM))}`;
 
   const controller = new AbortController();

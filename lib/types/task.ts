@@ -31,6 +31,10 @@ export type Task = {
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+  parent_task_id: string | null;
+  // Populated by callers that want the nested view (e.g. include_children=true
+  // on /api/tasks, or client-side attachment).
+  sub_tasks?: Task[];
 };
 
 export type Entity = {

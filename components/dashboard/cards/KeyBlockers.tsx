@@ -136,6 +136,11 @@ export function KeyBlockers() {
                 className="w-full text-left flex items-start gap-3 py-2.5 first:pt-0 last:pb-0 hover:bg-ink-2/30 transition-colors px-1 -mx-1 rounded-md"
               >
                 <div className="flex-1 min-w-0">
+                  {b.parent_title && (
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-0.5 truncate">
+                      ↑ {b.parent_title}
+                    </div>
+                  )}
                   <div className="text-sm text-ink-4 break-words leading-snug">
                     {b.title}
                   </div>

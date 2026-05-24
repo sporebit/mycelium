@@ -17,6 +17,7 @@ const ALLOWED_FIELDS = new Set([
   "owner",
   "entity_id",
   "completed_at",
+  "parent_task_id",
 ]);
 
 function userId(): string | null {
@@ -52,6 +53,60 @@ export async function PATCH(
 
   try {
     const supabase = createServerClient();
+
+    // Sub-task validation if parent_task_id is being changed.
+    if (Object.prototype.hasOwnProperty.call(update, "parent_task_id")) {
+      const newParent = update.parent_task_id;
+      if (newParent !== null && typeof newParent !== "string") {
+        return NextResponse.json(
+          { error: "parent_task_id must be a uuid string or null" },
+          { status: 400 }
+        );
+      }
+      if (newParent === id) {
+        return NextResponse.json(
+          { error: "A task cannot be its own parent." },
+          { status: 400 }
+        );
+      }
+      if (newParent !== null) {
+        const { data: parent, error: parentErr } = await supabase
+          .from("tasks")
+          .select("parent_task_id")
+          .eq("user_id", uid)
+          .eq("id", newParent)
+          .maybeSingle();
+        if (parentErr || !parent) {
+          return NextResponse.json(
+            { error: "parent task not found" },
+            { status: 400 }
+          );
+        }
+        if (parent.parent_task_id) {
+          return NextResponse.json(
+            { error: "Sub-tasks cannot have their own sub-tasks." },
+            { status: 400 }
+          );
+        }
+        // The task itself cannot be made a sub-task while it still has children.
+        const { data: kids } = await supabase
+          .from("tasks")
+          .select("id")
+          .eq("user_id", uid)
+          .eq("parent_task_id", id)
+          .limit(1);
+        if (kids && kids.length > 0) {
+          return NextResponse.json(
+            {
+              error:
+                "This task has sub-tasks; it cannot itself become a sub-task.",
+            },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     const { data, error } = await supabase
       .from("tasks")
       .update(update)
@@ -86,6 +141,7 @@ export async function DELETE(
 
   try {
     const supabase = createServerClient();
+    // FK is ON DELETE CASCADE, so sub-tasks go with the parent automatically.
     const { error } = await supabase
       .from("tasks")
       .delete()
