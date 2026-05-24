@@ -3,6 +3,10 @@
     {
       "path": "/api/finance/snapshot",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/fuel?warm=1",
+      "schedule": "0 7 * * *"
     }
   ]
 }

@@ -14,6 +14,8 @@ const FULL_NAMES: Record<string, string> = {
   COPPER: "Copper Futures (HG=F)",
   PALLADIUM: "Palladium Futures (PA=F)",
   OIL: "Brent Crude Oil (BZ=F)",
+  E10: "Petrol (E10) — avg within 5 mi of Armthorpe",
+  B7: "Diesel (B7) — avg within 5 mi of Armthorpe",
 };
 
 function fmtPrice(symbol: string, price: number): string {
@@ -37,6 +39,9 @@ function fmtPrice(symbol: string, price: number): string {
   }
   if (symbol === "SPX" || symbol === "NDX") {
     return Math.round(price).toLocaleString("en-US");
+  }
+  if (symbol === "E10" || symbol === "B7") {
+    return `${price.toFixed(1)}p`;
   }
   return String(price);
 }
@@ -94,12 +99,14 @@ export function RotatingTicker({
     setPaused((p) => !p);
   }
 
+  const changePct = current?.change_pct;
+  const hasChange = typeof changePct === "number";
   const changeTone =
-    current === null
+    !hasChange
       ? "text-ink-3"
-      : current.change_pct > 0
+      : changePct > 0
         ? "text-ok"
-        : current.change_pct < 0
+        : changePct < 0
           ? "text-danger"
           : "text-ink-3";
 
@@ -110,7 +117,7 @@ export function RotatingTicker({
       title={current ? FULL_NAMES[current.symbol] ?? current.symbol : category}
       aria-label={
         current
-          ? `${FULL_NAMES[current.symbol] ?? current.symbol}, ${fmtPrice(current.symbol, current.price)}, ${fmtPct(current.change_pct)}${interactive ? (paused ? ", click to resume" : ", click to pause") : ""}`
+          ? `${FULL_NAMES[current.symbol] ?? current.symbol}, ${fmtPrice(current.symbol, current.price)}${hasChange ? `, ${fmtPct(changePct)}` : ""}${interactive ? (paused ? ", click to resume" : ", click to pause") : ""}`
           : `${category}, no data`
       }
       disabled={!interactive}
@@ -136,11 +143,19 @@ export function RotatingTicker({
               {fmtPrice(current.symbol, current.price)}
             </span>
           </div>
-          <div
-            className={`text-[10px] font-[family-name:var(--font-mono)] tabular-nums ${changeTone}`}
-          >
-            {fmtPct(current.change_pct)}
-          </div>
+          {/* Third line: change pct if known, otherwise a thin spacer so the
+              cell height stays consistent across categories. */}
+          {hasChange ? (
+            <div
+              className={`text-[10px] font-[family-name:var(--font-mono)] tabular-nums ${changeTone}`}
+            >
+              {fmtPct(changePct)}
+            </div>
+          ) : (
+            <div className="text-[10px] leading-none" aria-hidden>
+              &nbsp;
+            </div>
+          )}
         </div>
       ) : (
         <span className="text-[11px] font-[family-name:var(--font-mono)] text-ink-3 leading-tight">

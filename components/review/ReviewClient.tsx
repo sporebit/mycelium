@@ -194,7 +194,7 @@ export function ReviewClient({
         setError(j.error ?? `Save failed (${res.status})`);
         return;
       }
-      // eslint-disable-next-line react-hooks/purity -- timestamp lives in async callback, not render path
+      // eslint-disable-next-line react-hooks/purity -- timestamp captured inside async callback, not render
       setSavedAt(Date.now());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
@@ -241,7 +241,6 @@ export function ReviewClient({
         return;
       }
       setReview(j.review);
-      // eslint-disable-next-line react-hooks/purity -- timestamp lives in async callback, not render path
       setSavedAt(Date.now());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Seal failed");

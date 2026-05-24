@@ -5,7 +5,8 @@ export const runtime = "nodejs";
 export type TickerItem = {
   symbol: string;
   price: number;
-  change_pct: number;
+  // Optional — fuel rotation items don't have a day-over-day delta yet.
+  change_pct?: number;
 };
 
 export type TickerCategory = "crypto" | "stocks" | "commodities";

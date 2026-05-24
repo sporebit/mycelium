@@ -7,6 +7,7 @@ import { FinancePulse } from "@/components/dashboard/cards/FinancePulse";
 import { Goals } from "@/components/dashboard/cards/Goals";
 import { KeyBlockers } from "@/components/dashboard/cards/KeyBlockers";
 import { Nutrition } from "@/components/dashboard/cards/Nutrition";
+import { Fuel } from "@/components/dashboard/cards/Fuel";
 
 export default function DashboardPage() {
   return (
@@ -18,6 +19,7 @@ export default function DashboardPage() {
           <FinancePulse />
           <Goals />
           <KeyBlockers />
+          <Fuel />
         </>
       }
       centre={
