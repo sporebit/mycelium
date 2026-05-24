@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
+import { PrivateValue } from "@/components/PrivateValue";
+import { usePrivacy } from "@/lib/context/PrivacyContext";
 import type {
   FinanceData,
   FinanceHistoryPoint,
@@ -23,6 +25,7 @@ type SnapshotResponse =
   | { snapshot: null; last_refreshed_at: null; source: null };
 
 function Sparkline({ points }: { points: number[] }) {
+  const { financeHidden } = usePrivacy();
   if (points.length < 2) {
     return (
       <div className="h-12 rounded-lg border border-ink-2 bg-ink-0/40" />
@@ -42,7 +45,11 @@ function Sparkline({ points }: { points: number[] }) {
   const fill = `${d} L200,48 L0,48 Z`;
 
   return (
-    <div className="h-12 rounded-lg border border-ink-2 bg-ink-0/40 relative overflow-hidden">
+    <div
+      className="h-12 rounded-lg border border-ink-2 bg-ink-0/40 relative overflow-hidden"
+      style={financeHidden ? { filter: "blur(6px)" } : undefined}
+      aria-hidden={financeHidden}
+    >
       <svg
         viewBox="0 0 200 48"
         preserveAspectRatio="none"
@@ -237,7 +244,9 @@ export function FinancePulse() {
               Net worth
             </div>
             <Mono className="block text-2xl text-ink-4 mt-1">
-              {fmtCurrency(snapshot.net_worth, snapshot.currency)}
+              <PrivateValue>
+                {fmtCurrency(snapshot.net_worth, snapshot.currency)}
+              </PrivateValue>
             </Mono>
             <div
               className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mt-0.5 ${toneClass}`}
@@ -267,7 +276,9 @@ export function FinancePulse() {
                       deltas.dayDelta >= 0 ? "text-ok" : "text-danger"
                     }`}
                   >
-                    {fmtSigned(deltas.dayDelta, snapshot.currency)}
+                    <PrivateValue>
+                      {fmtSigned(deltas.dayDelta, snapshot.currency)}
+                    </PrivateValue>
                   </Mono>
                   {deltas.dayPct !== null && (
                     <Mono
@@ -275,7 +286,7 @@ export function FinancePulse() {
                         deltas.dayDelta >= 0 ? "text-ok/70" : "text-danger/70"
                       }`}
                     >
-                      {fmtPercent(deltas.dayPct)}
+                      <PrivateValue>{fmtPercent(deltas.dayPct)}</PrivateValue>
                     </Mono>
                   )}
                 </>
@@ -294,7 +305,9 @@ export function FinancePulse() {
                       deltas.monthDelta >= 0 ? "text-ok" : "text-danger"
                     }`}
                   >
-                    {fmtSigned(deltas.monthDelta, snapshot.currency)}
+                    <PrivateValue>
+                      {fmtSigned(deltas.monthDelta, snapshot.currency)}
+                    </PrivateValue>
                   </Mono>
                   {deltas.monthPct !== null && (
                     <Mono
@@ -302,7 +315,7 @@ export function FinancePulse() {
                         deltas.monthDelta >= 0 ? "text-ok/70" : "text-danger/70"
                       }`}
                     >
-                      {fmtPercent(deltas.monthPct)}
+                      <PrivateValue>{fmtPercent(deltas.monthPct)}</PrivateValue>
                     </Mono>
                   )}
                 </>

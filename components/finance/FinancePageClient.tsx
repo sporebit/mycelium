@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Panel } from "@/components/dashboard/Panel";
 import { Mono } from "@/components/dashboard/Mono";
+import { PrivateValue } from "@/components/PrivateValue";
 import type {
   FinanceData,
   FinanceHistoryPoint,
@@ -29,12 +30,17 @@ function KpiBox({
   value: string;
   hint?: string;
 }) {
+  // Plain "—" placeholder should stay visible even in privacy mode; only
+  // wrap real values.
+  const isPlaceholder = value === "—";
   return (
     <div className="rounded-xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl p-4">
       <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
         {label}
       </div>
-      <Mono className="block text-2xl text-ink-4 mt-2">{value}</Mono>
+      <Mono className="block text-2xl text-ink-4 mt-2">
+        {isPlaceholder ? value : <PrivateValue>{value}</PrivateValue>}
+      </Mono>
       {hint && (
         <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
           {hint}
@@ -66,9 +72,17 @@ function CategoryPanel({
     tone === "danger" ? "text-danger" : tone === "warn" ? "text-warn" : "text-ok";
 
   return (
-    <Panel number={number} title={title} topRight={<Mono>{fmtPercent(share, 1)} OF NW</Mono>}>
+    <Panel
+      number={number}
+      title={title}
+      topRight={
+        <Mono>
+          <PrivateValue>{fmtPercent(share, 1)}</PrivateValue> OF NW
+        </Mono>
+      }
+    >
       <Mono className={`block text-xl ${toneClass}`}>
-        {fmtCurrency(total, currency)}
+        <PrivateValue>{fmtCurrency(total, currency)}</PrivateValue>
       </Mono>
       <ul className="mt-3 flex flex-col divide-y divide-ink-2">
         {items.length === 0 ? (
@@ -82,7 +96,7 @@ function CategoryPanel({
                 {c.name}
               </span>
               <Mono className="text-[12px] text-ink-3 shrink-0">
-                {fmtCurrency(c.value, currency)}
+                <PrivateValue>{fmtCurrency(c.value, currency)}</PrivateValue>
               </Mono>
             </li>
           ))
@@ -241,7 +255,9 @@ export function FinancePageClient() {
           {snapshot ? (
             <>
               <Mono className="block text-4xl text-ink-4 mt-1">
-                {fmtCurrency(snapshot.net_worth, snapshot.currency)}
+                <PrivateValue>
+                  {fmtCurrency(snapshot.net_worth, snapshot.currency)}
+                </PrivateValue>
               </Mono>
               <div
                 className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mt-1 ${toneClass}`}
@@ -357,22 +373,30 @@ export function FinancePageClient() {
                       <td className="py-2 pr-3 text-ink-4">{fmtMonth(r.period)}</td>
                       <td className="text-right py-2 px-3">
                         <Mono className="text-ink-4">
-                          {fmtCurrency(r.netWorth, currency)}
+                          <PrivateValue>
+                            {fmtCurrency(r.netWorth, currency)}
+                          </PrivateValue>
                         </Mono>
                       </td>
                       <td className="text-right py-2 px-3">
                         <Mono className="text-ink-3">
-                          {fmtCurrency(r.liquid, currency)}
+                          <PrivateValue>
+                            {fmtCurrency(r.liquid, currency)}
+                          </PrivateValue>
                         </Mono>
                       </td>
                       <td className="text-right py-2 px-3">
                         <Mono className="text-ink-3">
-                          {fmtCurrency(r.invested, currency)}
+                          <PrivateValue>
+                            {fmtCurrency(r.invested, currency)}
+                          </PrivateValue>
                         </Mono>
                       </td>
                       <td className="text-right py-2 px-3">
                         <Mono className="text-ink-3">
-                          {fmtCurrency(r.liabilities, currency)}
+                          <PrivateValue>
+                            {fmtCurrency(r.liabilities, currency)}
+                          </PrivateValue>
                         </Mono>
                       </td>
                       <td className="text-right py-2 pl-3">
@@ -384,7 +408,9 @@ export function FinancePageClient() {
                               r.delta >= 0 ? "text-ok" : "text-danger"
                             }
                           >
-                            {fmtSigned(r.delta, currency)}
+                            <PrivateValue>
+                              {fmtSigned(r.delta, currency)}
+                            </PrivateValue>
                           </Mono>
                         )}
                       </td>

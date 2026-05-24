@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LiveClock } from "./LiveClock";
 import { Tickers } from "./Tickers";
 import { SunWidget } from "./SunWidget";
+import { PrivacyToggle } from "./PrivacyToggle";
 
 const TABS = [
   { label: "HOME", href: "/" },
@@ -50,6 +51,9 @@ export function TopRail({ active = "HOME" }: { active?: string }) {
 
         {/* Sunrise / sunset */}
         <SunWidget />
+
+        {/* Finance privacy toggle */}
+        <PrivacyToggle />
 
         <div className="hidden lg:block h-5 w-px bg-ink-2" />
 
