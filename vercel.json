@@ -1,12 +1,12 @@
 {
   "crons": [
     {
-      "path": "/api/finance/snapshot",
-      "schedule": "0 5 * * *"
+      "path": "/api/briefings/morning",
+      "schedule": "0 6 * * 1-5"
     },
     {
-      "path": "/api/fuel?warm=1",
-      "schedule": "0 7 * * *"
+      "path": "/api/briefings/morning",
+      "schedule": "0 8 * * 0,6"
     }
   ]
 }
