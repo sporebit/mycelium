@@ -7,7 +7,6 @@ const PUBLIC_PREFIXES = [
   "/login",
   "/api/auth/",
   "/api/telegram/webhook",
-  "/api/capture",
 ];
 
 function isPublic(pathname: string): boolean {

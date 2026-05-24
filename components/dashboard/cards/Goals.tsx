@@ -97,6 +97,7 @@ export function Goals() {
 
       <Section
         label="This Week"
+        emptyText="No weekly goals yet. Add one below."
         items={goals?.week ?? null}
         onAdd={(t) => addGoal("week", t)}
         onToggle={(id) => toggle("week", id)}
@@ -107,6 +108,7 @@ export function Goals() {
 
       <Section
         label="This Month"
+        emptyText="No monthly goals yet. Add one below."
         items={goals?.month ?? null}
         onAdd={(t) => addGoal("month", t)}
         onToggle={(id) => toggle("month", id)}
@@ -118,12 +120,14 @@ export function Goals() {
 
 function Section({
   label,
+  emptyText,
   items,
   onAdd,
   onToggle,
   onRemove,
 }: {
   label: string;
+  emptyText: string;
   items: GoalItem[] | null;
   onAdd: (text: string) => void;
   onToggle: (id: string) => void;
@@ -160,7 +164,7 @@ function Section({
           </li>
         ) : items.length === 0 ? (
           <li className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-1">
-            No goals yet
+            {emptyText}
           </li>
         ) : (
           items.map((g) => (

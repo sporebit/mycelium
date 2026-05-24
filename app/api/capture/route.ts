@@ -5,23 +5,8 @@ import { embedAndStore } from "@/lib/router/embedAndStore";
 
 export const runtime = "nodejs";
 
-function timingSafeEqual(a: string, b: string): boolean {
-  const enc = new TextEncoder();
-  const aBytes = enc.encode(a);
-  const bBytes = enc.encode(b);
-  if (aBytes.length !== bBytes.length) return false;
-  let diff = 0;
-  for (let i = 0; i < aBytes.length; i++) diff |= aBytes[i] ^ bBytes[i];
-  return diff === 0;
-}
-
+// Auth is handled by middleware (cookie session OR x-api-secret OR CRON_SECRET).
 export async function POST(req: NextRequest) {
-  const apiSecret = req.headers.get("x-api-secret");
-  const expected = process.env.API_SECRET;
-  if (!expected || !apiSecret || !timingSafeEqual(apiSecret, expected)) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
   let body: { text?: string };
   try {
     body = (await req.json()) as { text?: string };

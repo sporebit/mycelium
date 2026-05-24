@@ -19,7 +19,8 @@ function greeting(d: Date): string {
   if (h < 5) return "Good night";
   if (h < 12) return "Good morning";
   if (h < 18) return "Good afternoon";
-  return "Good evening";
+  if (h < 22) return "Good evening";
+  return "Good night";
 }
 
 function fmtDate(d: Date): string {
@@ -40,7 +41,7 @@ function fmtTime(d: Date): string {
   });
 }
 
-export function Session({ apiSecret }: { apiSecret: string }) {
+export function Session() {
   const [now, setNow] = useState<Date>(() => new Date());
 
   const [oneThing, setOneThing] = useState<string>("");
@@ -249,7 +250,7 @@ export function Session({ apiSecret }: { apiSecret: string }) {
       </div>
 
       <div className="mt-4">
-        <CaptureBox apiSecret={apiSecret} />
+        <CaptureBox />
       </div>
     </Panel>
   );

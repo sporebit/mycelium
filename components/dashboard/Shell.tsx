@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { TopRail } from "./TopRail";
 import { GlobalSearch } from "./GlobalSearch";
+import { FloatingCapture } from "./FloatingCapture";
 
 export function Shell({
   active = "HOME",
@@ -32,6 +33,7 @@ export function Shell({
       </main>
 
       <GlobalSearch />
+      <FloatingCapture />
     </div>
   );
 }

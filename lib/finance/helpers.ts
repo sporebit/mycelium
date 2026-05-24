@@ -73,9 +73,18 @@ export function liveTone(
   if (!isoTimestamp) return "muted";
   const ageMs = Date.now() - new Date(isoTimestamp).getTime();
   const h = ageMs / 3_600_000;
-  if (h < 24) return "ok";
+  if (h < 26) return "ok";
   if (h < 24 * 7) return "warn";
   return "danger";
+}
+
+export function liveStatusLabel(
+  tone: "ok" | "warn" | "danger" | "muted"
+): string {
+  if (tone === "ok") return "LIVE";
+  if (tone === "warn") return "STALE";
+  if (tone === "danger") return "VERY STALE";
+  return "NO DATA";
 }
 
 export function relativeTime(isoTimestamp: string | null): string {

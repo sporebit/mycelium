@@ -7,7 +7,7 @@ type Toast =
   | { kind: "error"; text: string }
   | null;
 
-export function CaptureBox({ apiSecret }: { apiSecret: string }) {
+export function CaptureBox() {
   const [value, setValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
@@ -26,10 +26,7 @@ export function CaptureBox({ apiSecret }: { apiSecret: string }) {
     try {
       const res = await fetch("/api/capture", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-secret": apiSecret,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
       const json = (await res.json().catch(() => ({}))) as {

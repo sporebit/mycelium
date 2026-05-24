@@ -12,6 +12,7 @@ import {
   fmtPercent,
   fmtSigned,
   findClosestBefore,
+  liveStatusLabel,
   liveTone,
   relativeTime,
 } from "@/lib/finance/helpers";
@@ -89,9 +90,13 @@ export function FinancePulse() {
         if (mounted) setError("Network error");
       }
     }
+
     void loadAll();
+    const onFocus = () => void loadAll();
+    window.addEventListener("focus", onFocus);
     return () => {
       mounted = false;
+      window.removeEventListener("focus", onFocus);
     };
   }, []);
 
@@ -193,7 +198,7 @@ export function FinancePulse() {
     <Panel
       number="07"
       title="FINANCE PULSE"
-      status={tone === "muted" ? "STALE" : "LIVE"}
+      status={liveStatusLabel(tone)}
       statusTone={tone}
       topRight={
         <button

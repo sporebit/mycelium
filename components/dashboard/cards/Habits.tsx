@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
-import { HABITS } from "@/lib/config/habits";
+import { HABITS as DEFAULT_HABITS, type Habit } from "@/lib/config/habits";
 import { localDateKey } from "@/lib/util/date";
+import { HabitsConfigModal } from "../HabitsConfigModal";
 
 function cacheKeyForToday(): string {
   return `miles-habits-${localDateKey()}`;
@@ -39,7 +40,26 @@ export function Habits() {
   const [done, setDone] = useState<Set<string>>(
     () => new Set(readLocalCache(cacheKeyForToday()))
   );
+  const [habits, setHabits] = useState<Habit[]>(DEFAULT_HABITS);
+  const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load configured habits from sentinel row; falls back to DEFAULT_HABITS
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/habits-config")
+      .then((r) => r.json())
+      .then((j: { habits?: Habit[] }) => {
+        if (!mounted) return;
+        if (Array.isArray(j?.habits) && j.habits.length > 0) {
+          setHabits(j.habits);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // 2. Then fetch server — server wins
   useEffect(() => {
@@ -92,7 +112,7 @@ export function Habits() {
   }
 
   const count = done.size;
-  const total = HABITS.length;
+  const total = habits.length;
   const pct = total === 0 ? 0 : Math.round((count / total) * 100);
   const allDone = total > 0 && count === total;
 
@@ -105,7 +125,15 @@ export function Habits() {
           {count}/{total} · {pct}%
         </Mono>
       }
-      bottomCTA={<span className="cursor-pointer hover:text-ink-4">EDIT HABITS →</span>}
+      bottomCTA={
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="cursor-pointer hover:text-ink-4 font-[family-name:var(--font-mono)] uppercase tracking-[0.18em]"
+        >
+          EDIT HABITS →
+        </button>
+      }
     >
       {error && (
         <div
@@ -173,7 +201,7 @@ export function Habits() {
       </div>
 
       <div className="mt-5 grid grid-cols-3 gap-2">
-        {HABITS.map((h) => {
+        {habits.map((h) => {
           const isDone = done.has(h.id);
           return (
             <button
@@ -215,6 +243,13 @@ export function Habits() {
         })}
       </div>
 
+      {editing && (
+        <HabitsConfigModal
+          habits={habits}
+          onClose={() => setEditing(false)}
+          onSaved={(next) => setHabits(next)}
+        />
+      )}
     </Panel>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LiveClock } from "./LiveClock";
+import { Tickers } from "./Tickers";
 
 const TABS = [
   { label: "HOME", href: "/" },
@@ -9,28 +10,6 @@ const TABS = [
   { label: "HEALTH", href: "/health" },
   { label: "BRAIN", href: "/brain" },
 ];
-
-function Ticker({
-  symbol,
-  value,
-  change,
-  positive = true,
-}: {
-  symbol: string;
-  value: string;
-  change?: string;
-  positive?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-1.5 text-[11px] font-[family-name:var(--font-mono)]">
-      <span className="text-ink-3">{symbol}</span>
-      <span className="text-ink-4 tabular-nums">{value}</span>
-      {change && (
-        <span className={positive ? "text-ok" : "text-danger"}>{change}</span>
-      )}
-    </div>
-  );
-}
 
 export function TopRail({ active = "HOME" }: { active?: string }) {
   return (
@@ -64,11 +43,7 @@ export function TopRail({ active = "HOME" }: { active?: string }) {
         <div className="flex-1" />
 
         {/* Tickers */}
-        <div className="hidden md:flex items-center gap-5">
-          <Ticker symbol="BTC" value="$67,420" change="+1.24%" positive />
-          <Ticker symbol="NDX" value="22,184" change="−0.32%" positive={false} />
-          <Ticker symbol="XAU" value="$2,348" change="+0.18%" positive />
-        </div>
+        <Tickers />
 
         <div className="hidden lg:block h-5 w-px bg-ink-2" />
 

@@ -9,8 +9,6 @@ import { KeyBlockers } from "@/components/dashboard/cards/KeyBlockers";
 import { Nutrition } from "@/components/dashboard/cards/Nutrition";
 
 export default function DashboardPage() {
-  const apiSecret = process.env.API_SECRET ?? "";
-
   return (
     <Shell
       active="HOME"
@@ -24,7 +22,7 @@ export default function DashboardPage() {
       }
       centre={
         <>
-          <Session apiSecret={apiSecret} />
+          <Session />
           <Habits />
           <Calendar />
         </>

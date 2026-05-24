@@ -494,7 +494,7 @@ export function Nutrition() {
           </li>
         ) : meals.length === 0 ? (
           <li className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-3 text-center">
-            No meals logged yet today
+            No meals logged today
           </li>
         ) : (
           meals.map((m) => (
