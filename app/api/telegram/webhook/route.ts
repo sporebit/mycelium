@@ -12,6 +12,7 @@ import { classifyCapture } from "@/lib/router/classifyCapture";
 import { writeCapture } from "@/lib/router/writeCapture";
 import { embedAndStore } from "@/lib/router/embedAndStore";
 import { createServerClient } from "@/lib/supabase/server";
+import { decodeRoute, encodeRoute } from "@/lib/telegram/codes";
 
 export const runtime = "nodejs";
 
@@ -45,9 +46,13 @@ function ok() {
   return NextResponse.json({ ok: true });
 }
 
-function buildUrgencyKeyboard(rowId: string, routedTo: string): InlineKeyboardMarkup {
-  const prefix = `u|${routedTo}|${rowId}`;
-  return {
+function buildUrgencyKeyboard(
+  rowId: string,
+  routedTo: string
+): InlineKeyboardMarkup {
+  const code = encodeRoute(routedTo);
+  const prefix = `u|${code}|${rowId}`;
+  const keyboard: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
         { text: "Today", callback_data: `${prefix}|today` },
@@ -57,9 +62,27 @@ function buildUrgencyKeyboard(rowId: string, routedTo: string): InlineKeyboardMa
         { text: "This Month", callback_data: `${prefix}|this_month` },
         { text: "Someday", callback_data: `${prefix}|someday` },
       ],
-      [{ text: "★ Mark Key", callback_data: `k|${routedTo}|${rowId}` }],
+      [{ text: "★ Mark Key", callback_data: `k|${code}|${rowId}` }],
     ],
   };
+
+  // Defensive: Telegram caps callback_data at 64 bytes. Log loud if we ever
+  // regress past that — easier than chasing BUTTON_DATA_INVALID after a deploy.
+  for (const row of keyboard.inline_keyboard) {
+    for (const btn of row) {
+      const bytes = Buffer.byteLength(btn.callback_data, "utf8");
+      if (bytes > 64) {
+        console.error(
+          "[telegram] callback_data overflow:",
+          bytes,
+          "bytes:",
+          btn.callback_data
+        );
+      }
+    }
+  }
+
+  return keyboard;
 }
 
 async function handleMessage(message: TgMessage): Promise<void> {
@@ -130,7 +153,7 @@ async function handleCallback(cb: TgCallbackQuery): Promise<void> {
 
   const parts = data.split("|");
   const action = parts[0];
-  const routedTo = parts[1];
+  const routedTo = decodeRoute(parts[1] ?? "");
   const rowId = parts[2];
 
   if (!routedTo || !rowId || (routedTo !== "tasks" && routedTo !== "raw_captures")) {
