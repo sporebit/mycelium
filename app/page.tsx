@@ -8,6 +8,7 @@ import { Goals } from "@/components/dashboard/cards/Goals";
 import { KeyBlockers } from "@/components/dashboard/cards/KeyBlockers";
 import { Nutrition } from "@/components/dashboard/cards/Nutrition";
 import { Fuel } from "@/components/dashboard/cards/Fuel";
+import { Journal } from "@/components/dashboard/cards/Journal";
 
 export default function DashboardPage() {
   return (
@@ -26,6 +27,7 @@ export default function DashboardPage() {
         <>
           <Session />
           <Habits />
+          <Journal />
           <Calendar />
         </>
       }

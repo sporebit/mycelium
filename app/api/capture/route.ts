@@ -36,8 +36,8 @@ export async function POST(req: NextRequest) {
 
     void embedAndStore({
       userId,
-      sourceType: "capture",
-      sourceId: result.rawCaptureId,
+      sourceType: result.memorySourceType,
+      sourceId: result.memorySourceId,
       text,
     });
 

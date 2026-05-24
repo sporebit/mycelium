@@ -111,8 +111,8 @@ async function handleMessage(message: TgMessage): Promise<void> {
   // Fire-and-forget embedding (don't block reply)
   void embedAndStore({
     userId,
-    sourceType: "capture",
-    sourceId: result.rawCaptureId,
+    sourceType: result.memorySourceType,
+    sourceId: result.memorySourceId,
     text: rawText,
   });
 

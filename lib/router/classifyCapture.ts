@@ -1,5 +1,19 @@
-export type CaptureKind = "task" | "note" | "decision" | "capture";
+export type CaptureKind =
+  | "task"
+  | "note"
+  | "decision"
+  | "journal"
+  | "capture";
 export type CaptureUrgency = "today" | "this_week" | "this_month" | "someday";
+export type CaptureMood =
+  | "energised"
+  | "calm"
+  | "anxious"
+  | "frustrated"
+  | "reflective"
+  | "grateful"
+  | "tired"
+  | "neutral";
 
 export type Classification = {
   kind: CaptureKind;
@@ -9,6 +23,7 @@ export type Classification = {
   tags: string[];
   summary: string;
   title: string;
+  mood: CaptureMood | null; // only meaningful for journal entries
 };
 
 export type ClassifyResult = {
@@ -16,28 +31,61 @@ export type ClassifyResult = {
   llm_source: "anthropic" | "openai" | "regex";
 };
 
-const KINDS: readonly CaptureKind[] = ["task", "note", "decision", "capture"];
+const KINDS: readonly CaptureKind[] = [
+  "task",
+  "note",
+  "decision",
+  "journal",
+  "capture",
+];
 const URGENCIES: readonly CaptureUrgency[] = [
   "today",
   "this_week",
   "this_month",
   "someday",
 ];
+const MOODS: readonly CaptureMood[] = [
+  "energised",
+  "calm",
+  "anxious",
+  "frustrated",
+  "reflective",
+  "grateful",
+  "tired",
+  "neutral",
+];
 
-const SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
+export const CLASSIFIER_SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
 
 Rules:
-- "kind" is one of: task, note, decision, capture.
-  - task = something to do.
-  - note = an idea, thought, or piece of information to remember.
-  - decision = a choice made.
-  - capture = anything else.
-- "urgency" is one of: today, this_week, this_month, someday.
-- "key" is true if the item is critical or important, otherwise false.
+- "kind" is one of: task, note, decision, journal, capture.
+  - task = an action the user needs to do.
+  - decision = a choice the user wants to record.
+  - note = a fact or piece of info to remember.
+  - journal = reflection, feeling, or observation about themselves or their day; longer-form expressive content; the kind of thing they'd want to re-read in a year.
+  - capture = catch-all when none of the above clearly applies.
+
+Heuristics for journal (guidance, not strict):
+  - First-person reflection ("I felt", "today was", "I've been thinking").
+  - Sensory or experiential detail.
+  - Emotional content.
+  - Over ~30 words of expressive content tends toward journal unless it's clearly a task list.
+
+Examples:
+  - "Remind me to call Sarah tomorrow" -> task
+  - "We decided to go with the React 19 upgrade after all" -> decision
+  - "Stoic gym this morning was brutal but I noticed I'm finally enjoying the back-squat day. Body's adapting." -> journal
+  - "Beautiful walk through Sandall Park, the geese are back" -> journal
+  - "Need to remember Dad's birthday is on the 14th" -> note
+
+Other fields:
+- "urgency" is one of: today, this_week, this_month, someday. For journal entries this is unused — pick "someday".
+- "key" is true if the item is critical or important, otherwise false. False for journal entries unless emphatic.
 - "entity_name" is the single person or organisation mentioned, or null.
 - "tags" is an array of short lowercase tag strings (may be empty).
-- "summary" is one short sentence summarising the message.
+- "summary" is one short sentence summarising the message. For journal entries keep it under 40 characters — a glanceable one-liner.
 - "title" is a 3-7 word title (use even for non-tasks).
+- "mood" is ONLY set for journal entries, otherwise null. One of: energised, calm, anxious, frustrated, reflective, grateful, tired, neutral.
 
 Respond ONLY with a single JSON object matching this schema. No markdown, no preface.`;
 
@@ -46,11 +94,16 @@ function validate(obj: unknown): Classification | null {
   const o = obj as Record<string, unknown>;
 
   const kind = o.kind;
-  if (typeof kind !== "string" || !KINDS.includes(kind as CaptureKind)) return null;
+  if (typeof kind !== "string" || !KINDS.includes(kind as CaptureKind))
+    return null;
 
   const urgency = o.urgency;
-  if (typeof urgency !== "string" || !URGENCIES.includes(urgency as CaptureUrgency))
+  if (
+    typeof urgency !== "string" ||
+    !URGENCIES.includes(urgency as CaptureUrgency)
+  ) {
     return null;
+  }
 
   if (typeof o.key !== "boolean") return null;
 
@@ -58,9 +111,19 @@ function validate(obj: unknown): Classification | null {
   if (entity_name !== null && typeof entity_name !== "string") return null;
 
   const tags = o.tags;
-  if (!Array.isArray(tags) || tags.some((t) => typeof t !== "string")) return null;
+  if (!Array.isArray(tags) || tags.some((t) => typeof t !== "string"))
+    return null;
 
-  if (typeof o.summary !== "string" || typeof o.title !== "string") return null;
+  if (typeof o.summary !== "string" || typeof o.title !== "string")
+    return null;
+
+  // mood is optional; accept null, undefined, or a known string.
+  let mood: CaptureMood | null = null;
+  if (o.mood !== undefined && o.mood !== null) {
+    if (typeof o.mood !== "string") return null;
+    if (!MOODS.includes(o.mood as CaptureMood)) return null;
+    mood = o.mood as CaptureMood;
+  }
 
   return {
     kind: kind as CaptureKind,
@@ -70,6 +133,7 @@ function validate(obj: unknown): Classification | null {
     tags: tags as string[],
     summary: o.summary,
     title: o.title,
+    mood,
   };
 }
 
@@ -78,7 +142,6 @@ function extractJson(text: string): unknown {
   try {
     return JSON.parse(trimmed);
   } catch {
-    // Try to extract first {...} block
     const start = trimmed.indexOf("{");
     const end = trimmed.lastIndexOf("}");
     if (start !== -1 && end !== -1 && end > start) {
@@ -92,7 +155,9 @@ function extractJson(text: string): unknown {
   }
 }
 
-async function classifyAnthropic(text: string): Promise<Classification | null> {
+async function classifyAnthropic(
+  text: string
+): Promise<Classification | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   const model = process.env.ANTHROPIC_MODEL;
   if (!apiKey || !model) return null;
@@ -107,7 +172,7 @@ async function classifyAnthropic(text: string): Promise<Classification | null> {
     body: JSON.stringify({
       model,
       max_tokens: 512,
-      system: SYSTEM_PROMPT,
+      system: CLASSIFIER_SYSTEM_PROMPT,
       messages: [{ role: "user", content: text }],
     }),
   });
@@ -123,7 +188,9 @@ async function classifyAnthropic(text: string): Promise<Classification | null> {
   return validate(extractJson(raw));
 }
 
-async function classifyOpenAI(text: string): Promise<Classification | null> {
+async function classifyOpenAI(
+  text: string
+): Promise<Classification | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.OPENAI_CLASSIFIER_MODEL;
   if (!apiKey || !model) return null;
@@ -138,7 +205,7 @@ async function classifyOpenAI(text: string): Promise<Classification | null> {
       model,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: CLASSIFIER_SYSTEM_PROMPT },
         { role: "user", content: text },
       ],
     }),
@@ -156,9 +223,31 @@ async function classifyOpenAI(text: string): Promise<Classification | null> {
 
 function classifyRegex(text: string): Classification {
   const lower = text.toLowerCase();
+  const wordCount = text.trim().split(/\s+/).length;
+  const hasTaskWords =
+    /\b(todo|remind|task|need to|must|deadline|due)\b/.test(lower);
+  const firstPerson =
+    /\b(i|i'm|i've|i'll|today|felt|feeling|noticed)\b/.test(lower);
+  const reflective =
+    /\b(beautiful|amazing|lovely|grateful|tired|frustrated|reflect|walk|morning|evening|noticed|the geese|sky|weather|sunset|sunrise|loved|enjoyed|brutal|peaceful)\b/.test(
+      lower
+    );
+
+  // Order matters: note / decision win over task when both could apply
+  // (so "need to remember Dad's birthday" lands as note, not task).
   let kind: CaptureKind = "capture";
-  if (/\b(todo|remind|task)\b/.test(lower)) kind = "task";
-  else if (/\b(idea|thought)\b/.test(lower)) kind = "note";
+  if (/\b(decided|decision|chose|choosing)\b/.test(lower)) {
+    kind = "decision";
+  } else if (/\b(idea|thought|remember)\b/.test(lower)) {
+    kind = "note";
+  } else if (hasTaskWords) {
+    kind = "task";
+  } else if (
+    (reflective && !hasTaskWords) ||
+    (firstPerson && wordCount > 25)
+  ) {
+    kind = "journal";
+  }
 
   let urgency: CaptureUrgency = "someday";
   if (/\btoday\b|\btonight\b|\bnow\b/.test(lower)) urgency = "today";
@@ -169,7 +258,8 @@ function classifyRegex(text: string): Classification {
 
   const firstLine = text.split(/\n/)[0]?.trim() ?? text.trim();
   const title = firstLine.split(/\s+/).slice(0, 7).join(" ").slice(0, 80);
-  const summary = firstLine.slice(0, 140);
+  const summary =
+    kind === "journal" ? firstLine.slice(0, 40) : firstLine.slice(0, 140);
 
   return {
     kind,
@@ -179,6 +269,7 @@ function classifyRegex(text: string): Classification {
     tags: [],
     summary,
     title: title || "Capture",
+    mood: null,
   };
 }
 

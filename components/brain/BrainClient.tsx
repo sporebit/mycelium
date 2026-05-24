@@ -92,6 +92,7 @@ export function BrainClient() {
   // Search state
   const [matches, setMatches] = useState<SearchMatch[] | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [journalOnly, setJournalOnly] = useState(false);
 
   // Ask state
   const [askAnswer, setAskAnswer] = useState("");
@@ -122,7 +123,10 @@ export function BrainClient() {
       const res = await fetch("/api/memory/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q }),
+        body: JSON.stringify({
+          query: q,
+          ...(journalOnly ? { source_type: "journal" } : {}),
+        }),
       });
       const j = await res.json();
       if (!res.ok) {
@@ -230,6 +234,23 @@ export function BrainClient() {
               : "SEARCH →"}
         </button>
       </form>
+
+      {/* Filter chips — search mode only for now */}
+      {mode === "search" && (
+        <div className="flex items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => setJournalOnly((v) => !v)}
+            className={`px-3 py-1 rounded-full border text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors ${
+              journalOnly
+                ? "border-accent/50 bg-accent/15 text-accent"
+                : "border-ink-2 bg-ink-0/40 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+            }`}
+          >
+            Journal only
+          </button>
+        </div>
+      )}
 
       {/* Empty memory state */}
       {noMemory && (
