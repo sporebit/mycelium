@@ -20,7 +20,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Mycelium OS",
+  title: "Mycelium",
   description: "Personal AI dashboard",
 };
 
