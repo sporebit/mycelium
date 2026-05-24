@@ -12,6 +12,7 @@ const TABS = [
   { label: "HEALTH", href: "/health" },
   { label: "BRAIN", href: "/brain" },
   { label: "JOURNAL", href: "/journal" },
+  { label: "FITNESS", href: "/fitness" },
 ];
 
 export function TopRail({ active = "HOME" }: { active?: string }) {

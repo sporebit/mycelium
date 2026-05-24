@@ -1,0 +1,88 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@/lib/supabase/server";
+import type { TemplateSession } from "@/lib/fitness/types";
+
+export const runtime = "nodejs";
+
+const SESSION_FIELDS = "id, programme_id, day_of_week, slot, kind, name, notes";
+
+function userId(): string | null {
+  return process.env.USER_ID ?? null;
+}
+
+async function userOwnsProgramme(
+  programmeId: string,
+  uid: string
+): Promise<boolean> {
+  const supabase = createServerClient();
+  const { data } = await supabase
+    .from("workout_programmes")
+    .select("id")
+    .eq("id", programmeId)
+    .eq("user_id", uid)
+    .maybeSingle();
+  return !!data;
+}
+
+export async function POST(
+  req: NextRequest,
+  ctx: { params: Promise<{ id: string }> }
+) {
+  const uid = userId();
+  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+  const { id: programmeId } = await ctx.params;
+  if (!(await userOwnsProgramme(programmeId, uid))) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+
+  let body: {
+    day_of_week?: number;
+    slot?: "morning" | "afternoon";
+    kind?: "cardio" | "resistance";
+    name?: string;
+    notes?: string;
+  };
+  try {
+    body = (await req.json()) as typeof body;
+  } catch {
+    return NextResponse.json({ error: "bad json" }, { status: 400 });
+  }
+  if (
+    typeof body.day_of_week !== "number" ||
+    body.day_of_week < 0 ||
+    body.day_of_week > 6 ||
+    (body.slot !== "morning" && body.slot !== "afternoon") ||
+    (body.kind !== "cardio" && body.kind !== "resistance") ||
+    !body.name?.trim()
+  ) {
+    return NextResponse.json(
+      { error: "day_of_week (0-6), slot (morning|afternoon), kind, name required" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const supabase = createServerClient();
+    // Upsert on (programme_id, day_of_week, slot)
+    const { data, error } = await supabase
+      .from("workout_programme_sessions")
+      .upsert(
+        {
+          programme_id: programmeId,
+          day_of_week: body.day_of_week,
+          slot: body.slot,
+          kind: body.kind,
+          name: body.name.trim(),
+          notes: body.notes ?? null,
+        },
+        { onConflict: "programme_id,day_of_week,slot" }
+      )
+      .select(SESSION_FIELDS)
+      .single();
+    if (error || !data) throw error ?? new Error("upsert failed");
+    return NextResponse.json({ session: data as TemplateSession });
+  } catch (err) {
+    console.error("[/api/fitness/programmes/:id/sessions POST]", err);
+    return NextResponse.json({ error: "create failed" }, { status: 500 });
+  }
+}

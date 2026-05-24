@@ -9,6 +9,7 @@ import { KeyBlockers } from "@/components/dashboard/cards/KeyBlockers";
 import { Nutrition } from "@/components/dashboard/cards/Nutrition";
 import { Fuel } from "@/components/dashboard/cards/Fuel";
 import { Journal } from "@/components/dashboard/cards/Journal";
+import { Fitness } from "@/components/dashboard/cards/Fitness";
 
 export default function DashboardPage() {
   return (
@@ -31,7 +32,12 @@ export default function DashboardPage() {
           <Calendar />
         </>
       }
-      right={<Nutrition />}
+      right={
+        <>
+          <Nutrition />
+          <Fitness />
+        </>
+      }
     />
   );
 }
