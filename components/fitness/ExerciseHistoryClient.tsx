@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   CartesianGrid,
   Line,
@@ -15,6 +16,7 @@ import { Mono } from "@/components/dashboard/Mono";
 import { Panel } from "@/components/dashboard/Panel";
 import { fromKg, toKg } from "@/lib/fitness/units";
 import { isoWeekString } from "@/lib/util/week";
+import { pickParam, updateUrlParam } from "@/lib/util/url-params";
 import type {
   ExerciseHistoryEntry,
   ExerciseHistoryResponse,
@@ -22,7 +24,10 @@ import type {
 } from "@/lib/fitness/types";
 
 type XMode = "session" | "date" | "weekly";
-type YMode = "weight" | "volume" | "1rm";
+type YMode = "top" | "volume" | "epley";
+
+const X_VALUES = ["session", "date", "weekly"] as const;
+const Y_VALUES = ["top", "volume", "epley"] as const;
 
 const X_TABS: { label: string; value: XMode }[] = [
   { label: "Session #", value: "session" },
@@ -30,9 +35,9 @@ const X_TABS: { label: string; value: XMode }[] = [
   { label: "Weekly", value: "weekly" },
 ];
 const Y_TABS: { label: string; value: YMode }[] = [
-  { label: "Top Weight", value: "weight" },
+  { label: "Top Weight", value: "top" },
   { label: "Volume", value: "volume" },
-  { label: "Est. 1RM", value: "1rm" },
+  { label: "Est. 1RM", value: "epley" },
 ];
 
 const SLOT_LABEL: Record<string, string> = {
@@ -94,11 +99,11 @@ function buildPoints(
   // Compute the y-value (in kg internally) for each entry
   const withY = asc.map((e) => {
     let yKg: number | null = null;
-    if (yMode === "weight" && e.top_set) {
+    if (yMode === "top" && e.top_set) {
       yKg = toKg(e.top_set.weight, e.top_set.unit);
     } else if (yMode === "volume") {
       yKg = e.volume_kg;
-    } else if (yMode === "1rm" && e.est_1rm_kg != null) {
+    } else if (yMode === "epley" && e.est_1rm_kg != null) {
       yKg = e.est_1rm_kg;
     }
     return { entry: e, yKg };
@@ -176,7 +181,7 @@ function buildPoints(
 }
 
 function yAxisLabel(yMode: YMode, unit: WeightUnit): string {
-  if (yMode === "weight") return fmtUnitLabel(unit);
+  if (yMode === "top") return fmtUnitLabel(unit);
   if (yMode === "volume") return "kg";
   return fmtUnitLabel(unit);
 }
@@ -293,10 +298,33 @@ export function ExerciseHistoryClient({
     }
   }, [encodedName]);
 
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const xMode: XMode = pickParam(searchParams, "xaxis", X_VALUES, "session");
+  const yMode: YMode = pickParam(searchParams, "yaxis", Y_VALUES, "top");
+
+  function setXMode(v: XMode) {
+    updateUrlParam(
+      router,
+      pathname,
+      searchParams,
+      "xaxis",
+      v === "session" ? null : v
+    );
+  }
+  function setYMode(v: YMode) {
+    updateUrlParam(
+      router,
+      pathname,
+      searchParams,
+      "yaxis",
+      v === "top" ? null : v
+    );
+  }
+
   const [data, setData] = useState<ExerciseHistoryResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [xMode, setXMode] = useState<XMode>("session");
-  const [yMode, setYMode] = useState<YMode>("weight");
 
   useEffect(() => {
     let cancelled = false;

@@ -2,14 +2,19 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Mono } from "@/components/dashboard/Mono";
 import type {
   HistoryResponse,
   HistorySessionCard,
   SessionKind,
 } from "@/lib/fitness/types";
+import { pickParam, updateUrlParam } from "@/lib/util/url-params";
 
-const FILTERS: { label: string; value: SessionKind | "all" }[] = [
+type Filter = SessionKind | "all";
+const FILTER_VALUES = ["all", "resistance", "cardio", "other"] as const;
+
+const FILTERS: { label: string; value: Filter }[] = [
   { label: "ALL", value: "all" },
   { label: "RESISTANCE", value: "resistance" },
   { label: "CARDIO", value: "cardio" },
@@ -76,13 +81,21 @@ function statsLine(s: HistorySessionCard): string {
 }
 
 export function HistoryClient() {
-  const [filter, setFilter] = useState<SessionKind | "all">("all");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const filter: Filter = pickParam(searchParams, "kind", FILTER_VALUES, "all");
+
   const [sessions, setSessions] = useState<HistorySessionCard[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  function setFilter(v: Filter) {
+    updateUrlParam(router, pathname, searchParams, "kind", v === "all" ? null : v);
+  }
 
   const fetchPage = useCallback(
     async (
