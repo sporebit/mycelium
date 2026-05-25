@@ -47,6 +47,62 @@ export function suggestNextWeight(
   return null;
 }
 
+/**
+ * True if this exercise should be treated as a "heavy" lift for rounding.
+ * Heuristic: prescribed weight in template ≥ 20 kg. Falls back to the
+ * suggested next weight (also in kg) if there's no template default.
+ */
+export function isHeavyLift(
+  template: TemplateExercise | null | undefined,
+  suggestionKg: number | null
+): boolean {
+  if (template?.default_weight != null) {
+    const unit = (template.default_weight_unit ?? "kg") as WeightUnit;
+    return toKg(template.default_weight, unit) >= 20;
+  }
+  if (suggestionKg != null) return suggestionKg >= 20;
+  return false;
+}
+
+/**
+ * Round a target weight for display in the chosen unit:
+ *   - kg/lbs heavy → nearest 2.5 (5 lb)
+ *   - kg/lbs light → nearest 1
+ *   - stone        → leave as-is (rare unit, hard to round meaningfully)
+ */
+export function roundTargetForDisplay(
+  weight: number,
+  unit: WeightUnit,
+  heavy: boolean
+): number {
+  if (unit === "stone") return weight;
+  if (unit === "kg") {
+    return heavy ? Math.round(weight / 2.5) * 2.5 : Math.round(weight);
+  }
+  if (unit === "lbs") {
+    return heavy ? Math.round(weight / 5) * 5 : Math.round(weight);
+  }
+  return weight;
+}
+
+/**
+ * Returns the rounded target in the *display unit*, plus the kg delta from
+ * last for the hint copy. Returns null if there's no suggestion to make.
+ */
+export function targetForDisplay(
+  template: TemplateExercise | null | undefined,
+  last: LastSession | null | undefined,
+  displayUnit: WeightUnit
+): { weight: number; unit: WeightUnit; delta_kg: number } | null {
+  const sug = suggestNextWeight(template, last);
+  if (!sug) return null;
+  const sugKg = toKg(sug.weight, sug.unit);
+  const heavy = isHeavyLift(template, sugKg);
+  const inUnit = fromKg(sugKg, displayUnit);
+  const rounded = roundTargetForDisplay(inUnit, displayUnit, heavy);
+  return { weight: rounded, unit: displayUnit, delta_kg: sug.delta_kg };
+}
+
 export function topSet(last: LastSession | null | undefined): {
   weight: number;
   unit: WeightUnit;

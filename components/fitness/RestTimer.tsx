@@ -9,19 +9,26 @@ function fmt(s: number): string {
 }
 
 /**
- * Floating bottom-of-viewport rest timer.
+ * Full-screen rest timer overlay.
  *
- * Drives off a single `endsAt` epoch-ms prop so adjust/skip can be done by
- * mutating that prop without state-syncing effects. When `endsAt` is null the
- * component renders nothing.
+ * Driven by a single `endsAt` epoch-ms prop. When `endsAt` is null nothing
+ * renders. When set, the overlay covers the viewport with the live countdown.
+ * When the timer hits zero we fire haptic + audio feedback, then fade out the
+ * overlay and call `onStop` after 200ms so the parent can null out endsAt.
  */
 export function RestTimer({
   endsAt,
+  exerciseName,
+  setNumber,
+  totalSets,
   onSkip,
   onStop,
   onAdjust,
 }: {
   endsAt: number | null;
+  exerciseName?: string;
+  setNumber?: number;
+  totalSets?: number;
   onSkip: () => void;
   onStop: () => void;
   onAdjust: (deltaSec: number) => void;
@@ -29,20 +36,22 @@ export function RestTimer({
   const [now, setNow] = useState<number>(() => Date.now());
   const beepDone = useRef<number | null>(null);
 
-  // Tick 1×/s while active. Updating `now` from setInterval keeps the render
-  // pure (it reads state, not Date.now()).
+  // 1-second ticker while active. The setState happens inside the interval
+  // callback, not in the effect body, so it doesn't trip the purity rule.
   useEffect(() => {
     if (endsAt === null) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, [endsAt]);
 
-  // Beep + auto-stop when the timer crosses zero
+  const remaining =
+    endsAt === null ? 0 : Math.max(0, Math.ceil((endsAt - now) / 1000));
+  const done = endsAt !== null && remaining === 0;
+
+  // When the timer crosses zero: vibrate, beep, schedule auto-close.
   useEffect(() => {
-    if (endsAt === null) return;
+    if (endsAt === null || !done) return;
     if (beepDone.current === endsAt) return;
-    const remaining = Math.max(0, Math.ceil((endsAt - now) / 1000));
-    if (remaining > 0) return;
     beepDone.current = endsAt;
     try {
       if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -69,56 +78,72 @@ export function RestTimer({
     } catch {
       /* respect mute / no audio */
     }
-    const t = setTimeout(() => onStop(), 3000);
+    const t = setTimeout(() => onStop(), 200);
     return () => clearTimeout(t);
-  });
+  }, [endsAt, done, onStop]);
 
   if (endsAt === null) return null;
 
-  const remaining = Math.max(0, Math.ceil((endsAt - now) / 1000));
-  const done = remaining === 0;
-
   return (
     <div
-      className={`fixed bottom-0 inset-x-0 z-50 border-t backdrop-blur-xl px-4 py-3 flex items-center gap-3 shadow-[0_-2px_10px_rgba(0,0,0,0.4)] transition-colors ${
-        done ? "border-ok bg-ok/30" : "border-ink-2 bg-ink-1/95"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Rest timer"
+      className={`fixed inset-0 z-[80] flex items-center justify-center px-6 py-8 transition-opacity duration-200 backdrop-blur-xl ${
+        done ? "opacity-0 bg-ok/20" : "opacity-100 bg-black/95"
       }`}
     >
-      <div className="text-xs uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] shrink-0">
-        REST
+      <div className="w-full max-w-md flex flex-col items-center gap-6 text-center">
+        {exerciseName && (
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)]">
+              Resting after
+            </span>
+            <span className="text-xl text-ink-4 italic font-[family-name:var(--font-display)]">
+              {exerciseName}
+            </span>
+            {setNumber && totalSets ? (
+              <span className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
+                Set {setNumber} of {totalSets}
+              </span>
+            ) : null}
+          </div>
+        )}
+
+        <div
+          className={`text-[clamp(6rem,28vw,11rem)] leading-none font-[family-name:var(--font-mono)] tabular-nums ${
+            done ? "text-ok" : "text-accent"
+          }`}
+        >
+          {fmt(remaining)}
+        </div>
+
+        <div className="flex items-center gap-2 w-full max-w-sm">
+          <button
+            type="button"
+            onClick={() => onAdjust(-15)}
+            disabled={done}
+            className="flex-1 h-14 rounded-md border border-ink-2 text-ink-4 text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:border-ink-3 disabled:opacity-40"
+          >
+            −15s
+          </button>
+          <button
+            type="button"
+            onClick={() => onAdjust(15)}
+            disabled={done}
+            className="flex-1 h-14 rounded-md border border-ink-2 text-ink-4 text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:border-ink-3 disabled:opacity-40"
+          >
+            +15s
+          </button>
+          <button
+            type="button"
+            onClick={onSkip}
+            className="flex-1 h-14 rounded-md bg-accent/15 border border-accent/40 text-accent text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:bg-accent/25"
+          >
+            SKIP
+          </button>
+        </div>
       </div>
-      <div className="text-3xl font-[family-name:var(--font-mono)] tabular-nums text-ink-4 shrink-0">
-        {fmt(remaining)}
-      </div>
-      <div className="flex-1" />
-      <button
-        type="button"
-        onClick={() => onAdjust(-15)}
-        className="h-10 px-3 rounded-md border border-ink-2 text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4 hover:border-ink-3"
-      >
-        −15s
-      </button>
-      <button
-        type="button"
-        onClick={() => onAdjust(15)}
-        className="h-10 px-3 rounded-md border border-ink-2 text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4 hover:border-ink-3"
-      >
-        +15s
-      </button>
-      <button
-        type="button"
-        onClick={onSkip}
-        className="h-10 px-3 rounded-md border border-ink-2 text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4 hover:border-ink-3"
-      >
-        SKIP
-      </button>
-      <button
-        type="button"
-        onClick={onStop}
-        className="h-10 px-3 rounded-md bg-danger/15 border border-danger/40 text-danger text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] hover:bg-danger/25"
-      >
-        STOP
-      </button>
     </div>
   );
 }

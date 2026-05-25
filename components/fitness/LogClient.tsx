@@ -12,7 +12,7 @@ import type {
 } from "@/lib/fitness/types";
 import { RestTimer } from "./RestTimer";
 import { FinishModal } from "./FinishModal";
-import { suggestNextWeight, topSet } from "@/lib/fitness/progression";
+import { targetForDisplay, topSet } from "@/lib/fitness/progression";
 import { localDateKey } from "@/lib/util/date";
 
 const UNITS: WeightUnit[] = ["kg", "lbs", "stone"];
@@ -35,11 +35,28 @@ function usesSetsGrid(ex: SessionExercise): boolean {
   return !ex.duration_min;
 }
 
-function prescribedSetCount(ex: SessionExercise): number {
+/** Print a rounded target weight without trailing zeros. */
+function formatTargetNumber(w: number): string {
+  if (Number.isInteger(w)) return String(w);
+  // 2.5-step rounding can leave a single decimal; trim trailing zeros.
+  return w
+    .toFixed(2)
+    .replace(/0+$/, "")
+    .replace(/\.$/, "");
+}
+
+/**
+ * Initial visible set_numbers when nothing's been added/removed yet.
+ * Merges the prescribed-row count with any historical logged numbers so we
+ * never hide a row the DB already knows about.
+ */
+function defaultVisibleSets(ex: SessionExercise): number[] {
   const def = ex.template?.default_sets ?? null;
-  const maxLogged = (ex.sets ?? []).reduce((m, s) => Math.max(m, s.set_number), 0);
-  if (def && def > 0) return Math.max(def, maxLogged);
-  return Math.max(3, maxLogged);
+  const baseCount = def && def > 0 ? def : 3;
+  const out = new Set<number>();
+  for (let i = 1; i <= baseCount; i++) out.add(i);
+  for (const s of ex.sets ?? []) out.add(s.set_number);
+  return Array.from(out).sort((a, b) => a - b);
 }
 
 function targetLine(ex: SessionExercise): string {
@@ -92,6 +109,14 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
   const [elapsed, setElapsed] = useState<number>(0);
   const [saving, setSaving] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [savedFlash, setSavedFlash] = useState(false);
+  const [visibleSetsByEx, setVisibleSetsByEx] = useState<
+    Record<string, number[]>
+  >({});
+  const [restMeta, setRestMeta] = useState<{
+    exerciseName?: string;
+    setNumber?: number;
+    totalSets?: number;
+  } | null>(null);
   const weightInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const commentTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
@@ -157,6 +182,54 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
       (ex.template?.default_weight_unit as WeightUnit | undefined) ??
       "kg"
     );
+  }
+
+  function getVisibleSets(ex: SessionExercise): number[] {
+    return visibleSetsByEx[ex.id] ?? defaultVisibleSets(ex);
+  }
+
+  function addVisibleSet(ex: SessionExercise) {
+    if (readOnly) return;
+    setVisibleSetsByEx((prev) => {
+      const cur = prev[ex.id] ?? defaultVisibleSets(ex);
+      const max = cur.length === 0 ? 0 : cur[cur.length - 1];
+      return { ...prev, [ex.id]: [...cur, max + 1] };
+    });
+  }
+
+  async function removeVisibleSet(ex: SessionExercise, setNumber: number) {
+    if (readOnly) return;
+    const logged = (ex.sets ?? []).find(
+      (s) => s.set_number === setNumber && s.completed_at
+    );
+    if (logged) {
+      const ok = window.confirm(
+        `Delete set ${setNumber}? This will remove the logged weight/reps.`
+      );
+      if (!ok) return;
+      noteSaving("saving");
+      const r = await fetch(
+        `/api/fitness/sessions/${session.id}/exercises/${ex.id}/sets/${setNumber}`,
+        { method: "DELETE" }
+      );
+      if (!r.ok) {
+        noteSaving("error");
+        setToast({ kind: "error", text: "Could not delete set" });
+        return;
+      }
+      await reload();
+      noteSaving("saved");
+    }
+    setVisibleSetsByEx((prev) => {
+      const cur = prev[ex.id] ?? defaultVisibleSets(ex);
+      return { ...prev, [ex.id]: cur.filter((n) => n !== setNumber) };
+    });
+    setInputDraft((prev) => {
+      const out = { ...prev };
+      delete out[setKey(ex.id, setNumber, "w")];
+      delete out[setKey(ex.id, setNumber, "r")];
+      return out;
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -263,17 +336,26 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
     }
     // Start a new rest timer (auto-stops any running one because endsAt resets)
     const restSec = ex.rest_seconds ?? 90;
+    const visible = getVisibleSets(ex);
+    const displayedIndex = visible.indexOf(setNumber);
+    setRestMeta({
+      exerciseName: ex.name,
+      setNumber: displayedIndex >= 0 ? displayedIndex + 1 : undefined,
+      totalSets: visible.length,
+    });
     // eslint-disable-next-line react-hooks/purity -- timestamp captured inside async callback, not render
     setRestEndsAt(Date.now() + restSec * 1000);
     await reload();
     noteSaving("saved");
 
-    // Auto-focus next un-logged weight input
-    setTimeout(() => {
-      const nextSetNumber = setNumber + 1;
-      const nextKey = setKey(ex.id, nextSetNumber, "w");
-      weightInputRefs.current[nextKey]?.focus();
-    }, 50);
+    // Auto-focus next un-logged weight input (the row directly after this one)
+    const nextNum = visible[displayedIndex + 1];
+    if (nextNum !== undefined) {
+      setTimeout(() => {
+        const nextKey = setKey(ex.id, nextNum, "w");
+        weightInputRefs.current[nextKey]?.focus();
+      }, 50);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -593,9 +675,13 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
             onCommentChange={scheduleCommentSave}
             onToggleSaveToTemplate={toggleSaveToTemplate}
             onLogDuration={logDuration}
-            onStartRest={() =>
-              setRestEndsAt(Date.now() + (current.rest_seconds ?? 90) * 1000)
-            }
+            visibleSets={getVisibleSets(current)}
+            onAddSet={() => addVisibleSet(current)}
+            onRemoveSet={(n) => void removeVisibleSet(current, n)}
+            onStartRest={() => {
+              setRestMeta({ exerciseName: current.name });
+              setRestEndsAt(Date.now() + (current.rest_seconds ?? 90) * 1000);
+            }}
             restActive={restEndsAt !== null}
           />
         )}
@@ -657,12 +743,21 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
         )}
       </div>
 
-      {/* Rest timer */}
+      {/* Rest timer (full-screen overlay) */}
       {!readOnly && (
         <RestTimer
           endsAt={restEndsAt}
-          onSkip={() => setRestEndsAt(null)}
-          onStop={() => setRestEndsAt(null)}
+          exerciseName={restMeta?.exerciseName}
+          setNumber={restMeta?.setNumber}
+          totalSets={restMeta?.totalSets}
+          onSkip={() => {
+            setRestEndsAt(null);
+            setRestMeta(null);
+          }}
+          onStop={() => {
+            setRestEndsAt(null);
+            setRestMeta(null);
+          }}
           onAdjust={(d) =>
             setRestEndsAt((cur) => (cur == null ? null : cur + d * 1000))
           }
@@ -732,6 +827,9 @@ function CurrentExerciseCard({
   inputDraft,
   setInputDraft,
   weightInputRefs,
+  visibleSets,
+  onAddSet,
+  onRemoveSet,
   onToggleSet,
   onDone,
   onSkip,
@@ -749,6 +847,9 @@ function CurrentExerciseCard({
   inputDraft: Record<string, string>;
   setInputDraft: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   weightInputRefs: React.RefObject<Record<string, HTMLInputElement | null>>;
+  visibleSets: number[];
+  onAddSet: () => void;
+  onRemoveSet: (n: number) => void;
   onToggleSet: (ex: SessionExercise, n: number) => void | Promise<void>;
   onDone: (ex: SessionExercise) => void;
   onSkip: (ex: SessionExercise) => void;
@@ -770,13 +871,17 @@ function CurrentExerciseCard({
     () => new Map(sets.map((s) => [s.set_number, s] as const)),
     [sets]
   );
-  const suggestion = useMemo(() => suggestNextWeight(ex.template, last), [
-    ex.template,
-    last,
-  ]);
+  const target = useMemo(
+    () => targetForDisplay(ex.template, last, unit),
+    [ex.template, last, unit]
+  );
   const lastTop = useMemo(() => topSet(last), [last]);
   const grid = usesSetsGrid(ex);
-  const N = grid ? prescribedSetCount(ex) : 0;
+
+  const placeholderWeight = target && target.weight > 0
+    ? formatTargetNumber(target.weight)
+    : null;
+  const unitLower = unit === "stone" ? "st" : unit;
 
   const [duration, setDuration] = useState<string>(
     ex.duration_min != null ? String(ex.duration_min) : ""
@@ -822,11 +927,6 @@ function CurrentExerciseCard({
               {targets}
             </div>
           )}
-          {grid && suggestion && suggestion.delta_kg > 0 && (
-            <div className="text-[11px] text-accent font-[family-name:var(--font-mono)] tracking-[0.1em] mt-1">
-              ↪ +{suggestion.delta_kg}kg from last
-            </div>
-          )}
           {grid && lastTop && (
             <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
               Last: {lastTop.weight}
@@ -863,31 +963,60 @@ function CurrentExerciseCard({
 
       {grid ? (
         <div className="mt-3 flex flex-col gap-2">
-          <div className="grid grid-cols-[2.5rem_1fr_1fr_5rem] gap-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] pl-1">
+          {/* TARGET RIBBON — only when a target weight exists */}
+          {target && target.weight > 0 && (
+            <div className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 flex flex-col items-center text-center">
+              <span className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)]">
+                Target
+              </span>
+              <span className="text-4xl sm:text-5xl text-accent font-[family-name:var(--font-mono)] tabular-nums leading-tight mt-1">
+                {formatTargetNumber(target.weight)}{" "}
+                <span className="text-base align-baseline tracking-[0.1em]">
+                  {unitLower}
+                </span>
+              </span>
+              {target.delta_kg > 0 && (
+                <span className="text-[11px] text-accent/80 font-[family-name:var(--font-mono)] tracking-[0.12em] mt-1">
+                  ↪ +{target.delta_kg}kg from last
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="grid grid-cols-[2rem_1fr_1fr_4.5rem_2rem] gap-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] pl-1">
             <span>Set</span>
             <span>Weight</span>
             <span>Reps</span>
             <span className="text-right">Done</span>
+            <span />
           </div>
-          {Array.from({ length: N }, (_, i) => i + 1).map((n) => {
+          {visibleSets.map((n, i) => {
+            const displayed = i + 1;
             const logged = setsByNum.get(n);
             const isLogged = !!logged?.completed_at;
-            const placeholderSet = last?.sets.find((s) => s.set_number === n);
-            const placeholderW =
-              placeholderSet?.weight != null ? String(placeholderSet.weight) : "";
-            const placeholderR =
-              placeholderSet?.reps != null ? String(placeholderSet.reps) : "";
+            const lastForRow =
+              last?.sets.find((s) => s.set_number === n) ??
+              last?.sets.find((s) => s.set_number === displayed) ??
+              null;
+            // Weight placeholder = target if available, else last's matching set
+            const weightPlaceholder = placeholderWeight
+              ? placeholderWeight
+              : lastForRow?.weight != null
+              ? String(lastForRow.weight)
+              : "";
+            const repsPlaceholder =
+              lastForRow?.reps != null ? String(lastForRow.reps) : "";
             return (
               <div
                 key={n}
-                className={`grid grid-cols-[2.5rem_1fr_1fr_5rem] gap-2 items-center rounded-md border px-1 py-1 transition-colors ${
+                className={`grid grid-cols-[2rem_1fr_1fr_4.5rem_2rem] gap-2 items-center rounded-md border px-1 py-1 transition-colors ${
                   isLogged
                     ? "border-ok/50 bg-ok/10"
                     : "border-ink-2 bg-ink-0/30"
                 }`}
               >
                 <span className="text-center text-sm font-[family-name:var(--font-mono)] text-ink-3">
-                  {n}
+                  {displayed}
                 </span>
                 <input
                   ref={(el) => {
@@ -900,7 +1029,7 @@ function CurrentExerciseCard({
                   onChange={(e) =>
                     setDraft(n, "w", e.target.value.replace(/[^0-9.]/g, ""))
                   }
-                  placeholder={placeholderW || "—"}
+                  placeholder={weightPlaceholder || "—"}
                   className="bg-transparent border border-ink-2 rounded-md text-base text-ink-4 px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
                 />
                 <input
@@ -911,7 +1040,7 @@ function CurrentExerciseCard({
                   onChange={(e) =>
                     setDraft(n, "r", e.target.value.replace(/[^0-9]/g, ""))
                   }
-                  placeholder={placeholderR || "—"}
+                  placeholder={repsPlaceholder || "—"}
                   className="bg-transparent border border-ink-2 rounded-md text-base text-ink-4 px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
                 />
                 <button
@@ -926,9 +1055,27 @@ function CurrentExerciseCard({
                 >
                   {isLogged ? "✓" : "DONE"}
                 </button>
+                <button
+                  type="button"
+                  disabled={readOnly}
+                  onClick={() => onRemoveSet(n)}
+                  aria-label={`Delete set ${displayed}`}
+                  className="h-10 rounded-md text-ink-3 hover:text-danger text-base disabled:opacity-40"
+                >
+                  🗑
+                </button>
               </div>
             );
           })}
+          {!readOnly && (
+            <button
+              type="button"
+              onClick={onAddSet}
+              className="self-start mt-1 px-3 h-9 rounded-md border border-ink-2 text-ink-3 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4 hover:border-ink-3"
+            >
+              + ADD SET
+            </button>
+          )}
         </div>
       ) : (
         <div className="mt-3 grid grid-cols-2 gap-2">
