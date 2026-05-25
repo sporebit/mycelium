@@ -94,33 +94,86 @@ export async function GET() {
       }
     }
 
-    // Logged-today lookup
+    // Today's workout_sessions (started or completed)
     const { data: loggedRows } = await supabase
       .from("workout_sessions")
-      .select("id, programme_session_id, slot")
+      .select("id, programme_session_id, slot, started_at, completed_at")
       .eq("user_id", uid)
       .eq("date", todayKey);
-    const loggedByPS = new Map<string, string>(); // ps_id → workout_session.id
-    for (const row of (loggedRows ?? []) as Array<{
+    type LoggedRow = {
       id: string;
       programme_session_id: string | null;
       slot: string;
-    }>) {
-      if (row.programme_session_id) loggedByPS.set(row.programme_session_id, row.id);
+      started_at: string | null;
+      completed_at: string | null;
+    };
+    const loggedByPS = new Map<string, LoggedRow>();
+    for (const row of (loggedRows ?? []) as LoggedRow[]) {
+      if (row.programme_session_id) loggedByPS.set(row.programme_session_id, row);
+    }
+
+    // Summary stats: count sets per completed session
+    const completedIds = (loggedRows ?? [])
+      .filter((r) => r.completed_at)
+      .map((r) => r.id);
+    const setsBySession = new Map<string, number>();
+    if (completedIds.length > 0) {
+      // Two-hop: session → session_exercises → sets
+      const { data: seRows } = await supabase
+        .from("workout_session_exercises")
+        .select("id, session_id")
+        .in("session_id", completedIds);
+      const seToSession = new Map<string, string>();
+      for (const r of (seRows ?? []) as Array<{ id: string; session_id: string }>) {
+        seToSession.set(r.id, r.session_id);
+      }
+      if (seToSession.size > 0) {
+        const { data: setRows } = await supabase
+          .from("workout_sets")
+          .select("session_exercise_id, completed_at")
+          .in("session_exercise_id", Array.from(seToSession.keys()))
+          .not("completed_at", "is", null);
+        for (const r of (setRows ?? []) as Array<{
+          session_exercise_id: string;
+          completed_at: string | null;
+        }>) {
+          const sid = seToSession.get(r.session_exercise_id);
+          if (!sid) continue;
+          setsBySession.set(sid, (setsBySession.get(sid) ?? 0) + 1);
+        }
+      }
     }
 
     const out: TodayResponse = {
       date: todayKey,
       programme_name: (programme?.name as string | null) ?? null,
-      sessions: sessions.map((s) => ({
-        slot: s.slot,
-        kind: s.kind,
-        name: s.name,
-        programme_session_id: s.id,
-        exercises: exByPS.get(s.id) ?? [],
-        logged: loggedByPS.has(s.id),
-        logged_session_id: loggedByPS.get(s.id) ?? null,
-      })),
+      sessions: sessions.map((s) => {
+        const live = loggedByPS.get(s.id) ?? null;
+        const completed = !!live?.completed_at;
+        const inProgress = !!live && !completed;
+        let summary: { sets: number; minutes: number | null } | null = null;
+        if (completed && live) {
+          let minutes: number | null = null;
+          if (live.started_at && live.completed_at) {
+            const ms =
+              new Date(live.completed_at).getTime() -
+              new Date(live.started_at).getTime();
+            minutes = Math.max(0, Math.round(ms / 60000));
+          }
+          summary = { sets: setsBySession.get(live.id) ?? 0, minutes };
+        }
+        return {
+          slot: s.slot,
+          kind: s.kind,
+          name: s.name,
+          programme_session_id: s.id,
+          exercises: exByPS.get(s.id) ?? [],
+          logged_session_id: live?.id ?? null,
+          completed,
+          in_progress: inProgress,
+          summary,
+        };
+      }),
     };
     return NextResponse.json(out);
   } catch (err) {

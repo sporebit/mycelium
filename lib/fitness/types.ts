@@ -93,10 +93,54 @@ export type TodayResponse = {
     name: string;
     programme_session_id: string | null;
     exercises: TemplateExercise[];
-    logged: boolean;
+    /** Live workout_session for today/slot, if any. */
     logged_session_id: string | null;
+    /** True if a session exists AND has completed_at set. */
+    completed: boolean;
+    /** True if a session exists, regardless of completion (drives RESUME). */
+    in_progress: boolean;
+    /** Summary numbers for completed sessions (otherwise null). */
+    summary: { sets: number; minutes: number | null } | null;
   }>;
 };
+
+export type LoggedSet = {
+  set_number: number;
+  reps: number | null;
+  weight: number | null;
+  unit: WeightUnit | null;
+  completed_at: string | null;
+};
+
+export type SessionExercise = {
+  id: string;
+  session_id: string;
+  position: number;
+  name: string;
+  notes: string | null;
+  comment: string | null;
+  rest_seconds: number | null;
+  duration_min: number | null;
+  distance_km: number | null;
+  intensity: string | null;
+  programme_exercise_id: string | null;
+  save_to_template: boolean;
+  skipped: boolean;
+  completed_at: string | null;
+  added_at: string;
+  /** Snapshot of the template prescription, copied at session start. */
+  template?: TemplateExercise | null;
+  sets?: LoggedSet[];
+};
+
+export type SessionDetail = LoggedSession & {
+  exercises: SessionExercise[];
+};
+
+export type LastSession = {
+  session_date: string;
+  sets: LoggedSet[];
+} | null;
 
 export const DAY_LABELS = [
   "Monday",

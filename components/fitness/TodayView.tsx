@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Panel } from "@/components/dashboard/Panel";
 import { Mono } from "@/components/dashboard/Mono";
-import type {
-  TemplateExercise,
-  TodayResponse,
-} from "@/lib/fitness/types";
+import type { TemplateExercise, TodayResponse } from "@/lib/fitness/types";
 
 const KIND_ICON: Record<string, string> = {
   cardio: "🏃",
@@ -21,14 +20,15 @@ const SLOT_LABEL: Record<string, string> = {
 };
 
 function exerciseLine(ex: TemplateExercise): string {
-  // Cardio
-  if (ex.default_duration_min !== null && (ex.default_sets === null || ex.default_sets === 0)) {
+  if (
+    ex.default_duration_min !== null &&
+    (ex.default_sets === null || ex.default_sets === 0)
+  ) {
     const parts = [`${ex.default_duration_min} min`];
     if (ex.default_intensity) parts.push(ex.default_intensity);
     if (ex.default_distance_km) parts.push(`${ex.default_distance_km} km`);
     return parts.join(" · ");
   }
-  // Resistance
   if (ex.default_sets !== null && ex.default_sets > 0) {
     const parts: string[] = [];
     parts.push(`${ex.default_sets}×${ex.default_reps ?? "?"}`);
@@ -38,25 +38,24 @@ function exerciseLine(ex: TemplateExercise): string {
     if (ex.rest_seconds) parts.push(`rest ${ex.rest_seconds}s`);
     return parts.join(" · ");
   }
-  // Warmup / finisher with sets=0 and a duration
-  if (ex.default_duration_min !== null) {
-    return `${ex.default_duration_min} min`;
-  }
+  if (ex.default_duration_min !== null) return `${ex.default_duration_min} min`;
   return "—";
 }
 
 export function TodayView() {
+  const router = useRouter();
   const [data, setData] = useState<TodayResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [starting, setStarting] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
-    async function load() {
+    (async () => {
       try {
         const res = await fetch("/api/fitness/today", { cache: "no-store" });
         if (!mounted) return;
         if (!res.ok) {
-          setError(`Load failed (${res.status})`);
+          if (mounted) setError(`Load failed (${res.status})`);
           return;
         }
         const j = (await res.json()) as TodayResponse;
@@ -64,15 +63,37 @@ export function TodayView() {
       } catch {
         if (mounted) setError("Network error");
       }
-    }
-    void load();
-    const onFocus = () => void load();
-    window.addEventListener("focus", onFocus);
+    })();
     return () => {
       mounted = false;
-      window.removeEventListener("focus", onFocus);
     };
   }, []);
+
+  async function startOrResume(s: TodayResponse["sessions"][number]) {
+    if (!s.programme_session_id) return;
+    setStarting(s.programme_session_id);
+    try {
+      const r = await fetch("/api/fitness/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          programme_session_id: s.programme_session_id,
+          slot: s.slot,
+          kind: s.kind,
+          name: s.name,
+          date: data?.date,
+        }),
+      });
+      if (!r.ok) {
+        setError("Could not start session");
+        return;
+      }
+      const j = (await r.json()) as { session_id: string };
+      router.push(`/fitness/log/${j.session_id}`);
+    } finally {
+      setStarting(null);
+    }
+  }
 
   if (error) {
     return (
@@ -109,71 +130,81 @@ export function TodayView() {
         </div>
       )}
 
-      {data.sessions.map((s) => (
-        <Panel
-          key={`${s.slot}-${s.programme_session_id}`}
-          number={SLOT_LABEL[s.slot]}
-          title={s.name}
-          status={s.logged ? "LOGGED" : undefined}
-          statusTone="ok"
-          topRight={
-            <span className="text-base" aria-hidden>
-              {KIND_ICON[s.kind] ?? "·"}
-            </span>
-          }
-          bottomCTA={
-            <button
-              type="button"
-              disabled
-              className="cursor-not-allowed opacity-50"
-              title="Logging UI coming in Round 2"
-            >
-              LOG THIS SESSION (coming soon)
-            </button>
-          }
-        >
-          {s.exercises.length === 0 ? (
-            <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
-              No exercises in template.
-            </p>
-          ) : (
-            <ul className="flex flex-col divide-y divide-ink-2">
-              {s.exercises.map((ex) => (
-                <li
-                  key={ex.id}
-                  className="py-2 first:pt-0 last:pb-0 flex items-start gap-3"
+      {data.sessions.map((s) => {
+        const label = s.completed
+          ? `LOGGED · ${s.summary?.sets ?? 0} sets${
+              s.summary?.minutes != null ? ` · ${s.summary.minutes}m` : ""
+            }`
+          : s.in_progress
+          ? "RESUME →"
+          : "START SESSION →";
+        const tone = s.completed ? "ok" : s.in_progress ? "warn" : undefined;
+        return (
+          <Panel
+            key={`${s.slot}-${s.programme_session_id}`}
+            number={SLOT_LABEL[s.slot]}
+            title={s.name}
+            status={s.completed ? "COMPLETED" : s.in_progress ? "IN PROGRESS" : undefined}
+            statusTone={tone}
+            topRight={
+              <span className="text-base" aria-hidden>
+                {KIND_ICON[s.kind] ?? "·"}
+              </span>
+            }
+            bottomCTA={
+              s.completed && s.logged_session_id ? (
+                <Link
+                  href={`/fitness/log/${s.logged_session_id}`}
+                  className="hover:text-ink-4 transition-colors"
                 >
-                  <Mono className="text-[11px] text-ink-3 w-6 shrink-0 pt-0.5">
-                    {ex.position}
-                  </Mono>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-ink-4 leading-snug">
-                      {ex.name}
+                  {label}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  disabled={starting === s.programme_session_id}
+                  onClick={() => void startOrResume(s)}
+                  className="hover:text-ink-4 disabled:opacity-40"
+                >
+                  {starting === s.programme_session_id ? "STARTING…" : label}
+                </button>
+              )
+            }
+          >
+            {s.exercises.length === 0 ? (
+              <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+                No exercises in template.
+              </p>
+            ) : (
+              <ul className="flex flex-col divide-y divide-ink-2">
+                {s.exercises.map((ex) => (
+                  <li
+                    key={ex.id}
+                    className="py-2 first:pt-0 last:pb-0 flex items-start gap-3"
+                  >
+                    <Mono className="text-[11px] text-ink-3 w-6 shrink-0 pt-0.5">
+                      {ex.position}
+                    </Mono>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-ink-4 leading-snug">
+                        {ex.name}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5">
+                        {exerciseLine(ex)}
+                        {ex.notes && (
+                          <span className="ml-2 text-ink-3 normal-case tracking-normal italic">
+                            {ex.notes}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5">
-                      {exerciseLine(ex)}
-                      {ex.notes && (
-                        <span className="ml-2 text-ink-3 normal-case tracking-normal italic">
-                          {ex.notes}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-      ))}
-
-      <button
-        type="button"
-        disabled
-        className="self-start px-3 py-1.5 rounded-md border border-ink-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 cursor-not-allowed opacity-50"
-        title="Coming soon"
-      >
-        + ADD EXTRA SESSION
-      </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+        );
+      })}
     </div>
   );
 }
