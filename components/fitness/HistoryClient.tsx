@@ -8,6 +8,7 @@ import type {
   HistoryResponse,
   HistorySessionCard,
   SessionKind,
+  WorkoutSessionType,
 } from "@/lib/fitness/types";
 import { pickParam, updateUrlParam } from "@/lib/util/url-params";
 
@@ -85,21 +86,45 @@ export function HistoryClient() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const filter: Filter = pickParam(searchParams, "kind", FILTER_VALUES, "all");
+  const typeFilter = searchParams?.get("type") ?? null;
 
   const [sessions, setSessions] = useState<HistorySessionCard[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [typeCounts, setTypeCounts] = useState<Record<string, number>>({});
+  const [typeLabels, setTypeLabels] = useState<Record<string, string>>({});
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   function setFilter(v: Filter) {
     updateUrlParam(router, pathname, searchParams, "kind", v === "all" ? null : v);
   }
+  function setTypeFilter(v: string | null) {
+    updateUrlParam(router, pathname, searchParams, "type", v);
+  }
+
+  // Fetch type labels once
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const r = await fetch("/api/fitness/session-types", { cache: "no-store" });
+      if (!r.ok || cancelled) return;
+      const j = (await r.json()) as { types: WorkoutSessionType[] };
+      if (cancelled) return;
+      const map: Record<string, string> = {};
+      for (const t of j.types ?? []) map[t.type_key] = t.label;
+      setTypeLabels(map);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const fetchPage = useCallback(
     async (
       currentFilter: SessionKind | "all",
+      currentType: string | null,
       currentCursor: string | null,
       replace: boolean
     ) => {
@@ -108,6 +133,7 @@ export function HistoryClient() {
       try {
         const url = new URL("/api/fitness/history", window.location.origin);
         if (currentFilter !== "all") url.searchParams.set("kind", currentFilter);
+        if (currentType) url.searchParams.set("session_type", currentType);
         if (currentCursor) url.searchParams.set("cursor", currentCursor);
         url.searchParams.set("limit", "20");
         const r = await fetch(url.toString(), { cache: "no-store" });
@@ -119,6 +145,7 @@ export function HistoryClient() {
         setSessions((prev) => (replace ? j.sessions : [...prev, ...j.sessions]));
         setCursor(j.next_cursor);
         setHasMore(!!j.next_cursor);
+        if (j.type_counts) setTypeCounts(j.type_counts);
       } catch {
         setError("Network error");
       } finally {
@@ -136,12 +163,12 @@ export function HistoryClient() {
       setCursor(null);
       setHasMore(true);
       if (cancelled) return;
-      await fetchPage(filter, null, true);
+      await fetchPage(filter, typeFilter, null, true);
     })();
     return () => {
       cancelled = true;
     };
-  }, [filter, fetchPage]);
+  }, [filter, typeFilter, fetchPage]);
 
   // IntersectionObserver for the bottom sentinel
   useEffect(() => {
@@ -152,7 +179,7 @@ export function HistoryClient() {
       (entries) => {
         for (const e of entries) {
           if (e.isIntersecting) {
-            void fetchPage(filter, cursor, false);
+            void fetchPage(filter, typeFilter, cursor, false);
             break;
           }
         }
@@ -161,7 +188,7 @@ export function HistoryClient() {
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [filter, cursor, hasMore, loading, fetchPage]);
+  }, [filter, typeFilter, cursor, hasMore, loading, fetchPage]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -192,6 +219,43 @@ export function HistoryClient() {
         })}
       </div>
 
+      {/* Secondary type filter chips — only types the user has used */}
+      {Object.keys(typeCounts).length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => setTypeFilter(null)}
+            className={`px-2.5 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
+              typeFilter == null
+                ? "border-accent/50 bg-accent/15 text-accent"
+                : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+            }`}
+          >
+            ALL TYPES
+          </button>
+          {Object.entries(typeCounts)
+            .sort((a, b) => (typeLabels[a[0]] ?? a[0]).localeCompare(typeLabels[b[0]] ?? b[0]))
+            .map(([key, count]) => {
+              const active = typeFilter === key;
+              const lbl = typeLabels[key] ?? key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setTypeFilter(active ? null : key)}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
+                    active
+                      ? "border-accent/50 bg-accent/15 text-accent"
+                      : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                  }`}
+                >
+                  {lbl} <span className="opacity-60">({count})</span>
+                </button>
+              );
+            })}
+        </div>
+      )}
+
       {error && (
         <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
           ⚠ {error}
@@ -218,6 +282,11 @@ export function HistoryClient() {
               <span className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">
                 · {SLOT_ICON[s.slot] ?? "·"} {SLOT_LABEL[s.slot]}
               </span>
+              {s.session_type && (
+                <span className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">
+                  · {typeLabels[s.session_type] ?? s.session_type}
+                </span>
+              )}
               <span className="text-base text-ink-4 ml-1 truncate">
                 {s.name ?? "Untitled session"}
               </span>

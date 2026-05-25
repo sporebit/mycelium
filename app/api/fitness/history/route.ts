@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
   const cursor = params.get("cursor");
   const kind = params.get("kind") as SessionKind | null;
+  const sessionType = params.get("session_type");
   const limitParam = Number(params.get("limit") ?? LIMIT_DEFAULT);
   const limit = Math.min(LIMIT_MAX, Math.max(1, Number.isFinite(limitParam) ? limitParam : LIMIT_DEFAULT));
 
@@ -34,7 +35,7 @@ export async function GET(req: NextRequest) {
     let q = supabase
       .from("workout_sessions")
       .select(
-        "id, date, slot, kind, name, notes, started_at, completed_at, created_at"
+        "id, date, slot, kind, session_type, name, notes, started_at, completed_at, created_at"
       )
       .eq("user_id", uid)
       .not("completed_at", "is", null)
@@ -42,6 +43,9 @@ export async function GET(req: NextRequest) {
       .limit(limit + 1);
     if (kind && ["resistance", "cardio", "other"].includes(kind)) {
       q = q.eq("kind", kind);
+    }
+    if (sessionType) {
+      q = q.eq("session_type", sessionType);
     }
     if (cursor) {
       q = q.lt("created_at", cursor);
@@ -57,6 +61,7 @@ export async function GET(req: NextRequest) {
       date: string;
       slot: string;
       kind: string;
+      session_type: string | null;
       name: string | null;
       notes: string | null;
       started_at: string | null;
@@ -149,6 +154,7 @@ export async function GET(req: NextRequest) {
           date: s.date,
           slot: s.slot as Slot,
           kind: s.kind as SessionKind,
+          session_type: s.session_type,
           name: s.name,
           started_at: s.started_at,
           completed_at: s.completed_at,
@@ -163,9 +169,25 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // Only include the user-wide type-count map on the first page.
+    let typeCounts: Record<string, number> | undefined;
+    if (!cursor) {
+      const { data: allTypeRows } = await supabase
+        .from("workout_sessions")
+        .select("session_type")
+        .eq("user_id", uid)
+        .not("completed_at", "is", null);
+      typeCounts = {};
+      for (const r of (allTypeRows ?? []) as Array<{ session_type: string | null }>) {
+        if (!r.session_type) continue;
+        typeCounts[r.session_type] = (typeCounts[r.session_type] ?? 0) + 1;
+      }
+    }
+
     const out: HistoryResponse = {
       sessions: cards,
       next_cursor: nextCursor,
+      ...(typeCounts ? { type_counts: typeCounts } : {}),
     };
     return NextResponse.json(out);
   } catch (err) {

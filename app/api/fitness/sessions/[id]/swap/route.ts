@@ -81,8 +81,8 @@ export async function POST(
       position: number;
     };
     const exs = (existingEx ?? []) as ExRow[];
-    let keptIds: string[] = [];
-    let removedIds: string[] = [];
+    const keptIds: string[] = [];
+    const removedIds: string[] = [];
     if (exs.length > 0) {
       const exIds = exs.map((e) => e.id);
       // Which have at least one set?

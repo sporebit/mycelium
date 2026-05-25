@@ -227,6 +227,7 @@ export type HistorySessionCard = {
   date: string;
   slot: Slot;
   kind: SessionKind;
+  session_type: string | null;
   name: string | null;
   started_at: string | null;
   completed_at: string | null;
@@ -242,6 +243,9 @@ export type HistorySessionCard = {
 export type HistoryResponse = {
   sessions: HistorySessionCard[];
   next_cursor: string | null;
+  /** Total completed-session count per session_type (across the whole user
+   *  history, not just this page). Used to build the type-filter chip row. */
+  type_counts?: Record<string, number>;
 };
 
 export type FeelRating =

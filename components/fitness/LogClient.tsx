@@ -14,6 +14,7 @@ import type {
 import { RestTimer } from "./RestTimer";
 import { FinishModal } from "./FinishModal";
 import { PainLogModal } from "./PainLogModal";
+import { ReorderableExerciseList } from "./ReorderableExerciseList";
 import { targetForDisplay, topSet } from "@/lib/fitness/progression";
 import { localDateKey } from "@/lib/util/date";
 import {
@@ -25,6 +26,7 @@ import {
 import type {
   ExerciseBaseline,
   ExercisePainLog,
+  WorkoutSessionType,
 } from "@/lib/fitness/types";
 
 const UNITS: WeightUnit[] = ["kg", "lbs", "stone"];
@@ -138,6 +140,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
   const [painModalFor, setPainModalFor] = useState<string | null>(null);
   // Flash markers: keys "<exId>:<setNumber>" that just appeared via polling.
   const [flashSetKeys, setFlashSetKeys] = useState<Set<string>>(new Set());
+  const [typeLabel, setTypeLabel] = useState<string | null>(null);
   const weightInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const commentTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
@@ -252,6 +255,26 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
       return out;
     });
   }
+
+  // Resolve session_type to a label (once, when session.session_type is set)
+  useEffect(() => {
+    if (!session.session_type) {
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const r = await fetch("/api/fitness/session-types", { cache: "no-store" });
+      if (!r.ok || cancelled) return;
+      const j = (await r.json()) as { types: WorkoutSessionType[] };
+      const found = (j.types ?? []).find(
+        (t) => t.type_key === session.session_type
+      );
+      if (!cancelled) setTypeLabel(found?.label ?? session.session_type);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [session.session_type]);
 
   // ---------------------------------------------------------------------------
   // Baselines + pain logs (once on mount). Baselines are fetched as a whole
@@ -714,6 +737,12 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
             </div>
             <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] flex items-center gap-2">
               <span>{session.slot}</span>
+              {typeLabel && (
+                <>
+                  <span>·</span>
+                  <span>{typeLabel}</span>
+                </>
+              )}
               {!readOnly && (
                 <>
                   <span>·</span>
@@ -837,22 +866,22 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
           <div className="px-3 py-2 border-b border-ink-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
             All exercises ({exercises.length})
           </div>
-          <ul className="flex flex-col">
-            {exercises.map((ex) => {
-              const isActive = current?.id === ex.id;
-              return (
-                <ExerciseRow
-                  key={ex.id}
-                  ex={ex}
-                  isActive={isActive}
-                  readOnly={readOnly}
-                  onSelect={() => setActiveId(ex.id)}
-                  onSkip={() => void skipExercise(ex)}
-                  onRemove={() => void removeExercise(ex)}
-                />
-              );
-            })}
-          </ul>
+          <ReorderableExerciseList
+            sessionId={session.id}
+            exercises={exercises}
+            activeId={current?.id ?? null}
+            readOnly={readOnly}
+            onSelect={(exId) => setActiveId(exId)}
+            onSkip={(ex) => void skipExercise(ex)}
+            onRemove={(ex) => void removeExercise(ex)}
+            onReorder={(next) => {
+              // Optimistic: update local session.exercises with new ordering
+              setSession((prev) => ({ ...prev, exercises: next }));
+            }}
+            onNavigateToHistory={(ex) =>
+              `/fitness/history/exercise/${encodeURIComponent(ex.name)}`
+            }
+          />
           {!readOnly && (
             <div className="px-3 py-3 border-t border-ink-2 flex gap-2">
               <button
@@ -1390,150 +1419,6 @@ function CurrentExerciseCard({
         </button>
       )}
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Per-row in the "all exercises" list
-// ---------------------------------------------------------------------------
-
-function ExerciseRow({
-  ex,
-  isActive,
-  readOnly,
-  onSelect,
-  onSkip,
-  onRemove,
-}: {
-  ex: SessionExercise;
-  isActive: boolean;
-  readOnly: boolean;
-  onSelect: () => void;
-  onSkip: () => void;
-  onRemove: () => void;
-}) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const completed = !!ex.completed_at;
-  const loggedSets = (ex.sets ?? []).filter((s) => s.completed_at).length;
-  const target = ex.template?.default_sets ?? null;
-
-  const icon = ex.skipped
-    ? "✗"
-    : completed
-    ? "✓"
-    : isActive
-    ? "▶"
-    : "▢";
-  const tone = ex.skipped
-    ? "text-ink-3"
-    : completed
-    ? "text-ok"
-    : isActive
-    ? "text-accent"
-    : "text-ink-3";
-
-  function pointerDown() {
-    if (readOnly) return;
-    longPressTimer.current = setTimeout(() => {
-      setMenuOpen(true);
-      longPressTimer.current = null;
-    }, 500);
-  }
-  function pointerUp() {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  }
-
-  const historyHref = `/fitness/history/exercise/${encodeURIComponent(ex.name)}`;
-
-  const bodyInner = (
-    <>
-      <span className={`text-base shrink-0 ${tone}`} aria-hidden>
-        {icon}
-      </span>
-      <div className="flex-1 min-w-0">
-        <div
-          className={`text-sm truncate ${completed ? "text-ink-3" : "text-ink-4"}`}
-        >
-          {ex.name}
-        </div>
-        <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
-          {target ? `${loggedSets}/${target} sets` : `${loggedSets} sets`}
-          {ex.rest_seconds ? ` · ${ex.rest_seconds}s rest` : ""}
-          {ex.save_to_template ? " · → tpl" : ""}
-        </div>
-      </div>
-      {readOnly && (
-        <span
-          className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] shrink-0"
-          aria-hidden
-        >
-          →
-        </span>
-      )}
-    </>
-  );
-
-  return (
-    <li className="relative">
-      {readOnly ? (
-        <Link
-          href={historyHref}
-          className={`w-full text-left flex items-center gap-3 px-3 py-3 border-b border-ink-2 last:border-b-0 hover:bg-ink-2/20 ${
-            ex.skipped ? "opacity-50" : ""
-          }`}
-        >
-          {bodyInner}
-        </Link>
-      ) : (
-        <button
-          type="button"
-          onClick={() => {
-            if (menuOpen) return;
-            onSelect();
-          }}
-          onPointerDown={pointerDown}
-          onPointerUp={pointerUp}
-          onPointerLeave={pointerUp}
-          className={`w-full text-left flex items-center gap-3 px-3 py-3 border-b border-ink-2 last:border-b-0 ${
-            isActive ? "bg-accent/5" : "hover:bg-ink-2/20"
-          } ${ex.skipped ? "opacity-50" : ""}`}
-        >
-          {bodyInner}
-        </button>
-      )}
-      {menuOpen && !readOnly && (
-        <div
-          className="absolute right-2 top-2 z-20 bg-ink-1 border border-ink-2 rounded-md shadow-2xl flex"
-          onMouseLeave={() => setMenuOpen(false)}
-        >
-          <button
-            type="button"
-            onClick={() => {
-              setMenuOpen(false);
-              onSkip();
-            }}
-            className="px-3 py-2 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] text-warn hover:bg-ink-2/30"
-          >
-            SKIP
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMenuOpen(false);
-              onRemove();
-            }}
-            className="px-3 py-2 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] text-danger hover:bg-ink-2/30"
-          >
-            REMOVE
-          </button>
-        </div>
-      )}
-    </li>
   );
 }
 
