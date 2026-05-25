@@ -142,6 +142,70 @@ export type LastSession = {
   sets: LoggedSet[];
 } | null;
 
+/** Per-session summary row for the exercise-history page. */
+export type ExerciseHistoryEntry = {
+  id: string;
+  session_id: string;
+  date: string;
+  slot: Slot;
+  sets_logged: number;
+  top_set: { weight: number; reps: number; unit: WeightUnit } | null;
+  volume_kg: number;
+  est_1rm_kg: number | null;
+  comment: string | null;
+  notes: string | null;
+  is_peak_weight_pr: boolean;
+  is_volume_pr: boolean;
+};
+
+export type ExercisePRs = {
+  peak: {
+    weight_kg: number;
+    weight: number;
+    unit: WeightUnit;
+    reps: number;
+    session_id: string;
+    date: string;
+  } | null;
+  volume: {
+    volume_kg: number;
+    set_count: number;
+    session_id: string;
+    date: string;
+  } | null;
+};
+
+export type ExerciseHistoryResponse = {
+  exercise_name: string;
+  template_notes: string | null;
+  modal_unit: WeightUnit;
+  sessions: ExerciseHistoryEntry[];
+  peak_weight: ExercisePRs["peak"];
+  volume_pr: ExercisePRs["volume"];
+};
+
+export type HistorySessionCard = {
+  id: string;
+  date: string;
+  slot: Slot;
+  kind: SessionKind;
+  name: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  notes: string | null;
+  exercise_count: number;
+  set_count: number;
+  total_volume_kg: number;
+  duration_minutes: number | null;
+  distance_km: number | null;
+  duration_active_min: number | null;
+};
+
+export type HistoryResponse = {
+  sessions: HistorySessionCard[];
+  next_cursor: string | null;
+};
+
 export const DAY_LABELS = [
   "Monday",
   "Tuesday",

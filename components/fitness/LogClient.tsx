@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
 import type {
   LastSession,
@@ -920,7 +921,16 @@ function CurrentExerciseCard({
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
           <div className="text-lg sm:text-xl text-ink-4 leading-tight">
-            {ex.name}
+            {readOnly ? (
+              <Link
+                href={`/fitness/history/exercise/${encodeURIComponent(ex.name)}`}
+                className="hover:text-accent transition-colors"
+              >
+                {ex.name} <span className="text-ink-3 text-sm">→</span>
+              </Link>
+            ) : (
+              ex.name
+            )}
           </div>
           {targets && (
             <div className="text-[11px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
@@ -1248,35 +1258,64 @@ function ExerciseRow({
     }
   }
 
+  const historyHref = `/fitness/history/exercise/${encodeURIComponent(ex.name)}`;
+
+  const bodyInner = (
+    <>
+      <span className={`text-base shrink-0 ${tone}`} aria-hidden>
+        {icon}
+      </span>
+      <div className="flex-1 min-w-0">
+        <div
+          className={`text-sm truncate ${completed ? "text-ink-3" : "text-ink-4"}`}
+        >
+          {ex.name}
+        </div>
+        <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+          {target ? `${loggedSets}/${target} sets` : `${loggedSets} sets`}
+          {ex.rest_seconds ? ` · ${ex.rest_seconds}s rest` : ""}
+          {ex.save_to_template ? " · → tpl" : ""}
+        </div>
+      </div>
+      {readOnly && (
+        <span
+          className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] shrink-0"
+          aria-hidden
+        >
+          →
+        </span>
+      )}
+    </>
+  );
+
   return (
     <li className="relative">
-      <button
-        type="button"
-        onClick={() => {
-          if (menuOpen) return;
-          onSelect();
-        }}
-        onPointerDown={pointerDown}
-        onPointerUp={pointerUp}
-        onPointerLeave={pointerUp}
-        className={`w-full text-left flex items-center gap-3 px-3 py-3 border-b border-ink-2 last:border-b-0 ${
-          isActive ? "bg-accent/5" : "hover:bg-ink-2/20"
-        } ${ex.skipped ? "opacity-50" : ""}`}
-      >
-        <span className={`text-base shrink-0 ${tone}`} aria-hidden>
-          {icon}
-        </span>
-        <div className="flex-1 min-w-0">
-          <div className={`text-sm truncate ${completed ? "text-ink-3" : "text-ink-4"}`}>
-            {ex.name}
-          </div>
-          <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
-            {target ? `${loggedSets}/${target} sets` : `${loggedSets} sets`}
-            {ex.rest_seconds ? ` · ${ex.rest_seconds}s rest` : ""}
-            {ex.save_to_template ? " · → tpl" : ""}
-          </div>
-        </div>
-      </button>
+      {readOnly ? (
+        <Link
+          href={historyHref}
+          className={`w-full text-left flex items-center gap-3 px-3 py-3 border-b border-ink-2 last:border-b-0 hover:bg-ink-2/20 ${
+            ex.skipped ? "opacity-50" : ""
+          }`}
+        >
+          {bodyInner}
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            if (menuOpen) return;
+            onSelect();
+          }}
+          onPointerDown={pointerDown}
+          onPointerUp={pointerUp}
+          onPointerLeave={pointerUp}
+          className={`w-full text-left flex items-center gap-3 px-3 py-3 border-b border-ink-2 last:border-b-0 ${
+            isActive ? "bg-accent/5" : "hover:bg-ink-2/20"
+          } ${ex.skipped ? "opacity-50" : ""}`}
+        >
+          {bodyInner}
+        </button>
+      )}
       {menuOpen && !readOnly && (
         <div
           className="absolute right-2 top-2 z-20 bg-ink-1 border border-ink-2 rounded-md shadow-2xl flex"
