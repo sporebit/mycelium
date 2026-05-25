@@ -13,8 +13,19 @@ import type {
 } from "@/lib/fitness/types";
 import { RestTimer } from "./RestTimer";
 import { FinishModal } from "./FinishModal";
+import { PainLogModal } from "./PainLogModal";
 import { targetForDisplay, topSet } from "@/lib/fitness/progression";
 import { localDateKey } from "@/lib/util/date";
+import {
+  FEEL_EMOJI,
+  formatRegion,
+  formatSeverity,
+  summarizeBaseline,
+} from "@/lib/fitness/pain";
+import type {
+  ExerciseBaseline,
+  ExercisePainLog,
+} from "@/lib/fitness/types";
 
 const UNITS: WeightUnit[] = ["kg", "lbs", "stone"];
 const UNIT_LABEL: Record<WeightUnit, string> = { kg: "KG", lbs: "LBS", stone: "ST" };
@@ -118,6 +129,13 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
     setNumber?: number;
     totalSets?: number;
   } | null>(null);
+  const [baselinesByName, setBaselinesByName] = useState<
+    Record<string, ExerciseBaseline>
+  >({});
+  const [painLogsByExId, setPainLogsByExId] = useState<
+    Record<string, ExercisePainLog>
+  >({});
+  const [painModalFor, setPainModalFor] = useState<string | null>(null);
   const weightInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const commentTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
@@ -232,6 +250,56 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
       return out;
     });
   }
+
+  // ---------------------------------------------------------------------------
+  // Baselines + pain logs (once on mount). Baselines are fetched as a whole
+  // list so we can look up by name regardless of which exercises are present.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/fitness/baselines", { cache: "no-store" });
+        if (!r.ok || cancelled) return;
+        const j = (await r.json()) as { baselines: ExerciseBaseline[] };
+        if (cancelled) return;
+        const map: Record<string, ExerciseBaseline> = {};
+        for (const b of j.baselines ?? []) {
+          map[b.exercise_name.toLowerCase()] = b;
+        }
+        setBaselinesByName(map);
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch(
+          `/api/fitness/pain-logs?session_id=${session.id}`,
+          { cache: "no-store" }
+        );
+        if (!r.ok || cancelled) return;
+        const j = (await r.json()) as { pain_logs: ExercisePainLog[] };
+        if (cancelled) return;
+        const map: Record<string, ExercisePainLog> = {};
+        for (const l of j.pain_logs ?? []) {
+          map[l.session_exercise_id] = l;
+        }
+        setPainLogsByExId(map);
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [session.id]);
 
   // ---------------------------------------------------------------------------
   // Last-session lookup (in parallel, once on mount)
@@ -677,6 +745,9 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
             onToggleSaveToTemplate={toggleSaveToTemplate}
             onLogDuration={logDuration}
             visibleSets={getVisibleSets(current)}
+            baseline={baselinesByName[current.name.toLowerCase()] ?? null}
+            painLog={painLogsByExId[current.id] ?? null}
+            onOpenPainLog={() => setPainModalFor(current.id)}
             onAddSet={() => addVisibleSet(current)}
             onRemoveSet={(n) => void removeVisibleSet(current, n)}
             onStartRest={() => {
@@ -776,6 +847,27 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
         />
       )}
 
+      {/* Pain log modal */}
+      {painModalFor &&
+        (() => {
+          const ex = exercises.find((e) => e.id === painModalFor);
+          if (!ex) return null;
+          return (
+            <PainLogModal
+              exerciseName={ex.name}
+              sessionExerciseId={ex.id}
+              baseline={baselinesByName[ex.name.toLowerCase()] ?? null}
+              existing={painLogsByExId[ex.id] ?? null}
+              onClose={() => setPainModalFor(null)}
+              onSaved={(log) => {
+                setPainLogsByExId((prev) => ({ ...prev, [ex.id]: log }));
+                setPainModalFor(null);
+                setToast({ kind: "ok", text: "Logged" });
+              }}
+            />
+          );
+        })()}
+
       {/* Add ad-hoc */}
       {showAdd && (
         <AddExerciseModal
@@ -829,6 +921,9 @@ function CurrentExerciseCard({
   setInputDraft,
   weightInputRefs,
   visibleSets,
+  baseline,
+  painLog,
+  onOpenPainLog,
   onAddSet,
   onRemoveSet,
   onToggleSet,
@@ -849,6 +944,9 @@ function CurrentExerciseCard({
   setInputDraft: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   weightInputRefs: React.RefObject<Record<string, HTMLInputElement | null>>;
   visibleSets: number[];
+  baseline: ExerciseBaseline | null;
+  painLog: ExercisePainLog | null;
+  onOpenPainLog: () => void;
   onAddSet: () => void;
   onRemoveSet: (n: number) => void;
   onToggleSet: (ex: SessionExercise, n: number) => void | Promise<void>;
@@ -970,6 +1068,18 @@ function CurrentExerciseCard({
           </div>
         )}
       </div>
+
+      {/* PAIN INDICATOR — only when there's a baseline with known issues
+          or an existing log for this exercise. Always informational, never
+          auto-prompts. */}
+      {(baseline?.has_known_issues || painLog) && (
+        <PainIndicator
+          baseline={baseline}
+          painLog={painLog}
+          onOpen={onOpenPainLog}
+          disabled={readOnly}
+        />
+      )}
 
       {grid ? (
         <div className="mt-3 flex flex-col gap-2">
@@ -1344,6 +1454,77 @@ function ExerciseRow({
         </div>
       )}
     </li>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Pain indicator — subtle, opt-in entry to the pain modal.
+// ---------------------------------------------------------------------------
+
+function PainIndicator({
+  baseline,
+  painLog,
+  onOpen,
+  disabled,
+}: {
+  baseline: ExerciseBaseline | null;
+  painLog: ExercisePainLog | null;
+  onOpen: () => void;
+  disabled: boolean;
+}) {
+  if (painLog) {
+    const emoji = painLog.feel_rating ? FEEL_EMOJI[painLog.feel_rating] : "·";
+    const regions =
+      painLog.pain_regions && painLog.pain_regions.length > 0
+        ? painLog.pain_regions.map(formatRegion).join(", ").toLowerCase()
+        : null;
+    const sevPart = painLog.severity != null ? ` ${painLog.severity}/10` : "";
+    const summary = [painLog.feel_rating, regions].filter(Boolean).join(" · ");
+    return (
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={onOpen}
+        className="mt-3 w-full flex items-center gap-2 rounded-md border border-ok/40 bg-ok/10 px-3 py-2 text-left hover:bg-ok/15 transition-colors disabled:opacity-60"
+      >
+        <span aria-hidden className="text-base shrink-0">
+          {emoji}
+        </span>
+        <span className="flex-1 min-w-0 text-[11px] uppercase tracking-[0.15em] text-ok font-[family-name:var(--font-mono)] truncate">
+          Logged: {summary || "—"}
+          {sevPart}
+        </span>
+        <span className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.18em] shrink-0">
+          EDIT →
+        </span>
+      </button>
+    );
+  }
+  if (!baseline?.has_known_issues) return null;
+  const sev = formatSeverity(baseline);
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onOpen}
+      className="mt-3 w-full flex items-center gap-2 rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-left hover:bg-warn/15 transition-colors disabled:opacity-60"
+    >
+      <span aria-hidden className="text-base shrink-0">
+        ⚠
+      </span>
+      <span className="flex-1 min-w-0 text-[11px] uppercase tracking-[0.15em] text-warn font-[family-name:var(--font-mono)]">
+        Known pain history
+        {summarizeBaseline(baseline)
+          ? `: ${summarizeBaseline(baseline)}`
+          : ""}
+        {sev && !summarizeBaseline(baseline).includes("typical")
+          ? ` · typical ${sev}`
+          : ""}
+      </span>
+      <span className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.18em] shrink-0">
+        LOG →
+      </span>
+    </button>
   );
 }
 

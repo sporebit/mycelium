@@ -144,6 +144,20 @@ export async function GET() {
       }
     }
 
+    // Pull baselines once, then count known-issue exercises per session.
+    const { data: baselineRows } = await supabase
+      .from("exercise_baselines")
+      .select("exercise_name, has_known_issues")
+      .eq("user_id", uid)
+      .eq("has_known_issues", true);
+    const issueNames = new Set<string>();
+    for (const b of (baselineRows ?? []) as Array<{
+      exercise_name: string;
+      has_known_issues: boolean;
+    }>) {
+      issueNames.add(b.exercise_name.toLowerCase());
+    }
+
     const out: TodayResponse = {
       date: todayKey,
       programme_name: (programme?.name as string | null) ?? null,
@@ -162,16 +176,22 @@ export async function GET() {
           }
           summary = { sets: setsBySession.get(live.id) ?? 0, minutes };
         }
+        const exs = exByPS.get(s.id) ?? [];
+        const knownIssuesCount = exs.reduce(
+          (n, ex) => n + (issueNames.has(ex.name.toLowerCase()) ? 1 : 0),
+          0
+        );
         return {
           slot: s.slot,
           kind: s.kind,
           name: s.name,
           programme_session_id: s.id,
-          exercises: exByPS.get(s.id) ?? [],
+          exercises: exs,
           logged_session_id: live?.id ?? null,
           completed,
           in_progress: inProgress,
           summary,
+          known_issues_count: knownIssuesCount,
         };
       }),
     };

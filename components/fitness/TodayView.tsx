@@ -139,6 +139,7 @@ export function TodayView() {
           ? "RESUME →"
           : "START SESSION →";
         const tone = s.completed ? "ok" : s.in_progress ? "warn" : undefined;
+        const knownCount = s.known_issues_count ?? 0;
         return (
           <Panel
             key={`${s.slot}-${s.programme_session_id}`}
@@ -147,8 +148,17 @@ export function TodayView() {
             status={s.completed ? "COMPLETED" : s.in_progress ? "IN PROGRESS" : undefined}
             statusTone={tone}
             topRight={
-              <span className="text-base" aria-hidden>
-                {KIND_ICON[s.kind] ?? "·"}
+              <span className="flex items-center gap-2">
+                {knownCount > 0 && (
+                  <span
+                    className="inline-block h-2 w-2 rounded-full bg-warn"
+                    title={`${knownCount} exercise${knownCount === 1 ? "" : "s"} in this session ${knownCount === 1 ? "has" : "have"} known pain history`}
+                    aria-label={`${knownCount} exercises with known pain history`}
+                  />
+                )}
+                <span className="text-base" aria-hidden>
+                  {KIND_ICON[s.kind] ?? "·"}
+                </span>
               </span>
             }
             bottomCTA={

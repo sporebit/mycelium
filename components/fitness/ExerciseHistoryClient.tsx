@@ -17,11 +17,22 @@ import { Panel } from "@/components/dashboard/Panel";
 import { fromKg, toKg } from "@/lib/fitness/units";
 import { isoWeekString } from "@/lib/util/week";
 import { pickParam, updateUrlParam } from "@/lib/util/url-params";
+import {
+  FEEL_EMOJI,
+  feelRatingToSeverity,
+  formatRegion,
+  formatSeverity,
+  severityToColor,
+} from "@/lib/fitness/pain";
 import type {
+  ExerciseBaseline,
   ExerciseHistoryEntry,
   ExerciseHistoryResponse,
+  ExercisePainLog,
   WeightUnit,
 } from "@/lib/fitness/types";
+
+type PainLogWithDate = ExercisePainLog & { session_id: string; date: string };
 
 type XMode = "session" | "date" | "weekly";
 type YMode = "top" | "volume" | "epley";
@@ -83,13 +94,27 @@ type Point = {
   entry?: ExerciseHistoryEntry;
   /** True if this point represents a PR for the chosen Y metric. */
   isPR: boolean;
+  /** Resolved pain severity for this point (drives dot colour). Null when unknown. */
+  severity?: number | null;
 };
+
+function severityForSession(
+  sessionId: string,
+  painBySessionId: Map<string, PainLogWithDate>
+): number | null {
+  const log = painBySessionId.get(sessionId);
+  if (!log) return null;
+  if (log.severity != null) return log.severity;
+  if (log.feel_rating) return feelRatingToSeverity(log.feel_rating);
+  return null;
+}
 
 function buildPoints(
   entries: ExerciseHistoryEntry[],
   xMode: XMode,
   yMode: YMode,
-  unit: WeightUnit
+  unit: WeightUnit,
+  painBySessionId: Map<string, PainLogWithDate>
 ): Point[] {
   // Sort ASC so the chart reads left-to-right oldest-to-newest
   const asc = [...entries].sort((a, b) =>
@@ -132,6 +157,7 @@ function buildPoints(
         xLabel: String(i + 1),
         entry: p.entry,
         isPR: p.isPR,
+        severity: severityForSession(p.entry.session_id, painBySessionId),
       }));
   }
 
@@ -147,6 +173,7 @@ function buildPoints(
         xLabel: fmtDateShort(p.entry.date),
         entry: p.entry,
         isPR: p.isPR,
+        severity: severityForSession(p.entry.session_id, painBySessionId),
       }));
   }
 
@@ -176,6 +203,7 @@ function buildPoints(
       xLabel: b.week.replace(/^\d{4}-/, ""), // "W22"
       entry: best.entry,
       isPR: best.isPR,
+      severity: severityForSession(best.entry.session_id, painBySessionId),
     };
   });
 }
@@ -243,7 +271,8 @@ function ChartTooltipContent({
   );
 }
 
-// Recharts custom dot renderer. Renders a star for PR points.
+// Recharts custom dot renderer. Renders a star for PR points and colours
+// every dot by pain severity (green/amber/orange/red) when a log exists.
 type DotProps = {
   cx?: number;
   cy?: number;
@@ -253,8 +282,9 @@ type DotProps = {
 function DotRenderer(props: DotProps) {
   const { cx, cy, payload } = props;
   if (cx == null || cy == null) return <g />;
+  const colour = severityToColor(payload?.severity ?? null);
   if (payload?.isPR) {
-    // 5-point gold star
+    // 5-point star, filled with the pain colour
     const points: string[] = [];
     const outer = 8;
     const inner = 3.2;
@@ -266,9 +296,9 @@ function DotRenderer(props: DotProps) {
     return (
       <polygon
         points={points.join(" ")}
-        fill="var(--color-warn)"
+        fill={colour}
         stroke="var(--color-warn)"
-        strokeWidth={0.5}
+        strokeWidth={1}
         key={`pr-${cx}-${cy}`}
       />
     );
@@ -278,10 +308,123 @@ function DotRenderer(props: DotProps) {
       cx={cx}
       cy={cy}
       r={3.5}
-      fill="var(--color-accent)"
-      stroke="var(--color-accent)"
+      fill={colour}
+      stroke={colour}
       key={`d-${cx}-${cy}`}
     />
+  );
+}
+
+type PainPoint = {
+  y: number;
+  xLabel: string;
+  sortKey: number | string;
+  log?: PainLogWithDate;
+};
+
+function buildPainPoints(
+  logs: PainLogWithDate[],
+  xMode: XMode,
+  /** Mapping from session_id → display index used by the weight chart, so
+   *  the two charts share the X-axis exactly when in "Session #" mode. */
+  sessionIndex: Map<string, number>
+): PainPoint[] {
+  const asc = [...logs].sort((a, b) =>
+    a.date < b.date ? -1 : a.date > b.date ? 1 : 0
+  );
+
+  function severityOf(l: PainLogWithDate): number | null {
+    if (l.severity != null) return l.severity;
+    if (l.feel_rating) return feelRatingToSeverity(l.feel_rating);
+    return null;
+  }
+
+  if (xMode === "session") {
+    const out: PainPoint[] = [];
+    for (const l of asc) {
+      const sev = severityOf(l);
+      if (sev == null) continue;
+      const idx = sessionIndex.get(l.session_id);
+      if (idx == null) continue;
+      out.push({ y: sev, xLabel: String(idx), sortKey: idx, log: l });
+    }
+    out.sort((a, b) => (a.sortKey as number) - (b.sortKey as number));
+    return out;
+  }
+  if (xMode === "date") {
+    const out: PainPoint[] = [];
+    for (const l of asc) {
+      const sev = severityOf(l);
+      if (sev == null) continue;
+      out.push({
+        y: sev,
+        xLabel: fmtDateShort(l.date),
+        sortKey: l.date,
+        log: l,
+      });
+    }
+    return out;
+  }
+  // Weekly: max severity per ISO week
+  const byWeek = new Map<string, { sev: number; log: PainLogWithDate }>();
+  for (const l of asc) {
+    const sev = severityOf(l);
+    if (sev == null) continue;
+    const week = isoWeekString(new Date(`${l.date}T12:00:00Z`));
+    const cur = byWeek.get(week);
+    if (!cur || sev > cur.sev) byWeek.set(week, { sev, log: l });
+  }
+  return Array.from(byWeek.entries())
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+    .map(([w, v]) => ({
+      y: v.sev,
+      xLabel: w.replace(/^\d{4}-/, ""),
+      sortKey: w,
+      log: v.log,
+    }));
+}
+
+function PainDotRenderer(props: DotProps & { payload?: PainPoint }) {
+  const { cx, cy, payload } = props;
+  if (cx == null || cy == null) return <g />;
+  const colour = severityToColor(payload?.y ?? null);
+  return (
+    <circle cx={cx} cy={cy} r={4} fill={colour} stroke={colour} key={`p-${cx}-${cy}`} />
+  );
+}
+
+type PainTooltipArgs = {
+  active?: boolean;
+  payload?: readonly { payload?: PainPoint | unknown }[];
+};
+function PainTooltipContent({ active, payload }: PainTooltipArgs) {
+  if (!active || !payload || payload.length === 0) return null;
+  const p = payload[0]?.payload as PainPoint | undefined;
+  if (!p?.log) return null;
+  const l = p.log;
+  const regions =
+    l.pain_regions && l.pain_regions.length > 0
+      ? l.pain_regions.map(formatRegion).join(", ")
+      : null;
+  const emoji = l.feel_rating ? FEEL_EMOJI[l.feel_rating] : "·";
+  return (
+    <div className="rounded-md border border-ink-2 bg-ink-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-ink-4 max-w-xs">
+      <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 mb-1">
+        {fmtDate(l.date)}
+      </div>
+      <div>
+        {emoji} {l.feel_rating ?? ""}
+        {l.severity != null ? ` · ${l.severity}/10` : ""}
+      </div>
+      {regions && (
+        <div className="text-[11px] text-ink-3 mt-1">{regions.toLowerCase()}</div>
+      )}
+      {l.notes && (
+        <div className="text-[11px] text-ink-3 italic font-[family-name:var(--font-display)] mt-1 leading-snug">
+          {l.notes}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -324,22 +467,40 @@ export function ExerciseHistoryClient({
   }
 
   const [data, setData] = useState<ExerciseHistoryResponse | null>(null);
+  const [baseline, setBaseline] = useState<ExerciseBaseline | null>(null);
+  const [painLogs, setPainLogs] = useState<PainLogWithDate[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const r = await fetch(
-          `/api/fitness/exercise-history?name=${encodeURIComponent(name)}`,
-          { cache: "no-store" }
-        );
-        if (!r.ok) {
-          if (!cancelled) setError(`Load failed (${r.status})`);
+        const [hRes, bRes, pRes] = await Promise.all([
+          fetch(`/api/fitness/exercise-history?name=${encodeURIComponent(name)}`, {
+            cache: "no-store",
+          }),
+          fetch(`/api/fitness/baselines/${encodeURIComponent(name)}`, {
+            cache: "no-store",
+          }),
+          fetch(`/api/fitness/pain-logs/exercise/${encodeURIComponent(name)}`, {
+            cache: "no-store",
+          }),
+        ]);
+        if (!hRes.ok) {
+          if (!cancelled) setError(`Load failed (${hRes.status})`);
           return;
         }
-        const j = (await r.json()) as ExerciseHistoryResponse;
-        if (!cancelled) setData(j);
+        const j = (await hRes.json()) as ExerciseHistoryResponse;
+        if (cancelled) return;
+        setData(j);
+        if (bRes.ok) {
+          const bj = (await bRes.json()) as { baseline: ExerciseBaseline | null };
+          if (!cancelled) setBaseline(bj.baseline);
+        }
+        if (pRes.ok) {
+          const pj = (await pRes.json()) as { logs: PainLogWithDate[] };
+          if (!cancelled) setPainLogs(Array.isArray(pj.logs) ? pj.logs : []);
+        }
       } catch {
         if (!cancelled) setError("Network error");
       }
@@ -350,9 +511,37 @@ export function ExerciseHistoryClient({
   }, [name]);
 
   const unit = data?.modal_unit ?? "kg";
+
+  // Map session_id → pain log for fast lookup from the chart dot renderer
+  const painBySessionId = useMemo(() => {
+    const m = new Map<string, PainLogWithDate>();
+    for (const l of painLogs) m.set(l.session_id, l);
+    return m;
+  }, [painLogs]);
+
   const points = useMemo(
-    () => (data ? buildPoints(data.sessions, xMode, yMode, unit) : []),
-    [data, xMode, yMode, unit]
+    () =>
+      data
+        ? buildPoints(data.sessions, xMode, yMode, unit, painBySessionId)
+        : [],
+    [data, xMode, yMode, unit, painBySessionId]
+  );
+
+  // Session_id → 1-based display index, mirrors the weight chart's "Session #"
+  // X-axis so the pain chart aligns when both are set to that mode.
+  const sessionIndex = useMemo(() => {
+    const m = new Map<string, number>();
+    if (!data) return m;
+    const asc = [...data.sessions].sort((a, b) =>
+      a.date < b.date ? -1 : a.date > b.date ? 1 : 0
+    );
+    asc.forEach((s, i) => m.set(s.session_id, i + 1));
+    return m;
+  }, [data]);
+
+  const painPoints = useMemo(
+    () => buildPainPoints(painLogs, xMode, sessionIndex),
+    [painLogs, xMode, sessionIndex]
   );
 
   const yLabel = yAxisLabel(yMode, unit);
@@ -391,6 +580,9 @@ export function ExerciseHistoryClient({
           </p>
         )}
       </div>
+
+      {/* Baseline card — shown above everything when one exists */}
+      {baseline?.has_known_issues && <BaselineCard baseline={baseline} />}
 
       {data.sessions.length === 0 ? (
         <Panel title="No history">
@@ -537,6 +729,68 @@ export function ExerciseHistoryClient({
             </div>
           </Panel>
 
+          {/* Pain over time */}
+          <Panel
+            title="Pain over time"
+            topRight={
+              <Mono>{painLogs.length} log{painLogs.length === 1 ? "" : "s"}</Mono>
+            }
+          >
+            {painPoints.length === 0 ? (
+              <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+                No pain logs for this exercise yet.
+              </p>
+            ) : (
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={painPoints}
+                    margin={{ top: 12, right: 12, bottom: 8, left: 0 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="2 4"
+                      stroke="var(--color-ink-2)"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="xLabel"
+                      stroke="var(--color-ink-3)"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={{ stroke: "var(--color-ink-2)" }}
+                    />
+                    <YAxis
+                      domain={[0, 10]}
+                      stroke="var(--color-ink-3)"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={{ stroke: "var(--color-ink-2)" }}
+                      width={32}
+                      ticks={[0, 2, 4, 6, 8, 10]}
+                    />
+                    <Tooltip
+                      content={(p: PainTooltipArgs) => (
+                        <PainTooltipContent {...p} />
+                      )}
+                      cursor={{
+                        stroke: "var(--color-ink-2)",
+                        strokeWidth: 1,
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="y"
+                      stroke="var(--color-ink-3)"
+                      strokeWidth={1.5}
+                      dot={PainDotRenderer}
+                      isAnimationActive={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </Panel>
+
           {/* Recent table */}
           <Panel
             title="Recent sessions"
@@ -550,11 +804,24 @@ export function ExerciseHistoryClient({
                     <th className="text-right py-2 px-3">Sets</th>
                     <th className="text-right py-2 px-3">Top Set</th>
                     <th className="text-right py-2 px-3">Volume</th>
+                    <th className="text-center py-2 px-3">Pain</th>
                     <th className="text-left py-2 pl-3">Notes</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.sessions.slice(0, 20).map((s) => (
+                  {data.sessions.slice(0, 20).map((s) => {
+                    const log = painBySessionId.get(s.session_id);
+                    const sev =
+                      log?.severity ??
+                      (log?.feel_rating ? feelRatingToSeverity(log.feel_rating) : null);
+                    const emoji = log?.feel_rating
+                      ? FEEL_EMOJI[log.feel_rating]
+                      : null;
+                    const regionTip =
+                      log?.pain_regions && log.pain_regions.length > 0
+                        ? log.pain_regions.map(formatRegion).join(", ")
+                        : "";
+                    return (
                     <tr
                       key={s.id}
                       className="border-t border-ink-2 hover:bg-ink-2/20"
@@ -590,18 +857,61 @@ export function ExerciseHistoryClient({
                         {s.volume_kg > 0 ? `${fmtNumber(s.volume_kg)} kg` : "—"}
                       </td>
                       <td
+                        className="py-2 px-3 text-center font-[family-name:var(--font-mono)]"
+                        title={regionTip}
+                      >
+                        {log ? (
+                          <span style={{ color: severityToColor(sev) }}>
+                            {emoji ?? "·"}
+                            {sev != null ? ` ${sev}` : ""}
+                          </span>
+                        ) : (
+                          <span className="text-ink-3">—</span>
+                        )}
+                      </td>
+                      <td
                         className="py-2 pl-3 text-xs text-ink-3 italic font-[family-name:var(--font-display)] max-w-[14rem] truncate"
                         title={s.comment ?? ""}
                       >
                         {s.comment ?? ""}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </Panel>
         </>
+      )}
+    </div>
+  );
+}
+
+function BaselineCard({ baseline }: { baseline: ExerciseBaseline }) {
+  const sev = formatSeverity(baseline);
+  const regions =
+    baseline.pain_regions && baseline.pain_regions.length > 0
+      ? baseline.pain_regions.map(formatRegion).join(", ")
+      : null;
+  return (
+    <div className="rounded-2xl border border-warn/40 bg-warn/10 p-4 flex flex-col gap-1">
+      <div className="text-[10px] uppercase tracking-[0.22em] text-warn font-[family-name:var(--font-mono)] flex items-center gap-2">
+        <span aria-hidden>⚠</span> Known history
+      </div>
+      <div className="text-sm text-ink-4 mt-1">
+        Has issues
+        {sev ? <span className="text-ink-3"> · typical {sev}</span> : null}
+      </div>
+      {regions && (
+        <div className="text-[12px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.08em]">
+          Regions: <span className="text-ink-4">{regions.toLowerCase()}</span>
+        </div>
+      )}
+      {baseline.conditional_notes && (
+        <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-1 leading-snug">
+          {baseline.conditional_notes}
+        </p>
       )}
     </div>
   );

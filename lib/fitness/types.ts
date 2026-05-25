@@ -101,6 +101,8 @@ export type TodayResponse = {
     in_progress: boolean;
     /** Summary numbers for completed sessions (otherwise null). */
     summary: { sets: number; minutes: number | null } | null;
+    /** How many of this session's exercises have a known-pain-issues baseline. */
+    known_issues_count: number;
   }>;
 };
 
@@ -204,6 +206,40 @@ export type HistorySessionCard = {
 export type HistoryResponse = {
   sessions: HistorySessionCard[];
   next_cursor: string | null;
+};
+
+export type FeelRating =
+  | "great"
+  | "good"
+  | "ok"
+  | "mild"
+  | "moderate"
+  | "painful"
+  | "stopped";
+
+export type ExerciseBaseline = {
+  id: string;
+  user_id: string;
+  exercise_name: string;
+  has_known_issues: boolean | null;
+  typical_severity_min: number | null;
+  typical_severity_max: number | null;
+  pain_regions: string[] | null;
+  conditional_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExercisePainLog = {
+  id: string;
+  user_id: string;
+  session_exercise_id: string;
+  severity: number | null;
+  feel_rating: FeelRating | null;
+  pain_regions: string[] | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export const DAY_LABELS = [

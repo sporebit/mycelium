@@ -108,8 +108,14 @@ export function Fitness() {
                   {KIND_ICON[s.kind] ?? "·"}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] flex items-center gap-1.5">
                     {SLOT_LABEL[s.slot]}
+                    {(s.known_issues_count ?? 0) > 0 && (
+                      <span
+                        className="inline-block h-1.5 w-1.5 rounded-full bg-warn"
+                        title={`${s.known_issues_count} exercise${s.known_issues_count === 1 ? "" : "s"} with known pain history`}
+                      />
+                    )}
                   </div>
                   <div className="text-sm text-ink-4 truncate">{s.name}</div>
                 </div>
