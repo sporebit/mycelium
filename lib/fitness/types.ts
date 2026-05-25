@@ -242,6 +242,84 @@ export type ExercisePainLog = {
   updated_at: string;
 };
 
+export type MatchConfidence = "high" | "medium" | "low";
+export type SessionIntent = "active" | "planned" | "ambiguous" | "create_extra";
+
+export type ParsedSet = {
+  set_number: number;
+  weight: number | null;
+  unit: WeightUnit | null;
+  reps: number | null;
+};
+
+export type ParsedExercise = {
+  raw_phrase: string;
+  matched_exercise_name: string | null;
+  match_confidence: MatchConfidence | null;
+  sets: ParsedSet[];
+};
+
+export type ParsedCardio = {
+  raw_phrase: string;
+  matched_exercise_name: string | null;
+  duration_min: number | null;
+  distance_km: number | null;
+  intensity: string | null;
+};
+
+export type ParsedPainIntent = {
+  raw_phrase: string;
+  matched_exercise_name: string | null;
+  severity: number | null;
+  pain_regions: string[];
+  feel_rating: FeelRating | null;
+};
+
+export type ParsedExerciseComment = {
+  matched_exercise_name: string;
+  comment: string;
+};
+
+export type ParsedWorkout = {
+  session_intent: SessionIntent;
+  candidate_session_ids: string[];
+  parsed_exercises: ParsedExercise[];
+  cardio_entries: ParsedCardio[];
+  pain_intents: ParsedPainIntent[];
+  session_notes: string | null;
+  exercise_comments: ParsedExerciseComment[];
+  uncertainty_notes: string[];
+};
+
+export type PendingButtonOption = {
+  session_id: string;
+  /** "active" | "planned" | "extra" — describes how to interpret session_id. */
+  state: "active" | "planned" | "extra";
+  name: string | null;
+  slot: string;
+  kind: string;
+};
+
+export type PendingWorkoutRoute = {
+  id: string;
+  user_id: string;
+  raw_text: string;
+  parsed_payload: ParsedWorkout;
+  button_options: PendingButtonOption[];
+  expires_at: string;
+  created_at: string;
+};
+
+export type VoiceRouteResult = {
+  session_id: string | null;
+  session_name: string | null;
+  exercises_logged: number;
+  sets_logged: number;
+  pain_logs: number;
+  cardio_logged: number;
+  summary: string;
+};
+
 export const DAY_LABELS = [
   "Monday",
   "Tuesday",

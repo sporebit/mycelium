@@ -1,0 +1,60 @@
+{
+  "name": "Mycelium Capture",
+  "description": "Record a voice note, send it to Mycelium for transcription + routing, and show the result as a notification.",
+  "note": "iOS Shortcuts use a proprietary binary .shortcut format. This JSON describes the steps a human recreates in the Shortcuts app. The setup page at /fitness/shortcut-setup has screenshots and the API secret.",
+  "trigger_recommendations": [
+    "Action Button (single press)",
+    "Lock Screen Widget",
+    "Home Screen Widget"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "action": "Record Audio",
+      "settings": {
+        "audio_quality": "Normal",
+        "start_recording_immediately": true,
+        "stop_method": "On Tap"
+      },
+      "note": "Use Record Audio rather than Dictate Text — Whisper does its own transcription and handles long-form better."
+    },
+    {
+      "step": 2,
+      "action": "Get Contents of URL",
+      "settings": {
+        "url": "https://mycelium.sporebit.com/api/capture-audio",
+        "method": "POST",
+        "headers": {
+          "X-API-Secret": "{{API_SECRET}}"
+        },
+        "request_body": "Form",
+        "form_fields": [
+          { "key": "audio", "value": "{{RecordedAudio}}", "type": "File" },
+          { "key": "source", "value": "ios_shortcut", "type": "Text" }
+        ]
+      },
+      "note": "Replace {{API_SECRET}} with the secret shown on /fitness/shortcut-setup. The header name is case-insensitive."
+    },
+    {
+      "step": 3,
+      "action": "Get Dictionary Value",
+      "settings": {
+        "key": "summary",
+        "dictionary": "{{ContentsOfURL}}"
+      }
+    },
+    {
+      "step": 4,
+      "action": "Show Notification",
+      "settings": {
+        "title": "Mycelium",
+        "body": "{{DictionaryValue}}",
+        "play_sound": false
+      }
+    }
+  ],
+  "tested_with": {
+    "ios_version": "iOS 18+",
+    "shortcuts_version": "App version 8.x"
+  }
+}

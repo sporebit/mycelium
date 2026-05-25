@@ -5,6 +5,7 @@ import {
   editMessageText,
   getFile,
   sendMessage,
+  type InlineKeyboardButton,
   type InlineKeyboardMarkup,
 } from "@/lib/telegram/api";
 import { transcribeAudio } from "@/lib/openai/whisper";
@@ -13,6 +14,12 @@ import { writeCapture } from "@/lib/router/writeCapture";
 import { embedAndStore } from "@/lib/router/embedAndStore";
 import { createServerClient } from "@/lib/supabase/server";
 import { decodeRoute, encodeRoute } from "@/lib/telegram/codes";
+import {
+  findPendingByPrefix,
+  resolvePendingByIndex,
+  routeRawVoice,
+} from "@/lib/fitness/voice-route";
+import type { PendingButtonOption } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
@@ -85,6 +92,88 @@ function buildUrgencyKeyboard(
   return keyboard;
 }
 
+function slotEmoji(slot: string): string {
+  if (slot === "morning") return "🌅";
+  if (slot === "afternoon") return "🌙";
+  return "➕";
+}
+
+function buildPendingKeyboard(
+  pendingId: string,
+  options: PendingButtonOption[]
+): InlineKeyboardMarkup {
+  const prefix = pendingId.slice(0, 8);
+  const rows: InlineKeyboardButton[][] = [];
+  options.forEach((opt, i) => {
+    let label: string;
+    if (opt.state === "active") {
+      label = `▶ Active: ${opt.name ?? opt.slot}`;
+    } else if (opt.state === "planned") {
+      label = `📋 ${slotEmoji(opt.slot)} ${opt.name ?? opt.slot}`;
+    } else {
+      label = "➕ New extra session";
+    }
+    rows.push([{ text: label, callback_data: `pw|${prefix}|${i}` }]);
+  });
+  const keyboard: InlineKeyboardMarkup = { inline_keyboard: rows };
+  for (const row of keyboard.inline_keyboard) {
+    for (const btn of row) {
+      const bytes = Buffer.byteLength(btn.callback_data, "utf8");
+      if (bytes > 64) {
+        console.error(
+          "[telegram] pw callback_data overflow:",
+          bytes,
+          btn.callback_data
+        );
+      }
+    }
+  }
+  return keyboard;
+}
+
+async function handlePendingCommand(chatId: number, userId: string): Promise<void> {
+  const supabase = createServerClient();
+  const { data: rows } = await supabase
+    .from("pending_workout_routes")
+    .select("id, raw_text, button_options, created_at")
+    .eq("user_id", userId)
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false })
+    .limit(5);
+  const pending = (rows ?? []) as Array<{
+    id: string;
+    raw_text: string;
+    button_options: PendingButtonOption[];
+    created_at: string;
+  }>;
+  if (pending.length === 0) {
+    await sendMessage(chatId, "✓ No pending workouts.");
+    return;
+  }
+  await sendMessage(
+    chatId,
+    `${pending.length} pending workout${pending.length === 1 ? "" : "s"}:`
+  );
+  for (const p of pending) {
+    const age = relativeAge(p.created_at);
+    const preview = p.raw_text.slice(0, 120);
+    await sendMessage(
+      chatId,
+      `🕓 ${age}\n"${preview}${p.raw_text.length > 120 ? "…" : ""}"\n\nWhich session?`,
+      { reply_markup: buildPendingKeyboard(p.id, p.button_options) }
+    );
+  }
+}
+
+function relativeAge(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const m = Math.round(ms / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  return `${h}h ago`;
+}
+
 async function handleMessage(message: TgMessage): Promise<void> {
   const chatId = message.chat.id;
   const userId = process.env.USER_ID;
@@ -120,7 +209,52 @@ async function handleMessage(message: TgMessage): Promise<void> {
     return;
   }
 
+  // /pending command — bypass capture pipeline
+  const lowered = rawText.trim().toLowerCase();
+  if (lowered === "/pending" || lowered === "pending workouts") {
+    await handlePendingCommand(chatId, userId);
+    return;
+  }
+
   const { classification, llm_source } = await classifyCapture(rawText);
+
+  // Workout routing — replaces the standard capture pipeline for this kind.
+  if (classification.kind === "workout") {
+    try {
+      const r = await routeRawVoice(rawText, userId);
+      if (r.kind === "routed") {
+        await sendMessage(chatId, r.result.summary);
+        // Also write a raw_captures row for audit/memory continuity
+        try {
+          await writeCapture({
+            userId,
+            source: "telegram",
+            rawText,
+            audioUrl,
+            classification,
+            llmSource: llm_source,
+          });
+        } catch (err) {
+          console.error("[telegram] workout capture write failed:", err);
+        }
+        return;
+      }
+      // Pending: needs disambiguation
+      const pending = await findPendingByPrefix(userId, r.pending_route_id.slice(0, 8));
+      if (!pending) {
+        await sendMessage(chatId, "⚠️ Couldn't stash pending workout — try again.");
+        return;
+      }
+      await sendMessage(chatId, "Multiple sessions match — which one?", {
+        reply_markup: buildPendingKeyboard(pending.id, pending.button_options),
+      });
+      return;
+    } catch (err) {
+      console.error("[telegram] workout routing failed:", err);
+      await sendMessage(chatId, "⚠️ Workout routing failed — check logs.");
+      return;
+    }
+  }
 
   const result = await writeCapture({
     userId,
@@ -159,6 +293,45 @@ async function handleCallback(cb: TgCallbackQuery): Promise<void> {
   const data = cb.data ?? "";
   const userId = process.env.USER_ID;
   if (!userId) throw new Error("USER_ID missing");
+
+  // Pending-workout resolution: pw|<8 char prefix>|<index>
+  if (data.startsWith("pw|")) {
+    const parts = data.split("|");
+    const prefix = parts[1] ?? "";
+    const idx = Number(parts[2] ?? "");
+    if (!prefix || !Number.isInteger(idx)) {
+      await answerCallbackQuery(cb.id, "Invalid action");
+      return;
+    }
+    const pending = await findPendingByPrefix(userId, prefix);
+    if (!pending) {
+      await answerCallbackQuery(cb.id, "Pending expired or not found");
+      return;
+    }
+    try {
+      const result = await resolvePendingByIndex(pending.id, userId, idx);
+      if (!result) {
+        await answerCallbackQuery(cb.id, "Could not resolve");
+        return;
+      }
+      await answerCallbackQuery(cb.id, "✓ Routed");
+      if (cb.message) {
+        try {
+          await editMessageText(
+            cb.message.chat.id,
+            cb.message.message_id,
+            result.summary
+          );
+        } catch (err) {
+          console.error("[telegram] edit after pw resolve failed:", err);
+        }
+      }
+    } catch (err) {
+      console.error("[telegram] pw resolve failed:", err);
+      await answerCallbackQuery(cb.id, "Resolve failed");
+    }
+    return;
+  }
 
   const parts = data.split("|");
   const action = parts[0];

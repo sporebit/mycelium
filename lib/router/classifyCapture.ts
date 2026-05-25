@@ -3,7 +3,8 @@ export type CaptureKind =
   | "note"
   | "decision"
   | "journal"
-  | "capture";
+  | "capture"
+  | "workout";
 export type CaptureUrgency = "today" | "this_week" | "this_month" | "someday";
 export type CaptureMood =
   | "energised"
@@ -37,6 +38,7 @@ const KINDS: readonly CaptureKind[] = [
   "decision",
   "journal",
   "capture",
+  "workout",
 ];
 const URGENCIES: readonly CaptureUrgency[] = [
   "today",
@@ -58,11 +60,12 @@ const MOODS: readonly CaptureMood[] = [
 export const CLASSIFIER_SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
 
 Rules:
-- "kind" is one of: task, note, decision, journal, capture.
+- "kind" is one of: task, note, decision, journal, capture, workout.
   - task = an action the user needs to do.
   - decision = a choice the user wants to record.
   - note = a fact or piece of info to remember.
   - journal = reflection, feeling, or observation about themselves or their day; longer-form expressive content; the kind of thing they'd want to re-read in a year.
+  - workout = a description of exercise the user just did, is doing, or is reporting on. Signals: set/rep patterns ("5x5", "3 sets of 8"), weights in kg/lbs ("80kg", "100lbs"), named exercises (bench press, squat, deadlift, RDL, lunges, etc.), cardio terms ("ran 5km", "10 mins on treadmill"), pain or feel words paired with body parts ("shoulder twinged", "left knee sore", "felt pumped"), session-shaped sentences ("did push day", "morning workout", "just finished legs").
   - capture = catch-all when none of the above clearly applies.
 
 Heuristics for journal (guidance, not strict):
@@ -71,12 +74,20 @@ Heuristics for journal (guidance, not strict):
   - Emotional content.
   - Over ~30 words of expressive content tends toward journal unless it's clearly a task list.
 
+Heuristics for workout (guidance):
+  - Concrete numbers (weights, reps, sets, distances, durations) about physical training.
+  - Body part + sensation, e.g. "left knee twinged on lunges, about a 5".
+  - Past-tense reporting of physical activity ("did", "just finished", "hit", "got through").
+  - Pure reflection about a workout WITHOUT concrete logging data ("the gym was hard today and I felt drained") is still journal, not workout.
+
 Examples:
   - "Remind me to call Sarah tomorrow" -> task
   - "We decided to go with the React 19 upgrade after all" -> decision
   - "Stoic gym this morning was brutal but I noticed I'm finally enjoying the back-squat day. Body's adapting." -> journal
   - "Beautiful walk through Sandall Park, the geese are back" -> journal
   - "Need to remember Dad's birthday is on the 14th" -> note
+  - "Did push day. Bench 80kg 5x5, OHP 50kg 3x8, dips bodyweight 3x10. Left shoulder twinged on the last set, about a 5." -> workout
+  - "Ran 5km, felt good, around 28 minutes" -> workout
 
 Other fields:
 - "urgency" is one of: today, this_week, this_month, someday. For journal entries this is unused — pick "someday".
@@ -235,11 +246,23 @@ function classifyRegex(text: string): Classification {
 
   // Order matters: note / decision win over task when both could apply
   // (so "need to remember Dad's birthday" lands as note, not task).
+  const workoutSignals =
+    /\b(\d+\s*x\s*\d+|\d+\s*(sets?|reps?)\b|\d+\s*(kg|lbs?|pounds))\b/i.test(text) ||
+    /\b(bench|squat|deadlift|press|curl|row|pull[- ]?up|push[- ]?up|lunge|rdl|ohp|bss|emom|dips|cardio|treadmill)\b/i.test(
+      lower
+    ) ||
+    /\b(ran|jogged|hiked|walked)\s+\d+\s*(k|km|mile)/i.test(lower) ||
+    /\b(push day|pull day|leg day|workout|gym session|squat day|bench day)\b/i.test(
+      lower
+    );
+
   let kind: CaptureKind = "capture";
   if (/\b(decided|decision|chose|choosing)\b/.test(lower)) {
     kind = "decision";
   } else if (/\b(idea|thought|remember)\b/.test(lower)) {
     kind = "note";
+  } else if (workoutSignals) {
+    kind = "workout";
   } else if (hasTaskWords) {
     kind = "task";
   } else if (

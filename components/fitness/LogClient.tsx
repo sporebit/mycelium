@@ -136,6 +136,8 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
     Record<string, ExercisePainLog>
   >({});
   const [painModalFor, setPainModalFor] = useState<string | null>(null);
+  // Flash markers: keys "<exId>:<setNumber>" that just appeared via polling.
+  const [flashSetKeys, setFlashSetKeys] = useState<Set<string>>(new Set());
   const weightInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const commentTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
@@ -349,6 +351,77 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
       /* ignore */
     }
   }, [session.id]);
+
+  /**
+   * Polling-aware reload: compares incoming set list with current and flashes
+   * any newly-appeared sets. Also refetches pain logs to catch voice-driven
+   * additions arriving from /api/capture-audio while the page is open.
+   */
+  const pollReload = useCallback(async () => {
+    try {
+      const r = await fetch(`/api/fitness/sessions/${session.id}`, {
+        cache: "no-store",
+      });
+      if (!r.ok) return;
+      const j = (await r.json()) as { session: SessionDetail };
+      const next = j.session;
+
+      // Diff sets — only flag rows the server now has that we didn't.
+      const oldKeys = new Set<string>();
+      for (const ex of session.exercises) {
+        for (const s of ex.sets ?? []) {
+          if (s.completed_at) oldKeys.add(`${ex.id}:${s.set_number}`);
+        }
+      }
+      const newlyLogged: string[] = [];
+      for (const ex of next.exercises) {
+        for (const s of ex.sets ?? []) {
+          if (!s.completed_at) continue;
+          const key = `${ex.id}:${s.set_number}`;
+          if (!oldKeys.has(key)) newlyLogged.push(key);
+        }
+      }
+      setSession(next);
+      if (newlyLogged.length > 0) {
+        setFlashSetKeys((prev) => new Set([...prev, ...newlyLogged]));
+        setTimeout(() => {
+          setFlashSetKeys((prev) => {
+            const out = new Set(prev);
+            for (const k of newlyLogged) out.delete(k);
+            return out;
+          });
+        }, 2000);
+      }
+
+      // Also refresh pain logs
+      const pr = await fetch(
+        `/api/fitness/pain-logs?session_id=${session.id}`,
+        { cache: "no-store" }
+      );
+      if (pr.ok) {
+        const pj = (await pr.json()) as { pain_logs: ExercisePainLog[] };
+        const map: Record<string, ExercisePainLog> = {};
+        for (const l of pj.pain_logs ?? []) map[l.session_exercise_id] = l;
+        setPainLogsByExId(map);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [session.id, session.exercises]);
+
+  // 30-second polling — only fires when the tab is visible and no rest
+  // timer overlay is showing (we don't want to distract during rest).
+  useEffect(() => {
+    if (readOnly) return;
+    if (restEndsAt !== null) return;
+    const id = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+        return;
+      }
+      void pollReload();
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [readOnly, restEndsAt, pollReload]);
 
   function noteSaving(state: "saving" | "saved" | "error") {
     setSaving(state);
@@ -747,6 +820,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
             visibleSets={getVisibleSets(current)}
             baseline={baselinesByName[current.name.toLowerCase()] ?? null}
             painLog={painLogsByExId[current.id] ?? null}
+            flashSetKeys={flashSetKeys}
             onOpenPainLog={() => setPainModalFor(current.id)}
             onAddSet={() => addVisibleSet(current)}
             onRemoveSet={(n) => void removeVisibleSet(current, n)}
@@ -923,6 +997,7 @@ function CurrentExerciseCard({
   visibleSets,
   baseline,
   painLog,
+  flashSetKeys,
   onOpenPainLog,
   onAddSet,
   onRemoveSet,
@@ -946,6 +1021,7 @@ function CurrentExerciseCard({
   visibleSets: number[];
   baseline: ExerciseBaseline | null;
   painLog: ExercisePainLog | null;
+  flashSetKeys: Set<string>;
   onOpenPainLog: () => void;
   onAddSet: () => void;
   onRemoveSet: (n: number) => void;
@@ -1126,11 +1202,15 @@ function CurrentExerciseCard({
               : "";
             const repsPlaceholder =
               lastForRow?.reps != null ? String(lastForRow.reps) : "";
+            const flashKey = `${ex.id}:${n}`;
+            const flashing = flashSetKeys.has(flashKey);
             return (
               <div
                 key={n}
-                className={`grid grid-cols-[2rem_1fr_1fr_4.5rem_2rem] gap-2 items-center rounded-md border px-1 py-1 transition-colors ${
-                  isLogged
+                className={`grid grid-cols-[2rem_1fr_1fr_4.5rem_2rem] gap-2 items-center rounded-md border px-1 py-1 transition-colors duration-500 ${
+                  flashing
+                    ? "border-ok bg-ok/30 ring-2 ring-ok/40"
+                    : isLogged
                     ? "border-ok/50 bg-ok/10"
                     : "border-ink-2 bg-ink-0/30"
                 }`}
