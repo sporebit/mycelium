@@ -2,15 +2,15 @@ import type { ExerciseBaseline, FeelRating } from "./types";
 
 /**
  * Bucketed severity → colour mapping. Returns a CSS colour value (hex)
- * because chart libraries take strings, not Tailwind classes. The thresholds
- * match the spec: 0-1 green, 2-4 amber, 5-7 orange, 8-10 red.
+ * because chart libraries take strings, not Tailwind classes. Mapped to
+ * the Loam + Glow palette: glow-0 → warn → mid-burnt → error.
  */
 export function severityToColor(severity: number | null | undefined): string {
-  if (severity == null) return "#22c55e"; // green = "no log" assumed fine
-  if (severity <= 1) return "#22c55e";
-  if (severity <= 4) return "#eab308";
-  if (severity <= 7) return "#f97316";
-  return "#ef4444";
+  if (severity == null) return "#84f5b8"; // glow-0 — "no log" assumed fine
+  if (severity <= 1) return "#84f5b8";    // glow-0
+  if (severity <= 4) return "#f5b56d";    // warn
+  if (severity <= 7) return "#e08a5f";    // between warn and error
+  return "#e07a5f";                       // error
 }
 
 /** Approximate severity for charts when only a feel rating was logged. */

@@ -1,45 +1,206 @@
 @import "tailwindcss";
 
-@theme {
-  /* Neutral ink scale */
-  --color-ink-0: oklch(0.10 0 0);
-  --color-ink-1: oklch(0.13 0 0);
-  --color-ink-2: oklch(0.18 0 0);
-  --color-ink-3: oklch(0.45 0 0);
-  --color-ink-4: oklch(0.92 0 0);
-
-  /* Accent — mint/teal */
-  --color-accent: oklch(0.78 0.13 165);
-  --color-accent-muted: oklch(0.62 0.10 165);
-
-  /* Semantic */
-  --color-ok: oklch(0.72 0.16 145);
-  --color-warn: oklch(0.78 0.16 75);
-  --color-danger: oklch(0.65 0.20 25);
-
-  /* Fonts (injected by next/font) */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-jetbrains-mono);
-  --font-display: var(--font-instrument-serif);
-}
+/* ---------------------------------------------------------------------------
+   LOAM AND GLOW — token system (Round D1)
+   --------------------------------------------------------------------------- */
 
 :root {
   color-scheme: dark;
+
+  /* LOAM — background scale, warm dark */
+  --ink-0: #0e1410;          /* page background, deepest */
+  --ink-1: #141c17;          /* card surface */
+  --ink-2: #1c2620;          /* elevated surface, modal */
+  --ink-3: #283328;          /* hover state, divider */
+  --ink-4: #3a4639;          /* border, structure */
+
+  /* TEXT — warm whites, never pure */
+  --text-0: #e8e6dd;         /* primary text */
+  --text-1: #b8b5a5;         /* secondary text */
+  --text-2: #7a786c;         /* muted, labels */
+  --text-3: #4d4b43;         /* placeholder, disabled */
+
+  /* GLOW — the bioluminescent accent (DISCIPLINE: use sparingly) */
+  --glow-0: #84f5b8;         /* hero numbers, active state, PR markers */
+  --glow-1: #5fd396;         /* hover variant */
+  --glow-2: #2a8b56;         /* deeper, for badge backgrounds */
+  --glow-3: #1a3d2a;         /* very dim, subtle highlights */
+
+  /* EARTH — semantic warnings, never aggressive */
+  --warn: #f5b56d;           /* amber, dried polypore */
+  --warn-bg: #3d2e1a;        /* warning background */
+  --error: #e07a5f;          /* burnt umber */
+  --error-bg: #3a1f17;       /* error background */
+  --info: #95b4d6;           /* dawn-mist blue, rare */
+  --info-bg: #1a2330;        /* info background */
+  --good: #84f5b8;           /* same as glow-0 — health is glow */
+  --good-bg: #1a3d2a;        /* same as glow-3 */
+
+  /* SIZES (modular ratio 1.25) */
+  --text-12: 0.75rem;
+  --text-14: 0.875rem;
+  --text-16: 1rem;
+  --text-20: 1.25rem;
+  --text-24: 1.5rem;
+  --text-32: 2rem;
+  --text-48: 3rem;
+  --text-64: 4rem;
+  --text-96: 6rem;
+
+  /* SPACING (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* RADIUS */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
+
+  /* MOTION */
+  --ease-default: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-emphasis: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
 }
 
+/* Recoleta is a paid font from Latinotype.
+   Purchase at: https://www.latinotype.com/recoleta
+   Place the woff2 in /public/fonts/ and uncomment the @font-face below.
+   Until then, the fallback chain in --font-display falls through to
+   Söhne Breit, then Inter Tight, then a system serif. */
+
+/* @font-face {
+  font-family: "Recoleta";
+  src: url("/fonts/recoleta-semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+} */
+
+/* ---------------------------------------------------------------------------
+   Tailwind v4 @theme — exposes tokens as utility classes.
+   The old --color-ink-{0..4}, --color-accent, --color-ok, --color-warn,
+   --color-danger names are PRESERVED for back-compat (700+ class usages),
+   but their VALUES now point at the new Loam + Glow palette.
+   Note: ink-3 and ink-4 stayed wired to text colours, since the codebase
+   uses text-ink-3 (423×) and text-ink-4 (262×) overwhelmingly more than
+   bg-ink-3 / border-ink-4 (which were near-zero usage in the old palette).
+   --------------------------------------------------------------------------- */
+@theme {
+  /* Background scale */
+  --color-ink-0: var(--ink-0);
+  --color-ink-1: var(--ink-1);
+  --color-ink-2: var(--ink-2);
+
+  /* Text — legacy slots */
+  --color-ink-3: var(--text-2);
+  --color-ink-4: var(--text-0);
+
+  /* New text scale — accessible as Tailwind classes (e.g. text-text-0) */
+  --color-text-0: var(--text-0);
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+
+  /* Background scale — new names also exposed */
+  --color-loam-0: var(--ink-0);
+  --color-loam-1: var(--ink-1);
+  --color-loam-2: var(--ink-2);
+  --color-loam-3: var(--ink-3);
+  --color-loam-4: var(--ink-4);
+
+  /* Glow — new names exposed (text-glow-0, bg-glow-2 etc.) */
+  --color-glow-0: var(--glow-0);
+  --color-glow-1: var(--glow-1);
+  --color-glow-2: var(--glow-2);
+  --color-glow-3: var(--glow-3);
+
+  /* Semantic aliases — old names */
+  --color-accent: var(--glow-0);
+  --color-accent-muted: var(--glow-1);
+  --color-ok: var(--good);
+  --color-warn: var(--warn);
+  --color-danger: var(--error);
+
+  /* New semantic names */
+  --color-good: var(--good);
+  --color-error: var(--error);
+  --color-info: var(--info);
+
+  /* TYPOGRAPHY — next/font binds --font-inter-tight + --font-jetbrains-mono
+     on the html element. The fallback chains keep things sensible if those
+     variables aren't set yet (SSR streaming, etc.). */
+  --font-sans:
+    var(--font-inter-tight),
+    "Inter Tight", "Inter",
+    -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-display:
+    "Recoleta", "Söhne Breit",
+    var(--font-inter-tight),
+    "Inter Tight", serif;
+  --font-mono:
+    "Berkeley Mono",
+    var(--font-jetbrains-mono),
+    "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+   --------------------------------------------------------------------------- */
+
 html {
-  background-color: oklch(0.10 0 0);
-  color: oklch(0.92 0 0);
+  background-color: var(--ink-0);
+  color: var(--text-0);
 }
 
 body {
-  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  font-family: var(--font-sans);
+  font-size: var(--text-16);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Hairline divider used inside cards */
-.hairline {
-  border-color: oklch(0.18 0 0);
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text-0);
 }
+
+/* Eyebrows / labels — class-based opt-in, doesn't override anything */
+.label,
+[data-label] {
+  font-family: var(--font-sans);
+  font-size: var(--text-12);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+/* Tabular numerics */
+.numeric,
+[data-numeric] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hairline divider used inside cards (legacy class — keep) */
+.hairline {
+  border-color: var(--ink-2);
+}
+
+/* ---------------------------------------------------------------------------
+   Animations (legacy — keep so nothing breaks)
+   --------------------------------------------------------------------------- */
 
 @keyframes habit-count-pulse {
   0% {
@@ -51,20 +212,14 @@ body {
     opacity: 1;
   }
 }
-
 .habit-count-pulse {
   animation: habit-count-pulse 300ms ease-out;
 }
 
 @keyframes ticker-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-
 .ticker-fade-in {
   animation: ticker-fade-in 200ms ease-out;
 }

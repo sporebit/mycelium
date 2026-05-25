@@ -17,10 +17,10 @@ const TABS = [
 
 export function TopRail({ active = "HOME" }: { active?: string }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-ink-2 bg-ink-0/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 bg-ink-1/85 backdrop-blur-xl shadow-[0_1px_0_0_var(--ink-2)]">
       <div className="mx-auto max-w-[1400px] flex items-center gap-5 px-6 py-3">
         {/* Brand */}
-        <div className="text-[11px] font-[family-name:var(--font-mono)] tracking-[0.2em] text-ink-4">
+        <div className="text-xs font-[family-name:var(--font-mono)] tracking-[0.2em] text-ink-4">
           MYCELIUM
         </div>
 
@@ -32,10 +32,10 @@ export function TopRail({ active = "HOME" }: { active?: string }) {
               <Link
                 key={t.label}
                 href={t.href}
-                className={`px-3 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] rounded-md transition-colors ${
+                className={`px-3 py-1.5 text-xs tracking-[0.04em] uppercase rounded-md transition-colors ${
                   isActive
-                    ? "bg-ink-2 text-ink-4"
-                    : "text-ink-3 hover:text-ink-4 hover:bg-ink-1"
+                    ? "text-accent"
+                    : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/40"
                 }`}
               >
                 {t.label}
