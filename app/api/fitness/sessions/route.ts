@@ -15,6 +15,11 @@ type CreateBody = {
   kind?: SessionKind;
   name?: string;
   date?: string;
+  session_type?: string;
+  notes?: string;
+  calories?: number;
+  /** Set true to create the session without started_at (pre-start, eg swap). */
+  pre_start?: boolean;
 };
 
 export async function POST(req: NextRequest) {
@@ -80,17 +85,27 @@ export async function POST(req: NextRequest) {
       templateExercises = (tplExs ?? []) as TemplateExercise[];
     }
 
+    const insertRow: Record<string, unknown> = {
+      user_id: uid,
+      date,
+      slot,
+      kind,
+      name: resolvedName,
+      programme_session_id: programmeSessionId,
+      started_at: body.pre_start ? null : new Date().toISOString(),
+    };
+    if (body.session_type != null) insertRow.session_type = body.session_type;
+    if (body.notes != null) insertRow.notes = body.notes;
+    if (body.calories != null) insertRow.calories = body.calories;
+    // For "simple" sessions like hiking / walks that the modal completes
+    // outright, mark them done at creation time.
+    if (body.pre_start === false && body.session_type) {
+      // leave to caller to decide completion via /finish.
+    }
+
     const { data: created, error: createErr } = await supabase
       .from("workout_sessions")
-      .insert({
-        user_id: uid,
-        date,
-        slot,
-        kind,
-        name: resolvedName,
-        programme_session_id: programmeSessionId,
-        started_at: new Date().toISOString(),
-      })
+      .insert(insertRow)
       .select("id")
       .single();
     if (createErr || !created) {

@@ -62,6 +62,8 @@ export type LoggedSession = {
   kind: SessionKind;
   name: string | null;
   programme_session_id: string | null;
+  session_type: string | null;
+  swapped_from_programme_session_id: string | null;
   calories: number | null;
   notes: string | null;
   free_form_text: string | null;
@@ -69,6 +71,18 @@ export type LoggedSession = {
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type SessionTypeLoggingMode = "full" | "simple";
+
+export type WorkoutSessionType = {
+  id: string;
+  user_id: string;
+  type_key: string;
+  label: string;
+  is_builtin: boolean;
+  typical_logging_mode: SessionTypeLoggingMode;
+  created_at: string;
 };
 
 export type BodyMetric = {
@@ -87,11 +101,24 @@ export type BodyMetric = {
 export type TodayResponse = {
   date: string;
   programme_name: string | null;
+  programme_id: string | null;
+  /** Every session in the active programme — used by the day-swap dropdown. */
+  programme_sessions: Array<{
+    id: string;
+    day_of_week: number;
+    slot: TemplateSlot;
+    kind: TemplateKind;
+    name: string;
+  }>;
   sessions: Array<{
     slot: Slot;
     kind: SessionKind;
     name: string;
     programme_session_id: string | null;
+    /** Type assigned to the live session, or inferred for the planned one. */
+    session_type: string | null;
+    /** Set when the active session was swapped from a different template. */
+    swapped_from_programme_session_id: string | null;
     exercises: TemplateExercise[];
     /** Live workout_session for today/slot, if any. */
     logged_session_id: string | null;
@@ -103,6 +130,15 @@ export type TodayResponse = {
     summary: { sets: number; minutes: number | null } | null;
     /** How many of this session's exercises have a known-pain-issues baseline. */
     known_issues_count: number;
+  }>;
+  /** Extra sessions logged today (kind=other or any session with slot=extra). */
+  extras: Array<{
+    session_id: string;
+    name: string | null;
+    session_type: string | null;
+    kind: SessionKind;
+    completed: boolean;
+    summary: { sets: number; minutes: number | null } | null;
   }>;
 };
 

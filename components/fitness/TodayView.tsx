@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Panel } from "@/components/dashboard/Panel";
 import { Mono } from "@/components/dashboard/Mono";
-import type { TemplateExercise, TodayResponse } from "@/lib/fitness/types";
+import { ExtraSessionModal } from "./ExtraSessionModal";
+import { SessionSwapDropdown } from "./SessionSwapDropdown";
+import type {
+  TemplateExercise,
+  TodayResponse,
+  WorkoutSessionType,
+} from "@/lib/fitness/types";
 
 const KIND_ICON: Record<string, string> = {
   cardio: "🏃",
@@ -42,32 +48,60 @@ function exerciseLine(ex: TemplateExercise): string {
   return "—";
 }
 
+function jsDayToProgrammeDow(jsDay: number): number {
+  return (jsDay + 6) % 7;
+}
+
+type Toast = { kind: "ok" | "error"; text: string } | null;
+
 export function TodayView() {
   const router = useRouter();
   const [data, setData] = useState<TodayResponse | null>(null);
+  const [typesByKey, setTypesByKey] = useState<Record<string, WorkoutSessionType>>({});
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState<string | null>(null);
+  const [showExtra, setShowExtra] = useState(false);
+  const [toast, setToast] = useState<Toast>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const [tRes, typeRes] = await Promise.all([
+        fetch("/api/fitness/today", { cache: "no-store" }),
+        fetch("/api/fitness/session-types", { cache: "no-store" }),
+      ]);
+      if (!tRes.ok) {
+        setError(`Load failed (${tRes.status})`);
+        return;
+      }
+      const j = (await tRes.json()) as TodayResponse;
+      setData(j);
+      if (typeRes.ok) {
+        const tj = (await typeRes.json()) as { types: WorkoutSessionType[] };
+        const m: Record<string, WorkoutSessionType> = {};
+        for (const t of tj.types ?? []) m[t.type_key] = t;
+        setTypesByKey(m);
+      }
+    } catch {
+      setError("Network error");
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
-      try {
-        const res = await fetch("/api/fitness/today", { cache: "no-store" });
-        if (!mounted) return;
-        if (!res.ok) {
-          if (mounted) setError(`Load failed (${res.status})`);
-          return;
-        }
-        const j = (await res.json()) as TodayResponse;
-        if (mounted) setData(j);
-      } catch {
-        if (mounted) setError("Network error");
-      }
+      if (!mounted) return;
+      await load();
     })();
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [load]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 2500);
+    return () => clearTimeout(id);
+  }, [toast]);
 
   async function startOrResume(s: TodayResponse["sessions"][number]) {
     if (!s.programme_session_id) return;
@@ -110,17 +144,9 @@ export function TodayView() {
     );
   }
 
-  if (data.sessions.length === 0) {
-    return (
-      <Panel title="Fitness · Today" topRight={<Mono>{data.date}</Mono>}>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
-          {data.programme_name
-            ? `Rest day. No sessions scheduled in '${data.programme_name}' for today.`
-            : "No programme active. Set one up in PHASES."}
-        </p>
-      </Panel>
-    );
-  }
+  const todayDow = jsDayToProgrammeDow(
+    new Date(data.date.replace(/-/g, "/")).getDay()
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -129,6 +155,16 @@ export function TodayView() {
           Programme · {data.programme_name}
         </div>
       )}
+
+      {data.sessions.length === 0 && data.extras.length === 0 ? (
+        <Panel title="Fitness · Today" topRight={<Mono>{data.date}</Mono>}>
+          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
+            {data.programme_name
+              ? `Rest day. No sessions scheduled in '${data.programme_name}' for today.`
+              : "No programme active. Set one up in PHASES."}
+          </p>
+        </Panel>
+      ) : null}
 
       {data.sessions.map((s) => {
         const label = s.completed
@@ -140,6 +176,9 @@ export function TodayView() {
           : "START SESSION →";
         const tone = s.completed ? "ok" : s.in_progress ? "warn" : undefined;
         const knownCount = s.known_issues_count ?? 0;
+        const typeLabel = s.session_type
+          ? typesByKey[s.session_type]?.label ?? s.session_type
+          : null;
         return (
           <Panel
             key={`${s.slot}-${s.programme_session_id}`}
@@ -149,6 +188,11 @@ export function TodayView() {
             statusTone={tone}
             topRight={
               <span className="flex items-center gap-2">
+                {typeLabel && (
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    {typeLabel}
+                  </span>
+                )}
                 {knownCount > 0 && (
                   <span
                     className="inline-block h-2 w-2 rounded-full bg-warn"
@@ -159,6 +203,17 @@ export function TodayView() {
                 <span className="text-base" aria-hidden>
                   {KIND_ICON[s.kind] ?? "·"}
                 </span>
+                {!s.completed && (
+                  <SessionSwapDropdown
+                    slot={s.slot}
+                    currentProgrammeSessionId={s.programme_session_id}
+                    sessionId={s.logged_session_id}
+                    hasLoggedWork={!!s.logged_session_id && s.in_progress}
+                    todayDayOfWeek={todayDow}
+                    programmeSessions={data.programme_sessions}
+                    onSwapped={() => void load()}
+                  />
+                )}
               </span>
             }
             bottomCTA={
@@ -181,6 +236,11 @@ export function TodayView() {
               )
             }
           >
+            {s.swapped_from_programme_session_id && (
+              <div className="text-[10px] uppercase tracking-[0.18em] text-warn font-[family-name:var(--font-mono)] mb-2">
+                ↻ swapped from today&apos;s planned session
+              </div>
+            )}
             {s.exercises.length === 0 ? (
               <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
                 No exercises in template.
@@ -215,6 +275,80 @@ export function TodayView() {
           </Panel>
         );
       })}
+
+      {/* Extras (logged today, slot=extra) */}
+      {data.extras.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            Extra sessions today
+          </div>
+          {data.extras.map((ex) => {
+            const typeLabel = ex.session_type
+              ? typesByKey[ex.session_type]?.label ?? ex.session_type
+              : null;
+            return (
+              <Link
+                key={ex.session_id}
+                href={`/fitness/log/${ex.session_id}`}
+                className="block rounded-2xl border border-ink-2 bg-ink-1/60 hover:border-ink-3 transition-colors px-4 py-3"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span aria-hidden>{KIND_ICON[ex.kind] ?? "·"}</span>
+                  <span className="text-sm text-ink-4 truncate">
+                    {ex.name ?? "Extra session"}
+                  </span>
+                  {typeLabel && (
+                    <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                      · {typeLabel}
+                    </span>
+                  )}
+                  {ex.completed && (
+                    <span className="text-[10px] uppercase tracking-[0.15em] text-ok font-[family-name:var(--font-mono)] ml-auto">
+                      ✓
+                      {ex.summary?.minutes != null
+                        ? ` ${ex.summary.minutes}m`
+                        : ""}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() => setShowExtra(true)}
+        className="self-start px-3 py-1.5 rounded-md border border-ink-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+      >
+        + ADD EXTRA SESSION
+      </button>
+
+      {showExtra && (
+        <ExtraSessionModal
+          date={data.date}
+          onClose={() => setShowExtra(false)}
+          onSaved={(t) => {
+            setShowExtra(false);
+            if (t) setToast(t);
+            void load();
+          }}
+        />
+      )}
+
+      {toast && (
+        <div
+          role="status"
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
+            toast.kind === "ok"
+              ? "bg-ok/20 text-ok border border-ok/40"
+              : "bg-danger/20 text-danger border border-danger/40"
+          }`}
+        >
+          {toast.text}
+        </div>
+      )}
     </div>
   );
 }
