@@ -240,16 +240,14 @@ export function FinancePulse() {
       ) : (
         <>
           <div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-              Net worth
-            </div>
-            <Mono className="block text-2xl text-ink-4 mt-1">
+            <div className="card-eyebrow">Net worth</div>
+            <div className="card-hero-primary mt-1.5 tabular-nums">
               <PrivateValue>
                 {fmtCurrency(snapshot.net_worth, snapshot.currency)}
               </PrivateValue>
-            </Mono>
+            </div>
             <div
-              className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mt-0.5 ${toneClass}`}
+              className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mt-1 ${toneClass}`}
             >
               ● {relativeTime(lastRefreshed)}
               {data && "source" in data && data.source && (

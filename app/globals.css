@@ -36,7 +36,8 @@
   --good: #84f5b8;           /* same as glow-0 — health is glow */
   --good-bg: #1a3d2a;        /* same as glow-3 */
 
-  /* SIZES (modular ratio 1.25) */
+  /* SIZES (modular ratio 1.25). --text-52 added in D2 to compensate for
+     Inter Tight's slightly shorter rendering vs the previous Geist. */
   --text-12: 0.75rem;
   --text-14: 0.875rem;
   --text-16: 1rem;
@@ -44,6 +45,7 @@
   --text-24: 1.5rem;
   --text-32: 2rem;
   --text-48: 3rem;
+  --text-52: 3.25rem;
   --text-64: 4rem;
   --text-96: 6rem;
 
@@ -123,10 +125,13 @@
   --color-glow-2: var(--glow-2);
   --color-glow-3: var(--glow-3);
 
-  /* Semantic aliases — old names */
+  /* Semantic aliases — old names.
+     D2 tactical fix: --color-ok separated from --color-accent.
+     "Completed/healthy" (ok) uses the muted glow-1; "active/primary"
+     (accent) keeps glow-0. Subtle, but stops them collapsing visually. */
   --color-accent: var(--glow-0);
   --color-accent-muted: var(--glow-1);
-  --color-ok: var(--good);
+  --color-ok: var(--glow-1);
   --color-warn: var(--warn);
   --color-danger: var(--error);
 
@@ -222,4 +227,97 @@ h1, h2, h3, h4, h5, h6 {
 }
 .ticker-fade-in {
   animation: ticker-fade-in 200ms ease-out;
+}
+
+/* ---------------------------------------------------------------------------
+   Motion language (D2)
+   --------------------------------------------------------------------------- */
+
+/* spore-pulse — slow ambient breathing, used by the wordmark dot and any
+   live-status indicator that wants to feel alive without nagging. */
+@keyframes spore-pulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1.0; }
+}
+.spore-pulse {
+  animation: spore-pulse 5s ease-in-out infinite;
+}
+
+/* growth-in — replaces fade-in for newly-arriving elements (tasks,
+   captures, search results, modals). Tiny scale + nudge to suggest the
+   thing rooted itself in place. */
+@keyframes growth-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(4px);
+    transform-origin: top left;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.growth-in {
+  animation: growth-in var(--duration-base) var(--ease-default);
+}
+
+/* glow-pulse — one-shot interactive feedback. Apply the class via
+   triggerGlowPulse() in lib/motion.ts. */
+@keyframes glow-pulse {
+  0%   { box-shadow: 0 0 0 0 var(--glow-1); }
+  50%  { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.glow-pulse {
+  animation: glow-pulse var(--duration-base) var(--ease-default);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spore-pulse,
+  .growth-in,
+  .glow-pulse,
+  .habit-count-pulse,
+  .ticker-fade-in {
+    animation: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Card primitives (D2) — opt-in classes for the home dashboard discipline.
+   Cards on /, no border, ink-1 on ink-0, 24px padding, 8px radius.
+   --------------------------------------------------------------------------- */
+
+.card {
+  background-color: var(--ink-1);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+}
+.card-eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--text-12);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.card-hero {
+  font-family: var(--font-display);
+  font-size: var(--text-48);
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--text-0);
+  font-feature-settings: "tnum";
+}
+.card-hero-primary {
+  font-family: var(--font-display);
+  font-size: var(--text-52);
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--glow-0);
+  font-feature-settings: "tnum";
+}
+.card-meta {
+  font-family: var(--font-sans);
+  font-size: var(--text-14);
+  color: var(--text-1);
 }
