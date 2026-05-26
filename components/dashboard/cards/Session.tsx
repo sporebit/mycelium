@@ -239,10 +239,10 @@ export function Session() {
                   )}
                 </div>
                 <Link
-                  href="/crm"
+                  href="/compost"
                   className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] shrink-0"
                 >
-                  → CRM
+                  → COMPOST
                 </Link>
               </li>
             ))}

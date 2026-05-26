@@ -86,7 +86,7 @@ export function KeyBlockers() {
   }
 
   function open(id: string) {
-    router.push(`/crm/tasks?focus=${encodeURIComponent(id)}`);
+    router.push(`/compost/tasks?focus=${encodeURIComponent(id)}`);
   }
 
   return (
@@ -96,7 +96,7 @@ export function KeyBlockers() {
       title="KEY BLOCKERS"
       topRight={
         <Link
-          href="/crm/tasks?filter=blockers"
+          href="/compost/tasks?filter=blockers"
           className="flex items-center gap-2 hover:text-ink-4 transition-colors"
         >
           <Mono>{total} ACTIVE</Mono>
@@ -106,7 +106,7 @@ export function KeyBlockers() {
       bottomCTA={
         total > shown.length ? (
           <Link
-            href="/crm/tasks?filter=blockers"
+            href="/compost/tasks?filter=blockers"
             className="cursor-pointer hover:text-ink-4"
           >
             + {total - shown.length} MORE · VIEW ALL →

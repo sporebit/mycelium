@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Mono } from "@/components/dashboard/Mono";
+import { SuggestCapture } from "./SuggestCapture";
 
 type Capture = {
   id: string;
@@ -19,14 +20,6 @@ const SOURCES = [
   { id: "all", label: "ALL" },
   { id: "telegram", label: "TELEGRAM" },
   { id: "web", label: "WEB" },
-];
-
-const KINDS = [
-  { id: "all", label: "ALL" },
-  { id: "task", label: "TASK" },
-  { id: "note", label: "NOTE" },
-  { id: "decision", label: "DECISION" },
-  { id: "capture", label: "CAPTURE" },
 ];
 
 function relativeDate(iso: string): string {
@@ -58,43 +51,29 @@ function sourceIcon(s: string): string {
   return "·";
 }
 
-function kindBadge(kind: string | undefined): { label: string; className: string } {
-  if (kind === "task")
-    return { label: "TASK", className: "bg-accent/15 text-accent border-accent/40" };
-  if (kind === "decision")
-    return { label: "DECISION", className: "bg-warn/15 text-warn border-warn/40" };
-  if (kind === "note")
-    return { label: "NOTE", className: "bg-ink-2 text-ink-4 border-ink-2" };
-  return {
-    label: (kind ?? "CAPTURE").toUpperCase(),
-    className: "bg-ink-2 text-ink-3 border-ink-2",
-  };
-}
-
-export function CapturesClient() {
+export function DecisionsClient() {
   const [source, setSource] = useState("all");
-  const [kind, setKind] = useState("all");
-  const [captures, setCaptures] = useState<Capture[] | null>(null);
+  const [decisions, setDecisions] = useState<Capture[] | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     let mounted = true;
     const p = new URLSearchParams();
     if (source !== "all") p.set("source", source);
-    if (kind !== "all") p.set("kind", kind);
+    p.set("kind", "decision");
     p.set("limit", "100");
 
     fetch(`/api/captures?${p.toString()}`)
       .then((r) => r.json())
       .then((j: { captures?: Capture[] }) => {
         if (!mounted) return;
-        setCaptures(Array.isArray(j?.captures) ? j.captures : []);
+        setDecisions(Array.isArray(j?.captures) ? j.captures : []);
       })
-      .catch(() => mounted && setCaptures([]));
+      .catch(() => mounted && setDecisions([]));
     return () => {
       mounted = false;
     };
-  }, [source, kind]);
+  }, [source]);
 
   function toggle(id: string) {
     setExpanded((cur) => {
@@ -107,6 +86,13 @@ export function CapturesClient() {
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <div className="card-eyebrow">Decisions</div>
+        <Mono className="text-[10px] text-ink-3">
+          {decisions === null ? "…" : `${decisions.length} ${decisions.length === 1 ? "decision" : "decisions"}`}
+        </Mono>
+      </div>
+
       <div className="flex items-center gap-4">
         <FilterGroup
           label="Source"
@@ -114,33 +100,20 @@ export function CapturesClient() {
           value={source}
           onChange={setSource}
         />
-        <FilterGroup
-          label="Kind"
-          options={KINDS}
-          value={kind}
-          onChange={setKind}
-        />
-        <div className="flex-1" />
-        <Mono className="text-[10px] text-ink-3">
-          {captures === null ? "…" : `${captures.length} CAPTURES`}
-        </Mono>
       </div>
 
-      {captures === null ? (
+      {decisions === null ? (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
-      ) : captures.length === 0 ? (
+      ) : decisions.length === 0 ? (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
-          No captures match these filters.
+          No decisions logged yet. Capture one below — the classifier will route it as a decision.
         </div>
       ) : (
         <ul className="flex flex-col divide-y divide-ink-2 rounded-xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl overflow-hidden">
-          {captures.map((c) => {
+          {decisions.map((c) => {
             const isOpen = expanded.has(c.id);
-            const cls = c.classification ?? {};
-            const kindStr = typeof cls.kind === "string" ? cls.kind : undefined;
-            const badge = kindBadge(kindStr);
             return (
               <li key={c.id} className="growth-in">
                 <button
@@ -160,10 +133,8 @@ export function CapturesClient() {
                       <Mono className="text-[10px] text-ink-3">
                         {relativeDate(c.created_at)}
                       </Mono>
-                      <span
-                        className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 ${badge.className}`}
-                      >
-                        {badge.label}
+                      <span className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-warn/15 text-warn border-warn/40">
+                        DECISION
                       </span>
                     </div>
                     <div className="text-sm text-ink-4 mt-1 leading-snug break-words">
@@ -188,6 +159,10 @@ export function CapturesClient() {
           })}
         </ul>
       )}
+
+      <div className="max-w-2xl w-full mx-auto pt-2">
+        <SuggestCapture label="Decision" prefix="[decision]" />
+      </div>
     </div>
   );
 }

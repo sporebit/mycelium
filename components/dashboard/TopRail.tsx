@@ -6,7 +6,7 @@ import { SunWidget } from "./SunWidget";
 import { PrivacyToggle } from "./PrivacyToggle";
 import { Wordmark } from "./Wordmark";
 import { HomeIcon } from "@/components/icons/nav/HomeIcon";
-import { CRMIcon } from "@/components/icons/nav/CRMIcon";
+import { CompostIcon } from "@/components/icons/nav/CompostIcon";
 import { FitnessIcon } from "@/components/icons/nav/FitnessIcon";
 import { BrainIcon } from "@/components/icons/nav/BrainIcon";
 import { JournalIcon } from "@/components/icons/nav/JournalIcon";
@@ -20,7 +20,7 @@ type Tab = {
 
 const TABS: Tab[] = [
   { label: "HOME", href: "/", Icon: HomeIcon },
-  { label: "CRM", href: "/crm", Icon: CRMIcon },
+  { label: "COMPOST", href: "/compost", Icon: CompostIcon },
   { label: "FINANCE", href: "/finance" },
   { label: "REVIEW", href: "/review" },
   { label: "HEALTH", href: "/health" },

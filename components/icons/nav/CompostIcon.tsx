@@ -1,11 +1,13 @@
 import type { NavIconProps } from "./types";
 import { NAV_GLOW } from "./types";
 
-/** Hyphal network — central node radiating threads to four outer nodes. */
-export function CRMIcon({
+/** Hyphal network — central node radiating threads to four outer nodes.
+ *  (Previously CRMIcon; the visual stays the same — Compost is the place
+ *  where raw captures decompose into structured action.) */
+export function CompostIcon({
   size = 20,
   className,
-  ariaLabel = "CRM",
+  ariaLabel = "Compost",
   active = false,
 }: NavIconProps) {
   const centerFill = active ? NAV_GLOW : "currentColor";
