@@ -2,6 +2,42 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import { URGENCIES, type Task, type TaskUrgency } from "@/lib/types/task";
+import { extractNameMentions } from "@/lib/people/regex-extract";
+import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
+
+type Supabase = ReturnType<typeof createServerClient>;
+
+/**
+ * Soft-failure mention extraction for tasks created/edited outside the
+ * capture pipeline. Mirrors the writeCapture behaviour — any error is
+ * logged and the task POST/PATCH still succeeds.
+ */
+async function extractTaskMentions(
+  supabase: Supabase,
+  userId: string,
+  taskId: string,
+  title: string,
+  description: string | null
+): Promise<void> {
+  try {
+    const text = `${title} ${description ?? ""}`.trim();
+    if (!text) return;
+    const extractions = extractNameMentions(text);
+    for (const e of extractions) {
+      try {
+        const res = await resolveMention(supabase, userId, e.name_hint);
+        await recordMention(supabase, userId, res, {
+          type: "task",
+          id: taskId,
+        });
+      } catch (err) {
+        console.error("[tasks] mention soft-fail per-extraction:", err);
+      }
+    }
+  } catch (err) {
+    console.error("[tasks] mention extraction failed:", err);
+  }
+}
 
 export const runtime = "nodejs";
 
@@ -177,6 +213,15 @@ export async function POST(req: NextRequest) {
       .select(TASK_SELECT)
       .single();
     if (error || !data) throw error ?? new Error("insert returned no row");
+
+    // Mention extraction (soft-fail). Mirrors capture-pipeline behaviour.
+    await extractTaskMentions(
+      supabase,
+      uid,
+      (data as { id: string }).id,
+      title,
+      body.description ?? null
+    );
 
     return NextResponse.json({
       task: serializeTask(data as Parameters<typeof serializeTask>[0]),

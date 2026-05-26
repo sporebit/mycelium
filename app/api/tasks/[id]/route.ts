@@ -2,6 +2,41 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import { URGENCIES, type TaskUrgency } from "@/lib/types/task";
+import { extractNameMentions } from "@/lib/people/regex-extract";
+import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
+
+type Supabase = ReturnType<typeof createServerClient>;
+
+async function rebuildTaskMentions(
+  supabase: Supabase,
+  userId: string,
+  taskId: string,
+  title: string,
+  description: string | null
+): Promise<void> {
+  try {
+    // Clean slate: remove all existing task mentions for this row.
+    await supabase
+      .from("people_mentions")
+      .delete()
+      .eq("source_type", "task")
+      .eq("source_id", taskId);
+
+    const text = `${title} ${description ?? ""}`.trim();
+    if (!text) return;
+    const extractions = extractNameMentions(text);
+    for (const e of extractions) {
+      try {
+        const res = await resolveMention(supabase, userId, e.name_hint);
+        await recordMention(supabase, userId, res, { type: "task", id: taskId });
+      } catch (err) {
+        console.error("[tasks PATCH] mention soft-fail per-extraction:", err);
+      }
+    }
+  } catch (err) {
+    console.error("[tasks PATCH] mention rebuild failed:", err);
+  }
+}
 
 export const runtime = "nodejs";
 
@@ -120,6 +155,22 @@ export async function PATCH(
         { status: 404 }
       );
     }
+
+    // If title or description changed, rebuild the task's mention links.
+    if (
+      Object.prototype.hasOwnProperty.call(update, "title") ||
+      Object.prototype.hasOwnProperty.call(update, "description")
+    ) {
+      const row = data as { id: string; title: string; description: string | null };
+      await rebuildTaskMentions(
+        supabase,
+        uid,
+        row.id,
+        row.title,
+        row.description
+      );
+    }
+
     return NextResponse.json({
       task: serializeTask(data as Parameters<typeof serializeTask>[0]),
     });

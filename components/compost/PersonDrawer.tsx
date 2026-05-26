@@ -22,15 +22,21 @@ const RELATIONSHIPS = [
 
 export function PersonDrawer({
   mode,
+  prefillFirstName,
   onClose,
   onSaved,
 }: {
   mode: Mode;
+  /** When creating, pre-fill the first_name field (e.g. from a review-queue
+   *  raw_alias). Also seeds the non-primary alias list with the same value so
+   *  the new person matches future mentions of that exact spelling. */
+  prefillFirstName?: string;
   onClose: () => void;
   onSaved: (id: string) => void;
 }) {
   const initial = mode.kind === "edit" ? mode.person : null;
-  const [firstName, setFirstName] = useState(() => initial?.first_name ?? "");
+  const seedPrefill = mode.kind === "create" ? (prefillFirstName ?? "").trim() : "";
+  const [firstName, setFirstName] = useState(() => initial?.first_name ?? seedPrefill);
   const [lastName, setLastName] = useState(() => initial?.last_name ?? "");
   const [displayName, setDisplayName] = useState(() => initial?.display_name ?? "");
   const [relationship, setRelationship] = useState(() => initial?.relationship ?? "");
@@ -41,9 +47,14 @@ export function PersonDrawer({
   const [whereMet, setWhereMet] = useState(() => initial?.where_we_met ?? "");
   const [mutual, setMutual] = useState(() => initial?.mutual_interests ?? "");
   const [notes, setNotes] = useState(() => initial?.notes ?? "");
-  const [aliases, setAliases] = useState<string[]>(() =>
-    initial ? initial.aliases.filter((a) => !a.is_primary).map((a) => a.alias) : []
-  );
+  const [aliases, setAliases] = useState<string[]>(() => {
+    if (initial) {
+      return initial.aliases.filter((a) => !a.is_primary).map((a) => a.alias);
+    }
+    // Prefilled create — seed an alias matching the raw mention so the new
+    // person matches future captures with the same spelling.
+    return seedPrefill ? [seedPrefill] : [];
+  });
   const [aliasDraft, setAliasDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -100,7 +111,10 @@ export function PersonDrawer({
         setError(j.error ?? "Save failed");
         return;
       }
-      onSaved(j.person?.id ?? mode.kind === "edit" ? (mode as Extract<Mode, { kind: "edit" }>).person.id : "");
+      const savedId: string =
+        (j.person?.id as string | undefined) ??
+        (mode.kind === "edit" ? mode.person.id : "");
+      onSaved(savedId);
     } finally {
       setBusy(false);
     }
