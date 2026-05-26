@@ -16,6 +16,11 @@ export type CaptureMood =
   | "tired"
   | "neutral";
 
+export type ClassificationMention = {
+  raw: string;
+  name_hint: string;
+};
+
 export type Classification = {
   kind: CaptureKind;
   urgency: CaptureUrgency;
@@ -25,6 +30,7 @@ export type Classification = {
   summary: string;
   title: string;
   mood: CaptureMood | null; // only meaningful for journal entries
+  mentions: ClassificationMention[];
 };
 
 export type ClassifyResult = {
@@ -97,6 +103,10 @@ Other fields:
 - "summary" is one short sentence summarising the message. For journal entries keep it under 40 characters — a glanceable one-liner.
 - "title" is a 3-7 word title (use even for non-tasks).
 - "mood" is ONLY set for journal entries, otherwise null. One of: energised, calm, anxious, frustrated, reflective, grateful, tired, neutral.
+- "mentions" is an array of person mentions detected in the text. Each entry: { "raw": <exact substring>, "name_hint": <normalised name> }.
+  Detect: first names ("Luke", "Sarah"), relationship references ("Mum", "Dad", "my brother" → name_hint "Mum"/"Dad"/etc), first + last ("Luke Henderson").
+  Skip: company/brand names, place names, bare pronouns, generic roles ("the doctor") unless capitalised or named.
+  Output [] if none.
 
 Respond ONLY with a single JSON object matching this schema. No markdown, no preface.`;
 
@@ -136,6 +146,20 @@ function validate(obj: unknown): Classification | null {
     mood = o.mood as CaptureMood;
   }
 
+  // mentions are optional — older prompts won't return them. Coerce to [].
+  const mentions: ClassificationMention[] = [];
+  if (Array.isArray(o.mentions)) {
+    for (const m of o.mentions as unknown[]) {
+      if (!m || typeof m !== "object") continue;
+      const mo = m as Record<string, unknown>;
+      const raw = typeof mo.raw === "string" ? mo.raw.trim() : "";
+      const hint =
+        typeof mo.name_hint === "string" ? mo.name_hint.trim() : raw;
+      if (!raw || !hint) continue;
+      mentions.push({ raw, name_hint: hint });
+    }
+  }
+
   return {
     kind: kind as CaptureKind,
     urgency: urgency as CaptureUrgency,
@@ -145,6 +169,7 @@ function validate(obj: unknown): Classification | null {
     summary: o.summary,
     title: o.title,
     mood,
+    mentions,
   };
 }
 
@@ -293,6 +318,7 @@ function classifyRegex(text: string): Classification {
     summary,
     title: title || "Capture",
     mood: null,
+    mentions: [],
   };
 }
 

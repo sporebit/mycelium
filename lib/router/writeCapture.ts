@@ -1,6 +1,7 @@
 import { createServerClient } from "@/lib/supabase/server";
 import type { Classification } from "@/lib/router/classifyCapture";
 import { resolveEntityId } from "@/lib/router/resolveEntity";
+import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { localDateKey } from "@/lib/util/date";
 
 export type WriteCaptureInput = {
@@ -146,6 +147,35 @@ export async function writeCapture(
 
   if (auditErr) {
     console.error("[writeCapture] audit_log insert failed:", auditErr);
+  }
+
+  // e. People mentions — resolve and record each. Soft failure mode: any
+  //    error here is logged inside recordMention and doesn't block the write.
+  if (classification.mentions && classification.mentions.length > 0) {
+    // Tasks and journal entries get task/journal source_type; everything
+    // else (decision/note/capture/workout) gets capture source_type with
+    // the raw_capture id.
+    let mentionSourceType: "capture" | "task" | "journal" = "capture";
+    let mentionSourceId = rawCapture.id;
+    if (classification.kind === "task") {
+      mentionSourceType = "task";
+      mentionSourceId = routedId;
+    } else if (classification.kind === "journal") {
+      mentionSourceType = "journal";
+      mentionSourceId = routedId;
+    }
+
+    for (const m of classification.mentions) {
+      try {
+        const res = await resolveMention(supabase, userId, m.name_hint || m.raw);
+        await recordMention(supabase, userId, res, {
+          type: mentionSourceType,
+          id: mentionSourceId,
+        });
+      } catch (err) {
+        console.error("[writeCapture] mention pipeline soft-fail:", err);
+      }
+    }
   }
 
   return {

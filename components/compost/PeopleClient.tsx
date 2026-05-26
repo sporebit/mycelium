@@ -1,18 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
-import type { Task } from "@/lib/types/task";
-import type { PersonRow } from "@/app/api/people/route";
+import { PersonDrawer } from "./PersonDrawer";
+import { ReviewQueue } from "./ReviewQueue";
+import { triggerGlowPulse } from "@/lib/motion";
+import type { PersonWithAliases } from "@/lib/people/types";
 
-type CaptureRow = {
-  id: string;
-  source: string;
-  raw_text: string | null;
-  classification: { kind?: string } | null;
-  created_at: string;
-};
+type Filter = "all" | "recent" | "review";
 
 function relativeDate(iso: string | null): string {
   if (!iso) return "never";
@@ -25,234 +21,256 @@ function relativeDate(iso: string | null): string {
   return `${Math.floor(d / 30)}mo ago`;
 }
 
+function displayName(p: PersonWithAliases): string {
+  if (p.display_name) return p.display_name;
+  return [p.first_name, p.last_name].filter(Boolean).join(" ");
+}
+
+function initialsOf(p: PersonWithAliases): string {
+  const name = displayName(p);
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
+function avatarColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  const palette = [
+    "bg-glow-3 text-glow-1",
+    "bg-warn/20 text-warn",
+    "bg-info/20 text-info",
+    "bg-ink-3 text-text-1",
+  ];
+  return palette[h % palette.length];
+}
+
 export function PeopleClient() {
-  const [people, setPeople] = useState<PersonRow[] | null>(null);
-  const [selected, setSelected] = useState<PersonRow | null>(null);
+  const [people, setPeople] = useState<PersonWithAliases[] | null>(null);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [filter, setFilter] = useState<Filter>("all");
+  const [relationship, setRelationship] = useState<string>("all");
+  const [drawerMode, setDrawerMode] = useState<
+    { kind: "create" } | { kind: "edit"; person: PersonWithAliases } | null
+  >(null);
+
+  const load = async () => {
+    try {
+      const r = await fetch("/api/people", { cache: "no-store" });
+      if (!r.ok) return;
+      const j = (await r.json()) as {
+        people: PersonWithAliases[];
+        review_count: number;
+      };
+      setPeople(j.people ?? []);
+      setReviewCount(j.review_count ?? 0);
+    } catch {
+      setPeople([]);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
-    fetch("/api/people")
-      .then((r) => r.json())
-      .then((j: { people?: PersonRow[] }) => {
+    (async () => {
+      try {
+        const r = await fetch("/api/people", { cache: "no-store" });
+        if (!r.ok || !mounted) return;
+        const j = (await r.json()) as {
+          people: PersonWithAliases[];
+          review_count: number;
+        };
         if (!mounted) return;
-        setPeople(Array.isArray(j?.people) ? j.people : []);
-      })
-      .catch(() => mounted && setPeople([]));
+        setPeople(j.people ?? []);
+        setReviewCount(j.review_count ?? 0);
+      } catch {
+        if (mounted) setPeople([]);
+      }
+    })();
     return () => {
       mounted = false;
     };
   }, []);
 
+  const relationships = useMemo(() => {
+    const s = new Set<string>();
+    for (const p of people ?? []) if (p.relationship) s.add(p.relationship);
+    return Array.from(s).sort();
+  }, [people]);
+
+  const visible = useMemo(() => {
+    let list = people ?? [];
+    if (filter === "recent") {
+      list = [...list].sort((a, b) =>
+        (b.last_mention_at ?? "").localeCompare(a.last_mention_at ?? "")
+      );
+    } else if (filter === "review") {
+      list = list.filter((p) => p.needs_review);
+    }
+    if (relationship !== "all") {
+      list = list.filter((p) => p.relationship === relationship);
+    }
+    return list;
+  }, [people, filter, relationship]);
+
   return (
-    <div className="flex flex-col gap-3">
-      {people === null ? (
+    <div className="flex flex-col gap-5">
+      <div className="flex items-baseline justify-between gap-3 flex-wrap">
+        <div className="flex flex-col gap-0.5">
+          <div className="card-eyebrow">People</div>
+          <div className="flex items-baseline gap-3">
+            <span className="font-[family-name:var(--font-display)] text-2xl text-text-0">
+              {people === null
+                ? "…"
+                : `${people.length} ${people.length === 1 ? "person" : "people"}`}
+            </span>
+            {reviewCount > 0 && (
+              <span className="text-xs text-warn">
+                {reviewCount} {reviewCount === 1 ? "needs" : "need"} review
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/compost/people/import-setup"
+            className="px-3 py-2 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+          >
+            IMPORT
+          </Link>
+          <button
+            type="button"
+            onClick={(e) => {
+              triggerGlowPulse(e.currentTarget);
+              setDrawerMode({ kind: "create" });
+            }}
+            className="px-4 py-2 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 transition-colors text-xs font-medium font-[family-name:var(--font-mono)] tracking-[0.1em]"
+          >
+            + ADD PERSON
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {(
+          [
+            { id: "all", label: "ALL" },
+            { id: "recent", label: "RECENT" },
+            { id: "review", label: "REVIEW NEEDED" },
+          ] as Array<{ id: Filter; label: string }>
+        ).map((f) => {
+          const active = filter === f.id;
+          return (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setFilter(f.id)}
+              className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] border transition-colors ${
+                active
+                  ? "border-accent/50 bg-accent/15 text-accent"
+                  : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+              }`}
+            >
+              {f.label}
+              {f.id === "review" && reviewCount > 0 && (
+                <span className="ml-1.5 text-warn">({reviewCount})</span>
+              )}
+            </button>
+          );
+        })}
+        {relationships.length > 0 && (
+          <select
+            value={relationship}
+            onChange={(e) => setRelationship(e.target.value)}
+            className="ml-2 bg-ink-2 rounded-sm text-[11px] text-text-1 px-3 py-1.5 outline outline-1 outline-transparent focus:outline-glow-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+          >
+            <option value="all">ALL RELATIONSHIPS</option>
+            {relationships.map((r) => (
+              <option key={r} value={r}>
+                {r.toUpperCase()}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      {filter === "review" ? (
+        <ReviewQueue onResolved={() => void load()} />
+      ) : people === null ? (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
-      ) : people.length === 0 ? (
+      ) : visible.length === 0 ? (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
-          No people yet. Mention someone in a capture and they&apos;ll appear here.
+          {(people?.length ?? 0) === 0
+            ? "No people yet. Add one above, or mention someone in a capture — Mycelium will auto-create them here."
+            : "No people match these filters."}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-ink-2">
-                <th className="text-left py-2 px-4">Name</th>
-                <th className="text-right py-2 px-4">Open</th>
-                <th className="text-right py-2 px-4">Total</th>
-                <th className="text-right py-2 px-4">Last interaction</th>
-              </tr>
-            </thead>
-            <tbody>
-              {people.map((p) => (
-                <tr
-                  key={p.id}
-                  onClick={() => setSelected(p)}
-                  className="border-b border-ink-2 last:border-b-0 cursor-pointer hover:bg-ink-2/30 transition-colors"
-                >
-                  <td className="py-2 px-4 text-ink-4">{p.name}</td>
-                  <td className="text-right py-2 px-4">
-                    <Mono className={p.open_task_count > 0 ? "text-accent" : "text-ink-3"}>
-                      {p.open_task_count}
-                    </Mono>
-                  </td>
-                  <td className="text-right py-2 px-4">
-                    <Mono className="text-ink-3">{p.task_count}</Mono>
-                  </td>
-                  <td className="text-right py-2 px-4">
-                    <Mono className="text-ink-3">{relativeDate(p.last_interaction)}</Mono>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {selected && (
-        <PersonDrawer person={selected} onClose={() => setSelected(null)} />
-      )}
-    </div>
-  );
-}
-
-function PersonDrawer({
-  person,
-  onClose,
-}: {
-  person: PersonRow;
-  onClose: () => void;
-}) {
-  const [tasks, setTasks] = useState<Task[] | null>(null);
-  const [captures, setCaptures] = useState<CaptureRow[] | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    Promise.all([
-      fetch(`/api/tasks?entity_id=${encodeURIComponent(person.id)}&status=all`)
-        .then((r) => r.json())
-        .catch(() => ({})),
-      fetch(`/api/people/${encodeURIComponent(person.id)}/captures`)
-        .then((r) => r.json())
-        .catch(() => ({})),
-    ]).then(([t, c]: [{ tasks?: Task[] }, { captures?: CaptureRow[] }]) => {
-      if (!mounted) return;
-      setTasks(Array.isArray(t?.tasks) ? t.tasks : []);
-      setCaptures(Array.isArray(c?.captures) ? c.captures : []);
-    });
-
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => {
-      mounted = false;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [person.id, onClose]);
-
-  const openTasks = (tasks ?? []).filter((t) => !t.completed_at);
-  const doneTasks = (tasks ?? [])
-    .filter((t) => t.completed_at)
-    .slice(0, 10);
-
-  return (
-    <div className="fixed inset-0 z-50">
-      <div
-        onClick={onClose}
-        className="absolute inset-0 bg-ink-0/60 backdrop-blur-sm"
-      />
-      <aside
-        className="absolute top-0 right-0 h-full w-full max-w-[440px] bg-ink-1 border-l border-ink-2 shadow-2xl flex flex-col"
-        role="dialog"
-        aria-label={`${person.name} details`}
-      >
-        <header className="flex items-center justify-between px-4 py-3 border-b border-ink-2">
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-              Person
-            </div>
-            <div className="text-base text-ink-4">{person.name}</div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="text-ink-3 hover:text-ink-4 text-sm"
-          >
-            ✕
-          </button>
-        </header>
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-5">
-          <section>
-            <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
-              Open tasks <Mono className="text-ink-3">({openTasks.length})</Mono>
-            </h3>
-            {tasks === null ? (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
-                Loading…
-              </div>
-            ) : openTasks.length === 0 ? (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
-                No open tasks.
-              </div>
-            ) : (
-              <ul className="flex flex-col divide-y divide-ink-2">
-                {openTasks.map((t) => (
-                  <li key={t.id} className="py-2">
-                    <Link
-                      href={`/crm/tasks?focus=${t.id}`}
-                      className="text-sm text-ink-4 hover:text-accent transition-colors"
-                    >
-                      {t.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section>
-            <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
-              Recent done <Mono className="text-ink-3">({doneTasks.length})</Mono>
-            </h3>
-            {doneTasks.length === 0 ? (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
-                None.
-              </div>
-            ) : (
-              <ul className="flex flex-col divide-y divide-ink-2">
-                {doneTasks.map((t) => (
-                  <li key={t.id} className="py-2">
-                    <Link
-                      href={`/crm/tasks?focus=${t.id}`}
-                      className="text-sm text-ink-3 hover:text-ink-4 transition-colors line-through"
-                    >
-                      {t.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section>
-            <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
-              Captures referencing them{" "}
-              <Mono className="text-ink-3">({(captures ?? []).length})</Mono>
-            </h3>
-            {captures === null ? (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
-                Loading…
-              </div>
-            ) : captures.length === 0 ? (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
-                None.
-              </div>
-            ) : (
-              <ul className="flex flex-col divide-y divide-ink-2">
-                {captures.map((c) => (
-                  <li key={c.id} className="py-2">
-                    <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-0.5">
-                      <span>{c.source}</span>
-                      <Mono className="text-ink-3">
-                        {relativeDate(c.created_at)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {visible.map((p) => (
+            <Link
+              key={p.id}
+              href={`/compost/people/${p.id}`}
+              className="growth-in rounded-md bg-ink-1 hover:bg-ink-2 transition-colors p-4 flex items-start gap-3"
+            >
+              <span
+                className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center text-sm font-[family-name:var(--font-display)] ${avatarColor(displayName(p))}`}
+              >
+                {initialsOf(p)}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-[family-name:var(--font-display)] text-xl text-text-0 truncate">
+                    {displayName(p)}
+                  </span>
+                  {p.needs_review && (
+                    <span className="text-[10px] uppercase tracking-[0.15em] text-warn font-[family-name:var(--font-mono)]">
+                      ⚠ review
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] text-text-2 font-[family-name:var(--font-mono)] tracking-[0.08em] mt-0.5">
+                  {p.relationship ? `${p.relationship} · ` : ""}
+                  {p.mention_count
+                    ? `${p.mention_count} mention${p.mention_count === 1 ? "" : "s"} · `
+                    : ""}
+                  {p.last_mention_at
+                    ? `last ${relativeDate(p.last_mention_at)}`
+                    : "no mentions"}
+                </div>
+                {p.aliases.length > 1 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {p.aliases.slice(1, 4).map((a) => (
+                      <Mono
+                        key={a.id}
+                        className="text-[10px] text-text-2 bg-ink-2/60 px-1.5 py-0.5 rounded-sm"
+                      >
+                        {a.alias}
                       </Mono>
-                    </div>
-                    <div className="text-sm text-ink-4 leading-snug">
-                      {c.raw_text}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+                    ))}
+                    {p.aliases.length > 4 && (
+                      <Mono className="text-[10px] text-text-2">
+                        +{p.aliases.length - 4}
+                      </Mono>
+                    )}
+                  </div>
+                )}
+              </div>
+            </Link>
+          ))}
         </div>
-      </aside>
+      )}
+
+      {drawerMode && (
+        <PersonDrawer
+          mode={drawerMode}
+          onClose={() => setDrawerMode(null)}
+          onSaved={() => {
+            setDrawerMode(null);
+            void load();
+          }}
+        />
+      )}
     </div>
   );
 }
