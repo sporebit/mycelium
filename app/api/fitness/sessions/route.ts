@@ -38,10 +38,14 @@ export async function POST(req: NextRequest) {
   const date = body.date ?? localDateKey();
   const programmeSessionId = body.programme_session_id ?? null;
 
-  if (!["morning", "afternoon", "extra"].includes(slot)) {
+  if (!["morning", "afternoon", "evening", "extra"].includes(slot)) {
     return NextResponse.json({ error: "invalid slot" }, { status: 400 });
   }
-  if (!["cardio", "resistance", "other"].includes(kind)) {
+  if (
+    !["cardio", "conditioning", "resistance", "mobility", "other"].includes(
+      kind
+    )
+  ) {
     return NextResponse.json({ error: "invalid kind" }, { status: 400 });
   }
 
@@ -78,11 +82,26 @@ export async function POST(req: NextRequest) {
       const { data: tplExs } = await supabase
         .from("workout_programme_exercises")
         .select(
-          "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity"
+          "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity, data_shape, with_weight"
         )
         .eq("programme_session_id", programmeSessionId)
         .order("position", { ascending: true });
       templateExercises = (tplExs ?? []) as TemplateExercise[];
+    }
+
+    // Compute next position for (user, date, slot) so multi-session slots stay ordered.
+    let nextPosition = 0;
+    {
+      const { data: posRow } = await supabase
+        .from("workout_sessions")
+        .select("position")
+        .eq("user_id", uid)
+        .eq("date", date)
+        .eq("slot", slot)
+        .order("position", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      nextPosition = ((posRow?.position as number | undefined) ?? -1) + 1;
     }
 
     const insertRow: Record<string, unknown> = {
@@ -93,6 +112,7 @@ export async function POST(req: NextRequest) {
       name: resolvedName,
       programme_session_id: programmeSessionId,
       started_at: body.pre_start ? null : new Date().toISOString(),
+      position: nextPosition,
     };
     if (body.session_type != null) insertRow.session_type = body.session_type;
     if (body.notes != null) insertRow.notes = body.notes;
@@ -126,6 +146,8 @@ export async function POST(req: NextRequest) {
         programme_exercise_id: t.id,
         save_to_template: false,
         skipped: false,
+        data_shape: t.data_shape ?? "sets_reps",
+        with_weight: !!t.with_weight,
       }));
       const { error: exErr } = await supabase
         .from("workout_session_exercises")

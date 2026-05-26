@@ -43,11 +43,37 @@ function fmtElapsed(ms: number): string {
 }
 
 function usesSetsGrid(ex: SessionExercise): boolean {
+  // data_shape is authoritative when present (Phase 2+). Legacy rows fall
+  // back to the previous heuristic.
+  const shape = ex.data_shape ?? ex.template?.data_shape ?? null;
+  if (shape === "sets_reps") return true;
+  if (shape === "hold") return true; // hold uses a per-set numeric input column
+  if (shape === "duration" || shape === "distance") return false;
   const def = ex.template?.default_sets ?? null;
   if (def !== null && def > 0) return true;
   if (def !== null && def === 0) return false;
-  // No template (ad-hoc) → default to sets grid unless duration was provided up front
   return !ex.duration_min;
+}
+
+/** Which input mode the current exercise needs. */
+function dataShapeOf(ex: SessionExercise): "sets_reps" | "hold" | "duration" | "distance" {
+  const s = ex.data_shape ?? ex.template?.data_shape;
+  if (s === "hold" || s === "duration" || s === "distance" || s === "sets_reps") {
+    return s;
+  }
+  // Legacy inference
+  if (ex.template?.default_duration_min && !(ex.template?.default_sets ?? 0)) {
+    return "duration";
+  }
+  return "sets_reps";
+}
+
+/** True only when the user wants a weight column. Defaults to true for
+ *  legacy resistance rows where with_weight wasn't yet stored. */
+function showsWeightColumn(ex: SessionExercise): boolean {
+  if (typeof ex.with_weight === "boolean") return ex.with_weight;
+  if (typeof ex.template?.with_weight === "boolean") return ex.template.with_weight;
+  return (ex.template?.default_weight ?? null) !== null;
 }
 
 /** Print a rounded target weight without trailing zeros. */
@@ -483,8 +509,10 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
     const weightRaw = inputDraft[wKey] ?? "";
     const repsRaw = inputDraft[rKey] ?? "";
     const weight = weightRaw === "" ? null : Number(weightRaw);
-    const reps = repsRaw === "" ? null : Number(repsRaw);
+    const repsOrHold = repsRaw === "" ? null : Number(repsRaw);
     const unit = unitFor(ex);
+    const shape = ex.data_shape ?? ex.template?.data_shape ?? "sets_reps";
+    const isHold = shape === "hold";
 
     noteSaving("saving");
     const r = await fetch(
@@ -492,7 +520,16 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ set_number: setNumber, weight, reps, unit }),
+        body: JSON.stringify({
+          set_number: setNumber,
+          weight,
+          // For hold-shaped exercises, the "reps" column input is interpreted
+          // as seconds and stored on hold_seconds. Leave reps null so the
+          // history aggregator can tell them apart.
+          reps: isHold ? null : repsOrHold,
+          hold_seconds: isHold ? repsOrHold : null,
+          unit,
+        }),
       }
     );
     if (!r.ok) {
@@ -1209,10 +1246,16 @@ function CurrentExerciseCard({
             </div>
           )}
 
-          <div className="grid grid-cols-[2rem_1fr_1fr_4.5rem_2rem] gap-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] pl-1">
+          <div
+            className={`grid ${
+              showsWeightColumn(ex)
+                ? "grid-cols-[2rem_1fr_1fr_4.5rem_2rem]"
+                : "grid-cols-[2rem_1fr_4.5rem_2rem]"
+            } gap-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] pl-1`}
+          >
             <span>Set</span>
-            <span>Weight</span>
-            <span>Reps</span>
+            {showsWeightColumn(ex) && <span>Weight</span>}
+            <span>{dataShapeOf(ex) === "hold" ? "Seconds" : "Reps"}</span>
             <span className="text-right">Done</span>
             <span />
           </div>
@@ -1234,10 +1277,19 @@ function CurrentExerciseCard({
               lastForRow?.reps != null ? String(lastForRow.reps) : "";
             const flashKey = `${ex.id}:${n}`;
             const flashing = flashSetKeys.has(flashKey);
+            const showWeight = showsWeightColumn(ex);
+            const isHold = dataShapeOf(ex) === "hold";
+            const holdPlaceholder = isHold
+              ? String(ex.template?.default_hold_seconds ?? "—")
+              : repsPlaceholder || "—";
             return (
               <div
                 key={n}
-                className={`grid grid-cols-[2rem_1fr_1fr_4.5rem_2rem] gap-2 items-center rounded-md border px-1 py-1 transition-colors duration-500 ${
+                className={`grid ${
+                  showWeight
+                    ? "grid-cols-[2rem_1fr_1fr_4.5rem_2rem]"
+                    : "grid-cols-[2rem_1fr_4.5rem_2rem]"
+                } gap-2 items-center rounded-md border px-1 py-1 transition-colors duration-500 ${
                   flashing
                     ? "border-ok bg-ok/30 ring-2 ring-ok/40"
                     : isLogged
@@ -1248,20 +1300,22 @@ function CurrentExerciseCard({
                 <span className="text-center text-sm font-[family-name:var(--font-mono)] text-ink-3">
                   {displayed}
                 </span>
-                <input
-                  ref={(el) => {
-                    weightInputRefs.current[setKey(n, "w")] = el;
-                  }}
-                  inputMode="decimal"
-                  type="text"
-                  disabled={readOnly}
-                  value={getDraft(n, "w")}
-                  onChange={(e) =>
-                    setDraft(n, "w", e.target.value.replace(/[^0-9.]/g, ""))
-                  }
-                  placeholder={weightPlaceholder || "—"}
-                  className="bg-transparent border border-ink-2 rounded-md text-base text-ink-4 px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
-                />
+                {showWeight && (
+                  <input
+                    ref={(el) => {
+                      weightInputRefs.current[setKey(n, "w")] = el;
+                    }}
+                    inputMode="decimal"
+                    type="text"
+                    disabled={readOnly}
+                    value={getDraft(n, "w")}
+                    onChange={(e) =>
+                      setDraft(n, "w", e.target.value.replace(/[^0-9.]/g, ""))
+                    }
+                    placeholder={weightPlaceholder || "—"}
+                    className="bg-transparent border border-ink-2 rounded-md text-base text-ink-4 px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
+                  />
+                )}
                 <input
                   inputMode="numeric"
                   type="text"
@@ -1270,7 +1324,7 @@ function CurrentExerciseCard({
                   onChange={(e) =>
                     setDraft(n, "r", e.target.value.replace(/[^0-9]/g, ""))
                   }
-                  placeholder={repsPlaceholder || "—"}
+                  placeholder={isHold ? holdPlaceholder : repsPlaceholder || "—"}
                   className="bg-transparent border border-ink-2 rounded-md text-base text-ink-4 px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
                 />
                 <button

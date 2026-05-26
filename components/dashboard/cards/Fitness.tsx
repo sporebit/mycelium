@@ -5,19 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
-import type { TodayResponse } from "@/lib/fitness/types";
-
-const KIND_ICON: Record<string, string> = {
-  cardio: "🏃",
-  resistance: "💪",
-  other: "·",
-};
-
-const SLOT_LABEL: Record<string, string> = {
-  morning: "MORNING",
-  afternoon: "AFTERNOON",
-  extra: "EXTRA",
-};
+import { KIND_VISUALS, SLOT_LABEL, SLOT_ORDER } from "@/lib/fitness/kind";
+import type { TodayResponse, TodaySlotEntry } from "@/lib/fitness/types";
 
 export function Fitness() {
   const router = useRouter();
@@ -45,7 +34,18 @@ export function Fitness() {
     };
   }, []);
 
-  async function startOrResume(s: TodayResponse["sessions"][number]) {
+  // Flatten the 4 slots into a single ordered list, skipping empty slots.
+  // Mostly used for the small home-card preview — full management lives on
+  // /fitness.
+  const entries: TodaySlotEntry[] = data
+    ? SLOT_ORDER.flatMap((s) => data.slots[s] ?? [])
+    : [];
+
+  async function startOrResume(s: TodaySlotEntry) {
+    if (s.logged_session_id) {
+      router.push(`/fitness/log/${s.logged_session_id}`);
+      return;
+    }
     if (!s.programme_session_id) return;
     setStarting(s.programme_session_id);
     try {
@@ -84,7 +84,7 @@ export function Fitness() {
         <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-3">
           Loading…
         </div>
-      ) : data.sessions.length === 0 ? (
+      ) : entries.length === 0 ? (
         <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-3 leading-relaxed">
           {data.programme_name
             ? "Rest day."
@@ -92,7 +92,8 @@ export function Fitness() {
         </div>
       ) : (
         <ul className="flex flex-col divide-y divide-ink-2">
-          {data.sessions.map((s) => {
+          {entries.map((s) => {
+            const kv = KIND_VISUALS[s.kind];
             const label = s.completed
               ? `${s.summary?.sets ?? 0} sets${
                   s.summary?.minutes != null ? ` · ${s.summary.minutes}m` : ""
@@ -100,18 +101,19 @@ export function Fitness() {
               : s.in_progress
               ? "RESUME"
               : "START";
+            const key = `${s.slot}-${s.logged_session_id ?? s.programme_session_id}-${s.position}`;
             return (
               <li
-                key={`${s.slot}-${s.programme_session_id}`}
+                key={key}
                 className="flex items-center gap-3 py-2 first:pt-0 last:pb-0"
               >
                 <span aria-hidden className="text-base shrink-0">
-                  {KIND_ICON[s.kind] ?? "·"}
+                  {kv.icon}
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] flex items-center gap-1.5">
                     {SLOT_LABEL[s.slot]}
-                    {(s.known_issues_count ?? 0) > 0 && (
+                    {s.known_issues_count > 0 && (
                       <span
                         className="inline-block h-1.5 w-1.5 rounded-full bg-warn"
                         title={`${s.known_issues_count} exercise${s.known_issues_count === 1 ? "" : "s"} with known pain history`}
@@ -135,7 +137,7 @@ export function Fitness() {
                     className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-2 py-1 rounded-md border shrink-0 disabled:opacity-40 ${
                       s.in_progress
                         ? "border-warn/40 bg-warn/15 text-warn hover:bg-warn/25"
-                        : "border-accent/40 bg-accent/15 text-accent hover:bg-accent/25"
+                        : `${kv.borderClass} ${kv.bgClass} ${kv.textClass}`
                     }`}
                   >
                     {starting === s.programme_session_id ? "…" : label}

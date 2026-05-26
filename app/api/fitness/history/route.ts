@@ -41,7 +41,10 @@ export async function GET(req: NextRequest) {
       .not("completed_at", "is", null)
       .order("created_at", { ascending: false })
       .limit(limit + 1);
-    if (kind && ["resistance", "cardio", "other"].includes(kind)) {
+    if (
+      kind &&
+      ["cardio", "conditioning", "resistance", "mobility", "other"].includes(kind)
+    ) {
       q = q.eq("kind", kind);
     }
     if (sessionType) {

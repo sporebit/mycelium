@@ -3,45 +3,54 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Panel } from "@/components/dashboard/Panel";
+import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Mono } from "@/components/dashboard/Mono";
-import { ExtraSessionModal } from "./ExtraSessionModal";
+import { AddSessionModal } from "./AddSessionModal";
 import { SessionSwapDropdown } from "./SessionSwapDropdown";
+import { KIND_VISUALS, SLOT_ICON, SLOT_LABEL, SLOT_ORDER } from "@/lib/fitness/kind";
 import type {
+  Slot,
   TemplateExercise,
   TodayResponse,
+  TodaySlotEntry,
   WorkoutSessionType,
 } from "@/lib/fitness/types";
 
-const KIND_ICON: Record<string, string> = {
-  cardio: "🏃",
-  resistance: "💪",
-  other: "·",
-};
-
-const SLOT_LABEL: Record<string, string> = {
-  morning: "MORNING",
-  afternoon: "AFTERNOON",
-  extra: "EXTRA",
-};
-
 function exerciseLine(ex: TemplateExercise): string {
-  if (
-    ex.default_duration_min !== null &&
-    (ex.default_sets === null || ex.default_sets === 0)
-  ) {
+  if (ex.data_shape === "hold" && ex.default_hold_seconds) {
+    return `${ex.default_hold_seconds}s × ${ex.default_sets ?? 1}`;
+  }
+  if (ex.data_shape === "duration" && ex.default_duration_min) {
     const parts = [`${ex.default_duration_min} min`];
     if (ex.default_intensity) parts.push(ex.default_intensity);
-    if (ex.default_distance_km) parts.push(`${ex.default_distance_km} km`);
     return parts.join(" · ");
+  }
+  if (ex.data_shape === "distance" && ex.default_distance_km) {
+    return `${ex.default_distance_km} km`;
   }
   if (ex.default_sets !== null && ex.default_sets > 0) {
     const parts: string[] = [];
     parts.push(`${ex.default_sets}×${ex.default_reps ?? "?"}`);
-    if (ex.default_weight !== null) {
+    if (ex.with_weight && ex.default_weight !== null) {
       parts.push(`${ex.default_weight}${ex.default_weight_unit ?? "kg"}`);
     }
-    if (ex.rest_seconds) parts.push(`rest ${ex.rest_seconds}s`);
     return parts.join(" · ");
   }
   if (ex.default_duration_min !== null) return `${ex.default_duration_min} min`;
@@ -60,7 +69,7 @@ export function TodayView() {
   const [typesByKey, setTypesByKey] = useState<Record<string, WorkoutSessionType>>({});
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState<string | null>(null);
-  const [showExtra, setShowExtra] = useState(false);
+  const [addFor, setAddFor] = useState<Slot | null>(null);
   const [toast, setToast] = useState<Toast>(null);
 
   const load = useCallback(async () => {
@@ -103,7 +112,11 @@ export function TodayView() {
     return () => clearTimeout(id);
   }, [toast]);
 
-  async function startOrResume(s: TodayResponse["sessions"][number]) {
+  async function startOrResume(s: TodaySlotEntry) {
+    if (s.logged_session_id) {
+      router.push(`/fitness/log/${s.logged_session_id}`);
+      return;
+    }
     if (!s.programme_session_id) return;
     setStarting(s.programme_session_id);
     try {
@@ -129,6 +142,38 @@ export function TodayView() {
     }
   }
 
+  async function handleReorder(slot: Slot, newOrder: TodaySlotEntry[]) {
+    if (!data) return;
+    // Only sessions that have a workout_sessions row can be reordered (the
+    // API requires session ids). Planned-only template entries skip.
+    const ids = newOrder
+      .map((e) => e.logged_session_id)
+      .filter((id): id is string => !!id);
+    if (ids.length < 2) return;
+    // Optimistic local update
+    setData((prev) =>
+      prev
+        ? {
+            ...prev,
+            slots: { ...prev.slots, [slot]: newOrder },
+          }
+        : prev
+    );
+    try {
+      await fetch("/api/fitness/sessions/reorder-in-slot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: data.date,
+          slot,
+          session_ids: ids,
+        }),
+      });
+    } catch {
+      /* parent re-fetch will reconcile */
+    }
+  }
+
   if (error) {
     return (
       <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
@@ -149,189 +194,41 @@ export function TodayView() {
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {data.programme_name && (
         <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
           Programme · {data.programme_name}
         </div>
       )}
 
-      {data.sessions.length === 0 && data.extras.length === 0 ? (
-        <Panel title="Fitness · Today" topRight={<Mono>{data.date}</Mono>}>
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
-            {data.programme_name
-              ? `Rest day. No sessions scheduled in '${data.programme_name}' for today.`
-              : "No programme active. Set one up in PHASES."}
-          </p>
-        </Panel>
-      ) : null}
-
-      {data.sessions.map((s) => {
-        const label = s.completed
-          ? `LOGGED · ${s.summary?.sets ?? 0} sets${
-              s.summary?.minutes != null ? ` · ${s.summary.minutes}m` : ""
-            }`
-          : s.in_progress
-          ? "RESUME →"
-          : "START SESSION →";
-        const tone = s.completed ? "ok" : s.in_progress ? "warn" : undefined;
-        const knownCount = s.known_issues_count ?? 0;
-        const typeLabel = s.session_type
-          ? typesByKey[s.session_type]?.label ?? s.session_type
-          : null;
+      {SLOT_ORDER.map((slot) => {
+        const entries = data.slots[slot] ?? [];
         return (
-          <Panel
-            key={`${s.slot}-${s.programme_session_id}`}
-            number={SLOT_LABEL[s.slot]}
-            title={s.name}
-            status={s.completed ? "COMPLETED" : s.in_progress ? "IN PROGRESS" : undefined}
-            statusTone={tone}
-            topRight={
-              <span className="flex items-center gap-2">
-                {typeLabel && (
-                  <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
-                    {typeLabel}
-                  </span>
-                )}
-                {knownCount > 0 && (
-                  <span
-                    className="inline-block h-2 w-2 rounded-full bg-warn"
-                    title={`${knownCount} exercise${knownCount === 1 ? "" : "s"} in this session ${knownCount === 1 ? "has" : "have"} known pain history`}
-                    aria-label={`${knownCount} exercises with known pain history`}
-                  />
-                )}
-                <span className="text-base" aria-hidden>
-                  {KIND_ICON[s.kind] ?? "·"}
-                </span>
-                {!s.completed && (
-                  <SessionSwapDropdown
-                    slot={s.slot}
-                    currentProgrammeSessionId={s.programme_session_id}
-                    sessionId={s.logged_session_id}
-                    hasLoggedWork={!!s.logged_session_id && s.in_progress}
-                    todayDayOfWeek={todayDow}
-                    programmeSessions={data.programme_sessions}
-                    onSwapped={() => void load()}
-                  />
-                )}
-              </span>
-            }
-            bottomCTA={
-              s.completed && s.logged_session_id ? (
-                <Link
-                  href={`/fitness/log/${s.logged_session_id}`}
-                  className="hover:text-ink-4 transition-colors"
-                >
-                  {label}
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  disabled={starting === s.programme_session_id}
-                  onClick={() => void startOrResume(s)}
-                  className="hover:text-ink-4 disabled:opacity-40"
-                >
-                  {starting === s.programme_session_id ? "STARTING…" : label}
-                </button>
-              )
-            }
-          >
-            {s.swapped_from_programme_session_id && (
-              <div className="text-[10px] uppercase tracking-[0.18em] text-warn font-[family-name:var(--font-mono)] mb-2">
-                ↻ swapped from today&apos;s planned session
-              </div>
-            )}
-            {s.exercises.length === 0 ? (
-              <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
-                No exercises in template.
-              </p>
-            ) : (
-              <ul className="flex flex-col divide-y divide-ink-2">
-                {s.exercises.map((ex) => (
-                  <li
-                    key={ex.id}
-                    className="py-2 first:pt-0 last:pb-0 flex items-start gap-3"
-                  >
-                    <Mono className="text-[11px] text-ink-3 w-6 shrink-0 pt-0.5">
-                      {ex.position}
-                    </Mono>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-ink-4 leading-snug">
-                        {ex.name}
-                      </div>
-                      <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5">
-                        {exerciseLine(ex)}
-                        {ex.notes && (
-                          <span className="ml-2 text-ink-3 normal-case tracking-normal italic">
-                            {ex.notes}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
+          <SlotSection
+            key={slot}
+            slot={slot}
+            entries={entries}
+            programmeSessions={data.programme_sessions}
+            todayDow={todayDow}
+            typesByKey={typesByKey}
+            starting={starting}
+            onStart={(e) => void startOrResume(e)}
+            onReorder={(newOrder) => void handleReorder(slot, newOrder)}
+            onAdd={() => setAddFor(slot)}
+            onSwapped={() => void load()}
+          />
         );
       })}
 
-      {/* Extras (logged today, slot=extra) */}
-      {data.extras.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-            Extra sessions today
-          </div>
-          {data.extras.map((ex) => {
-            const typeLabel = ex.session_type
-              ? typesByKey[ex.session_type]?.label ?? ex.session_type
-              : null;
-            return (
-              <Link
-                key={ex.session_id}
-                href={`/fitness/log/${ex.session_id}`}
-                className="growth-in block rounded-md bg-ink-1 hover:bg-ink-2 transition-colors px-4 py-3"
-              >
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span aria-hidden>{KIND_ICON[ex.kind] ?? "·"}</span>
-                  <span className="text-sm text-ink-4 truncate">
-                    {ex.name ?? "Extra session"}
-                  </span>
-                  {typeLabel && (
-                    <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
-                      · {typeLabel}
-                    </span>
-                  )}
-                  {ex.completed && (
-                    <span className="text-[10px] uppercase tracking-[0.15em] text-ok font-[family-name:var(--font-mono)] ml-auto">
-                      ✓
-                      {ex.summary?.minutes != null
-                        ? ` ${ex.summary.minutes}m`
-                        : ""}
-                    </span>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
-
-      <button
-        type="button"
-        onClick={() => setShowExtra(true)}
-        className="self-start px-3 py-1.5 rounded-md border border-ink-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
-      >
-        + ADD EXTRA SESSION
-      </button>
-
-      {showExtra && (
-        <ExtraSessionModal
+      {addFor && (
+        <AddSessionModal
+          slot={addFor}
           date={data.date}
-          onClose={() => setShowExtra(false)}
-          onSaved={(t) => {
-            setShowExtra(false);
-            if (t) setToast(t);
+          programmeSessions={data.programme_sessions}
+          onClose={() => setAddFor(null)}
+          onSaved={(toastMsg) => {
+            setAddFor(null);
+            if (toastMsg) setToast(toastMsg);
             void load();
           }}
         />
@@ -340,7 +237,7 @@ export function TodayView() {
       {toast && (
         <div
           role="status"
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
+          className={`growth-in fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
             toast.kind === "ok"
               ? "bg-ok/20 text-ok border border-ok/40"
               : "bg-danger/20 text-danger border border-danger/40"
@@ -350,5 +247,249 @@ export function TodayView() {
         </div>
       )}
     </div>
+  );
+}
+
+function SlotSection({
+  slot,
+  entries,
+  programmeSessions,
+  todayDow,
+  typesByKey,
+  starting,
+  onStart,
+  onReorder,
+  onAdd,
+  onSwapped,
+}: {
+  slot: Slot;
+  entries: TodaySlotEntry[];
+  programmeSessions: TodayResponse["programme_sessions"];
+  todayDow: number;
+  typesByKey: Record<string, WorkoutSessionType>;
+  starting: string | null;
+  onStart: (entry: TodaySlotEntry) => void;
+  onReorder: (newOrder: TodaySlotEntry[]) => void;
+  onAdd: () => void;
+  onSwapped: () => void;
+}) {
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 500, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  function entryKey(e: TodaySlotEntry): string {
+    return e.logged_session_id ?? `tpl:${e.programme_session_id}`;
+  }
+
+  function handleDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIdx = entries.findIndex((x) => entryKey(x) === active.id);
+    const newIdx = entries.findIndex((x) => entryKey(x) === over.id);
+    if (oldIdx < 0 || newIdx < 0) return;
+    onReorder(arrayMove(entries, oldIdx, newIdx));
+  }
+
+  return (
+    <section className="flex flex-col gap-3">
+      <div className="flex items-baseline gap-2">
+        <span className="text-lg" aria-hidden>
+          {SLOT_ICON[slot]}
+        </span>
+        <span className="card-eyebrow">{SLOT_LABEL[slot]}</span>
+      </div>
+
+      {entries.length > 0 ? (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={entries.map(entryKey)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="flex flex-col gap-3">
+              {entries.map((entry) => (
+                <SortableSessionCard
+                  key={entryKey(entry)}
+                  id={entryKey(entry)}
+                  entry={entry}
+                  programmeSessions={programmeSessions}
+                  todayDow={todayDow}
+                  typesByKey={typesByKey}
+                  starting={starting}
+                  onStart={onStart}
+                  onSwapped={onSwapped}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={onAdd}
+        className="self-start px-3 py-1.5 rounded-md border border-ink-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+      >
+        + ADD SESSION
+      </button>
+    </section>
+  );
+}
+
+function SortableSessionCard(props: {
+  id: string;
+  entry: TodaySlotEntry;
+  programmeSessions: TodayResponse["programme_sessions"];
+  todayDow: number;
+  typesByKey: Record<string, WorkoutSessionType>;
+  starting: string | null;
+  onStart: (entry: TodaySlotEntry) => void;
+  onSwapped: () => void;
+}) {
+  const { id, entry, programmeSessions, todayDow, typesByKey, starting, onStart, onSwapped } =
+    props;
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+
+  const kindVisual = KIND_VISUALS[entry.kind];
+  const typeLabel = entry.session_type
+    ? typesByKey[entry.session_type]?.label ?? entry.session_type
+    : null;
+  const label = entry.completed
+    ? `LOGGED · ${entry.summary?.sets ?? 0} sets${
+        entry.summary?.minutes != null ? ` · ${entry.summary.minutes}m` : ""
+      }`
+    : entry.in_progress
+    ? "RESUME →"
+    : "START SESSION →";
+
+  return (
+    <article
+      ref={setNodeRef}
+      style={style}
+      className={`growth-in rounded-md bg-ink-1 p-5 flex flex-col gap-3 ${
+        isDragging ? "ring-1 ring-glow-2/60 shadow-2xl" : ""
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label="Drag to reorder"
+          onClick={(e) => e.stopPropagation()}
+          className="h-7 w-5 shrink-0 flex items-center justify-center text-ink-3 hover:text-ink-4 cursor-grab active:cursor-grabbing touch-none"
+        >
+          <span aria-hidden className="text-base leading-none">⠿</span>
+        </button>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border ${kindVisual.bgClass} ${kindVisual.textClass} ${kindVisual.borderClass}`}
+            >
+              {kindVisual.icon} {kindVisual.label}
+            </span>
+            {typeLabel && (
+              <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                · {typeLabel}
+              </span>
+            )}
+            {entry.swapped_from_programme_session_id && (
+              <span className="text-[10px] uppercase tracking-[0.15em] text-warn font-[family-name:var(--font-mono)]">
+                ↻ swapped
+              </span>
+            )}
+            {entry.known_issues_count > 0 && (
+              <span
+                className="inline-block h-2 w-2 rounded-full bg-warn"
+                title={`${entry.known_issues_count} exercise(s) with known pain history`}
+              />
+            )}
+          </div>
+          <div className="font-[family-name:var(--font-display)] text-xl text-text-0 mt-1 truncate">
+            {entry.name}
+          </div>
+          <div className="text-[11px] text-text-2 font-[family-name:var(--font-mono)] tracking-[0.08em] mt-0.5">
+            {entry.exercises.length > 0
+              ? `${entry.exercises.length} exercise${entry.exercises.length === 1 ? "" : "s"}`
+              : "free-form"}
+            {entry.completed && entry.summary
+              ? ` · ${entry.summary.sets} sets${
+                  entry.summary.minutes != null ? ` · ${entry.summary.minutes}m` : ""
+                }`
+              : ""}
+          </div>
+        </div>
+        {!entry.completed && entry.programme_session_id && (
+          <SessionSwapDropdown
+            slot={entry.slot === "extra" ? "morning" : entry.slot}
+            currentProgrammeSessionId={entry.programme_session_id}
+            sessionId={entry.logged_session_id}
+            hasLoggedWork={!!entry.logged_session_id && entry.in_progress}
+            todayDayOfWeek={todayDow}
+            programmeSessions={programmeSessions}
+            onSwapped={onSwapped}
+          />
+        )}
+      </div>
+
+      {entry.exercises.length > 0 && (
+        <ul className="flex flex-col divide-y divide-ink-2/60">
+          {entry.exercises.slice(0, 5).map((ex) => (
+            <li
+              key={ex.id}
+              className="py-1.5 first:pt-0 last:pb-0 flex items-baseline gap-3"
+            >
+              <Mono className="text-[10px] text-ink-3 w-5 shrink-0">
+                {ex.position}
+              </Mono>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm text-text-0 leading-snug truncate">
+                  {ex.name}
+                </div>
+                <div className="text-[10px] uppercase tracking-[0.15em] text-text-2 font-[family-name:var(--font-mono)]">
+                  {exerciseLine(ex)}
+                </div>
+              </div>
+            </li>
+          ))}
+          {entry.exercises.length > 5 && (
+            <li className="py-1.5 text-[10px] text-text-2 font-[family-name:var(--font-mono)] tracking-[0.15em]">
+              + {entry.exercises.length - 5} more
+            </li>
+          )}
+        </ul>
+      )}
+
+      <div className="flex items-center justify-end">
+        {entry.completed && entry.logged_session_id ? (
+          <Link
+            href={`/fitness/log/${entry.logged_session_id}`}
+            className="text-[10px] uppercase tracking-[0.18em] text-ok font-[family-name:var(--font-mono)] hover:text-text-0"
+          >
+            {label}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled={starting === entry.programme_session_id}
+            onClick={() => onStart(entry)}
+            className="text-[11px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)] disabled:opacity-40"
+          >
+            {starting === entry.programme_session_id ? "STARTING…" : label}
+          </button>
+        )}
+      </div>
+    </article>
   );
 }

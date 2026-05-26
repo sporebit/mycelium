@@ -13,12 +13,21 @@ import type {
 import { pickParam, updateUrlParam } from "@/lib/util/url-params";
 
 type Filter = SessionKind | "all";
-const FILTER_VALUES = ["all", "resistance", "cardio", "other"] as const;
+const FILTER_VALUES = [
+  "all",
+  "cardio",
+  "conditioning",
+  "resistance",
+  "mobility",
+  "other",
+] as const;
 
 const FILTERS: { label: string; value: Filter }[] = [
   { label: "ALL", value: "all" },
-  { label: "RESISTANCE", value: "resistance" },
   { label: "CARDIO", value: "cardio" },
+  { label: "CONDITIONING", value: "conditioning" },
+  { label: "RESISTANCE", value: "resistance" },
+  { label: "MOBILITY", value: "mobility" },
   { label: "OTHER", value: "other" },
 ];
 

@@ -1,9 +1,23 @@
 export type WeightUnit = "kg" | "lbs" | "stone";
-export type Slot = "morning" | "afternoon" | "extra";
-export type TemplateSlot = "morning" | "afternoon";
-export type SessionKind = "cardio" | "resistance" | "other";
-export type TemplateKind = "cardio" | "resistance";
+/** A workout_sessions row can land in any of four slots. Programme sessions
+ *  only use the three time-of-day slots (no "extra" template). */
+export type Slot = "morning" | "afternoon" | "evening" | "extra";
+export type TemplateSlot = "morning" | "afternoon" | "evening";
+/** Logged sessions can additionally be "other" (free-form: tennis, hiking). */
+export type SessionKind =
+  | "cardio"
+  | "conditioning"
+  | "resistance"
+  | "mobility"
+  | "other";
+export type TemplateKind = "cardio" | "conditioning" | "resistance" | "mobility";
 export type Intensity = "easy" | "moderate" | "hard" | "intervals";
+/** Render mode for an exercise — drives the logger's input layout. */
+export type ExerciseDataShape =
+  | "sets_reps"
+  | "hold"
+  | "duration"
+  | "distance";
 
 export type Programme = {
   id: string;
@@ -37,6 +51,9 @@ export type TemplateExercise = {
   default_duration_min: number | null;
   default_distance_km: number | null;
   default_intensity: string | null;
+  data_shape: ExerciseDataShape;
+  with_weight: boolean;
+  default_hold_seconds: number | null;
 };
 
 export type TemplateSession = {
@@ -47,6 +64,7 @@ export type TemplateSession = {
   kind: TemplateKind;
   name: string;
   notes: string | null;
+  position: number;
   exercises?: TemplateExercise[];
 };
 
@@ -98,48 +116,39 @@ export type BodyMetric = {
   created_at: string;
 };
 
+/** One slot card on /fitness today. May represent a planned template
+ *  session (no logged_session_id) or a live session (with one). */
+export type TodaySlotEntry = {
+  slot: Slot;
+  position: number;
+  kind: SessionKind;
+  name: string;
+  programme_session_id: string | null;
+  logged_session_id: string | null;
+  session_type: string | null;
+  swapped_from_programme_session_id: string | null;
+  exercises: TemplateExercise[];
+  completed: boolean;
+  in_progress: boolean;
+  summary: { sets: number; minutes: number | null } | null;
+  known_issues_count: number;
+};
+
 export type TodayResponse = {
   date: string;
   programme_name: string | null;
   programme_id: string | null;
-  /** Every session in the active programme — used by the day-swap dropdown. */
   programme_sessions: Array<{
     id: string;
     day_of_week: number;
     slot: TemplateSlot;
     kind: TemplateKind;
     name: string;
+    position: number;
   }>;
-  sessions: Array<{
-    slot: Slot;
-    kind: SessionKind;
-    name: string;
-    programme_session_id: string | null;
-    /** Type assigned to the live session, or inferred for the planned one. */
-    session_type: string | null;
-    /** Set when the active session was swapped from a different template. */
-    swapped_from_programme_session_id: string | null;
-    exercises: TemplateExercise[];
-    /** Live workout_session for today/slot, if any. */
-    logged_session_id: string | null;
-    /** True if a session exists AND has completed_at set. */
-    completed: boolean;
-    /** True if a session exists, regardless of completion (drives RESUME). */
-    in_progress: boolean;
-    /** Summary numbers for completed sessions (otherwise null). */
-    summary: { sets: number; minutes: number | null } | null;
-    /** How many of this session's exercises have a known-pain-issues baseline. */
-    known_issues_count: number;
-  }>;
-  /** Extra sessions logged today (kind=other or any session with slot=extra). */
-  extras: Array<{
-    session_id: string;
-    name: string | null;
-    session_type: string | null;
-    kind: SessionKind;
-    completed: boolean;
-    summary: { sets: number; minutes: number | null } | null;
-  }>;
+  /** One array per slot, ordered by position. Empty arrays kept so the UI
+   *  always renders all four slot headers. */
+  slots: Record<Slot, TodaySlotEntry[]>;
 };
 
 export type LoggedSet = {
@@ -148,6 +157,9 @@ export type LoggedSet = {
   weight: number | null;
   unit: WeightUnit | null;
   completed_at: string | null;
+  hold_seconds?: number | null;
+  duration_min?: number | null;
+  distance_km?: number | null;
 };
 
 export type SessionExercise = {
@@ -166,6 +178,8 @@ export type SessionExercise = {
   skipped: boolean;
   completed_at: string | null;
   added_at: string;
+  data_shape: ExerciseDataShape;
+  with_weight: boolean;
   /** Snapshot of the template prescription, copied at session start. */
   template?: TemplateExercise | null;
   sets?: LoggedSet[];

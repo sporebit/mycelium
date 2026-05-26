@@ -13,6 +13,9 @@ type SetBody = {
   reps?: number | null;
   weight?: number | null;
   unit?: WeightUnit | null;
+  hold_seconds?: number | null;
+  duration_min?: number | null;
+  distance_km?: number | null;
 };
 
 async function ensureOwned(
@@ -74,6 +77,9 @@ export async function POST(
           reps: body.reps ?? null,
           weight: body.weight ?? null,
           unit: body.unit ?? null,
+          hold_seconds: body.hold_seconds ?? null,
+          duration_min: body.duration_min ?? null,
+          distance_km: body.distance_km ?? null,
           completed_at: new Date().toISOString(),
         },
         { onConflict: "session_exercise_id,set_number" }

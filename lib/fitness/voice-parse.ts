@@ -102,6 +102,16 @@ Cardio rules:
 - "ran for 30 minutes" → duration 30, distance null.
 - "hiked Snowdon" → duration null, distance null, intensity hard (it's Snowdon), matched_exercise_name = "Hiking" if in the list.
 
+Kind/slot disambiguation:
+- The candidate sessions list shows kind (cardio/conditioning/resistance/mobility/other) and slot (morning/afternoon/evening/extra). Use them to pick the right candidate when the user names a slot or kind explicitly.
+- Kind keywords:
+  - cardio: run, jog, walk, cycle, row, treadmill, zone 2, easy pace, steady, conversational.
+  - conditioning: EMOM, HIIT, intervals, circuit, AMRAP, complex, kettlebell flow, KB EMOM, burpees, metabolic.
+  - resistance: bench, deadlift, squat, press, row, curl, lift, hypertrophy, sets/reps with weight.
+  - mobility: stretch, mobility, foam roll, opener, dynamic warmup, cat-cow, dislocates, Y/W/I raise, dead bug.
+- Slot keywords: "this morning" → morning, "this afternoon" → afternoon, "this evening" / "tonight" → evening, "extra" / "bonus session" → extra.
+- When the user names a slot AND a kind that exactly matches one planned session, that's the candidate (intent: planned or active depending on its state).
+
 Comments vs notes:
 - session_notes = vibe/feel about the whole session ("felt strong today", "tired going in").
 - exercise_comments = something about one exercise ("PR on bench", "form felt off on RDL").
