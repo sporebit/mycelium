@@ -4,6 +4,19 @@ import { useEffect, useRef, useState } from "react";
 import type { Task, TaskUrgency, Entity } from "@/lib/types/task";
 import { URGENCIES, URGENCY_LABEL } from "@/lib/types/task";
 import { EntityPicker } from "./EntityPicker";
+import { triggerGlowPulse } from "@/lib/motion";
+
+function formatCreatedAt(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  try {
+    return new Date(iso).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return null;
+  }
+}
 
 export type DrawerMode =
   | { kind: "edit"; task: Task }
@@ -196,6 +209,7 @@ export function TaskDrawer({
     });
   }
 
+  const createdLabel = formatCreatedAt(task?.created_at);
   return (
     <div className="fixed inset-0 z-50">
       <div
@@ -203,25 +217,30 @@ export function TaskDrawer({
         className="absolute inset-0 bg-ink-0/60 backdrop-blur-sm"
       />
       <aside
-        className="absolute top-0 right-0 h-full w-full max-w-[400px] bg-ink-1 border-l border-ink-2 shadow-2xl flex flex-col"
+        className="drawer-slide-in absolute top-0 right-0 h-full w-full max-w-[440px] bg-ink-1 shadow-2xl flex flex-col rounded-l-lg"
         role="dialog"
         aria-label={isCreate ? "Create task" : "Edit task"}
       >
-        <header className="flex items-center justify-between px-4 py-3 border-b border-ink-2">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-            {isCreate ? "New Task" : "Edit Task"}
-          </span>
+        {/* Top close-row — no border, just the × in the corner */}
+        <div className="flex items-center justify-end px-6 pt-5">
           <button
             type="button"
             onClick={onClose}
-            className="text-ink-3 hover:text-ink-4 text-sm"
             aria-label="Close"
+            className="h-8 w-8 flex items-center justify-center text-text-2 hover:text-text-0 text-base"
           >
             ✕
           </button>
-        </header>
+        </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
+        {/* Title block */}
+        <div className="px-8 pt-2 pb-4 flex flex-col gap-2">
+          <div className="card-eyebrow">
+            {isCreate ? "NEW TASK" : `TASK${createdLabel ? ` · created ${createdLabel}` : ""}`}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-8 pb-6 flex flex-col gap-6">
           {/* PARENT REFERENCE (when editing a sub-task) */}
           {!isCreate && parent && (
             <button
@@ -324,7 +343,7 @@ export function TaskDrawer({
                   if (isCreate) setDraftUrgency(v);
                   else patchField("urgency", v);
                 }}
-                className="w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
               >
                 {URGENCIES.map((u) => (
                   <option key={u} value={u}>
@@ -359,7 +378,7 @@ export function TaskDrawer({
                 value={draftTags}
                 onChange={(e) => setDraftTags(e.target.value)}
                 placeholder="work, personal, q3…"
-                className="w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 placeholder:text-ink-3 px-2 py-1.5 outline-none focus:border-ink-3"
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
               />
             ) : (
               <input
@@ -373,7 +392,7 @@ export function TaskDrawer({
                     saveTags();
                   }
                 }}
-                className="w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
               />
             )}
           </Field>
@@ -389,7 +408,7 @@ export function TaskDrawer({
                   if (isCreate) setDraftDue(e.target.value);
                   else patchField("due_date", v);
                 }}
-                className="w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
               />
             </Field>
             <Field label="Est. (min)">
@@ -411,7 +430,7 @@ export function TaskDrawer({
                   }
                 }}
                 placeholder="30"
-                className="w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 placeholder:text-ink-3 px-2 py-1.5 outline-none focus:border-ink-3"
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
               />
             </Field>
           </div>
@@ -426,7 +445,7 @@ export function TaskDrawer({
                 else patchField("owner", e.target.value || null);
               }}
               placeholder={process.env.NEXT_PUBLIC_USER_ID ?? "phil"}
-              className="w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 placeholder:text-ink-3 px-2 py-1.5 outline-none focus:border-ink-3"
+              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
             />
           </Field>
 
@@ -514,21 +533,24 @@ export function TaskDrawer({
           )}
         </div>
 
-        <footer className="border-t border-ink-2 px-4 py-3 flex items-center gap-2">
+        <footer className="px-8 py-5 flex items-center gap-3 border-t border-ink-3/60">
           {isCreate ? (
             <>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 rounded-md border border-ink-2 text-sm text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+                className="px-6 py-3 rounded-sm border border-ink-4 text-sm text-text-1 hover:text-text-0 hover:bg-ink-2 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 disabled={!draftTitle.trim() || creating}
-                onClick={handleCreate}
-                className="ml-auto px-3 py-1.5 rounded-md bg-accent/20 border border-accent/40 text-accent hover:bg-accent/30 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-[family-name:var(--font-mono)] transition-colors"
+                onClick={(e) => {
+                  triggerGlowPulse(e.currentTarget);
+                  handleCreate();
+                }}
+                className="ml-auto px-6 py-3 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
               >
                 {creating ? "Saving…" : "Save"}
               </button>
@@ -538,14 +560,17 @@ export function TaskDrawer({
               <button
                 type="button"
                 onClick={handleDelete}
-                className="px-3 py-1.5 rounded-md border border-danger/40 text-sm text-danger hover:bg-danger/10 transition-colors"
+                className="px-6 py-3 rounded-sm border border-ink-4 text-sm text-text-1 hover:border-error/60 hover:text-error transition-colors"
               >
                 Delete
               </button>
               <button
                 type="button"
-                onClick={handleMarkDone}
-                className="ml-auto px-3 py-1.5 rounded-md bg-ok/20 border border-ok/40 text-ok hover:bg-ok/30 text-sm font-[family-name:var(--font-mono)] transition-colors"
+                onClick={(e) => {
+                  triggerGlowPulse(e.currentTarget);
+                  handleMarkDone();
+                }}
+                className="ml-auto px-6 py-3 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 text-sm font-medium transition-colors"
               >
                 ✓ Mark Done
               </button>

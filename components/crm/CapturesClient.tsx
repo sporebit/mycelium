@@ -142,7 +142,7 @@ export function CapturesClient() {
             const kindStr = typeof cls.kind === "string" ? cls.kind : undefined;
             const badge = kindBadge(kindStr);
             return (
-              <li key={c.id}>
+              <li key={c.id} className="growth-in">
                 <button
                   type="button"
                   onClick={() => toggle(c.id)}

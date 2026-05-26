@@ -87,11 +87,31 @@ export function Goals() {
     void updateScope(scope, goals[scope].filter((g) => g.id !== id));
   }
 
+  const totalAll = (goals?.week?.length ?? 0) + (goals?.month?.length ?? 0);
+  const doneAll =
+    (goals?.week?.filter((g) => g.done).length ?? 0) +
+    (goals?.month?.filter((g) => g.done).length ?? 0);
+  const pctAll = totalAll === 0 ? 0 : Math.round((doneAll / totalAll) * 100);
+
   return (
     <Panel borderless number="05" title="GOALS">
       {error && (
         <div className="mb-3 text-[10px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
           ⚠ {error}
+        </div>
+      )}
+
+      {totalAll > 0 && (
+        <div className="mb-4 flex flex-col gap-0.5">
+          <span className="card-eyebrow">Progress</span>
+          <div className="flex items-baseline gap-2 tabular-nums">
+            <span className="font-[family-name:var(--font-display)] text-3xl font-medium text-text-0 leading-none">
+              {pctAll}%
+            </span>
+            <span className="text-sm text-text-1">
+              {doneAll} of {totalAll} {totalAll === 1 ? "goal" : "goals"}
+            </span>
+          </div>
         </div>
       )}
 

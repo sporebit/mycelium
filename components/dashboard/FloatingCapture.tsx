@@ -75,11 +75,13 @@ export function FloatingCapture() {
 
   return (
     <>
-      {/* Toast — top-centre, brief */}
+      {/* Toast — top-centre, brief. The success state glow-pulses on mount. */}
       {toast && (
         <div
           role="status"
-          className={`fixed top-20 left-1/2 -translate-x-1/2 z-[150] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
+          className={`growth-in ${
+            toast.kind === "success" ? "glow-pulse" : ""
+          } fixed top-20 left-1/2 -translate-x-1/2 z-[150] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
             toast.kind === "success"
               ? "bg-ok/20 text-ok border border-ok/40"
               : "bg-danger/20 text-danger border border-danger/40"

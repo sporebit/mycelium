@@ -81,8 +81,6 @@ export function Operator() {
 
   const fullName = [OPERATOR.firstName, OPERATOR.lastName].filter(Boolean).join(" ");
   const initial = OPERATOR.firstName.charAt(0).toUpperCase() || "?";
-  const streakLabel =
-    streak === null ? "—" : `${streak} ${streak === 1 ? "DAY" : "DAYS"}`;
 
   return (
     <Panel borderless number="01" title="OPERATOR" status="ONLINE" statusTone="ok">
@@ -133,11 +131,20 @@ export function Operator() {
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-            Streak
-          </span>
-          <Mono className="text-sm text-ink-4">{streakLabel}</Mono>
+        <div className="flex flex-col gap-0.5">
+          <span className="card-eyebrow">Streak</span>
+          {streak === null ? (
+            <Mono className="text-sm text-text-1">—</Mono>
+          ) : (
+            <div className="flex items-baseline gap-2 tabular-nums">
+              <span className="font-[family-name:var(--font-display)] text-3xl font-medium text-text-0 leading-none">
+                {streak}
+              </span>
+              <span className="text-sm text-text-1">
+                {streak === 1 ? "day" : "days"}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </Panel>

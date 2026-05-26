@@ -218,7 +218,7 @@ export function JournalClient() {
               )}
               <ul className="flex flex-col divide-y divide-ink-2">
                 {g.entries.map((e) => (
-                  <li key={e.id} className="py-3 first:pt-0 last:pb-0">
+                  <li key={e.id} className="growth-in py-3 first:pt-0 last:pb-0">
                     <div className="flex items-baseline gap-3 mb-1">
                       <Mono className="text-[11px] text-ink-3 shrink-0">
                         {fmtTime(e.created_at)}

@@ -129,7 +129,7 @@ export function AskAnswer({
           {sourcesOpen && (
             <ul className="flex flex-col gap-2 p-3 pt-0">
               {sources.map((s, i) => (
-                <li key={s.chunk.id}>
+                <li key={s.chunk.id} className="growth-in">
                   <SourceCard
                     match={s}
                     citationTag={s.citation_tag}

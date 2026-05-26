@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { triggerGlowPulse } from "@/lib/motion";
 import type {
   SessionKind,
   SessionTypeLoggingMode,
@@ -291,7 +292,10 @@ export function ExtraSessionModal({
           <button
             type="button"
             disabled={busy}
-            onClick={() => void submit()}
+            onClick={(e) => {
+              triggerGlowPulse(e.currentTarget);
+              void submit();
+            }}
             className="flex-[2] h-12 rounded-md bg-accent/20 border border-accent/50 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
           >
             {busy ? "SAVING…" : "CREATE SESSION"}

@@ -6,6 +6,7 @@ import {
   PAIN_REGION_OPTIONS,
   feelRatingNeedsSeverity,
 } from "@/lib/fitness/pain";
+import { triggerGlowPulse } from "@/lib/motion";
 import type {
   ExerciseBaseline,
   ExercisePainLog,
@@ -118,7 +119,10 @@ export function PainLogModal({
                 <button
                   key={o.value}
                   type="button"
-                  onClick={() => setFeel(o.value)}
+                  onClick={(e) => {
+                    triggerGlowPulse(e.currentTarget);
+                    setFeel(o.value);
+                  }}
                   className={`px-2.5 py-2 rounded-md border text-xs font-[family-name:var(--font-mono)] tracking-[0.1em] flex items-center gap-1.5 transition-colors ${
                     active
                       ? "border-accent/50 bg-accent/15 text-accent"
@@ -208,7 +212,10 @@ export function PainLogModal({
           <button
             type="button"
             disabled={busy || !feel}
-            onClick={() => void submit()}
+            onClick={(e) => {
+              triggerGlowPulse(e.currentTarget);
+              void submit();
+            }}
             className="flex-[2] h-12 rounded-md bg-accent/20 border border-accent/50 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
           >
             {busy ? "SAVING…" : "SAVE"}

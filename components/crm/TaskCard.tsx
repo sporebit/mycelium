@@ -55,6 +55,7 @@ export function TaskCard({
     ? "bg-ink-1/60 hover:bg-ink-2"
     : "bg-ink-1 hover:bg-ink-2";
 
+  const isSubtask = !!task.parent_task_id;
   return (
     <div
       onClick={onClick}
@@ -62,7 +63,7 @@ export function TaskCard({
         dragging
           ? "bg-ink-2 shadow-2xl shadow-glow-3/30 ring-1 ring-glow-2/60"
           : cardClass
-      } ${compact ? "py-2" : ""}`}
+      } ${compact ? "py-2" : ""} ${isSubtask ? "is-subtask" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className={`text-sm leading-snug min-w-0 break-words ${titleClass}`}>

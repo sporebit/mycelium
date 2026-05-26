@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { SessionDetail, SessionExercise } from "@/lib/fitness/types";
 import { toKg } from "@/lib/fitness/units";
+import { triggerGlowPulse } from "@/lib/motion";
 
 function fmtMin(ms: number): string {
   const m = Math.floor(ms / 60000);
@@ -155,7 +156,10 @@ export function FinishModal({
           <button
             type="button"
             disabled={busy}
-            onClick={() => void submit()}
+            onClick={(e) => {
+              triggerGlowPulse(e.currentTarget);
+              void submit();
+            }}
             className="flex-[2] h-12 rounded-md bg-ok/15 border border-ok/40 text-ok text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-ok/25 disabled:opacity-50"
           >
             {busy ? "SAVING…" : "SAVE & FINISH"}

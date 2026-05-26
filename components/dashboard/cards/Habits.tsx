@@ -6,6 +6,7 @@ import { Mono } from "../Mono";
 import { HABITS as DEFAULT_HABITS, type Habit } from "@/lib/config/habits";
 import { localDateKey } from "@/lib/util/date";
 import { HabitsConfigModal } from "../HabitsConfigModal";
+import { triggerGlowPulse } from "@/lib/motion";
 
 function cacheKeyForToday(): string {
   return `miles-habits-${localDateKey()}`;
@@ -176,14 +177,14 @@ export function Habits() {
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <Mono
+            <span
               key={count}
-              className={`text-2xl transition-colors habit-count-pulse ${
-                allDone ? "text-ok" : "text-ink-4"
+              className={`font-[family-name:var(--font-display)] text-3xl font-medium tabular-nums transition-colors habit-count-pulse ${
+                allDone ? "text-ok" : "text-text-0"
               }`}
             >
               {count}
-            </Mono>
+            </span>
           </div>
         </div>
 
@@ -208,7 +209,10 @@ export function Habits() {
             <button
               key={h.id}
               type="button"
-              onClick={() => toggle(h.id)}
+              onClick={(e) => {
+                triggerGlowPulse(e.currentTarget);
+                void toggle(h.id);
+              }}
               className={`text-left rounded-xl border px-3 py-2.5 flex flex-col gap-1 transition-colors ${
                 isDone
                   ? "border-accent/50 bg-accent/10 hover:bg-accent/15"

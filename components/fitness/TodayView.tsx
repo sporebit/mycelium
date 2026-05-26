@@ -290,7 +290,7 @@ export function TodayView() {
               <Link
                 key={ex.session_id}
                 href={`/fitness/log/${ex.session_id}`}
-                className="block rounded-2xl border border-ink-2 bg-ink-1/60 hover:border-ink-3 transition-colors px-4 py-3"
+                className="growth-in block rounded-md bg-ink-1 hover:bg-ink-2 transition-colors px-4 py-3"
               >
                 <div className="flex items-center gap-2 flex-wrap">
                   <span aria-hidden>{KIND_ICON[ex.kind] ?? "·"}</span>

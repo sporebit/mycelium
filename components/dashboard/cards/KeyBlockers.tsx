@@ -128,6 +128,15 @@ export function KeyBlockers() {
           Nothing blocking — nice.
         </div>
       ) : (
+        <>
+          <div className="mb-3 flex items-baseline gap-2 tabular-nums">
+            <span className="font-[family-name:var(--font-display)] text-3xl font-medium text-text-0 leading-none">
+              {total}
+            </span>
+            <span className="text-sm text-text-1">
+              active {total === 1 ? "blocker" : "blockers"}
+            </span>
+          </div>
         <ul className="flex flex-col divide-y divide-ink-2">
           {shown.map((b) => (
             <li key={b.id}>
@@ -154,6 +163,7 @@ export function KeyBlockers() {
             </li>
           ))}
         </ul>
+        </>
       )}
     </Panel>
   );

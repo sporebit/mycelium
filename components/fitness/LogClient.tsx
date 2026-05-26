@@ -16,6 +16,7 @@ import { FinishModal } from "./FinishModal";
 import { PainLogModal } from "./PainLogModal";
 import { ReorderableExerciseList } from "./ReorderableExerciseList";
 import { targetForDisplay, topSet } from "@/lib/fitness/progression";
+import { triggerGlowPulse } from "@/lib/motion";
 import { localDateKey } from "@/lib/util/date";
 import {
   FEEL_EMOJI,
@@ -1275,7 +1276,10 @@ function CurrentExerciseCard({
                 <button
                   type="button"
                   disabled={readOnly}
-                  onClick={() => void onToggleSet(ex, n)}
+                  onClick={(e) => {
+                    triggerGlowPulse(e.currentTarget);
+                    void onToggleSet(ex, n);
+                  }}
                   className={`h-10 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] ${
                     isLogged
                       ? "bg-ok/20 border border-ok/50 text-ok"
