@@ -118,6 +118,7 @@ export function Habits() {
 
   return (
     <Panel
+      borderless
       number="03"
       title="HABITS"
       topRight={
@@ -160,7 +161,7 @@ export function Habits() {
               cy="18"
               r="16"
               fill="none"
-              stroke={allDone ? "var(--color-ok)" : "var(--color-accent)"}
+              stroke={allDone ? "var(--glow-1)" : "var(--glow-0)"}
               strokeWidth="2.5"
               strokeDasharray={`${pct} 100`}
               strokeLinecap="round"
@@ -169,7 +170,7 @@ export function Habits() {
                 transition:
                   "stroke-dasharray 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94), stroke 200ms ease-out",
                 filter: allDone
-                  ? "drop-shadow(0 0 6px var(--color-ok))"
+                  ? "drop-shadow(0 0 6px var(--glow-1))"
                   : undefined,
               }}
             />

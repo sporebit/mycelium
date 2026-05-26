@@ -88,7 +88,7 @@ export function Goals() {
   }
 
   return (
-    <Panel number="05" title="GOALS">
+    <Panel borderless number="05" title="GOALS">
       {error && (
         <div className="mb-3 text-[10px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
           ⚠ {error}

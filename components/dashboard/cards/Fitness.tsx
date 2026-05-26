@@ -70,6 +70,7 @@ export function Fitness() {
 
   return (
     <Panel
+      borderless
       number="11"
       title="FITNESS"
       topRight={<Mono>TODAY</Mono>}

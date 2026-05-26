@@ -143,21 +143,24 @@ function Column({
   const topLevelCount = tasks.filter((t) => !t.parent_task_id).length;
 
   return (
-    <div className="flex flex-col gap-2 min-w-0">
-      <div className="flex items-center justify-between px-1">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-          {URGENCY_LABEL[urgency]}{" "}
-          <span className="text-ink-4">{topLevelCount}</span>
+    <div className="flex flex-col gap-3 min-w-0">
+      {/* Column header — D3 eyebrow treatment */}
+      <div className="px-1 flex flex-col gap-0.5">
+        <span className="card-eyebrow">
+          {URGENCY_LABEL[urgency]}
+        </span>
+        <span className="text-[11px] font-[family-name:var(--font-mono)] tabular-nums text-text-1">
+          {topLevelCount} {topLevelCount === 1 ? "task" : "tasks"}
         </span>
       </div>
       <div
         ref={setNodeRef}
-        className={`flex-1 min-h-[120px] rounded-xl border p-2 transition-colors ${
+        className={`flex-1 min-h-[120px] rounded-md p-2 transition-colors ${
           isOver
-            ? "border-accent/50 bg-accent/5"
+            ? "bg-glow-3/40 ring-1 ring-glow-2/50"
             : isEmpty
-              ? "border-dashed border-ink-2 bg-ink-0/20"
-              : "border-ink-2 bg-ink-0/30"
+              ? "border border-dashed border-ink-2 bg-transparent"
+              : "bg-transparent"
         }`}
       >
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>

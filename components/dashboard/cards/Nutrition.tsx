@@ -402,6 +402,7 @@ export function Nutrition() {
 
   return (
     <Panel
+      borderless
       number="08"
       title="NUTRITION"
       topRight={

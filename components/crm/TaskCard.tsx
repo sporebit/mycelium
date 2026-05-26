@@ -48,18 +48,21 @@ export function TaskCard({
   const due = dueLabel(task.due_date);
   const tags = (task.tags ?? []).slice(0, 2);
   const titleClass = muted ? "text-ink-3" : "text-ink-4";
+  // D3 borderless treatment — surface contrast (ink-1 on ink-0) + hover bump
+  // to ink-2 replaces the old hairline border. Dragging keeps the accent
+  // tint so dnd-kit's ghost stays readable.
   const cardClass = muted
-    ? "border-ink-2/60 bg-ink-1/40 hover:border-ink-3"
-    : "border-ink-2 hover:border-ink-3";
+    ? "bg-ink-1/60 hover:bg-ink-2"
+    : "bg-ink-1 hover:bg-ink-2";
 
   return (
     <div
       onClick={onClick}
-      className={`group rounded-lg border bg-ink-1/70 backdrop-blur-sm px-3 py-2.5 flex flex-col gap-2 cursor-pointer transition-colors ${
+      className={`group growth-in rounded-md px-4 py-3 flex flex-col gap-2 cursor-pointer transition-colors ${
         dragging
-          ? "border-accent/60 shadow-2xl shadow-accent/10"
+          ? "bg-ink-2 shadow-2xl shadow-glow-3/30 ring-1 ring-glow-2/60"
           : cardClass
-      } ${compact ? "py-1.5" : ""}`}
+      } ${compact ? "py-2" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className={`text-sm leading-snug min-w-0 break-words ${titleClass}`}>

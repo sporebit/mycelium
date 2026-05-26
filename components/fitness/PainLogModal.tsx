@@ -88,7 +88,7 @@ export function PainLogModal({
       onClick={onClose}
     >
       <div
-        className="w-full sm:max-w-md bg-ink-1 border border-ink-2 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh]"
+        className="growth-in w-full sm:max-w-md bg-ink-1 border border-ink-2 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-ink-2">
@@ -146,7 +146,7 @@ export function PainLogModal({
                 step={1}
                 value={severity ?? 0}
                 onChange={(e) => setSeverity(Number(e.target.value))}
-                className="w-full accent-[var(--color-accent)]"
+                className="w-full accent-[var(--glow-0)]"
               />
             </label>
           )}

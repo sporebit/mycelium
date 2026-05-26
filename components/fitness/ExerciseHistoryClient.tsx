@@ -297,7 +297,7 @@ function DotRenderer(props: DotProps) {
       <polygon
         points={points.join(" ")}
         fill={colour}
-        stroke="var(--color-warn)"
+        stroke="var(--warn)"
         strokeWidth={1}
         key={`pr-${cx}-${cy}`}
       />
@@ -671,21 +671,21 @@ export function ExerciseHistoryClient({
                   >
                     <CartesianGrid
                       strokeDasharray="2 4"
-                      stroke="var(--color-ink-2)"
+                      stroke="var(--ink-2)"
                       vertical={false}
                     />
                     <XAxis
                       dataKey="xLabel"
-                      stroke="var(--color-ink-3)"
+                      stroke="var(--text-2)"
                       fontSize={11}
                       tickLine={false}
-                      axisLine={{ stroke: "var(--color-ink-2)" }}
+                      axisLine={{ stroke: "var(--ink-2)" }}
                     />
                     <YAxis
-                      stroke="var(--color-ink-3)"
+                      stroke="var(--text-2)"
                       fontSize={11}
                       tickLine={false}
-                      axisLine={{ stroke: "var(--color-ink-2)" }}
+                      axisLine={{ stroke: "var(--ink-2)" }}
                       width={48}
                       label={{
                         value: yLabel,
@@ -693,7 +693,7 @@ export function ExerciseHistoryClient({
                         position: "insideLeft",
                         offset: 12,
                         style: {
-                          fill: "var(--color-ink-3)",
+                          fill: "var(--text-2)",
                           fontSize: 10,
                           letterSpacing: "0.15em",
                           textTransform: "uppercase",
@@ -708,18 +708,18 @@ export function ExerciseHistoryClient({
                           unit={unit}
                         />
                       )}
-                      cursor={{ stroke: "var(--color-ink-2)", strokeWidth: 1 }}
+                      cursor={{ stroke: "var(--ink-2)", strokeWidth: 1 }}
                     />
                     <Line
                       type="monotone"
                       dataKey="y"
-                      stroke="var(--color-accent)"
+                      stroke="var(--glow-0)"
                       strokeWidth={2}
                       dot={DotRenderer}
                       activeDot={{
                         r: 5,
-                        fill: "var(--color-accent)",
-                        stroke: "var(--color-ink-1)",
+                        fill: "var(--glow-0)",
+                        stroke: "var(--ink-1)",
                       }}
                       isAnimationActive={false}
                     />
@@ -749,22 +749,22 @@ export function ExerciseHistoryClient({
                   >
                     <CartesianGrid
                       strokeDasharray="2 4"
-                      stroke="var(--color-ink-2)"
+                      stroke="var(--ink-2)"
                       vertical={false}
                     />
                     <XAxis
                       dataKey="xLabel"
-                      stroke="var(--color-ink-3)"
+                      stroke="var(--text-2)"
                       fontSize={11}
                       tickLine={false}
-                      axisLine={{ stroke: "var(--color-ink-2)" }}
+                      axisLine={{ stroke: "var(--ink-2)" }}
                     />
                     <YAxis
                       domain={[0, 10]}
-                      stroke="var(--color-ink-3)"
+                      stroke="var(--text-2)"
                       fontSize={11}
                       tickLine={false}
-                      axisLine={{ stroke: "var(--color-ink-2)" }}
+                      axisLine={{ stroke: "var(--ink-2)" }}
                       width={32}
                       ticks={[0, 2, 4, 6, 8, 10]}
                     />
@@ -773,14 +773,14 @@ export function ExerciseHistoryClient({
                         <PainTooltipContent {...p} />
                       )}
                       cursor={{
-                        stroke: "var(--color-ink-2)",
+                        stroke: "var(--ink-2)",
                         strokeWidth: 1,
                       }}
                     />
                     <Line
                       type="monotone"
                       dataKey="y"
-                      stroke="var(--color-ink-3)"
+                      stroke="var(--text-2)"
                       strokeWidth={1.5}
                       dot={PainDotRenderer}
                       isAnimationActive={false}

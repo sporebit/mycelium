@@ -1,6 +1,17 @@
 import type { ReactNode } from "react";
 import { SectionLabel } from "./SectionLabel";
 
+/**
+ * Panel — the standard surface used for dashboard cards and sub-page panels.
+ *
+ * When `borderless` is true (D2/D3 home-dashboard treatment): renders a
+ * solid `bg-ink-1` surface with no border, 8px radius, and 24px padding.
+ * Relies on the ink-0 / ink-1 contrast for elevation.
+ *
+ * When `borderless` is false (the existing treatment, kept for fitness
+ * sub-pages, programmes editor, etc.): renders the translucent
+ * `bg-ink-1/60` with the `border-ink-2` hairline and a larger 2xl radius.
+ */
 export function Panel({
   number,
   title,
@@ -8,6 +19,7 @@ export function Panel({
   statusTone,
   topRight,
   bottomCTA,
+  borderless = false,
   children,
   className = "",
   bodyClassName = "",
@@ -18,16 +30,24 @@ export function Panel({
   statusTone?: "ok" | "warn" | "danger" | "muted";
   topRight?: ReactNode;
   bottomCTA?: ReactNode;
+  borderless?: boolean;
   children: ReactNode;
   className?: string;
   bodyClassName?: string;
 }) {
+  const shellClass = borderless
+    ? "relative rounded-md bg-ink-1"
+    : "relative rounded-2xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl shadow-[0_1px_0_0_var(--ink-2)_inset]";
+  const headerPad = borderless ? "px-6 pt-6 pb-3" : "px-5 pt-4 pb-3";
+  const bodyPad = borderless ? "px-6 pb-6" : "px-5 pb-5";
+  const footerPad = borderless
+    ? "px-6 py-3 border-t border-ink-2/60"
+    : "px-5 py-3 border-t border-ink-2";
+
   return (
-    <section
-      className={`relative rounded-2xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl shadow-[0_1px_0_0_oklch(0.20_0_0)_inset] ${className}`}
-    >
+    <section className={`${shellClass} ${className}`}>
       {(title || topRight) && (
-        <header className="flex items-center justify-between px-5 pt-4 pb-3">
+        <header className={`flex items-center justify-between ${headerPad}`}>
           {title ? (
             <SectionLabel
               number={number}
@@ -45,9 +65,11 @@ export function Panel({
           )}
         </header>
       )}
-      <div className={`px-5 pb-5 ${bodyClassName}`}>{children}</div>
+      <div className={`${bodyPad} ${bodyClassName}`}>{children}</div>
       {bottomCTA && (
-        <footer className="flex items-center justify-end gap-3 px-5 py-3 border-t border-ink-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <footer
+          className={`flex items-center justify-end gap-3 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] ${footerPad}`}
+        >
           {bottomCTA}
         </footer>
       )}

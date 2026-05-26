@@ -248,7 +248,7 @@ export function BodyMetricsView() {
               <path
                 d={weightSpark.path}
                 fill="none"
-                stroke="var(--color-accent)"
+                stroke="var(--glow-0)"
                 strokeWidth="1.2"
               />
             </svg>

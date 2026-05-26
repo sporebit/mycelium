@@ -57,12 +57,12 @@ function Sparkline({ points }: { points: number[] }) {
       >
         <defs>
           <linearGradient id="fp-spark" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--glow-0)" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="var(--glow-0)" stopOpacity="0" />
           </linearGradient>
         </defs>
         <path d={fill} fill="url(#fp-spark)" />
-        <path d={d} fill="none" stroke="var(--color-accent)" strokeWidth="1.2" />
+        <path d={d} fill="none" stroke="var(--glow-0)" strokeWidth="1.2" />
       </svg>
     </div>
   );
@@ -203,6 +203,7 @@ export function FinancePulse() {
 
   return (
     <Panel
+      borderless
       number="07"
       title="FINANCE PULSE"
       status={liveStatusLabel(tone)}

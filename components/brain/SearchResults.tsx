@@ -42,7 +42,9 @@ export function SearchResults({
   return (
     <div className="flex flex-col gap-2 mt-6">
       {matches.map((m) => (
-        <SourceCard key={m.chunk.id} match={m} />
+        <div key={m.chunk.id} className="growth-in">
+          <SourceCard match={m} />
+        </div>
       ))}
     </div>
   );

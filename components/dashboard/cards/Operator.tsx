@@ -85,7 +85,7 @@ export function Operator() {
     streak === null ? "—" : `${streak} ${streak === 1 ? "DAY" : "DAYS"}`;
 
   return (
-    <Panel number="01" title="OPERATOR" status="ONLINE" statusTone="ok">
+    <Panel borderless number="01" title="OPERATOR" status="ONLINE" statusTone="ok">
       <div className="flex flex-col items-center gap-3 pt-1">
         <div className="h-16 w-16 rounded-full bg-gradient-to-br from-ink-2 to-ink-1 border border-ink-2 flex items-center justify-center">
           <span className="text-2xl font-[family-name:var(--font-display)] italic text-ink-4">

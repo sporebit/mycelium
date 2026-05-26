@@ -273,7 +273,7 @@ export function HistoryClient() {
           <Link
             key={s.id}
             href={`/fitness/log/${s.id}`}
-            className="block rounded-2xl border border-ink-2 bg-ink-1/60 hover:border-ink-3 transition-colors p-4"
+            className="growth-in block rounded-md bg-ink-1 hover:bg-ink-2 transition-colors p-6"
           >
             <div className="flex items-baseline gap-2 flex-wrap">
               <Mono className="text-[11px] text-ink-3 tracking-[0.15em]">

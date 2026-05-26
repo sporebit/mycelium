@@ -207,7 +207,7 @@ export function BrainClient() {
           e.preventDefault();
           submit();
         }}
-        className="rounded-2xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl px-5 py-4 flex items-center gap-3 shadow-lg"
+        className="rounded-md bg-ink-1 px-6 py-5 flex items-center gap-3 focus-within:outline focus-within:outline-1 focus-within:outline-glow-2"
       >
         <input
           autoFocus
@@ -217,15 +217,15 @@ export function BrainClient() {
           placeholder={
             mode === "ask"
               ? "Ask your OS anything…"
-              : "Search your memory…"
+              : "Search captures, journals, decisions…"
           }
           disabled={submitting}
-          className="flex-1 bg-transparent outline-none text-base text-ink-4 placeholder:text-ink-3 italic font-[family-name:var(--font-display)]"
+          className="flex-1 bg-transparent outline-none text-xl text-text-0 placeholder:text-text-3 italic font-[family-name:var(--font-display)]"
         />
         <button
           type="submit"
           disabled={!query.trim() || submitting}
-          className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          className="px-3 py-1.5 rounded-md bg-glow-2/30 border border-glow-2/60 text-text-0 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-glow-2/50 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
         >
           {submitting
             ? "…"
