@@ -372,9 +372,9 @@ h1, h2, h3, h4, h5, h6 {
    --------------------------------------------------------------------------- */
 
 @keyframes hypha-breath {
-  0%   { stroke-opacity: 0.3; }
-  50%  { stroke-opacity: 1; }
-  100% { stroke-opacity: 0.3; }
+  0%   { opacity: 0.3; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.3; }
 }
 
 .hypha-breath {
