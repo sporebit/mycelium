@@ -3,6 +3,7 @@ import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { PrivacyProvider } from "@/lib/context/PrivacyContext";
 import { SoilGrain } from "@/components/dashboard/SoilGrain";
+import { HyphalThreads } from "@/components/dashboard/HyphalThreads";
 
 const interTight = Inter_Tight({
   variable: "--font-inter-tight",
@@ -34,6 +35,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-ink-0 text-ink-4">
         <SoilGrain />
+        <HyphalThreads />
         <PrivacyProvider>
           <div className="relative z-10 flex-1 flex flex-col">{children}</div>
         </PrivacyProvider>
