@@ -131,7 +131,6 @@ export function Session() {
   return (
     <Panel
       borderless
-      number="02"
       title="SESSION"
       status="ACTIVE"
       statusTone="ok"

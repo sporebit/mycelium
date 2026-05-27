@@ -51,7 +51,6 @@ function KpiBox({
 }
 
 function CategoryPanel({
-  number,
   title,
   total,
   items,
@@ -59,7 +58,6 @@ function CategoryPanel({
   currency,
   tone = "ok",
 }: {
-  number: string;
   title: string;
   total: number;
   items: { name: string; value: number }[];
@@ -73,7 +71,6 @@ function CategoryPanel({
 
   return (
     <Panel
-      number={number}
       title={title}
       topRight={
         <Mono>
@@ -313,7 +310,6 @@ export function FinancePageClient() {
       {snapshot && bd && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <CategoryPanel
-            number="A1"
             title="LIQUID CASH"
             total={bd.liquid.total}
             items={bd.liquid.items}
@@ -322,7 +318,6 @@ export function FinancePageClient() {
             tone="ok"
           />
           <CategoryPanel
-            number="A2"
             title="INVESTED ASSETS"
             total={bd.invested.total}
             items={bd.invested.items}
@@ -331,7 +326,6 @@ export function FinancePageClient() {
             tone="ok"
           />
           <CategoryPanel
-            number="A3"
             title="LIABILITIES"
             total={bd.liabilities.total}
             items={bd.liabilities.items}
@@ -343,7 +337,7 @@ export function FinancePageClient() {
       )}
 
       {/* History table */}
-      <Panel number="H1" title="SNAPSHOT HISTORY" topRight={<Mono>24 MONTHS</Mono>}>
+      <Panel title="SNAPSHOT HISTORY" topRight={<Mono>24 MONTHS</Mono>}>
         {history === null ? (
           <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-6 text-center">
             Loading…

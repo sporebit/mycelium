@@ -78,7 +78,6 @@ export function NutritionTable() {
 
   return (
     <Panel
-      number="H1"
       title="NUTRITION HISTORY"
       topRight={<Mono>LAST 30 DAYS</Mono>}
     >

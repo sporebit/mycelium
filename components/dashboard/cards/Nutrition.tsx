@@ -403,7 +403,6 @@ export function Nutrition() {
   return (
     <Panel
       borderless
-      number="08"
       title="NUTRITION"
       topRight={
         <span className="flex items-center gap-1">

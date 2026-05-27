@@ -120,7 +120,6 @@ export function Habits() {
   return (
     <Panel
       borderless
-      number="03"
       title="HABITS"
       topRight={
         <Mono>

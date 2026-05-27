@@ -92,7 +92,6 @@ export function KeyBlockers() {
   return (
     <Panel
       borderless
-      number="06"
       title="KEY BLOCKERS"
       topRight={
         <Link

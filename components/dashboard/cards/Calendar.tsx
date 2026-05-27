@@ -115,7 +115,6 @@ export function Calendar() {
   return (
     <Panel
       borderless
-      number="04"
       title="CALENDAR"
       topRight={<Mono>{monthLabel}</Mono>}
       bottomCTA={

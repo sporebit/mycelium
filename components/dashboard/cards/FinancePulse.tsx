@@ -204,7 +204,6 @@ export function FinancePulse() {
   return (
     <Panel
       borderless
-      number="07"
       title="FINANCE PULSE"
       status={liveStatusLabel(tone)}
       statusTone={tone}

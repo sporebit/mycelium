@@ -65,7 +65,6 @@ export function Journal() {
   return (
     <Panel
       borderless
-      number="10"
       title="JOURNAL"
       topRight={<Mono>TODAY</Mono>}
       bottomCTA={

@@ -111,7 +111,6 @@ export function Fuel() {
   return (
     <Panel
       borderless
-      number="09"
       title="FUEL"
       topRight={<Mono>ARMTHORPE 5MI</Mono>}
     >

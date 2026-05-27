@@ -13,7 +13,6 @@ import { SectionLabel } from "./SectionLabel";
  * `bg-ink-1/60` with the `border-ink-2` hairline and a larger 2xl radius.
  */
 export function Panel({
-  number,
   title,
   status,
   statusTone,
@@ -24,7 +23,6 @@ export function Panel({
   className = "",
   bodyClassName = "",
 }: {
-  number?: string;
   title?: string;
   status?: ReactNode;
   statusTone?: "ok" | "warn" | "danger" | "muted";
@@ -50,7 +48,6 @@ export function Panel({
         <header className={`flex items-center justify-between ${headerPad}`}>
           {title ? (
             <SectionLabel
-              number={number}
               title={title}
               status={status}
               statusTone={statusTone}
