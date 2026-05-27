@@ -215,7 +215,11 @@ export function DashboardGrid() {
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={visibleIds} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+            {/* Masonry-mode CSS Grid removes the row-lock that left gaps
+                under shorter cards. Browsers without masonry support
+                (older Chromium) fall back to the standard grid, which
+                still works with drag-reorder and width toggles. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start [grid-template-rows:masonry]">
               {visibleCards.map((row) => {
                 const Component = CARD_COMPONENTS[row.card_key];
                 return (
