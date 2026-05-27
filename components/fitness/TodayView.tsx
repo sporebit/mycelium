@@ -487,14 +487,24 @@ function SortableSessionCard(props: {
             {label}
           </Link>
         ) : (
-          <button
-            type="button"
-            disabled={starting === entry.programme_session_id}
-            onClick={() => onStart(entry)}
-            className="text-[11px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)] disabled:opacity-40"
-          >
-            {starting === entry.programme_session_id ? "STARTING…" : label}
-          </button>
+          (() => {
+            // `starting` only tracks in-flight POSTs to /api/fitness/sessions,
+            // which only fire for programme-template entries. Custom entries
+            // have programme_session_id=null, so a naïve `starting===null` test
+            // would disable them permanently.
+            const isStarting =
+              starting !== null && starting === entry.programme_session_id;
+            return (
+              <button
+                type="button"
+                disabled={isStarting}
+                onClick={() => onStart(entry)}
+                className="text-[11px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)] disabled:opacity-40"
+              >
+                {isStarting ? "STARTING…" : label}
+              </button>
+            );
+          })()
         )}
       </div>
     </article>
