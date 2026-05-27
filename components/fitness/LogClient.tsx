@@ -48,6 +48,44 @@ function localNowForDatetimeInput(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+function isoToDatetimeLocal(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function datetimeLocalToISO(v: string): string | null {
+  if (!v) return null;
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
+function fmtDurationMinutes(totalMin: number): string {
+  const t = Math.max(0, totalMin);
+  const h = Math.floor(t / 60);
+  const m = t % 60;
+  if (h > 0) return `${h}:${m.toString().padStart(2, "0")}`;
+  return String(m);
+}
+
+function parseDurationMinutes(text: string): number | null {
+  const t = text.trim();
+  if (!t) return null;
+  if (t.includes(":")) {
+    const parts = t.split(":");
+    if (parts.length !== 2) return null;
+    const h = Number(parts[0]);
+    const m = Number(parts[1]);
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+    if (h < 0 || m < 0 || m >= 60) return null;
+    return Math.round(h * 60 + m);
+  }
+  const n = Number(t);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.round(n);
+}
+
 function usesSetsGrid(ex: SessionExercise): boolean {
   // data_shape is authoritative when present (Phase 2+). Legacy rows fall
   // back to the previous heuristic.
@@ -152,6 +190,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
   const [showFinish, setShowFinish] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showTimeEdit, setShowTimeEdit] = useState(false);
   const [ageBannerDismissed, setAgeBannerDismissed] = useState(false);
   const [completeAtInput, setCompleteAtInput] = useState<string>(() =>
     localNowForDatetimeInput()
@@ -741,6 +780,27 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
     else setToast({ kind: "error", text: "Finish failed" });
   }
 
+  async function saveTimeEdit(next: {
+    started_at: string | null;
+    completed_at: string | null;
+  }) {
+    noteSaving("saving");
+    const r = await fetch(`/api/fitness/sessions/${session.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(next),
+    });
+    if (!r.ok) {
+      noteSaving("error");
+      setToast({ kind: "error", text: "Could not update time" });
+      return;
+    }
+    await reload();
+    noteSaving("saved");
+    setShowTimeEdit(false);
+    setToast({ kind: "ok", text: "Time updated" });
+  }
+
   async function markYesterdayComplete() {
     const completedAt = completeAtInput
       ? new Date(completeAtInput).toISOString()
@@ -755,6 +815,15 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
 
   // ---------------------------------------------------------------------------
   // Stats for header
+  const elapsedForDisplay = useMemo(() => {
+    if (!session.started_at) return readOnly ? 0 : elapsed;
+    const startMs = new Date(session.started_at).getTime();
+    if (session.completed_at) {
+      return new Date(session.completed_at).getTime() - startMs;
+    }
+    return elapsed;
+  }, [session.started_at, session.completed_at, elapsed, readOnly]);
+
   const completedCount = exercises.filter((e) => e.completed_at || e.skipped).length;
   const hasAnyLoggedSet = useMemo(
     () => exercises.some((e) => (e.sets ?? []).some((s) => s.completed_at)),
@@ -793,12 +862,15 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
                   <span>{typeLabel}</span>
                 </>
               )}
-              {!readOnly && (
-                <>
-                  <span>·</span>
-                  <Mono>{fmtElapsed(elapsed)}</Mono>
-                </>
-              )}
+              <span>·</span>
+              <button
+                type="button"
+                onClick={() => setShowTimeEdit(true)}
+                className="hover:text-ink-4 hover:underline underline-offset-2 transition-colors"
+                aria-label="Edit session time"
+              >
+                <Mono>{fmtElapsed(elapsedForDisplay)}</Mono>
+              </button>
               <span>·</span>
               <span>
                 {completedCount}/{exercises.length}
@@ -1027,6 +1099,15 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
             />
           );
         })()}
+
+      {/* Time edit */}
+      {showTimeEdit && (
+        <TimeEditModal
+          session={session}
+          onClose={() => setShowTimeEdit(false)}
+          onSave={saveTimeEdit}
+        />
+      )}
 
       {/* Add ad-hoc */}
       {showAdd && (
@@ -1567,6 +1648,220 @@ function PainIndicator({
         LOG →
       </span>
     </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Time edit modal — STARTED / ENDED / DURATION with derivation rules
+// ---------------------------------------------------------------------------
+
+function TimeEditModal({
+  session,
+  onClose,
+  onSave,
+}: {
+  session: SessionDetail;
+  onClose: () => void;
+  onSave: (next: {
+    started_at: string | null;
+    completed_at: string | null;
+  }) => Promise<void>;
+}) {
+  const [startedInput, setStartedInput] = useState<string>(() =>
+    session.started_at
+      ? isoToDatetimeLocal(session.started_at)
+      : localNowForDatetimeInput()
+  );
+  const [endedInput, setEndedInput] = useState<string>(() =>
+    session.completed_at ? isoToDatetimeLocal(session.completed_at) : ""
+  );
+  const [durationInput, setDurationInput] = useState<string>(() => {
+    if (!session.started_at) return "0";
+    const startMs = new Date(session.started_at).getTime();
+    const endMs = session.completed_at
+      ? new Date(session.completed_at).getTime()
+      : Date.now();
+    return fmtDurationMinutes(Math.max(0, Math.round((endMs - startMs) / 60000)));
+  });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function onStartedChange(v: string) {
+    setStartedInput(v);
+    setError(null);
+    const startMs = v ? new Date(v).getTime() : NaN;
+    if (!Number.isFinite(startMs)) return;
+    if (endedInput) {
+      const endMs = new Date(endedInput).getTime();
+      if (Number.isFinite(endMs)) {
+        setDurationInput(
+          fmtDurationMinutes(Math.max(0, Math.round((endMs - startMs) / 60000)))
+        );
+      }
+    } else {
+      setDurationInput(
+        fmtDurationMinutes(
+          Math.max(0, Math.round((Date.now() - startMs) / 60000))
+        )
+      );
+    }
+  }
+
+  function onEndedChange(v: string) {
+    setEndedInput(v);
+    setError(null);
+    if (!v) return;
+    const startMs = startedInput ? new Date(startedInput).getTime() : NaN;
+    const endMs = new Date(v).getTime();
+    if (Number.isFinite(startMs) && Number.isFinite(endMs)) {
+      setDurationInput(
+        fmtDurationMinutes(Math.max(0, Math.round((endMs - startMs) / 60000)))
+      );
+    }
+  }
+
+  function onDurationChange(v: string) {
+    setDurationInput(v);
+    setError(null);
+    const mins = parseDurationMinutes(v);
+    const startMs = startedInput ? new Date(startedInput).getTime() : NaN;
+    if (mins !== null && Number.isFinite(startMs)) {
+      const endDate = new Date(startMs + mins * 60000);
+      setEndedInput(isoToDatetimeLocal(endDate.toISOString()));
+    }
+  }
+
+  async function submit() {
+    setError(null);
+    const startedIso = datetimeLocalToISO(startedInput);
+    if (!startedIso) {
+      setError("Start time is required");
+      return;
+    }
+    const startMs = new Date(startedIso).getTime();
+    if (startMs > Date.now()) {
+      setError("Start can't be in the future");
+      return;
+    }
+    let endedIso: string | null = null;
+    if (endedInput.trim()) {
+      endedIso = datetimeLocalToISO(endedInput);
+      if (!endedIso) {
+        setError("End time invalid");
+        return;
+      }
+      const endMs = new Date(endedIso).getTime();
+      if (endMs < startMs) {
+        setError("End must be at or after start");
+        return;
+      }
+      if (endMs === startMs) {
+        setError("Duration must be positive");
+        return;
+      }
+    }
+    setBusy(true);
+    try {
+      await onSave({ started_at: startedIso, completed_at: endedIso });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center"
+      onClick={onClose}
+    >
+      <div
+        className="growth-in w-full sm:max-w-sm bg-ink-1 border border-ink-2 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-ink-2">
+          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-ink-4">
+            Edit time
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-ink-3 hover:text-ink-4 text-xl leading-none"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </header>
+        <div className="px-5 py-4 flex flex-col gap-3">
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              Started
+            </span>
+            <input
+              type="datetime-local"
+              value={startedInput}
+              onChange={(e) => onStartedChange(e.target.value)}
+              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              Ended
+            </span>
+            <input
+              type="datetime-local"
+              value={endedInput}
+              onChange={(e) => onEndedChange(e.target.value)}
+              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
+            />
+            {!session.completed_at ? (
+              <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em]">
+                Set to mark complete; leave blank to keep active.
+              </span>
+            ) : (
+              <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em]">
+                Clear to reopen this session.
+              </span>
+            )}
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              Duration (MM or HH:MM)
+            </span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={durationInput}
+              onChange={(e) => onDurationChange(e.target.value)}
+              placeholder="45 or 1:15"
+              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
+            />
+          </label>
+          {error && (
+            <div className="text-danger text-[11px] font-[family-name:var(--font-mono)] tracking-[0.1em]">
+              {error}
+            </div>
+          )}
+        </div>
+        <footer className="px-5 py-4 border-t border-ink-2 flex gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 h-12 rounded-md border border-ink-2 text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          >
+            CANCEL
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void submit()}
+            className="flex-[2] h-12 rounded-md bg-accent/20 border border-accent/50 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
+          >
+            {busy ? "SAVING…" : "SAVE"}
+          </button>
+        </footer>
+      </div>
+    </div>
   );
 }
 

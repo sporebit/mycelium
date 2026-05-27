@@ -30,6 +30,7 @@ type PatchBody = {
   calories?: number | null;
   notes?: string | null;
   free_form_text?: string | null;
+  started_at?: string | null;
   completed_at?: string | null;
   name?: string | null;
 };
@@ -54,6 +55,7 @@ export async function PATCH(
   if (body.notes !== undefined) update.notes = body.notes;
   if (body.free_form_text !== undefined) update.free_form_text = body.free_form_text;
   if (body.name !== undefined) update.name = body.name;
+  if (body.started_at !== undefined) update.started_at = body.started_at;
   if (body.completed_at !== undefined) {
     update.completed_at = body.completed_at;
   }
