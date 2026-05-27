@@ -197,13 +197,18 @@ export async function resolvePendingRoute(
     session_intent: intent,
     candidate_session_ids: sessionId ? [sessionId] : pending.parsed_payload.candidate_session_ids,
   };
+  // force_session_id is a workout_sessions.id — only valid for "active".
+  // For "planned", sessionId is a programme_session_id; let applyDecisionTree's
+  // planned branch run startSessionFromTemplate to materialise a live row.
+  const force =
+    resolution === "active" && sessionId ? sessionId : undefined;
   const r = await applyDecisionTree(
     supabase,
     userId,
     pending.raw_text,
     overridden,
     context,
-    { force_session_id: sessionId ?? undefined }
+    { force_session_id: force }
   );
 
   // Delete the pending row on success
