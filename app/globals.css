@@ -73,12 +73,11 @@
   --duration-base: 250ms;
   --duration-slow: 400ms;
 
-  /* MYCELIAL — substrate threadline strokes (Phase B). Bone-white,
-     low-opacity layered for warmth. Not teal — glow-2 owns the living
-     register; these threads are the substrate. */
-  --hyphal-main: rgba(232, 230, 221, 0.06);
-  --hyphal-branch: rgba(232, 230, 221, 0.045);
-  --hyphal-spur: rgba(232, 230, 221, 0.035);
+  /* MYCELIAL — substrate threadline stroke (Phase B → V2). Bone-white
+     at low alpha; the visual hierarchy is carried by per-segment
+     stroke-width tapering, not by tiered opacity. Not teal — glow-2
+     owns the living register; these threads are the substrate. */
+  --hyphal-stroke: rgba(232, 230, 221, 0.06);
 }
 
 /* Recoleta is a paid font from Latinotype.
