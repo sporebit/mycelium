@@ -77,7 +77,7 @@
      at low alpha; the visual hierarchy is carried by per-segment
      stroke-width tapering, not by tiered opacity. Not teal — glow-2
      owns the living register; these threads are the substrate. */
-  --hyphal-stroke: rgba(232, 230, 221, 0.06);
+  --hyphal-stroke: rgba(232, 230, 221, 0.15);
 }
 
 /* Recoleta is a paid font from Latinotype.
