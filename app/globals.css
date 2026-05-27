@@ -362,22 +362,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ---------------------------------------------------------------------------
-   Hyphal breathing — slow ambient opacity pulse on each thread path.
-   Base stroke alpha lives on --hyphal-stroke (~0.06); this keyframe
-   modulates the path's layer-level opacity around 1.0 so the visible
-   alpha cycles roughly between 0.04 and 0.08. Phase offset per thread
-   is applied inline via animation-delay so threads breathe out of sync.
-   Animation is opacity-only — compositor-accelerated, no paint/layout.
+   Hyphal breathing — ambient pulse on each thread path. Animates
+   stroke-opacity (not the layer `opacity` property) so the multiplier
+   composes reliably with the rgba alpha on --hyphal-stroke. CSS
+   `opacity` on <path> with inherited stroke was getting flattened in
+   practice; stroke-opacity is the SVG-native handle.
+   Phase offset per thread is applied inline via animation-delay so
+   threads breathe out of sync. No layout/paint cost.
    --------------------------------------------------------------------------- */
 
 @keyframes hypha-breath {
-  0%   { opacity: 0.3; }
-  50%  { opacity: 1; }
-  100% { opacity: 0.3; }
+  0%   { stroke-opacity: 0.3; }
+  50%  { stroke-opacity: 1; }
+  100% { stroke-opacity: 0.3; }
 }
 
 .hypha-breath {
-  animation: hypha-breath 18s ease-in-out infinite;
+  animation: hypha-breath 6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

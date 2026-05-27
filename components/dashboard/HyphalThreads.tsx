@@ -304,7 +304,7 @@ const RENDER_SEGS: RenderSeg[] = (() => {
     });
     if (main.beziers.length > 0) {
       mains.push(main);
-      pushThread(main, phaseRng() * 18);
+      pushThread(main, phaseRng() * 6);
     }
   }
 
@@ -330,7 +330,7 @@ const RENDER_SEGS: RenderSeg[] = (() => {
         tipWidth: 0.3,
       });
       if (branch.beziers.length === 0) continue;
-      pushThread(branch, phaseRng() * 18);
+      pushThread(branch, phaseRng() * 6);
 
       const nSpurs = 1 + Math.floor(rng() * 2); // 1-2
       for (let j = 0; j < nSpurs; j++) {
@@ -352,7 +352,7 @@ const RENDER_SEGS: RenderSeg[] = (() => {
           baseWidth: sp.widthHere,
           tipWidth: 0.3,
         });
-        if (spur.beziers.length > 0) pushThread(spur, phaseRng() * 18);
+        if (spur.beziers.length > 0) pushThread(spur, phaseRng() * 6);
       }
     }
   }
