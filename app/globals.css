@@ -371,13 +371,13 @@ h1, h2, h3, h4, h5, h6 {
    --------------------------------------------------------------------------- */
 
 @keyframes hypha-breath {
-  0%   { opacity: 0.67; }
-  50%  { opacity: 1.33; }
-  100% { opacity: 0.67; }
+  0%   { opacity: 0.3; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.3; }
 }
 
 .hypha-breath {
-  animation: hypha-breath 10s ease-in-out infinite;
+  animation: hypha-breath 18s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
