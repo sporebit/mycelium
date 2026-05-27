@@ -17,7 +17,7 @@ export function Shell({
   children?: ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col bg-ink-0">
+    <div className="min-h-screen flex flex-col">
       <TopRail active={active} />
 
       <main className="flex-1 mx-auto w-full max-w-[1400px] px-6 py-6">
