@@ -259,7 +259,7 @@ function pickBranchPoint(
   return { pos, tangentAngle, widthHere: seg.width };
 }
 
-type RenderSeg = { d: string; width: number };
+type RenderSeg = { d: string; width: number; phase: number };
 
 function pathOf(b: Bezier): string {
   const f = (n: number) => n.toFixed(1);
@@ -268,10 +268,16 @@ function pathOf(b: Bezier): string {
 
 const RENDER_SEGS: RenderSeg[] = (() => {
   const rng = mulberry32(SEED);
+  // Separate PRNG instance for breathing-phase so adding the ambient
+  // animation doesn't shift the geometry PRNG sequence — the V2
+  // generator output stays pixel-identical.
+  const phaseRng = mulberry32(SEED);
   const segIndex: LineSeg[] = [];
   const out: RenderSeg[] = [];
-  const pushThread = (t: Thread) => {
-    for (const b of t.beziers) out.push({ d: pathOf(b), width: b.width });
+  const pushThread = (t: Thread, phase: number) => {
+    for (const b of t.beziers) {
+      out.push({ d: pathOf(b), width: b.width, phase });
+    }
   };
 
   const mains: Thread[] = [];
@@ -298,7 +304,7 @@ const RENDER_SEGS: RenderSeg[] = (() => {
     });
     if (main.beziers.length > 0) {
       mains.push(main);
-      pushThread(main);
+      pushThread(main, phaseRng() * 10);
     }
   }
 
@@ -324,7 +330,7 @@ const RENDER_SEGS: RenderSeg[] = (() => {
         tipWidth: 0.3,
       });
       if (branch.beziers.length === 0) continue;
-      pushThread(branch);
+      pushThread(branch, phaseRng() * 10);
 
       const nSpurs = 1 + Math.floor(rng() * 2); // 1-2
       for (let j = 0; j < nSpurs; j++) {
@@ -346,7 +352,7 @@ const RENDER_SEGS: RenderSeg[] = (() => {
           baseWidth: sp.widthHere,
           tipWidth: 0.3,
         });
-        if (spur.beziers.length > 0) pushThread(spur);
+        if (spur.beziers.length > 0) pushThread(spur, phaseRng() * 10);
       }
     }
   }
@@ -370,7 +376,13 @@ export function HyphalThreads() {
           strokeLinejoin="round"
         >
           {RENDER_SEGS.map((s, i) => (
-            <path key={i} d={s.d} strokeWidth={s.width.toFixed(2)} />
+            <path
+              key={i}
+              d={s.d}
+              strokeWidth={s.width.toFixed(2)}
+              className="hypha-breath"
+              style={{ animationDelay: `-${s.phase.toFixed(2)}s` }}
+            />
           ))}
         </g>
       </svg>

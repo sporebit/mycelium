@@ -360,3 +360,28 @@ h1, h2, h3, h4, h5, h6 {
   font-size: var(--text-14);
   color: var(--text-1);
 }
+
+/* ---------------------------------------------------------------------------
+   Hyphal breathing — slow ambient opacity pulse on each thread path.
+   Base stroke alpha lives on --hyphal-stroke (~0.06); this keyframe
+   modulates the path's layer-level opacity around 1.0 so the visible
+   alpha cycles roughly between 0.04 and 0.08. Phase offset per thread
+   is applied inline via animation-delay so threads breathe out of sync.
+   Animation is opacity-only — compositor-accelerated, no paint/layout.
+   --------------------------------------------------------------------------- */
+
+@keyframes hypha-breath {
+  0%   { opacity: 0.67; }
+  50%  { opacity: 1.33; }
+  100% { opacity: 0.67; }
+}
+
+.hypha-breath {
+  animation: hypha-breath 10s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hypha-breath {
+    animation: none;
+  }
+}
