@@ -42,6 +42,12 @@ function fmtElapsed(ms: number): string {
   return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
+function localNowForDatetimeInput(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 function usesSetsGrid(ex: SessionExercise): boolean {
   // data_shape is authoritative when present (Phase 2+). Legacy rows fall
   // back to the previous heuristic.
@@ -147,6 +153,9 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
   const [showAdd, setShowAdd] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [ageBannerDismissed, setAgeBannerDismissed] = useState(false);
+  const [completeAtInput, setCompleteAtInput] = useState<string>(() =>
+    localNowForDatetimeInput()
+  );
   const [elapsed, setElapsed] = useState<number>(0);
   const [saving, setSaving] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [savedFlash, setSavedFlash] = useState(false);
@@ -733,10 +742,13 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
   }
 
   async function markYesterdayComplete() {
+    const completedAt = completeAtInput
+      ? new Date(completeAtInput).toISOString()
+      : new Date().toISOString();
     const r = await fetch(`/api/fitness/sessions/${session.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ completed_at: new Date().toISOString() }),
+      body: JSON.stringify({ completed_at: completedAt }),
     });
     if (r.ok) router.push("/fitness");
   }
@@ -841,7 +853,14 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
             <div className="font-[family-name:var(--font-display)] italic mb-2">
               This session is from {session.date}. Mark complete or start fresh?
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="datetime-local"
+                value={completeAtInput}
+                onChange={(e) => setCompleteAtInput(e.target.value)}
+                aria-label="Completed at"
+                className="bg-ink-0/40 border border-ink-2 rounded-md text-[11px] text-ink-4 px-2 py-1 font-[family-name:var(--font-mono)] tracking-[0.05em] outline-none focus:border-ink-3"
+              />
               <button
                 type="button"
                 onClick={() => void markYesterdayComplete()}
