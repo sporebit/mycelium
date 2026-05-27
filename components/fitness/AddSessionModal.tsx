@@ -114,9 +114,7 @@ export function AddSessionModal({
         setError(j.error ?? "Create failed");
         return;
       }
-      // For programme-sourced sessions, jump straight to the log page.
-      // For custom blank ones, stay on /fitness and toast.
-      if (source === "programme" && j.session_id) {
+      if (j.session_id) {
         onSaved(null);
         router.push(`/fitness/log/${j.session_id}`);
         return;

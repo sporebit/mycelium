@@ -72,11 +72,42 @@ Output ONLY a single JSON object. No prose, no markdown. Schema:
   "uncertainty_notes": ["<things you weren't sure about>"]
 }
 
-Routing rules for "session_intent":
-- "active" — text describes the in-progress session (the candidate marked state=active).
-- "planned" — text matches a planned session not yet started (state=planned).
-- "ambiguous" — text could plausibly match more than one candidate, OR you can't tell.
-- "create_extra" — content is a free-form activity not in the candidate list (tennis, hiking, swimming, etc.).
+Routing rules for "session_intent" — apply in this order, stop at first match:
+
+1. PLANNED MATCH (highest priority):
+   If the user describes an activity whose kind keywords match exactly ONE
+   planned/active session for today, that's session_intent="planned"
+   (or "active" if state=active). Put that session's id in
+   candidate_session_ids.
+
+   Example: planned evening Mobility today. User says "did some stretching
+   this evening" → session_intent="planned", candidate_session_ids=[<that id>].
+   The user is reporting they completed the planned thing. They don't have
+   to say its name.
+
+   Example: planned morning Conditioning. User says "KB EMOM this morning"
+   → planned, with that session's id.
+
+2. AMBIGUOUS:
+   If kind keywords match 2+ planned/active sessions today (e.g. two
+   mobility sessions in the evening slot), session_intent="ambiguous",
+   candidate_session_ids = all matching ids.
+
+3. ACTIVE:
+   If a session is already state=active and the text reads as additions
+   to it (no slot/kind mismatch), session_intent="active".
+
+4. CREATE_EXTRA:
+   Only when none of the above hold. Specifically:
+     - The activity's kind doesn't match any planned session today (e.g.
+       user did yoga but there's no mobility planned), OR
+     - The activity is genuinely off-programme (tennis, hiking, swimming).
+
+5. Otherwise → ambiguous.
+
+CRITICAL: do not pick create_extra just because the user used casual
+language ("did some stretching" vs "did my mobility session"). If a
+planned session today matches by kind, that's planned.
 
 When "ambiguous", populate candidate_session_ids with every plausible candidate's session_id (or programme_session_id when not yet started — use the *_id you'd pass back to resolve later). Prefer empty list over guessing.
 

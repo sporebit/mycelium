@@ -46,7 +46,10 @@ export function Fitness() {
       router.push(`/fitness/log/${s.logged_session_id}`);
       return;
     }
-    if (!s.programme_session_id) return;
+    if (!s.programme_session_id) {
+      router.refresh();
+      return;
+    }
     setStarting(s.programme_session_id);
     try {
       const r = await fetch("/api/fitness/sessions", {

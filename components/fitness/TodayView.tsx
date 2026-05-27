@@ -117,7 +117,14 @@ export function TodayView() {
       router.push(`/fitness/log/${s.logged_session_id}`);
       return;
     }
-    if (!s.programme_session_id) return;
+    // Custom (no programme template) sessions are created already-logged
+    // by the AddSessionModal. If we land here without a logged_session_id
+    // and without a programme_session_id, the row is in a bad state —
+    // refresh the data.
+    if (!s.programme_session_id) {
+      router.refresh();
+      return;
+    }
     setStarting(s.programme_session_id);
     try {
       const r = await fetch("/api/fitness/sessions", {

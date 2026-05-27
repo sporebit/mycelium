@@ -356,6 +356,7 @@ export type PendingButtonOption = {
 
 export type PendingWorkoutRoute = {
   id: string;
+  short_id?: string;
   user_id: string;
   raw_text: string;
   parsed_payload: ParsedWorkout;

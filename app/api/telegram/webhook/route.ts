@@ -15,6 +15,7 @@ import { embedAndStore } from "@/lib/router/embedAndStore";
 import { createServerClient } from "@/lib/supabase/server";
 import { decodeRoute, encodeRoute } from "@/lib/telegram/codes";
 import {
+  findPendingById,
   findPendingByPrefix,
   resolvePendingByIndex,
   routeRawVoice,
@@ -240,7 +241,7 @@ async function handleMessage(message: TgMessage): Promise<void> {
         return;
       }
       // Pending: needs disambiguation
-      const pending = await findPendingByPrefix(userId, r.pending_route_id.slice(0, 8));
+      const pending = await findPendingById(userId, r.pending_route_id);
       if (!pending) {
         await sendMessage(chatId, "⚠️ Couldn't stash pending workout — try again.");
         return;

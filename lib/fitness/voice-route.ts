@@ -412,14 +412,30 @@ export async function findPendingByPrefix(
   const supabase = createServerClient();
   const { data } = await supabase
     .from("pending_workout_routes")
-    .select("id, user_id, raw_text, parsed_payload, button_options, expires_at, created_at")
+    .select("id, short_id, user_id, raw_text, parsed_payload, button_options, expires_at, created_at")
     .eq("user_id", userId)
     .gt("expires_at", new Date().toISOString())
-    .like("id", `${prefix}%`)
+    .eq("short_id", prefix)
     .order("created_at", { ascending: false })
     .limit(1);
   if (!data || data.length === 0) return null;
   return data[0] as PendingWorkoutRoute;
+}
+
+/** Look up the pending row by full UUID. Use this when the full id is in hand. */
+export async function findPendingById(
+  userId: string,
+  id: string
+): Promise<PendingWorkoutRoute | null> {
+  const supabase = createServerClient();
+  const { data } = await supabase
+    .from("pending_workout_routes")
+    .select("id, short_id, user_id, raw_text, parsed_payload, button_options, expires_at, created_at")
+    .eq("id", id)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!data) return null;
+  return data as PendingWorkoutRoute;
 }
 
 async function startSessionFromTemplate(
