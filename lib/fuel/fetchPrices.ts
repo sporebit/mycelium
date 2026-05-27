@@ -114,8 +114,11 @@ async function fetchOne(
     const res = await fetch(source.url, {
       signal: ctrl.signal,
       headers: {
-        "User-Agent": "Mycelium/1.0",
-        Accept: "application/json, */*",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+          "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        Accept: "application/json, text/html;q=0.9, */*;q=0.8",
+        "Accept-Language": "en-GB,en;q=0.9",
       },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
