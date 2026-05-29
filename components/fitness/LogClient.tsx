@@ -841,6 +841,10 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
     !readOnly &&
     !ageBannerDismissed &&
     session.date < todayKey;
+  // status='attempted' is set by the today/sessions GET endpoints when
+  // an active session has sat past 48h; the banner is informational —
+  // logging stays enabled (readOnly is still gated by completed_at).
+  const isAttempted = session.status === "attempted";
 
   // ---------------------------------------------------------------------------
   return (
@@ -924,6 +928,18 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
             </div>
           )}
         </header>
+
+        {/* Attempted banner — only when the lifecycle status is
+            attempted *and* the session isn't already finished. */}
+        {isAttempted && !readOnly && (
+          <div className="my-3 rounded-md border border-warn/40 bg-warn/10 p-3 text-sm text-ink-4">
+            <div className="font-[family-name:var(--font-display)] italic">
+              This session was marked as attempted — it started 48+ hours ago
+              and was never completed. You can still log sets or mark it
+              complete.
+            </div>
+          </div>
+        )}
 
         {/* Yesterday-banner */}
         {isStale && (

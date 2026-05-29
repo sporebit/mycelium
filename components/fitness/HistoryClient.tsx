@@ -299,6 +299,14 @@ export function HistoryClient() {
               <span className="text-base text-ink-4 ml-1 truncate">
                 {s.name ?? "Untitled session"}
               </span>
+              {s.status === "attempted" && (
+                <span
+                  className="ml-auto text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-warn/40 bg-warn/15 text-warn"
+                  title="Started but never completed — sat idle for 48+ hours"
+                >
+                  ATTEMPTED
+                </span>
+              )}
             </div>
             <div className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em] mt-1.5">
               {statsLine(s)}

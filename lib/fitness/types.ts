@@ -145,6 +145,9 @@ export type TodaySlotEntry = {
   exercises: TemplateExercise[];
   completed: boolean;
   in_progress: boolean;
+  /** Lifecycle status mirrored from workout_sessions.status. Null for
+   *  planned-only template entries that don't have a logged row yet. */
+  status: SessionStatus | null;
   summary: { sets: number; minutes: number | null } | null;
   known_issues_count: number;
 };
@@ -260,6 +263,7 @@ export type HistorySessionCard = {
   name: string | null;
   started_at: string | null;
   completed_at: string | null;
+  status: SessionStatus;
   notes: string | null;
   exercise_count: number;
   set_count: number;

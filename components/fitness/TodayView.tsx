@@ -372,10 +372,13 @@ function SortableSessionCard(props: {
   const typeLabel = entry.session_type
     ? typesByKey[entry.session_type]?.label ?? entry.session_type
     : null;
+  const isAttempted = entry.status === "attempted";
   const label = entry.completed
     ? `LOGGED · ${entry.summary?.sets ?? 0} sets${
         entry.summary?.minutes != null ? ` · ${entry.summary.minutes}m` : ""
       }`
+    : isAttempted
+    ? "ATTEMPTED →"
     : entry.in_progress
     ? "RESUME →"
     : "START SESSION →";
@@ -414,6 +417,14 @@ function SortableSessionCard(props: {
             {entry.swapped_from_programme_session_id && (
               <span className="text-[10px] uppercase tracking-[0.15em] text-warn font-[family-name:var(--font-mono)]">
                 ↻ swapped
+              </span>
+            )}
+            {isAttempted && (
+              <span
+                className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-warn/40 bg-warn/15 text-warn"
+                title="Marked as attempted — started over 48h ago, never finished"
+              >
+                ATTEMPTED
               </span>
             )}
             {entry.known_issues_count > 0 && (
@@ -483,6 +494,13 @@ function SortableSessionCard(props: {
           <Link
             href={`/fitness/log/${entry.logged_session_id}`}
             className="text-[10px] uppercase tracking-[0.18em] text-ok font-[family-name:var(--font-mono)] hover:text-text-0"
+          >
+            {label}
+          </Link>
+        ) : isAttempted && entry.logged_session_id ? (
+          <Link
+            href={`/fitness/log/${entry.logged_session_id}`}
+            className="text-[10px] uppercase tracking-[0.18em] text-warn font-[family-name:var(--font-mono)] hover:text-text-0 px-2 py-1 rounded-md border border-warn/40 bg-warn/15"
           >
             {label}
           </Link>

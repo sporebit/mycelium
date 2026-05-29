@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { loadSessionDetail } from "@/lib/fitness/session-detail";
 import { SESSION_STATUSES, type SessionStatus } from "@/lib/fitness/types";
+import { markStaleSessionsAttempted } from "@/lib/fitness/mark-stale-attempted";
 
 export const runtime = "nodejs";
 
@@ -18,6 +19,10 @@ export async function GET(
   const { id } = await ctx.params;
   try {
     const supabase = createServerClient();
+    // Piggyback the stale-session sweep so opening any session detail
+    // page also reconciles older active rows. Cheap partial-indexed
+    // update; soft-fails if it doesn't land.
+    await markStaleSessionsAttempted(supabase, uid);
     const detail = await loadSessionDetail(supabase, id, uid);
     if (!detail) return NextResponse.json({ error: "not found" }, { status: 404 });
     return NextResponse.json({ session: detail });

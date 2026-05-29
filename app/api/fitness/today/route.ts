@@ -3,8 +3,10 @@ import { createServerClient } from "@/lib/supabase/server";
 import { isoWeekString } from "@/lib/util/week";
 import { localDateKey } from "@/lib/util/date";
 import { SLOT_ORDER } from "@/lib/fitness/kind";
+import { markStaleSessionsAttempted } from "@/lib/fitness/mark-stale-attempted";
 import type {
   SessionKind,
+  SessionStatus,
   Slot,
   TemplateExercise,
   TemplateKind,
@@ -21,7 +23,7 @@ const TEMPLATE_SESSION_FIELDS =
 const EXERCISE_FIELDS =
   "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity, data_shape, with_weight";
 const LIVE_SESSION_FIELDS =
-  "id, slot, kind, name, programme_session_id, session_type, swapped_from_programme_session_id, started_at, completed_at, position";
+  "id, slot, kind, name, programme_session_id, session_type, swapped_from_programme_session_id, started_at, completed_at, status, position";
 
 function userId(): string | null {
   return process.env.USER_ID ?? null;
@@ -42,6 +44,10 @@ export async function GET() {
     const nowLocal = new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
     const currentWeek = isoWeekString(nowLocal);
     const dow = jsDayToProgrammeDow(nowLocal.getDay());
+
+    // Piggyback: promote any of this user's active sessions older than
+    // 48h to attempted before we read them back. Soft-fails on its own.
+    await markStaleSessionsAttempted(supabase, uid);
 
     const { data: phaseRows } = await supabase
       .from("workout_programme_phases")
@@ -71,6 +77,7 @@ export async function GET() {
       swapped_from_programme_session_id: string | null;
       started_at: string | null;
       completed_at: string | null;
+      status: SessionStatus;
       position: number;
     };
     const live = (liveRows ?? []) as LiveRow[];
@@ -209,6 +216,7 @@ export async function GET() {
         exercises: exs,
         completed,
         in_progress: inProgress,
+        status: l.status,
         summary,
         known_issues_count: knownIssuesCount,
       });
@@ -235,6 +243,7 @@ export async function GET() {
         exercises: exs,
         completed: false,
         in_progress: false,
+        status: null,
         summary: null,
         known_issues_count: knownIssuesCount,
       });
@@ -287,6 +296,7 @@ async function populateLiveOnly(
     swapped_from_programme_session_id: string | null;
     started_at: string | null;
     completed_at: string | null;
+    status: SessionStatus;
     position: number;
   }>,
   slots: Record<Slot, TodaySlotEntry[]>
@@ -306,6 +316,7 @@ async function populateLiveOnly(
       exercises: [],
       completed,
       in_progress: inProgress,
+      status: l.status,
       summary: null,
       known_issues_count: 0,
     });

@@ -35,10 +35,14 @@ export async function GET(req: NextRequest) {
     let q = supabase
       .from("workout_sessions")
       .select(
-        "id, date, slot, kind, session_type, name, notes, started_at, completed_at, created_at"
+        "id, date, slot, kind, session_type, name, notes, started_at, completed_at, status, created_at"
       )
       .eq("user_id", uid)
-      .not("completed_at", "is", null)
+      // Attempted sessions belong in history alongside completed ones —
+      // they're real workouts that just stalled past 48h, and we want
+      // them visible with a distinct pill so the user can finish or
+      // abandon them. Abandoned + active stay out of history by default.
+      .in("status", ["completed", "attempted"])
       .order("created_at", { ascending: false })
       .limit(limit + 1);
     if (
@@ -69,6 +73,7 @@ export async function GET(req: NextRequest) {
       notes: string | null;
       started_at: string | null;
       completed_at: string | null;
+      status: import("@/lib/fitness/types").SessionStatus;
       created_at: string;
     };
     const sessionRows = (rows ?? []) as SessionRow[];
@@ -161,6 +166,7 @@ export async function GET(req: NextRequest) {
           name: s.name,
           started_at: s.started_at,
           completed_at: s.completed_at,
+          status: s.status,
           notes: s.notes,
           exercise_count: exerciseCount,
           set_count: setCount,
