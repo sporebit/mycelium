@@ -45,11 +45,17 @@ import {
   type CardWidth,
 } from "@/lib/dashboard/card-registry";
 
-// Synced with the Shell's md: breakpoint (mobile header + bottom tab bar)
-// so the dashboard collapses to a flat single-column stack at the same
-// viewport width as the mobile chrome — otherwise a 640-767px phone in
-// landscape shows mobile chrome around desktop-style card columns.
+// Three layout modes:
+//   mobile  (<768px)        : flat single-column stack, cards rendered in
+//                             source order regardless of stored width.
+//   tablet  (768-1279px)    : 2-column masonry. width=1 lives in the
+//                             buffer; width=2 and width=3 both become
+//                             full-row spanners.
+//   desktop (>=1280px)      : 3-column masonry. width=1 lives in the
+//                             buffer; width=2 becomes a 2/3-row spanner
+//                             (left-aligned, 1/3 empty); width=3 is full.
 const MOBILE_QUERY = "(max-width: 767px)";
+const DESKTOP_QUERY = "(min-width: 1280px)";
 
 function subscribeMobile(callback: () => void): () => void {
   if (typeof window === "undefined") return () => {};
@@ -64,6 +70,25 @@ function getMobileSnapshot(): boolean {
 }
 
 function getMobileServerSnapshot(): boolean {
+  return false;
+}
+
+function subscribeDesktop(callback: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const mq = window.matchMedia(DESKTOP_QUERY);
+  mq.addEventListener("change", callback);
+  return () => mq.removeEventListener("change", callback);
+}
+
+function getDesktopSnapshot(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(DESKTOP_QUERY).matches;
+}
+
+function getDesktopServerSnapshot(): boolean {
+  // Render the tablet layout on the server. Desktop hydrates up via a single
+  // re-render on first paint; mobile hydrates down. Either way the loading
+  // placeholder masks the transition since layout is fetched async.
   return false;
 }
 
@@ -87,14 +112,21 @@ export function DashboardGrid() {
   const [hideConfirm, setHideConfirm] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // SSR-safe viewport pin: server snapshot returns desktop, client snapshot
-  // reads matchMedia. Avoids the cascading-render lint that synchronously
-  // calling setIsMobile in an effect would trigger.
+  // SSR-safe viewport pins. matchMedia is read via useSyncExternalStore so
+  // we don't need a setState-in-useEffect (which the React 19 lint rule
+  // flags). Two separate stores — mobile takes priority; desktop only
+  // applies when mobile is false.
   const isMobile = useSyncExternalStore(
     subscribeMobile,
     getMobileSnapshot,
     getMobileServerSnapshot,
   );
+  const isDesktop = useSyncExternalStore(
+    subscribeDesktop,
+    getDesktopSnapshot,
+    getDesktopServerSnapshot,
+  );
+  const colCount: 2 | 3 = isDesktop && !isMobile ? 3 : 2;
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -247,13 +279,14 @@ export function DashboardGrid() {
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={visibleIds} strategy={rectSortingStrategy}>
-            {/* True per-column masonry: each section that contains 1-wide
-                cards renders two independent flex-col columns that flow
-                vertically without row-locking. Cards alternate by source
-                order (even index → left column, odd → right) so the linear
-                drag list maps to a deterministic layout. Full-width cards
-                act as section separators and span both columns. Mobile
-                collapses to a flat single-column stack in source order. */}
+            {/* True per-column masonry. Each "group" section renders N
+                independent flex-col columns (2 on tablet, 3 on desktop)
+                with cards distributed by index mod N — so source-order
+                drag-reorder maps to a deterministic packed layout without
+                needing height measurement. Width=3 cards act as full-row
+                spanners; width=2 cards span 2 columns (full row on tablet,
+                2/3 row on desktop). Mobile collapses to a flat single-
+                column stack in source order. */}
             {isMobile ? (
               <div className="flex flex-col gap-4">
                 {visibleCards.map((row) => {
@@ -272,7 +305,7 @@ export function DashboardGrid() {
               </div>
             ) : (
               <div className="flex flex-col gap-4">
-                {buildSections(visibleCards).map((section, idx) => {
+                {buildSections(visibleCards, colCount).map((section, idx) => {
                   if (section.type === "full") {
                     const row = section.card;
                     const Component = CARD_COMPONENTS[row.card_key];
@@ -287,46 +320,60 @@ export function DashboardGrid() {
                       </SortableCardWrapper>
                     );
                   }
-                  const { col1, col2 } = splitPairColumns(section.cards);
+
+                  if (section.type === "wide") {
+                    // 2/3-row card on desktop (3-col mode only). Same
+                    // grid-cols-3 wrapper as adjacent group sections so
+                    // the card edges align with the 3-column grid.
+                    const row = section.card;
+                    const Component = CARD_COMPONENTS[row.card_key];
+                    return (
+                      <div
+                        key={`wide-${idx}`}
+                        className="grid grid-cols-3 gap-4 items-start"
+                      >
+                        <div className="col-span-2">
+                          <SortableCardWrapper
+                            row={row}
+                            onChangeWidth={(w) =>
+                              changeWidth(row.card_key, w)
+                            }
+                            onHide={() => setHideConfirm(row.card_key)}
+                          >
+                            <Component width={row.width} />
+                          </SortableCardWrapper>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // group: 2 or 3 flex-col columns
+                  const cols = splitColumns(section.cards, colCount);
+                  const gridClass =
+                    colCount === 3
+                      ? "grid grid-cols-3 gap-4 items-start"
+                      : "grid grid-cols-2 gap-4 items-start";
                   return (
-                    <div
-                      key={`pair-${idx}`}
-                      className="grid grid-cols-2 gap-4 items-start"
-                    >
-                      <div className="flex flex-col gap-4">
-                        {col1.map((row) => {
-                          const Component = CARD_COMPONENTS[row.card_key];
-                          return (
-                            <SortableCardWrapper
-                              key={row.card_key}
-                              row={row}
-                              onChangeWidth={(w) =>
-                                changeWidth(row.card_key, w)
-                              }
-                              onHide={() => setHideConfirm(row.card_key)}
-                            >
-                              <Component width={row.width} />
-                            </SortableCardWrapper>
-                          );
-                        })}
-                      </div>
-                      <div className="flex flex-col gap-4">
-                        {col2.map((row) => {
-                          const Component = CARD_COMPONENTS[row.card_key];
-                          return (
-                            <SortableCardWrapper
-                              key={row.card_key}
-                              row={row}
-                              onChangeWidth={(w) =>
-                                changeWidth(row.card_key, w)
-                              }
-                              onHide={() => setHideConfirm(row.card_key)}
-                            >
-                              <Component width={row.width} />
-                            </SortableCardWrapper>
-                          );
-                        })}
-                      </div>
+                    <div key={`group-${idx}`} className={gridClass}>
+                      {cols.map((colCards, ci) => (
+                        <div key={ci} className="flex flex-col gap-4">
+                          {colCards.map((row) => {
+                            const Component = CARD_COMPONENTS[row.card_key];
+                            return (
+                              <SortableCardWrapper
+                                key={row.card_key}
+                                row={row}
+                                onChangeWidth={(w) =>
+                                  changeWidth(row.card_key, w)
+                                }
+                                onHide={() => setHideConfirm(row.card_key)}
+                              >
+                                <Component width={row.width} />
+                              </SortableCardWrapper>
+                            );
+                          })}
+                        </div>
+                      ))}
                     </div>
                   );
                 })}
@@ -358,45 +405,70 @@ export function DashboardGrid() {
   );
 }
 
-/** Group ordered visible cards into sections: full-width cards (width=2)
- *  separate buffers of 1-wide cards. Each "pair" buffer renders as a
- *  2-col masonry; each "full" card renders as a section-spanning row. */
+/** Group ordered visible cards into sections.
+ *
+ *  - "group" sections hold runs of width=1 cards that flow per-column
+ *    inside a grid-cols-N flexbox (N = colCount).
+ *  - "full" sections hold a width=3 card spanning the full row, or a
+ *    width=2 card on tablet where 2 = full row.
+ *  - "wide" sections hold a width=2 card on desktop where 2 = 2/3 row.
+ *
+ *  Spanners (full + wide) always end the current group buffer so the
+ *  per-column flow restarts cleanly after them.
+ */
 type CardSection =
-  | { type: "pair"; cards: CardLayoutRow[] }
+  | { type: "group"; cards: CardLayoutRow[] }
+  | { type: "wide"; card: CardLayoutRow }
   | { type: "full"; card: CardLayoutRow };
 
-function buildSections(cards: CardLayoutRow[]): CardSection[] {
+function buildSections(
+  cards: CardLayoutRow[],
+  colCount: 2 | 3,
+): CardSection[] {
   const sections: CardSection[] = [];
   let buffer: CardLayoutRow[] = [];
+  const flushBuffer = () => {
+    if (buffer.length > 0) {
+      sections.push({ type: "group", cards: buffer });
+      buffer = [];
+    }
+  };
   for (const card of cards) {
-    if (card.width === 2) {
-      if (buffer.length > 0) {
-        sections.push({ type: "pair", cards: buffer });
-        buffer = [];
-      }
+    if (card.width === 3) {
+      flushBuffer();
       sections.push({ type: "full", card });
+    } else if (card.width === 2) {
+      flushBuffer();
+      // On tablet (2 cols), width=2 fills the row; on desktop (3 cols)
+      // it's a 2/3-row spanner.
+      sections.push(
+        colCount === 2
+          ? { type: "full", card }
+          : { type: "wide", card },
+      );
     } else {
       buffer.push(card);
     }
   }
-  if (buffer.length > 0) sections.push({ type: "pair", cards: buffer });
+  flushBuffer();
   return sections;
 }
 
-/** Even-indexed cards go in the left column, odd-indexed in the right.
- *  Source order is preserved, so reordering via drag deterministically
- *  flows into a per-column masonry without needing height measurement. */
-function splitPairColumns(cards: CardLayoutRow[]): {
-  col1: CardLayoutRow[];
-  col2: CardLayoutRow[];
-} {
-  const col1: CardLayoutRow[] = [];
-  const col2: CardLayoutRow[] = [];
+/** Distribute cards across N columns by index parity (mod N). Source order
+ *  is preserved, so reordering via drag deterministically flows into a
+ *  per-column masonry without needing height measurement. */
+function splitColumns(
+  cards: CardLayoutRow[],
+  colCount: 2 | 3,
+): CardLayoutRow[][] {
+  const cols: CardLayoutRow[][] = Array.from(
+    { length: colCount },
+    () => [],
+  );
   cards.forEach((c, i) => {
-    if (i % 2 === 0) col1.push(c);
-    else col2.push(c);
+    cols[i % colCount].push(c);
   });
-  return { col1, col2 };
+  return cols;
 }
 
 function SortableCardWrapper({
@@ -470,7 +542,7 @@ function WidthToggle({
 }) {
   return (
     <div className="hidden sm:flex rounded-sm bg-ink-2/60 overflow-hidden">
-      {([1, 2] as CardWidth[]).map((w) => {
+      {([1, 2, 3] as CardWidth[]).map((w) => {
         const enabled = supports.includes(w);
         const active = current === w;
         return (
