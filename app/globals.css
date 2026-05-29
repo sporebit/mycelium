@@ -180,6 +180,27 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Global horizontal-scroll guard. `clip` (not `hidden`) cuts overflow
+   without establishing a scroll container, so position: sticky on
+   descendants (e.g. MobileHeader, TopRail) keeps working. Any content
+   that legitimately needs horizontal scroll (tables, code blocks) puts
+   it inside its own `overflow-x: auto` wrapper. */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* Media and tables shouldn't burst out of their containers. SVGs are
+   intentionally excluded: nav icons and decorative SVGs (HyphalThreads,
+   sparklines) carry explicit sizing via attributes or w-full/h-full
+   classes — applying max-width here would clip the 8px spore-dot in
+   the wordmark when its container is wider than the dot. */
+img,
+video,
+table {
+  max-width: 100%;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 600;
