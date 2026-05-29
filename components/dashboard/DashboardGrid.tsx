@@ -11,20 +11,23 @@ import {
 } from "react";
 import {
   DndContext,
+  DragOverlay,
   KeyboardSensor,
   MouseSensor,
   TouchSensor,
-  closestCenter,
+  closestCorners,
+  useDroppable,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   arrayMove,
-  rectSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Operator } from "./cards/Operator";
@@ -42,21 +45,15 @@ import { CaptureReview } from "./cards/CaptureReview";
 import { DashboardSettings } from "./DashboardSettings";
 import {
   CARD_REGISTRY,
+  type CardCol,
   type CardLayoutRow,
   type CardWidth,
 } from "@/lib/dashboard/card-registry";
 
-// Three layout modes:
-//   mobile  (<768px)        : flat single-column stack, cards rendered in
-//                             source order regardless of stored width.
-//   tablet  (768-1279px)    : 2-column masonry. width=1 lives in the
-//                             buffer; width=2 and width=3 both become
-//                             full-row spanners.
-//   desktop (>=1280px)      : 3-column masonry. width=1 lives in the
-//                             buffer; width=2 becomes a 2/3-row spanner
-//                             (left-aligned, 1/3 empty); width=3 is full.
+// Mobile = single-column stack regardless of saved columns. Synced
+// with the Shell's md: breakpoint so the dashboard collapses at the
+// same point as the mobile chrome.
 const MOBILE_QUERY = "(max-width: 767px)";
-const DESKTOP_QUERY = "(min-width: 1280px)";
 
 function subscribeMobile(callback: () => void): () => void {
   if (typeof window === "undefined") return () => {};
@@ -71,25 +68,6 @@ function getMobileSnapshot(): boolean {
 }
 
 function getMobileServerSnapshot(): boolean {
-  return false;
-}
-
-function subscribeDesktop(callback: () => void): () => void {
-  if (typeof window === "undefined") return () => {};
-  const mq = window.matchMedia(DESKTOP_QUERY);
-  mq.addEventListener("change", callback);
-  return () => mq.removeEventListener("change", callback);
-}
-
-function getDesktopSnapshot(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia(DESKTOP_QUERY).matches;
-}
-
-function getDesktopServerSnapshot(): boolean {
-  // Render the tablet layout on the server. Desktop hydrates up via a single
-  // re-render on first paint; mobile hydrates down. Either way the loading
-  // placeholder masks the transition since layout is fetched async.
   return false;
 }
 
@@ -108,32 +86,27 @@ const CARD_COMPONENTS: Record<string, ComponentType<{ width: CardWidth }>> = {
   capture_review: CaptureReview,
 };
 
+const COLS: CardCol[] = [1, 2, 3];
+
 export function DashboardGrid() {
   const [layout, setLayout] = useState<CardLayoutRow[] | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [hideConfirm, setHideConfirm] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // SSR-safe viewport pins. matchMedia is read via useSyncExternalStore so
-  // we don't need a setState-in-useEffect (which the React 19 lint rule
-  // flags). Two separate stores — mobile takes priority; desktop only
-  // applies when mobile is false.
   const isMobile = useSyncExternalStore(
     subscribeMobile,
     getMobileSnapshot,
     getMobileServerSnapshot,
   );
-  const isDesktop = useSyncExternalStore(
-    subscribeDesktop,
-    getDesktopSnapshot,
-    getDesktopServerSnapshot,
-  );
-  const colCount: 2 | 3 = isDesktop && !isMobile ? 3 : 2;
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 500, tolerance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 500, tolerance: 8 },
+    }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   useEffect(() => {
@@ -165,30 +138,55 @@ export function DashboardGrid() {
           body: JSON.stringify({ layout: next }),
         });
       } catch {
-        /* swallow — the next page load will reconcile from the server */
+        /* swallow — next page load reconciles from the server */
       }
     }, 300);
   }, []);
 
-  function handleDragEnd(e: DragEndEvent) {
-    if (!layout) return;
-    const { active, over } = e;
-    if (!over || active.id === over.id) return;
-    const visible = layout.filter((r) => !r.hidden);
-    const hidden = layout.filter((r) => r.hidden);
-    const oldIdx = visible.findIndex((r) => r.card_key === active.id);
-    const newIdx = visible.findIndex((r) => r.card_key === over.id);
-    if (oldIdx < 0 || newIdx < 0) return;
-    const reordered = arrayMove(visible, oldIdx, newIdx).map((r, i) => ({
-      ...r,
-      position: i,
-    }));
-    // Hidden rows keep their relative position but get pushed after visible.
-    const hiddenWithPos = hidden.map((r, i) => ({
-      ...r,
-      position: reordered.length + i,
-    }));
-    const next = [...reordered, ...hiddenWithPos];
+  // ---------------------------------------------------------------------------
+  // Derived layout groups
+  // Spanners (width >= 2) render as full-width rows above the column
+  // grid, ordered by (col, position). Width=1 cards are bucketed by
+  // their `col` and ordered by `position`.
+  const visibleCards = useMemo(
+    () => (layout ?? []).filter((r) => !r.hidden && CARD_COMPONENTS[r.card_key]),
+    [layout],
+  );
+  const spanners = useMemo(
+    () =>
+      [...visibleCards]
+        .filter((c) => c.width >= 2)
+        .sort((a, b) => {
+          if (a.col !== b.col) return a.col - b.col;
+          return a.position - b.position;
+        }),
+    [visibleCards],
+  );
+  const colCards = useMemo(() => {
+    const map = new Map<CardCol, CardLayoutRow[]>([
+      [1, []],
+      [2, []],
+      [3, []],
+    ]);
+    for (const c of visibleCards) {
+      if (c.width >= 2) continue;
+      map.get(c.col)!.push(c);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => a.position - b.position);
+    }
+    return map;
+  }, [visibleCards]);
+
+  const activeCard = useMemo(
+    () => visibleCards.find((c) => c.card_key === activeId) ?? null,
+    [activeId, visibleCards],
+  );
+
+  // ---------------------------------------------------------------------------
+  // Mutations
+
+  function applyLayout(next: CardLayoutRow[]) {
     setLayout(next);
     persist(next);
   }
@@ -196,35 +194,34 @@ export function DashboardGrid() {
   function changeWidth(cardKey: string, width: CardWidth) {
     if (!layout) return;
     const next = layout.map((r) =>
-      r.card_key === cardKey ? { ...r, width } : r
+      r.card_key === cardKey ? { ...r, width } : r,
     );
-    setLayout(next);
-    persist(next);
+    // Width changes can move a card between the spanner stack and a
+    // column; renormalise per-bucket positions to 0..N-1 so the next
+    // drag starts from clean indices.
+    applyLayout(renormalisePositions(next));
   }
 
   function hideCard(cardKey: string) {
     if (!layout) return;
     const next = layout.map((r) =>
-      r.card_key === cardKey ? { ...r, hidden: true } : r
+      r.card_key === cardKey ? { ...r, hidden: true } : r,
     );
-    setLayout(next);
-    persist(next);
+    applyLayout(next);
     setHideConfirm(null);
   }
 
   function showCard(cardKey: string) {
     if (!layout) return;
     const next = layout.map((r) =>
-      r.card_key === cardKey ? { ...r, hidden: false } : r
+      r.card_key === cardKey ? { ...r, hidden: false } : r,
     );
-    setLayout(next);
-    persist(next);
+    applyLayout(next);
   }
 
   async function resetLayout() {
     const r = await fetch("/api/dashboard/layout/reset", { method: "POST" });
     if (r.ok) {
-      // Re-fetch from the server to pick up the freshly-defaulted layout.
       const fresh = await fetch("/api/dashboard/layout", { cache: "no-store" });
       if (fresh.ok) {
         const j = (await fresh.json()) as { layout: CardLayoutRow[] };
@@ -233,15 +230,116 @@ export function DashboardGrid() {
     }
   }
 
-  const visibleCards = useMemo(
-    () =>
-      (layout ?? [])
-        .filter((r) => !r.hidden && CARD_COMPONENTS[r.card_key])
-        .sort((a, b) => a.position - b.position),
-    [layout]
-  );
-  const visibleIds = visibleCards.map((r) => r.card_key);
+  // ---------------------------------------------------------------------------
+  // Drag-and-drop
+  function handleDragStart(e: DragStartEvent) {
+    setActiveId(String(e.active.id));
+  }
 
+  function handleDragEnd(e: DragEndEvent) {
+    setActiveId(null);
+    if (!layout) return;
+    const { active, over } = e;
+    if (!over) return;
+    const droppedId = String(active.id);
+    const overId = String(over.id);
+    if (droppedId === overId) return;
+
+    const activeRow = layout.find((r) => r.card_key === droppedId);
+    if (!activeRow) return;
+
+    // Spanners reorder among themselves only — they live in their own
+    // stack above the column grid. Use the width toggle to demote a
+    // spanner to width=1 and pull it into a column.
+    if (activeRow.width >= 2) {
+      const overRow = layout.find((r) => r.card_key === overId);
+      if (!overRow || overRow.width < 2) return;
+      const sortedSpanners = [...spanners];
+      const oldIdx = sortedSpanners.findIndex((s) => s.card_key === droppedId);
+      const newIdx = sortedSpanners.findIndex((s) => s.card_key === overId);
+      if (oldIdx < 0 || newIdx < 0) return;
+      const reordered = arrayMove(sortedSpanners, oldIdx, newIdx);
+      // Park every spanner in col 1 with sequential positions so they
+      // share a clean namespace — col doesn't matter for spanner
+      // rendering since they're always full-width.
+      const updates = new Map<string, { col: CardCol; position: number }>();
+      reordered.forEach((s, i) =>
+        updates.set(s.card_key, { col: 1, position: i }),
+      );
+      const next = layout.map((r) => {
+        const u = updates.get(r.card_key);
+        return u ? { ...r, col: u.col, position: u.position } : r;
+      });
+      applyLayout(renormalisePositions(next));
+      return;
+    }
+
+    // Column-card drop. The over target is either another column card
+    // (a sortable item) or one of the column droppable wrappers
+    // ("col-1" / "col-2" / "col-3"), which catch drops on the empty
+    // tail of the column.
+    const colMatch = /^col-(\d)$/.exec(overId);
+    let targetCol: CardCol;
+    let targetPosition: number;
+    if (colMatch) {
+      targetCol = Number(colMatch[1]) as CardCol;
+      const colList = colCards.get(targetCol) ?? [];
+      // Don't no-op when dropping on your own column's empty zone —
+      // there's nothing to do (already in this col), so just bail.
+      if (activeRow.col === targetCol) return;
+      targetPosition = colList.length;
+    } else {
+      const overRow = layout.find((r) => r.card_key === overId);
+      if (!overRow || overRow.width >= 2) return;
+      targetCol = overRow.col;
+      const colList = colCards.get(targetCol) ?? [];
+      const overIdxInCol = colList.findIndex(
+        (c) => c.card_key === overRow.card_key,
+      );
+      if (overIdxInCol < 0) return;
+      if (activeRow.col === targetCol) {
+        // Within-column reorder.
+        const oldIdxInCol = colList.findIndex(
+          (c) => c.card_key === activeRow.card_key,
+        );
+        const reordered = arrayMove(colList, oldIdxInCol, overIdxInCol);
+        const updates = new Map<string, number>();
+        reordered.forEach((c, i) => updates.set(c.card_key, i));
+        const next = layout.map((r) =>
+          updates.has(r.card_key)
+            ? { ...r, position: updates.get(r.card_key)! }
+            : r,
+        );
+        applyLayout(next);
+        return;
+      }
+      targetPosition = overIdxInCol;
+    }
+
+    // Cross-column move: pull active out of source col, splice into
+    // target col at targetPosition. Renumber both cols.
+    const sourceCol = activeRow.col;
+    const sourceList = (colCards.get(sourceCol) ?? []).filter(
+      (c) => c.card_key !== activeRow.card_key,
+    );
+    const targetList = [...(colCards.get(targetCol) ?? [])];
+    targetList.splice(targetPosition, 0, { ...activeRow, col: targetCol });
+
+    const updates = new Map<string, { col: CardCol; position: number }>();
+    sourceList.forEach((c, i) =>
+      updates.set(c.card_key, { col: sourceCol, position: i }),
+    );
+    targetList.forEach((c, i) =>
+      updates.set(c.card_key, { col: targetCol, position: i }),
+    );
+    const next = layout.map((r) => {
+      const u = updates.get(r.card_key);
+      return u ? { ...r, col: u.col, position: u.position } : r;
+    });
+    applyLayout(next);
+  }
+
+  // ---------------------------------------------------------------------------
   if (layout === null) {
     return (
       <div className="text-sm text-text-2 italic font-[family-name:var(--font-display)] py-12 text-center">
@@ -250,138 +348,119 @@ export function DashboardGrid() {
     );
   }
 
+  // Mobile: ignore columns, render all cards in a single flex-col in
+  // order of (col * 100 + position) per the rebuild spec. Spanners
+  // and width=1 cards interleave naturally because spanners default
+  // to col 1.
+  if (isMobile) {
+    const ordered = [...visibleCards].sort((a, b) => {
+      if (a.col !== b.col) return a.col - b.col;
+      return a.position - b.position;
+    });
+    return (
+      <>
+        <CustomizeButton onClick={() => setShowSettings(true)} />
+        {ordered.length === 0 ? (
+          <EmptyState onCustomize={() => setShowSettings(true)} />
+        ) : (
+          <div className="flex flex-col gap-4">
+            {ordered.map((row) => {
+              const Component = CARD_COMPONENTS[row.card_key];
+              return (
+                <CardWrapper
+                  key={row.card_key}
+                  row={row}
+                  draggable={false}
+                  onChangeWidth={(w) => changeWidth(row.card_key, w)}
+                  onHide={() => setHideConfirm(row.card_key)}
+                >
+                  <Component width={row.width} />
+                </CardWrapper>
+              );
+            })}
+          </div>
+        )}
+        {showSettings && (
+          <DashboardSettings
+            layout={layout}
+            onClose={() => setShowSettings(false)}
+            onToggleHidden={(key, hidden) =>
+              hidden ? hideCard(key) : showCard(key)
+            }
+            onReset={resetLayout}
+          />
+        )}
+        {hideConfirm && (
+          <HideConfirmModal
+            cardKey={hideConfirm}
+            onCancel={() => setHideConfirm(null)}
+            onConfirm={() => hideCard(hideConfirm)}
+          />
+        )}
+      </>
+    );
+  }
+
+  // Desktop: spanners stacked above, 3-column grid below. The DndContext
+  // wraps all of it so a card can drag from one column into another
+  // (or from a column into the spanner stack via the width toggle).
   return (
     <>
-      <div className="flex items-center justify-end mb-3">
-        <button
-          type="button"
-          onClick={() => setShowSettings(true)}
-          className="text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-2 hover:text-text-0 px-2 py-1 rounded-sm border border-ink-3 hover:border-ink-4"
-        >
-          ⚙ CUSTOMIZE
-        </button>
-      </div>
-
+      <CustomizeButton onClick={() => setShowSettings(true)} />
       {visibleCards.length === 0 ? (
-        <div className="text-sm text-text-2 italic font-[family-name:var(--font-display)] py-16 text-center">
-          All cards hidden.{" "}
-          <button
-            type="button"
-            onClick={() => setShowSettings(true)}
-            className="underline hover:text-text-0"
-          >
-            Open settings
-          </button>{" "}
-          to restore.
-        </div>
+        <EmptyState onCustomize={() => setShowSettings(true)} />
       ) : (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext items={visibleIds} strategy={rectSortingStrategy}>
-            {/* True per-column masonry. Each "group" section renders N
-                independent flex-col columns (2 on tablet, 3 on desktop)
-                with cards distributed by index mod N — so source-order
-                drag-reorder maps to a deterministic packed layout without
-                needing height measurement. Width=3 cards act as full-row
-                spanners; width=2 cards span 2 columns (full row on tablet,
-                2/3 row on desktop). Mobile collapses to a flat single-
-                column stack in source order. */}
-            {isMobile ? (
-              <div className="flex flex-col gap-4">
-                {visibleCards.map((row) => {
+          {spanners.length > 0 && (
+            <SortableContext
+              items={spanners.map((s) => s.card_key)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="flex flex-col gap-4 mb-4">
+                {spanners.map((row) => {
                   const Component = CARD_COMPONENTS[row.card_key];
                   return (
-                    <SortableCardWrapper
+                    <SortableCard
                       key={row.card_key}
                       row={row}
                       onChangeWidth={(w) => changeWidth(row.card_key, w)}
                       onHide={() => setHideConfirm(row.card_key)}
                     >
                       <Component width={row.width} />
-                    </SortableCardWrapper>
+                    </SortableCard>
                   );
                 })}
               </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {buildSections(visibleCards, colCount).map((section, idx) => {
-                  if (section.type === "full") {
-                    const row = section.card;
-                    const Component = CARD_COMPONENTS[row.card_key];
-                    return (
-                      <SortableCardWrapper
-                        key={row.card_key}
-                        row={row}
-                        onChangeWidth={(w) => changeWidth(row.card_key, w)}
-                        onHide={() => setHideConfirm(row.card_key)}
-                      >
-                        <Component width={row.width} />
-                      </SortableCardWrapper>
-                    );
-                  }
+            </SortableContext>
+          )}
 
-                  if (section.type === "wide") {
-                    // 2/3-row card on desktop (3-col mode only). Same
-                    // grid-cols-3 wrapper as adjacent group sections so
-                    // the card edges align with the 3-column grid.
-                    const row = section.card;
-                    const Component = CARD_COMPONENTS[row.card_key];
-                    return (
-                      <div
-                        key={`wide-${idx}`}
-                        className="grid grid-cols-3 gap-4 items-start"
-                      >
-                        <div className="col-span-2">
-                          <SortableCardWrapper
-                            row={row}
-                            onChangeWidth={(w) =>
-                              changeWidth(row.card_key, w)
-                            }
-                            onHide={() => setHideConfirm(row.card_key)}
-                          >
-                            <Component width={row.width} />
-                          </SortableCardWrapper>
-                        </div>
-                      </div>
-                    );
-                  }
+          <div className="grid grid-cols-3 gap-4 items-start">
+            {COLS.map((col) => (
+              <DroppableColumn
+                key={col}
+                col={col}
+                cards={colCards.get(col) ?? []}
+                onChangeWidth={(key, w) => changeWidth(key, w)}
+                onHide={(key) => setHideConfirm(key)}
+              />
+            ))}
+          </div>
 
-                  // group: 2 or 3 flex-col columns
-                  const cols = splitColumns(section.cards, colCount);
-                  const gridClass =
-                    colCount === 3
-                      ? "grid grid-cols-3 gap-4 items-start"
-                      : "grid grid-cols-2 gap-4 items-start";
-                  return (
-                    <div key={`group-${idx}`} className={gridClass}>
-                      {cols.map((colCards, ci) => (
-                        <div key={ci} className="flex flex-col gap-4">
-                          {colCards.map((row) => {
-                            const Component = CARD_COMPONENTS[row.card_key];
-                            return (
-                              <SortableCardWrapper
-                                key={row.card_key}
-                                row={row}
-                                onChangeWidth={(w) =>
-                                  changeWidth(row.card_key, w)
-                                }
-                                onHide={() => setHideConfirm(row.card_key)}
-                              >
-                                <Component width={row.width} />
-                              </SortableCardWrapper>
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })}
+          <DragOverlay>
+            {activeCard ? (
+              <div className="opacity-90 ring-1 ring-glow-2/60 shadow-2xl rounded-md">
+                {(() => {
+                  const Component = CARD_COMPONENTS[activeCard.card_key];
+                  return <Component width={activeCard.width} />;
+                })()}
               </div>
-            )}
-          </SortableContext>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
 
@@ -407,73 +486,116 @@ export function DashboardGrid() {
   );
 }
 
-/** Group ordered visible cards into sections.
- *
- *  - "group" sections hold runs of width=1 cards that flow per-column
- *    inside a grid-cols-N flexbox (N = colCount).
- *  - "full" sections hold a width=3 card spanning the full row, or a
- *    width=2 card on tablet where 2 = full row.
- *  - "wide" sections hold a width=2 card on desktop where 2 = 2/3 row.
- *
- *  Spanners (full + wide) always end the current group buffer so the
- *  per-column flow restarts cleanly after them.
- */
-type CardSection =
-  | { type: "group"; cards: CardLayoutRow[] }
-  | { type: "wide"; card: CardLayoutRow }
-  | { type: "full"; card: CardLayoutRow };
+// ---------------------------------------------------------------------------
+// Helpers
 
-function buildSections(
-  cards: CardLayoutRow[],
-  colCount: 2 | 3,
-): CardSection[] {
-  const sections: CardSection[] = [];
-  let buffer: CardLayoutRow[] = [];
-  const flushBuffer = () => {
-    if (buffer.length > 0) {
-      sections.push({ type: "group", cards: buffer });
-      buffer = [];
-    }
-  };
-  for (const card of cards) {
-    if (card.width === 3) {
-      flushBuffer();
-      sections.push({ type: "full", card });
-    } else if (card.width === 2) {
-      flushBuffer();
-      // On tablet (2 cols), width=2 fills the row; on desktop (3 cols)
-      // it's a 2/3-row spanner.
-      sections.push(
-        colCount === 2
-          ? { type: "full", card }
-          : { type: "wide", card },
-      );
-    } else {
-      buffer.push(card);
-    }
+function renormalisePositions(rows: CardLayoutRow[]): CardLayoutRow[] {
+  // Per-col positions 0..N-1 for spanners (parked in col 1) + each
+  // column. Used after width changes that move cards between the
+  // spanner stack and a column.
+  const byBucket = new Map<string, CardLayoutRow[]>();
+  for (const r of rows) {
+    const bucket = r.width >= 2 ? "span" : `col-${r.col}`;
+    const list = byBucket.get(bucket) ?? [];
+    list.push(r);
+    byBucket.set(bucket, list);
   }
-  flushBuffer();
-  return sections;
+  for (const list of byBucket.values()) {
+    list.sort((a, b) => a.position - b.position);
+  }
+  const out: CardLayoutRow[] = [];
+  for (const list of byBucket.values()) {
+    list.forEach((r, i) => out.push({ ...r, position: i }));
+  }
+  return out;
 }
 
-/** Distribute cards across N columns by index parity (mod N). Source order
- *  is preserved, so reordering via drag deterministically flows into a
- *  per-column masonry without needing height measurement. */
-function splitColumns(
-  cards: CardLayoutRow[],
-  colCount: 2 | 3,
-): CardLayoutRow[][] {
-  const cols: CardLayoutRow[][] = Array.from(
-    { length: colCount },
-    () => [],
+function CustomizeButton({ onClick }: { onClick: () => void }) {
+  return (
+    <div className="flex items-center justify-end mb-3">
+      <button
+        type="button"
+        onClick={onClick}
+        className="text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-2 hover:text-text-0 px-2 py-1 rounded-sm border border-ink-3 hover:border-ink-4"
+      >
+        ⚙ CUSTOMIZE
+      </button>
+    </div>
   );
-  cards.forEach((c, i) => {
-    cols[i % colCount].push(c);
-  });
-  return cols;
 }
 
-function SortableCardWrapper({
+function EmptyState({ onCustomize }: { onCustomize: () => void }) {
+  return (
+    <div className="text-sm text-text-2 italic font-[family-name:var(--font-display)] py-16 text-center">
+      All cards hidden.{" "}
+      <button
+        type="button"
+        onClick={onCustomize}
+        className="underline hover:text-text-0"
+      >
+        Open settings
+      </button>{" "}
+      to restore.
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Droppable column — its own SortableContext over the cards currently
+// in it. The wrapping <div> registers as a droppable so dnd-kit can
+// land cross-column drops on the empty tail / empty column.
+function DroppableColumn({
+  col,
+  cards,
+  onChangeWidth,
+  onHide,
+}: {
+  col: CardCol;
+  cards: CardLayoutRow[];
+  onChangeWidth: (key: string, w: CardWidth) => void;
+  onHide: (key: string) => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: `col-${col}` });
+  return (
+    <SortableContext
+      items={cards.map((c) => c.card_key)}
+      strategy={verticalListSortingStrategy}
+    >
+      <div
+        ref={setNodeRef}
+        className={`flex flex-col gap-4 min-h-[120px] rounded-md transition-colors ${
+          isOver ? "bg-glow-2/5 outline outline-1 outline-glow-2/30" : ""
+        }`}
+      >
+        {cards.length === 0 ? (
+          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] py-8 text-center border border-dashed border-ink-2 rounded-md">
+            Drop a card here
+          </div>
+        ) : (
+          cards.map((row) => {
+            const Component = CARD_COMPONENTS[row.card_key];
+            return (
+              <SortableCard
+                key={row.card_key}
+                row={row}
+                onChangeWidth={(w) => onChangeWidth(row.card_key, w)}
+                onHide={() => onHide(row.card_key)}
+              >
+                <Component width={row.width} />
+              </SortableCard>
+            );
+          })
+        )}
+      </div>
+    </SortableContext>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SortableCard — a single card that participates in @dnd-kit's sortable
+// list. Hover-revealed affordances (width toggle + drag handle + hide)
+// hang in the top-right.
+function SortableCard({
   row,
   onChangeWidth,
   onHide,
@@ -491,35 +613,82 @@ function SortableCardWrapper({
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.7 : 1,
+    opacity: isDragging ? 0.4 : 1,
   };
 
   return (
+    <CardWrapper
+      row={row}
+      draggable
+      dragRef={setNodeRef}
+      dragStyle={style}
+      dragAttributes={attributes}
+      dragListeners={listeners}
+      dragging={isDragging}
+      onChangeWidth={onChangeWidth}
+      onHide={onHide}
+      supports={cfg?.supports ?? [1, 2, 3]}
+    >
+      {children}
+    </CardWrapper>
+  );
+}
+
+// Shared chrome around a card. Mobile passes draggable=false; desktop
+// passes the dnd-kit refs/attributes/listeners.
+function CardWrapper({
+  row,
+  draggable,
+  dragRef,
+  dragStyle,
+  dragAttributes,
+  dragListeners,
+  dragging,
+  onChangeWidth,
+  onHide,
+  supports,
+  children,
+}: {
+  row: CardLayoutRow;
+  draggable: boolean;
+  dragRef?: (node: HTMLElement | null) => void;
+  dragStyle?: React.CSSProperties;
+  dragAttributes?: React.HTMLAttributes<HTMLElement>;
+  dragListeners?: React.HTMLAttributes<HTMLElement>;
+  dragging?: boolean;
+  onChangeWidth: (w: CardWidth) => void;
+  onHide: () => void;
+  supports?: CardWidth[];
+  children: React.ReactNode;
+}) {
+  const cfg = CARD_REGISTRY[row.card_key];
+  const cardSupports = supports ?? cfg?.supports ?? [1, 2, 3];
+  return (
     <div
-      ref={setNodeRef}
-      style={style}
+      ref={dragRef}
+      style={dragStyle}
       className={`group relative ${
-        isDragging ? "ring-1 ring-glow-2/60 shadow-2xl rounded-md" : ""
+        dragging ? "ring-1 ring-glow-2/60 shadow-2xl rounded-md" : ""
       }`}
     >
       {children}
-
-      {/* Affordance cluster — hover on desktop, always on touch */}
       <div className="absolute top-2 right-2 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150 sm:[@media(pointer:coarse)]:opacity-100">
         <WidthToggle
           current={row.width}
-          supports={cfg?.supports ?? [1, 2, 3]}
+          supports={cardSupports}
           onChange={onChangeWidth}
         />
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          aria-label="Drag card"
-          className="h-7 w-7 flex items-center justify-center rounded-sm text-text-2 hover:text-text-0 bg-ink-2/60 hover:bg-ink-2 cursor-grab active:cursor-grabbing touch-none"
-        >
-          <span aria-hidden className="text-sm leading-none">⠿</span>
-        </button>
+        {draggable && (
+          <button
+            type="button"
+            {...dragAttributes}
+            {...dragListeners}
+            aria-label="Drag card"
+            className="h-7 w-7 flex items-center justify-center rounded-sm text-text-2 hover:text-text-0 bg-ink-2/60 hover:bg-ink-2 cursor-grab active:cursor-grabbing touch-none"
+          >
+            <span aria-hidden className="text-sm leading-none">⠿</span>
+          </button>
+        )}
         <button
           type="button"
           onClick={onHide}
@@ -556,15 +725,15 @@ function WidthToggle({
             aria-label={`Width ${w}`}
             title={
               enabled
-                ? `Width ${w} column${w === 1 ? "" : "s"}`
+                ? `Width ${w}${w === 1 ? " (column card)" : " (spanner)"}`
                 : `This card needs ${supports[0]}+ columns`
             }
             className={`h-7 w-7 flex items-center justify-center text-[11px] font-[family-name:var(--font-mono)] transition-colors ${
               active
                 ? "bg-glow-2 text-text-0"
                 : enabled
-                ? "text-text-1 hover:bg-ink-2 hover:text-text-0"
-                : "text-text-3 cursor-not-allowed opacity-50"
+                  ? "text-text-1 hover:bg-ink-2 hover:text-text-0"
+                  : "text-text-3 cursor-not-allowed opacity-50"
             }`}
           >
             {w}

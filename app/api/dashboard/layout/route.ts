@@ -4,6 +4,7 @@ import {
   CARD_REGISTRY,
   defaultLayout,
   reconcileLayout,
+  type CardCol,
   type CardLayoutRow,
   type CardWidth,
 } from "@/lib/dashboard/card-registry";
@@ -21,7 +22,7 @@ export async function GET() {
     const supabase = createServerClient();
     const { data } = await supabase
       .from("dashboard_layouts")
-      .select("card_key, position, width, hidden")
+      .select("card_key, col, position, width, hidden")
       .eq("user_id", uid);
     const stored = (data ?? []) as CardLayoutRow[];
     const layout = stored.length === 0
@@ -51,9 +52,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "layout required" }, { status: 400 });
   }
 
-  // Validate each row against the registry
+  // Validate each row against the registry. With the 3-column model,
+  // positions are unique per-column, not globally — guard against
+  // duplicates per col.
   const seenKeys = new Set<string>();
-  const seenPositions = new Set<number>();
+  const seenPositionsByCol = new Map<CardCol, Set<number>>([
+    [1, new Set()],
+    [2, new Set()],
+    [3, new Set()],
+  ]);
   for (const r of layout) {
     if (typeof r.card_key !== "string" || !CARD_REGISTRY[r.card_key]) {
       return NextResponse.json(
@@ -71,15 +78,28 @@ export async function POST(req: NextRequest) {
     const cfg = CARD_REGISTRY[r.card_key];
     if (!(cfg.supports as number[]).includes(r.width as CardWidth)) {
       return NextResponse.json(
-        {
-          error: `width ${r.width} not supported by ${r.card_key}`,
-        },
+        { error: `width ${r.width} not supported by ${r.card_key}` },
         { status: 400 }
       );
     }
-    if (typeof r.position !== "number" || seenPositions.has(r.position)) {
+    if (r.col !== 1 && r.col !== 2 && r.col !== 3) {
       return NextResponse.json(
-        { error: `invalid or duplicate position: ${r.position}` },
+        { error: `invalid col for ${r.card_key}: ${r.col}` },
+        { status: 400 }
+      );
+    }
+    if (typeof r.position !== "number") {
+      return NextResponse.json(
+        { error: `invalid position for ${r.card_key}` },
+        { status: 400 }
+      );
+    }
+    const seenPositions = seenPositionsByCol.get(r.col as CardCol)!;
+    if (seenPositions.has(r.position)) {
+      return NextResponse.json(
+        {
+          error: `duplicate position ${r.position} in col ${r.col}`,
+        },
         { status: 400 }
       );
     }
@@ -91,6 +111,7 @@ export async function POST(req: NextRequest) {
     const rows = layout.map((r) => ({
       user_id: uid,
       card_key: r.card_key,
+      col: r.col,
       position: r.position,
       width: r.width,
       hidden: !!r.hidden,
