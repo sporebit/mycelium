@@ -4,9 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Server-side count of raw_captures that need review for `userId`.
  *
  * Definition mirrors GET /api/captures/review?tab=needs_review:
- *   classification->>'confidence'     = 'low'
- *   OR classification->>'session_intent' = 'ambiguous'
- *   OR classification->>'kind'           = 'ambiguous'
+ *   classification->>'confidence' IN ('low', 'ambiguous')
+ *   OR classification->>'kind'    = 'ambiguous'
  *   OR (reviewed_at IS NULL AND created_at < now() - interval '1 hour')
  *   AND discarded_at IS NULL
  *
@@ -31,8 +30,7 @@ export async function fetchPendingReviewCount(
       .is("discarded_at", null)
       .or(
         [
-          `classification->>confidence.eq.low`,
-          `classification->>session_intent.eq.ambiguous`,
+          `classification->>confidence.in.(low,ambiguous)`,
           `classification->>kind.eq.ambiguous`,
           `and(reviewed_at.is.null,created_at.lt.${oneHourAgo})`,
         ].join(","),

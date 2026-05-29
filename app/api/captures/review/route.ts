@@ -25,9 +25,12 @@ export async function GET(req: NextRequest) {
   }
   const url = new URL(req.url);
   const tab = url.searchParams.get("tab") === "all" ? "all" : "needs_review";
+  // ALL tab defaults to 20 per page (per the spec); NEEDS REVIEW also
+  // honours the explicit `limit` query if passed but caps at 200 to keep
+  // the response cheap.
   const limit = Math.min(
     200,
-    Math.max(1, parseInt(url.searchParams.get("limit") ?? "50", 10) || 50),
+    Math.max(1, parseInt(url.searchParams.get("limit") ?? "20", 10) || 20),
   );
   const before = url.searchParams.get("before");
 
@@ -55,8 +58,7 @@ export async function GET(req: NextRequest) {
       const oneHourAgo = new Date(Date.now() - 60 * 60_000).toISOString();
       q = q.or(
         [
-          `classification->>confidence.eq.low`,
-          `classification->>session_intent.eq.ambiguous`,
+          `classification->>confidence.in.(low,ambiguous)`,
           `classification->>kind.eq.ambiguous`,
           `and(reviewed_at.is.null,created_at.lt.${oneHourAgo})`,
         ].join(","),
