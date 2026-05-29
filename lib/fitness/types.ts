@@ -72,6 +72,19 @@ export type ProgrammeDetail = Programme & {
   sessions: TemplateSession[];
 };
 
+export type SessionStatus =
+  | "active"
+  | "completed"
+  | "attempted"
+  | "abandoned";
+
+export const SESSION_STATUSES: readonly SessionStatus[] = [
+  "active",
+  "completed",
+  "attempted",
+  "abandoned",
+];
+
 export type LoggedSession = {
   id: string;
   user_id: string;
@@ -87,6 +100,8 @@ export type LoggedSession = {
   free_form_text: string | null;
   started_at: string | null;
   completed_at: string | null;
+  /** Lifecycle state — see migration 0016. */
+  status: SessionStatus;
   created_at: string;
   updated_at: string;
 };

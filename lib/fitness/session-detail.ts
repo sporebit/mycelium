@@ -8,7 +8,7 @@ import type {
 } from "./types";
 
 const SESSION_FIELDS =
-  "id, user_id, date, slot, kind, name, programme_session_id, calories, notes, free_form_text, started_at, completed_at, created_at, updated_at";
+  "id, user_id, date, slot, kind, name, programme_session_id, calories, notes, free_form_text, started_at, completed_at, status, created_at, updated_at";
 const SESSION_EX_FIELDS =
   "id, session_id, position, name, notes, comment, rest_seconds, duration_min, distance_km, intensity, programme_exercise_id, save_to_template, skipped, completed_at, added_at";
 const TEMPLATE_FIELDS =

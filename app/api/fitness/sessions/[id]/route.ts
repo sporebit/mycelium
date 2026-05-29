@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { loadSessionDetail } from "@/lib/fitness/session-detail";
+import { SESSION_STATUSES, type SessionStatus } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
@@ -33,6 +34,7 @@ type PatchBody = {
   started_at?: string | null;
   completed_at?: string | null;
   name?: string | null;
+  status?: SessionStatus;
 };
 
 export async function PATCH(
@@ -58,6 +60,18 @@ export async function PATCH(
   if (body.started_at !== undefined) update.started_at = body.started_at;
   if (body.completed_at !== undefined) {
     update.completed_at = body.completed_at;
+    // Keep status in sync with completed_at when the caller doesn't pass
+    // an explicit status: clearing completed_at reverts to 'active',
+    // setting it advances to 'completed'.
+    if (body.status === undefined) {
+      update.status = body.completed_at ? "completed" : "active";
+    }
+  }
+  if (body.status !== undefined) {
+    if (!SESSION_STATUSES.includes(body.status)) {
+      return NextResponse.json({ error: "invalid status" }, { status: 400 });
+    }
+    update.status = body.status;
   }
 
   try {

@@ -756,11 +756,17 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
   // ---------------------------------------------------------------------------
   // SESSION-LEVEL
   async function abandonSession() {
-    if (!window.confirm("Abandon this session? All logged sets will be deleted.")) {
+    if (
+      !window.confirm(
+        "Mark this session as abandoned? Any logged sets are kept; the session will be marked abandoned in history.",
+      )
+    ) {
       return;
     }
     const r = await fetch(`/api/fitness/sessions/${session.id}`, {
-      method: "DELETE",
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "abandoned" }),
     });
     if (r.ok) router.push("/fitness");
     else setToast({ kind: "error", text: "Abandon failed" });
