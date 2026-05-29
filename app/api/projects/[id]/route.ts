@@ -51,6 +51,51 @@ export async function GET(
       .eq("project_id", id)
       .is("completed_at", null);
     project.task_count = count ?? 0;
+
+    // Cost rollup from linked purchases. Estimated = sum of amount on
+    // every linked purchase, completed or not. Actual = sum of amount
+    // on completed ones only. We pick the currency of the most common
+    // linked purchase so the project displays a single symbol; mixed
+    // currencies fall back to GBP.
+    const { data: purchaseRows } = await supabase
+      .from("purchases")
+      .select("amount, currency, completed_at")
+      .eq("user_id", uid)
+      .eq("project_id", id);
+    type PurchaseAggRow = {
+      amount: number | string | null;
+      currency: string | null;
+      completed_at: string | null;
+    };
+    const rows = (purchaseRows ?? []) as PurchaseAggRow[];
+    let estimated = 0;
+    let actual = 0;
+    const currencyCounts = new Map<string, number>();
+    for (const r of rows) {
+      const amt =
+        typeof r.amount === "number"
+          ? r.amount
+          : typeof r.amount === "string"
+            ? Number(r.amount) || 0
+            : 0;
+      estimated += amt;
+      if (r.completed_at) actual += amt;
+      const cur = r.currency ?? "GBP";
+      currencyCounts.set(cur, (currencyCounts.get(cur) ?? 0) + 1);
+    }
+    let costCurrency = "GBP";
+    let best = -1;
+    for (const [cur, n] of currencyCounts.entries()) {
+      if (n > best) {
+        best = n;
+        costCurrency = cur;
+      }
+    }
+    project.estimated_cost = Math.round(estimated * 100) / 100;
+    project.actual_cost = Math.round(actual * 100) / 100;
+    project.cost_currency = costCurrency;
+    project.linked_purchase_count = rows.length;
+
     return NextResponse.json({ project });
   } catch (err) {
     console.error("[/api/projects/:id GET]", err);

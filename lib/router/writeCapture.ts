@@ -93,6 +93,7 @@ export async function writeCapture(
       amount: null,
       currency: "GBP",
       want_or_need: "unclear" as const,
+      list_type: "shopping" as const,
     };
     const { data: row, error: purErr } = await supabase
       .from("purchases")
@@ -103,6 +104,7 @@ export async function writeCapture(
         currency: purchase.currency,
         want_or_need: purchase.want_or_need,
         urgency: classification.urgency,
+        list_type: purchase.list_type,
         raw_capture_id: rawCapture.id,
       })
       .select("id")

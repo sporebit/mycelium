@@ -19,6 +19,13 @@ export const PURCHASE_WANT_OR_NEED: readonly PurchaseWantOrNeed[] = [
   "unclear",
 ];
 
+export type PurchaseListType = "shopping" | "wishlist";
+
+export const PURCHASE_LIST_TYPES: readonly PurchaseListType[] = [
+  "shopping",
+  "wishlist",
+];
+
 export type Purchase = {
   id: string;
   user_id: string;
@@ -27,6 +34,10 @@ export type Purchase = {
   currency: string;
   want_or_need: PurchaseWantOrNeed | null;
   urgency: PurchaseUrgency;
+  list_type: PurchaseListType;
+  project_id: string | null;
+  /** Populated server-side by the API GET when joining `projects.name`. */
+  project_name?: string | null;
   completed_at: string | null;
   raw_capture_id: string | null;
   created_at: string;

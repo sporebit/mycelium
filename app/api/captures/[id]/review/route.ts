@@ -200,6 +200,8 @@ async function createRoutedRow(
       wonRaw === "want" || wonRaw === "need" || wonRaw === "unclear"
         ? wonRaw
         : "unclear";
+    const ltRaw = purchaseRaw.list_type;
+    const listType = ltRaw === "wishlist" ? "wishlist" : "shopping";
     const { data, error } = await supabase
       .from("purchases")
       .insert({
@@ -209,6 +211,7 @@ async function createRoutedRow(
         currency,
         want_or_need: wantOrNeed,
         urgency,
+        list_type: listType,
         raw_capture_id: rawCaptureId,
       })
       .select("id")

@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
+import type { Project } from "@/lib/types/project";
 import {
   PURCHASE_URGENCIES,
   currencySymbol,
   type Purchase,
+  type PurchaseListType,
   type PurchaseUrgency,
   type PurchaseWantOrNeed,
 } from "@/lib/types/purchase";
@@ -60,17 +63,29 @@ function within30Days(iso: string): boolean {
 
 type Toast = { kind: "ok" | "error"; text: string } | null;
 
-export function PurchasesClient() {
+export function PurchasesClient({
+  initialProjectId,
+}: {
+  /** When set, the page filters to a single project. Used by the
+   *  project-detail purchases-page link. */
+  initialProjectId?: string;
+} = {}) {
   const [purchases, setPurchases] = useState<Purchase[] | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
   const [draft, setDraft] = useState("");
+  const [draftListType, setDraftListType] =
+    useState<PurchaseListType>("shopping");
   const [adding, setAdding] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast>(null);
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/purchases", { cache: "no-store" })
+    const url = initialProjectId
+      ? `/api/purchases?project_id=${encodeURIComponent(initialProjectId)}`
+      : "/api/purchases";
+    fetch(url, { cache: "no-store" })
       .then((r) => r.json())
       .then((j: { purchases?: Purchase[] }) => {
         if (cancelled) return;
@@ -80,10 +95,17 @@ export function PurchasesClient() {
         if (cancelled) return;
         setPurchases([]);
       });
+    fetch("/api/projects?status=active")
+      .then((r) => r.json())
+      .then((j: { projects?: Project[] }) => {
+        if (cancelled) return;
+        setProjects(Array.isArray(j?.projects) ? j.projects : []);
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialProjectId]);
 
   useEffect(() => {
     if (!toast) return;
@@ -105,7 +127,11 @@ export function PurchasesClient() {
       const res = await fetch("/api/purchases", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({
+          title,
+          list_type: draftListType,
+          project_id: initialProjectId ?? null,
+        }),
       });
       const j = (await res.json().catch(() => ({}))) as {
         purchase?: Purchase;
@@ -181,49 +207,82 @@ export function PurchasesClient() {
     });
   }
 
-  const { pending, purchased } = useMemo(() => {
-    const pendingList: Purchase[] = [];
+  const { shopping, wishlist, purchased } = useMemo(() => {
+    const shoppingList: Purchase[] = [];
+    const wishlistList: Purchase[] = [];
     const purchasedList: Purchase[] = [];
     for (const p of purchases ?? []) {
+      // Wishlist captures everything tagged as wishlist regardless of
+      // completion state — it's a long-running list, not a queue.
+      if (p.list_type === "wishlist") {
+        wishlistList.push(p);
+        continue;
+      }
+      // Shopping: pending goes to shopping, completed within 30d goes
+      // to purchased.
       if (p.completed_at) {
         if (within30Days(p.completed_at)) purchasedList.push(p);
       } else {
-        pendingList.push(p);
+        shoppingList.push(p);
       }
     }
     purchasedList.sort((a, b) =>
       (b.completed_at ?? "").localeCompare(a.completed_at ?? ""),
     );
-    return { pending: pendingList, purchased: purchasedList };
+    return {
+      shopping: shoppingList,
+      wishlist: wishlistList,
+      purchased: purchasedList,
+    };
   }, [purchases]);
 
-  const visiblePending = useMemo(() => {
-    if (filter === "all") return pending;
+  function applyFilter(list: Purchase[]): Purchase[] {
+    if (filter === "all") return list;
     if (filter === "want") {
-      return pending.filter((p) => p.want_or_need === "want");
+      return list.filter((p) => p.want_or_need === "want");
     }
     if (filter === "need") {
-      return pending.filter((p) => p.want_or_need === "need");
+      return list.filter((p) => p.want_or_need === "need");
     }
-    return pending.filter((p) => p.urgency === filter);
-  }, [pending, filter]);
+    return list.filter((p) => p.urgency === filter);
+  }
+
+  const visibleShopping = applyFilter(shopping);
+  const visibleWishlist = applyFilter(wishlist);
+
+  const projectName = initialProjectId
+    ? (purchases ?? []).find((p) => p.project_id === initialProjectId)
+        ?.project_name ??
+      projects.find((p) => p.id === initialProjectId)?.name ??
+      null
+    : null;
 
   return (
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
-          Purchases
+          {projectName ? `Purchases · ${projectName}` : "Purchases"}
         </h1>
         {purchases !== null && (
           <Mono className="text-[10px] text-ink-3">
-            {pending.length} PENDING · {purchased.length} PURCHASED
+            {shopping.length} SHOPPING · {wishlist.length} WISHLIST ·{" "}
+            {purchased.length} PURCHASED
           </Mono>
         )}
       </header>
 
+      {initialProjectId && (
+        <Link
+          href="/compost/purchases"
+          className="text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] inline-flex items-center gap-1 self-start"
+        >
+          ← All purchases
+        </Link>
+      )}
+
       <form
         onSubmit={addPurchase}
-        className="flex items-center gap-2 bg-ink-1 rounded-md px-3 py-2"
+        className="flex flex-wrap items-center gap-2 bg-ink-1 rounded-md px-3 py-2"
       >
         <span aria-hidden className="text-accent text-sm">
           🛍
@@ -233,9 +292,14 @@ export function PurchasesClient() {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           disabled={adding}
-          placeholder="Add a purchase (e.g. milk, batteries, Keychron keyboard)"
-          className="flex-1 bg-transparent outline-none text-sm text-text-0 placeholder:text-text-3"
+          placeholder={
+            draftListType === "wishlist"
+              ? "Add to wishlist (e.g. Sony XM5, leather jacket)"
+              : "Add a purchase (e.g. milk, batteries, keyboard)"
+          }
+          className="flex-1 min-w-[140px] bg-transparent outline-none text-sm text-text-0 placeholder:text-text-3"
         />
+        <ListTypeToggle value={draftListType} onChange={setDraftListType} />
         <button
           type="submit"
           disabled={!draft.trim() || adding}
@@ -271,66 +335,81 @@ export function PurchasesClient() {
         </div>
       ) : (
         <>
-          <section className="flex flex-col gap-2">
-            <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-              Pending {visiblePending.length > 0 && `(${visiblePending.length})`}
-            </h2>
-            {pending.length === 0 ? (
-              <div className="rounded-md bg-ink-1 p-8 text-center">
-                <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
-                  Nothing to buy. Voice &ldquo;buy X&rdquo; to add.
-                </p>
-              </div>
-            ) : visiblePending.length === 0 ? (
-              <div className="rounded-md bg-ink-1 p-6 text-center">
-                <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
-                  No pending purchases match this filter.
-                </p>
-              </div>
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {visiblePending.map((p) => (
-                  <PurchaseRow
-                    key={p.id}
-                    purchase={p}
-                    busy={busyId === p.id}
-                    onToggle={() => togglePurchased(p)}
-                    onChangeWantOrNeed={(v) =>
-                      void patchPurchase(p.id, { want_or_need: v })
-                    }
-                    onChangeUrgency={(v) =>
-                      void patchPurchase(p.id, { urgency: v })
-                    }
-                    onDelete={() => void deletePurchase(p.id)}
-                  />
-                ))}
-              </ul>
-            )}
-          </section>
+          <Section
+            heading="Shopping"
+            visible={visibleShopping}
+            sectionTotal={shopping.length}
+            emptyAll="Nothing to buy. Voice &ldquo;buy X&rdquo; to add."
+            emptyFiltered="No shopping items match this filter."
+            rows={visibleShopping}
+            projects={projects}
+            busyId={busyId}
+            onToggle={togglePurchased}
+            onChangeWantOrNeed={(p, v) =>
+              void patchPurchase(p.id, { want_or_need: v })
+            }
+            onChangeUrgency={(p, v) =>
+              void patchPurchase(p.id, { urgency: v })
+            }
+            onChangeProject={(p, v) =>
+              void patchPurchase(p.id, { project_id: v })
+            }
+            onChangeListType={(p, v) =>
+              void patchPurchase(p.id, { list_type: v })
+            }
+            onDelete={(p) => void deletePurchase(p.id)}
+          />
+
+          <Section
+            heading="Wishlist"
+            visible={visibleWishlist}
+            sectionTotal={wishlist.length}
+            emptyAll="No wishlist items yet. Toggle the add box to WISHLIST to start one."
+            emptyFiltered="No wishlist items match this filter."
+            rows={visibleWishlist}
+            projects={projects}
+            busyId={busyId}
+            onToggle={togglePurchased}
+            onChangeWantOrNeed={(p, v) =>
+              void patchPurchase(p.id, { want_or_need: v })
+            }
+            onChangeUrgency={(p, v) =>
+              void patchPurchase(p.id, { urgency: v })
+            }
+            onChangeProject={(p, v) =>
+              void patchPurchase(p.id, { project_id: v })
+            }
+            onChangeListType={(p, v) =>
+              void patchPurchase(p.id, { list_type: v })
+            }
+            onDelete={(p) => void deletePurchase(p.id)}
+          />
 
           {purchased.length > 0 && (
-            <section className="flex flex-col gap-2 mt-2">
-              <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-                Purchased · last 30 days ({purchased.length})
-              </h2>
-              <ul className="flex flex-col gap-2">
-                {purchased.map((p) => (
-                  <PurchaseRow
-                    key={p.id}
-                    purchase={p}
-                    busy={busyId === p.id}
-                    onToggle={() => togglePurchased(p)}
-                    onChangeWantOrNeed={(v) =>
-                      void patchPurchase(p.id, { want_or_need: v })
-                    }
-                    onChangeUrgency={(v) =>
-                      void patchPurchase(p.id, { urgency: v })
-                    }
-                    onDelete={() => void deletePurchase(p.id)}
-                  />
-                ))}
-              </ul>
-            </section>
+            <Section
+              heading="Purchased · last 30 days"
+              visible={purchased}
+              sectionTotal={purchased.length}
+              emptyAll=""
+              emptyFiltered=""
+              rows={purchased}
+              projects={projects}
+              busyId={busyId}
+              onToggle={togglePurchased}
+              onChangeWantOrNeed={(p, v) =>
+                void patchPurchase(p.id, { want_or_need: v })
+              }
+              onChangeUrgency={(p, v) =>
+                void patchPurchase(p.id, { urgency: v })
+              }
+              onChangeProject={(p, v) =>
+                void patchPurchase(p.id, { project_id: v })
+              }
+              onChangeListType={(p, v) =>
+                void patchPurchase(p.id, { list_type: v })
+              }
+              onDelete={(p) => void deletePurchase(p.id)}
+            />
           )}
         </>
       )}
@@ -351,26 +430,135 @@ export function PurchasesClient() {
   );
 }
 
+function ListTypeToggle({
+  value,
+  onChange,
+}: {
+  value: PurchaseListType;
+  onChange: (next: PurchaseListType) => void;
+}) {
+  return (
+    <div className="inline-flex rounded-sm border border-ink-2 overflow-hidden text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em]">
+      {(["shopping", "wishlist"] as const).map((v) => {
+        const active = value === v;
+        return (
+          <button
+            key={v}
+            type="button"
+            onClick={() => onChange(v)}
+            className={`px-2 py-1 transition-colors ${
+              active
+                ? "bg-accent/15 text-accent"
+                : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/40"
+            }`}
+          >
+            {v === "shopping" ? "SHOPPING" : "WISHLIST"}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function Section({
+  heading,
+  visible,
+  sectionTotal,
+  emptyAll,
+  emptyFiltered,
+  rows,
+  projects,
+  busyId,
+  onToggle,
+  onChangeWantOrNeed,
+  onChangeUrgency,
+  onChangeProject,
+  onChangeListType,
+  onDelete,
+}: {
+  heading: string;
+  visible: Purchase[];
+  sectionTotal: number;
+  emptyAll: string;
+  emptyFiltered: string;
+  rows: Purchase[];
+  projects: Project[];
+  busyId: string | null;
+  onToggle: (p: Purchase) => void;
+  onChangeWantOrNeed: (p: Purchase, v: PurchaseWantOrNeed) => void;
+  onChangeUrgency: (p: Purchase, v: PurchaseUrgency) => void;
+  onChangeProject: (p: Purchase, v: string | null) => void;
+  onChangeListType: (p: Purchase, v: PurchaseListType) => void;
+  onDelete: (p: Purchase) => void;
+}) {
+  if (sectionTotal === 0 && !emptyAll) return null;
+  return (
+    <section className="flex flex-col gap-2 mt-2 first:mt-0">
+      <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        {heading}
+        {sectionTotal > 0 && ` (${sectionTotal})`}
+      </h2>
+      {sectionTotal === 0 ? (
+        <div className="rounded-md bg-ink-1 p-8 text-center">
+          <p
+            className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]"
+            dangerouslySetInnerHTML={{ __html: emptyAll }}
+          />
+        </div>
+      ) : visible.length === 0 ? (
+        <div className="rounded-md bg-ink-1 p-6 text-center">
+          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+            {emptyFiltered}
+          </p>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {rows.map((p) => (
+            <PurchaseRow
+              key={p.id}
+              purchase={p}
+              projects={projects}
+              busy={busyId === p.id}
+              onToggle={() => onToggle(p)}
+              onChangeWantOrNeed={(v) => onChangeWantOrNeed(p, v)}
+              onChangeUrgency={(v) => onChangeUrgency(p, v)}
+              onChangeProject={(v) => onChangeProject(p, v)}
+              onChangeListType={(v) => onChangeListType(p, v)}
+              onDelete={() => onDelete(p)}
+            />
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 function PurchaseRow({
   purchase,
+  projects,
   busy,
   onToggle,
   onChangeWantOrNeed,
   onChangeUrgency,
+  onChangeProject,
+  onChangeListType,
   onDelete,
 }: {
   purchase: Purchase;
+  projects: Project[];
   busy: boolean;
   onToggle: () => void;
   onChangeWantOrNeed: (v: PurchaseWantOrNeed) => void;
   onChangeUrgency: (v: PurchaseUrgency) => void;
+  onChangeProject: (v: string | null) => void;
+  onChangeListType: (v: PurchaseListType) => void;
   onDelete: () => void;
 }) {
   const purchased = !!purchase.completed_at;
   const amount = fmtAmount(purchase);
   return (
     <li
-      className={`group flex items-center gap-3 bg-ink-1 rounded-md px-3 py-2.5 ${
+      className={`group flex flex-wrap items-center gap-2 sm:gap-3 bg-ink-1 rounded-md px-3 py-2.5 ${
         purchased ? "opacity-60" : ""
       }`}
     >
@@ -406,7 +594,7 @@ function PurchaseRow({
         {wantOrNeedLabel(purchase.want_or_need)}
       </button>
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-[120px]">
         <div
           className={`text-sm leading-snug truncate ${
             purchased ? "text-ink-3 line-through" : "text-text-0"
@@ -416,11 +604,57 @@ function PurchaseRow({
         </div>
       </div>
 
+      {purchase.project_id && purchase.project_name && (
+        <Link
+          href={`/compost/projects/${purchase.project_id}`}
+          className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-accent/40 bg-accent/10 text-accent shrink-0 max-w-[140px] truncate"
+          onClick={(e) => e.stopPropagation()}
+        >
+          ◆ {purchase.project_name}
+        </Link>
+      )}
+
       {amount && (
         <Mono className="text-[11px] text-ink-3 shrink-0 tabular-nums">
           {amount}
         </Mono>
       )}
+
+      <select
+        value={purchase.project_id ?? ""}
+        onChange={(e) => onChangeProject(e.target.value || null)}
+        disabled={busy}
+        className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-ink-0/40 border-ink-2 text-ink-3 cursor-pointer max-w-[120px]"
+        title="Project"
+      >
+        <option value="">— PROJECT —</option>
+        {projects.map((proj) => (
+          <option key={proj.id} value={proj.id}>
+            {proj.name}
+          </option>
+        ))}
+        {/* Show currently-linked project even if archived/completed */}
+        {purchase.project_id &&
+          !projects.some((p) => p.id === purchase.project_id) &&
+          purchase.project_name && (
+            <option value={purchase.project_id}>
+              {purchase.project_name}
+            </option>
+          )}
+      </select>
+
+      <select
+        value={purchase.list_type}
+        onChange={(e) =>
+          onChangeListType(e.target.value as PurchaseListType)
+        }
+        disabled={busy}
+        className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-ink-0/40 border-ink-2 text-ink-3 cursor-pointer"
+        title="List"
+      >
+        <option value="shopping">SHOPPING</option>
+        <option value="wishlist">WISHLIST</option>
+      </select>
 
       <select
         value={purchase.urgency}

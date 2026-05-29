@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import {
+  PURCHASE_LIST_TYPES,
   PURCHASE_URGENCIES,
   PURCHASE_WANT_OR_NEED,
   type Purchase,
@@ -9,7 +10,18 @@ import {
 export const runtime = "nodejs";
 
 const PURCHASE_SELECT =
-  "id, user_id, title, amount, currency, want_or_need, urgency, completed_at, raw_capture_id, created_at, updated_at";
+  "id, user_id, title, amount, currency, want_or_need, urgency, list_type, project_id, completed_at, raw_capture_id, created_at, updated_at, projects(name)";
+
+type PurchaseRow = Omit<Purchase, "project_name"> & {
+  projects: { name: string } | { name: string }[] | null;
+};
+
+function serialize(row: PurchaseRow): Purchase {
+  const proj = Array.isArray(row.projects) ? row.projects[0] : row.projects;
+  const { projects: _projects, ...rest } = row;
+  void _projects;
+  return { ...rest, project_name: proj?.name ?? null };
+}
 
 const ALLOWED_FIELDS = new Set([
   "title",
@@ -17,6 +29,8 @@ const ALLOWED_FIELDS = new Set([
   "currency",
   "want_or_need",
   "urgency",
+  "list_type",
+  "project_id",
   "completed_at",
 ]);
 
@@ -77,6 +91,18 @@ export async function PATCH(
       update.currency = v.trim().toUpperCase() || "GBP";
       continue;
     }
+    if (k === "list_type") {
+      if (
+        typeof v !== "string" ||
+        !PURCHASE_LIST_TYPES.includes(v as (typeof PURCHASE_LIST_TYPES)[number])
+      ) {
+        continue;
+      }
+    }
+    if (k === "project_id") {
+      // Allow null to clear, string to set; ignore other types.
+      if (v !== null && typeof v !== "string") continue;
+    }
     update[k] = v;
   }
   update.updated_at = new Date().toISOString();
@@ -96,7 +122,9 @@ export async function PATCH(
         { status: 404 },
       );
     }
-    return NextResponse.json({ purchase: data as Purchase });
+    return NextResponse.json({
+      purchase: serialize(data as unknown as PurchaseRow),
+    });
   } catch (err) {
     console.error("[/api/purchases/:id PATCH]", err);
     return NextResponse.json({ error: "update failed" }, { status: 500 });

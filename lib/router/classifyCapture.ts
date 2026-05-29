@@ -24,6 +24,8 @@ export type ClassificationMention = {
 
 export type PurchaseWantOrNeed = "want" | "need" | "unclear";
 
+export type PurchaseListType = "shopping" | "wishlist";
+
 /** Purchase-specific fields the classifier extracts in the same pass as
  *  kind/title/urgency. Only meaningful when kind === 'purchase'; for
  *  every other kind this stays null so downstream code can branch on
@@ -32,6 +34,11 @@ export type PurchaseDetails = {
   amount: number | null;
   currency: string;
   want_or_need: PurchaseWantOrNeed;
+  /** 'shopping' = active to-buy list (default). 'wishlist' = aspirational
+   *  list with no immediate intent to purchase. The classifier upgrades
+   *  to 'wishlist' on explicit signals like "add to wishlist" or "want
+   *  someday". */
+  list_type: PurchaseListType;
 };
 
 export type Classification = {
@@ -66,6 +73,11 @@ const PURCHASE_WANT_OR_NEED: readonly PurchaseWantOrNeed[] = [
   "want",
   "need",
   "unclear",
+];
+
+const PURCHASE_LIST_TYPES: readonly PurchaseListType[] = [
+  "shopping",
+  "wishlist",
 ];
 const URGENCIES: readonly CaptureUrgency[] = [
   "today",
@@ -121,6 +133,8 @@ Examples:
   - "Thinking of getting that new Keychron keyboard, like £160" -> purchase (amount: 160, currency: GBP, want_or_need: want)
   - "Pick up a birthday card for mum" -> purchase
   - "Order more protein powder, we're running out" -> purchase (want_or_need: need)
+  - "Add the Sony WH-1000XM5 to my wishlist, like £350" -> purchase (list_type: wishlist, amount: 350)
+  - "Wishlist: leather jacket, eventually" -> purchase (list_type: wishlist, want_or_need: want)
 
 Other fields:
 - "urgency" is one of: today, this_week, this_month, someday. For journal entries this is unused — pick "someday".
@@ -135,10 +149,11 @@ Other fields:
   Skip: company/brand names, place names, bare pronouns, generic roles ("the doctor") unless capitalised or named.
   Output [] if none.
 - "purchase" is an object ONLY when kind = "purchase"; null for every other kind. Shape:
-    { "amount": <number or null>, "currency": <ISO code string, default "GBP">, "want_or_need": "want" | "need" | "unclear" }
+    { "amount": <number or null>, "currency": <ISO code string, default "GBP">, "want_or_need": "want" | "need" | "unclear", "list_type": "shopping" | "wishlist" }
     - amount: parse digits in £/$/€ context, "£85" → 85, "85 quid" → 85, "around 35" → 35. Null if not stated.
     - currency: infer from symbol (£ → GBP, $ → USD, € → EUR). Default GBP.
     - want_or_need: "need" for "need / must / have to / running out / out of / it's overdue". "want" for "want / would like / thinking about / fancy". "unclear" if ambiguous.
+    - list_type: "wishlist" only when the user explicitly signals it — phrases like "add to wishlist", "on my wishlist", "wishlist", "want someday", "for the wishlist", "would love eventually", or aspirational language with no near-term intent. Everything else (including "want", "fancy", "thinking about") stays "shopping" because shopping is the active to-buy list and wishlist is the aspirational set-aside.
 
 Respond ONLY with a single JSON object matching this schema. No markdown, no preface.`;
 
@@ -215,7 +230,13 @@ function validate(obj: unknown): Classification | null {
     )
       ? (wonRaw as PurchaseWantOrNeed)
       : "unclear";
-    purchase = { amount, currency, want_or_need };
+    const ltRaw = (p as Record<string, unknown>).list_type;
+    const list_type: PurchaseListType = PURCHASE_LIST_TYPES.includes(
+      ltRaw as PurchaseListType,
+    )
+      ? (ltRaw as PurchaseListType)
+      : "shopping";
+    purchase = { amount, currency, want_or_need, list_type };
   }
 
   return {
@@ -356,7 +377,14 @@ function extractPurchaseFromText(text: string): PurchaseDetails {
   ) {
     want_or_need = "want";
   }
-  return { amount, currency, want_or_need };
+  // Wishlist needs an explicit signal — never inferred from "want" alone.
+  const list_type: PurchaseListType =
+    /\b(wish ?list|on my wish|want someday|would love eventually|for the wish ?list|aspirational)\b/.test(
+      lower,
+    )
+      ? "wishlist"
+      : "shopping";
+  return { amount, currency, want_or_need, list_type };
 }
 
 function classifyRegex(text: string): Classification {
