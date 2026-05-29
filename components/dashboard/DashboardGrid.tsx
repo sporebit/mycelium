@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ComponentType,
 } from "react";
 import {
@@ -44,6 +45,24 @@ import {
   type CardWidth,
 } from "@/lib/dashboard/card-registry";
 
+const MOBILE_QUERY = "(max-width: 639px)";
+
+function subscribeMobile(callback: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const mq = window.matchMedia(MOBILE_QUERY);
+  mq.addEventListener("change", callback);
+  return () => mq.removeEventListener("change", callback);
+}
+
+function getMobileSnapshot(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(MOBILE_QUERY).matches;
+}
+
+function getMobileServerSnapshot(): boolean {
+  return false;
+}
+
 const CARD_COMPONENTS: Record<string, ComponentType<{ width: CardWidth }>> = {
   operator: Operator,
   session: Session,
@@ -63,6 +82,15 @@ export function DashboardGrid() {
   const [showSettings, setShowSettings] = useState(false);
   const [hideConfirm, setHideConfirm] = useState<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // SSR-safe viewport pin: server snapshot returns desktop, client snapshot
+  // reads matchMedia. Avoids the cascading-render lint that synchronously
+  // calling setIsMobile in an effect would trigger.
+  const isMobile = useSyncExternalStore(
+    subscribeMobile,
+    getMobileSnapshot,
+    getMobileServerSnapshot,
+  );
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -215,25 +243,91 @@ export function DashboardGrid() {
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={visibleIds} strategy={rectSortingStrategy}>
-            {/* Masonry-mode CSS Grid removes the row-lock that left gaps
-                under shorter cards. Browsers without masonry support
-                (older Chromium) fall back to the standard grid, which
-                still works with drag-reorder and width toggles. */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start [grid-template-rows:masonry]">
-              {visibleCards.map((row) => {
-                const Component = CARD_COMPONENTS[row.card_key];
-                return (
-                  <SortableCardWrapper
-                    key={row.card_key}
-                    row={row}
-                    onChangeWidth={(w) => changeWidth(row.card_key, w)}
-                    onHide={() => setHideConfirm(row.card_key)}
-                  >
-                    <Component width={row.width} />
-                  </SortableCardWrapper>
-                );
-              })}
-            </div>
+            {/* True per-column masonry: each section that contains 1-wide
+                cards renders two independent flex-col columns that flow
+                vertically without row-locking. Cards alternate by source
+                order (even index → left column, odd → right) so the linear
+                drag list maps to a deterministic layout. Full-width cards
+                act as section separators and span both columns. Mobile
+                collapses to a flat single-column stack in source order. */}
+            {isMobile ? (
+              <div className="flex flex-col gap-4">
+                {visibleCards.map((row) => {
+                  const Component = CARD_COMPONENTS[row.card_key];
+                  return (
+                    <SortableCardWrapper
+                      key={row.card_key}
+                      row={row}
+                      onChangeWidth={(w) => changeWidth(row.card_key, w)}
+                      onHide={() => setHideConfirm(row.card_key)}
+                    >
+                      <Component width={row.width} />
+                    </SortableCardWrapper>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {buildSections(visibleCards).map((section, idx) => {
+                  if (section.type === "full") {
+                    const row = section.card;
+                    const Component = CARD_COMPONENTS[row.card_key];
+                    return (
+                      <SortableCardWrapper
+                        key={row.card_key}
+                        row={row}
+                        onChangeWidth={(w) => changeWidth(row.card_key, w)}
+                        onHide={() => setHideConfirm(row.card_key)}
+                      >
+                        <Component width={row.width} />
+                      </SortableCardWrapper>
+                    );
+                  }
+                  const { col1, col2 } = splitPairColumns(section.cards);
+                  return (
+                    <div
+                      key={`pair-${idx}`}
+                      className="grid grid-cols-2 gap-4 items-start"
+                    >
+                      <div className="flex flex-col gap-4">
+                        {col1.map((row) => {
+                          const Component = CARD_COMPONENTS[row.card_key];
+                          return (
+                            <SortableCardWrapper
+                              key={row.card_key}
+                              row={row}
+                              onChangeWidth={(w) =>
+                                changeWidth(row.card_key, w)
+                              }
+                              onHide={() => setHideConfirm(row.card_key)}
+                            >
+                              <Component width={row.width} />
+                            </SortableCardWrapper>
+                          );
+                        })}
+                      </div>
+                      <div className="flex flex-col gap-4">
+                        {col2.map((row) => {
+                          const Component = CARD_COMPONENTS[row.card_key];
+                          return (
+                            <SortableCardWrapper
+                              key={row.card_key}
+                              row={row}
+                              onChangeWidth={(w) =>
+                                changeWidth(row.card_key, w)
+                              }
+                              onHide={() => setHideConfirm(row.card_key)}
+                            >
+                              <Component width={row.width} />
+                            </SortableCardWrapper>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </SortableContext>
         </DndContext>
       )}
@@ -260,6 +354,47 @@ export function DashboardGrid() {
   );
 }
 
+/** Group ordered visible cards into sections: full-width cards (width=2)
+ *  separate buffers of 1-wide cards. Each "pair" buffer renders as a
+ *  2-col masonry; each "full" card renders as a section-spanning row. */
+type CardSection =
+  | { type: "pair"; cards: CardLayoutRow[] }
+  | { type: "full"; card: CardLayoutRow };
+
+function buildSections(cards: CardLayoutRow[]): CardSection[] {
+  const sections: CardSection[] = [];
+  let buffer: CardLayoutRow[] = [];
+  for (const card of cards) {
+    if (card.width === 2) {
+      if (buffer.length > 0) {
+        sections.push({ type: "pair", cards: buffer });
+        buffer = [];
+      }
+      sections.push({ type: "full", card });
+    } else {
+      buffer.push(card);
+    }
+  }
+  if (buffer.length > 0) sections.push({ type: "pair", cards: buffer });
+  return sections;
+}
+
+/** Even-indexed cards go in the left column, odd-indexed in the right.
+ *  Source order is preserved, so reordering via drag deterministically
+ *  flows into a per-column masonry without needing height measurement. */
+function splitPairColumns(cards: CardLayoutRow[]): {
+  col1: CardLayoutRow[];
+  col2: CardLayoutRow[];
+} {
+  const col1: CardLayoutRow[] = [];
+  const col2: CardLayoutRow[] = [];
+  cards.forEach((c, i) => {
+    if (i % 2 === 0) col1.push(c);
+    else col2.push(c);
+  });
+  return { col1, col2 };
+}
+
 function SortableCardWrapper({
   row,
   onChangeWidth,
@@ -275,16 +410,6 @@ function SortableCardWrapper({
     useSortable({ id: row.card_key });
   const cfg = CARD_REGISTRY[row.card_key];
 
-  // Desktop grid spans 3 cols, so saved width maps directly. Mobile and
-  // tablet ignore via responsive Tailwind utilities — col-span only fires
-  // at lg+.
-  const spanClass =
-    row.width === 3
-      ? "lg:col-span-3"
-      : row.width === 2
-      ? "lg:col-span-2"
-      : "lg:col-span-1";
-
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -295,7 +420,7 @@ function SortableCardWrapper({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative ${spanClass} ${
+      className={`group relative ${
         isDragging ? "ring-1 ring-glow-2/60 shadow-2xl rounded-md" : ""
       }`}
     >
@@ -341,7 +466,7 @@ function WidthToggle({
 }) {
   return (
     <div className="hidden sm:flex rounded-sm bg-ink-2/60 overflow-hidden">
-      {([1, 2, 3] as CardWidth[]).map((w) => {
+      {([1, 2] as CardWidth[]).map((w) => {
         const enabled = supports.includes(w);
         const active = current === w;
         return (

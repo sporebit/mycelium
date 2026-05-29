@@ -18,17 +18,17 @@ export type CardConfig = {
 };
 
 export const CARD_REGISTRY: Record<string, CardConfig> = {
-  operator:      { label: "Operator",      supports: [1, 2, 3], default_width: 1, default_position: 0 },
-  session:       { label: "Session",       supports: [1, 2, 3], default_width: 1, default_position: 1 },
-  finance_pulse: { label: "Finance Pulse", supports: [1, 2, 3], default_width: 2, default_position: 2 },
-  habits:        { label: "Habits",        supports: [1, 2, 3], default_width: 1, default_position: 3 },
-  goals:         { label: "Goals",         supports: [1, 2, 3], default_width: 1, default_position: 4 },
-  key_blockers:  { label: "Key Blockers",  supports: [1, 2, 3], default_width: 2, default_position: 5 },
-  journal:       { label: "Journal",       supports: [1, 2, 3], default_width: 1, default_position: 6 },
-  calendar:      { label: "Calendar",      supports: [2, 3],    default_width: 3, default_position: 7 },
-  nutrition:     { label: "Nutrition",     supports: [1, 2, 3], default_width: 1, default_position: 8 },
-  fitness:       { label: "Fitness",       supports: [1, 2, 3], default_width: 1, default_position: 9 },
-  fuel:          { label: "Fuel",          supports: [1, 2, 3], default_width: 1, default_position: 10 },
+  operator:      { label: "Operator",      supports: [1, 2], default_width: 1, default_position: 0 },
+  session:       { label: "Session",       supports: [1, 2], default_width: 1, default_position: 1 },
+  finance_pulse: { label: "Finance Pulse", supports: [1, 2], default_width: 2, default_position: 2 },
+  habits:        { label: "Habits",        supports: [1, 2], default_width: 1, default_position: 3 },
+  goals:         { label: "Goals",         supports: [1, 2], default_width: 1, default_position: 4 },
+  key_blockers:  { label: "Key Blockers",  supports: [1, 2], default_width: 2, default_position: 5 },
+  journal:       { label: "Journal",       supports: [1, 2], default_width: 1, default_position: 6 },
+  calendar:      { label: "Calendar",      supports: [2],    default_width: 2, default_position: 7 },
+  nutrition:     { label: "Nutrition",     supports: [1, 2], default_width: 1, default_position: 8 },
+  fitness:       { label: "Fitness",       supports: [1, 2], default_width: 1, default_position: 9 },
+  fuel:          { label: "Fuel",          supports: [1, 2], default_width: 1, default_position: 10 },
 };
 
 export const CARD_KEYS = Object.keys(CARD_REGISTRY);
