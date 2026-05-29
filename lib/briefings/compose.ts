@@ -114,5 +114,15 @@ export function composeMessage(
     );
   }
 
+  // CAPTURE REVIEW — only when there's a backlog. One terse line at the
+  // foot of the message so the daily summary stays quiet when triage is
+  // up to date.
+  if (data.reviewCount > 0) {
+    const noun = data.reviewCount === 1 ? "capture" : "captures";
+    sections.push(
+      `📥 ${data.reviewCount} ${noun} need review → mycelium.sporebit.com/compost/captures/review`,
+    );
+  }
+
   return sections.join("\n\n");
 }

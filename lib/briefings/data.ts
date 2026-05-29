@@ -12,6 +12,7 @@ import {
   getSnapshotHistory,
 } from "@/lib/finance/persistSnapshot";
 import { fetchWeather, type Weather } from "./weather";
+import { fetchPendingReviewCount } from "@/lib/captures/reviewCount";
 import type { FinanceData } from "@/lib/finance/types";
 
 export type BriefingData = {
@@ -27,6 +28,9 @@ export type BriefingData = {
     pct: number | null;
   } | null;
   weather: Weather | null;
+  /** Captures awaiting triage at briefing time. Surfaced in the footer
+   *  when > 0; suppressed otherwise so the daily summary stays quiet. */
+  reviewCount: number;
 };
 
 function startOfTodayLocal(dateKey: string): Date {
@@ -179,16 +183,25 @@ export async function gatherBriefingData(
 ): Promise<BriefingData> {
   const yesterdayKey = previousDateKey(dateKey);
 
-  const [calendarRes, topTasks, blockers, habits, streakDays, finance, weather] =
-    await Promise.allSettled([
-      getCalendarData(),
-      fetchTopTasks(userId),
-      fetchTopBlockers(userId, dateKey),
-      fetchYesterdayHabits(userId, yesterdayKey),
-      computeStreak(createServerClient(), userId, "Europe/London"),
-      fetchFinanceWithDelta(userId, dateKey),
-      fetchWeather(),
-    ]);
+  const [
+    calendarRes,
+    topTasks,
+    blockers,
+    habits,
+    streakDays,
+    finance,
+    weather,
+    reviewCount,
+  ] = await Promise.allSettled([
+    getCalendarData(),
+    fetchTopTasks(userId),
+    fetchTopBlockers(userId, dateKey),
+    fetchYesterdayHabits(userId, yesterdayKey),
+    computeStreak(createServerClient(), userId, "Europe/London"),
+    fetchFinanceWithDelta(userId, dateKey),
+    fetchWeather(),
+    fetchPendingReviewCount(createServerClient(), userId),
+  ]);
 
   const calendarEvents =
     calendarRes.status === "fulfilled"
@@ -211,5 +224,7 @@ export async function gatherBriefingData(
     streak: streakDays.status === "fulfilled" ? streakDays.value : 0,
     finance: finance.status === "fulfilled" ? finance.value : null,
     weather: weather.status === "fulfilled" ? weather.value : null,
+    reviewCount:
+      reviewCount.status === "fulfilled" ? reviewCount.value : 0,
   };
 }
