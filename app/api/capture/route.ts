@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { classification, llm_source } = await classifyCapture(text);
+    const { classification, llm_source } = await classifyCapture(text, userId);
     const result = await writeCapture({
       userId,
       source: "web",

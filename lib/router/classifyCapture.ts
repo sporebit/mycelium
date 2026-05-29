@@ -96,6 +96,11 @@ const MOODS: readonly CaptureMood[] = [
   "neutral",
 ];
 
+/** Base prompt. The user's enabled capture routing rules are
+ *  prepended at call time via buildCaptureRulesBlock — they override
+ *  the static defaults below when they conflict. Exported for use by
+ *  the rules tester endpoint (POST /api/routing-rules/test) which
+ *  needs to render the prompt the LLM actually sees. */
 export const CLASSIFIER_SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
 
 Rules:
@@ -272,7 +277,8 @@ function extractJson(text: string): unknown {
 }
 
 async function classifyAnthropic(
-  text: string
+  text: string,
+  systemPrompt: string,
 ): Promise<Classification | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   const model = process.env.ANTHROPIC_MODEL;
@@ -288,7 +294,7 @@ async function classifyAnthropic(
     body: JSON.stringify({
       model,
       max_tokens: 512,
-      system: CLASSIFIER_SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: [{ role: "user", content: text }],
     }),
   });
@@ -305,7 +311,8 @@ async function classifyAnthropic(
 }
 
 async function classifyOpenAI(
-  text: string
+  text: string,
+  systemPrompt: string,
 ): Promise<Classification | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.OPENAI_CLASSIFIER_MODEL;
@@ -321,7 +328,7 @@ async function classifyOpenAI(
       model,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: CLASSIFIER_SYSTEM_PROMPT },
+        { role: "system", content: systemPrompt },
         { role: "user", content: text },
       ],
     }),
@@ -465,16 +472,41 @@ function classifyRegex(text: string): Classification {
   };
 }
 
-export async function classifyCapture(text: string): Promise<ClassifyResult> {
+/** Build the system prompt the LLM sees: user-defined capture rules
+ *  block first (if any), then the static base. Exported so the test
+ *  endpoint can render the exact prompt for diagnostics. */
+export async function buildClassifierSystemPrompt(
+  userId?: string,
+): Promise<string> {
+  if (!userId) return CLASSIFIER_SYSTEM_PROMPT;
+  // Lazy import to avoid a hard dependency cycle with lib/router/rules
+  // (rules.ts pulls supabase server, which can pull this file via the
+  // writeCapture chain during test imports).
+  const { buildCaptureRulesBlock } = await import("./rules");
+  const rulesBlock = await buildCaptureRulesBlock(userId);
+  return rulesBlock
+    ? `${rulesBlock}\n\n${CLASSIFIER_SYSTEM_PROMPT}`
+    : CLASSIFIER_SYSTEM_PROMPT;
+}
+
+export async function classifyCapture(
+  text: string,
+  /** Pulls user-defined capture rules into the system prompt.
+   *  Optional — without a user id the classifier falls back to the
+   *  base prompt, so legacy/test call sites keep working. */
+  userId?: string,
+): Promise<ClassifyResult> {
+  const systemPrompt = await buildClassifierSystemPrompt(userId);
+
   try {
-    const anthropic = await classifyAnthropic(text);
+    const anthropic = await classifyAnthropic(text, systemPrompt);
     if (anthropic) return { classification: anthropic, llm_source: "anthropic" };
   } catch (err) {
     console.error("[classifier] anthropic error:", err);
   }
 
   try {
-    const openai = await classifyOpenAI(text);
+    const openai = await classifyOpenAI(text, systemPrompt);
     if (openai) return { classification: openai, llm_source: "openai" };
   } catch (err) {
     console.error("[classifier] openai error:", err);

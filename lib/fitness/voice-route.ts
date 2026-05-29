@@ -162,7 +162,7 @@ export async function routeRawVoice(
 > {
   const supabase = createServerClient();
   const context = await buildVoiceContext(supabase, userId);
-  const parsed = await parseWorkoutVoice(rawText, context);
+  const parsed = await parseWorkoutVoice(rawText, context, userId);
   return await applyDecisionTree(supabase, userId, rawText, parsed, context);
 }
 

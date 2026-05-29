@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
   if (forcedKind) {
     kind = forcedKind;
   } else {
-    const { classification } = await classifyCapture(trimmed);
+    const { classification } = await classifyCapture(trimmed, uid);
     kind = classification.kind;
   }
 
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
   // Non-workout: run the existing capture pipeline so we still write raw_captures,
   // tasks/notes/etc.
   try {
-    const { classification, llm_source } = await classifyCapture(trimmed);
+    const { classification, llm_source } = await classifyCapture(trimmed, uid);
     const result = await writeCapture({
       userId: uid,
       source: "api",

@@ -1,4 +1,5 @@
 import { callClaudeJSON } from "@/lib/ai/anthropic";
+import { buildFitnessRulesBlock } from "@/lib/router/rules";
 import { matchExerciseName } from "./match-exercise";
 import type {
   FeelRating,
@@ -31,7 +32,10 @@ export type VoiceContext = {
   baseline_names: string[];
 };
 
-const SYSTEM_PROMPT = `You parse a single voice transcription about a workout into structured JSON.
+/** Base prompt. The user's enabled fitness routing rules are prepended
+ *  at call time via buildFitnessRulesBlock — they override the static
+ *  defaults below when they conflict. */
+const BASE_SYSTEM_PROMPT = `You parse a single voice transcription about a workout into structured JSON.
 
 Output ONLY a single JSON object. No prose, no markdown. Schema:
 {
@@ -346,7 +350,12 @@ function reconcileMatches(
 
 export async function parseWorkoutVoice(
   rawText: string,
-  context: VoiceContext
+  context: VoiceContext,
+  /** Pass through so we can pull user-defined fitness routing rules
+   *  and prepend them to the system prompt. Optional so legacy/test
+   *  call sites that don't have a user id keep working with the
+   *  baseline prompt. */
+  userId?: string,
 ): Promise<ParsedWorkout> {
   const userPrompt = [
     `Date: ${context.today_date}`,
@@ -368,8 +377,13 @@ export async function parseWorkoutVoice(
     rawText.trim(),
   ].join("\n");
 
+  const rulesBlock = userId ? await buildFitnessRulesBlock(userId) : "";
+  const systemPrompt = rulesBlock
+    ? `${rulesBlock}\n\n${BASE_SYSTEM_PROMPT}`
+    : BASE_SYSTEM_PROMPT;
+
   const out = await callClaudeJSON<ParsedWorkout>({
-    systemPrompt: SYSTEM_PROMPT,
+    systemPrompt,
     userMessage: userPrompt,
     validate,
     maxTokens: 2048,

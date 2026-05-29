@@ -217,7 +217,7 @@ async function handleMessage(message: TgMessage): Promise<void> {
     return;
   }
 
-  const { classification, llm_source } = await classifyCapture(rawText);
+  const { classification, llm_source } = await classifyCapture(rawText, userId);
 
   // Workout routing — replaces the standard capture pipeline for this kind.
   if (classification.kind === "workout") {
