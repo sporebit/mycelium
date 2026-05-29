@@ -45,7 +45,11 @@ import {
   type CardWidth,
 } from "@/lib/dashboard/card-registry";
 
-const MOBILE_QUERY = "(max-width: 639px)";
+// Synced with the Shell's md: breakpoint (mobile header + bottom tab bar)
+// so the dashboard collapses to a flat single-column stack at the same
+// viewport width as the mobile chrome — otherwise a 640-767px phone in
+// landscape shows mobile chrome around desktop-style card columns.
+const MOBILE_QUERY = "(max-width: 767px)";
 
 function subscribeMobile(callback: () => void): () => void {
   if (typeof window === "undefined") return () => {};
