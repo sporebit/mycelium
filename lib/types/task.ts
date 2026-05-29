@@ -28,6 +28,8 @@ export type Task = {
   owner: string | null;
   entity_id: string | null;
   entity_name: string | null;
+  project_id: string | null;
+  project_name: string | null;
   completed_at: string | null;
   created_at: string;
   updated_at: string;

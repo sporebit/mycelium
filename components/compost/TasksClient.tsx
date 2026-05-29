@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Task, TaskUrgency } from "@/lib/types/task";
+import type { Project } from "@/lib/types/project";
 import { ViewSwitcher, type CrmView } from "./ViewSwitcher";
 import { TaskBoard } from "./TaskBoard";
 import { TaskSmart } from "./TaskSmart";
@@ -30,6 +31,8 @@ export function TasksClient() {
 
   const [view, setView] = useState<CrmView>(() => readView());
   const [tasks, setTasks] = useState<Task[] | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectFilter, setProjectFilter] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState<Toast>(null);
 
@@ -48,6 +51,13 @@ export function TasksClient() {
         setTasks(Array.isArray(j?.tasks) ? j.tasks : []);
       })
       .catch(() => mounted && setTasks([]));
+    fetch("/api/projects?status=active")
+      .then((r) => r.json())
+      .then((j: { projects?: Project[] }) => {
+        if (!mounted) return;
+        setProjects(Array.isArray(j?.projects) ? j.projects : []);
+      })
+      .catch(() => {});
     return () => {
       mounted = false;
     };
@@ -95,13 +105,19 @@ export function TasksClient() {
     router.replace(`/crm/tasks${s ? `?${s}` : ""}`);
   }
 
-  // Combined filter: blockers (URL) + search (toolbar)
+  // Combined filter: blockers (URL) + project (toolbar) + search (toolbar)
   const filteredTasks = useMemo(() => {
     if (!tasks) return [];
     let result = tasks;
     if (filterMode === "blockers") {
       const todayKey = localDateKey();
       result = result.filter((t) => isBlocker(t, todayKey));
+    }
+    if (projectFilter.size > 0) {
+      result = result.filter((t) => {
+        const key = t.project_id ?? "__none__";
+        return projectFilter.has(key);
+      });
     }
     const q = search.trim().toLowerCase();
     if (q) {
@@ -111,6 +127,7 @@ export function TasksClient() {
           t.title,
           t.description ?? "",
           t.entity_name ?? "",
+          t.project_name ?? "",
           ...(t.tags ?? []),
         ]
           .join(" ")
@@ -119,7 +136,7 @@ export function TasksClient() {
       });
     }
     return result;
-  }, [tasks, search, filterMode]);
+  }, [tasks, search, filterMode, projectFilter]);
 
   // -------- API helpers (optimistic) --------
 
@@ -259,7 +276,7 @@ export function TasksClient() {
       )}
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         {view !== "smart" && (
           <input
             type="search"
@@ -270,6 +287,13 @@ export function TasksClient() {
           />
         )}
         {view === "smart" && <div className="w-64" />}
+        {projects.length > 0 && view !== "smart" && (
+          <ProjectFilterDropdown
+            projects={projects}
+            selected={projectFilter}
+            onChange={setProjectFilter}
+          />
+        )}
         <div className="flex-1" />
         <button
           type="button"
@@ -334,6 +358,123 @@ export function TasksClient() {
         >
           {toast.text}
         </div>
+      )}
+    </div>
+  );
+}
+
+function ProjectFilterDropdown({
+  projects,
+  selected,
+  onChange,
+}: {
+  projects: Project[];
+  selected: Set<string>;
+  onChange: (next: Set<string>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  function toggle(key: string) {
+    const next = new Set(selected);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    onChange(next);
+  }
+
+  function clear() {
+    onChange(new Set());
+  }
+
+  const count = selected.size;
+  const label =
+    count === 0
+      ? "ALL PROJECTS"
+      : count === 1
+        ? (() => {
+            const only = Array.from(selected)[0];
+            if (only === "__none__") return "NO PROJECT";
+            return (
+              projects.find((p) => p.id === only)?.name.toUpperCase() ??
+              "1 PROJECT"
+            );
+          })()
+        : `${count} PROJECTS`;
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`px-3 py-1.5 rounded-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
+          count > 0
+            ? "border-accent/40 bg-accent/15 text-accent"
+            : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+        }`}
+      >
+        ◆ {label}
+      </button>
+      {open && (
+        <>
+          <button
+            type="button"
+            aria-hidden
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-40 cursor-default"
+          />
+          <div className="absolute z-50 left-0 mt-2 w-64 max-h-80 overflow-y-auto rounded-md bg-ink-1 border border-ink-2 shadow-2xl p-2 flex flex-col gap-0.5">
+            <div className="flex items-center justify-between px-2 pt-1 pb-2">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                Filter by project
+              </span>
+              {count > 0 && (
+                <button
+                  type="button"
+                  onClick={clear}
+                  className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <label className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-ink-2/40 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selected.has("__none__")}
+                onChange={() => toggle("__none__")}
+                className="accent-accent"
+              />
+              <span className="text-sm text-ink-3 italic">No project</span>
+            </label>
+            {projects.map((p) => (
+              <label
+                key={p.id}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-ink-2/40 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={selected.has(p.id)}
+                  onChange={() => toggle(p.id)}
+                  className="accent-accent"
+                />
+                {p.colour && (
+                  <span
+                    aria-hidden
+                    style={{ backgroundColor: p.colour }}
+                    className="h-2.5 w-2.5 rounded-full shrink-0"
+                  />
+                )}
+                <span className="text-sm text-text-0 truncate flex-1">
+                  {p.name}
+                </span>
+              </label>
+            ))}
+            {projects.length === 0 && (
+              <div className="px-2 py-3 text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+                No active projects yet.
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const TABS = [
   { label: "PEOPLE", href: "/compost/people" },
   { label: "TASKS", href: "/compost/tasks" },
+  { label: "PROJECTS", href: "/compost/projects" },
   { label: "CAPTURES", href: "/compost/captures" },
   { label: "DECISIONS", href: "/compost/decisions" },
 ];
@@ -15,7 +16,10 @@ export function SubNav() {
   return (
     <nav className="flex items-center gap-1 border-b border-ink-2 mb-4">
       {TABS.map((t) => {
-        const isActive = pathname === t.href || (t.href === "/compost/tasks" && pathname === "/compost");
+        const isActive =
+          pathname === t.href ||
+          (t.href === "/compost/tasks" && pathname === "/compost") ||
+          (t.href !== "/compost/tasks" && pathname.startsWith(`${t.href}/`));
         return (
           <Link
             key={t.href}

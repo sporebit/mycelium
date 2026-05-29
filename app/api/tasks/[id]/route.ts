@@ -51,6 +51,7 @@ const ALLOWED_FIELDS = new Set([
   "time_estimate_min",
   "owner",
   "entity_id",
+  "project_id",
   "completed_at",
   "parent_task_id",
 ]);

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Task, TaskUrgency, Entity } from "@/lib/types/task";
+import type { Project } from "@/lib/types/project";
 import { URGENCIES, URGENCY_LABEL } from "@/lib/types/task";
 import { EntityPicker } from "./EntityPicker";
 import { triggerGlowPulse } from "@/lib/motion";
@@ -56,7 +57,23 @@ export function TaskDrawer({
   const [draftEst, setDraftEst] = useState<string>("");
   const [draftOwner, setDraftOwner] = useState<string>("");
   const [draftEntity, setDraftEntity] = useState<Entity | null>(null);
+  const [draftProjectId, setDraftProjectId] = useState<string>("");
   const [creating, setCreating] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/projects?status=active")
+      .then((r) => r.json())
+      .then((j: { projects?: Project[] }) => {
+        if (!mounted) return;
+        setProjects(Array.isArray(j?.projects) ? j.projects : []);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Edit mode mirrors the task's text fields when the drawer mounts.
   // Parent remounts the drawer with a key={task.id} when switching tasks,
@@ -144,6 +161,7 @@ export function TaskDrawer({
       time_estimate_min: draftEst ? Number(draftEst) || null : null,
       owner: draftOwner.trim() || null,
       entity_id: draftEntity?.id ?? null,
+      project_id: draftProjectId || null,
     };
     try {
       const created = await onCreate(payload);
@@ -460,6 +478,38 @@ export function TaskDrawer({
               }}
               onError={onError}
             />
+          </Field>
+
+          {/* PROJECT */}
+          <Field label="Project">
+            <select
+              value={
+                isCreate ? draftProjectId : task?.project_id ?? ""
+              }
+              onChange={(e) => {
+                const v = e.target.value || null;
+                if (isCreate) setDraftProjectId(e.target.value);
+                else patchField("project_id", v);
+              }}
+              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+            >
+              <option value="">— No project —</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+              {/* When editing, show the current project even if it's not
+                  in the active list (e.g. archived or completed). */}
+              {!isCreate &&
+                task?.project_id &&
+                !projects.some((p) => p.id === task.project_id) &&
+                task.project_name && (
+                  <option value={task.project_id}>
+                    {task.project_name} (inactive)
+                  </option>
+                )}
+            </select>
           </Field>
 
           {/* SUB-TASKS (only for top-level tasks being edited) */}

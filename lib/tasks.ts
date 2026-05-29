@@ -1,18 +1,25 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Task } from "@/lib/types/task";
 
-type RawTaskRow = Omit<Task, "entity_name" | "sub_tasks"> & {
+type RawTaskRow = Omit<Task, "entity_name" | "project_name" | "sub_tasks"> & {
   entities: { name: string } | { name: string }[] | null;
+  projects: { name: string } | { name: string }[] | null;
 };
 
 export const TASK_SELECT =
-  "id, user_id, title, description, urgency, key, priority_score, time_estimate_min, tags, due_date, owner, entity_id, completed_at, created_at, updated_at, parent_task_id, entities(name)";
+  "id, user_id, title, description, urgency, key, priority_score, time_estimate_min, tags, due_date, owner, entity_id, project_id, completed_at, created_at, updated_at, parent_task_id, entities(name), projects(name)";
 
 export function serializeTask(row: RawTaskRow): Task {
   const ent = Array.isArray(row.entities) ? row.entities[0] : row.entities;
-  const { entities: _entities, ...rest } = row;
+  const proj = Array.isArray(row.projects) ? row.projects[0] : row.projects;
+  const { entities: _entities, projects: _projects, ...rest } = row;
   void _entities;
-  return { ...rest, entity_name: ent?.name ?? null };
+  void _projects;
+  return {
+    ...rest,
+    entity_name: ent?.name ?? null,
+    project_name: proj?.name ?? null,
+  };
 }
 
 export async function fetchTaskById(

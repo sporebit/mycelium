@@ -58,6 +58,7 @@ export async function GET(req: NextRequest) {
     | "all";
   const urgency = url.searchParams.get("urgency");
   const entityId = url.searchParams.get("entity_id");
+  const projectId = url.searchParams.get("project_id");
   const includeChildren = url.searchParams.get("include_children") === "true";
 
   try {
@@ -76,6 +77,8 @@ export async function GET(req: NextRequest) {
       q = q.eq("urgency", urgency);
     }
     if (entityId) q = q.eq("entity_id", entityId);
+    if (projectId === "null") q = q.is("project_id", null);
+    else if (projectId) q = q.eq("project_id", projectId);
     if (includeChildren) {
       q = q.is("parent_task_id", null);
     }
@@ -130,6 +133,7 @@ type CreateBody = {
   time_estimate_min?: number | null;
   owner?: string;
   entity_id?: string | null;
+  project_id?: string | null;
   parent_task_id?: string | null;
 };
 
@@ -158,11 +162,12 @@ export async function POST(req: NextRequest) {
     let parentTaskId: string | null = null;
     let inheritedUrgency: TaskUrgency | null = null;
     let inheritedEntityId: string | null = null;
+    let inheritedProjectId: string | null = null;
     let inheritedTags: string[] | null = null;
     if (body.parent_task_id) {
       const { data: parent, error: parentErr } = await supabase
         .from("tasks")
-        .select("id, urgency, entity_id, tags, parent_task_id")
+        .select("id, urgency, entity_id, project_id, tags, parent_task_id")
         .eq("user_id", uid)
         .eq("id", body.parent_task_id)
         .maybeSingle();
@@ -181,6 +186,7 @@ export async function POST(req: NextRequest) {
       parentTaskId = parent.id;
       inheritedUrgency = (parent.urgency as TaskUrgency | null) ?? null;
       inheritedEntityId = (parent.entity_id as string | null) ?? null;
+      inheritedProjectId = (parent.project_id as string | null) ?? null;
       inheritedTags = (parent.tags as string[] | null) ?? null;
     }
 
@@ -204,6 +210,8 @@ export async function POST(req: NextRequest) {
       owner: body.owner ?? uid,
       entity_id:
         body.entity_id !== undefined ? body.entity_id : inheritedEntityId,
+      project_id:
+        body.project_id !== undefined ? body.project_id : inheritedProjectId,
       parent_task_id: parentTaskId,
     };
 

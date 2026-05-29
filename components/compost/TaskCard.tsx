@@ -77,9 +77,17 @@ export function TaskCard({
         <UrgencyPill tone={tone} />
       </div>
 
-      {(tags.length > 0 || task.entity_name || due) && (
+      {(tags.length > 0 || task.entity_name || task.project_name || due) && (
         <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
           <div className="flex items-center gap-1.5 min-w-0">
+            {task.project_name && (
+              <span
+                className="px-1.5 py-0.5 rounded-md border border-accent/40 bg-accent/10 text-accent truncate max-w-[120px]"
+                title={`Project: ${task.project_name}`}
+              >
+                ◆ {task.project_name}
+              </span>
+            )}
             {tags.map((t) => (
               <span
                 key={t}
