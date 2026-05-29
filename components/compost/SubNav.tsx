@@ -7,6 +7,7 @@ const TABS = [
   { label: "PEOPLE", href: "/compost/people" },
   { label: "TASKS", href: "/compost/tasks" },
   { label: "PROJECTS", href: "/compost/projects" },
+  { label: "PURCHASES", href: "/compost/purchases" },
   { label: "CAPTURES", href: "/compost/captures" },
   { label: "REVIEW", href: "/compost/captures/review" },
   { label: "DECISIONS", href: "/compost/decisions" },
