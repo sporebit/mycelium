@@ -270,6 +270,32 @@ h1, h2, h3, h4, h5, h6 {
   animation: spore-pulse 5s ease-in-out infinite;
 }
 
+/* wordmark-glow — 3s bioluminescent L→R sweep across the Mycelium
+   wordmark. The trick: lay down a horizontal gradient (text-0 →
+   glow-2 → text-0) that's 200% wider than the element, clip it to
+   the text glyphs, and slide its background-position from 100% to
+   0% so the glow band travels from the left edge to the right edge.
+   No JS, no layer compositing surprises — just a paint-only sweep. */
+@keyframes wordmark-glow-sweep {
+  0%   { background-position: 100% 0; }
+  100% { background-position: 0% 0; }
+}
+.wordmark-glow {
+  background-image: linear-gradient(
+    90deg,
+    var(--text-0) 0%,
+    var(--glow-2) 50%,
+    var(--text-0) 100%
+  );
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: wordmark-glow-sweep 3s ease-in-out infinite;
+}
+
 /* growth-in — replaces fade-in for newly-arriving elements (tasks,
    captures, search results, modals). Tiny scale + nudge to suggest the
    thing rooted itself in place. */
@@ -318,6 +344,17 @@ h1, h2, h3, h4, h5, h6 {
   .habit-count-pulse,
   .ticker-fade-in {
     animation: none !important;
+  }
+
+  /* The glow sweep needs more than just `animation: none` — the
+     base style uses background-clip:text with transparent fill, so
+     without the gradient the text would render invisibly. Restore
+     the solid text-0 fill for reduced-motion users. */
+  .wordmark-glow {
+    animation: none !important;
+    background-image: none;
+    color: var(--text-0);
+    -webkit-text-fill-color: var(--text-0);
   }
 }
 

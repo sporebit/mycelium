@@ -1,31 +1,28 @@
 import Link from "next/link";
 
 /**
- * Mycelium wordmark — sits at the left of the top rail.
+ * Mycelium wordmark — anchors the top bar on every viewport.
  *
- * Desktop:  MYCELIUM ·   (full word + spore-dot)
- * Mobile:   M ·          (initial only + dot)
+ * The text reads "Mycelium" rendered uppercase via CSS, in Recoleta (the
+ * --font-display family). A 3-second bioluminescent glow sweeps L→R
+ * across the letterforms via `wordmark-glow` (background-clip: text +
+ * animated background-position), defined in globals.css. The trailing
+ * 8px spore-dot keeps its slower 5s spore-pulse independently.
  *
- * The trailing dot is an actual 4px circle in --glow-0, not a typographic
- * middot. It breathes at 5s intervals via the .spore-pulse class defined in
- * globals.css; prefers-reduced-motion disables the animation.
+ * prefers-reduced-motion disables both animations (handled in globals.css).
+ *
+ * The wordmark IS the home link — tapping anywhere on it routes to /.
  */
 export function Wordmark() {
   return (
     <Link
       href="/"
       aria-label="Mycelium — home"
-      className="inline-flex items-center text-sm font-[family-name:var(--font-display)] font-medium uppercase tracking-[0.04em] text-text-0"
+      className="inline-flex items-center text-sm font-[family-name:var(--font-display)] font-medium uppercase tracking-[0.04em]"
     >
-      {/* Desktop word */}
-      <span className="hidden sm:inline" aria-hidden>
-        MYCELIUM
+      <span aria-hidden className="wordmark-glow">
+        Mycelium
       </span>
-      {/* Mobile initial */}
-      <span className="sm:hidden" aria-hidden>
-        M
-      </span>
-      {/* Spore-dot — 8px after the word */}
       <span
         aria-hidden
         className="ml-2 inline-block align-middle"

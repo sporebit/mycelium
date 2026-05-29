@@ -1,13 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import { JournalIcon } from "@/components/icons/nav/JournalIcon";
+import { usePrivacy } from "@/lib/context/PrivacyContext";
 import type { NavIconProps } from "@/components/icons/nav/types";
 
 type Item = {
   label: string;
   href: string;
   Icon: ComponentType<NavIconProps>;
-  description?: string;
 };
 
 /** £ glyph in a circle — a "finance" icon that fits the existing nav set. */
@@ -73,7 +75,28 @@ function ReviewIcon({ size = 22, ariaLabel = "Review" }: NavIconProps) {
   );
 }
 
-const ITEMS: Item[] = [
+/** Gear/cog for /more settings rows. */
+function SettingsIcon({ size = 22, ariaLabel = "Settings" }: NavIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-label={ariaLabel}
+    >
+      <circle cx="20" cy="20" r="4" />
+      <path d="M20 6 L20 10 M20 30 L20 34 M6 20 L10 20 M30 20 L34 20 M10 10 L13 13 M27 27 L30 30 M30 10 L27 13 M13 27 L10 30" />
+    </svg>
+  );
+}
+
+const SECTIONS: Item[] = [
   { label: "Finance", href: "/finance", Icon: FinanceIcon },
   { label: "Health", href: "/health", Icon: HealthIcon },
   { label: "Journal", href: "/journal", Icon: JournalIcon },
@@ -98,14 +121,55 @@ function Chevron(): ReactNode {
   );
 }
 
+function GroupHeading({ children }: { children: ReactNode }) {
+  return (
+    <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-4 mb-2 px-1">
+      {children}
+    </h2>
+  );
+}
+
 export function MoreList() {
+  const { financeHidden, toggle } = usePrivacy();
+
   return (
     <div className="flex flex-col gap-4">
       <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
         More
       </h1>
+
+      <GroupHeading>Settings</GroupHeading>
       <ul className="flex flex-col gap-2">
-        {ITEMS.map((item) => {
+        <li>
+          <button
+            type="button"
+            onClick={toggle}
+            aria-pressed={financeHidden}
+            className="w-full flex items-center gap-3 bg-ink-1 rounded-md px-4 min-h-[56px] hover:bg-ink-2/40 transition-colors text-left"
+          >
+            <SettingsIcon size={22} ariaLabel="Privacy mode" />
+            <div className="flex-1">
+              <div className="text-base text-text-0">Privacy mode</div>
+              <div className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.04em] uppercase">
+                Hide financial values across the app
+              </div>
+            </div>
+            <span
+              className={`text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase px-2 py-1 rounded-md border ${
+                financeHidden
+                  ? "border-accent/40 bg-accent/15 text-accent"
+                  : "border-ink-2 text-ink-3"
+              }`}
+            >
+              {financeHidden ? "ON" : "OFF"}
+            </span>
+          </button>
+        </li>
+      </ul>
+
+      <GroupHeading>Sections</GroupHeading>
+      <ul className="flex flex-col gap-2">
+        {SECTIONS.map((item) => {
           const Icon = item.Icon;
           return (
             <li key={item.label}>

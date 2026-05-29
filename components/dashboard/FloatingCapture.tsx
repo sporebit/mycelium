@@ -97,10 +97,7 @@ export function FloatingCapture() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Capture"
-          // On mobile the bottom tab bar (~56px + safe-area-inset-bottom)
-          // sits under this button — lift the FAB above it. Desktop keeps
-          // the original 24px bottom offset.
-          className="fixed bottom-[calc(72px+env(safe-area-inset-bottom))] md:bottom-6 right-6 z-40 h-12 w-12 rounded-full bg-accent text-ink-0 shadow-2xl hover:bg-accent/90 transition-transform hover:scale-105 flex items-center justify-center text-xl font-[family-name:var(--font-mono)]"
+          className="fixed bottom-6 right-6 z-40 h-12 w-12 rounded-full bg-accent text-ink-0 shadow-2xl hover:bg-accent/90 transition-transform hover:scale-105 flex items-center justify-center text-xl font-[family-name:var(--font-mono)]"
         >
           +
         </button>
