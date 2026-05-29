@@ -8,6 +8,7 @@ const TABS = [
   { label: "TASKS", href: "/compost/tasks" },
   { label: "PROJECTS", href: "/compost/projects" },
   { label: "CAPTURES", href: "/compost/captures" },
+  { label: "REVIEW", href: "/compost/captures/review" },
   { label: "DECISIONS", href: "/compost/decisions" },
 ];
 
