@@ -33,7 +33,10 @@ type Columns = Record<TaskUrgency, Task[]>;
 
 /**
  * Display order per column: each parent immediately followed by its
- * sub-tasks (sorted by created_at). Parents sorted by priority_score desc.
+ * sub-tasks (sorted by created_at). Open parents are sorted by
+ * priority_score desc; completed parents sink to the bottom of the
+ * column (sorted by completed_at desc — most recently done first) so
+ * the SHOW COMPLETED toggle keeps the active work above the noise.
  * Sub-tasks ignore their own urgency and live with their parent.
  */
 function groupByUrgency(tasks: Task[]): Columns {
@@ -53,15 +56,23 @@ function groupByUrgency(tasks: Task[]): Columns {
   }
 
   for (const u of URGENCIES) {
-    const parents = topLevel
-      .filter((t) => (t.urgency ?? "someday") === u)
+    const inBucket = topLevel.filter(
+      (t) => (t.urgency ?? "someday") === u,
+    );
+    const openParents = inBucket
+      .filter((t) => !t.completed_at)
       .sort(
-        (a, b) => (b.priority_score ?? 0) - (a.priority_score ?? 0)
+        (a, b) => (b.priority_score ?? 0) - (a.priority_score ?? 0),
       );
-    for (const parent of parents) {
+    const doneParents = inBucket
+      .filter((t) => !!t.completed_at)
+      .sort((a, b) =>
+        (b.completed_at ?? "").localeCompare(a.completed_at ?? ""),
+      );
+    for (const parent of [...openParents, ...doneParents]) {
       out[u].push(parent);
       const kids = (subsByParent.get(parent.id) ?? []).sort((a, b) =>
-        a.created_at.localeCompare(b.created_at)
+        a.created_at.localeCompare(b.created_at),
       );
       out[u].push(...kids);
     }

@@ -46,12 +46,20 @@ function group(tasks: Task[]): Group[] {
     bucket.display.push(t);
   }
 
-  // Within each bucket: parents sorted by priority, sub-tasks appended after
-  // their parent in created order.
+  // Within each bucket: open parents sort by priority desc, completed
+  // parents sink to the bottom (newest-done first), sub-tasks appended
+  // after their parent in created order.
   for (const g of buckets.values()) {
-    g.display.sort((a, b) => (b.priority_score ?? 0) - (a.priority_score ?? 0));
+    const open = g.display
+      .filter((t) => !t.completed_at)
+      .sort((a, b) => (b.priority_score ?? 0) - (a.priority_score ?? 0));
+    const done = g.display
+      .filter((t) => !!t.completed_at)
+      .sort((a, b) =>
+        (b.completed_at ?? "").localeCompare(a.completed_at ?? ""),
+      );
     const interleaved: Task[] = [];
-    for (const parent of g.display) {
+    for (const parent of [...open, ...done]) {
       interleaved.push(parent);
       const kids = (subsByParent.get(parent.id) ?? []).sort((a, b) =>
         a.created_at.localeCompare(b.created_at)

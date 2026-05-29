@@ -47,10 +47,17 @@ export function TaskCard({
   const tone = pillToneFor(task);
   const due = dueLabel(task.due_date);
   const tags = (task.tags ?? []).slice(0, 2);
-  const titleClass = muted ? "text-ink-3" : "text-ink-4";
+  const isCompleted = !!task.completed_at;
+  const titleClass = isCompleted
+    ? "text-ink-3 line-through"
+    : muted
+      ? "text-ink-3"
+      : "text-ink-4";
   // D3 borderless treatment — surface contrast (ink-1 on ink-0) + hover bump
   // to ink-2 replaces the old hairline border. Dragging keeps the accent
-  // tint so dnd-kit's ghost stays readable.
+  // tint so dnd-kit's ghost stays readable. Completed cards dim further
+  // (opacity-60) so they sit visually under the open ones in the same
+  // column when the SHOW COMPLETED toggle is on.
   const cardClass = muted
     ? "bg-ink-1/60 hover:bg-ink-2"
     : "bg-ink-1 hover:bg-ink-2";
@@ -63,7 +70,9 @@ export function TaskCard({
         dragging
           ? "bg-ink-2 shadow-2xl shadow-glow-3/30 ring-1 ring-glow-2/60"
           : cardClass
-      } ${compact ? "py-2" : ""} ${isSubtask ? "is-subtask" : ""}`}
+      } ${compact ? "py-2" : ""} ${isSubtask ? "is-subtask" : ""} ${
+        isCompleted ? "opacity-60" : ""
+      }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className={`text-sm leading-snug min-w-0 break-words ${titleClass}`}>
@@ -74,7 +83,13 @@ export function TaskCard({
             </Mono>
           )}
         </div>
-        <UrgencyPill tone={tone} />
+        {isCompleted ? (
+          <span className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-ok/40 bg-ok/15 text-ok shrink-0">
+            COMPLETED
+          </span>
+        ) : (
+          <UrgencyPill tone={tone} />
+        )}
       </div>
 
       {(tags.length > 0 || task.entity_name || task.project_name || due) && (

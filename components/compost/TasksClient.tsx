@@ -13,6 +13,7 @@ import { isBlocker } from "@/lib/blockers";
 import { localDateKey } from "@/lib/util/date";
 
 const VIEW_STORAGE_KEY = "miles-crm-view";
+const SHOW_COMPLETED_STORAGE_KEY = "mycelium:showCompleted";
 
 type Toast = { kind: "success" | "error"; text: string } | null;
 
@@ -23,6 +24,11 @@ function readView(): CrmView {
   return "kanban";
 }
 
+function readShowCompleted(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(SHOW_COMPLETED_STORAGE_KEY) === "true";
+}
+
 export function TasksClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,6 +36,9 @@ export function TasksClient() {
   const filterMode = searchParams.get("filter");
 
   const [view, setView] = useState<CrmView>(() => readView());
+  const [showCompleted, setShowCompleted] = useState<boolean>(() =>
+    readShowCompleted(),
+  );
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectFilter, setProjectFilter] = useState<Set<string>>(new Set());
@@ -41,10 +50,23 @@ export function TasksClient() {
     localStorage.setItem(VIEW_STORAGE_KEY, view);
   }, [view]);
 
-  // Fetch tasks
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(
+      SHOW_COMPLETED_STORAGE_KEY,
+      showCompleted ? "true" : "false",
+    );
+  }, [showCompleted]);
+
+  // Fetch tasks. Re-fires when showCompleted flips so the API filter
+  // matches the displayed set — the API ignores completed tasks by
+  // default and includes them when include_completed=true is passed.
   useEffect(() => {
     let mounted = true;
-    fetch("/api/tasks?status=open")
+    const url = showCompleted
+      ? "/api/tasks?status=open&include_completed=true"
+      : "/api/tasks?status=open";
+    fetch(url)
       .then((r) => r.json())
       .then((j: { tasks?: Task[] }) => {
         if (!mounted) return;
@@ -61,7 +83,7 @@ export function TasksClient() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [showCompleted]);
 
   // Toast auto-dismiss
   useEffect(() => {
@@ -167,10 +189,14 @@ export function TasksClient() {
         (cur ?? []).map((t) => (t.id === id ? j.task! : t))
       );
       // The drawer derives from tasks.find(focusId), so no manual sync needed.
-      // If the task got completed (mark done), remove from open list & close drawer
+      // If the task got completed (mark done), remove from open list & close
+      // drawer — unless the SHOW COMPLETED toggle is on, in which case the
+      // user wants to see it stay put with the COMPLETED styling.
       if (j.task.completed_at) {
-        setTasks((cur) => (cur ?? []).filter((t) => t.id !== id));
-        setDrawerUrl(null);
+        if (!showCompleted) {
+          setTasks((cur) => (cur ?? []).filter((t) => t.id !== id));
+          setDrawerUrl(null);
+        }
         showToast("Marked done", "success");
       }
       return j.task;
@@ -295,6 +321,23 @@ export function TasksClient() {
           />
         )}
         <div className="flex-1" />
+        <button
+          type="button"
+          onClick={() => setShowCompleted((v) => !v)}
+          aria-pressed={showCompleted}
+          title={
+            showCompleted
+              ? "Hide completed tasks"
+              : "Show completed tasks at the bottom of each bucket"
+          }
+          className={`px-3 py-1.5 rounded-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
+            showCompleted
+              ? "bg-ok/15 border-ok/40 text-ok hover:bg-ok/25"
+              : "bg-ink-0/40 border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+          }`}
+        >
+          {showCompleted ? "✓ COMPLETED ON" : "SHOW COMPLETED"}
+        </button>
         <button
           type="button"
           onClick={() => setDrawerUrl({ kind: "create" })}

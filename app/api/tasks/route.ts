@@ -52,10 +52,16 @@ export async function GET(req: NextRequest) {
   }
 
   const url = new URL(req.url);
-  const status = (url.searchParams.get("status") ?? "open") as
+  const rawStatus = (url.searchParams.get("status") ?? "open") as
     | "open"
     | "done"
     | "all";
+  // include_completed=true overrides status=open so the existing call
+  // sites can opt in with a single extra param instead of restructuring
+  // their query string.
+  const includeCompleted =
+    url.searchParams.get("include_completed") === "true";
+  const status = includeCompleted && rawStatus === "open" ? "all" : rawStatus;
   const urgency = url.searchParams.get("urgency");
   const entityId = url.searchParams.get("entity_id");
   const projectId = url.searchParams.get("project_id");
