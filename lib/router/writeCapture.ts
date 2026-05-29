@@ -84,6 +84,36 @@ export async function writeCapture(
     }
     routedTo = "tasks";
     routedId = task.id;
+  } else if (classification.kind === "purchase") {
+    // Purchase fields are populated by the classifier in the same pass —
+    // see PurchaseDetails in lib/router/classifyCapture.ts. Missing object
+    // falls back to safe defaults so a permissive LLM response can't
+    // break the insert.
+    const purchase = classification.purchase ?? {
+      amount: null,
+      currency: "GBP",
+      want_or_need: "unclear" as const,
+    };
+    const { data: row, error: purErr } = await supabase
+      .from("purchases")
+      .insert({
+        user_id: userId,
+        title: classification.title,
+        amount: purchase.amount,
+        currency: purchase.currency,
+        want_or_need: purchase.want_or_need,
+        urgency: classification.urgency,
+        raw_capture_id: rawCapture.id,
+      })
+      .select("id")
+      .single();
+    if (purErr || !row) {
+      throw new Error(
+        `purchases insert failed: ${purErr?.message ?? "unknown"}`,
+      );
+    }
+    routedTo = "purchases";
+    routedId = row.id;
   } else if (classification.kind === "journal") {
     const summary = classification.summary
       ? classification.summary.slice(0, 40)

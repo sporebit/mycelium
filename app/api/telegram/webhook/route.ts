@@ -283,11 +283,33 @@ async function handleMessage(message: TgMessage): Promise<void> {
     return;
   }
 
+  // Purchases land in their own table, so the urgency keyboard (which
+  // targets tasks / raw_captures) doesn't apply. Confirm with a terse
+  // line that includes the amount when the classifier extracted one.
+  if (classification.kind === "purchase") {
+    const p = classification.purchase;
+    const amountPart =
+      p && p.amount !== null
+        ? ` · ${currencySymbol(p.currency)}${p.amount}`
+        : "";
+    await sendMessage(
+      chatId,
+      `🛍 Purchase logged — ${classification.title}${amountPart} · ${classification.urgency}`,
+    );
+    return;
+  }
+
   const label = classification.kind.toUpperCase();
   const reply = `✓ Captured as ${label} — ${classification.urgency}: ${classification.title}`;
   await sendMessage(chatId, reply, {
     reply_markup: buildUrgencyKeyboard(result.routedId, result.routedTo),
   });
+}
+
+function currencySymbol(code: string | null | undefined): string {
+  if (code === "USD") return "$";
+  if (code === "EUR") return "€";
+  return "£";
 }
 
 async function handleCallback(cb: TgCallbackQuery): Promise<void> {

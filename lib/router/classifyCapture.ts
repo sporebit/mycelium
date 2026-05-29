@@ -4,7 +4,8 @@ export type CaptureKind =
   | "decision"
   | "journal"
   | "capture"
-  | "workout";
+  | "workout"
+  | "purchase";
 export type CaptureUrgency = "today" | "this_week" | "this_month" | "someday";
 export type CaptureMood =
   | "energised"
@@ -21,6 +22,18 @@ export type ClassificationMention = {
   name_hint: string;
 };
 
+export type PurchaseWantOrNeed = "want" | "need" | "unclear";
+
+/** Purchase-specific fields the classifier extracts in the same pass as
+ *  kind/title/urgency. Only meaningful when kind === 'purchase'; for
+ *  every other kind this stays null so downstream code can branch on
+ *  the kind alone. */
+export type PurchaseDetails = {
+  amount: number | null;
+  currency: string;
+  want_or_need: PurchaseWantOrNeed;
+};
+
 export type Classification = {
   kind: CaptureKind;
   urgency: CaptureUrgency;
@@ -31,6 +44,7 @@ export type Classification = {
   title: string;
   mood: CaptureMood | null; // only meaningful for journal entries
   mentions: ClassificationMention[];
+  purchase: PurchaseDetails | null; // only meaningful for purchases
 };
 
 export type ClassifyResult = {
@@ -45,6 +59,13 @@ const KINDS: readonly CaptureKind[] = [
   "journal",
   "capture",
   "workout",
+  "purchase",
+];
+
+const PURCHASE_WANT_OR_NEED: readonly PurchaseWantOrNeed[] = [
+  "want",
+  "need",
+  "unclear",
 ];
 const URGENCIES: readonly CaptureUrgency[] = [
   "today",
@@ -66,12 +87,13 @@ const MOODS: readonly CaptureMood[] = [
 export const CLASSIFIER_SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
 
 Rules:
-- "kind" is one of: task, note, decision, journal, capture, workout.
-  - task = an action the user needs to do.
+- "kind" is one of: task, note, decision, journal, capture, workout, purchase.
+  - task = an action the user needs to DO (not buy).
   - decision = a choice the user wants to record.
   - note = a fact or piece of info to remember.
   - journal = reflection, feeling, or observation about themselves or their day; longer-form expressive content; the kind of thing they'd want to re-read in a year.
   - workout = a description of exercise the user just did, is doing, or is reporting on. Signals: set/rep patterns ("5x5", "3 sets of 8"), weights in kg/lbs ("80kg", "100lbs"), named exercises (bench press, squat, deadlift, RDL, lunges, etc.), cardio terms ("ran 5km", "10 mins on treadmill"), pain or feel words paired with body parts ("shoulder twinged", "left knee sore", "felt pumped"), session-shaped sentences ("did push day", "morning workout", "just finished legs").
+  - purchase = the user wants to BUY, pay for, order, or acquire something — physical goods, services, bills, subscriptions. Classify by intent, not by specific trigger words. Examples: "buy milk", "pay the electric bill", "order a new keyboard", "I need to get a birthday card for mum", "pick up some protein powder", "renew the netflix sub". When in doubt and there's money or goods involved, prefer purchase over task: "book a dentist appointment" is a task (an action to perform), "buy a mouthguard" is a purchase (an item to acquire).
   - capture = catch-all when none of the above clearly applies.
 
 Heuristics for journal (guidance, not strict):
@@ -94,19 +116,29 @@ Examples:
   - "Need to remember Dad's birthday is on the 14th" -> note
   - "Did push day. Bench 80kg 5x5, OHP 50kg 3x8, dips bodyweight 3x10. Left shoulder twinged on the last set, about a 5." -> workout
   - "Ran 5km, felt good, around 28 minutes" -> workout
+  - "Buy milk on the way home" -> purchase
+  - "Need to pay the electric bill, about £85" -> purchase (amount: 85, currency: GBP, want_or_need: need)
+  - "Thinking of getting that new Keychron keyboard, like £160" -> purchase (amount: 160, currency: GBP, want_or_need: want)
+  - "Pick up a birthday card for mum" -> purchase
+  - "Order more protein powder, we're running out" -> purchase (want_or_need: need)
 
 Other fields:
 - "urgency" is one of: today, this_week, this_month, someday. For journal entries this is unused — pick "someday".
 - "key" is true if the item is critical or important, otherwise false. False for journal entries unless emphatic.
-- "entity_name" is the single person or organisation mentioned, or null.
+- "entity_name" is the single person or organisation mentioned, or null. (For purchases this is usually the vendor/brand if explicit, e.g. "Netflix", otherwise null.)
 - "tags" is an array of short lowercase tag strings (may be empty).
 - "summary" is one short sentence summarising the message. For journal entries keep it under 40 characters — a glanceable one-liner.
-- "title" is a 3-7 word title (use even for non-tasks).
+- "title" is a 3-7 word title (use even for non-tasks). For purchases the title should be the THING being acquired (e.g. "milk", "Keychron keyboard", "electric bill"), not the sentence verb.
 - "mood" is ONLY set for journal entries, otherwise null. One of: energised, calm, anxious, frustrated, reflective, grateful, tired, neutral.
 - "mentions" is an array of person mentions detected in the text. Each entry: { "raw": <exact substring>, "name_hint": <normalised name> }.
   Detect: first names ("Luke", "Sarah"), relationship references ("Mum", "Dad", "my brother" → name_hint "Mum"/"Dad"/etc), first + last ("Luke Henderson").
   Skip: company/brand names, place names, bare pronouns, generic roles ("the doctor") unless capitalised or named.
   Output [] if none.
+- "purchase" is an object ONLY when kind = "purchase"; null for every other kind. Shape:
+    { "amount": <number or null>, "currency": <ISO code string, default "GBP">, "want_or_need": "want" | "need" | "unclear" }
+    - amount: parse digits in £/$/€ context, "£85" → 85, "85 quid" → 85, "around 35" → 35. Null if not stated.
+    - currency: infer from symbol (£ → GBP, $ → USD, € → EUR). Default GBP.
+    - want_or_need: "need" for "need / must / have to / running out / out of / it's overdue". "want" for "want / would like / thinking about / fancy". "unclear" if ambiguous.
 
 Respond ONLY with a single JSON object matching this schema. No markdown, no preface.`;
 
@@ -160,6 +192,32 @@ function validate(obj: unknown): Classification | null {
     }
   }
 
+  // purchase is only meaningful when kind === 'purchase'. We accept null /
+  // undefined for other kinds and coerce to null. For purchases we try to
+  // read the object even if some fields are missing — defaults fill the
+  // rest.
+  let purchase: PurchaseDetails | null = null;
+  if (kind === "purchase") {
+    const p = (o.purchase as Record<string, unknown> | null | undefined) ?? {};
+    const amountRaw = (p as Record<string, unknown>).amount;
+    const amount =
+      typeof amountRaw === "number" && Number.isFinite(amountRaw)
+        ? amountRaw
+        : null;
+    const currencyRaw = (p as Record<string, unknown>).currency;
+    const currency =
+      typeof currencyRaw === "string" && currencyRaw.trim()
+        ? currencyRaw.trim().toUpperCase()
+        : "GBP";
+    const wonRaw = (p as Record<string, unknown>).want_or_need;
+    const want_or_need: PurchaseWantOrNeed = PURCHASE_WANT_OR_NEED.includes(
+      wonRaw as PurchaseWantOrNeed,
+    )
+      ? (wonRaw as PurchaseWantOrNeed)
+      : "unclear";
+    purchase = { amount, currency, want_or_need };
+  }
+
   return {
     kind: kind as CaptureKind,
     urgency: urgency as CaptureUrgency,
@@ -170,6 +228,7 @@ function validate(obj: unknown): Classification | null {
     title: o.title,
     mood,
     mentions,
+    purchase,
   };
 }
 
@@ -257,6 +316,49 @@ async function classifyOpenAI(
   return validate(extractJson(raw));
 }
 
+function extractPurchaseFromText(text: string): PurchaseDetails {
+  const lower = text.toLowerCase();
+  // Amount: try "£12", "$12", "€12", "12 quid", "12 pounds", "12 bucks",
+  // or a bare number after "around / about / roughly / like".
+  let amount: number | null = null;
+  let currency = "GBP";
+  const symbolMatch = text.match(/([£$€])\s*(\d+(?:\.\d+)?)/);
+  if (symbolMatch) {
+    amount = Number(symbolMatch[2]);
+    const sym = symbolMatch[1];
+    currency = sym === "$" ? "USD" : sym === "€" ? "EUR" : "GBP";
+  } else {
+    const wordMatch = lower.match(
+      /\b(\d+(?:\.\d+)?)\s*(quid|pounds|bucks|gbp|usd|eur)\b/,
+    );
+    if (wordMatch) {
+      amount = Number(wordMatch[1]);
+      const u = wordMatch[2];
+      currency =
+        u === "bucks" || u === "usd" ? "USD" : u === "eur" ? "EUR" : "GBP";
+    } else {
+      const roughMatch = lower.match(
+        /\b(?:around|about|roughly|like|approx(?:imately)?)\s+(\d+(?:\.\d+)?)\b/,
+      );
+      if (roughMatch) amount = Number(roughMatch[1]);
+    }
+  }
+
+  let want_or_need: PurchaseWantOrNeed = "unclear";
+  if (
+    /\b(need|must|have to|running out|out of|overdue|essentials?)\b/.test(lower)
+  ) {
+    want_or_need = "need";
+  } else if (
+    /\b(want|would like|fancy|thinking about|thinking of|considering)\b/.test(
+      lower,
+    )
+  ) {
+    want_or_need = "want";
+  }
+  return { amount, currency, want_or_need };
+}
+
 function classifyRegex(text: string): Classification {
   const lower = text.toLowerCase();
   const wordCount = text.trim().split(/\s+/).length;
@@ -281,6 +383,16 @@ function classifyRegex(text: string): Classification {
       lower
     );
 
+  // Purchase signals — acquisition verbs + a few "bill / sub" nouns.
+  // Workout signals take precedence (we don't want "ran for milk" to
+  // classify as purchase if it's actually about exercise), but purchase
+  // beats task because "buy X" is more specific than "remind me".
+  const purchaseSignals =
+    /\b(buy|bought|purchase|order|pay for|paying for|pick up|grab|get|need to get|gotta get)\b/.test(
+      lower,
+    ) ||
+    /\b(bill|subscription|sub|renew|top up|topup|restock)\b/.test(lower);
+
   let kind: CaptureKind = "capture";
   if (/\b(decided|decision|chose|choosing)\b/.test(lower)) {
     kind = "decision";
@@ -288,6 +400,8 @@ function classifyRegex(text: string): Classification {
     kind = "note";
   } else if (workoutSignals) {
     kind = "workout";
+  } else if (purchaseSignals) {
+    kind = "purchase";
   } else if (hasTaskWords) {
     kind = "task";
   } else if (
@@ -319,6 +433,7 @@ function classifyRegex(text: string): Classification {
     title: title || "Capture",
     mood: null,
     mentions: [],
+    purchase: kind === "purchase" ? extractPurchaseFromText(text) : null,
   };
 }
 

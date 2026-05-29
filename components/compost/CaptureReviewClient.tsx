@@ -42,6 +42,7 @@ const KIND_OPTIONS = [
   "task",
   "journal",
   "workout",
+  "purchase",
   "decision",
   "capture",
   "note",

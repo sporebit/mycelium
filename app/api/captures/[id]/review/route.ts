@@ -30,6 +30,7 @@ const ALLOWED_KINDS = new Set([
   "journal",
   "capture",
   "workout",
+  "purchase",
 ]);
 const ALLOWED_URGENCIES = new Set([
   "today",
@@ -180,6 +181,44 @@ async function createRoutedRow(
       );
     }
     return { routedTo: "journal_entries", routedId: data.id };
+  }
+
+  if (kind === "purchase") {
+    const purchaseRaw =
+      (classification.purchase as Record<string, unknown> | undefined) ?? {};
+    const amount =
+      typeof purchaseRaw.amount === "number" &&
+      Number.isFinite(purchaseRaw.amount)
+        ? (purchaseRaw.amount as number)
+        : null;
+    const currency =
+      typeof purchaseRaw.currency === "string" && purchaseRaw.currency.trim()
+        ? purchaseRaw.currency.trim().toUpperCase()
+        : "GBP";
+    const wonRaw = purchaseRaw.want_or_need;
+    const wantOrNeed =
+      wonRaw === "want" || wonRaw === "need" || wonRaw === "unclear"
+        ? wonRaw
+        : "unclear";
+    const { data, error } = await supabase
+      .from("purchases")
+      .insert({
+        user_id: userId,
+        title,
+        amount,
+        currency,
+        want_or_need: wantOrNeed,
+        urgency,
+        raw_capture_id: rawCaptureId,
+      })
+      .select("id")
+      .single();
+    if (error || !data) {
+      throw new Error(
+        `purchases insert failed: ${error?.message ?? "no row"}`,
+      );
+    }
+    return { routedTo: "purchases", routedId: data.id };
   }
 
   // decision / note / capture / workout / other — leave in raw_captures.
