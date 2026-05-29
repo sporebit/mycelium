@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
 import type { FuelApiResponse, Station } from "@/lib/fuel/types";
+import type { CardWidth } from "@/lib/dashboard/card-registry";
 
 const REFRESH_MS = 30 * 60_000;
 
@@ -66,7 +67,7 @@ function topNCheapest(
   return filtered.map((s) => ({ station: s, price: s[field] }));
 }
 
-export function Fuel() {
+export function Fuel({ width = 1 }: { width?: CardWidth } = {}) {
   const [data, setData] = useState<FuelApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -130,69 +131,134 @@ export function Fuel() {
         </div>
       ) : (
         <>
-          {/* Averages */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-                E10 avg
+          {width >= 3 ? (
+            <div className="grid grid-cols-3 gap-6">
+              <div className="flex flex-col gap-4">
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    E10 avg
+                  </div>
+                  <Mono className="block text-2xl text-ink-4 mt-1">
+                    {fmtPence(data.summary.avgE10)}
+                  </Mono>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    B7 avg
+                  </div>
+                  <Mono className="block text-2xl text-ink-4 mt-1">
+                    {fmtPence(data.summary.avgB7)}
+                  </Mono>
+                </div>
               </div>
-              <Mono className="block text-xl text-ink-4 mt-1">
-                {fmtPence(data.summary.avgE10)}
-              </Mono>
-            </div>
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-                B7 avg
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1">
+                  Cheapest E10
+                </div>
+                {e10Cheapest.length === 0 ? (
+                  <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-1">
+                    None nearby.
+                  </div>
+                ) : (
+                  <ul className="flex flex-col divide-y divide-ink-2">
+                    {e10Cheapest.map((c) => (
+                      <StationRow
+                        key={`e10-${c.station.siteId}`}
+                        station={c.station}
+                        price={c.price}
+                      />
+                    ))}
+                  </ul>
+                )}
               </div>
-              <Mono className="block text-xl text-ink-4 mt-1">
-                {fmtPence(data.summary.avgB7)}
-              </Mono>
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1">
+                  Cheapest B7
+                </div>
+                {b7Cheapest.length === 0 ? (
+                  <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-1">
+                    None nearby.
+                  </div>
+                ) : (
+                  <ul className="flex flex-col divide-y divide-ink-2">
+                    {b7Cheapest.map((c) => (
+                      <StationRow
+                        key={`b7-${c.station.siteId}`}
+                        station={c.station}
+                        price={c.price}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* Averages */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    E10 avg
+                  </div>
+                  <Mono className="block text-xl text-ink-4 mt-1">
+                    {fmtPence(data.summary.avgE10)}
+                  </Mono>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    B7 avg
+                  </div>
+                  <Mono className="block text-xl text-ink-4 mt-1">
+                    {fmtPence(data.summary.avgB7)}
+                  </Mono>
+                </div>
+              </div>
 
-          {/* Cheapest E10 */}
-          <div className="mt-4">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1">
-              Cheapest E10
-            </div>
-            {e10Cheapest.length === 0 ? (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-1">
-                None nearby.
+              {/* Cheapest E10 */}
+              <div className="mt-4">
+                <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1">
+                  Cheapest E10
+                </div>
+                {e10Cheapest.length === 0 ? (
+                  <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-1">
+                    None nearby.
+                  </div>
+                ) : (
+                  <ul className="flex flex-col divide-y divide-ink-2">
+                    {e10Cheapest.map((c) => (
+                      <StationRow
+                        key={`e10-${c.station.siteId}`}
+                        station={c.station}
+                        price={c.price}
+                      />
+                    ))}
+                  </ul>
+                )}
               </div>
-            ) : (
-              <ul className="flex flex-col divide-y divide-ink-2">
-                {e10Cheapest.map((c) => (
-                  <StationRow
-                    key={`e10-${c.station.siteId}`}
-                    station={c.station}
-                    price={c.price}
-                  />
-                ))}
-              </ul>
-            )}
-          </div>
 
-          {/* Cheapest B7 */}
-          <div className="mt-3">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1">
-              Cheapest B7
-            </div>
-            {b7Cheapest.length === 0 ? (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-1">
-                None nearby.
+              {/* Cheapest B7 */}
+              <div className="mt-3">
+                <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1">
+                  Cheapest B7
+                </div>
+                {b7Cheapest.length === 0 ? (
+                  <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-1">
+                    None nearby.
+                  </div>
+                ) : (
+                  <ul className="flex flex-col divide-y divide-ink-2">
+                    {b7Cheapest.map((c) => (
+                      <StationRow
+                        key={`b7-${c.station.siteId}`}
+                        station={c.station}
+                        price={c.price}
+                      />
+                    ))}
+                  </ul>
+                )}
               </div>
-            ) : (
-              <ul className="flex flex-col divide-y divide-ink-2">
-                {b7Cheapest.map((c) => (
-                  <StationRow
-                    key={`b7-${c.station.siteId}`}
-                    station={c.station}
-                    price={c.price}
-                  />
-                ))}
-              </ul>
-            )}
-          </div>
+            </>
+          )}
 
           <div className="mt-3 pt-2 border-t border-ink-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] flex items-center justify-between">
             <span>

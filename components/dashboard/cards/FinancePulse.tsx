@@ -19,6 +19,7 @@ import {
   relativeTime,
 } from "@/lib/finance/helpers";
 import { previousDateKey, localDateKey } from "@/lib/util/date";
+import type { CardWidth } from "@/lib/dashboard/card-registry";
 
 type SnapshotResponse =
   | (FinanceData & { date?: string })
@@ -68,7 +69,7 @@ function Sparkline({ points }: { points: number[] }) {
   );
 }
 
-export function FinancePulse() {
+export function FinancePulse({ width = 2 }: { width?: CardWidth } = {}) {
   const [data, setData] = useState<SnapshotResponse | null>(null);
   const [history, setHistory] = useState<FinanceHistoryPoint[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -239,89 +240,185 @@ export function FinancePulse() {
         </div>
       ) : (
         <>
-          <div>
-            <div className="card-eyebrow">Net worth</div>
-            <div className="card-hero-primary mt-1.5 tabular-nums">
-              <PrivateValue>
-                {fmtCurrency(snapshot.net_worth, snapshot.currency)}
-              </PrivateValue>
-            </div>
-            <div
-              className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mt-1 ${toneClass}`}
-            >
-              ● {relativeTime(lastRefreshed)}
-              {data && "source" in data && data.source && (
-                <span className="ml-2 text-ink-3">
-                  via {data.source}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-3">
-            <Sparkline points={sparkPoints} />
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-                Daily
-              </div>
-              {deltas && deltas.dayDelta !== null ? (
-                <>
-                  <Mono
-                    className={`block text-sm mt-1 ${
-                      deltas.dayDelta >= 0 ? "text-ok" : "text-danger"
-                    }`}
-                  >
+          {width >= 3 ? (
+            <>
+              <div className="grid grid-cols-3 gap-6 items-start">
+                <div>
+                  <div className="card-eyebrow">Net worth</div>
+                  <div className="card-hero-primary mt-1.5 tabular-nums">
                     <PrivateValue>
-                      {fmtSigned(deltas.dayDelta, snapshot.currency)}
+                      {fmtCurrency(snapshot.net_worth, snapshot.currency)}
                     </PrivateValue>
-                  </Mono>
-                  {deltas.dayPct !== null && (
-                    <Mono
-                      className={`block text-[11px] ${
-                        deltas.dayDelta >= 0 ? "text-ok/70" : "text-danger/70"
-                      }`}
-                    >
-                      <PrivateValue>{fmtPercent(deltas.dayPct)}</PrivateValue>
-                    </Mono>
-                  )}
-                </>
-              ) : (
-                <Mono className="block text-sm text-ink-3 mt-1">—</Mono>
-              )}
-            </div>
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-                Monthly
-              </div>
-              {deltas && deltas.monthDelta !== null ? (
-                <>
-                  <Mono
-                    className={`block text-sm mt-1 ${
-                      deltas.monthDelta >= 0 ? "text-ok" : "text-danger"
-                    }`}
+                  </div>
+                  <div
+                    className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mt-1 ${toneClass}`}
                   >
-                    <PrivateValue>
-                      {fmtSigned(deltas.monthDelta, snapshot.currency)}
-                    </PrivateValue>
-                  </Mono>
-                  {deltas.monthPct !== null && (
-                    <Mono
-                      className={`block text-[11px] ${
-                        deltas.monthDelta >= 0 ? "text-ok/70" : "text-danger/70"
-                      }`}
-                    >
-                      <PrivateValue>{fmtPercent(deltas.monthPct)}</PrivateValue>
-                    </Mono>
+                    ● {relativeTime(lastRefreshed)}
+                    {data && "source" in data && data.source && (
+                      <span className="ml-2 text-ink-3">via {data.source}</span>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    Daily
+                  </div>
+                  {deltas && deltas.dayDelta !== null ? (
+                    <>
+                      <Mono
+                        className={`block mt-1.5 tabular-nums text-2xl ${
+                          deltas.dayDelta >= 0 ? "text-ok" : "text-danger"
+                        }`}
+                      >
+                        <PrivateValue>
+                          {fmtSigned(deltas.dayDelta, snapshot.currency)}
+                        </PrivateValue>
+                      </Mono>
+                      {deltas.dayPct !== null && (
+                        <Mono
+                          className={`block text-xs mt-1 ${
+                            deltas.dayDelta >= 0 ? "text-ok/70" : "text-danger/70"
+                          }`}
+                        >
+                          <PrivateValue>{fmtPercent(deltas.dayPct)}</PrivateValue>
+                        </Mono>
+                      )}
+                    </>
+                  ) : (
+                    <Mono className="block text-sm text-ink-3 mt-1">—</Mono>
                   )}
-                </>
-              ) : (
-                <Mono className="block text-sm text-ink-3 mt-1">—</Mono>
-              )}
-            </div>
-          </div>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    Monthly
+                  </div>
+                  {deltas && deltas.monthDelta !== null ? (
+                    <>
+                      <Mono
+                        className={`block mt-1.5 tabular-nums text-2xl ${
+                          deltas.monthDelta >= 0 ? "text-ok" : "text-danger"
+                        }`}
+                      >
+                        <PrivateValue>
+                          {fmtSigned(deltas.monthDelta, snapshot.currency)}
+                        </PrivateValue>
+                      </Mono>
+                      {deltas.monthPct !== null && (
+                        <Mono
+                          className={`block text-xs mt-1 ${
+                            deltas.monthDelta >= 0
+                              ? "text-ok/70"
+                              : "text-danger/70"
+                          }`}
+                        >
+                          <PrivateValue>
+                            {fmtPercent(deltas.monthPct)}
+                          </PrivateValue>
+                        </Mono>
+                      )}
+                    </>
+                  ) : (
+                    <Mono className="block text-sm text-ink-3 mt-1">—</Mono>
+                  )}
+                </div>
+              </div>
+              <div className="mt-4">
+                <Sparkline points={sparkPoints} />
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <div className="card-eyebrow">Net worth</div>
+                <div className="card-hero-primary mt-1.5 tabular-nums">
+                  <PrivateValue>
+                    {fmtCurrency(snapshot.net_worth, snapshot.currency)}
+                  </PrivateValue>
+                </div>
+                <div
+                  className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mt-1 ${toneClass}`}
+                >
+                  ● {relativeTime(lastRefreshed)}
+                  {data && "source" in data && data.source && (
+                    <span className="ml-2 text-ink-3">via {data.source}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-3">
+                <Sparkline points={sparkPoints} />
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    Daily
+                  </div>
+                  {deltas && deltas.dayDelta !== null ? (
+                    <>
+                      <Mono
+                        className={`block text-sm mt-1 ${
+                          deltas.dayDelta >= 0 ? "text-ok" : "text-danger"
+                        }`}
+                      >
+                        <PrivateValue>
+                          {fmtSigned(deltas.dayDelta, snapshot.currency)}
+                        </PrivateValue>
+                      </Mono>
+                      {deltas.dayPct !== null && (
+                        <Mono
+                          className={`block text-[11px] ${
+                            deltas.dayDelta >= 0
+                              ? "text-ok/70"
+                              : "text-danger/70"
+                          }`}
+                        >
+                          <PrivateValue>
+                            {fmtPercent(deltas.dayPct)}
+                          </PrivateValue>
+                        </Mono>
+                      )}
+                    </>
+                  ) : (
+                    <Mono className="block text-sm text-ink-3 mt-1">—</Mono>
+                  )}
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    Monthly
+                  </div>
+                  {deltas && deltas.monthDelta !== null ? (
+                    <>
+                      <Mono
+                        className={`block text-sm mt-1 ${
+                          deltas.monthDelta >= 0 ? "text-ok" : "text-danger"
+                        }`}
+                      >
+                        <PrivateValue>
+                          {fmtSigned(deltas.monthDelta, snapshot.currency)}
+                        </PrivateValue>
+                      </Mono>
+                      {deltas.monthPct !== null && (
+                        <Mono
+                          className={`block text-[11px] ${
+                            deltas.monthDelta >= 0
+                              ? "text-ok/70"
+                              : "text-danger/70"
+                          }`}
+                        >
+                          <PrivateValue>
+                            {fmtPercent(deltas.monthPct)}
+                          </PrivateValue>
+                        </Mono>
+                      )}
+                    </>
+                  ) : (
+                    <Mono className="block text-sm text-ink-3 mt-1">—</Mono>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </>
       )}
     </Panel>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
 import type { GoalItem, GoalScope } from "@/lib/types/goals";
+import type { CardWidth } from "@/lib/dashboard/card-registry";
 
 type Goals = { week: GoalItem[]; month: GoalItem[] };
 
@@ -16,7 +17,7 @@ function newGoal(text: string): GoalItem {
   };
 }
 
-export function Goals() {
+export function Goals({ width = 1 }: { width?: CardWidth } = {}) {
   const [goals, setGoals] = useState<Goals | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -115,25 +116,46 @@ export function Goals() {
         </div>
       )}
 
-      <Section
-        label="This Week"
-        emptyText="No weekly goals yet. Add one below."
-        items={goals?.week ?? null}
-        onAdd={(t) => addGoal("week", t)}
-        onToggle={(id) => toggle("week", id)}
-        onRemove={(id) => remove("week", id)}
-      />
-
-      <div className="my-4 border-t border-ink-2" />
-
-      <Section
-        label="This Month"
-        emptyText="No monthly goals yet. Add one below."
-        items={goals?.month ?? null}
-        onAdd={(t) => addGoal("month", t)}
-        onToggle={(id) => toggle("month", id)}
-        onRemove={(id) => remove("month", id)}
-      />
+      {width >= 3 ? (
+        <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+          <Section
+            label="This Week"
+            emptyText="No weekly goals yet. Add one below."
+            items={goals?.week ?? null}
+            onAdd={(t) => addGoal("week", t)}
+            onToggle={(id) => toggle("week", id)}
+            onRemove={(id) => remove("week", id)}
+          />
+          <Section
+            label="This Month"
+            emptyText="No monthly goals yet. Add one below."
+            items={goals?.month ?? null}
+            onAdd={(t) => addGoal("month", t)}
+            onToggle={(id) => toggle("month", id)}
+            onRemove={(id) => remove("month", id)}
+          />
+        </div>
+      ) : (
+        <>
+          <Section
+            label="This Week"
+            emptyText="No weekly goals yet. Add one below."
+            items={goals?.week ?? null}
+            onAdd={(t) => addGoal("week", t)}
+            onToggle={(id) => toggle("week", id)}
+            onRemove={(id) => remove("week", id)}
+          />
+          <div className="my-4 border-t border-ink-2" />
+          <Section
+            label="This Month"
+            emptyText="No monthly goals yet. Add one below."
+            items={goals?.month ?? null}
+            onAdd={(t) => addGoal("month", t)}
+            onToggle={(id) => toggle("month", id)}
+            onRemove={(id) => remove("month", id)}
+          />
+        </>
+      )}
     </Panel>
   );
 }

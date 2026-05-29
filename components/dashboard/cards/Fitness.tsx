@@ -7,8 +7,9 @@ import { Panel } from "../Panel";
 import { Mono } from "../Mono";
 import { KIND_VISUALS, SLOT_LABEL, SLOT_ORDER } from "@/lib/fitness/kind";
 import type { TodayResponse, TodaySlotEntry } from "@/lib/fitness/types";
+import type { CardWidth } from "@/lib/dashboard/card-registry";
 
-export function Fitness() {
+export function Fitness({ width = 1 }: { width?: CardWidth } = {}) {
   const router = useRouter();
   const [data, setData] = useState<TodayResponse | null>(null);
   const [starting, setStarting] = useState<string | null>(null);
@@ -77,9 +78,17 @@ export function Fitness() {
       title="FITNESS"
       topRight={<Mono>TODAY</Mono>}
       bottomCTA={
-        <Link href="/fitness" className="hover:text-ink-4 transition-colors">
-          VIEW WORKOUT →
-        </Link>
+        <span className="flex items-center gap-4">
+          <Link
+            href="/fitness/calendar"
+            className="hover:text-ink-4 transition-colors"
+          >
+            CALENDAR →
+          </Link>
+          <Link href="/fitness" className="hover:text-ink-4 transition-colors">
+            VIEW WORKOUT →
+          </Link>
+        </span>
       }
     >
       {data === null ? (
@@ -93,7 +102,13 @@ export function Fitness() {
             : "No programme active. Set one up in Fitness → Phases."}
         </div>
       ) : (
-        <ul className="flex flex-col divide-y divide-ink-2">
+        <ul
+          className={
+            width >= 3
+              ? "grid grid-cols-2 gap-x-6"
+              : "flex flex-col divide-y divide-ink-2"
+          }
+        >
           {entries.map((s) => {
             const kv = KIND_VISUALS[s.kind];
             const label = s.completed
@@ -107,7 +122,11 @@ export function Fitness() {
             return (
               <li
                 key={key}
-                className="flex items-center gap-3 py-2 first:pt-0 last:pb-0"
+                className={`flex items-center gap-3 py-2 ${
+                  width >= 3
+                    ? "border-b border-ink-2 last:border-b-0"
+                    : "first:pt-0 last:pb-0"
+                }`}
               >
                 <span aria-hidden className="text-base shrink-0">
                   {kv.icon}

@@ -7,6 +7,7 @@ import { HABITS as DEFAULT_HABITS, type Habit } from "@/lib/config/habits";
 import { localDateKey } from "@/lib/util/date";
 import { HabitsConfigModal } from "../HabitsConfigModal";
 import { triggerGlowPulse } from "@/lib/motion";
+import type { CardWidth } from "@/lib/dashboard/card-registry";
 
 function cacheKeyForToday(): string {
   return `miles-habits-${localDateKey()}`;
@@ -35,7 +36,7 @@ function writeLocalCache(key: string, value: string[]): void {
   }
 }
 
-export function Habits() {
+export function Habits({ width = 1 }: { width?: CardWidth } = {}) {
   // Lazy init reads localStorage on first render (client-only — readLocalCache
   // returns [] when window is undefined).
   const [done, setDone] = useState<Set<string>>(
@@ -201,7 +202,11 @@ export function Habits() {
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-3 gap-2">
+      <div
+        className={`mt-5 grid gap-2 ${
+          width >= 3 ? "grid-cols-6" : "grid-cols-3"
+        }`}
+      >
         {habits.map((h) => {
           const isDone = done.has(h.id);
           return (
@@ -212,7 +217,9 @@ export function Habits() {
                 triggerGlowPulse(e.currentTarget);
                 void toggle(h.id);
               }}
-              className={`text-left rounded-xl border px-3 py-2.5 flex flex-col gap-1 transition-colors ${
+              className={`text-left rounded-xl border flex flex-col gap-1 transition-colors ${
+                width >= 3 ? "px-4 py-3.5 min-h-[88px]" : "px-3 py-2.5"
+              } ${
                 isDone
                   ? "border-accent/50 bg-accent/10 hover:bg-accent/15"
                   : "border-ink-2 bg-ink-0/40 hover:border-ink-3"
@@ -221,7 +228,11 @@ export function Habits() {
               <div className="flex items-center justify-between">
                 <span
                   aria-hidden
-                  className={`h-3.5 w-3.5 rounded-sm border flex items-center justify-center text-[10px] leading-none transition-colors ${
+                  className={`rounded-sm border flex items-center justify-center leading-none transition-colors ${
+                    width >= 3
+                      ? "h-4 w-4 text-[11px]"
+                      : "h-3.5 w-3.5 text-[10px]"
+                  } ${
                     isDone
                       ? "border-accent bg-accent text-ink-0"
                       : "border-ink-3"
@@ -238,7 +249,11 @@ export function Habits() {
                   </Mono>
                 )}
               </div>
-              <div className="text-sm text-ink-4">{h.name}</div>
+              <div
+                className={`text-ink-4 ${width >= 3 ? "text-base" : "text-sm"}`}
+              >
+                {h.name}
+              </div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
                 {h.category}
               </div>

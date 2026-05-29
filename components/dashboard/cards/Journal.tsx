@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
 import type { JournalEntry } from "@/lib/journal/types";
+import type { CardWidth } from "@/lib/dashboard/card-registry";
 
 const MOOD_TONE: Record<string, string> = {
   energised: "bg-ok/15 text-ok border-ok/40",
@@ -25,7 +26,7 @@ function fmtTime(iso: string): string {
   });
 }
 
-export function Journal() {
+export function Journal({ width = 1 }: { width?: CardWidth } = {}) {
   const [entries, setEntries] = useState<JournalEntry[] | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 
@@ -84,7 +85,13 @@ export function Journal() {
           capture box.
         </div>
       ) : (
-        <ul className="flex flex-col divide-y divide-ink-2">
+        <ul
+          className={
+            width >= 3
+              ? "grid grid-cols-2 gap-x-6"
+              : "flex flex-col divide-y divide-ink-2"
+          }
+        >
           {entries.map((e) => {
             const isOpen = expanded.has(e.id);
             const moodCls =
@@ -92,11 +99,16 @@ export function Journal() {
                 ? MOOD_TONE[e.mood]
                 : "bg-ink-2 text-ink-3 border-ink-2";
             return (
-              <li key={e.id}>
+              <li
+                key={e.id}
+                className={width >= 3 ? "border-b border-ink-2 last:border-b-0" : ""}
+              >
                 <button
                   type="button"
                   onClick={() => toggle(e.id)}
-                  className="w-full text-left py-2.5 first:pt-0 flex items-start gap-3 hover:bg-ink-2/30 transition-colors px-1 -mx-1 rounded-md"
+                  className={`w-full text-left py-2.5 ${
+                    width >= 3 ? "" : "first:pt-0"
+                  } flex items-start gap-3 hover:bg-ink-2/30 transition-colors px-1 -mx-1 rounded-md`}
                 >
                   <Mono className="text-[11px] text-ink-3 w-12 shrink-0 pt-0.5">
                     {fmtTime(e.created_at)}

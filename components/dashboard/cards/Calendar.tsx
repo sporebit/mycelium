@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
+import type { CardWidth } from "@/lib/dashboard/card-registry";
 
 type CalendarEvent = {
   id: string;
@@ -60,7 +62,8 @@ function hexAlpha(hex: string, alphaHex: string): string {
   return `${hex.slice(0, 7)}${alphaHex}`;
 }
 
-export function Calendar() {
+export function Calendar(_props: { width?: CardWidth } = {}) {
+  void _props;
   const [today] = useState<Date>(() => new Date());
   const [nowMin, setNowMin] = useState<Date>(() => new Date());
   const [selected, setSelected] = useState<string>(() => ymd(new Date()));
@@ -118,7 +121,12 @@ export function Calendar() {
       title="CALENDAR"
       topRight={<Mono>{monthLabel}</Mono>}
       bottomCTA={
-        <span className="cursor-pointer hover:text-ink-4">OPEN CALENDAR →</span>
+        <Link
+          href="/fitness/calendar"
+          className="cursor-pointer hover:text-ink-4 transition-colors"
+        >
+          OPEN MONTH →
+        </Link>
       }
     >
       {/* Week strip */}

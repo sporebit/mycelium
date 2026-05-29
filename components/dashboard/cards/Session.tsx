@@ -6,6 +6,7 @@ import { Panel } from "../Panel";
 import { Mono } from "../Mono";
 import { CaptureBox } from "../CaptureBox";
 import { OPERATOR } from "@/lib/config/operator";
+import type { CardWidth } from "@/lib/dashboard/card-registry";
 
 type TopTask = {
   id: string;
@@ -41,7 +42,7 @@ function fmtTime(d: Date): string {
   });
 }
 
-export function Session() {
+export function Session({ width = 1 }: { width?: CardWidth } = {}) {
   const [now, setNow] = useState<Date>(() => new Date());
 
   const [oneThing, setOneThing] = useState<string>("");
@@ -218,9 +219,20 @@ export function Session() {
             No critical tasks for today
           </div>
         ) : (
-          <ul className="flex flex-col divide-y divide-ink-2">
+          <ul
+            className={
+              width >= 3
+                ? "grid grid-cols-2 gap-x-6"
+                : "flex flex-col divide-y divide-ink-2"
+            }
+          >
             {topTasks.map((t) => (
-              <li key={t.id} className="py-2 flex items-center gap-3">
+              <li
+                key={t.id}
+                className={`py-2 flex items-center gap-3 ${
+                  width >= 3 ? "border-b border-ink-2 last:border-b-0" : ""
+                }`}
+              >
                 <span
                   aria-hidden
                   className="h-1.5 w-1.5 rounded-full bg-danger shrink-0"

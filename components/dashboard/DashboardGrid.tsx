@@ -44,7 +44,7 @@ import {
   type CardWidth,
 } from "@/lib/dashboard/card-registry";
 
-const CARD_COMPONENTS: Record<string, ComponentType> = {
+const CARD_COMPONENTS: Record<string, ComponentType<{ width: CardWidth }>> = {
   operator: Operator,
   session: Session,
   habits: Habits,
@@ -229,7 +229,7 @@ export function DashboardGrid() {
                     onChangeWidth={(w) => changeWidth(row.card_key, w)}
                     onHide={() => setHideConfirm(row.card_key)}
                   >
-                    <Component />
+                    <Component width={row.width} />
                   </SortableCardWrapper>
                 );
               })}

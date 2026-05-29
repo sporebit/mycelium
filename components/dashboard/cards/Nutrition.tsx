@@ -14,6 +14,7 @@ import {
   type Meal,
   type NutritionTargets,
 } from "@/lib/types/nutrition";
+import type { CardWidth } from "@/lib/dashboard/card-registry";
 
 type DailyLogPayload = {
   notes?: {
@@ -245,7 +246,7 @@ function NumberField({
   );
 }
 
-export function Nutrition() {
+export function Nutrition({ width = 1 }: { width?: CardWidth } = {}) {
   const [meals, setMeals] = useState<Meal[] | null>(null);
   const [targets, setTargets] = useState<NutritionTargets>(DEFAULT_TARGETS);
   const [input, setInput] = useState("");
@@ -428,6 +429,8 @@ export function Nutrition() {
         </Link>
       </div>
 
+      <div className={width >= 3 ? "mt-4 grid grid-cols-2 gap-x-8" : "contents"}>
+      <div>
       <div className="mt-4">
         <Mono className="block text-2xl text-ink-4">
           {totals.kcal.toLocaleString()}{" "}
@@ -443,7 +446,9 @@ export function Nutrition() {
         <Macro label="Carbs" value={totals.c} target={targets.c} />
         <Macro label="Fat" value={totals.f} target={targets.f} />
       </div>
+      </div>
 
+      <div>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -509,6 +514,8 @@ export function Nutrition() {
           ))
         )}
       </ul>
+      </div>
+      </div>
     </Panel>
   );
 }

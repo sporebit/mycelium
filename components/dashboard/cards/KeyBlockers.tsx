@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
 import type { BlockerRow } from "@/lib/blockers";
+import type { CardWidth } from "@/lib/dashboard/card-registry";
 
 type Response = { blockers: BlockerRow[]; total: number };
 
@@ -41,7 +42,7 @@ function stuckLabel(d: number): string {
   return `STUCK ${d}d`;
 }
 
-export function KeyBlockers() {
+export function KeyBlockers({ width = 2 }: { width?: CardWidth } = {}) {
   const router = useRouter();
   const [data, setData] = useState<Response | null>(null);
 
@@ -136,13 +137,24 @@ export function KeyBlockers() {
               active {total === 1 ? "blocker" : "blockers"}
             </span>
           </div>
-        <ul className="flex flex-col divide-y divide-ink-2">
+        <ul
+          className={
+            width >= 3
+              ? "grid grid-cols-2 gap-x-6"
+              : "flex flex-col divide-y divide-ink-2"
+          }
+        >
           {shown.map((b) => (
-            <li key={b.id}>
+            <li
+              key={b.id}
+              className={width >= 3 ? "border-b border-ink-2 last:border-b-0" : ""}
+            >
               <button
                 type="button"
                 onClick={() => open(b.id)}
-                className="w-full text-left flex items-start gap-3 py-2.5 first:pt-0 last:pb-0 hover:bg-ink-2/30 transition-colors px-1 -mx-1 rounded-md"
+                className={`w-full text-left flex items-start gap-3 py-2.5 ${
+                  width >= 3 ? "" : "first:pt-0 last:pb-0"
+                } hover:bg-ink-2/30 transition-colors px-1 -mx-1 rounded-md`}
               >
                 <div className="flex-1 min-w-0">
                   {b.parent_title && (
