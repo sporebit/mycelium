@@ -29,6 +29,7 @@ export const CARD_REGISTRY: Record<string, CardConfig> = {
   nutrition:     { label: "Nutrition",     supports: [1, 2, 3], default_width: 1, default_position: 8 },
   fitness:       { label: "Fitness",       supports: [1, 2, 3], default_width: 1, default_position: 9 },
   fuel:          { label: "Fuel",          supports: [1, 2, 3], default_width: 1, default_position: 10 },
+  capture_review:{ label: "Capture Review", supports: [1, 2, 3], default_width: 1, default_position: 11 },
 };
 
 export const CARD_KEYS = Object.keys(CARD_REGISTRY);

@@ -38,6 +38,7 @@ import { Nutrition } from "./cards/Nutrition";
 import { Fuel } from "./cards/Fuel";
 import { Journal } from "./cards/Journal";
 import { Fitness } from "./cards/Fitness";
+import { CaptureReview } from "./cards/CaptureReview";
 import { DashboardSettings } from "./DashboardSettings";
 import {
   CARD_REGISTRY,
@@ -104,6 +105,7 @@ const CARD_COMPONENTS: Record<string, ComponentType<{ width: CardWidth }>> = {
   fuel: Fuel,
   journal: Journal,
   fitness: Fitness,
+  capture_review: CaptureReview,
 };
 
 export function DashboardGrid() {
