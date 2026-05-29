@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { TopRail } from "./TopRail";
+import { MobileHeader } from "./MobileHeader";
+import { MobileTabBar } from "./MobileTabBar";
 import { GlobalSearch } from "./GlobalSearch";
 import { FloatingCapture } from "./FloatingCapture";
 
@@ -18,9 +20,17 @@ export function Shell({
 }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <TopRail active={active} />
+      {/* Desktop chrome (>= md) — full TopRail with tickers, weather, etc. */}
+      <div className="hidden md:block">
+        <TopRail active={active} />
+      </div>
 
-      <main className="flex-1 mx-auto w-full max-w-[1400px] px-6 py-6">
+      {/* Mobile chrome (< md) — slim header; bottom tab bar handled below. */}
+      <MobileHeader />
+
+      <main
+        className="flex-1 mx-auto w-full max-w-[1400px] px-4 sm:px-6 py-4 sm:py-6 pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-6"
+      >
         {children ? (
           children
         ) : (
@@ -34,6 +44,7 @@ export function Shell({
 
       <GlobalSearch />
       <FloatingCapture />
+      <MobileTabBar />
     </div>
   );
 }
