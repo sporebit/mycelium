@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
       .limit(limit);
 
     if (q) {
-      // ilike on raw_text — coarse but sufficient for v1. The Brain tab does
+      // ilike on raw_text — coarse but sufficient for v1. The Stroma tab does
       // proper semantic search via embeddings.
       query = query.ilike("raw_text", `%${q}%`);
     }

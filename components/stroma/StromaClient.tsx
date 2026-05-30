@@ -80,7 +80,7 @@ async function streamAsk(
   }
 }
 
-export function BrainClient() {
+export function StromaClient() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") ?? "";
 

@@ -4,18 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
-  { label: "ASK", href: "/brain" },
-  { label: "RULES", href: "/brain/rules" },
+  { label: "ASK", href: "/stroma" },
+  { label: "RULES", href: "/stroma/rules" },
+  { label: "INTEGRATIONS", href: "/stroma/integrations" },
 ];
 
-export function BrainSubNav() {
+export function StromaSubNav() {
   const pathname = usePathname();
   return (
     <nav className="flex items-center gap-1 border-b border-ink-2 mb-4 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
       {TABS.map((t) => {
         const isActive =
           pathname === t.href ||
-          (t.href !== "/brain" && pathname.startsWith(`${t.href}/`));
+          (t.href !== "/stroma" && pathname.startsWith(`${t.href}/`));
         return (
           <Link
             key={t.href}

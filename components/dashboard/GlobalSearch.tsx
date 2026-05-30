@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SearchMatch } from "@/lib/memory/types";
-import { SourceCard } from "@/components/brain/SourceCard";
+import { SourceCard } from "@/components/stroma/SourceCard";
 
 export function GlobalSearch() {
   const router = useRouter();
@@ -101,10 +101,10 @@ export function GlobalSearch() {
     }
   }
 
-  function openInBrain() {
+  function openInStroma() {
     const q = query.trim();
     closeModal();
-    router.push(q ? `/brain?q=${encodeURIComponent(q)}` : "/brain");
+    router.push(q ? `/stroma?q=${encodeURIComponent(q)}` : "/stroma");
   }
 
   if (!open) return null;
@@ -128,7 +128,7 @@ export function GlobalSearch() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            openInBrain();
+            openInStroma();
           }}
           className="px-4 py-3 border-b border-ink-2 flex items-center gap-3"
         >
@@ -175,13 +175,13 @@ export function GlobalSearch() {
         </div>
 
         <footer className="px-4 py-2 border-t border-ink-2 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-          <span>Esc to close · Enter to open in Brain</span>
+          <span>Esc to close · Enter to open in Stroma</span>
           <Link
-            href={query.trim() ? `/brain?q=${encodeURIComponent(query.trim())}` : "/brain"}
+            href={query.trim() ? `/stroma?q=${encodeURIComponent(query.trim())}` : "/stroma"}
             onClick={closeModal}
             className="hover:text-ink-4 transition-colors"
           >
-            Open in Brain →
+            Open in Stroma →
           </Link>
         </footer>
       </div>
