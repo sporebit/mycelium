@@ -9,6 +9,8 @@ type Tab = {
   href: string;
   /** Returns true when this tab represents the current pathname. */
   match: (pathname: string) => boolean;
+  /** Which viewports show this tab. */
+  visibility: "always" | "mobile" | "desktop";
 };
 
 const TABS: Tab[] = [
@@ -16,28 +18,63 @@ const TABS: Tab[] = [
     label: "COMPOST",
     href: "/compost",
     match: (p) => p === "/compost" || p.startsWith("/compost/"),
+    visibility: "always",
   },
   {
     label: "FITNESS",
     href: "/fitness",
     match: (p) => p === "/fitness" || p.startsWith("/fitness/"),
+    visibility: "always",
   },
   {
-    label: "BRAIN",
-    href: "/brain",
-    match: (p) => p === "/brain" || p.startsWith("/brain/"),
+    label: "STROMA",
+    href: "/stroma",
+    match: (p) => p === "/stroma" || p.startsWith("/stroma/"),
+    visibility: "always",
+  },
+  {
+    label: "FINANCE",
+    href: "/finance",
+    match: (p) => p === "/finance" || p.startsWith("/finance/"),
+    visibility: "desktop",
+  },
+  {
+    label: "HEALTH",
+    href: "/health",
+    match: (p) => p === "/health" || p.startsWith("/health/"),
+    visibility: "desktop",
+  },
+  {
+    label: "JOURNAL",
+    href: "/journal",
+    match: (p) => p === "/journal" || p.startsWith("/journal/"),
+    visibility: "desktop",
+  },
+  {
+    label: "REVIEW",
+    href: "/review",
+    match: (p) => p === "/review" || p.startsWith("/review/"),
+    visibility: "desktop",
   },
   {
     label: "MORE",
     href: "/more",
     match: (p) => p === "/more" || p.startsWith("/more/"),
+    visibility: "mobile",
   },
 ];
 
+function visibilityClass(v: Tab["visibility"]): string {
+  if (v === "always") return "";
+  if (v === "desktop") return "hidden lg:inline-flex";
+  return "lg:hidden"; // mobile-only
+}
+
 /**
- * Single unified top bar — Mycelium wordmark on the left routes to /,
- * four nav items on the right. Identical markup on mobile and desktop;
- * sizing tightens slightly under sm to fit a 380px viewport.
+ * Single unified top bar — Mycelium wordmark on the left, primary nav on the
+ * right. Desktop (≥1024px) shows every navigable section inline. Mobile
+ * keeps a slim bar with the three primary sections plus a MORE link to the
+ * full /more index for the remaining sections.
  */
 export function TopRail() {
   const pathname = usePathname();
@@ -53,7 +90,7 @@ export function TopRail() {
                 key={t.label}
                 href={t.href}
                 aria-current={isActive ? "page" : undefined}
-                className={`inline-flex items-center justify-center min-h-[44px] px-2 sm:px-3 text-[10px] sm:text-xs font-[family-name:var(--font-mono)] tracking-[0.04em] uppercase rounded-md transition-colors ${
+                className={`${visibilityClass(t.visibility)} inline-flex items-center justify-center min-h-[44px] px-2 sm:px-3 text-[10px] sm:text-xs font-[family-name:var(--font-mono)] tracking-[0.04em] uppercase rounded-md transition-colors ${
                   isActive
                     ? "bg-ink-2 text-accent"
                     : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/70"
