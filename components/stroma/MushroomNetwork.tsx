@@ -204,44 +204,6 @@ export function MushroomNetwork() {
     }
     window.addEventListener("resize", onResize);
 
-    /** Draw the central glowing fruiting-body node on top of everything.
-     *  Pulse is driven by the elapsed time so it's continuous across
-     *  frames without per-node bookkeeping. */
-    function drawCentralSource(t: number) {
-      if (!ctx) return;
-      const cx = W * 0.5;
-      const cy = H * 0.5;
-      const pulse = reduced
-        ? 1.0
-        : 1.075 + 0.075 * Math.sin((t / 3000) * Math.PI * 2);
-
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.scale(pulse, pulse);
-
-      ctx.beginPath();
-      ctx.arc(0, 0, 30, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(132,245,184,0.06)";
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(0, 0, 18, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(132,245,184,0.15)";
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(0, 0, 10, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(132,245,184,0.4)";
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(0, 0, 4, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255,255,255,0.9)";
-      ctx.fill();
-
-      ctx.restore();
-    }
-
     function drawConnections() {
       if (!ctx) return;
       ctx.lineWidth = 0.5;
@@ -320,7 +282,6 @@ export function MushroomNetwork() {
       step();
       drawConnections();
       drawNodes();
-      drawCentralSource(t);
       rafId = requestAnimationFrame(frame);
     }
 
@@ -328,7 +289,6 @@ export function MushroomNetwork() {
       ctx!.clearRect(0, 0, W, H);
       drawConnections();
       drawNodes();
-      drawCentralSource(0);
     }
 
     if (reduced) {
