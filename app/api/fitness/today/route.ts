@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { isoWeekString } from "@/lib/util/week";
 import { localDateKey } from "@/lib/util/date";
@@ -33,17 +33,29 @@ function jsDayToProgrammeDow(jsDay: number): number {
   return (jsDay + 6) % 7;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const uid = userId();
   if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
 
   try {
     const supabase = createServerClient();
     const tz = process.env.USER_TIMEZONE ?? "Europe/London";
-    const todayKey = localDateKey(tz);
-    const nowLocal = new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
-    const currentWeek = isoWeekString(nowLocal);
-    const dow = jsDayToProgrammeDow(nowLocal.getDay());
+    const realTodayKey = localDateKey(tz);
+
+    // R4 day-swap: accept ?date=YYYY-MM-DD to render the same view for
+    // any day. Defaults to today. Invalid format → falls back to today
+    // rather than erroring out the day strip.
+    const dateParam = req.nextUrl.searchParams.get("date");
+    const dateKey =
+      dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)
+        ? dateParam
+        : realTodayKey;
+    const isToday = dateKey === realTodayKey;
+    const [y, m, d] = dateKey.split("-").map(Number);
+    const targetDate = new Date(Date.UTC(y, m - 1, d));
+    const currentWeek = isoWeekString(targetDate);
+    // Programme day-of-week uses Sunday=0..Saturday=6 → Mon=0..Sun=6.
+    const dow = jsDayToProgrammeDow(targetDate.getUTCDay());
 
     // Piggyback: promote any of this user's active sessions older than
     // 48h to attempted before we read them back. Soft-fails on its own.
@@ -60,12 +72,12 @@ export async function GET() {
     const activePhase =
       Array.isArray(phaseRows) && phaseRows.length > 0 ? phaseRows[0] : null;
 
-    // All of today's live workout_sessions across every slot
+    // All of the target day's live workout_sessions across every slot
     const { data: liveRows } = await supabase
       .from("workout_sessions")
       .select(LIVE_SESSION_FIELDS)
       .eq("user_id", uid)
-      .eq("date", todayKey)
+      .eq("date", dateKey)
       .order("position", { ascending: true });
     type LiveRow = {
       id: string;
@@ -84,7 +96,8 @@ export async function GET() {
 
     if (!activePhase) {
       const out: TodayResponse = {
-        date: todayKey,
+        date: dateKey,
+        is_today: isToday,
         programme_name: null,
         programme_id: null,
         programme_sessions: [],
@@ -255,7 +268,8 @@ export async function GET() {
     }
 
     const out: TodayResponse = {
-      date: todayKey,
+      date: dateKey,
+      is_today: isToday,
       programme_name: (programme?.name as string | null) ?? null,
       programme_id: programmeId,
       programme_sessions: allSessions.map((s) => ({

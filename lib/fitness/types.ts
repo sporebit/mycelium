@@ -154,6 +154,10 @@ export type TodaySlotEntry = {
 
 export type TodayResponse = {
   date: string;
+  /** False when the response is for a day other than the user's real
+   *  today (set when called with ?date=YYYY-MM-DD). Drives past/
+   *  future banner + disables START/RESUME on planned-only entries. */
+  is_today: boolean;
   programme_name: string | null;
   programme_id: string | null;
   programme_sessions: Array<{

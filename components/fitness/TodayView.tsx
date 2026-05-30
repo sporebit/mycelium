@@ -23,8 +23,10 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Mono } from "@/components/dashboard/Mono";
 import { AddSessionModal } from "./AddSessionModal";
+import { DateSelector } from "./DateSelector";
 import { SessionSwapDropdown } from "./SessionSwapDropdown";
 import { KIND_VISUALS, SLOT_ICON, SLOT_LABEL, SLOT_ORDER } from "@/lib/fitness/kind";
+import { localDateKey } from "@/lib/util/date";
 import type {
   Slot,
   TemplateExercise,
@@ -32,6 +34,10 @@ import type {
   TodaySlotEntry,
   WorkoutSessionType,
 } from "@/lib/fitness/types";
+
+function getLocalTodayKey(): string {
+  return localDateKey();
+}
 
 function exerciseLine(ex: TemplateExercise): string {
   if (ex.data_shape === "hold" && ex.default_hold_seconds) {
@@ -63,7 +69,13 @@ function jsDayToProgrammeDow(jsDay: number): number {
 
 type Toast = { kind: "ok" | "error"; text: string } | null;
 
-export function TodayView() {
+export function TodayView({
+  /** When set, the view pins to this YYYY-MM-DD instead of today.
+   *  Used by /fitness/[date] for the day-swap navigation. */
+  dateKey,
+}: {
+  dateKey?: string;
+} = {}) {
   const router = useRouter();
   const [data, setData] = useState<TodayResponse | null>(null);
   const [typesByKey, setTypesByKey] = useState<Record<string, WorkoutSessionType>>({});
@@ -74,8 +86,11 @@ export function TodayView() {
 
   const load = useCallback(async () => {
     try {
+      const todayUrl = dateKey
+        ? `/api/fitness/today?date=${dateKey}`
+        : "/api/fitness/today";
       const [tRes, typeRes] = await Promise.all([
-        fetch("/api/fitness/today", { cache: "no-store" }),
+        fetch(todayUrl, { cache: "no-store" }),
         fetch("/api/fitness/session-types", { cache: "no-store" }),
       ]);
       if (!tRes.ok) {
@@ -93,7 +108,7 @@ export function TodayView() {
     } catch {
       setError("Network error");
     }
-  }, []);
+  }, [dateKey]);
 
   useEffect(() => {
     let mounted = true;
@@ -200,11 +215,29 @@ export function TodayView() {
     new Date(data.date.replace(/-/g, "/")).getDay()
   );
 
+  const isToday = data.is_today !== false;
+  const isFuture = !isToday && data.date > getLocalTodayKey();
+  const isPast = !isToday && data.date < getLocalTodayKey();
+
   return (
     <div className="flex flex-col gap-6">
-      {data.programme_name && (
-        <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-          Programme · {data.programme_name}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <DateSelector currentDate={data.date} isToday={isToday} />
+        {data.programme_name && (
+          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            Programme · {data.programme_name}
+          </span>
+        )}
+      </div>
+
+      {isFuture && (
+        <div className="rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-text-1 italic font-[family-name:var(--font-display)]">
+          Future plan — sessions become startable on the day.
+        </div>
+      )}
+      {isPast && (
+        <div className="rounded-md border border-ink-2 bg-ink-0/30 px-3 py-2 text-sm text-text-1 italic font-[family-name:var(--font-display)]">
+          Past day — completed sessions remain editable; planned-only entries are marked missed.
         </div>
       )}
 
@@ -219,6 +252,8 @@ export function TodayView() {
             todayDow={todayDow}
             typesByKey={typesByKey}
             starting={starting}
+            isToday={isToday}
+            isPast={isPast}
             onStart={(e) => void startOrResume(e)}
             onReorder={(newOrder) => void handleReorder(slot, newOrder)}
             onAdd={() => setAddFor(slot)}
@@ -264,6 +299,8 @@ function SlotSection({
   todayDow,
   typesByKey,
   starting,
+  isToday,
+  isPast,
   onStart,
   onReorder,
   onAdd,
@@ -275,6 +312,8 @@ function SlotSection({
   todayDow: number;
   typesByKey: Record<string, WorkoutSessionType>;
   starting: string | null;
+  isToday: boolean;
+  isPast: boolean;
   onStart: (entry: TodaySlotEntry) => void;
   onReorder: (newOrder: TodaySlotEntry[]) => void;
   onAdd: () => void;
@@ -328,6 +367,8 @@ function SlotSection({
                   todayDow={todayDow}
                   typesByKey={typesByKey}
                   starting={starting}
+                  isToday={isToday}
+                  isPast={isPast}
                   onStart={onStart}
                   onSwapped={onSwapped}
                 />
@@ -355,11 +396,23 @@ function SortableSessionCard(props: {
   todayDow: number;
   typesByKey: Record<string, WorkoutSessionType>;
   starting: string | null;
+  isToday: boolean;
+  isPast: boolean;
   onStart: (entry: TodaySlotEntry) => void;
   onSwapped: () => void;
 }) {
-  const { id, entry, programmeSessions, todayDow, typesByKey, starting, onStart, onSwapped } =
-    props;
+  const {
+    id,
+    entry,
+    programmeSessions,
+    todayDow,
+    typesByKey,
+    starting,
+    isToday,
+    isPast,
+    onStart,
+    onSwapped,
+  } = props;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
   const style: React.CSSProperties = {
@@ -373,6 +426,12 @@ function SortableSessionCard(props: {
     ? typesByKey[entry.session_type]?.label ?? entry.session_type
     : null;
   const isAttempted = entry.status === "attempted";
+  // Planned-but-unstarted entries on a past day are MISSED — no START
+  // affordance, greyed visually.
+  const plannedOnly =
+    !entry.completed && !entry.in_progress && !entry.logged_session_id;
+  const isMissed = isPast && plannedOnly;
+  const isPlannedFuture = !isToday && !isPast && plannedOnly;
   const label = entry.completed
     ? `LOGGED · ${entry.summary?.sets ?? 0} sets${
         entry.summary?.minutes != null ? ` · ${entry.summary.minutes}m` : ""
@@ -381,6 +440,10 @@ function SortableSessionCard(props: {
     ? "ATTEMPTED →"
     : entry.in_progress
     ? "RESUME →"
+    : isMissed
+    ? "MISSED"
+    : isPlannedFuture
+    ? "PLANNED"
     : "START SESSION →";
 
   return (
@@ -512,6 +575,21 @@ function SortableSessionCard(props: {
             // would disable them permanently.
             const isStarting =
               starting !== null && starting === entry.programme_session_id;
+            // Past planned-only and future planned-only are NOT
+            // startable per R4 spec — show a label-only chip.
+            if (isMissed || isPlannedFuture) {
+              return (
+                <span
+                  className={`text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-2 py-1 rounded-md border shrink-0 ${
+                    isMissed
+                      ? "border-ink-3 text-ink-3 opacity-60"
+                      : "border-warn/40 bg-warn/10 text-warn"
+                  }`}
+                >
+                  {label}
+                </span>
+              );
+            }
             return (
               <button
                 type="button"
