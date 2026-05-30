@@ -1,58 +1,63 @@
 "use client";
 
 /**
- * Hyphal threadlines V3 — dendritic, non-crossing growth.
+ * Hyphal threadlines V4 — canvas rendering.
  *
- * Phase 1 (on mount, 0–4s): all main threads + first-pass branches are
- * generated deterministically (mulberry32 seeded with 42) and rendered
- * via React, each animating its stroke-dashoffset from totalLength → 0
- * with a per-thread delay 0–800ms.
+ * The previous SVG + stroke-dashoffset CSS animation never fired in
+ * production. Canvas + requestAnimationFrame is the fix.
  *
- * Phase 2 (after Phase 1, indefinite): every 8–15s a new spur extends
- * from a random point along an existing thread. Phase 2 paths are
- * appended directly to the <g> element via DOM mutation (not React) to
- * avoid re-rendering the full network on every spur.
+ * Geometry is deterministic via mulberry32(42) so reload looks the
+ * same: 25 main hyphae from viewport edges curving toward nutrient
+ * anchors (which approximate the home-dashboard card positions),
+ * each with 2–4 branches and 1–2 spurs, dendritic curvature, no
+ * crossings, continuous taper from 1.4 → 0.3 px.
  *
- * Anastomosis: when a growing spur's endpoint lands within 15 viewBox
- * units of an existing segment, it terminates with a small fusion node
- * (r=1.5, same stroke, opacity 0.4) instead of continuing.
+ * Phase 1 (0–4s+stagger): each thread reveals progressively along
+ * its arc length with an ease-out curve. Stagger thread i by 30·i ms.
+ * Phase 2 (after Phase 1 settles): every 8–15s a new spur grows from
+ * a random point on the existing network. Anastomosis: if a spur's
+ * tip lands within 15 px of an existing point, the spur terminates
+ * and a small fusion node renders at the fusion site.
  *
- * prefers-reduced-motion: Phase 1 still runs (drawn instantly via the
- * CSS override) but Phase 2 is skipped entirely.
+ * prefers-reduced-motion: Phase 1 still runs (otherwise the network
+ * is invisible on first paint); Phase 2 is skipped.
  */
 
 import { useEffect, useRef } from "react";
 
 type Pt = { x: number; y: number };
-type Bezier = {
-  a: Pt;
-  b: Pt;
-  c: Pt;
-  d: Pt;
-  width: number;
-};
+type Bez = { a: Pt; b: Pt; c: Pt; d: Pt; width: number; length: number };
 type LineSeg = { p1: Pt; p2: Pt };
 type Thread = {
-  beziers: Bezier[];
-  cumLength: number[];
+  beziers: Bez[];
   totalLength: number;
+  /** ms after `spawnedAt` before drawing begins. */
+  startDelay: number;
+  /** ms from start to fully drawn. */
+  duration: number;
+  /** performance.now() when this thread entered the world. */
+  spawnedAt: number;
+  /** If anastomosis terminated this spur, the fusion point; drawn
+   *  once the thread is fully revealed. */
+  fusionPoint: Pt | null;
 };
 
-const VIEW_W = 1600;
-const VIEW_H = 1200;
 const SEED = 42;
 const MAIN_COUNT = 25;
 const MAX_TOTAL_SEGMENTS = 800;
 const WANDERER_CHANCE = 0.3;
 
-const NUTRIENT_SOURCES: Pt[] = [
-  { x: 0.3 * VIEW_W, y: 0.3 * VIEW_H },
-  { x: 0.75 * VIEW_W, y: 0.3 * VIEW_H },
-  { x: 0.25 * VIEW_W, y: 0.65 * VIEW_H },
-  { x: 0.5 * VIEW_W, y: 0.65 * VIEW_H },
-  { x: 0.78 * VIEW_W, y: 0.65 * VIEW_H },
-  { x: 0.45 * VIEW_W, y: 0.9 * VIEW_H },
-];
+const PHASE1_DURATION = 4000;
+const PHASE1_STAGGER_PER_THREAD = 30;
+const PHASE2_START_OFFSET = 4500;
+const SPUR_INTERVAL_MIN = 8000;
+const SPUR_INTERVAL_MAX = 15000;
+const SPUR_DURATION_MIN = 3000;
+const SPUR_DURATION_MAX = 4000;
+const FUSION_RADIUS = 15;
+
+const DEG = Math.PI / 180;
+const BACKOFF_OFFSETS = [0, 25 * DEG, -25 * DEG, 50 * DEG, -50 * DEG];
 
 function mulberry32(seed: number): () => number {
   return function () {
@@ -90,10 +95,58 @@ function clamp(v: number, lo: number, hi: number): number {
   return v < lo ? lo : v > hi ? hi : v;
 }
 
-function nearestAnchor(p: Pt): Pt {
-  let best = NUTRIENT_SOURCES[0];
+/** Polyline chord-length approximation of a cubic bezier. Cheap, and
+ *  more than adequate for the per-thread length book-keeping we use
+ *  to pick branch points and drive progressive draw. */
+function approxBezierLength(a: Pt, b: Pt, c: Pt, d: Pt): number {
+  const N = 5;
+  let prevX = a.x;
+  let prevY = a.y;
+  let total = 0;
+  for (let i = 1; i <= N; i++) {
+    const t = i / N;
+    const mt = 1 - t;
+    const x =
+      mt * mt * mt * a.x +
+      3 * mt * mt * t * b.x +
+      3 * mt * t * t * c.x +
+      t * t * t * d.x;
+    const y =
+      mt * mt * mt * a.y +
+      3 * mt * mt * t * b.y +
+      3 * mt * t * t * c.y +
+      t * t * t * d.y;
+    total += Math.hypot(x - prevX, y - prevY);
+    prevX = x;
+    prevY = y;
+  }
+  return total;
+}
+
+/** De Casteljau split — return control points for the first half of
+ *  `bez` (parameter range 0..t). Used to render a partial bezier
+ *  during progressive draw without sampling N polyline segments. */
+function splitBezierAt(
+  bez: Bez,
+  t: number,
+): { b: Pt; c: Pt; d: Pt } {
+  const lerp = (p: Pt, q: Pt) => ({
+    x: p.x + (q.x - p.x) * t,
+    y: p.y + (q.y - p.y) * t,
+  });
+  const p01 = lerp(bez.a, bez.b);
+  const p12 = lerp(bez.b, bez.c);
+  const p23 = lerp(bez.c, bez.d);
+  const p012 = lerp(p01, p12);
+  const p123 = lerp(p12, p23);
+  const p0123 = lerp(p012, p123);
+  return { b: p01, c: p012, d: p0123 };
+}
+
+function nearestAnchor(p: Pt, anchors: Pt[]): Pt {
+  let best = anchors[0];
   let bestDist = Infinity;
-  for (const a of NUTRIENT_SOURCES) {
+  for (const a of anchors) {
     const dx = a.x - p.x;
     const dy = a.y - p.y;
     const d = dx * dx + dy * dy;
@@ -105,36 +158,37 @@ function nearestAnchor(p: Pt): Pt {
   return best;
 }
 
-function pickEdgeOrigin(rng: () => number): { pos: Pt; initialAngle: number } {
+function pickEdgeOrigin(
+  rng: () => number,
+  W: number,
+  H: number,
+): { pos: Pt; initialAngle: number } {
   const edge = Math.floor(rng() * 4);
   if (edge === 0) {
     return {
-      pos: { x: rng() * VIEW_W, y: -10 + rng() * 30 },
+      pos: { x: rng() * W, y: -10 + rng() * 30 },
       initialAngle: Math.PI / 2,
     };
   }
   if (edge === 1) {
     return {
-      pos: { x: VIEW_W + 10 - rng() * 30, y: rng() * VIEW_H },
+      pos: { x: W + 10 - rng() * 30, y: rng() * H },
       initialAngle: Math.PI,
     };
   }
   if (edge === 2) {
     return {
-      pos: { x: rng() * VIEW_W, y: VIEW_H + 10 - rng() * 30 },
+      pos: { x: rng() * W, y: H + 10 - rng() * 30 },
       initialAngle: -Math.PI / 2,
     };
   }
   return {
-    pos: { x: -10 + rng() * 30, y: rng() * VIEW_H },
+    pos: { x: -10 + rng() * 30, y: rng() * H },
     initialAngle: 0,
   };
 }
 
-const DEG = Math.PI / 180;
-const BACKOFF_OFFSETS = [0, 25 * DEG, -25 * DEG, 50 * DEG, -50 * DEG];
-
-function growThread(opts: {
+type GrowOpts = {
   rng: () => number;
   segIndex: LineSeg[];
   origin: Pt;
@@ -146,9 +200,10 @@ function growThread(opts: {
   baseWidth: number;
   tipWidth: number;
   fusionRadius?: number;
-}): { thread: Thread; fused: Pt | null } {
-  const rng = opts.rng;
-  const beziers: Bezier[] = [];
+};
+
+function growThread(opts: GrowOpts): { beziers: Bez[]; fused: Pt | null } {
+  const beziers: Bez[] = [];
   let pos = opts.origin;
   let angle = opts.initialAngle;
   let prevLineSeg: LineSeg | null = null;
@@ -161,18 +216,18 @@ function growThread(opts: {
     if (opts.target) {
       const tgtAngle = Math.atan2(
         opts.target.y - pos.y,
-        opts.target.x - pos.x
+        opts.target.x - pos.x,
       );
       desiredAngle = angle + shortestAngleDelta(angle, tgtAngle) * 0.3;
     }
-    desiredAngle += (rng() - 0.5) * 20 * DEG;
+    desiredAngle += (opts.rng() - 0.5) * 20 * DEG;
     const turn = clamp(
       shortestAngleDelta(angle, desiredAngle),
       -15 * DEG,
-      15 * DEG
+      15 * DEG,
     );
     const desiredFinal = angle + turn;
-    const segLen = opts.segLen * (0.85 + rng() * 0.3);
+    const segLen = opts.segLen * (0.85 + opts.rng() * 0.3);
 
     let placed = false;
     for (const off of BACKOFF_OFFSETS) {
@@ -202,10 +257,11 @@ function growThread(opts: {
       };
 
       const tMid = (i + 0.5) / opts.segCount;
-      const width = opts.baseWidth + (opts.tipWidth - opts.baseWidth) * tMid;
+      const width =
+        opts.baseWidth + (opts.tipWidth - opts.baseWidth) * tMid;
+      const length = approxBezierLength(pos, cp1, cp2, end);
 
-      const bez: Bezier = { a: pos, b: cp1, c: cp2, d: end, width };
-      beziers.push(bez);
+      beziers.push({ a: pos, b: cp1, c: cp2, d: end, width, length });
       const lineSeg: LineSeg = { p1: pos, p2: end };
       opts.segIndex.push(lineSeg);
       prevLineSeg = lineSeg;
@@ -217,18 +273,16 @@ function growThread(opts: {
     }
     if (!placed) break;
 
-    // Anastomosis check — if our tip is close enough to an existing
-    // segment endpoint we stop and mark the fusion point.
     if (opts.fusionRadius && opts.fusionRadius > 0) {
-      let near: Pt | null = null;
       let nearD = opts.fusionRadius * opts.fusionRadius;
+      let near: Pt | null = null;
       for (let k = 0; k < opts.segIndex.length - 1; k++) {
         const s = opts.segIndex[k];
-        const dx1 = pos.x - s.p2.x;
-        const dy1 = pos.y - s.p2.y;
-        const d1 = dx1 * dx1 + dy1 * dy1;
-        if (d1 < nearD) {
-          nearD = d1;
+        const dx = pos.x - s.p2.x;
+        const dy = pos.y - s.p2.y;
+        const d = dx * dx + dy * dy;
+        if (d < nearD) {
+          nearD = d;
           near = s.p2;
         }
       }
@@ -245,92 +299,95 @@ function growThread(opts: {
     }
   }
 
-  let acc = 0;
-  const cumLength: number[] = [];
-  for (const b of beziers) {
-    acc += Math.hypot(b.d.x - b.a.x, b.d.y - b.a.y);
-    cumLength.push(acc);
-  }
+  return { beziers, fused };
+}
 
-  return { thread: { beziers, cumLength, totalLength: acc }, fused };
+function computeCumLengths(beziers: Bez[]): {
+  cumLengths: number[];
+  total: number;
+} {
+  const cumLengths: number[] = [];
+  let total = 0;
+  for (const b of beziers) {
+    total += b.length;
+    cumLengths.push(total);
+  }
+  return { cumLengths, total };
 }
 
 function pickBranchPoint(
-  thread: Thread,
-  t: number
+  beziers: Bez[],
+  cumLengths: number[],
+  totalLength: number,
+  t: number,
 ): { pos: Pt; tangentAngle: number; widthHere: number } {
-  const target = t * thread.totalLength;
-  let idx = thread.cumLength.length - 1;
-  for (let i = 0; i < thread.cumLength.length; i++) {
-    if (thread.cumLength[i] >= target) {
+  const target = t * totalLength;
+  let idx = cumLengths.length - 1;
+  for (let i = 0; i < cumLengths.length; i++) {
+    if (cumLengths[i] >= target) {
       idx = i;
       break;
     }
   }
-  const seg = thread.beziers[idx];
-  const prevCum = idx > 0 ? thread.cumLength[idx - 1] : 0;
-  const segLen = thread.cumLength[idx] - prevCum;
+  const bez = beziers[idx];
+  const prevCum = idx > 0 ? cumLengths[idx - 1] : 0;
+  const segLen = cumLengths[idx] - prevCum;
   const localT = segLen > 0 ? (target - prevCum) / segLen : 0;
   const pos: Pt = {
-    x: seg.a.x + (seg.d.x - seg.a.x) * localT,
-    y: seg.a.y + (seg.d.y - seg.a.y) * localT,
+    x: bez.a.x + (bez.d.x - bez.a.x) * localT,
+    y: bez.a.y + (bez.d.y - bez.a.y) * localT,
   };
-  const tangentAngle = Math.atan2(seg.d.y - seg.a.y, seg.d.x - seg.a.x);
-  return { pos, tangentAngle, widthHere: seg.width };
+  const tangentAngle = Math.atan2(bez.d.y - bez.a.y, bez.d.x - bez.a.x);
+  return { pos, tangentAngle, widthHere: bez.width };
 }
 
-type RenderSeg = { d: string; width: number; length: number; delay: number };
-
-function pathOf(b: Bezier): string {
-  const f = (n: number) => n.toFixed(1);
-  return `M ${f(b.a.x)} ${f(b.a.y)} C ${f(b.b.x)} ${f(b.b.y)}, ${f(b.c.x)} ${f(b.c.y)}, ${f(b.d.x)} ${f(b.d.y)}`;
-}
-
-/** Bezier arc length via Gauss–Legendre — sufficient accuracy for the
- *  ~60-point dasharray we use for stroke draw-on. We approximate with
- *  the straight chord length (the geometry rarely curves enough to need
- *  more, and dasharray only needs to be slightly larger than the actual
- *  length for the animation to land at 0). */
-function approxBezierLength(b: Bezier): number {
-  return Math.hypot(b.d.x - b.a.x, b.d.y - b.a.y) * 1.15;
-}
-
-/** Initial network generation — runs once at module load. Returns the
- *  Phase 1 render segments plus the threads + segment index needed to
- *  seed Phase 2 in the browser. */
-function generateInitialNetwork(): {
-  segs: RenderSeg[];
-  threads: Thread[];
-  segIndex: LineSeg[];
-} {
+function buildInitialNetwork(
+  W: number,
+  H: number,
+): { threads: Thread[]; segIndex: LineSeg[] } {
   const rng = mulberry32(SEED);
-  const phaseRng = mulberry32(SEED);
   const segIndex: LineSeg[] = [];
-  const out: RenderSeg[] = [];
   const threads: Thread[] = [];
 
-  const pushThread = (t: Thread, baseDelay: number) => {
-    threads.push(t);
-    for (const b of t.beziers) {
-      out.push({
-        d: pathOf(b),
-        width: b.width,
-        length: approxBezierLength(b),
-        delay: baseDelay,
-      });
-    }
-  };
+  const nutrientSources: Pt[] = [
+    { x: 0.3 * W, y: 0.3 * H },
+    { x: 0.75 * W, y: 0.3 * H },
+    { x: 0.25 * W, y: 0.65 * H },
+    { x: 0.5 * W, y: 0.65 * H },
+    { x: 0.78 * W, y: 0.65 * H },
+    { x: 0.45 * W, y: 0.9 * H },
+  ];
 
-  const mains: Thread[] = [];
+  function pushThread(beziers: Bez[]): Thread | null {
+    if (beziers.length === 0) return null;
+    const { total } = computeCumLengths(beziers);
+    const thread: Thread = {
+      beziers,
+      totalLength: total,
+      startDelay: threads.length * PHASE1_STAGGER_PER_THREAD,
+      duration: PHASE1_DURATION,
+      spawnedAt: 0,
+      fusionPoint: null,
+    };
+    threads.push(thread);
+    return thread;
+  }
+
+  const mains: Array<{
+    beziers: Bez[];
+    cumLengths: number[];
+    total: number;
+  }> = [];
+
   for (let i = 0; i < MAIN_COUNT; i++) {
     if (segIndex.length >= MAX_TOTAL_SEGMENTS) break;
-    const { pos: origin, initialAngle: edgeAngle } = pickEdgeOrigin(rng);
+    const { pos: origin, initialAngle: edgeAngle } = pickEdgeOrigin(rng, W, H);
     const wanderer = rng() < WANDERER_CHANCE;
-    const target = wanderer ? null : nearestAnchor(origin);
-    const stopRadius = target ? (0.08 + rng() * 0.04) * VIEW_W : 0;
+    const target = wanderer ? null : nearestAnchor(origin, nutrientSources);
+    const stopRadius = target ? (0.08 + rng() * 0.04) * W : 0;
     const segCount = 8 + Math.floor(rng() * 8);
     const initialAngle = edgeAngle + (rng() - 0.5) * 30 * DEG;
-    const { thread: main } = growThread({
+    const { beziers } = growThread({
       rng,
       segIndex,
       origin,
@@ -342,9 +399,9 @@ function generateInitialNetwork(): {
       baseWidth: 1.4,
       tipWidth: 0.3,
     });
-    if (main.beziers.length > 0) {
-      mains.push(main);
-      pushThread(main, phaseRng() * 800);
+    if (pushThread(beziers)) {
+      const { cumLengths, total } = computeCumLengths(beziers);
+      mains.push({ beziers, cumLengths, total });
     }
   }
 
@@ -354,10 +411,15 @@ function generateInitialNetwork(): {
     for (let i = 0; i < nBranches; i++) {
       if (segIndex.length >= MAX_TOTAL_SEGMENTS) break;
       const t = 0.3 + rng() * 0.4;
-      const bp = pickBranchPoint(main, t);
+      const bp = pickBranchPoint(
+        main.beziers,
+        main.cumLengths,
+        main.total,
+        t,
+      );
       const sign = rng() < 0.5 ? -1 : 1;
       const offsetAngle = sign * (20 + rng() * 20) * DEG;
-      const { thread: branch } = growThread({
+      const { beziers } = growThread({
         rng,
         segIndex,
         origin: bp.pos,
@@ -369,18 +431,20 @@ function generateInitialNetwork(): {
         baseWidth: bp.widthHere,
         tipWidth: 0.3,
       });
-      if (branch.beziers.length === 0) continue;
-      pushThread(branch, phaseRng() * 800);
+      if (!pushThread(beziers)) continue;
+
+      const { cumLengths: branchCum, total: branchTotal } =
+        computeCumLengths(beziers);
 
       const nSpurs = 1 + Math.floor(rng() * 2);
       for (let j = 0; j < nSpurs; j++) {
         if (segIndex.length >= MAX_TOTAL_SEGMENTS) break;
-        if (branch.beziers.length < 2) break;
+        if (beziers.length < 2) break;
         const st = 0.3 + rng() * 0.4;
-        const sp = pickBranchPoint(branch, st);
+        const sp = pickBranchPoint(beziers, branchCum, branchTotal, st);
         const ssign = rng() < 0.5 ? -1 : 1;
         const soff = ssign * (25 + rng() * 15) * DEG;
-        const { thread: spur } = growThread({
+        const { beziers: spurBez } = growThread({
           rng,
           segIndex,
           origin: sp.pos,
@@ -392,167 +456,238 @@ function generateInitialNetwork(): {
           baseWidth: sp.widthHere,
           tipWidth: 0.3,
         });
-        if (spur.beziers.length > 0) pushThread(spur, phaseRng() * 800);
+        pushThread(spurBez);
       }
     }
   }
 
-  return { segs: out, threads, segIndex };
-}
-
-const INITIAL = generateInitialNetwork();
-
-const SVG_NS = "http://www.w3.org/2000/svg";
-const FUSION_RADIUS = 15;
-
-function appendBezier(
-  g: SVGGElement,
-  bez: Bezier,
-  growthMs: number
-): void {
-  const path = document.createElementNS(SVG_NS, "path");
-  path.setAttribute("d", pathOf(bez));
-  path.setAttribute("stroke-width", bez.width.toFixed(2));
-  const len = approxBezierLength(bez);
-  path.setAttribute("stroke-dasharray", `${len.toFixed(1)} ${len.toFixed(1)}`);
-  path.setAttribute("stroke-dashoffset", len.toFixed(1));
-  path.style.animation = `hypha-grow ${(growthMs / 1000).toFixed(2)}s ease-out forwards`;
-  g.appendChild(path);
-}
-
-function appendFusionNode(g: SVGGElement, p: Pt): void {
-  const c = document.createElementNS(SVG_NS, "circle");
-  c.setAttribute("cx", p.x.toFixed(1));
-  c.setAttribute("cy", p.y.toFixed(1));
-  c.setAttribute("r", "1.5");
-  c.setAttribute("fill", "none");
-  c.setAttribute("stroke", "var(--hyphal-stroke)");
-  c.setAttribute("opacity", "0.4");
-  g.appendChild(c);
+  return { threads, segIndex };
 }
 
 export function HyphalThreads() {
-  const gRef = useRef<SVGGElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) return;
+
+    const reduced =
+      typeof window !== "undefined" &&
       window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      return;
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let W = window.innerWidth;
+    let H = window.innerHeight;
+    let dpr = window.devicePixelRatio || 1;
+
+    let threads: Thread[] = [];
+    let segIndex: LineSeg[] = [];
+    const spurRng = mulberry32(SEED ^ 0xc0ffee);
+    let nextSpurAt = 0;
+    let rafId = 0;
+    let resizeRaf = 0;
+
+    function resize() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      dpr = window.devicePixelRatio || 1;
+      canvas!.width = Math.floor(W * dpr);
+      canvas!.height = Math.floor(H * dpr);
+      canvas!.style.width = `${W}px`;
+      canvas!.style.height = `${H}px`;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
-    const g = gRef.current;
-    if (!g) return;
 
-    // Live state shared with the browser PRNG for Phase 2 growth. We
-    // seed the runtime RNG with a different value so we don't repeat
-    // the Phase 1 sequence, and we mutate `segIndex` in place so each
-    // new spur sees the full network for collision detection.
-    const rng = mulberry32(SEED + 1);
-    const segIndex: LineSeg[] = INITIAL.segIndex.slice();
-    const threads: Thread[] = INITIAL.threads.slice();
-    let cancelled = false;
-    let timeoutId: number | null = null;
-
-    function pickThread(): Thread | null {
-      const candidates = threads.filter((t) => t.beziers.length >= 2);
-      if (candidates.length === 0) return null;
-      return candidates[Math.floor(rng() * candidates.length)];
-    }
-
-    function growOneSpur() {
-      if (cancelled) return;
-      if (segIndex.length >= MAX_TOTAL_SEGMENTS) return;
-      const parent = pickThread();
-      if (!parent || !gRef.current) {
-        schedule();
-        return;
+    function regenerate(now: number) {
+      const built = buildInitialNetwork(W, H);
+      for (const thread of built.threads) {
+        thread.spawnedAt = now;
       }
-      const t = 0.2 + rng() * 0.6;
-      const bp = pickBranchPoint(parent, t);
-      const sign = rng() < 0.5 ? -1 : 1;
-      const offset = sign * (20 + rng() * 25) * DEG;
-      const segCount = 3 + Math.floor(rng() * 4);
-      const { thread: spur, fused } = growThread({
-        rng,
+      threads = built.threads;
+      segIndex = built.segIndex;
+      nextSpurAt =
+        now +
+        PHASE2_START_OFFSET +
+        SPUR_INTERVAL_MIN +
+        spurRng() * (SPUR_INTERVAL_MAX - SPUR_INTERVAL_MIN);
+    }
+
+    function spawnSpur(now: number) {
+      if (segIndex.length >= MAX_TOTAL_SEGMENTS) return;
+      const candidates = threads.filter((t) => t.beziers.length >= 2);
+      if (candidates.length === 0) return;
+      const parent = candidates[Math.floor(spurRng() * candidates.length)];
+      const { cumLengths, total } = computeCumLengths(parent.beziers);
+      const t = 0.2 + spurRng() * 0.6;
+      const bp = pickBranchPoint(parent.beziers, cumLengths, total, t);
+      const sign = spurRng() < 0.5 ? -1 : 1;
+      const offset = sign * (20 + spurRng() * 25) * DEG;
+      const segCount = 3 + Math.floor(spurRng() * 4);
+      const { beziers, fused } = growThread({
+        rng: spurRng,
         segIndex,
         origin: bp.pos,
         initialAngle: bp.tangentAngle + offset,
         target: null,
         stopRadius: 0,
         segCount,
-        segLen: 24 + rng() * 16,
+        segLen: 24 + spurRng() * 16,
         baseWidth: Math.max(0.4, bp.widthHere * 0.8),
         tipWidth: 0.2,
         fusionRadius: FUSION_RADIUS,
       });
+      if (beziers.length === 0) return;
+      const { total: spurTotal } = computeCumLengths(beziers);
+      const duration =
+        SPUR_DURATION_MIN +
+        spurRng() * (SPUR_DURATION_MAX - SPUR_DURATION_MIN);
+      threads.push({
+        beziers,
+        totalLength: spurTotal,
+        startDelay: 0,
+        duration,
+        spawnedAt: now,
+        fusionPoint: fused,
+      });
+    }
 
-      if (spur.beziers.length > 0) {
-        threads.push(spur);
-        const perSeg = 600 + rng() * 400; // 600–1000ms per segment ~ total 3–5s for 5 segs
-        spur.beziers.forEach((b, i) => {
-          window.setTimeout(() => {
-            if (cancelled || !gRef.current) return;
-            appendBezier(gRef.current, b, perSeg);
-          }, i * perSeg);
-        });
-        if (fused && gRef.current) {
-          window.setTimeout(() => {
-            if (cancelled || !gRef.current) return;
-            appendFusionNode(gRef.current, fused);
-          }, spur.beziers.length * perSeg);
+    function drawThread(thread: Thread, now: number): boolean {
+      const elapsed = now - thread.spawnedAt - thread.startDelay;
+      if (elapsed <= 0) return false;
+      const p = Math.min(1, elapsed / thread.duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const targetLen = thread.totalLength * eased;
+
+      let drawn = 0;
+      for (const bez of thread.beziers) {
+        if (drawn >= targetLen) break;
+        const remaining = targetLen - drawn;
+        ctx!.lineWidth = bez.width;
+        ctx!.beginPath();
+        if (remaining >= bez.length) {
+          ctx!.moveTo(bez.a.x, bez.a.y);
+          ctx!.bezierCurveTo(
+            bez.b.x,
+            bez.b.y,
+            bez.c.x,
+            bez.c.y,
+            bez.d.x,
+            bez.d.y,
+          );
+        } else {
+          const localT = bez.length > 0 ? remaining / bez.length : 1;
+          const split = splitBezierAt(bez, localT);
+          ctx!.moveTo(bez.a.x, bez.a.y);
+          ctx!.bezierCurveTo(
+            split.b.x,
+            split.b.y,
+            split.c.x,
+            split.c.y,
+            split.d.x,
+            split.d.y,
+          );
         }
+        ctx!.stroke();
+        drawn += bez.length;
       }
-
-      schedule();
+      return p >= 1;
     }
 
-    function schedule() {
-      if (cancelled) return;
-      const wait = 8000 + rng() * 7000; // 8–15s
-      timeoutId = window.setTimeout(growOneSpur, wait);
+    function drawFusionNodes(now: number) {
+      ctx!.fillStyle = "rgba(132,245,184,0.3)";
+      for (const thread of threads) {
+        if (!thread.fusionPoint) continue;
+        const elapsed = now - thread.spawnedAt - thread.startDelay;
+        if (elapsed < thread.duration) continue;
+        ctx!.beginPath();
+        ctx!.arc(
+          thread.fusionPoint.x,
+          thread.fusionPoint.y,
+          2,
+          0,
+          Math.PI * 2,
+        );
+        ctx!.fill();
+      }
     }
 
-    // Don't start Phase 2 until the initial draw has settled.
-    timeoutId = window.setTimeout(() => {
-      schedule();
-    }, 4500);
+    function drawAll(now: number) {
+      ctx!.clearRect(0, 0, W, H);
+      ctx!.strokeStyle = "rgba(232,230,221,0.08)";
+      ctx!.lineCap = "round";
+      ctx!.lineJoin = "round";
+      for (const thread of threads) drawThread(thread, now);
+      drawFusionNodes(now);
+    }
+
+    function allPhase1Done(now: number): boolean {
+      for (const thread of threads) {
+        const elapsed = now - thread.spawnedAt - thread.startDelay;
+        if (elapsed < thread.duration) return false;
+      }
+      return true;
+    }
+
+    resize();
+    const initialNow = performance.now();
+    regenerate(initialNow);
+
+    let firstFrame = true;
+    function frame(t: number) {
+      if (firstFrame) {
+        if (typeof window !== "undefined" && window.location?.hostname === "localhost") {
+          console.log("[HyphalThreads] first frame", { t, threads: threads.length });
+        }
+        firstFrame = false;
+      }
+      if (!reduced && t >= nextSpurAt) {
+        spawnSpur(t);
+        nextSpurAt =
+          t +
+          SPUR_INTERVAL_MIN +
+          spurRng() * (SPUR_INTERVAL_MAX - SPUR_INTERVAL_MIN);
+      }
+      drawAll(t);
+
+      // In reduced-motion mode, stop animating once Phase 1 has fully
+      // settled — there's nothing more to redraw.
+      if (reduced && allPhase1Done(t)) {
+        rafId = 0;
+        return;
+      }
+      rafId = requestAnimationFrame(frame);
+    }
+
+    function onResize() {
+      if (resizeRaf) cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(() => {
+        resize();
+        regenerate(performance.now());
+        if (rafId === 0) {
+          // Reduced-motion mode had stopped the loop — restart so the
+          // new geometry actually draws.
+          rafId = requestAnimationFrame(frame);
+        }
+      });
+    }
+
+    window.addEventListener("resize", onResize);
+    rafId = requestAnimationFrame(frame);
 
     return () => {
-      cancelled = true;
-      if (timeoutId !== null) window.clearTimeout(timeoutId);
+      if (rafId) cancelAnimationFrame(rafId);
+      if (resizeRaf) cancelAnimationFrame(resizeRaf);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
-      <svg
-        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-        preserveAspectRatio="xMidYMid slice"
-        className="w-full h-full"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <g
-          ref={gRef}
-          fill="none"
-          stroke="var(--hyphal-stroke)"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          {INITIAL.segs.map((s, i) => (
-            <path
-              key={i}
-              d={s.d}
-              strokeWidth={s.width.toFixed(2)}
-              strokeDasharray={`${s.length.toFixed(1)} ${s.length.toFixed(1)}`}
-              strokeDashoffset={s.length.toFixed(1)}
-              className="hypha-grow"
-              style={{ animationDelay: `${s.delay.toFixed(0)}ms` }}
-            />
-          ))}
-        </g>
-      </svg>
-    </div>
+    <canvas
+      ref={canvasRef}
+      aria-hidden
+      className="pointer-events-none fixed inset-0 z-0"
+    />
   );
 }

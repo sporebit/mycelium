@@ -419,26 +419,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-1);
 }
 
-/* ---------------------------------------------------------------------------
-   Hyphal growth — Phase 1 draws each thread by animating
-   stroke-dashoffset → 0. Phase 2 spurs are appended imperatively by
-   HyphalThreads.tsx and reuse the same .hypha-grow class.
-   --------------------------------------------------------------------------- */
-
-@keyframes hypha-grow {
-  to { stroke-dashoffset: 0; }
-}
-
-.hypha-grow {
-  animation: hypha-grow 4s ease-out forwards;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hypha-grow {
-    animation-duration: 0.01s;
-  }
-}
-
 /* Glossary card — active section node pulses on the organism diagram. */
 @keyframes glossary-pulse {
   0%   { transform: scale(1);    opacity: 0.7; }
