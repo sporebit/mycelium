@@ -253,21 +253,12 @@ export function AddSessionModal({
           </label>
 
           {types.length > 0 && (
-            <label className="flex flex-col gap-1">
-              <span className="card-eyebrow">Session type (optional)</span>
-              <select
-                value={sessionType}
-                onChange={(e) => setSessionType(e.target.value)}
-                className="bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
-              >
-                <option value="">—</option>
-                {types.map((t) => (
-                  <option key={t.id} value={t.type_key}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SessionTypeSelect
+              types={types}
+              value={sessionType}
+              onChange={setSessionType}
+              onTypesUpdated={setTypes}
+            />
           )}
 
           {error && (
@@ -299,5 +290,131 @@ export function AddSessionModal({
         </footer>
       </div>
     </div>
+  );
+}
+
+/**
+ * Session type dropdown. Sorts known types alphabetically by label and
+ * appends a "+ Other custom…" sentinel. Picking the sentinel reveals
+ * an inline input that POSTs to /api/fitness/session-types and
+ * immediately selects the freshly-created type.
+ */
+function SessionTypeSelect({
+  types,
+  value,
+  onChange,
+  onTypesUpdated,
+}: {
+  types: WorkoutSessionType[];
+  value: string;
+  onChange: (next: string) => void;
+  onTypesUpdated: (next: WorkoutSessionType[]) => void;
+}) {
+  const CUSTOM_SENTINEL = "__custom__";
+  const sorted = [...types].sort((a, b) => a.label.localeCompare(b.label));
+  const [customMode, setCustomMode] = useState(false);
+  const [customLabel, setCustomLabel] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function createCustom() {
+    const label = customLabel.trim();
+    if (!label || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const r = await fetch("/api/fitness/session-types", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label }),
+      });
+      const j = (await r.json().catch(() => ({}))) as {
+        type?: WorkoutSessionType;
+        error?: string;
+      };
+      if (!r.ok || !j.type) {
+        setError(j.error ?? "Could not create type");
+        return;
+      }
+      onTypesUpdated([...types, j.type]);
+      onChange(j.type.type_key);
+      setCustomMode(false);
+      setCustomLabel("");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="card-eyebrow">Session type (optional)</span>
+      <select
+        value={customMode ? CUSTOM_SENTINEL : value}
+        onChange={(e) => {
+          const v = e.target.value;
+          if (v === CUSTOM_SENTINEL) {
+            setCustomMode(true);
+            return;
+          }
+          setCustomMode(false);
+          onChange(v);
+        }}
+        className="bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+      >
+        <option value="">—</option>
+        {sorted.map((t) => (
+          <option key={t.id} value={t.type_key}>
+            {t.label}
+          </option>
+        ))}
+        <option value={CUSTOM_SENTINEL}>+ Other custom…</option>
+      </select>
+      {customMode && (
+        <div className="flex items-center gap-2 mt-2">
+          <input
+            autoFocus
+            type="text"
+            value={customLabel}
+            onChange={(e) => setCustomLabel(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void createCustom();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                setCustomMode(false);
+                setCustomLabel("");
+              }
+            }}
+            placeholder="e.g. Tennis, Yoga"
+            className="flex-1 bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+          />
+          <button
+            type="button"
+            onClick={() => void createCustom()}
+            disabled={!customLabel.trim() || submitting}
+            className="px-3 py-2 rounded-sm bg-accent/15 border border-accent/40 text-accent text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
+          >
+            {submitting ? "…" : "ADD"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setCustomMode(false);
+              setCustomLabel("");
+            }}
+            className="text-ink-3 hover:text-ink-4 text-sm"
+            aria-label="Cancel"
+          >
+            ×
+          </button>
+        </div>
+      )}
+      {error && (
+        <p className="text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)] mt-1">
+          ⚠ {error}
+        </p>
+      )}
+    </label>
   );
 }
