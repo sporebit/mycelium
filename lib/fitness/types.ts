@@ -118,6 +118,8 @@ export type WorkoutSessionType = {
   created_at: string;
 };
 
+export type BodyMetricSource = "apple_health" | "manual" | "scale_ble";
+
 export type BodyMetric = {
   id: string;
   user_id: string;
@@ -126,8 +128,12 @@ export type BodyMetric = {
   weight_unit: WeightUnit;
   body_fat_pct: number | null;
   muscle_mass_kg: number | null;
+  bone_mass_kg: number | null;
+  water_percent: number | null;
   waist_cm: number | null;
   notes: string | null;
+  source: BodyMetricSource;
+  recorded_at: string | null;
   created_at: string;
 };
 
