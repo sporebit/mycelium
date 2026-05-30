@@ -283,6 +283,23 @@ async function handleMessage(message: TgMessage): Promise<void> {
     return;
   }
 
+  // Standalone pain logs land in exercise_pain_logs with session_id=null —
+  // no urgency keyboard, just a confirmation that mirrors the iOS Shortcut
+  // banner.
+  if (classification.kind === "pain_log") {
+    const pain = classification.pain;
+    const regions = pain?.pain_regions.length
+      ? pain.pain_regions.map((r) => r.replace(/_/g, " ")).join(", ")
+      : "body";
+    const severityPart =
+      pain && pain.severity !== null ? ` severity ${pain.severity}/10` : "";
+    await sendMessage(
+      chatId,
+      `🩹 Pain logged — ${regions}${severityPart}`,
+    );
+    return;
+  }
+
   // Purchases land in their own table, so the urgency keyboard (which
   // targets tasks / raw_captures) doesn't apply. Confirm with a terse
   // line that includes the amount when the classifier extracted one.

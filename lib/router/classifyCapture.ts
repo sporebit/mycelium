@@ -5,7 +5,8 @@ export type CaptureKind =
   | "journal"
   | "capture"
   | "workout"
-  | "purchase";
+  | "purchase"
+  | "pain_log";
 export type CaptureUrgency = "today" | "this_week" | "this_month" | "someday";
 export type CaptureMood =
   | "energised"
@@ -20,6 +21,24 @@ export type CaptureMood =
 export type ClassificationMention = {
   raw: string;
   name_hint: string;
+};
+
+export type PainRegion = string;
+export type PainFeel =
+  | "great"
+  | "good"
+  | "ok"
+  | "mild"
+  | "moderate"
+  | "painful"
+  | "stopped";
+
+/** Standalone pain capture details. Only meaningful when
+ *  kind === "pain_log". */
+export type PainDetails = {
+  pain_regions: PainRegion[];
+  severity: number | null;
+  feel_rating: PainFeel | null;
 };
 
 export type PurchaseWantOrNeed = "want" | "need" | "unclear";
@@ -52,6 +71,7 @@ export type Classification = {
   mood: CaptureMood | null; // only meaningful for journal entries
   mentions: ClassificationMention[];
   purchase: PurchaseDetails | null; // only meaningful for purchases
+  pain: PainDetails | null; // only meaningful for pain_log
 };
 
 export type ClassifyResult = {
@@ -67,6 +87,17 @@ const KINDS: readonly CaptureKind[] = [
   "capture",
   "workout",
   "purchase",
+  "pain_log",
+];
+
+const PAIN_FEEL_RATINGS: readonly PainFeel[] = [
+  "great",
+  "good",
+  "ok",
+  "mild",
+  "moderate",
+  "painful",
+  "stopped",
 ];
 
 const PURCHASE_WANT_OR_NEED: readonly PurchaseWantOrNeed[] = [
@@ -104,13 +135,14 @@ const MOODS: readonly CaptureMood[] = [
 export const CLASSIFIER_SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
 
 Rules:
-- "kind" is one of: task, note, decision, journal, capture, workout, purchase.
+- "kind" is one of: task, note, decision, journal, capture, workout, purchase, pain_log.
   - task = an action the user needs to DO (not buy).
   - decision = a choice the user wants to record.
   - note = a fact or piece of info to remember.
   - journal = reflection, feeling, or observation about themselves or their day; longer-form expressive content; the kind of thing they'd want to re-read in a year.
   - workout = a description of exercise the user just did, is doing, or is reporting on. Signals: set/rep patterns ("5x5", "3 sets of 8"), weights in kg/lbs ("80kg", "100lbs"), named exercises (bench press, squat, deadlift, RDL, lunges, etc.), cardio terms ("ran 5km", "10 mins on treadmill"), pain or feel words paired with body parts ("shoulder twinged", "left knee sore", "felt pumped"), session-shaped sentences ("did push day", "morning workout", "just finished legs").
   - purchase = the user wants to BUY, pay for, order, or acquire something — physical goods, services, bills, subscriptions. Classify by intent, not by specific trigger words. Examples: "buy milk", "pay the electric bill", "order a new keyboard", "I need to get a birthday card for mum", "pick up some protein powder", "renew the netflix sub". When in doubt and there's money or goods involved, prefer purchase over task: "book a dentist appointment" is a task (an action to perform), "buy a mouthguard" is a purchase (an item to acquire).
+  - pain_log = a standalone report of body pain or discomfort that is NOT part of a workout session report. Signals: "my knee hurts", "shoulder pain", "back is sore", "lower back twinging today", "tweaked my wrist". Distinguishing from workout: there are no sets/reps/exercises being reported. Distinguishing from journal: pain_log is specifically about a body region + sensation, not broad reflection on how the day went.
   - capture = catch-all when none of the above clearly applies.
 
 Heuristics for journal (guidance, not strict):
@@ -140,6 +172,9 @@ Examples:
   - "Order more protein powder, we're running out" -> purchase (want_or_need: need)
   - "Add the Sony WH-1000XM5 to my wishlist, like £350" -> purchase (list_type: wishlist, amount: 350)
   - "Wishlist: leather jacket, eventually" -> purchase (list_type: wishlist, want_or_need: want)
+  - "My left knee is sore today, about a 4" -> pain_log (pain_regions: ["left_knee"], severity: 4, feel_rating: "moderate")
+  - "Shoulder pain again, just a niggle" -> pain_log (pain_regions: ["other"], severity: null, feel_rating: "mild")
+  - "Lower back twinged when I bent over, like a 6" -> pain_log (pain_regions: ["lower_back"], severity: 6, feel_rating: "moderate")
 
 Other fields:
 - "urgency" is one of: today, this_week, this_month, someday. For journal entries this is unused — pick "someday".
@@ -153,6 +188,11 @@ Other fields:
   Detect: first names ("Luke", "Sarah"), relationship references ("Mum", "Dad", "my brother" → name_hint "Mum"/"Dad"/etc), first + last ("Luke Henderson").
   Skip: company/brand names, place names, bare pronouns, generic roles ("the doctor") unless capitalised or named.
   Output [] if none.
+- "pain" is an object ONLY when kind = "pain_log"; null for every other kind. Shape:
+    { "pain_regions": [<snake_case region>...], "severity": <0..10 or null>, "feel_rating": "great" | "good" | "ok" | "mild" | "moderate" | "painful" | "stopped" | null }
+    Pain regions vocabulary (snake_case, exactly these or close variants):
+      left_shoulder right_shoulder left_scapula right_scapula left_elbow right_elbow left_wrist right_wrist left_forearm right_forearm left_bicep right_bicep left_trap right_trap lower_back upper_back both_knees left_knee right_knee left_ankle right_ankle it_band hamstring hip_flexor core neck other
+    feel_rating maps from severity words: twinge/tight → mild; ache/sore → moderate; sharp/stabbing/hurt → painful; "had to stop" → stopped.
 - "purchase" is an object ONLY when kind = "purchase"; null for every other kind. Shape:
     { "amount": <number or null>, "currency": <ISO code string, default "GBP">, "want_or_need": "want" | "need" | "unclear", "list_type": "shopping" | "wishlist" }
     - amount: parse digits in £/$/€ context, "£85" → 85, "85 quid" → 85, "around 35" → 35. Null if not stated.
@@ -244,6 +284,31 @@ function validate(obj: unknown): Classification | null {
     purchase = { amount, currency, want_or_need, list_type };
   }
 
+  // pain is only meaningful for kind === 'pain_log'. Same permissive
+  // parsing as purchase — accept partials and fill defaults.
+  let pain: PainDetails | null = null;
+  if (kind === "pain_log") {
+    const p = (o.pain as Record<string, unknown> | null | undefined) ?? {};
+    const regionsRaw = (p as Record<string, unknown>).pain_regions;
+    const pain_regions = Array.isArray(regionsRaw)
+      ? (regionsRaw as unknown[])
+          .map((r) => (typeof r === "string" ? r.trim() : ""))
+          .filter((r): r is string => !!r)
+      : [];
+    const sevRaw = (p as Record<string, unknown>).severity;
+    let severity: number | null = null;
+    if (typeof sevRaw === "number" && Number.isFinite(sevRaw)) {
+      severity = Math.max(0, Math.min(10, Math.round(sevRaw)));
+    }
+    const feelRaw = (p as Record<string, unknown>).feel_rating;
+    const feel_rating: PainFeel | null = PAIN_FEEL_RATINGS.includes(
+      feelRaw as PainFeel,
+    )
+      ? (feelRaw as PainFeel)
+      : null;
+    pain = { pain_regions, severity, feel_rating };
+  }
+
   return {
     kind: kind as CaptureKind,
     urgency: urgency as CaptureUrgency,
@@ -255,6 +320,7 @@ function validate(obj: unknown): Classification | null {
     mood,
     mentions,
     purchase,
+    pain,
   };
 }
 
@@ -394,6 +460,52 @@ function extractPurchaseFromText(text: string): PurchaseDetails {
   return { amount, currency, want_or_need, list_type };
 }
 
+function extractPainFromText(text: string): PainDetails {
+  const lower = text.toLowerCase();
+  const regions: string[] = [];
+  const regionMap: Array<[RegExp, string]> = [
+    [/\bleft knee\b/, "left_knee"],
+    [/\bright knee\b/, "right_knee"],
+    [/\bboth knees\b/, "both_knees"],
+    [/\bknees?\b/, "left_knee"],
+    [/\bleft shoulder\b/, "left_shoulder"],
+    [/\bright shoulder\b/, "right_shoulder"],
+    [/\bshoulder\b/, "other"],
+    [/\blower back\b/, "lower_back"],
+    [/\bupper back\b/, "upper_back"],
+    [/\bback\b/, "lower_back"],
+    [/\bleft elbow\b/, "left_elbow"],
+    [/\bright elbow\b/, "right_elbow"],
+    [/\bleft wrist\b/, "left_wrist"],
+    [/\bright wrist\b/, "right_wrist"],
+    [/\bneck\b/, "neck"],
+    [/\bhip\b/, "hip_flexor"],
+    [/\bhamstring\b/, "hamstring"],
+    [/\bit band\b/, "it_band"],
+    [/\bleft ankle\b/, "left_ankle"],
+    [/\bright ankle\b/, "right_ankle"],
+    [/\bankle\b/, "other"],
+  ];
+  for (const [re, region] of regionMap) {
+    if (re.test(lower) && !regions.includes(region)) {
+      regions.push(region);
+      break;
+    }
+  }
+  let severity: number | null = null;
+  const sevMatch = lower.match(/\b(?:about|like|around)?\s*(?:a\s+)?(\d{1,2})(?:\/10)?\b/);
+  if (sevMatch) {
+    const n = Number(sevMatch[1]);
+    if (n >= 0 && n <= 10) severity = n;
+  }
+  let feel_rating: PainFeel | null = null;
+  if (/\b(stopped|had to stop)\b/.test(lower)) feel_rating = "stopped";
+  else if (/\b(sharp|stab|stabbing|searing|hurt)\b/.test(lower)) feel_rating = "painful";
+  else if (/\b(ache|aching|sore|hurts)\b/.test(lower)) feel_rating = "moderate";
+  else if (/\b(twinge|twinged|tight|stiff|niggle)\b/.test(lower)) feel_rating = "mild";
+  return { pain_regions: regions, severity, feel_rating };
+}
+
 function classifyRegex(text: string): Classification {
   const lower = text.toLowerCase();
   const wordCount = text.trim().split(/\s+/).length;
@@ -404,6 +516,15 @@ function classifyRegex(text: string): Classification {
   const reflective =
     /\b(beautiful|amazing|lovely|grateful|tired|frustrated|reflect|walk|morning|evening|noticed|the geese|sky|weather|sunset|sunrise|loved|enjoyed|brutal|peaceful)\b/.test(
       lower
+    );
+
+  // Pain signals — body region + sensation, no exercise/sets/reps.
+  const painSignals =
+    /\b(hurts|sore|painful|aching|ache|twinged|tight|stiff|niggle|pain)\b/.test(
+      lower,
+    ) &&
+    /\b(knee|shoulder|back|neck|elbow|wrist|hip|hamstring|ankle|forearm|bicep|trap|it band|scapula)\b/.test(
+      lower,
     );
 
   // Order matters: note / decision win over task when both could apply
@@ -435,6 +556,8 @@ function classifyRegex(text: string): Classification {
     kind = "note";
   } else if (workoutSignals) {
     kind = "workout";
+  } else if (painSignals) {
+    kind = "pain_log";
   } else if (purchaseSignals) {
     kind = "purchase";
   } else if (hasTaskWords) {
@@ -469,6 +592,7 @@ function classifyRegex(text: string): Classification {
     mood: null,
     mentions: [],
     purchase: kind === "purchase" ? extractPurchaseFromText(text) : null,
+    pain: kind === "pain_log" ? extractPainFromText(text) : null,
   };
 }
 

@@ -18,7 +18,7 @@ export type WriteCaptureResult = {
   routedTo: string;
   routedId: string;
   // Source identifiers the caller should use for the memory embedding —
-  // journal entries embed as 'journal' so the Brain tab can filter cleanly.
+  // journal entries embed as 'journal' so the Stroma tab can filter cleanly.
   memorySourceType: "capture" | "journal";
   memorySourceId: string;
 };
@@ -115,6 +115,38 @@ export async function writeCapture(
       );
     }
     routedTo = "purchases";
+    routedId = row.id;
+  } else if (classification.kind === "pain_log") {
+    // Standalone pain capture — session_id is NULL because there's no
+    // workout backing it. exercise_name is the sentinel 'standalone'
+    // so list views can filter session-bound logs out of the "general
+    // pain history" view.
+    const pain = classification.pain ?? {
+      pain_regions: [],
+      severity: null,
+      feel_rating: null,
+    };
+    const { data: row, error: painErr } = await supabase
+      .from("exercise_pain_logs")
+      .insert({
+        user_id: userId,
+        session_id: null,
+        session_exercise_id: null,
+        exercise_name: "standalone",
+        severity: typeof pain.severity === "number" ? pain.severity : 0,
+        feel_rating: pain.feel_rating,
+        pain_regions: pain.pain_regions,
+        notes: rawText.trim() || null,
+        logged_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+    if (painErr || !row) {
+      throw new Error(
+        `pain_logs insert failed: ${painErr?.message ?? "unknown"}`,
+      );
+    }
+    routedTo = "exercise_pain_logs";
     routedId = row.id;
   } else if (classification.kind === "journal") {
     const summary = classification.summary

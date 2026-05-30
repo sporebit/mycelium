@@ -147,6 +147,16 @@ export async function POST(req: NextRequest) {
       sourceId: result.memorySourceId,
       text: trimmed,
     });
+    let summary = `Captured as ${classification.kind.toUpperCase()} — ${classification.title}`;
+    if (classification.kind === "pain_log") {
+      const pain = classification.pain;
+      const regions = pain?.pain_regions.length
+        ? pain.pain_regions.map((r) => r.replace(/_/g, " ")).join(", ")
+        : "body";
+      const severityPart =
+        pain && pain.severity !== null ? ` severity ${pain.severity}/10` : "";
+      summary = `🩹 Pain logged — ${regions}${severityPart}`;
+    }
     return NextResponse.json({
       kind: classification.kind,
       transcription: trimmed,
@@ -160,7 +170,7 @@ export async function POST(req: NextRequest) {
       },
       needs_confirmation: false,
       pending_route_id: null,
-      summary: `Captured as ${classification.kind.toUpperCase()} — ${classification.title}`,
+      summary,
     });
   } catch (err) {
     console.error("[capture-audio] capture pipeline failed:", err);
