@@ -4,17 +4,25 @@ import type { ExercisePainLog } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
+const LOG_FIELDS =
+  "id, user_id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at";
+
 function userId(): string | null {
   return process.env.USER_ID ?? null;
 }
 
 /**
  * Pain logs for a named exercise across every completed session.
- * Returned with the session's date attached so the chart can plot over time.
+ * Returned with the session's date attached so the chart can plot
+ * severity over time.
+ *
+ * The exercise_name column on exercise_pain_logs (added by migration
+ * 0022) makes this a direct lookup — no join chain through
+ * workout_session_exercises required.
  */
 export async function GET(
   _req: NextRequest,
-  ctx: { params: Promise<{ name: string }> }
+  ctx: { params: Promise<{ name: string }> },
 ) {
   const uid = userId();
   if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
@@ -24,48 +32,42 @@ export async function GET(
 
   try {
     const supabase = createServerClient();
-    // session_exercises with this name, joined to the parent session for date.
-    const { data: exRows } = await supabase
-      .from("workout_session_exercises")
-      .select(
-        "id, workout_sessions:session_id!inner(id, date, user_id, completed_at)"
-      )
-      .ilike("name", name);
-    type ExRow = {
-      id: string;
-      workout_sessions:
-        | { id: string; date: string; user_id: string; completed_at: string | null }
-        | { id: string; date: string; user_id: string; completed_at: string | null }[];
-    };
-    const exMeta = new Map<string, { session_id: string; date: string }>();
-    for (const r of (exRows ?? []) as ExRow[]) {
-      const j = Array.isArray(r.workout_sessions) ? r.workout_sessions[0] : r.workout_sessions;
-      if (!j) continue;
-      if (j.user_id !== uid) continue;
-      if (!j.completed_at) continue;
-      exMeta.set(r.id, { session_id: j.id, date: j.date });
-    }
-    if (exMeta.size === 0) return NextResponse.json({ logs: [] });
-
-    const { data: logs } = await supabase
+    const { data: logRows } = await supabase
       .from("exercise_pain_logs")
-      .select("id, session_exercise_id, severity, feel_rating, pain_regions, notes, created_at, updated_at")
-      .in("session_exercise_id", Array.from(exMeta.keys()));
-    type Log = Omit<ExercisePainLog, "user_id">;
-    const out = (logs ?? []).map((l) => {
-      const meta = exMeta.get((l as Log).session_exercise_id)!;
-      return {
-        ...(l as Log),
-        session_id: meta.session_id,
-        date: meta.date,
-      };
-    });
-    // Newest first
-    out.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+      .select(LOG_FIELDS)
+      .eq("user_id", uid)
+      .ilike("exercise_name", name)
+      .order("logged_at", { ascending: false });
+    const logs = (logRows ?? []) as ExercisePainLog[];
+    if (logs.length === 0) return NextResponse.json({ logs: [] });
+
+    // Attach the session's date so the chart can plot over time. Only
+    // include logs whose session is completed (chart shows historical
+    // progression, not in-flight sessions).
+    const sessionIds = Array.from(new Set(logs.map((l) => l.session_id)));
+    const { data: sessionRows } = await supabase
+      .from("workout_sessions")
+      .select("id, date, completed_at")
+      .in("id", sessionIds)
+      .not("completed_at", "is", null);
+    const sessionMeta = new Map<string, string>();
+    for (const s of (sessionRows ?? []) as Array<{
+      id: string;
+      date: string;
+      completed_at: string | null;
+    }>) {
+      sessionMeta.set(s.id, s.date);
+    }
+    const out = logs
+      .filter((l) => sessionMeta.has(l.session_id))
+      .map((l) => ({
+        ...l,
+        date: sessionMeta.get(l.session_id)!,
+      }))
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
     return NextResponse.json({ logs: out });
   } catch (err) {
     console.error("[/api/fitness/pain-logs/exercise/:name]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });
   }
 }
-

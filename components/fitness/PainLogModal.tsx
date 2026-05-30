@@ -14,6 +14,7 @@ import type {
 } from "@/lib/fitness/types";
 
 export function PainLogModal({
+  sessionId,
   exerciseName,
   sessionExerciseId,
   baseline,
@@ -21,8 +22,13 @@ export function PainLogModal({
   onClose,
   onSaved,
 }: {
+  /** Required after migration 0022 — every pain log is bound to a
+   *  session so the API can store it without a join chain. */
+  sessionId: string;
   exerciseName: string;
-  sessionExerciseId: string;
+  /** Null for session-level pain notes (the "Session pain notes"
+   *  section at the foot of the log page). */
+  sessionExerciseId: string | null;
   baseline: ExerciseBaseline | null;
   /** Existing log to edit (null when creating new). */
   existing: ExercisePainLog | null;
@@ -32,8 +38,8 @@ export function PainLogModal({
   const [feel, setFeel] = useState<FeelRating | null>(
     existing?.feel_rating ?? null
   );
-  const [severity, setSeverity] = useState<number | null>(
-    existing?.severity ?? null
+  const [severity, setSeverity] = useState<number>(
+    existing?.severity ?? 0,
   );
   const [regions, setRegions] = useState<string[]>(
     existing?.pain_regions ?? baseline?.pain_regions ?? []
@@ -63,10 +69,15 @@ export function PainLogModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          session_id: sessionId,
           session_exercise_id: sessionExerciseId,
+          exercise_name: exerciseName,
           feel_rating: feel,
-          severity: showSeverity ? severity : null,
-          pain_regions: regions.length > 0 ? regions : null,
+          // severity is NOT NULL on the table; when the feel rating
+          // doesn't need a number (great/good/ok) we store 0 so the
+          // chart can ignore it and the upsert still succeeds.
+          severity: showSeverity ? severity : 0,
+          pain_regions: regions,
           notes: notes.trim() || null,
         }),
       });
@@ -141,14 +152,14 @@ export function PainLogModal({
             <label className="flex flex-col gap-1">
               <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] flex items-center justify-between">
                 <span>Severity (0–10)</span>
-                <span className="text-ink-4">{severity ?? "—"}</span>
+                <span className="text-ink-4">{severity}</span>
               </span>
               <input
                 type="range"
                 min={0}
                 max={10}
                 step={1}
-                value={severity ?? 0}
+                value={severity}
                 onChange={(e) => setSeverity(Number(e.target.value))}
                 className="w-full accent-[var(--glow-0)]"
               />

@@ -212,6 +212,14 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
   const [painLogsByExId, setPainLogsByExId] = useState<
     Record<string, ExercisePainLog>
   >({});
+  /** Session-level pain note (session_exercise_id = null). Lives
+   *  in its own slot so the "Session pain notes" section at the foot
+   *  of the page doesn't have to filter the exercise map. */
+  const [sessionPainLog, setSessionPainLog] = useState<ExercisePainLog | null>(
+    null,
+  );
+  /** painModalFor holds a session_exercise_id OR the sentinel
+   *  "__session__" when the user opened the session-level modal. */
   const [painModalFor, setPainModalFor] = useState<string | null>(null);
   // Flash markers: keys "<exId>:<setNumber>" that just appeared via polling.
   const [flashSetKeys, setFlashSetKeys] = useState<Set<string>>(new Set());
@@ -388,10 +396,16 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
         const j = (await r.json()) as { pain_logs: ExercisePainLog[] };
         if (cancelled) return;
         const map: Record<string, ExercisePainLog> = {};
+        let sessionLevel: ExercisePainLog | null = null;
         for (const l of j.pain_logs ?? []) {
-          map[l.session_exercise_id] = l;
+          if (l.session_exercise_id) {
+            map[l.session_exercise_id] = l;
+          } else {
+            sessionLevel = l;
+          }
         }
         setPainLogsByExId(map);
+        setSessionPainLog(sessionLevel);
       } catch {
         /* ignore */
       }
@@ -491,7 +505,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
         }, 2000);
       }
 
-      // Also refresh pain logs
+      // Also refresh pain logs (exercise-level + the session-level row).
       const pr = await fetch(
         `/api/fitness/pain-logs?session_id=${session.id}`,
         { cache: "no-store" }
@@ -499,8 +513,16 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
       if (pr.ok) {
         const pj = (await pr.json()) as { pain_logs: ExercisePainLog[] };
         const map: Record<string, ExercisePainLog> = {};
-        for (const l of pj.pain_logs ?? []) map[l.session_exercise_id] = l;
+        let sessionLevel: ExercisePainLog | null = null;
+        for (const l of pj.pain_logs ?? []) {
+          if (l.session_exercise_id) {
+            map[l.session_exercise_id] = l;
+          } else {
+            sessionLevel = l;
+          }
+        }
         setPainLogsByExId(map);
+        setSessionPainLog(sessionLevel);
       }
     } catch {
       /* ignore */
@@ -1054,6 +1076,15 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
           )}
         </div>
 
+        {/* SESSION PAIN NOTES — one row per session, session_exercise_id
+            is null. Always rendered (read-only mode shows the saved
+            note; live mode lets the user edit it). */}
+        <SessionPainSection
+          painLog={sessionPainLog}
+          onOpen={() => setPainModalFor("__session__")}
+          readOnly={readOnly}
+        />
+
         {/* FINISH bar */}
         {!readOnly && (
           <div className="mt-4">
@@ -1104,10 +1135,30 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
       {/* Pain log modal */}
       {painModalFor &&
         (() => {
+          // painModalFor === "__session__" → session-level note.
+          // Otherwise it's a workout_session_exercises id.
+          if (painModalFor === "__session__") {
+            return (
+              <PainLogModal
+                sessionId={session.id}
+                exerciseName="session"
+                sessionExerciseId={null}
+                baseline={null}
+                existing={sessionPainLog}
+                onClose={() => setPainModalFor(null)}
+                onSaved={(log) => {
+                  setSessionPainLog(log);
+                  setPainModalFor(null);
+                  setToast({ kind: "ok", text: "Logged" });
+                }}
+              />
+            );
+          }
           const ex = exercises.find((e) => e.id === painModalFor);
           if (!ex) return null;
           return (
             <PainLogModal
+              sessionId={session.id}
               exerciseName={ex.name}
               sessionExerciseId={ex.id}
               baseline={baselinesByName[ex.name.toLowerCase()] ?? null}
@@ -1998,5 +2049,80 @@ function AddExerciseModal({
         </footer>
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SessionPainSection — the foot-of-page block where the user logs an
+// overall pain / how-it-felt note for the session as a whole. Pulls
+// from sessionPainLog (session_exercise_id is null on its row).
+function SessionPainSection({
+  painLog,
+  onOpen,
+  readOnly,
+}: {
+  painLog: ExercisePainLog | null;
+  onOpen: () => void;
+  readOnly: boolean;
+}) {
+  const severityTone = (s: number): string => {
+    if (s === 0) return "bg-ok/15 text-ok border-ok/40";
+    if (s <= 3) return "bg-warn/15 text-warn border-warn/40";
+    if (s <= 6) return "bg-warn/25 text-warn border-warn/60";
+    return "bg-danger/15 text-danger border-danger/50";
+  };
+  return (
+    <section className="mt-6 rounded-2xl border border-ink-2 bg-ink-1/60">
+      <div className="px-3 py-2 border-b border-ink-2 flex items-center justify-between">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          Session pain notes
+        </span>
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={onOpen}
+            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
+          >
+            {painLog ? "EDIT" : "+ LOG"}
+          </button>
+        )}
+      </div>
+      <div className="px-3 py-3">
+        {painLog ? (
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border ${severityTone(
+                  painLog.severity,
+                )}`}
+              >
+                Severity {painLog.severity}
+              </span>
+              {painLog.feel_rating && (
+                <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  · {painLog.feel_rating}
+                </span>
+              )}
+              {painLog.pain_regions.length > 0 && (
+                <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  · {painLog.pain_regions.join(", ")}
+                </span>
+              )}
+            </div>
+            {painLog.notes && (
+              <p className="text-sm text-ink-4 whitespace-pre-wrap">
+                {painLog.notes}
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+            {readOnly
+              ? "No session-level pain notes."
+              : "Tap LOG to record how the session felt overall, or any pain that wasn't tied to a specific exercise."}
+          </p>
+        )}
+      </div>
+    </section>
   );
 }

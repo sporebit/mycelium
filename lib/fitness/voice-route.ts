@@ -697,7 +697,10 @@ async function writeToSession(
     );
     if (!resolved) continue;
 
-    // Upsert pain log (replace existing for this session_exercise)
+    // Upsert pain log (replace existing for this session_exercise).
+    // Severity is NOT NULL post-migration 0022 — coerce missing
+    // severities to 0 so the row still saves and the voice flow keeps
+    // working even when the user didn't quote a number.
     const { data: existingPain } = await supabase
       .from("exercise_pain_logs")
       .select("id")
@@ -705,11 +708,14 @@ async function writeToSession(
       .maybeSingle();
     const payload = {
       user_id: userId,
+      session_id: sessionId,
       session_exercise_id: resolved.id,
-      severity: p.severity,
+      exercise_name: p.matched_exercise_name,
+      severity: typeof p.severity === "number" ? p.severity : 0,
       feel_rating: p.feel_rating,
-      pain_regions: p.pain_regions.length > 0 ? p.pain_regions : null,
+      pain_regions: p.pain_regions.length > 0 ? p.pain_regions : [],
       notes: p.raw_phrase,
+      logged_at: new Date().toISOString(),
     };
     if (existingPain?.id) {
       await supabase

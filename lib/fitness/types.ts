@@ -306,11 +306,21 @@ export type ExerciseBaseline = {
 export type ExercisePainLog = {
   id: string;
   user_id: string;
-  session_exercise_id: string;
-  severity: number | null;
+  session_id: string;
+  /** Null when the row is a session-level pain note rather than a
+   *  log against a specific exercise. */
+  session_exercise_id: string | null;
+  /** Denormalised name of the exercise; for session-level rows this
+   *  is the sentinel string "session". */
+  exercise_name: string;
+  /** NOT NULL per migration 0022; preserved as number for the chart
+   *  colour scale. */
+  severity: number;
   feel_rating: FeelRating | null;
-  pain_regions: string[] | null;
+  /** NOT NULL DEFAULT '{}' per migration 0022. */
+  pain_regions: string[];
   notes: string | null;
+  logged_at: string;
   created_at: string;
   updated_at: string;
 };

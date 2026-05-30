@@ -5,19 +5,7 @@ import type { ExercisePainLog, FeelRating } from "@/lib/fitness/types";
 export const runtime = "nodejs";
 
 const LOG_FIELDS =
-  "id, user_id, session_exercise_id, severity, feel_rating, pain_regions, notes, created_at, updated_at";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
-type Body = {
-  session_exercise_id?: string;
-  severity?: number | null;
-  feel_rating?: FeelRating | null;
-  pain_regions?: string[] | null;
-  notes?: string | null;
-};
+  "id, user_id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at";
 
 const VALID_RATINGS: FeelRating[] = [
   "great",
@@ -29,10 +17,27 @@ const VALID_RATINGS: FeelRating[] = [
   "stopped",
 ];
 
+function userId(): string | null {
+  return process.env.USER_ID ?? null;
+}
+
+type Body = {
+  session_id?: string;
+  /** Null/omitted = session-level pain note (exercise_name = 'session'). */
+  session_exercise_id?: string | null;
+  exercise_name?: string;
+  severity?: number;
+  feel_rating?: FeelRating | null;
+  pain_regions?: string[];
+  notes?: string | null;
+  logged_at?: string;
+};
+
 /**
- * Upsert a pain log keyed by session_exercise_id. We treat the relationship as
- * 1:1 — there's only ever one pain entry per logged exercise per session,
- * because anything else would be hard to reason about in the UI.
+ * Upsert a pain log. For exercise-level rows we key on session_exercise_id
+ * (1:1 with the logged exercise). Session-level rows (no
+ * session_exercise_id, exercise_name='session') key on session_id and
+ * are also treated as 1:1.
  */
 export async function POST(req: NextRequest) {
   const uid = userId();
@@ -44,117 +49,171 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: "bad json" }, { status: 400 });
   }
-  if (!body.session_exercise_id) {
-    return NextResponse.json({ error: "session_exercise_id required" }, { status: 400 });
+
+  if (!body.session_id) {
+    return NextResponse.json({ error: "session_id required" }, { status: 400 });
   }
-  if (body.severity != null && (body.severity < 0 || body.severity > 10)) {
-    return NextResponse.json({ error: "severity out of range" }, { status: 400 });
+  if (
+    typeof body.severity !== "number" ||
+    body.severity < 0 ||
+    body.severity > 10
+  ) {
+    return NextResponse.json(
+      { error: "severity required (0-10)" },
+      { status: 400 },
+    );
   }
   if (body.feel_rating != null && !VALID_RATINGS.includes(body.feel_rating)) {
     return NextResponse.json({ error: "invalid feel_rating" }, { status: 400 });
   }
+  const sessionExerciseId = body.session_exercise_id ?? null;
+  const exerciseName =
+    body.exercise_name?.trim() ||
+    (sessionExerciseId ? null : "session"); // session-level default
 
   try {
     const supabase = createServerClient();
-    // Verify the session_exercise belongs to this user
-    const { data: ex } = await supabase
-      .from("workout_session_exercises")
-      .select("id, workout_sessions:session_id!inner(user_id)")
-      .eq("id", body.session_exercise_id)
+
+    // Ownership check via the session row. Done in one query instead of
+    // joining through workout_session_exercises so session-level logs
+    // (no session_exercise_id) work identically.
+    const { data: session } = await supabase
+      .from("workout_sessions")
+      .select("id, user_id")
+      .eq("id", body.session_id)
       .maybeSingle();
-    const joined =
-      (ex as { workout_sessions?: { user_id?: string } | { user_id?: string }[] } | null)
-        ?.workout_sessions;
-    const ownerId = Array.isArray(joined) ? joined[0]?.user_id : joined?.user_id;
-    if (!ex || ownerId !== uid) {
-      return NextResponse.json({ error: "not found" }, { status: 404 });
+    if (!session || session.user_id !== uid) {
+      return NextResponse.json({ error: "session not found" }, { status: 404 });
     }
 
-    // Existing log for this session_exercise?
-    const { data: existing } = await supabase
+    let resolvedExerciseName: string | null = exerciseName;
+    if (sessionExerciseId) {
+      // Verify the session_exercise belongs to this session, and pull
+      // its canonical name to denormalise.
+      const { data: ex } = await supabase
+        .from("workout_session_exercises")
+        .select("id, name, session_id")
+        .eq("id", sessionExerciseId)
+        .maybeSingle();
+      if (!ex || ex.session_id !== body.session_id) {
+        return NextResponse.json(
+          { error: "session_exercise not in session" },
+          { status: 400 },
+        );
+      }
+      resolvedExerciseName = exerciseName ?? (ex.name as string);
+    }
+    if (!resolvedExerciseName) {
+      return NextResponse.json(
+        { error: "exercise_name required" },
+        { status: 400 },
+      );
+    }
+
+    // Look up an existing 1:1 row to upsert into. Exercise-level rows
+    // key on session_exercise_id; session-level rows key on
+    // (session_id, session_exercise_id IS NULL).
+    let existingQuery = supabase
       .from("exercise_pain_logs")
       .select("id")
-      .eq("session_exercise_id", body.session_exercise_id)
-      .maybeSingle();
+      .eq("session_id", body.session_id);
+    if (sessionExerciseId) {
+      existingQuery = existingQuery.eq("session_exercise_id", sessionExerciseId);
+    } else {
+      existingQuery = existingQuery.is("session_exercise_id", null);
+    }
+    const { data: existing } = await existingQuery.maybeSingle();
 
     const now = new Date().toISOString();
+    const loggedAt =
+      typeof body.logged_at === "string" && body.logged_at
+        ? body.logged_at
+        : now;
+
     if (existing?.id) {
       const { data, error } = await supabase
         .from("exercise_pain_logs")
         .update({
-          severity: body.severity ?? null,
+          severity: body.severity,
           feel_rating: body.feel_rating ?? null,
-          pain_regions: body.pain_regions ?? null,
+          pain_regions: Array.isArray(body.pain_regions)
+            ? body.pain_regions
+            : [],
           notes: body.notes ?? null,
+          logged_at: loggedAt,
           updated_at: now,
         })
         .eq("id", existing.id)
         .select(LOG_FIELDS)
         .single();
-      if (error) {
+      if (error || !data) {
         console.error("[/api/fitness/pain-logs POST update]", error);
         return NextResponse.json({ error: "save failed" }, { status: 500 });
       }
-      return NextResponse.json({ pain_log: data as ExercisePainLog, updated: true });
+      return NextResponse.json({
+        pain_log: data as ExercisePainLog,
+        updated: true,
+      });
     }
 
     const { data, error } = await supabase
       .from("exercise_pain_logs")
       .insert({
         user_id: uid,
-        session_exercise_id: body.session_exercise_id,
-        severity: body.severity ?? null,
+        session_id: body.session_id,
+        session_exercise_id: sessionExerciseId,
+        exercise_name: resolvedExerciseName,
+        severity: body.severity,
         feel_rating: body.feel_rating ?? null,
-        pain_regions: body.pain_regions ?? null,
+        pain_regions: Array.isArray(body.pain_regions) ? body.pain_regions : [],
         notes: body.notes ?? null,
+        logged_at: loggedAt,
       })
       .select(LOG_FIELDS)
       .single();
-    if (error) {
+    if (error || !data) {
       console.error("[/api/fitness/pain-logs POST insert]", error);
       return NextResponse.json({ error: "save failed" }, { status: 500 });
     }
-    return NextResponse.json({ pain_log: data as ExercisePainLog, updated: false });
+    return NextResponse.json({
+      pain_log: data as ExercisePainLog,
+      updated: false,
+    });
   } catch (err) {
     console.error("[/api/fitness/pain-logs POST]", err);
     return NextResponse.json({ error: "save failed" }, { status: 500 });
   }
 }
 
-/** GET pain logs for a session — joins through session_exercises to filter. */
+/** GET pain logs.
+ *
+ * Accepts:
+ *   ?session_id=X    — all logs for a session (incl. session-level)
+ *   ?exercise_name=X — all logs across sessions for an exercise (for
+ *                      the pain-history chart on /fitness/history/exercise/[name])
+ */
 export async function GET(req: NextRequest) {
   const uid = userId();
   if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const sessionId = req.nextUrl.searchParams.get("session_id");
-  if (!sessionId) {
-    return NextResponse.json({ error: "session_id required" }, { status: 400 });
+  const exerciseName = req.nextUrl.searchParams.get("exercise_name");
+  if (!sessionId && !exerciseName) {
+    return NextResponse.json(
+      { error: "session_id or exercise_name required" },
+      { status: 400 },
+    );
   }
   try {
     const supabase = createServerClient();
-    // Ownership check + collect session_exercise ids in one query
-    const { data: exRows } = await supabase
-      .from("workout_session_exercises")
-      .select(
-        "id, workout_sessions:session_id!inner(user_id, id)"
-      )
-      .eq("session_id", sessionId);
-    type ExRow = {
-      id: string;
-      workout_sessions:
-        | { user_id?: string; id?: string }
-        | { user_id?: string; id?: string }[];
-    };
-    const exIds: string[] = [];
-    for (const r of (exRows ?? []) as ExRow[]) {
-      const j = Array.isArray(r.workout_sessions) ? r.workout_sessions[0] : r.workout_sessions;
-      if (j?.user_id === uid) exIds.push(r.id);
-    }
-    if (exIds.length === 0) return NextResponse.json({ pain_logs: [] });
-
-    const { data: logs } = await supabase
+    let q = supabase
       .from("exercise_pain_logs")
       .select(LOG_FIELDS)
-      .in("session_exercise_id", exIds);
+      .eq("user_id", uid)
+      .order("logged_at", { ascending: false });
+    if (sessionId) q = q.eq("session_id", sessionId);
+    if (exerciseName) q = q.eq("exercise_name", exerciseName);
+    const { data: logs, error } = await q;
+    if (error) throw error;
     return NextResponse.json({ pain_logs: (logs ?? []) as ExercisePainLog[] });
   } catch (err) {
     console.error("[/api/fitness/pain-logs GET]", err);

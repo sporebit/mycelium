@@ -5,7 +5,7 @@ import type { ExercisePainLog, FeelRating } from "@/lib/fitness/types";
 export const runtime = "nodejs";
 
 const LOG_FIELDS =
-  "id, user_id, session_exercise_id, severity, feel_rating, pain_regions, notes, created_at, updated_at";
+  "id, user_id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at";
 
 function userId(): string | null {
   return process.env.USER_ID ?? null;
