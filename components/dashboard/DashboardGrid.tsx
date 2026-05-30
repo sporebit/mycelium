@@ -42,6 +42,7 @@ import { Fuel } from "./cards/Fuel";
 import { Journal } from "./cards/Journal";
 import { Fitness } from "./cards/Fitness";
 import { CaptureReview } from "./cards/CaptureReview";
+import { Glossary } from "./cards/Glossary";
 import { DashboardSettings } from "./DashboardSettings";
 import {
   CARD_REGISTRY,
@@ -84,6 +85,7 @@ const CARD_COMPONENTS: Record<string, ComponentType<{ width: CardWidth }>> = {
   journal: Journal,
   fitness: Fitness,
   capture_review: CaptureReview,
+  glossary: Glossary,
 };
 
 const COLS: CardCol[] = [1, 2, 3];

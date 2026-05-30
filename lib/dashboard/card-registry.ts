@@ -50,7 +50,8 @@ export const CARD_REGISTRY: Record<string, CardConfig> = {
   capture_review:{ label: "Capture Review", supports: [1, 2, 3], default_width: 1, default_col: 3, default_position: 0 },
   fitness:       { label: "Fitness",        supports: [1, 2, 3], default_width: 1, default_col: 3, default_position: 1 },
   journal:       { label: "Journal",        supports: [1, 2, 3], default_width: 1, default_col: 3, default_position: 2 },
-  fuel:          { label: "Fuel",           supports: [1, 2, 3], default_width: 1, default_col: 3, default_position: 3 },
+  glossary:      { label: "Glossary",       supports: [1, 2, 3], default_width: 1, default_col: 3, default_position: 3 },
+  fuel:          { label: "Fuel",           supports: [1, 2, 3], default_width: 1, default_col: 3, default_position: 4 },
 };
 
 export const CARD_KEYS = Object.keys(CARD_REGISTRY);
