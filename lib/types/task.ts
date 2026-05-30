@@ -14,12 +14,51 @@ export const URGENCY_LABEL: Record<TaskUrgency, string> = {
   someday: "SOMEDAY",
 };
 
+export type TaskStatus =
+  | "new"
+  | "in_progress"
+  | "blocked"
+  | "on_hold"
+  | "waiting_third_party"
+  | "review"
+  | "pending_review"
+  | "testing"
+  | "completed"
+  | "cancelled";
+
+export const TASK_STATUSES: readonly TaskStatus[] = [
+  "new",
+  "in_progress",
+  "blocked",
+  "on_hold",
+  "waiting_third_party",
+  "review",
+  "pending_review",
+  "testing",
+  "completed",
+  "cancelled",
+];
+
+export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
+  new: "NEW",
+  in_progress: "IN PROGRESS",
+  blocked: "BLOCKED",
+  on_hold: "ON HOLD",
+  waiting_third_party: "WAITING FOR 3RD PARTY",
+  review: "REVIEW",
+  pending_review: "PENDING REVIEW",
+  testing: "TESTING",
+  completed: "COMPLETED",
+  cancelled: "CANCELLED",
+};
+
 export type Task = {
   id: string;
   user_id: string;
   title: string;
   description: string | null;
   urgency: TaskUrgency | null;
+  status: TaskStatus;
   key: boolean;
   priority_score: number | null;
   time_estimate_min: number | null;
@@ -30,6 +69,8 @@ export type Task = {
   entity_name: string | null;
   project_id: string | null;
   project_name: string | null;
+  /** Project colour swatch — populated on serializeTask via the projects join. */
+  project_colour?: string | null;
   completed_at: string | null;
   created_at: string;
   updated_at: string;

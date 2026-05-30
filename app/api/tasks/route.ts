@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
-import { URGENCIES, type Task, type TaskUrgency } from "@/lib/types/task";
+import {
+  URGENCIES,
+  TASK_STATUSES,
+  type Task,
+  type TaskStatus,
+  type TaskUrgency,
+} from "@/lib/types/task";
 import { extractNameMentions } from "@/lib/people/regex-extract";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 
@@ -132,6 +138,7 @@ type CreateBody = {
   title?: string;
   description?: string;
   urgency?: TaskUrgency;
+  status?: TaskStatus;
   key?: boolean;
   priority_score?: number;
   tags?: string[];
@@ -204,6 +211,10 @@ export async function POST(req: NextRequest) {
         body.urgency && URGENCIES.includes(body.urgency)
           ? body.urgency
           : (inheritedUrgency ?? "today"),
+      status:
+        body.status && TASK_STATUSES.includes(body.status)
+          ? body.status
+          : "new",
       key: typeof body.key === "boolean" ? body.key : false,
       priority_score:
         typeof body.priority_score === "number" ? body.priority_score : 0.5,

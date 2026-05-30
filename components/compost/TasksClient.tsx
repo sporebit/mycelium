@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Task, TaskUrgency } from "@/lib/types/task";
+import type { Task, TaskStatus, TaskUrgency } from "@/lib/types/task";
 import type { Project } from "@/lib/types/project";
 import { ViewSwitcher, type CrmView } from "./ViewSwitcher";
 import { TaskBoard } from "./TaskBoard";
+import { TaskStatusBoard } from "./TaskStatusBoard";
 import { TaskSmart } from "./TaskSmart";
 import { TaskCategory } from "./TaskCategory";
 import { TaskDrawer, type DrawerMode } from "./TaskDrawer";
@@ -14,19 +15,26 @@ import { localDateKey } from "@/lib/util/date";
 
 const VIEW_STORAGE_KEY = "miles-crm-view";
 const SHOW_COMPLETED_STORAGE_KEY = "mycelium:showCompleted";
+const SHOW_PROJECT_TASKS_KEY = "mycelium:showProjectTasks";
 
 type Toast = { kind: "success" | "error"; text: string } | null;
 
 function readView(): CrmView {
-  if (typeof window === "undefined") return "kanban";
+  if (typeof window === "undefined") return "status";
   const v = localStorage.getItem(VIEW_STORAGE_KEY);
-  if (v === "smart" || v === "kanban" || v === "category") return v;
-  return "kanban";
+  if (v === "smart" || v === "kanban" || v === "category" || v === "status")
+    return v;
+  return "status";
 }
 
 function readShowCompleted(): boolean {
   if (typeof window === "undefined") return false;
   return localStorage.getItem(SHOW_COMPLETED_STORAGE_KEY) === "true";
+}
+
+function readShowProjectTasks(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(SHOW_PROJECT_TASKS_KEY) === "true";
 }
 
 export function TasksClient() {
@@ -38,6 +46,9 @@ export function TasksClient() {
   const [view, setView] = useState<CrmView>(() => readView());
   const [showCompleted, setShowCompleted] = useState<boolean>(() =>
     readShowCompleted(),
+  );
+  const [showProjectTasks, setShowProjectTasks] = useState<boolean>(() =>
+    readShowProjectTasks(),
   );
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -57,6 +68,14 @@ export function TasksClient() {
       showCompleted ? "true" : "false",
     );
   }, [showCompleted]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(
+      SHOW_PROJECT_TASKS_KEY,
+      showProjectTasks ? "true" : "false",
+    );
+  }, [showProjectTasks]);
 
   // Fetch tasks. Re-fires when showCompleted flips so the API filter
   // matches the displayed set — the API ignores completed tasks by
@@ -135,6 +154,12 @@ export function TasksClient() {
       const todayKey = localDateKey();
       result = result.filter((t) => isBlocker(t, todayKey));
     }
+    // Project tasks are hidden by default — only show them when the
+    // toggle is on. Explicit project filter selection always wins so a
+    // user can drill into a project from a different surface.
+    if (!showProjectTasks && projectFilter.size === 0) {
+      result = result.filter((t) => !t.project_id);
+    }
     if (projectFilter.size > 0) {
       result = result.filter((t) => {
         const key = t.project_id ?? "__none__";
@@ -158,7 +183,13 @@ export function TasksClient() {
       });
     }
     return result;
-  }, [tasks, search, filterMode, projectFilter]);
+  }, [tasks, search, filterMode, projectFilter, showProjectTasks]);
+
+  const projectTasksHidden = useMemo(() => {
+    if (!tasks) return 0;
+    if (showProjectTasks || projectFilter.size > 0) return 0;
+    return tasks.filter((t) => !!t.project_id).length;
+  }, [tasks, showProjectTasks, projectFilter]);
 
   // -------- API helpers (optimistic) --------
 
@@ -261,6 +292,10 @@ export function TasksClient() {
     }
   }
 
+  function handleStatusMove(id: string, status: TaskStatus) {
+    void patchTask(id, { status });
+  }
+
   // Look-up maps for the drawer + smart view
   const tasksById = useMemo(() => {
     const m = new Map<string, Task>();
@@ -340,6 +375,23 @@ export function TasksClient() {
         </button>
         <button
           type="button"
+          onClick={() => setShowProjectTasks((v) => !v)}
+          aria-pressed={showProjectTasks}
+          title={
+            showProjectTasks
+              ? "Hide tasks attached to a project"
+              : "Show tasks attached to a project"
+          }
+          className={`px-3 py-1.5 rounded-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
+            showProjectTasks
+              ? "bg-accent/15 border-accent/40 text-accent hover:bg-accent/25"
+              : "bg-ink-0/40 border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+          }`}
+        >
+          {showProjectTasks ? "✓ PROJECT TASKS" : "SHOW PROJECT TASKS"}
+        </button>
+        <button
+          type="button"
           onClick={() => setDrawerUrl({ kind: "create" })}
           className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
         >
@@ -348,11 +400,24 @@ export function TasksClient() {
         <ViewSwitcher value={view} onChange={setView} />
       </div>
 
+      {projectTasksHidden > 0 && (
+        <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] -mt-1">
+          {projectTasksHidden} task{projectTasksHidden === 1 ? "" : "s"} in
+          projects hidden
+        </div>
+      )}
+
       {/* Body */}
       {tasks === null ? (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading tasks…
         </div>
+      ) : view === "status" ? (
+        <TaskStatusBoard
+          tasks={filteredTasks}
+          onCardClick={(t) => setDrawerUrl({ kind: "edit", task: t })}
+          onMoveStatus={handleStatusMove}
+        />
       ) : view === "kanban" ? (
         <TaskBoard
           tasks={filteredTasks}

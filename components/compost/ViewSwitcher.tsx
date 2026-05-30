@@ -1,10 +1,11 @@
 "use client";
 
-export type CrmView = "smart" | "kanban" | "category";
+export type CrmView = "smart" | "kanban" | "category" | "status";
 
 const VIEWS: { id: CrmView; label: string }[] = [
   { id: "smart", label: "SMART" },
-  { id: "kanban", label: "KANBAN" },
+  { id: "kanban", label: "URGENCY" },
+  { id: "status", label: "KANBAN" },
   { id: "category", label: "CATEGORY" },
 ];
 

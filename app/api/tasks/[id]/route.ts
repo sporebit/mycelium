@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
-import { URGENCIES, type TaskUrgency } from "@/lib/types/task";
+import {
+  URGENCIES,
+  TASK_STATUSES,
+  type TaskStatus,
+  type TaskUrgency,
+} from "@/lib/types/task";
 import { extractNameMentions } from "@/lib/people/regex-extract";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 
@@ -44,6 +49,7 @@ const ALLOWED_FIELDS = new Set([
   "title",
   "description",
   "urgency",
+  "status",
   "key",
   "priority_score",
   "tags",
@@ -83,9 +89,22 @@ export async function PATCH(
     if (k === "urgency" && v !== null && !URGENCIES.includes(v as TaskUrgency)) {
       continue;
     }
+    if (k === "status" && !TASK_STATUSES.includes(v as TaskStatus)) {
+      continue;
+    }
     update[k] = v;
   }
   update.updated_at = new Date().toISOString();
+
+  // Keep status and completed_at in sync — moving a card to/from the
+  // Completed column should reflect on both fields.
+  if ("status" in update && !("completed_at" in update)) {
+    if (update.status === "completed") {
+      update.completed_at = new Date().toISOString();
+    } else {
+      update.completed_at = null;
+    }
+  }
 
   try {
     const supabase = createServerClient();
