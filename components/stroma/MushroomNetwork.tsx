@@ -39,12 +39,12 @@ const DAMPING = 0.88;
  *  background scatter outside both. */
 function densityAt(x: number, y: number, W: number, H: number): number {
   const capCx = W * 0.5;
-  const capCy = H * 0.42;
+  const capCy = H * 0.5;
   const capRx = W * 0.3;
   const capRy = H * 0.16;
 
-  const stemTopY = H * 0.42;
-  const stemBotY = H * 0.8;
+  const stemTopY = H * 0.5;
+  const stemBotY = H * 0.85;
   const stemHalfTop = W * 0.075;
   const stemHalfBot = W * 0.1;
 
@@ -210,7 +210,7 @@ export function MushroomNetwork() {
     function drawCentralSource(t: number) {
       if (!ctx) return;
       const cx = W * 0.5;
-      const cy = H * 0.42;
+      const cy = H * 0.5;
       const pulse = reduced
         ? 1.0
         : 1.075 + 0.075 * Math.sin((t / 3000) * Math.PI * 2);
@@ -299,9 +299,23 @@ export function MushroomNetwork() {
     }
 
     let rafId = 0;
-    let lastT = performance.now();
+    let firstFrame = true;
     function frame(t: number) {
-      lastT = t;
+      if (firstFrame) {
+        if (
+          typeof window !== "undefined" &&
+          window.location?.hostname === "localhost"
+        ) {
+          console.log("[MushroomNetwork] first frame", {
+            t,
+            nodes: nodes.length,
+            W,
+            H,
+            reduced,
+          });
+        }
+        firstFrame = false;
+      }
       ctx!.clearRect(0, 0, W, H);
       step();
       drawConnections();
@@ -346,7 +360,6 @@ export function MushroomNetwork() {
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onMouseLeave);
       window.removeEventListener("resize", onResize);
-      void lastT;
     };
   }, []);
 
