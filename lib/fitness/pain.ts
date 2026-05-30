@@ -1,16 +1,23 @@
 import type { ExerciseBaseline, FeelRating } from "./types";
 
 /**
- * Bucketed severity → colour mapping. Returns a CSS colour value (hex)
- * because chart libraries take strings, not Tailwind classes. Mapped to
- * the Loam + Glow palette: glow-0 → warn → mid-burnt → error.
+ * Bucketed severity → colour mapping for chart points. Bands per the
+ * R3b spec:
+ *   0      → glow-2 (deep bioluminescent green = "clean / no pain")
+ *   1–3    → warn amber
+ *   4–6    → orange (between warn and error)
+ *   7–10   → error red
+ *
+ * Returns a CSS colour string because chart libraries take strings,
+ * not Tailwind classes. Null severity ("no log") is treated as a
+ * green dot so the progression chart doesn't break.
  */
 export function severityToColor(severity: number | null | undefined): string {
-  if (severity == null) return "#84f5b8"; // glow-0 — "no log" assumed fine
-  if (severity <= 1) return "#84f5b8";    // glow-0
-  if (severity <= 4) return "#f5b56d";    // warn
-  if (severity <= 7) return "#e08a5f";    // between warn and error
-  return "#e07a5f";                       // error
+  if (severity == null) return "#2a8b56"; // glow-2 — "no log" assumed clean
+  if (severity <= 0) return "#2a8b56";    // glow-2 green
+  if (severity <= 3) return "#f5b56d";    // amber
+  if (severity <= 6) return "#e08a5f";    // orange
+  return "#e07a5f";                       // red
 }
 
 /** Approximate severity for charts when only a feel rating was logged. */

@@ -339,30 +339,43 @@ function buildPainPoints(
     return null;
   }
 
-  if (xMode === "session") {
-    const out: PainPoint[] = [];
+  // Per R3b: collapse multiple logs in the same session to the max
+  // severity. Keeps the chart honest when the user logged pain on more
+  // than one exercise in the same session.
+  function collapseBySession(): Map<string, { sev: number; log: PainLogWithDate }> {
+    const bySession = new Map<string, { sev: number; log: PainLogWithDate }>();
     for (const l of asc) {
       const sev = severityOf(l);
       if (sev == null) continue;
-      const idx = sessionIndex.get(l.session_id);
+      const cur = bySession.get(l.session_id);
+      if (!cur || sev > cur.sev) bySession.set(l.session_id, { sev, log: l });
+    }
+    return bySession;
+  }
+
+  if (xMode === "session") {
+    const bySession = collapseBySession();
+    const out: PainPoint[] = [];
+    for (const [sid, v] of bySession) {
+      const idx = sessionIndex.get(sid);
       if (idx == null) continue;
-      out.push({ y: sev, xLabel: String(idx), sortKey: idx, log: l });
+      out.push({ y: v.sev, xLabel: String(idx), sortKey: idx, log: v.log });
     }
     out.sort((a, b) => (a.sortKey as number) - (b.sortKey as number));
     return out;
   }
   if (xMode === "date") {
+    const bySession = collapseBySession();
     const out: PainPoint[] = [];
-    for (const l of asc) {
-      const sev = severityOf(l);
-      if (sev == null) continue;
+    for (const v of bySession.values()) {
       out.push({
-        y: sev,
-        xLabel: fmtDateShort(l.date),
-        sortKey: l.date,
-        log: l,
+        y: v.sev,
+        xLabel: fmtDateShort(v.log.date),
+        sortKey: v.log.date,
+        log: v.log,
       });
     }
+    out.sort((a, b) => (a.sortKey < b.sortKey ? -1 : 1));
     return out;
   }
   // Weekly: max severity per ISO week
@@ -729,7 +742,9 @@ export function ExerciseHistoryClient({
             </div>
           </Panel>
 
-          {/* Pain over time */}
+          {/* Pain over time — gated by ≥2 logs per R3b spec so a single
+              data point doesn't try to render as a trend line. */}
+          {painLogs.length >= 2 && (
           <Panel
             title="Pain over time"
             topRight={
@@ -790,6 +805,7 @@ export function ExerciseHistoryClient({
               </div>
             )}
           </Panel>
+          )}
 
           {/* Recent table */}
           <Panel
