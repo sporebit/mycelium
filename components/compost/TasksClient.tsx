@@ -512,6 +512,22 @@ export function TasksClient() {
     setFocusedId(id);
   }
 
+  function handleConverted(newKind: string, newId: string) {
+    // The source task was soft-deleted server-side. Mirror that locally
+    // and decide where to send the user based on the new kind.
+    if (detail) {
+      const oldId = detail.task.id;
+      setTasks((cur) => (cur ?? []).filter((t) => t.id !== oldId));
+    }
+    if (newKind === "task") {
+      setUrl({ task: newId });
+      showToast(`Converted → new task`, "success");
+    } else {
+      setUrl({ task: null });
+      showToast(`Converted → ${newKind}`, "success");
+    }
+  }
+
   // Derived: when the explicit `focusedId` falls outside the visible
   // list (e.g. filter changed under it, or it was deleted), fall back to
   // the first visible task. Avoids a setState-in-effect cascade.
@@ -725,6 +741,8 @@ export function TasksClient() {
                 onAddSubtask={addSubtask}
                 onJumpToTask={jumpToTask}
                 onTogglePatch={(id, p) => void patchTask(id, p)}
+                onConverted={handleConverted}
+                onError={(m) => showToast(m)}
                 onDelete={() => {
                   if (
                     window.confirm(
@@ -750,6 +768,8 @@ export function TasksClient() {
                 onAddSubtask={addSubtask}
                 onJumpToTask={jumpToTask}
                 onTogglePatch={(id, p) => void patchTask(id, p)}
+                onConverted={handleConverted}
+                onError={(m) => showToast(m)}
                 onDelete={() => {
                   if (
                     window.confirm(
@@ -785,6 +805,8 @@ export function TasksClient() {
                   onAddSubtask={addSubtask}
                   onJumpToTask={jumpToTask}
                   onTogglePatch={(id, p) => void patchTask(id, p)}
+                  onConverted={handleConverted}
+                  onError={(m) => showToast(m)}
                   onDelete={() => {
                     if (
                       window.confirm(
@@ -863,6 +885,8 @@ function DetailPaneWrap({
   onJumpToTask,
   onTogglePatch,
   onDelete,
+  onConverted,
+  onError,
 }: {
   detail: TaskDetail;
   detailLoading: boolean;
@@ -875,6 +899,8 @@ function DetailPaneWrap({
   onJumpToTask: (id: string) => void;
   onTogglePatch: (id: string, patch: Partial<Task>) => void;
   onDelete: () => void;
+  onConverted: (newKind: string, newId: string) => void;
+  onError: (msg: string) => void;
 }) {
   return (
     <TaskDetailPane
@@ -893,6 +919,8 @@ function DetailPaneWrap({
       onJumpToTask={onJumpToTask}
       onTogglePatch={onTogglePatch}
       onDelete={onDelete}
+      onConverted={onConverted}
+      onError={onError}
       loading={detailLoading}
     />
   );

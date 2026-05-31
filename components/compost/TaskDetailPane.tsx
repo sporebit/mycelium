@@ -17,6 +17,9 @@ import {
   TASK_STATUS_LABEL,
 } from "@/lib/types/task";
 import { StatusDropdown } from "./StatusDropdown";
+import { ConvertSection } from "./ConvertSection";
+import type { ConvertibleKind } from "@/lib/convert/kinds";
+import { KIND_LABELS } from "@/lib/convert/kinds";
 
 function formatDateTime(iso: string): string {
   try {
@@ -79,6 +82,8 @@ export function TaskDetailPane({
   onJumpToTask,
   onTogglePatch,
   onDelete,
+  onConverted,
+  onError,
   loading,
 }: {
   task: Task;
@@ -95,6 +100,8 @@ export function TaskDetailPane({
   onJumpToTask: (id: string) => void;
   onTogglePatch: (id: string, patch: Partial<Task>) => void;
   onDelete: () => void;
+  onConverted?: (newKind: ConvertibleKind, newId: string) => void;
+  onError?: (msg: string) => void;
   loading: boolean;
 }) {
   const statusRef = useRef<HTMLDivElement | null>(null);
@@ -209,10 +216,20 @@ export function TaskDetailPane({
       role="dialog"
       aria-label="Task detail"
     >
-      <div className="flex items-center justify-between px-5 py-3 border-b border-ink-2 shrink-0">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-          Task · created {formatDate(task.created_at)}
-        </span>
+      <div className="flex items-center justify-between px-5 py-3 border-b border-ink-2 shrink-0 gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            Task · created {formatDate(task.created_at)}
+          </span>
+          {task.converted_from && (
+            <span
+              title={`Converted from ${task.converted_from.from_kind} (id ${task.converted_from.from_id})`}
+              className="text-[9px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-warn/40 bg-warn/15 text-warn shrink-0"
+            >
+              ⇄ from {task.converted_from.from_kind}
+            </span>
+          )}
+        </div>
         <button
           type="button"
           onClick={onClose}
@@ -536,6 +553,19 @@ export function TaskDetailPane({
             {formatDate(task.updated_at)}
           </span>
         </Field>
+        {/* Convert this task to another record kind */}
+        {onConverted && (
+          <div className="col-span-2">
+            <ConvertSection
+              fromKind="task"
+              fromId={task.id}
+              fromTitle={task.title}
+              onConverted={onConverted}
+              onError={(m) => onError?.(m)}
+            />
+          </div>
+        )}
+
         {linkedCaptures.length > 0 && (
           <div className="col-span-2 flex flex-col gap-1.5">
             <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
