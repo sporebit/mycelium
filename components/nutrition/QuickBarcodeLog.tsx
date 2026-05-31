@@ -9,10 +9,17 @@ import type {
 } from "@/lib/nutrition/types-v2";
 import { BarcodeScanner } from "./BarcodeScanner";
 import { ServingPicker } from "./ServingPicker";
+import { ManualFoodEntry } from "./ManualFoodEntry";
 
 /**
  * Camera-first quick log. Skips the search/add-food sheet entirely:
  * scanner → serving picker → POST /api/nutrition/logs.
+ *
+ * If the OFF barcode lookup misses, we don't dead-end with an error —
+ * the manual-entry modal opens pre-filled with the scanned code so
+ * the user can fill the panel themselves. Saved manual rows are
+ * cached against the barcode so the same product hits instantly next
+ * time.
  *
  * `defaultMealGroupName` lets the caller pick a group by name when the
  * id isn't known up front (e.g. dashboard card chooses by time of day).
@@ -39,6 +46,7 @@ export function QuickBarcodeLog({
   const [picked, setPicked] = useState<FoodSearchResult | null>(null);
   const [saving, setSaving] = useState(false);
   const [looking, setLooking] = useState(false);
+  const [missedBarcode, setMissedBarcode] = useState<string | null>(null);
 
   if (!open) return null;
 
@@ -50,7 +58,26 @@ export function QuickBarcodeLog({
         )?.id ?? null)
       : null);
 
-  async function handleScanned(code: string) {
+  function foodToSearchResult(food: Food): FoodSearchResult {
+    return {
+      id: food.id,
+      name: food.name,
+      brand: food.brand,
+      barcode: food.barcode,
+      off_id: food.off_id,
+      source: food.source,
+      kcal_per_100g: food.kcal_per_100g,
+      protein_per_100g: food.protein_per_100g,
+      carbs_per_100g: food.carbs_per_100g,
+      fat_per_100g: food.fat_per_100g,
+      servings: food.servings ?? [],
+      in_library: true,
+      is_favourite: food.is_favourite,
+      use_count: food.use_count,
+    };
+  }
+
+  async function lookup(code: string): Promise<boolean> {
     setLooking(true);
     try {
       const r = await fetch(
@@ -60,30 +87,24 @@ export function QuickBarcodeLog({
         food?: Food;
         error?: string;
       };
-      if (!r.ok || !j.food) {
-        onError(j.error ?? "Barcode not found.");
-        onClose();
-        return;
-      }
-      const food = j.food;
-      setPicked({
-        id: food.id,
-        name: food.name,
-        brand: food.brand,
-        barcode: food.barcode,
-        off_id: food.off_id,
-        source: food.source,
-        kcal_per_100g: food.kcal_per_100g,
-        protein_per_100g: food.protein_per_100g,
-        carbs_per_100g: food.carbs_per_100g,
-        fat_per_100g: food.fat_per_100g,
-        servings: food.servings ?? [],
-        in_library: true,
-        is_favourite: food.is_favourite,
-        use_count: food.use_count,
-      });
+      if (!r.ok || !j.food) return false;
+      setPicked(foodToSearchResult(j.food));
+      return true;
+    } catch (err) {
+      console.error("[QuickBarcodeLog lookup]", err);
+      return false;
     } finally {
       setLooking(false);
+    }
+  }
+
+  async function handleScanned(code: string) {
+    const ok = await lookup(code);
+    if (!ok) {
+      // Don't dead-end — drop into manual entry with the barcode
+      // primed. The user can fill it in once and we'll cache the row
+      // for next time.
+      setMissedBarcode(code);
     }
   }
 
@@ -122,6 +143,31 @@ export function QuickBarcodeLog({
     } finally {
       setSaving(false);
     }
+  }
+
+  // Manual entry takes precedence when an OFF lookup missed.
+  if (missedBarcode) {
+    return (
+      <ManualFoodEntry
+        barcode={missedBarcode}
+        retrying={looking}
+        onRetry={async () => {
+          // One more shot at OFF before the user gives up and types
+          // the panel themselves. If it lands, we drop straight into
+          // the serving picker.
+          const ok = await lookup(missedBarcode);
+          if (ok) setMissedBarcode(null);
+        }}
+        onSaved={(food) => {
+          setMissedBarcode(null);
+          setPicked(foodToSearchResult(food));
+        }}
+        onClose={() => {
+          setMissedBarcode(null);
+          onClose();
+        }}
+      />
+    );
   }
 
   // While we have a picked food, render the serving-picker modal over

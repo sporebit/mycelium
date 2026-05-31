@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { isLikelyBarcode } from "@/lib/nutrition/off";
 
 /**
  * Full-screen barcode scanner overlay. Uses @zxing/browser, loaded on
@@ -11,6 +12,11 @@ import { useEffect, useRef, useState } from "react";
  *  - the user denies camera permission
  *  - the device has no camera
  *  - the @zxing library fails to load (offline / network blocked)
+ *
+ * Non-barcode reads (the user accidentally points the camera at a QR
+ * code, a bit of printed text, etc.) are rejected before they leave
+ * the component so callers only ever see digit-formatted EAN/UPC
+ * payloads.
  */
 export function BarcodeScanner({
   onDetected,
@@ -24,6 +30,8 @@ export function BarcodeScanner({
     "initialising" | "scanning" | "permission_denied" | "no_camera" | "library_error"
   >("initialising");
   const [manual, setManual] = useState("");
+  const [rejectedMsg, setRejectedMsg] = useState<string | null>(null);
+  const rejectedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -49,7 +57,28 @@ export function BarcodeScanner({
           videoRef.current!,
           (result, _err, ctrls) => {
             if (result && !cancelled) {
-              const text = result.getText();
+              const text = result.getText().trim();
+              // @zxing's MultiFormatReader will happily decode QR
+              // codes, Data Matrix, etc — any of those reaching the
+              // OFF endpoint would just 404. Reject early with a
+              // visible message so the user knows to point at a
+              // product's actual barcode, then let the reader keep
+              // looking for the next read.
+              if (!isLikelyBarcode(text)) {
+                console.warn(
+                  "[BarcodeScanner] non-product code ignored:",
+                  text,
+                );
+                if (rejectedTimerRef.current) {
+                  clearTimeout(rejectedTimerRef.current);
+                }
+                setRejectedMsg("That's not a product barcode — try again.");
+                rejectedTimerRef.current = setTimeout(
+                  () => setRejectedMsg(null),
+                  2500,
+                );
+                return;
+              }
               ctrls.stop();
               onDetected(text);
             }
@@ -74,6 +103,9 @@ export function BarcodeScanner({
 
     return () => {
       cancelled = true;
+      if (rejectedTimerRef.current) {
+        clearTimeout(rejectedTimerRef.current);
+      }
       try {
         controlsRef?.stop();
       } catch {
@@ -85,7 +117,12 @@ export function BarcodeScanner({
   function submitManual(e: React.FormEvent) {
     e.preventDefault();
     const v = manual.trim();
-    if (v) onDetected(v);
+    if (!v) return;
+    if (!isLikelyBarcode(v)) {
+      setRejectedMsg("Enter a numeric barcode (8, 12, 13 or 14 digits).");
+      return;
+    }
+    onDetected(v);
   }
 
   const showVideo = status === "initialising" || status === "scanning";
@@ -147,6 +184,11 @@ export function BarcodeScanner({
           {status === "library_error" && (
             <p className="text-sm text-danger font-[family-name:var(--font-display)] italic">
               Couldn&apos;t load the scanner. Use the manual entry below.
+            </p>
+          )}
+          {rejectedMsg && (
+            <p className="mt-2 text-xs text-warn font-[family-name:var(--font-mono)] uppercase tracking-[0.18em]">
+              {rejectedMsg}
             </p>
           )}
         </div>

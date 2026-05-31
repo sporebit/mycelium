@@ -9,6 +9,7 @@ import type {
 } from "@/lib/nutrition/types-v2";
 import { BarcodeScanner } from "./BarcodeScanner";
 import { ServingPicker } from "./ServingPicker";
+import { ManualFoodEntry } from "./ManualFoodEntry";
 
 type Tab = "search" | "scan" | "library";
 
@@ -47,6 +48,7 @@ export function FoodSearch({
   const [picked, setPicked] = useState<FoodSearchResult | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [missedBarcode, setMissedBarcode] = useState<string | null>(null);
 
   // Reset when (re-)opening so a stale picked food doesn't linger.
   // The state writes are scheduled via queueMicrotask to keep them out
@@ -109,39 +111,50 @@ export function FoodSearch({
       .catch(() => setLibrary([]));
   }, [open, tab, library]);
 
+  function foodToResult(food: Food): FoodSearchResult {
+    return {
+      id: food.id,
+      name: food.name,
+      brand: food.brand,
+      barcode: food.barcode,
+      off_id: food.off_id,
+      source: food.source,
+      kcal_per_100g: food.kcal_per_100g,
+      protein_per_100g: food.protein_per_100g,
+      carbs_per_100g: food.carbs_per_100g,
+      fat_per_100g: food.fat_per_100g,
+      servings: food.servings ?? [],
+      in_library: true,
+      is_favourite: food.is_favourite,
+      use_count: food.use_count,
+    };
+  }
+
+  async function tryLookup(code: string): Promise<Food | null> {
+    const r = await fetch(
+      `/api/nutrition/foods/barcode/${encodeURIComponent(code)}`,
+    );
+    const j = (await r.json().catch(() => ({}))) as {
+      food?: Food;
+      error?: string;
+    };
+    if (!r.ok || !j.food) return null;
+    return j.food;
+  }
+
   async function handleBarcode(code: string) {
     setScannerOpen(false);
     setSaving(true);
     try {
-      const r = await fetch(
-        `/api/nutrition/foods/barcode/${encodeURIComponent(code)}`,
-      );
-      const j = (await r.json().catch(() => ({}))) as {
-        food?: Food;
-        error?: string;
-      };
-      if (!r.ok || !j.food) {
-        onError(j.error ?? "Barcode not found.");
+      const food = await tryLookup(code);
+      if (!food) {
+        // OFF didn't have this product. Open the manual entry modal
+        // pre-filled with the barcode so the user can keep moving —
+        // and we cache the row for next time.
+        setMissedBarcode(code);
         return;
       }
-      // Convert to search result so ServingPicker takes it
-      const food = j.food;
-      setPicked({
-        id: food.id,
-        name: food.name,
-        brand: food.brand,
-        barcode: food.barcode,
-        off_id: food.off_id,
-        source: food.source,
-        kcal_per_100g: food.kcal_per_100g,
-        protein_per_100g: food.protein_per_100g,
-        carbs_per_100g: food.carbs_per_100g,
-        fat_per_100g: food.fat_per_100g,
-        servings: food.servings ?? [],
-        in_library: true,
-        is_favourite: food.is_favourite,
-        use_count: food.use_count,
-      });
+      setPicked(foodToResult(food));
     } finally {
       setSaving(false);
     }
@@ -407,6 +420,30 @@ export function FoodSearch({
         <BarcodeScanner
           onDetected={handleBarcode}
           onClose={() => setScannerOpen(false)}
+        />
+      )}
+
+      {missedBarcode && (
+        <ManualFoodEntry
+          barcode={missedBarcode}
+          retrying={saving}
+          onRetry={async () => {
+            setSaving(true);
+            try {
+              const food = await tryLookup(missedBarcode);
+              if (food) {
+                setMissedBarcode(null);
+                setPicked(foodToResult(food));
+              }
+            } finally {
+              setSaving(false);
+            }
+          }}
+          onSaved={(food) => {
+            setMissedBarcode(null);
+            setPicked(foodToResult(food));
+          }}
+          onClose={() => setMissedBarcode(null)}
         />
       )}
     </div>
