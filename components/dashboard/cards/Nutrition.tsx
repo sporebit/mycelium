@@ -12,6 +12,10 @@ import type {
   NutritionTargets,
 } from "@/lib/nutrition/types-v2";
 import { localDateKey } from "@/lib/util/date";
+import {
+  QuickBarcodeLog,
+  defaultGroupNameForTime,
+} from "@/components/nutrition/QuickBarcodeLog";
 
 const DEFAULT_TARGETS: NutritionTargets = {
   kcal: NUTRITION_TARGETS.kcal,
@@ -57,6 +61,7 @@ function Macro({
 export function Nutrition({ width = 1 }: { width?: CardWidth } = {}) {
   const [logs, setLogs] = useState<NutritionLog[] | null>(null);
   const [mealGroups, setMealGroups] = useState<MealGroup[]>([]);
+  const [scanOpen, setScanOpen] = useState(false);
   const targets = DEFAULT_TARGETS;
   const today = localDateKey();
 
@@ -115,12 +120,23 @@ export function Nutrition({ width = 1 }: { width?: CardWidth } = {}) {
       borderless
       title="NUTRITION"
       topRight={
-        <Link
-          href="/health/nutrition"
-          className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
-        >
-          OPEN →
-        </Link>
+        <span className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setScanOpen(true)}
+            aria-label="Quick scan barcode"
+            title="Quick scan barcode"
+            className="text-ink-3 hover:text-accent transition-colors"
+          >
+            <CameraIcon />
+          </button>
+          <Link
+            href="/health/nutrition"
+            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
+          >
+            OPEN →
+          </Link>
+        </span>
       }
     >
       <div className={width >= 3 ? "mt-2 grid grid-cols-2 gap-x-8" : "contents"}>
@@ -187,6 +203,40 @@ export function Nutrition({ width = 1 }: { width?: CardWidth } = {}) {
           </Link>
         </div>
       </div>
+
+      <QuickBarcodeLog
+        open={scanOpen}
+        date={today}
+        mealGroups={mealGroups}
+        defaultMealGroupName={defaultGroupNameForTime()}
+        onClose={() => setScanOpen(false)}
+        onLogged={(log) => setLogs((cur) => [...(cur ?? []), log])}
+        onError={(m) => {
+          // Surface in the console; the card has no toast surface of
+          // its own. Errors during the quick-log flow are already
+          // narrated in the scanner UI itself.
+          console.error("[Nutrition quick-log]", m);
+        }}
+      />
     </Panel>
+  );
+}
+
+function CameraIcon() {
+  return (
+    <svg
+      width={18}
+      height={18}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
   );
 }

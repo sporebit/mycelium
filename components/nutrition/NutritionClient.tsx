@@ -15,6 +15,10 @@ import { FoodSearch } from "./FoodSearch";
 import { NutrientDetailPanel } from "./NutrientDetailPanel";
 import { NutritionHistory } from "./NutritionHistory";
 import { FoodLibrary } from "./FoodLibrary";
+import {
+  QuickBarcodeLog,
+  defaultGroupNameForTime,
+} from "./QuickBarcodeLog";
 
 type Tab = "today" | "history" | "library";
 
@@ -47,6 +51,7 @@ export function NutritionClient() {
   const [pendingGroupId, setPendingGroupId] = useState<string | null>(null);
   const [newGroupName, setNewGroupName] = useState("");
   const [toast, setToast] = useState<Toast>(null);
+  const [quickScanOpen, setQuickScanOpen] = useState(false);
   const targets: NutritionTargets = DEFAULT_NUTRITION_TARGETS;
 
   const showToast = useCallback((kind: "ok" | "error", text: string) => {
@@ -380,6 +385,31 @@ export function NutritionClient() {
         onError={(m) => showToast(m.includes("Saved") ? "ok" : "error", m)}
       />
 
+      <QuickBarcodeLog
+        open={quickScanOpen}
+        date={date}
+        mealGroups={mealGroups}
+        defaultMealGroupName={defaultGroupNameForTime()}
+        onClose={() => setQuickScanOpen(false)}
+        onLogged={handleLogged}
+        onError={(m) => showToast("error", m)}
+      />
+
+      {/* Floating quick-scan button — always visible while the user is
+          on the daily nutrition tab; hidden on history / library tabs
+          where it'd be off-topic. */}
+      {tab === "today" && (
+        <button
+          type="button"
+          onClick={() => setQuickScanOpen(true)}
+          aria-label="Scan a barcode to log food"
+          title="Scan a barcode"
+          className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] md:right-6 md:bottom-6 z-[90] h-14 w-14 md:h-10 md:w-10 rounded-full bg-glow-2 text-ink-0 shadow-2xl hover:bg-glow-1 transition-colors flex items-center justify-center"
+        >
+          <FabCameraIcon />
+        </button>
+      )}
+
       {toast && (
         <div
           role="status"
@@ -393,6 +423,25 @@ export function NutritionClient() {
         </div>
       )}
     </div>
+  );
+}
+
+function FabCameraIcon() {
+  return (
+    <svg
+      width={22}
+      height={22}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
   );
 }
 
