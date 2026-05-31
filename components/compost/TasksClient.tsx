@@ -430,6 +430,48 @@ export function TasksClient() {
     setSelected(new Set());
   }
 
+  /**
+   * Bulk due-date patch — used by the calendar's drag-to-schedule when
+   * the user drags a multi-selected group onto a target day. Goes
+   * through /api/tasks/bulk so we land all updates in one round trip.
+   */
+  async function bulkPatchDueDate(ids: string[], dueDate: string | null) {
+    if (ids.length === 0) return;
+    const idSet = new Set(ids);
+    const prev = tasks ?? [];
+    setTasks((cur) =>
+      (cur ?? []).map((t) =>
+        idSet.has(t.id) ? { ...t, due_date: dueDate } : t,
+      ),
+    );
+    try {
+      const r = await fetch("/api/tasks/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, patch: { due_date: dueDate } }),
+      });
+      if (!r.ok) throw new Error("bulk failed");
+      const j = (await r.json().catch(() => ({}))) as { tasks?: Task[] };
+      // Reconcile with the server snapshot so any side-effects (e.g.
+      // updated_at) flow through.
+      if (Array.isArray(j.tasks)) {
+        const byId = new Map(j.tasks.map((t) => [t.id, t] as const));
+        setTasks((cur) =>
+          (cur ?? []).map((t) => byId.get(t.id) ?? t),
+        );
+      }
+      showToast(
+        dueDate
+          ? `Scheduled ${ids.length} for ${dueDate}`
+          : `Cleared date on ${ids.length}`,
+        "success",
+      );
+    } catch {
+      setTasks(prev);
+      showToast("Bulk schedule failed");
+    }
+  }
+
   async function applyBulk(
     action:
       | { kind: "status"; value: TaskStatus }
@@ -666,6 +708,7 @@ export function TasksClient() {
       onMoveUrgency={handleMove}
       tasksById={tasksById}
       onError={(m) => showToast(m)}
+      onBulkPatchDueDate={(ids, d) => void bulkPatchDueDate(ids, d)}
       onCreateForDate={(d) => {
         // Quick-create: open create drawer with due date pre-filled by writing
         // it via a temp param. Simpler: just open create flow.
@@ -1005,6 +1048,7 @@ function MainView({
   tasksById,
   onError,
   onCreateForDate,
+  onBulkPatchDueDate,
 }: {
   view: CrmView;
   tasks: Task[];
@@ -1026,6 +1070,7 @@ function MainView({
   tasksById: Map<string, Task>;
   onError: (m: string) => void;
   onCreateForDate: (date: string) => void;
+  onBulkPatchDueDate: (ids: string[], dueDate: string | null) => void;
 }) {
   switch (view) {
     case "list":
@@ -1059,6 +1104,8 @@ function MainView({
           tasks={tasks}
           onOpen={onOpen}
           onCreateForDate={onCreateForDate}
+          onPatchDueDate={(id, dueDate) => onPatch(id, { due_date: dueDate })}
+          onBulkPatchDueDate={onBulkPatchDueDate}
         />
       );
     case "status":
