@@ -65,6 +65,10 @@ const ALLOWED_FIELDS = new Set([
   "project_id",
   "completed_at",
   "parent_task_id",
+  "context_where",
+  "context_device",
+  "context_energy",
+  "context_tag",
 ]);
 
 function userId(): string | null {
