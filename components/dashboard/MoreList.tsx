@@ -120,7 +120,7 @@ function NutritionIcon({ size = 22, ariaLabel = "Nutrition" }: NavIconProps) {
 const SECTIONS: Item[] = [
   { label: "Finance", href: "/finance", Icon: FinanceIcon },
   { label: "Health", href: "/health", Icon: HealthIcon },
-  { label: "Nutrition", href: "/nutrition", Icon: NutritionIcon },
+  { label: "Nutrition", href: "/health/nutrition", Icon: NutritionIcon },
   { label: "Journal", href: "/journal", Icon: JournalIcon },
   { label: "Review", href: "/review", Icon: ReviewIcon },
 ];

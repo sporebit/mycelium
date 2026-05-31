@@ -116,7 +116,7 @@ export function Nutrition({ width = 1 }: { width?: CardWidth } = {}) {
       title="NUTRITION"
       topRight={
         <Link
-          href="/nutrition"
+          href="/health/nutrition"
           className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
         >
           OPEN →
@@ -180,7 +180,7 @@ export function Nutrition({ width = 1 }: { width?: CardWidth } = {}) {
           </ul>
 
           <Link
-            href="/nutrition"
+            href="/health/nutrition"
             className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
           >
             + LOG FOOD

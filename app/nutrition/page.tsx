@@ -1,10 +1,7 @@
-import { Shell } from "@/components/dashboard/Shell";
-import { NutritionClient } from "@/components/nutrition/NutritionClient";
+import { redirect } from "next/navigation";
 
-export default function NutritionPage() {
-  return (
-    <Shell active="NUTRITION">
-      <NutritionClient />
-    </Shell>
-  );
+// /nutrition is now an alias for /health/nutrition — kept so existing
+// bookmarks, dashboard cards, and shared links still resolve.
+export default function NutritionRedirect() {
+  redirect("/health/nutrition");
 }

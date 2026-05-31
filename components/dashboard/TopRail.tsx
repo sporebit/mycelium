@@ -41,8 +41,14 @@ const TABS: Tab[] = [
   {
     label: "HEALTH",
     href: "/health",
-    match: (p) => p === "/health" || p.startsWith("/health/"),
-    visibility: "desktop",
+    // Health is a top-level section alongside Compost/Fitness/Stroma —
+    // nutrition + body + pain live here, all worth a one-tap reach.
+    match: (p) =>
+      p === "/health" ||
+      p.startsWith("/health/") ||
+      p === "/nutrition" ||
+      p.startsWith("/nutrition/"),
+    visibility: "always",
   },
   {
     label: "JOURNAL",
