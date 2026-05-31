@@ -44,6 +44,7 @@ export async function GET(
       .from("exercise_pain_logs")
       .select(LOG_FIELDS)
       .eq("session_id", id)
+      .is("deleted_at", null)
       .order("logged_at", { ascending: true });
     return NextResponse.json({
       pain_logs: (logs ?? []) as ExercisePainLog[],

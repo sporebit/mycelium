@@ -23,6 +23,7 @@ export async function GET() {
       .from("tasks")
       .select("id, title, time_estimate_min, entity_id, entities(name)")
       .eq("user_id", uid)
+      .is("deleted_at", null)
       .eq("urgency", "today")
       .eq("key", true)
       .is("completed_at", null)

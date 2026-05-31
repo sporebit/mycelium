@@ -79,6 +79,7 @@ export async function GET(req: NextRequest) {
       .from("tasks")
       .select(TASK_SELECT)
       .eq("user_id", uid)
+      .is("deleted_at", null)
       .order("priority_score", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false });
 
@@ -108,6 +109,7 @@ export async function GET(req: NextRequest) {
         .from("tasks")
         .select(TASK_SELECT)
         .eq("user_id", uid)
+        .is("deleted_at", null)
         .in("parent_task_id", parentIds)
         .order("created_at", { ascending: true });
       if (childErr) throw childErr;

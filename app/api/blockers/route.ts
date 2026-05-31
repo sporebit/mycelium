@@ -23,6 +23,7 @@ export async function GET() {
       .from("tasks")
       .select(TASK_SELECT)
       .eq("user_id", uid)
+      .is("deleted_at", null)
       .is("completed_at", null);
 
     if (error) throw error;

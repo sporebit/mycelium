@@ -36,6 +36,7 @@ export async function GET(
       .from("exercise_pain_logs")
       .select(LOG_FIELDS)
       .eq("user_id", uid)
+      .is("deleted_at", null)
       .ilike("exercise_name", name)
       .order("logged_at", { ascending: false });
     const logs = (logRows ?? []) as ExercisePainLog[];

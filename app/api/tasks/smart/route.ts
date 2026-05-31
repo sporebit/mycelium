@@ -184,6 +184,7 @@ export async function POST(req: NextRequest) {
       .from("tasks")
       .select(TASK_SELECT)
       .eq("user_id", uid)
+      .is("deleted_at", null)
       .is("completed_at", null)
       .order("updated_at", { ascending: false })
       .limit(TASK_FETCH_LIMIT);

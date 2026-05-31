@@ -17,6 +17,7 @@ export async function GET() {
       .from("journal_entries")
       .select(JOURNAL_SELECT)
       .eq("user_id", uid)
+      .is("deleted_at", null)
       .eq("entry_date", today)
       .order("created_at", { ascending: true });
     if (error) throw error;

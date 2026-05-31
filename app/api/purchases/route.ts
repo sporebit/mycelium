@@ -46,6 +46,7 @@ export async function GET(req: NextRequest) {
       .from("purchases")
       .select(PURCHASE_SELECT)
       .eq("user_id", uid)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (completedParam === "true") {
       q = q.not("completed_at", "is", null);

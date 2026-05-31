@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
       .from("journal_entries")
       .select(JOURNAL_SELECT)
       .eq("user_id", uid)
+      .is("deleted_at", null)
       .gte("entry_date", from)
       .lte("entry_date", to)
       .order("entry_date", { ascending: false })

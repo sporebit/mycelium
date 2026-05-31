@@ -48,6 +48,7 @@ export async function GET(
       .from("tasks")
       .select("id", { count: "exact", head: true })
       .eq("user_id", uid)
+      .is("deleted_at", null)
       .eq("project_id", id)
       .is("completed_at", null);
     project.task_count = count ?? 0;
@@ -61,6 +62,7 @@ export async function GET(
       .from("purchases")
       .select("amount, currency, completed_at")
       .eq("user_id", uid)
+      .is("deleted_at", null)
       .eq("project_id", id);
     type PurchaseAggRow = {
       amount: number | string | null;

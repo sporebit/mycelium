@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
         .from("tasks")
         .select("id, project_id")
         .eq("user_id", uid)
+        .is("deleted_at", null)
         .is("completed_at", null)
         .in("project_id", ids);
       const counts = new Map<string, number>();

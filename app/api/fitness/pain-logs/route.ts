@@ -209,6 +209,7 @@ export async function GET(req: NextRequest) {
       .from("exercise_pain_logs")
       .select(LOG_FIELDS)
       .eq("user_id", uid)
+      .is("deleted_at", null)
       .order("logged_at", { ascending: false });
     if (sessionId) q = q.eq("session_id", sessionId);
     if (exerciseName) q = q.eq("exercise_name", exerciseName);

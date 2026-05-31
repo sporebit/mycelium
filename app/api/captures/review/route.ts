@@ -42,6 +42,7 @@ export async function GET(req: NextRequest) {
         "id, source, raw_text, audio_url, classification, llm_source, routed_to, routed_id, reviewed_at, discarded_at, created_at",
       )
       .eq("user_id", uid)
+      .is("deleted_at", null)
       .is("discarded_at", null)
       .order("created_at", { ascending: false })
       .limit(limit + 1);

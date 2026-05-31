@@ -108,12 +108,14 @@ export async function GET(
         .from("tasks")
         .select(TASK_SELECT)
         .eq("user_id", uid)
+        .is("deleted_at", null)
         .eq("parent_task_id", id)
         .order("created_at", { ascending: true }),
       supabase
         .from("raw_captures")
         .select("id, source, raw_text, created_at")
         .eq("user_id", uid)
+        .is("deleted_at", null)
         .eq("routed_to", "task")
         .eq("routed_id", id)
         .order("created_at", { ascending: false }),
