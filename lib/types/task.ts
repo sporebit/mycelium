@@ -87,6 +87,41 @@ export type Entity = {
   kind: string | null;
 };
 
+export type TaskComment = {
+  id: string;
+  task_id: string;
+  user_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TaskActivity = {
+  id: string;
+  task_id: string;
+  user_id: string;
+  action: string;
+  field: string | null;
+  from_value: string | null;
+  to_value: string | null;
+  created_at: string;
+};
+
+export type LinkedCapture = {
+  id: string;
+  source: string;
+  raw_text: string | null;
+  created_at: string;
+};
+
+export type TaskDetail = {
+  task: Task;
+  comments: TaskComment[];
+  activity: TaskActivity[];
+  subtasks: Task[];
+  linked_captures: LinkedCapture[];
+};
+
 export function midpointScore(
   above: number | null,
   below: number | null
@@ -104,3 +139,22 @@ export function isOverdue(task: Task, now: Date = new Date()): boolean {
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   return task.due_date < today;
 }
+
+export function isDueToday(task: Task, now: Date = new Date()): boolean {
+  if (!task.due_date || task.completed_at) return false;
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  return task.due_date === today;
+}
+
+export const TASK_STATUS_TONE: Record<TaskStatus, { fg: string; bg: string; border: string }> = {
+  new: { fg: "text-ink-3", bg: "bg-ink-2/40", border: "border-ink-2" },
+  in_progress: { fg: "text-accent", bg: "bg-accent/15", border: "border-accent/40" },
+  blocked: { fg: "text-danger", bg: "bg-danger/15", border: "border-danger/40" },
+  on_hold: { fg: "text-ink-3", bg: "bg-ink-2/40", border: "border-ink-2" },
+  waiting_third_party: { fg: "text-warn", bg: "bg-warn/15", border: "border-warn/40" },
+  review: { fg: "text-glow-2", bg: "bg-glow-2/15", border: "border-glow-2/40" },
+  pending_review: { fg: "text-glow-2", bg: "bg-glow-2/10", border: "border-glow-2/30" },
+  testing: { fg: "text-accent", bg: "bg-accent/10", border: "border-accent/30" },
+  completed: { fg: "text-ok", bg: "bg-ok/15", border: "border-ok/40" },
+  cancelled: { fg: "text-ink-3", bg: "bg-ink-2/40", border: "border-ink-2" },
+};

@@ -4,11 +4,16 @@ import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import {
   URGENCIES,
   TASK_STATUSES,
+  type Task,
+  type TaskActivity,
+  type TaskComment,
   type TaskStatus,
   type TaskUrgency,
+  type LinkedCapture,
 } from "@/lib/types/task";
 import { extractNameMentions } from "@/lib/people/regex-extract";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
+import { logTaskActivity } from "@/lib/task-activity";
 
 type Supabase = ReturnType<typeof createServerClient>;
 
@@ -64,6 +69,71 @@ const ALLOWED_FIELDS = new Set([
 
 function userId(): string | null {
   return process.env.USER_ID ?? null;
+}
+
+export async function GET(
+  _req: NextRequest,
+  ctx: { params: Promise<{ id: string }> }
+) {
+  const uid = userId();
+  if (!uid) {
+    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+  }
+  const { id } = await ctx.params;
+  try {
+    const supabase = createServerClient();
+    const { data: row, error } = await supabase
+      .from("tasks")
+      .select(TASK_SELECT)
+      .eq("user_id", uid)
+      .eq("id", id)
+      .maybeSingle();
+    if (error || !row) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
+    const task = serializeTask(row as Parameters<typeof serializeTask>[0]);
+
+    const [comments, activity, subRows, captures] = await Promise.all([
+      supabase
+        .from("task_comments")
+        .select("id, task_id, user_id, body, created_at, updated_at")
+        .eq("task_id", id)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("task_activity")
+        .select("id, task_id, user_id, action, field, from_value, to_value, created_at")
+        .eq("task_id", id)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("tasks")
+        .select(TASK_SELECT)
+        .eq("user_id", uid)
+        .eq("parent_task_id", id)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("raw_captures")
+        .select("id, source, raw_text, created_at")
+        .eq("user_id", uid)
+        .eq("routed_to", "task")
+        .eq("routed_id", id)
+        .order("created_at", { ascending: false }),
+    ]);
+
+    const subtasks: Task[] = (subRows.data ?? []).map((r) =>
+      serializeTask(r as Parameters<typeof serializeTask>[0]),
+    );
+
+    return NextResponse.json({
+      task,
+      comments: (comments.data ?? []) as TaskComment[],
+      activity: (activity.data ?? []) as TaskActivity[],
+      subtasks,
+      linked_captures: (captures.data ?? []) as LinkedCapture[],
+    });
+  } catch (err) {
+    console.error("[/api/tasks/:id GET]", err);
+    return NextResponse.json({ error: "fetch failed" }, { status: 500 });
+  }
 }
 
 export async function PATCH(
@@ -162,6 +232,16 @@ export async function PATCH(
       }
     }
 
+    // Capture "before" snapshot for activity logging.
+    const { data: beforeRow } = await supabase
+      .from("tasks")
+      .select(
+        "status, urgency, project_id, due_date, time_estimate_min, key, owner, entity_id, title, description, parent_task_id, tags",
+      )
+      .eq("id", id)
+      .eq("user_id", uid)
+      .maybeSingle();
+
     const { data, error } = await supabase
       .from("tasks")
       .update(update)
@@ -173,6 +253,16 @@ export async function PATCH(
       return NextResponse.json(
         { error: error?.message ?? "not found" },
         { status: 404 }
+      );
+    }
+
+    if (beforeRow) {
+      await logTaskActivity(
+        supabase,
+        uid,
+        id,
+        beforeRow as Record<string, unknown>,
+        update,
       );
     }
 
