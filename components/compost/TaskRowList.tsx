@@ -8,6 +8,35 @@ import { Mono } from "@/components/dashboard/Mono";
 import { StatusDropdown } from "./StatusDropdown";
 import { UrgencyPill, pillToneFor } from "./UrgencyPill";
 
+/** Map a context value to an icon when one of the seeded defaults
+ *  matches. Custom user options just render as a dot — the title
+ *  attribute still surfaces the label on hover. */
+function iconForContextValue(
+  field: "where" | "device" | "context_tag",
+  value: string,
+): string | null {
+  if (field === "where") {
+    return (
+      { home: "🏠", office: "💼", mobile: "🚶", gym: "🏋️", anywhere: "✨" } as Record<string, string>
+    )[value] ?? null;
+  }
+  if (field === "device") {
+    return (
+      { pc: "🖥️", phone: "📱", tablet: "🪟", none: "🌿" } as Record<string, string>
+    )[value] ?? null;
+  }
+  return (
+    {
+      focused: "🎯",
+      errand: "🛒",
+      call: "📞",
+      admin: "📋",
+      creative: "🎨",
+      physical: "💪",
+    } as Record<string, string>
+  )[value] ?? null;
+}
+
 type SubStats = { done: number; total: number } | null;
 
 type ContextAction =
@@ -187,6 +216,40 @@ export function TaskRowList({
 
       {/* Right side meta */}
       <div className="flex items-center gap-2 shrink-0 text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)]">
+        {/* Context badges — icon-only, hover for label */}
+        {task.context_where && (
+          <span
+            className="text-[10px] text-ink-3"
+            title={`Where: ${task.context_where}`}
+          >
+            {iconForContextValue("where", task.context_where) ?? "·"}
+          </span>
+        )}
+        {task.context_device && (
+          <span
+            className="text-[10px] text-ink-3"
+            title={`Device: ${task.context_device}`}
+          >
+            {iconForContextValue("device", task.context_device) ?? "·"}
+          </span>
+        )}
+        {task.context_energy && (
+          <span
+            className="text-[9px] text-ink-3 px-1 py-0.5 rounded-sm border border-ink-2"
+            title={`Energy: ${task.context_energy}`}
+          >
+            {task.context_energy.slice(0, 1).toUpperCase()}
+          </span>
+        )}
+        {task.context_tag && (
+          <span
+            className="text-[10px] text-ink-3"
+            title={`Tag: ${task.context_tag}`}
+          >
+            {iconForContextValue("context_tag", task.context_tag) ?? "·"}
+          </span>
+        )}
+
         {subStats && subStats.total > 0 && (
           <span
             className="px-1.5 py-0.5 rounded-md border border-ink-2 bg-ink-0/40 text-ink-3"

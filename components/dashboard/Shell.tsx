@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { TopRail } from "./TopRail";
 import { GlobalSearch } from "./GlobalSearch";
 import { FloatingCapture } from "./FloatingCapture";
+import { ContextSwitcher } from "./ContextSwitcher";
 
 /**
  * The Shell wraps every page with the single unified TopRail nav.
@@ -28,6 +29,9 @@ export function Shell({
   return (
     <div className="min-h-screen flex flex-col">
       <TopRail />
+      <div className="mx-auto w-full max-w-[1400px] border-b border-ink-2/40 bg-ink-1/40">
+        <ContextSwitcher />
+      </div>
 
       <main className="flex-1 mx-auto w-full max-w-[1400px] px-4 sm:px-6 py-4 sm:py-6">
         {children ? (

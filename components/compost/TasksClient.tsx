@@ -24,6 +24,9 @@ import { ShortcutHintBar, ShortcutHelpModal } from "./TaskShortcutHelp";
 import { TaskDrawer, type DrawerMode } from "./TaskDrawer";
 import { isBlocker } from "@/lib/blockers";
 import { localDateKey } from "@/lib/util/date";
+import { useCurrentContext } from "@/lib/hooks/useCurrentContext";
+import { useCurrentDevice } from "@/lib/hooks/useCurrentDevice";
+import { scoreTaskForContext } from "@/lib/compost/now-filter";
 
 const VIEW_STORAGE_KEY = "miles-crm-view";
 const SHOW_COMPLETED_STORAGE_KEY = "mycelium:showCompleted";
@@ -84,6 +87,11 @@ export function TasksClient() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [nowActive, setNowActive] = useState(
+    () => searchParams.get("filter") === "now",
+  );
+  const [currentCtx] = useCurrentContext();
+  const detectedDevice = useCurrentDevice();
 
   // Detail data: re-fetched whenever focusId changes. Stored under the
   // task id so we can render-derive the visible detail and skip flashes.
@@ -250,9 +258,33 @@ export function TasksClient() {
     return result;
   }, [tasks, search, filterMode, projectFilter, showProjectTasks]);
 
+  // NOW filter: hide tasks that contradict the current context, then
+  // rank the rest by match score. Sub-tasks pass through unchanged so
+  // detail-pane traversal still works.
+  const nowFiltered = useMemo(() => {
+    if (!nowActive) return filteredTasks;
+    type Scored = { task: Task; score: number };
+    const scored: Scored[] = [];
+    for (const t of filteredTasks) {
+      if (t.parent_task_id) {
+        scored.push({ task: t, score: 0 });
+        continue;
+      }
+      const { score, contradicts } = scoreTaskForContext(
+        t,
+        currentCtx,
+        detectedDevice,
+      );
+      if (contradicts) continue;
+      scored.push({ task: t, score });
+    }
+    scored.sort((a, b) => b.score - a.score);
+    return scored.map((s) => s.task);
+  }, [filteredTasks, nowActive, currentCtx, detectedDevice]);
+
   const topLevelFiltered = useMemo(
-    () => filteredTasks.filter((t) => !t.parent_task_id),
-    [filteredTasks],
+    () => nowFiltered.filter((t) => !t.parent_task_id),
+    [nowFiltered],
   );
 
   const projectTasksHidden = useMemo(() => {
@@ -621,7 +653,7 @@ export function TasksClient() {
   const mainView = (
     <MainView
       view={view}
-      tasks={filteredTasks}
+      tasks={nowFiltered}
       projects={projects}
       selected={selected}
       focusedId={effectiveFocusedId}
@@ -712,6 +744,19 @@ export function TasksClient() {
         >
           + NEW
         </button>
+        <button
+          type="button"
+          onClick={() => setNowActive((v) => !v)}
+          aria-pressed={nowActive}
+          title="Show tasks that match my current context"
+          className={`px-3 py-1.5 rounded-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
+            nowActive
+              ? "bg-glow-2/15 border-glow-2/40 text-glow-2"
+              : "bg-ink-0/40 border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+          }`}
+        >
+          {nowActive ? "✓ NOW" : "NOW"}
+        </button>
         <ViewSwitcher value={view} onChange={changeView} />
       </div>
 
@@ -719,6 +764,24 @@ export function TasksClient() {
         <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] -mt-1">
           {projectTasksHidden} task{projectTasksHidden === 1 ? "" : "s"} in
           projects hidden
+        </div>
+      )}
+
+      {nowActive && (
+        <div className="flex items-center justify-between rounded-md border border-glow-2/40 bg-glow-2/5 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-glow-2 font-[family-name:var(--font-mono)]">
+          <span>
+            NOW · {detectedDevice}
+            {currentCtx.where ? ` · ${currentCtx.where}` : ""}
+            {currentCtx.energy ? ` · ${currentCtx.energy} energy` : ""}
+            {currentCtx.context_tag ? ` · ${currentCtx.context_tag}` : ""}
+          </span>
+          <button
+            type="button"
+            onClick={() => setNowActive(false)}
+            className="text-glow-2 hover:text-ink-4 transition-colors"
+          >
+            Clear ✕
+          </button>
         </div>
       )}
 

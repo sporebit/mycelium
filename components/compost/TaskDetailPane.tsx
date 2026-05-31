@@ -19,7 +19,6 @@ import {
 import { StatusDropdown } from "./StatusDropdown";
 import { ConvertSection } from "./ConvertSection";
 import type { ConvertibleKind } from "@/lib/convert/kinds";
-import { KIND_LABELS } from "@/lib/convert/kinds";
 
 function formatDateTime(iso: string): string {
   try {
