@@ -13,6 +13,8 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@supabase/supabase-js": "^2.106.1",
+    "@zxing/browser": "^0.2.0",
+    "@zxing/library": "^0.22.0",
     "exceljs": "^4.4.0",
     "googleapis": "^172.0.0",
     "ical.js": "^2.2.1",
