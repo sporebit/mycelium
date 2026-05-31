@@ -4,24 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
-  { label: "OVERVIEW", href: "/compost" },
-  { label: "PEOPLE", href: "/compost/people" },
-  { label: "TASKS", href: "/compost/tasks" },
-  { label: "PROJECTS", href: "/compost/projects" },
-  { label: "PURCHASES", href: "/compost/purchases" },
-  { label: "CAPTURES", href: "/compost/captures" },
-  { label: "REVIEW", href: "/compost/captures/review" },
-  { label: "DECISIONS", href: "/compost/decisions" },
+  { label: "OVERVIEW", href: "/finance" },
+  { label: "SNAPSHOT", href: "/finance/snapshot" },
 ];
 
-export function SubNav() {
+export function FinanceSubNav() {
   const pathname = usePathname();
   return (
     <nav className="flex items-center gap-1 border-b border-ink-2 mb-4 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
       {TABS.map((t) => {
         const isActive =
-          pathname === t.href ||
-          (t.href !== "/compost" && pathname.startsWith(`${t.href}/`));
+          t.href === "/finance"
+            ? pathname === "/finance"
+            : pathname === t.href || pathname.startsWith(`${t.href}/`);
         return (
           <Link
             key={t.href}

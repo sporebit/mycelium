@@ -1,6 +1,6 @@
-import Link from "next/link";
+import { SectionOverview } from "@/components/dashboard/SectionOverview";
 
-const SECTIONS: { label: string; href: string; description: string }[] = [
+const CARDS = [
   {
     label: "Nutrition",
     href: "/health/nutrition",
@@ -20,31 +20,10 @@ const SECTIONS: { label: string; href: string; description: string }[] = [
 
 export default function HealthOverviewPage() {
   return (
-    <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
-          Health
-        </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
-          Bodies tracked across nutrition, metrics, and pain.
-        </p>
-      </header>
-
-      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {SECTIONS.map((s) => (
-          <li key={s.href}>
-            <Link
-              href={s.href}
-              className="block rounded-md bg-ink-1 border border-ink-2 hover:border-ink-3 px-4 py-3 transition-colors"
-            >
-              <div className="text-base text-ink-4">{s.label}</div>
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
-                {s.description}
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <SectionOverview
+      title="Health"
+      tagline="Bodies tracked across nutrition, metrics, and pain."
+      cards={CARDS}
+    />
   );
 }

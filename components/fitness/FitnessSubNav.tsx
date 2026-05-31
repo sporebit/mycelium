@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
+  { label: "OVERVIEW", href: "/fitness/overview" },
   { label: "TODAY", href: "/fitness" },
   { label: "CALENDAR", href: "/fitness/calendar" },
   { label: "PROGRAMMES", href: "/fitness/programmes" },
@@ -17,9 +18,12 @@ export function FitnessSubNav() {
   return (
     <nav className="flex items-center gap-1 border-b border-ink-2 mb-4 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
       {TABS.map((t) => {
+        // /fitness is TODAY — exact match only, so /fitness/overview
+        // doesn't trigger TODAY's active state.
         const isActive =
-          pathname === t.href ||
-          (t.href !== "/fitness" && pathname.startsWith(t.href));
+          t.href === "/fitness"
+            ? pathname === "/fitness"
+            : pathname === t.href || pathname.startsWith(`${t.href}/`);
         return (
           <Link
             key={t.href}
