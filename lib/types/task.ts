@@ -75,6 +75,18 @@ export type Task = {
   created_at: string;
   updated_at: string;
   parent_task_id: string | null;
+  /** Lineage when this task was created via /api/convert from another
+   *  record kind. Null for tasks created directly. */
+  converted_from?: {
+    from_kind: string;
+    from_id: string;
+    at: string;
+  } | null;
+  /** Context fields — added by 0030. */
+  context_where?: string | null;
+  context_device?: string | null;
+  context_energy?: "low" | "medium" | "high" | null;
+  context_tag?: string | null;
   // Populated by callers that want the nested view (e.g. include_children=true
   // on /api/tasks, or client-side attachment).
   sub_tasks?: Task[];
