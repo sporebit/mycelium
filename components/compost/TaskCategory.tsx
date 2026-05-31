@@ -99,9 +99,11 @@ function group(tasks: Task[]): Group[] {
 export function TaskCategory({
   tasks,
   onCardClick,
+  onStatusChange,
 }: {
   tasks: Task[];
   onCardClick: (t: Task) => void;
+  onStatusChange?: (id: string, status: import("@/lib/types/task").TaskStatus) => void;
 }) {
   const groups = useMemo(() => group(tasks), [tasks]);
 
@@ -155,6 +157,11 @@ export function TaskCategory({
                     compact={isSub}
                     muted={isSub}
                     subStats={!isSub ? (subStatsById.get(t.id) ?? null) : null}
+                    onStatusChange={
+                      onStatusChange
+                        ? (s) => onStatusChange(t.id, s)
+                        : undefined
+                    }
                   />
                 </li>
               );

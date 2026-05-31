@@ -54,9 +54,11 @@ function findColumn(cols: Record<TaskStatus, Task[]>, id: string): TaskStatus | 
 function SortableStatusCard({
   task,
   onClick,
+  onStatusChange,
 }: {
   task: Task;
   onClick: (t: Task) => void;
+  onStatusChange: (next: TaskStatus) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: task.id });
@@ -76,7 +78,12 @@ function SortableStatusCard({
             className="absolute left-0 top-2 bottom-2 w-1 rounded-l-md"
           />
         )}
-        <TaskCard task={task} onClick={() => onClick(task)} compact />
+        <TaskCard
+          task={task}
+          onClick={() => onClick(task)}
+          compact
+          onStatusChange={onStatusChange}
+        />
         {stuck !== null && (
           <span
             className="absolute top-2 right-2 text-[9px] uppercase tracking-[0.15em] px-1.5 py-0.5 rounded-md border border-warn/40 bg-warn/15 text-warn font-[family-name:var(--font-mono)]"
@@ -96,12 +103,14 @@ function Column({
   collapsed,
   onToggleCollapsed,
   onCardClick,
+  onMoveStatus,
 }: {
   status: TaskStatus;
   tasks: Task[];
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onCardClick: (t: Task) => void;
+  onMoveStatus: (id: string, status: TaskStatus) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `status-${status}` });
   const ids = tasks.map((t) => t.id);
@@ -145,6 +154,7 @@ function Column({
                   key={t.id}
                   task={t}
                   onClick={onCardClick}
+                  onStatusChange={(s) => onMoveStatus(t.id, s)}
                 />
               ))}
               {tasks.length === 0 && (
@@ -249,6 +259,7 @@ export function TaskStatusBoard({
             collapsed={collapsed.has(s)}
             onToggleCollapsed={() => toggleCollapsed(s)}
             onCardClick={onCardClick}
+            onMoveStatus={onMoveStatus}
           />
         ))}
       </div>

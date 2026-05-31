@@ -1,8 +1,9 @@
 "use client";
 
-import type { Task } from "@/lib/types/task";
+import type { Task, TaskStatus } from "@/lib/types/task";
 import { Mono } from "@/components/dashboard/Mono";
 import { UrgencyPill, pillToneFor } from "./UrgencyPill";
+import { StatusDropdown } from "./StatusDropdown";
 
 function dueLabel(dueDate: string | null): string | null {
   if (!dueDate) return null;
@@ -36,6 +37,7 @@ export function TaskCard({
   compact = false,
   muted = false,
   subStats,
+  onStatusChange,
 }: {
   task: Task;
   onClick?: () => void;
@@ -43,6 +45,7 @@ export function TaskCard({
   compact?: boolean;
   muted?: boolean;
   subStats?: { done: number; total: number } | null;
+  onStatusChange?: (next: TaskStatus) => void;
 }) {
   const tone = pillToneFor(task);
   const due = dueLabel(task.due_date);
@@ -83,7 +86,19 @@ export function TaskCard({
             </Mono>
           )}
         </div>
-        {isCompleted ? (
+        {onStatusChange ? (
+          <span
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            className="shrink-0"
+          >
+            <StatusDropdown
+              value={task.status}
+              onChange={onStatusChange}
+              size="sm"
+            />
+          </span>
+        ) : isCompleted ? (
           <span className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-ok/40 bg-ok/15 text-ok shrink-0">
             COMPLETED
           </span>

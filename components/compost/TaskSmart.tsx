@@ -16,10 +16,12 @@ export function TaskSmart({
   onCardClick,
   onError,
   tasksById,
+  onStatusChange,
 }: {
   onCardClick: (t: Task) => void;
   onError: (msg: string) => void;
   tasksById?: Map<string, Task>;
+  onStatusChange?: (id: string, status: import("@/lib/types/task").TaskStatus) => void;
 }) {
   const [query, setQuery] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -138,7 +140,15 @@ export function TaskSmart({
                         ↑ {parent.title}
                       </button>
                     )}
-                    <TaskCard task={t} onClick={() => onCardClick(t)} />
+                    <TaskCard
+                      task={t}
+                      onClick={() => onCardClick(t)}
+                      onStatusChange={
+                        onStatusChange
+                          ? (s) => onStatusChange(t.id, s)
+                          : undefined
+                      }
+                    />
                   </li>
                 );
               })}

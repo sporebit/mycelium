@@ -96,11 +96,13 @@ function SortableTaskCard({
   onClick,
   isSubTask,
   subStats,
+  onStatusChange,
 }: {
   task: Task;
   onClick: (t: Task) => void;
   isSubTask: boolean;
   subStats: { done: number; total: number } | null;
+  onStatusChange: (next: import("@/lib/types/task").TaskStatus) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: task.id });
@@ -131,6 +133,7 @@ function SortableTaskCard({
         compact={isSubTask}
         muted={isSubTask}
         subStats={subStats}
+        onStatusChange={onStatusChange}
       />
     </div>
   );
@@ -141,11 +144,13 @@ function Column({
   tasks,
   onCardClick,
   subStatsById,
+  onStatusChange,
 }: {
   urgency: TaskUrgency;
   tasks: Task[];
   onCardClick: (t: Task) => void;
   subStatsById: Map<string, { done: number; total: number }>;
+  onStatusChange: (id: string, next: import("@/lib/types/task").TaskStatus) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `column-${urgency}` });
   const ids = tasks.map((t) => t.id);
@@ -185,6 +190,7 @@ function Column({
                 subStats={
                   !t.parent_task_id ? (subStatsById.get(t.id) ?? null) : null
                 }
+                onStatusChange={(s) => onStatusChange(t.id, s)}
               />
             ))}
             {isEmpty && (
@@ -203,6 +209,7 @@ export function TaskBoard({
   tasks,
   onCardClick,
   onMove,
+  onStatusChange,
 }: {
   tasks: Task[];
   onCardClick: (t: Task) => void;
@@ -212,6 +219,7 @@ export function TaskBoard({
     priorityScore: number,
     extra?: Partial<Task>
   ) => void;
+  onStatusChange: (id: string, status: import("@/lib/types/task").TaskStatus) => void;
 }) {
   // Overdue row shows top-level tasks only — sub-task overdue inherits parent
   // visibility by being grouped under it in the column.
@@ -421,6 +429,7 @@ export function TaskBoard({
               tasks={columns[u]}
               onCardClick={onCardClick}
               subStatsById={subStatsById}
+              onStatusChange={onStatusChange}
             />
           ))}
         </div>
