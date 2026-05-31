@@ -19,6 +19,7 @@ import {
   QuickBarcodeLog,
   defaultGroupNameForTime,
 } from "./QuickBarcodeLog";
+import { useCurrentDevice } from "@/lib/hooks/useCurrentDevice";
 
 type Tab = "today" | "history" | "library";
 
@@ -52,6 +53,8 @@ export function NutritionClient() {
   const [newGroupName, setNewGroupName] = useState("");
   const [toast, setToast] = useState<Toast>(null);
   const [quickScanOpen, setQuickScanOpen] = useState(false);
+  const device = useCurrentDevice();
+  const isMobile = device === "phone" || device === "tablet";
   const targets: NutritionTargets = DEFAULT_NUTRITION_TARGETS;
 
   const showToast = useCallback((kind: "ok" | "error", text: string) => {
@@ -380,6 +383,8 @@ export function NutritionClient() {
         date={date}
         mealGroups={mealGroups}
         defaultMealGroupId={pendingGroupId}
+        initialTab={isMobile ? "scan" : "search"}
+        autoLaunchScan={isMobile}
         onClose={() => setSearchOpen(false)}
         onLogged={handleLogged}
         onError={(m) => showToast(m.includes("Saved") ? "ok" : "error", m)}

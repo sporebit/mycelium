@@ -17,6 +17,8 @@ export function FoodSearch({
   date,
   mealGroups,
   defaultMealGroupId,
+  initialTab = "search",
+  autoLaunchScan = false,
   onClose,
   onLogged,
   onError,
@@ -25,11 +27,17 @@ export function FoodSearch({
   date: string;
   mealGroups: MealGroup[];
   defaultMealGroupId: string | null;
+  /** Which tab to land on when the drawer opens. Mobile callers pass
+   *  "scan" so the user goes straight to the camera. */
+  initialTab?: Tab;
+  /** When true, the scanner is launched immediately on open (used in
+   *  conjunction with `initialTab='scan'` on mobile). */
+  autoLaunchScan?: boolean;
   onClose: () => void;
   onLogged: (log: NutritionLog) => void;
   onError: (msg: string) => void;
 }) {
-  const [tab, setTab] = useState<Tab>("search");
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<FoodSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -44,11 +52,11 @@ export function FoodSearch({
   useEffect(() => {
     if (!open) return;
     queueMicrotask(() => {
-      setTab("search");
+      setTab(initialTab);
       setPicked(null);
-      setScannerOpen(false);
+      setScannerOpen(autoLaunchScan && initialTab === "scan");
     });
-  }, [open]);
+  }, [open, initialTab, autoLaunchScan]);
 
   // Debounced text search
   useEffect(() => {
@@ -253,14 +261,27 @@ export function FoodSearch({
 
             {tab === "search" && (
               <div className="flex flex-col gap-2 px-3 pt-3 flex-1 overflow-y-auto">
-                <input
-                  autoFocus
-                  type="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search e.g. oats, banana, Coca-Cola"
-                  className="px-3 py-2 rounded-md bg-ink-2 text-sm text-text-0 outline-none focus:ring-2 focus:ring-glow-2/60 placeholder:text-ink-3"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    autoFocus
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search e.g. oats, banana, Coca-Cola"
+                    className="flex-1 px-3 py-2 rounded-md bg-ink-2 text-sm text-text-0 outline-none focus:ring-2 focus:ring-glow-2/60 placeholder:text-ink-3"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTab("scan");
+                      setScannerOpen(true);
+                    }}
+                    title="Scan barcode"
+                    className="px-2 py-2 rounded-md border border-ink-2 hover:border-ink-3 text-ink-3 hover:text-ink-4 text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors inline-flex items-center gap-1"
+                  >
+                    📷 SCAN
+                  </button>
+                </div>
                 {searching && (
                   <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-2 text-center">
                     Searching…
@@ -297,6 +318,13 @@ export function FoodSearch({
                   className="px-4 py-2 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
                 >
                   OPEN SCANNER
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTab("search")}
+                  className="text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+                >
+                  Search by text instead →
                 </button>
               </div>
             )}
