@@ -150,6 +150,10 @@ type CreateBody = {
   entity_id?: string | null;
   project_id?: string | null;
   parent_task_id?: string | null;
+  context_where?: string | null;
+  context_device?: string | null;
+  context_energy?: "low" | "medium" | "high" | null;
+  context_tag?: string | null;
 };
 
 export async function POST(req: NextRequest) {
@@ -205,6 +209,32 @@ export async function POST(req: NextRequest) {
       inheritedTags = (parent.tags as string[] | null) ?? null;
     }
 
+    // Auto-suggest context from past task history when the caller
+    // didn't pass any context fields explicitly. The suggester runs
+    // soft — failure leaves all four nulled so the post still succeeds.
+    let suggestedWhere: string | null = body.context_where ?? null;
+    let suggestedDevice: string | null = body.context_device ?? null;
+    let suggestedEnergy: "low" | "medium" | "high" | null =
+      body.context_energy ?? null;
+    let suggestedTag: string | null = body.context_tag ?? null;
+    if (
+      body.context_where === undefined &&
+      body.context_device === undefined &&
+      body.context_energy === undefined &&
+      body.context_tag === undefined
+    ) {
+      try {
+        const { suggestContext } = await import("@/lib/compost/suggest-context");
+        const suggestion = await suggestContext(supabase, uid, title);
+        suggestedWhere = suggestion.where;
+        suggestedDevice = suggestion.device;
+        suggestedEnergy = suggestion.energy;
+        suggestedTag = suggestion.tag;
+      } catch (err) {
+        console.error("[tasks POST] suggestContext soft-fail:", err);
+      }
+    }
+
     const insertPayload = {
       user_id: uid,
       title,
@@ -232,6 +262,10 @@ export async function POST(req: NextRequest) {
       project_id:
         body.project_id !== undefined ? body.project_id : inheritedProjectId,
       parent_task_id: parentTaskId,
+      context_where: suggestedWhere,
+      context_device: suggestedDevice,
+      context_energy: suggestedEnergy,
+      context_tag: suggestedTag,
     };
 
     const { data, error } = await supabase
