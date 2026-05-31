@@ -34,8 +34,14 @@ export async function GET(req: NextRequest) {
   if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const url = new URL(req.url);
   const q = (url.searchParams.get("q") ?? "").trim();
+  // Default to UK products with English language. Passing ?global=true
+  // (or scope=global) opts into the world index.
+  const scope = url.searchParams.get("scope");
+  const globalFlag = url.searchParams.get("global");
+  const ukOnly =
+    scope === "global" || globalFlag === "true" ? false : true;
   if (q.length < 2) {
-    return NextResponse.json({ results: [] });
+    return NextResponse.json({ results: [], uk_only: ukOnly });
   }
   try {
     const supabase = createServerClient();
@@ -49,15 +55,23 @@ export async function GET(req: NextRequest) {
       .limit(20);
     const lib = (libRows ?? []).map((r) => foodToResult(r as unknown as Food));
 
-    // 2. OFF, then de-dupe against existing library OFF ids.
-    const offRaw = await searchText(q);
+    // 2. OFF — UK index by default, global when explicitly requested.
+    const offRaw = await searchText(q, { ukOnly });
     const seenOff = new Set<string>(
       lib.map((l) => l.off_id ?? "").filter(Boolean),
     );
-    const off = offRaw.filter(
-      (r) => !r.off_id || !seenOff.has(r.off_id),
-    );
-    return NextResponse.json({ results: [...lib, ...off] });
+    const off = offRaw.filter((r) => !r.off_id || !seenOff.has(r.off_id));
+    const results = [...lib, ...off];
+
+    // Heuristic hint: in UK-only mode with very few OFF hits, the user
+    // is probably better off searching globally. UI surfaces this as a
+    // small affordance below the search box.
+    let hint: string | null = null;
+    if (ukOnly && off.length < 3) {
+      hint = "Few UK results — toggle off to search globally";
+    }
+
+    return NextResponse.json({ results, uk_only: ukOnly, hint });
   } catch (err) {
     console.error("[/api/nutrition/foods/search GET]", err);
     return NextResponse.json({ error: "search failed" }, { status: 500 });

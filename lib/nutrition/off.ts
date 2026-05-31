@@ -2,11 +2,14 @@ import type { Food, FoodSearchResult, Serving } from "./types-v2";
 
 /**
  * Open Food Facts client. Two entry points — `lookupBarcode` (exact) and
- * `searchText` (fuzzy). Both return the lightweight `FoodSearchResult`
- * shape; map to a full Food row at upsert time via `offToFood`.
+ * `searchText` (fuzzy). Both default to the UK subdomain with English
+ * language so results match the user's locale; pass `ukOnly: false` to
+ * fall back to the global index.
  *
  * Network failure / empty result must return null/[] rather than throw —
- * the UI degrades to "manual entry" when OFF is unavailable.
+ * the UI degrades to "manual entry" when OFF is unavailable. Detailed
+ * diagnostics are emitted via console.error on every failure so the
+ * server logs explain *why* the lookup didn't work.
  */
 
 type OffNutriments = Record<string, number | string | undefined> & {
@@ -40,6 +43,7 @@ type OffProduct = {
   serving_size?: string;
   image_url?: string;
   serving_quantity?: number | string;
+  countries_tags?: string[];
 };
 
 const USER_AGENT = "Mycelium-Local/1.0";
@@ -53,7 +57,6 @@ function num(v: unknown): number | null {
 /** Pull "30g" → 30, "1 oz (28g)" → 28. Lossy but good enough for OFF. */
 function parseGrams(servingSize?: string): number | null {
   if (!servingSize) return null;
-  // Try parenthesised gram value first ("1 oz (28 g)"), then any "<n>g".
   const paren = servingSize.match(/\(([^)]*?)g/i);
   if (paren) {
     const n = parseFloat(paren[1]);
@@ -78,11 +81,23 @@ function productServings(p: OffProduct): Serving[] {
   return list;
 }
 
-function productToResult(p: OffProduct): FoodSearchResult {
+/**
+ * Map an OFF product to our internal shape. In UK-only mode we drop
+ * products with no English name — those are typically French/German
+ * listings that leak into the global pool.
+ */
+function productToResult(
+  p: OffProduct,
+  opts: { ukOnly: boolean },
+): FoodSearchResult | null {
+  const englishName = (p.product_name_en || "").trim();
+  const fallbackName = (p.product_name || "").trim();
+  if (opts.ukOnly && !englishName) return null;
+  const name = englishName || fallbackName || "Unnamed";
   const n = p.nutriments ?? {};
   return {
     id: null,
-    name: (p.product_name || p.product_name_en || "Unnamed").trim(),
+    name,
     brand: p.brands?.split(",")[0]?.trim() || null,
     barcode: p.code ?? null,
     off_id: p.code ?? null,
@@ -96,49 +111,115 @@ function productToResult(p: OffProduct): FoodSearchResult {
   };
 }
 
+function offSubdomain(ukOnly: boolean): string {
+  return ukOnly ? "uk.openfoodfacts.org" : "world.openfoodfacts.org";
+}
+
+/**
+ * Validates that a string looks like a product barcode. OFF accepts
+ * EAN-8 (8), UPC-A (12), EAN-13 (13), and the rare GTIN-14. Anything
+ * else is almost certainly a QR code or arbitrary text that snuck in
+ * via @zxing/browser's MultiFormatReader.
+ */
+export function isLikelyBarcode(value: string): boolean {
+  if (!value) return false;
+  const trimmed = value.trim();
+  if (!/^\d+$/.test(trimmed)) return false;
+  return trimmed.length === 8 || trimmed.length === 12 || trimmed.length === 13 || trimmed.length === 14;
+}
+
 export async function lookupBarcode(
   barcode: string,
+  opts: { ukOnly?: boolean } = {},
 ): Promise<FoodSearchResult | null> {
+  const ukOnly = opts.ukOnly ?? true;
+  const host = offSubdomain(ukOnly);
+  const trimmed = barcode.trim();
+  const url = `https://${host}/api/v3/product/${encodeURIComponent(trimmed)}.json?lc=en`;
   try {
-    const r = await fetch(
-      `https://world.openfoodfacts.org/api/v3/product/${encodeURIComponent(barcode)}.json`,
-      { headers: { "User-Agent": USER_AGENT }, cache: "no-store" },
-    );
-    if (!r.ok) return null;
+    console.log("[off lookupBarcode] start", { barcode: trimmed, url });
+    const r = await fetch(url, {
+      headers: { "User-Agent": USER_AGENT },
+      cache: "no-store",
+    });
+    console.log("[off lookupBarcode] response", {
+      barcode: trimmed,
+      status: r.status,
+      ok: r.ok,
+    });
+    if (!r.ok) {
+      // OFF returns 404 for unknown barcodes with a body that's still
+      // JSON — surface a snippet for debugging without dumping the
+      // whole payload.
+      const body = await r.text().catch(() => "");
+      console.error("[off lookupBarcode] non-200", {
+        barcode: trimmed,
+        status: r.status,
+        body: body.slice(0, 200),
+      });
+      return null;
+    }
     const j = (await r.json()) as { product?: OffProduct; status?: number };
-    if (!j.product) return null;
-    return productToResult(j.product);
+    if (!j.product) {
+      console.error("[off lookupBarcode] no product", { barcode: trimmed });
+      return null;
+    }
+    return productToResult(j.product, { ukOnly: false });
   } catch (err) {
-    console.error("[off lookupBarcode]", err);
+    console.error("[off lookupBarcode] threw", {
+      barcode: trimmed,
+      url,
+      error: err instanceof Error ? err.message : String(err),
+    });
     return null;
   }
 }
 
-export async function searchText(query: string): Promise<FoodSearchResult[]> {
+export async function searchText(
+  query: string,
+  opts: { ukOnly?: boolean } = {},
+): Promise<FoodSearchResult[]> {
+  const ukOnly = opts.ukOnly ?? true;
   const q = query.trim();
   if (q.length < 2) return [];
+  const host = offSubdomain(ukOnly);
   try {
-    const url = new URL("https://world.openfoodfacts.org/cgi/search.pl");
+    const url = new URL(`https://${host}/cgi/search.pl`);
     url.searchParams.set("search_terms", q);
     url.searchParams.set("search_simple", "1");
     url.searchParams.set("action", "process");
     url.searchParams.set("json", "1");
     url.searchParams.set("page_size", "20");
+    url.searchParams.set("lc", "en");
+    url.searchParams.set("lang", "en");
+    if (ukOnly) {
+      url.searchParams.set("countries_tags_en", "united-kingdom");
+    }
     url.searchParams.set(
       "fields",
-      "code,product_name,product_name_en,brands,nutriments,serving_size,serving_quantity,image_url",
+      "code,product_name,product_name_en,brands,nutriments,serving_size,serving_quantity,image_url,countries_tags",
     );
     const r = await fetch(url.toString(), {
       headers: { "User-Agent": USER_AGENT },
       cache: "no-store",
     });
-    if (!r.ok) return [];
+    if (!r.ok) {
+      console.error("[off searchText] non-200", {
+        query: q,
+        status: r.status,
+        url: url.toString(),
+      });
+      return [];
+    }
     const j = (await r.json()) as { products?: OffProduct[] };
     return (j.products ?? [])
-      .filter((p) => p.product_name || p.product_name_en)
-      .map(productToResult);
+      .map((p) => productToResult(p, { ukOnly }))
+      .filter((r): r is FoodSearchResult => r !== null);
   } catch (err) {
-    console.error("[off searchText]", err);
+    console.error("[off searchText] threw", {
+      query: q,
+      error: err instanceof Error ? err.message : String(err),
+    });
     return [];
   }
 }
@@ -184,24 +265,57 @@ export function offToFoodInsert(
   };
 }
 
-export async function fetchFullProduct(barcode: string): Promise<{
+export async function fetchFullProduct(
+  barcode: string,
+  opts: { ukOnly?: boolean } = {},
+): Promise<{
   result: FoodSearchResult;
   nutriments: OffNutriments;
 } | null> {
+  const ukOnly = opts.ukOnly ?? true;
+  const host = offSubdomain(ukOnly);
+  const trimmed = barcode.trim();
+  const url = `https://${host}/api/v3/product/${encodeURIComponent(trimmed)}.json?lc=en`;
   try {
-    const r = await fetch(
-      `https://world.openfoodfacts.org/api/v3/product/${encodeURIComponent(barcode)}.json`,
-      { headers: { "User-Agent": USER_AGENT }, cache: "no-store" },
-    );
-    if (!r.ok) return null;
+    console.log("[off fetchFullProduct] start", { barcode: trimmed, url });
+    const r = await fetch(url, {
+      headers: { "User-Agent": USER_AGENT },
+      cache: "no-store",
+    });
+    console.log("[off fetchFullProduct] response", {
+      barcode: trimmed,
+      status: r.status,
+      ok: r.ok,
+    });
+    if (!r.ok) {
+      const body = await r.text().catch(() => "");
+      console.error("[off fetchFullProduct] non-200", {
+        barcode: trimmed,
+        status: r.status,
+        body: body.slice(0, 200),
+      });
+      return null;
+    }
     const j = (await r.json()) as { product?: OffProduct };
-    if (!j.product) return null;
+    if (!j.product) {
+      console.error("[off fetchFullProduct] no product", { barcode: trimmed });
+      return null;
+    }
+    // Barcode lookups never apply the ukOnly name filter — the product
+    // is on the user's shelf, so the name we already have is the one
+    // they want regardless of which language OFF stored it under.
+    const mapped = productToResult(j.product, { ukOnly: false });
+    if (!mapped) return null;
     return {
-      result: productToResult(j.product),
+      result: mapped,
       nutriments: j.product.nutriments ?? {},
     };
   } catch (err) {
-    console.error("[off fetchFullProduct]", err);
+    console.error("[off fetchFullProduct] threw", {
+      barcode: trimmed,
+      url,
+      error: err instanceof Error ? err.message : String(err),
+    });
     return null;
   }
 }

@@ -40,7 +40,9 @@ export function FoodSearch({
   const [tab, setTab] = useState<Tab>(initialTab);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<FoodSearchResult[]>([]);
+  const [hint, setHint] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);
+  const [ukOnly, setUkOnly] = useState(true);
   const [library, setLibrary] = useState<Food[] | null>(null);
   const [picked, setPicked] = useState<FoodSearchResult | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -62,18 +64,29 @@ export function FoodSearch({
   useEffect(() => {
     if (!open || tab !== "search") return;
     if (query.trim().length < 2) {
-      queueMicrotask(() => setResults([]));
+      queueMicrotask(() => {
+        setResults([]);
+        setHint(null);
+      });
       return;
     }
     const handle = setTimeout(() => {
       let cancelled = false;
       setSearching(true);
-      fetch(`/api/nutrition/foods/search?q=${encodeURIComponent(query.trim())}`)
+      const params = new URLSearchParams({ q: query.trim() });
+      if (!ukOnly) params.set("global", "true");
+      fetch(`/api/nutrition/foods/search?${params.toString()}`)
         .then((r) => r.json())
-        .then((j: { results?: FoodSearchResult[] }) => {
-          if (cancelled) return;
-          setResults(Array.isArray(j.results) ? j.results : []);
-        })
+        .then(
+          (j: {
+            results?: FoodSearchResult[];
+            hint?: string | null;
+          }) => {
+            if (cancelled) return;
+            setResults(Array.isArray(j.results) ? j.results : []);
+            setHint(typeof j.hint === "string" ? j.hint : null);
+          },
+        )
         .catch(() => undefined)
         .finally(() => {
           if (!cancelled) setSearching(false);
@@ -83,7 +96,7 @@ export function FoodSearch({
       };
     }, 300);
     return () => clearTimeout(handle);
-  }, [query, open, tab]);
+  }, [query, open, tab, ukOnly]);
 
   // Library tab fetch on open
   useEffect(() => {
@@ -282,14 +295,37 @@ export function FoodSearch({
                     📷 SCAN
                   </button>
                 </div>
+
+                {/* Country scope toggle — UK by default so most user
+                    queries return their local supermarket products. */}
+                <button
+                  type="button"
+                  onClick={() => setUkOnly((v) => !v)}
+                  aria-pressed={ukOnly}
+                  className={`self-start px-2 py-0.5 rounded-md border text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors ${
+                    ukOnly
+                      ? "border-accent/40 bg-accent/10 text-accent"
+                      : "border-ink-2 text-ink-3 hover:text-ink-4"
+                  }`}
+                  title="When on, restricts search to UK products in English."
+                >
+                  {ukOnly ? "✓ UK PRODUCTS ONLY" : "🌍 GLOBAL SEARCH"}
+                </button>
+
                 {searching && (
                   <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-2 text-center">
                     Searching…
                   </div>
                 )}
+                {!searching && hint && (
+                  <div className="text-[11px] text-ink-3 italic font-[family-name:var(--font-display)] -mt-1">
+                    {hint}
+                  </div>
+                )}
                 {!searching && query.trim().length >= 2 && results.length === 0 && (
                   <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
-                    No matches. Try a different search term.
+                    No matches. Try a different search term
+                    {ukOnly ? " or toggle off UK-only" : ""}.
                   </div>
                 )}
                 <ResultList
