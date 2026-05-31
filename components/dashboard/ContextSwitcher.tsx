@@ -61,7 +61,10 @@ export function ContextSwitcher() {
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap text-xs px-4 sm:px-6 py-1.5">
-      <span className="text-[9px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mr-1">
+      <span
+        title="Filter tasks by your current context. Click NOW on the task list to apply."
+        className="text-[9px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mr-1 cursor-help"
+      >
         NOW
       </span>
 
