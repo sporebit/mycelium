@@ -96,9 +96,31 @@ function SettingsIcon({ size = 22, ariaLabel = "Settings" }: NavIconProps) {
   );
 }
 
+/** Apple-ish food disc for /nutrition. */
+function NutritionIcon({ size = 22, ariaLabel = "Nutrition" }: NavIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-label={ariaLabel}
+    >
+      <path d="M20 11 C 12 11, 8 18, 12 27 C 14 31, 18 32, 20 30 C 22 32, 26 31, 28 27 C 32 18, 28 11, 20 11 Z" />
+      <path d="M20 11 L20 7 M20 7 L23 5" />
+    </svg>
+  );
+}
+
 const SECTIONS: Item[] = [
   { label: "Finance", href: "/finance", Icon: FinanceIcon },
   { label: "Health", href: "/health", Icon: HealthIcon },
+  { label: "Nutrition", href: "/nutrition", Icon: NutritionIcon },
   { label: "Journal", href: "/journal", Icon: JournalIcon },
   { label: "Review", href: "/review", Icon: ReviewIcon },
 ];
