@@ -336,11 +336,20 @@ h1, h2, h3, h4, h5, h6 {
   animation: drawer-slide-in var(--duration-base) var(--ease-default);
 }
 
+@keyframes detail-pane-slide-in {
+  0%   { transform: translateX(8%); opacity: 0; }
+  100% { transform: translateX(0);  opacity: 1; }
+}
+.detail-pane-slide-in {
+  animation: detail-pane-slide-in 200ms ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .spore-pulse,
   .growth-in,
   .glow-pulse,
   .drawer-slide-in,
+  .detail-pane-slide-in,
   .habit-count-pulse,
   .ticker-fade-in {
     animation: none !important;
