@@ -36,6 +36,14 @@ export async function writeCapture(
     classification.entity_name
   );
 
+  // Pre-pull context fields so every insert path can use them.
+  const ctx = {
+    context_where: classification.context_where ?? null,
+    context_device: classification.context_device ?? null,
+    context_energy: classification.context_energy ?? null,
+    context_tag: classification.context_tag ?? null,
+  };
+
   // a. INSERT into raw_captures (always — audit / memory continuity)
   const { data: rawCapture, error: rawErr } = await supabase
     .from("raw_captures")
@@ -46,6 +54,7 @@ export async function writeCapture(
       audio_url: audioUrl ?? null,
       classification: { ...classification, resolved_entity_id: entityId },
       llm_source: llmSource,
+      ...ctx,
     })
     .select("id")
     .single();
@@ -75,6 +84,7 @@ export async function writeCapture(
         tags: classification.tags,
         entity_id: entityId,
         owner: userId,
+        ...ctx,
       })
       .select("id")
       .single();
@@ -106,6 +116,7 @@ export async function writeCapture(
         urgency: classification.urgency,
         list_type: purchase.list_type,
         raw_capture_id: rawCapture.id,
+        ...ctx,
       })
       .select("id")
       .single();
@@ -163,6 +174,7 @@ export async function writeCapture(
         tags: classification.tags.length > 0 ? classification.tags : null,
         mood: classification.mood,
         raw_capture_id: rawCapture.id,
+        ...ctx,
       })
       .select("id")
       .single();

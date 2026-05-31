@@ -60,6 +60,8 @@ export type PurchaseDetails = {
   list_type: PurchaseListType;
 };
 
+export type ContextEnergy = "low" | "medium" | "high";
+
 export type Classification = {
   kind: CaptureKind;
   urgency: CaptureUrgency;
@@ -72,6 +74,13 @@ export type Classification = {
   mentions: ClassificationMention[];
   purchase: PurchaseDetails | null; // only meaningful for purchases
   pain: PainDetails | null; // only meaningful for pain_log
+  /** Context fields — applies to every kind. The classifier sets them
+   *  when they're clear from the text, otherwise leaves them null so
+   *  the post-create suggester can fill in from history. */
+  context_where: string | null;
+  context_device: string | null;
+  context_energy: ContextEnergy | null;
+  context_tag: string | null;
 };
 
 export type ClassifyResult = {
@@ -116,6 +125,7 @@ const URGENCIES: readonly CaptureUrgency[] = [
   "this_month",
   "someday",
 ];
+const CONTEXT_ENERGIES: readonly ContextEnergy[] = ["low", "medium", "high"];
 const MOODS: readonly CaptureMood[] = [
   "energised",
   "calm",
@@ -188,6 +198,16 @@ Other fields:
   Detect: first names ("Luke", "Sarah"), relationship references ("Mum", "Dad", "my brother" → name_hint "Mum"/"Dad"/etc), first + last ("Luke Henderson").
   Skip: company/brand names, place names, bare pronouns, generic roles ("the doctor") unless capitalised or named.
   Output [] if none.
+- "context_where" / "context_device" / "context_energy" / "context_tag" — extract these when clear from the text, otherwise null. Don't force-classify.
+    context_where: free-form location ("home", "office", "mobile", "gym"). Pick the bare slug, not a phrase.
+    context_device: which device the task needs ("pc", "phone", "tablet", "none" for physical-world tasks).
+    context_energy: "low" | "medium" | "high" — the energy/focus level the task needs.
+    context_tag: a workflow tag — "focused" for deep work; "errand" for picking-things-up; "call" for phone calls; "admin" for paperwork / forms / bills; "creative" for making; "physical" for body / movement.
+    Examples:
+      "Update direct debit on Netflix" → context_where='home', context_device='pc', context_tag='admin'
+      "Call dentist tomorrow" → context_tag='call', context_device='phone'
+      "Pick up milk on way home" → context_where='mobile', context_tag='errand'
+      "Write project proposal" → context_tag='focused', context_device='pc', context_energy='high'
 - "pain" is an object ONLY when kind = "pain_log"; null for every other kind. Shape:
     { "pain_regions": [<snake_case region>...], "severity": <0..10 or null>, "feel_rating": "great" | "good" | "ok" | "mild" | "moderate" | "painful" | "stopped" | null }
     Pain regions vocabulary (snake_case, exactly these or close variants):
@@ -309,6 +329,26 @@ function validate(obj: unknown): Classification | null {
     pain = { pain_regions, severity, feel_rating };
   }
 
+  // Context fields are optional on every kind. Permissively read each one;
+  // anything unusable (wrong type, non-whitelisted energy) falls back to null.
+  const context_where =
+    typeof o.context_where === "string" && o.context_where.trim()
+      ? o.context_where.trim()
+      : null;
+  const context_device =
+    typeof o.context_device === "string" && o.context_device.trim()
+      ? o.context_device.trim()
+      : null;
+  const context_energy: ContextEnergy | null = CONTEXT_ENERGIES.includes(
+    o.context_energy as ContextEnergy,
+  )
+    ? (o.context_energy as ContextEnergy)
+    : null;
+  const context_tag =
+    typeof o.context_tag === "string" && o.context_tag.trim()
+      ? o.context_tag.trim()
+      : null;
+
   return {
     kind: kind as CaptureKind,
     urgency: urgency as CaptureUrgency,
@@ -321,6 +361,10 @@ function validate(obj: unknown): Classification | null {
     mentions,
     purchase,
     pain,
+    context_where,
+    context_device,
+    context_energy,
+    context_tag,
   };
 }
 
@@ -581,6 +625,8 @@ function classifyRegex(text: string): Classification {
   const summary =
     kind === "journal" ? firstLine.slice(0, 40) : firstLine.slice(0, 140);
 
+  const ctx = extractContextFromText(text);
+
   return {
     kind,
     urgency,
@@ -593,7 +639,47 @@ function classifyRegex(text: string): Classification {
     mentions: [],
     purchase: kind === "purchase" ? extractPurchaseFromText(text) : null,
     pain: kind === "pain_log" ? extractPainFromText(text) : null,
+    context_where: ctx.where,
+    context_device: ctx.device,
+    context_energy: ctx.energy,
+    context_tag: ctx.tag,
   };
+}
+
+/**
+ * Cheap regex-driven context extraction used by the fallback classifier.
+ * Each field stays null unless there's a clear signal — leaving the
+ * post-create suggester room to fill in from history.
+ */
+function extractContextFromText(text: string): {
+  where: string | null;
+  device: string | null;
+  energy: ContextEnergy | null;
+  tag: string | null;
+} {
+  const lower = text.toLowerCase();
+  let where: string | null = null;
+  if (/\bat (?:the )?gym\b|\bworkout\b/.test(lower)) where = "gym";
+  else if (/\bat (?:the )?office\b|\bin the office\b/.test(lower)) where = "office";
+  else if (/\bat home\b|\bhouse\b/.test(lower)) where = "home";
+  else if (/\bon (?:the |my )?way\b|\bout and about\b|\berrand\b/.test(lower)) where = "mobile";
+
+  let device: string | null = null;
+  if (/\bcall\b|\bphone\b/.test(lower)) device = "phone";
+  else if (/\bemail\b|\bwrite\b|\bspreadsheet\b|\binvoice\b|\bdirect debit\b/.test(lower)) device = "pc";
+
+  let tag: string | null = null;
+  if (/\bcall\b|\bdial\b|\bring\b/.test(lower)) tag = "call";
+  else if (/\bpick up\b|\bgrab\b|\bbuy\b|\bcollect\b/.test(lower)) tag = "errand";
+  else if (/\bbill\b|\bdirect debit\b|\binvoice\b|\btax\b|\badmin\b|\bpaperwork\b/.test(lower)) tag = "admin";
+  else if (/\bwrite\b|\bdraft\b|\bproposal\b|\bdesign\b|\bdeep work\b|\bfocus\b/.test(lower)) tag = "focused";
+  else if (/\bsketch\b|\bcreative\b|\bidea\b/.test(lower)) tag = "creative";
+
+  let energy: ContextEnergy | null = null;
+  if (/\bdeep\b|\bhigh energy\b|\bfresh\b/.test(lower)) energy = "high";
+  else if (/\btired\b|\blow energy\b|\bquick\b/.test(lower)) energy = "low";
+
+  return { where, device, energy, tag };
 }
 
 /** Build the system prompt the LLM sees: user-defined capture rules
