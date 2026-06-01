@@ -65,14 +65,20 @@ export function StatusDropdown({
         typeof window !== "undefined" ? window.innerWidth : DROPDOWN_WIDTH;
       const viewportH =
         typeof window !== "undefined" ? window.innerHeight : 800;
-      // Default: anchor dropdown's left edge to the trigger's left edge.
-      // When it would overflow right, anchor to the trigger's right edge.
+      // Default: anchor dropdown's left edge to the trigger's left
+      // edge. When it would overflow right, anchor to the trigger's
+      // right edge. The previous fix stopped here, which still let
+      // the dropdown extend past the viewport when the trigger
+      // itself sat near the right edge (the detail-pane case).
+      // Final hard clamp below ensures the dropdown can never
+      // overflow regardless of where the trigger lives.
       let left = r.left;
       let flipped = false;
       if (left + DROPDOWN_WIDTH > viewportW - 8) {
         left = Math.max(8, r.right - DROPDOWN_WIDTH);
         flipped = true;
       }
+      left = Math.max(8, Math.min(left, viewportW - DROPDOWN_WIDTH - 8));
       // Default: drop downward from the trigger. If there's not enough
       // room below, flip above.
       let top = r.bottom + DROPDOWN_VERTICAL_MARGIN;
