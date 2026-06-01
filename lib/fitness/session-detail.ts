@@ -10,9 +10,9 @@ import type {
 const SESSION_FIELDS =
   "id, user_id, date, slot, kind, name, programme_session_id, calories, notes, free_form_text, started_at, completed_at, status, created_at, updated_at";
 const SESSION_EX_FIELDS =
-  "id, session_id, position, name, notes, comment, rest_seconds, duration_min, distance_km, intensity, programme_exercise_id, save_to_template, skipped, completed_at, added_at";
+  "id, session_id, position, name, notes, comment, rest_seconds, duration_min, distance_km, intensity, programme_exercise_id, save_to_template, skipped, completed_at, added_at, is_bodyweight";
 const TEMPLATE_FIELDS =
-  "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity";
+  "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity, is_bodyweight";
 
 export async function loadSessionDetail(
   supabase: SupabaseClient,

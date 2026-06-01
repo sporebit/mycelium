@@ -132,6 +132,14 @@ Set-parsing rules:
 - "PR at 100" without further detail → log as one set, weight=100. Don't claim it's a PR yourself.
 - "actually that was 75 not 80" → set the corrected value; flag in uncertainty_notes that this is a correction (server will figure out which set).
 
+Bodyweight rule:
+- Set "bodyweight": true when the exercise is canonically bodyweight — pull-ups, chin-ups, push-ups, dips, ring rows, hanging leg raises, bodyweight squats, sit-ups, planks, hollow holds, L-sits, muscle-ups, handstand push-ups, etc.
+- Also set "bodyweight": true when the user says "bodyweight", "BW", "no weight" in the phrase ("dips bodyweight 3x10", "ring rows BW", "weighted pullups BW + 10kg").
+- "Weighted pullups: BW + 10kg" → bodyweight: true, sets with weight=10 (added weight on top of body).
+- "Bench press 80kg" → bodyweight: false (barbell, not bodyweight).
+- "Push-ups 3x20" → bodyweight: true, sets with weight=null.
+- Default to false when unclear.
+
 Cardio rules:
 - "ran 5km" → duration null, distance 5, intensity null.
 - "ran for 30 minutes" → duration 30, distance null.
@@ -234,6 +242,7 @@ function validate(obj: unknown): ParsedWorkout | null {
           matched_exercise_name: clampStr(r.matched_exercise_name),
           match_confidence: clampConfidence(r.match_confidence),
           sets,
+          bodyweight: typeof r.bodyweight === "boolean" ? r.bodyweight : false,
         };
       })
     : [];

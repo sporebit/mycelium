@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     const { data: exRows, error: exErr } = await supabase
       .from("workout_session_exercises")
       .select(
-        "id, session_id, comment, notes, workout_sessions:session_id!inner(id, date, slot, user_id, completed_at)"
+        "id, session_id, comment, notes, is_bodyweight, workout_sessions:session_id!inner(id, date, slot, user_id, completed_at)"
       )
       .ilike("name", name)
       .eq("skipped", false)
@@ -52,6 +52,7 @@ export async function GET(req: NextRequest) {
       session_id: string;
       comment: string | null;
       notes: string | null;
+      is_bodyweight?: boolean | null;
       workout_sessions:
         | { id: string; date: string; slot: string; user_id: string; completed_at: string | null }
         | { id: string; date: string; slot: string; user_id: string; completed_at: string | null }[];
@@ -64,6 +65,7 @@ export async function GET(req: NextRequest) {
       slot: string;
       comment: string | null;
       notes: string | null;
+      is_bodyweight: boolean;
     }> = [];
     for (const r of (exRows ?? []) as ExRow[]) {
       const sess = Array.isArray(r.workout_sessions)
@@ -79,6 +81,7 @@ export async function GET(req: NextRequest) {
         slot: sess.slot,
         comment: r.comment,
         notes: r.notes,
+        is_bodyweight: r.is_bodyweight === true,
       });
     }
     candidates.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
@@ -103,6 +106,7 @@ export async function GET(req: NextRequest) {
         sessions: [],
         peak_weight: null,
         volume_pr: null,
+        is_bodyweight: false,
       };
       return NextResponse.json(empty);
     }
@@ -150,6 +154,11 @@ export async function GET(req: NextRequest) {
     }));
     const mu: WeightUnit = modalUnit(flagged);
 
+    // Any recent session marked bodyweight is enough to flip the
+    // chart label to "added weight" — once it's BW, future sessions
+    // logging "BW + N" all share the same axis semantics.
+    const isBodyweight = candidates.some((c) => c.is_bodyweight);
+
     const out: ExerciseHistoryResponse = {
       exercise_name: name,
       template_notes: templateNotes,
@@ -157,6 +166,7 @@ export async function GET(req: NextRequest) {
       sessions: flagged,
       peak_weight: peak,
       volume_pr: volume,
+      is_bodyweight: isBodyweight,
     };
     return NextResponse.json(out);
   } catch (err) {

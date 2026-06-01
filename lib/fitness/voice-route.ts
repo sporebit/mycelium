@@ -554,10 +554,12 @@ async function ensureSessionExercise(
   supabase: Supabase,
   sessionId: string,
   matchedName: string | null,
-  rawPhrase: string
+  rawPhrase: string,
+  opts: { bodyweight?: boolean } = {},
 ): Promise<{ id: string; nextSetNumber: number } | null> {
   const targetName = matchedName ?? rawPhrase.trim();
   if (!targetName) return null;
+  const bodyweight = opts.bodyweight === true;
 
   const { data: existing } = await supabase
     .from("workout_session_exercises")
@@ -569,6 +571,15 @@ async function ensureSessionExercise(
   let exId: string;
   if (existing?.id) {
     exId = existing.id as string;
+    // Promote the existing row to bodyweight if the voice parse says
+    // so and it wasn't already marked. Never demote — the user might
+    // have toggled BW manually in the UI.
+    if (bodyweight) {
+      await supabase
+        .from("workout_session_exercises")
+        .update({ is_bodyweight: true })
+        .eq("id", exId);
+    }
   } else {
     const { data: maxRow } = await supabase
       .from("workout_session_exercises")
@@ -587,6 +598,7 @@ async function ensureSessionExercise(
         rest_seconds: 90,
         save_to_template: false,
         skipped: false,
+        is_bodyweight: bodyweight,
       })
       .select("id")
       .single();
@@ -624,7 +636,8 @@ async function writeToSession(
       supabase,
       sessionId,
       ex.matched_exercise_name,
-      ex.raw_phrase
+      ex.raw_phrase,
+      { bodyweight: ex.bodyweight === true },
     );
     if (!resolved) continue;
     exercisesLogged += 1;

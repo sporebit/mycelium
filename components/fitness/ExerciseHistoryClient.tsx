@@ -50,6 +50,13 @@ const Y_TABS: { label: string; value: YMode }[] = [
   { label: "Volume", value: "volume" },
   { label: "Est. 1RM", value: "epley" },
 ];
+const Y_TABS_BODYWEIGHT: { label: string; value: YMode }[] = [
+  // Bodyweight exercises log added weight on top of body — relabel
+  // the axis tab so the chart doesn't read as "weight lifted".
+  { label: "Top + KG", value: "top" },
+  { label: "Volume", value: "volume" },
+  { label: "Est. 1RM", value: "epley" },
+];
 
 const SLOT_LABEL: Record<string, string> = {
   morning: "AM",
@@ -611,7 +618,7 @@ export function ExerciseHistoryClient({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <PRBadge
               icon="🏆"
-              label="Peak weight"
+              label={data.is_bodyweight ? "Peak added weight" : "Peak weight"}
               value={
                 data.peak_weight
                   ? `${data.peak_weight.weight}${fmtUnitLabel(
@@ -667,7 +674,7 @@ export function ExerciseHistoryClient({
                 label="Y-AXIS"
                 value={yMode}
                 onChange={setYMode}
-                options={Y_TABS}
+                options={data.is_bodyweight ? Y_TABS_BODYWEIGHT : Y_TABS}
               />
 
               {data.sessions.length === 1 && (

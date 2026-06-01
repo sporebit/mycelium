@@ -112,12 +112,26 @@ function dataShapeOf(ex: SessionExercise): "sets_reps" | "hold" | "duration" | "
   return "sets_reps";
 }
 
-/** True only when the user wants a weight column. Defaults to true for
- *  legacy resistance rows where with_weight wasn't yet stored. */
-function showsWeightColumn(ex: SessionExercise): boolean {
-  if (typeof ex.with_weight === "boolean") return ex.with_weight;
-  if (typeof ex.template?.with_weight === "boolean") return ex.template.with_weight;
-  return (ex.template?.default_weight ?? null) !== null;
+/** Weight column is always shown for sets_reps / hold exercises. The
+ *  previous heuristic hid the column for custom (no-template) rows,
+ *  which broke logging weight on ad-hoc exercises like "EZ Bar Curl
+ *  10/10/8". Empty values just render as "—" (or "BW" when the
+ *  exercise is bodyweight). The cardio "duration"/"distance" shapes
+ *  use a different grid via `dataShapeOf`, so they're unaffected. */
+function showsWeightColumn(_ex: SessionExercise): boolean {
+  return true;
+}
+
+/** True when the exercise should be treated as bodyweight — the
+ *  weight column header becomes "+ KG" and empty values render as
+ *  "BW". Falls back to the template's flag when the session row
+ *  hasn't been touched yet. */
+function isBodyweight(ex: SessionExercise): boolean {
+  if (typeof ex.is_bodyweight === "boolean") return ex.is_bodyweight;
+  if (typeof ex.template?.is_bodyweight === "boolean") {
+    return ex.template.is_bodyweight;
+  }
+  return false;
 }
 
 /** Print a rounded target weight without trailing zeros. */
@@ -741,6 +755,36 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
     if (r.ok) await reload();
   }
 
+  /** Flip is_bodyweight on the selected exercise. Optimistic — we
+   *  update local state immediately so the BW chip + column header
+   *  flip without waiting on the PATCH round-trip. */
+  async function toggleBodyweight(ex: SessionExercise, next: boolean) {
+    if (readOnly) return;
+    setSession((cur) => ({
+      ...cur,
+      exercises: cur.exercises.map((e) =>
+        e.id === ex.id ? { ...e, is_bodyweight: next } : e,
+      ),
+    }));
+    const r = await fetch(
+      `/api/fitness/sessions/${session.id}/exercises/${ex.id}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_bodyweight: next }),
+      },
+    );
+    if (!r.ok) {
+      // Roll back on failure so the UI matches the server.
+      setSession((cur) => ({
+        ...cur,
+        exercises: cur.exercises.map((e) =>
+          e.id === ex.id ? { ...e, is_bodyweight: !next } : e,
+        ),
+      }));
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // DURATION-mode "DONE": save duration_min/distance_km/intensity + completed_at
   async function logDuration(
@@ -1009,6 +1053,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
             readOnly={readOnly}
             unit={unitFor(current)}
             setUnit={(u) => setUnitFor(current, u)}
+            onToggleBodyweight={toggleBodyweight}
             last={lastByEx[current.id] ?? null}
             inputDraft={inputDraft}
             setInputDraft={setInputDraft}
@@ -1248,6 +1293,7 @@ function CurrentExerciseCard({
   onToggleSaveToTemplate,
   onLogDuration,
   onStartRest,
+  onToggleBodyweight,
   restActive,
 }: {
   ex: SessionExercise;
@@ -1279,6 +1325,7 @@ function CurrentExerciseCard({
     }
   ) => void | Promise<void>;
   onStartRest: () => void;
+  onToggleBodyweight: (ex: SessionExercise, next: boolean) => void;
   restActive: boolean;
 }) {
   const sets = useMemo<LoggedSet[]>(() => ex.sets ?? [], [ex.sets]);
@@ -1365,22 +1412,42 @@ function CurrentExerciseCard({
           )}
         </div>
         {grid && (
-          <div className="flex rounded-md overflow-hidden border border-ink-2 shrink-0">
-            {UNITS.map((u) => (
-              <button
-                key={u}
-                type="button"
-                disabled={readOnly}
-                onClick={() => setUnit(u)}
-                className={`px-2 py-1.5 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] ${
-                  unit === u
-                    ? "bg-accent/20 text-accent"
-                    : "text-ink-3 hover:text-ink-4"
-                }`}
-              >
-                {UNIT_LABEL[u]}
-              </button>
-            ))}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              disabled={readOnly}
+              onClick={() => onToggleBodyweight(ex, !isBodyweight(ex))}
+              aria-pressed={isBodyweight(ex)}
+              title={
+                isBodyweight(ex)
+                  ? "Bodyweight on — weight column logs added load."
+                  : "Tap to mark this exercise as bodyweight."
+              }
+              className={`px-2 py-1.5 rounded-md border text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] transition-colors ${
+                isBodyweight(ex)
+                  ? "bg-accent/20 border-accent/40 text-accent"
+                  : "bg-ink-0/40 border-ink-2 text-ink-3 hover:text-ink-4"
+              }`}
+            >
+              BW
+            </button>
+            <div className="flex rounded-md overflow-hidden border border-ink-2">
+              {UNITS.map((u) => (
+                <button
+                  key={u}
+                  type="button"
+                  disabled={readOnly}
+                  onClick={() => setUnit(u)}
+                  className={`px-2 py-1.5 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] ${
+                    unit === u
+                      ? "bg-accent/20 text-accent"
+                      : "text-ink-3 hover:text-ink-4"
+                  }`}
+                >
+                  {UNIT_LABEL[u]}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -1427,7 +1494,9 @@ function CurrentExerciseCard({
             } gap-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] pl-1`}
           >
             <span>Set</span>
-            {showsWeightColumn(ex) && <span>Weight</span>}
+            {showsWeightColumn(ex) && (
+              <span>{isBodyweight(ex) ? `+ ${unitLower}` : "Weight"}</span>
+            )}
             <span>{dataShapeOf(ex) === "hold" ? "Seconds" : "Reps"}</span>
             <span className="text-right">Done</span>
             <span />
@@ -1451,10 +1520,17 @@ function CurrentExerciseCard({
             const flashKey = `${ex.id}:${n}`;
             const flashing = flashSetKeys.has(flashKey);
             const showWeight = showsWeightColumn(ex);
+            const bw = isBodyweight(ex);
             const isHold = dataShapeOf(ex) === "hold";
             const holdPlaceholder = isHold
               ? String(ex.template?.default_hold_seconds ?? "—")
               : repsPlaceholder || "—";
+            // Bodyweight exercises with no added weight render the
+            // placeholder as "BW" so the column reads naturally
+            // without needing a numeric value.
+            const weightFieldPlaceholder = bw
+              ? weightPlaceholder || "BW"
+              : weightPlaceholder || "—";
             return (
               <div
                 key={n}
@@ -1485,7 +1561,7 @@ function CurrentExerciseCard({
                     onChange={(e) =>
                       setDraft(n, "w", e.target.value.replace(/[^0-9.]/g, ""))
                     }
-                    placeholder={weightPlaceholder || "—"}
+                    placeholder={weightFieldPlaceholder}
                     className="bg-transparent border border-ink-2 rounded-md text-base text-ink-4 px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
                   />
                 )}

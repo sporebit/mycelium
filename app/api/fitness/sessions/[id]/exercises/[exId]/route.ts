@@ -40,6 +40,7 @@ type PatchBody = {
   distance_km?: number | null;
   intensity?: string | null;
   completed_at?: string | null;
+  is_bodyweight?: boolean;
 };
 
 export async function PATCH(
@@ -69,6 +70,8 @@ export async function PATCH(
   if (body.distance_km !== undefined) update.distance_km = body.distance_km;
   if (body.intensity !== undefined) update.intensity = body.intensity;
   if (body.completed_at !== undefined) update.completed_at = body.completed_at;
+  if (typeof body.is_bodyweight === "boolean")
+    update.is_bodyweight = body.is_bodyweight;
 
   try {
     const supabase = createServerClient();

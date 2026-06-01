@@ -54,6 +54,10 @@ export type TemplateExercise = {
   data_shape: ExerciseDataShape;
   with_weight: boolean;
   default_hold_seconds: number | null;
+  /** Bodyweight flag — added by migration 0031. When true the logger
+   *  renders the weight column as "+ KG" (added weight on top of body)
+   *  and empty values display as "BW". */
+  is_bodyweight?: boolean;
 };
 
 export type TemplateSession = {
@@ -208,6 +212,10 @@ export type SessionExercise = {
   added_at: string;
   data_shape: ExerciseDataShape;
   with_weight: boolean;
+  /** Bodyweight flag — added by migration 0031. Set by the voice parser
+   *  for canonically-bodyweight movements (pullups, dips, push-ups) and
+   *  toggleable from the BW chip in the session-log header. */
+  is_bodyweight?: boolean;
   /** Snapshot of the template prescription, copied at session start. */
   template?: TemplateExercise | null;
   sets?: LoggedSet[];
@@ -262,6 +270,10 @@ export type ExerciseHistoryResponse = {
   sessions: ExerciseHistoryEntry[];
   peak_weight: ExercisePRs["peak"];
   volume_pr: ExercisePRs["volume"];
+  /** True when any recent session_exercise row for this name is flagged
+   *  as bodyweight. The history UI relabels the "Weight" axis as
+   *  "Added weight" so PRs read correctly for weighted pullups etc. */
+  is_bodyweight: boolean;
 };
 
 export type HistorySessionCard = {
@@ -350,6 +362,10 @@ export type ParsedExercise = {
   matched_exercise_name: string | null;
   match_confidence: MatchConfidence | null;
   sets: ParsedSet[];
+  /** True when the LLM identifies this as a bodyweight movement —
+   *  pull-ups, dips, push-ups, etc. — or when the user explicitly
+   *  says "bodyweight" / "BW" in the transcription. */
+  bodyweight?: boolean;
 };
 
 export type ParsedCardio = {
