@@ -271,28 +271,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* wordmark-glow — 3.5s bioluminescent L→R sweep across the Mycelium
-   wordmark. The gradient is a narrow glow-2 band (40-60%) flanked by
-   text-0 on either side, 200% wider than the visible text. The
-   animation slides background-position through three rest-points:
-     0-10%   : 100% 0  — glow off-screen to the right (rest)
-     50%     : 0%  0   — glow centred over the wordmark
-     90-100% : -100% 0 — glow off-screen to the left (rest)
-   When the loop wraps back to 100%, the visible slice is pure text-0
-   so the jump is invisible — only the glow band moves. Disabled on
-   mobile (the small wordmark renders cleaner without the sweep) and
-   under prefers-reduced-motion. */
+   wordmark. Uses background-clip:text with a moving linear gradient.
+   The previous implementation gated the animation behind a min-width
+   media query AND had narrow gradient stops that made the sweep hard
+   to see — both fixed here. The visible slice of the 200%-wide
+   gradient is always text-0 outside the highlight band, so any
+   wrap-around between cycles is invisible. */
 @keyframes wordmark-glow-sweep {
-  0%, 10%   { background-position: 100% 0; }
-  50%       { background-position: 0% 0; }
-  90%, 100% { background-position: -100% 0; }
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 .wordmark-glow {
   background-image: linear-gradient(
     90deg,
     var(--text-0) 0%,
-    var(--text-0) 40%,
+    var(--text-0) 35%,
     var(--glow-2) 50%,
-    var(--text-0) 60%,
+    var(--text-0) 65%,
     var(--text-0) 100%
   );
   background-size: 200% 100%;
@@ -301,11 +296,7 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-}
-@media (min-width: 768px) {
-  .wordmark-glow {
-    animation: wordmark-glow-sweep 3.5s ease-in-out infinite;
-  }
+  animation: wordmark-glow-sweep 3.5s ease-in-out infinite;
 }
 
 /* growth-in — replaces fade-in for newly-arriving elements (tasks,
