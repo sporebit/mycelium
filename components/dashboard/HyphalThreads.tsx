@@ -634,6 +634,17 @@ export function HyphalThreads() {
     const initialNow = performance.now();
     regenerate(initialNow);
 
+    // Firefox-on-desktop quirk: when the canvas mounts inside a fixed
+    // positioned container on first paint, getComputedStyle hasn't
+    // always resolved by the time useEffect fires, so the initial
+    // resize() reads a stale dimension. Force a second resize after
+    // the next paint to recover. Idempotent in Chrome — same numbers
+    // come back.
+    requestAnimationFrame(() => {
+      resize();
+      regenerate(performance.now());
+    });
+
     let firstFrame = true;
     function frame(t: number) {
       if (firstFrame) {
@@ -686,8 +697,13 @@ export function HyphalThreads() {
   return (
     <canvas
       ref={canvasRef}
+      // Explicit initial dimensions so Firefox renders against a
+      // non-zero raster surface before the resize effect runs. Real
+      // dimensions are reset in resize() based on window size + DPR.
+      width={1920}
+      height={1080}
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-0"
+      className="pointer-events-none fixed inset-0 z-0 w-screen h-screen"
     />
   );
 }
