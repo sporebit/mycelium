@@ -1665,6 +1665,32 @@ function CurrentExerciseCard({
         </div>
       )}
 
+      {/* PER-EXERCISE PAIN DISCLOSURE — always present, even when no
+          baseline + no existing log exists. Tapping opens the same
+          PainLogModal pre-targeted at this exercise. */}
+      {!readOnly && (
+        <button
+          type="button"
+          onClick={onOpenPainLog}
+          className={`mt-3 self-start inline-flex items-center gap-2 px-2 py-1 rounded-md border text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors ${
+            painLog
+              ? painLog.severity >= 7
+                ? "bg-danger/15 border-danger/40 text-danger"
+                : painLog.severity >= 4
+                  ? "bg-warn/15 border-warn/40 text-warn"
+                  : "bg-accent/10 border-accent/40 text-accent"
+              : "bg-ink-0/40 border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+          }`}
+          aria-expanded={false}
+        >
+          {painLog
+            ? `● Pain ${painLog.severity}/10${
+                painLog.feel_rating ? ` · ${painLog.feel_rating}` : ""
+              }`
+            : "▸ Log pain"}
+        </button>
+      )}
+
       <div className="mt-3 flex flex-col gap-2">
         <textarea
           rows={2}
