@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { FOOD_SELECT } from "@/lib/nutrition/db";
 import { searchText } from "@/lib/nutrition/off";
+import { searchUsda } from "@/lib/nutrition/usda";
 import type { Food, FoodSearchResult } from "@/lib/nutrition/types-v2";
 
 export const runtime = "nodejs";
@@ -55,19 +56,45 @@ export async function GET(req: NextRequest) {
       .limit(20);
     const lib = (libRows ?? []).map((r) => foodToResult(r as unknown as Food));
 
-    // 2. OFF — UK index by default, global when explicitly requested.
-    const offRaw = await searchText(q, { ukOnly });
+    // 2. OFF + USDA in parallel. OFF is good for branded products
+    // (UK index when ukOnly is true); USDA is the secondary source
+    // for raw ingredients like "ground beef, 95% lean".
+    const [offRaw, usdaRaw] = await Promise.all([
+      searchText(q, { ukOnly }),
+      searchUsda(q),
+    ]);
     const seenOff = new Set<string>(
       lib.map((l) => l.off_id ?? "").filter(Boolean),
     );
     const off = offRaw.filter((r) => !r.off_id || !seenOff.has(r.off_id));
-    const results = [...lib, ...off];
+
+    // De-dupe USDA results against library/OFF by name (case-insensitive
+    // substring). USDA names tend to be very specific ("Ground beef,
+    // 95% lean / 5% fat, raw") so substring-match against shorter
+    // user/OFF names tends to be the right call.
+    const seenNames = new Set<string>(
+      [...lib, ...off].map((r) => r.name.toLowerCase()),
+    );
+    const usda = usdaRaw.filter((r) => {
+      const n = r.name.toLowerCase();
+      for (const existing of seenNames) {
+        if (existing.includes(n) || n.includes(existing)) return false;
+      }
+      seenNames.add(n);
+      return true;
+    });
+
+    // Order: user library first, then USDA (raw ingredients), then
+    // OFF (branded products). This matches the user's expectation:
+    // ingredients beat branded entries when their needs aren't
+    // brand-specific.
+    const results = [...lib, ...usda, ...off];
 
     // Heuristic hint: in UK-only mode with very few OFF hits, the user
     // is probably better off searching globally. UI surfaces this as a
     // small affordance below the search box.
     let hint: string | null = null;
-    if (ukOnly && off.length < 3) {
+    if (ukOnly && off.length < 3 && usda.length === 0) {
       hint = "Few UK results — toggle off to search globally";
     }
 

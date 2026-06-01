@@ -495,10 +495,11 @@ function ResultList({
             onClick={() => onPick(r)}
             className="flex-1 min-w-0 text-left"
           >
-            <div className="text-sm text-ink-4 truncate">
-              {r.name}
+            <div className="text-sm text-ink-4 truncate flex items-center gap-1.5">
+              <SourceBadge source={r.source} inLibrary={r.in_library} />
+              <span className="truncate">{r.name}</span>
               {r.is_favourite && (
-                <span className="ml-1.5 text-warn" title="Favourite">
+                <span className="ml-1 text-warn" title="Favourite">
                   ★
                 </span>
               )}
@@ -524,4 +525,46 @@ function ResultList({
       ))}
     </ul>
   );
+}
+
+function SourceBadge({
+  source,
+  inLibrary,
+}: {
+  source: FoodSearchResult["source"];
+  inLibrary: boolean;
+}) {
+  // "Mine" (already in the user's library) takes precedence over
+  // wherever it originated — it's the most useful signal.
+  if (inLibrary) {
+    return (
+      <span
+        className="text-[8px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-1 py-0.5 rounded-sm bg-ok/15 text-ok border border-ok/40 shrink-0"
+        title="In your library"
+      >
+        MINE
+      </span>
+    );
+  }
+  if (source === "usda") {
+    return (
+      <span
+        className="text-[8px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-1 py-0.5 rounded-sm bg-glow-2/15 text-glow-2 border border-glow-2/40 shrink-0"
+        title="USDA FoodData Central — raw ingredient data"
+      >
+        USDA
+      </span>
+    );
+  }
+  if (source === "open_food_facts") {
+    return (
+      <span
+        className="text-[8px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-1 py-0.5 rounded-sm bg-ink-2 text-ink-3 border border-ink-2 shrink-0"
+        title="Open Food Facts — branded products"
+      >
+        OFF
+      </span>
+    );
+  }
+  return null;
 }
