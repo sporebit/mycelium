@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 
 const PROGRAMME_FIELDS = "id, user_id, name, description, created_at, updated_at";
 const SESSION_FIELDS =
-  "id, programme_id, day_of_week, slot, kind, name, notes";
+  "id, programme_id, day_of_week, slot, kind, name, notes, workout_id, kind_override";
 const EXERCISE_FIELDS =
   "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity";
 
@@ -39,7 +39,7 @@ async function loadDetail(
     .order("day_of_week", { ascending: true })
     .order("slot", { ascending: true });
 
-  const sessionList = (sessions ?? []) as TemplateSession[];
+  const sessionList = (sessions ?? []) as unknown as TemplateSession[];
   const sessionIds = sessionList.map((s) => s.id);
 
   let exMap = new Map<string, TemplateExercise[]>();
