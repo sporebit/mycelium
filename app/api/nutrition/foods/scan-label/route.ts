@@ -3,8 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
+// Root cause of the "vision scan failed" error: the previous default
+// `claude-sonnet-4-20250514` is an outdated model identifier and is
+// rejected by the Anthropic API. Prefer the project's configured
+// ANTHROPIC_MODEL (currently claude-sonnet-4-5) when no vision-
+// specific override is set.
 const VISION_MODEL =
-  process.env.ANTHROPIC_VISION_MODEL ?? "claude-sonnet-4-20250514";
+  process.env.ANTHROPIC_VISION_MODEL ??
+  process.env.ANTHROPIC_MODEL ??
+  "claude-sonnet-4-5";
 
 type Extracted = {
   product_name: string;
