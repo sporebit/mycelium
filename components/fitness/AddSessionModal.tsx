@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { triggerGlowPulse } from "@/lib/motion";
 import { KIND_VISUALS, SLOT_LABEL } from "@/lib/fitness/kind";
@@ -11,6 +12,7 @@ import type {
   TodayResponse,
   WorkoutSessionType,
 } from "@/lib/fitness/types";
+import { KIND_ICON, type Workout } from "@/lib/fitness/workouts";
 
 const TEMPLATE_KINDS: TemplateKind[] = [
   "cardio",
@@ -35,8 +37,13 @@ export function AddSessionModal({
   onSaved: (toast: Toast | null) => void;
 }) {
   const router = useRouter();
-  const [source, setSource] = useState<"programme" | "custom">("programme");
+  const [source, setSource] = useState<"programme" | "library" | "custom">(
+    "programme",
+  );
   const [pickedTplId, setPickedTplId] = useState<string | null>(null);
+  const [pickedWorkoutId, setPickedWorkoutId] = useState<string | null>(null);
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [libraryQuery, setLibraryQuery] = useState("");
   const [kind, setKind] = useState<TemplateKind>("mobility");
   const [name, setName] = useState("");
   const [sessionType, setSessionType] = useState<string>("");
@@ -48,10 +55,19 @@ export function AddSessionModal({
     let mounted = true;
     (async () => {
       try {
-        const r = await fetch("/api/fitness/session-types", { cache: "no-store" });
-        if (!r.ok || !mounted) return;
-        const j = (await r.json()) as { types: WorkoutSessionType[] };
-        if (mounted) setTypes(j.types ?? []);
+        const [tRes, wRes] = await Promise.all([
+          fetch("/api/fitness/session-types", { cache: "no-store" }),
+          fetch("/api/workouts", { cache: "no-store" }),
+        ]);
+        if (!mounted) return;
+        if (tRes.ok) {
+          const j = (await tRes.json()) as { types: WorkoutSessionType[] };
+          if (mounted) setTypes(j.types ?? []);
+        }
+        if (wRes.ok) {
+          const j = (await wRes.json()) as { workouts?: Workout[] };
+          if (mounted) setWorkouts(Array.isArray(j.workouts) ? j.workouts : []);
+        }
       } catch {
         /* ignore */
       }
@@ -98,6 +114,15 @@ export function AddSessionModal({
         payload.programme_session_id = pickedTplId;
         payload.kind = tpl.kind;
         payload.name = name.trim() || tpl.name;
+      } else if (source === "library") {
+        if (!pickedWorkoutId) {
+          setError("Pick a workout from the library");
+          return;
+        }
+        const w = workouts.find((x) => x.id === pickedWorkoutId);
+        payload.workout_id = pickedWorkoutId;
+        payload.kind = w?.default_kind ?? "other";
+        payload.name = name.trim() || w?.name || "Workout";
       } else {
         payload.kind = kind;
         payload.name = name.trim() || `${KIND_VISUALS[kind].label} session`;
@@ -152,9 +177,15 @@ export function AddSessionModal({
 
         <div className="px-5 py-4 overflow-y-auto flex flex-col gap-4">
           {/* Source chips */}
-          <div className="flex gap-2">
-            {(["programme", "custom"] as const).map((s) => {
+          <div className="flex gap-2 flex-wrap">
+            {(["programme", "library", "custom"] as const).map((s) => {
               const active = source === s;
+              const label =
+                s === "programme"
+                  ? "FROM PROGRAMME"
+                  : s === "library"
+                    ? "FROM LIBRARY"
+                    : "CUSTOM";
               return (
                 <button
                   key={s}
@@ -166,7 +197,7 @@ export function AddSessionModal({
                       : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
                   }`}
                 >
-                  {s === "programme" ? "FROM PROGRAMME" : "CUSTOM"}
+                  {label}
                 </button>
               );
             })}
@@ -212,6 +243,68 @@ export function AddSessionModal({
                       </div>
                     </div>
                   ))
+              )}
+            </div>
+          ) : source === "library" ? (
+            <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
+              {workouts.length === 0 ? (
+                <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+                  No workouts in the library yet. Build one at{" "}
+                  <Link
+                    href="/fitness/workouts/new"
+                    className="text-accent hover:text-text-0 underline"
+                  >
+                    /fitness/workouts/new
+                  </Link>
+                  .
+                </p>
+              ) : (
+                <>
+                  {workouts.length > 8 && (
+                    <input
+                      type="search"
+                      value={libraryQuery}
+                      onChange={(e) => setLibraryQuery(e.target.value)}
+                      placeholder="Filter workouts…"
+                      className="bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+                    />
+                  )}
+                  <div className="flex flex-col gap-1">
+                    {workouts
+                      .filter((w) =>
+                        libraryQuery
+                          ? `${w.name} ${w.default_kind ?? ""}`
+                              .toLowerCase()
+                              .includes(libraryQuery.toLowerCase())
+                          : true,
+                      )
+                      .map((w) => {
+                        const active = pickedWorkoutId === w.id;
+                        return (
+                          <button
+                            key={w.id}
+                            type="button"
+                            onClick={() => setPickedWorkoutId(w.id)}
+                            className={`text-left rounded-sm px-3 py-2 flex items-center gap-2 transition-colors ${
+                              active
+                                ? "bg-accent/15 ring-1 ring-accent/40"
+                                : "bg-ink-2/40 hover:bg-ink-2"
+                            }`}
+                          >
+                            <span aria-hidden>
+                              {w.default_kind ? KIND_ICON[w.default_kind] : "·"}
+                            </span>
+                            <span className="text-sm text-text-0 flex-1 truncate">
+                              {w.name}
+                            </span>
+                            <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                              {w.exercise_count ?? "·"} ex
+                            </span>
+                          </button>
+                        );
+                      })}
+                  </div>
+                </>
               )}
             </div>
           ) : (

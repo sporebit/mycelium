@@ -11,6 +11,11 @@ function userId(): string | null {
 
 type CreateBody = {
   programme_session_id?: string;
+  /** When set, the session is snapshotted from a workouts-library entry
+   *  rather than from a programme session. Exercises are copied at
+   *  creation time so subsequent edits to the workout don't rewrite
+   *  history. */
+  workout_id?: string;
   slot?: Slot;
   kind?: SessionKind;
   name?: string;
@@ -71,7 +76,36 @@ export async function POST(req: NextRequest) {
     // Resolve a default name from the template if one isn't supplied
     let resolvedName = body.name ?? null;
     let templateExercises: TemplateExercise[] = [];
-    if (programmeSessionId) {
+    // Snapshot from a workouts-library entry when workout_id is passed.
+    // Skips the programme_session path entirely — the two never combine
+    // in a single create call.
+    let libraryExercises: Array<{
+      name: string;
+      sets: number;
+      reps_per_set: string;
+      rest_seconds: number | null;
+      weight_kg: number | null;
+      is_bodyweight: boolean;
+      position: number;
+      notes: string | null;
+    }> = [];
+    if (body.workout_id && !programmeSessionId) {
+      const { data: wRow } = await supabase
+        .from("workouts")
+        .select("name")
+        .eq("id", body.workout_id)
+        .eq("user_id", uid)
+        .maybeSingle();
+      if (wRow?.name && !resolvedName) resolvedName = wRow.name as string;
+      const { data: wExs } = await supabase
+        .from("workout_exercises")
+        .select(
+          "name, sets, reps_per_set, rest_seconds, weight_kg, is_bodyweight, position, notes",
+        )
+        .eq("workout_id", body.workout_id)
+        .order("position", { ascending: true });
+      libraryExercises = (wExs ?? []) as typeof libraryExercises;
+    } else if (programmeSessionId) {
       const { data: tplSession } = await supabase
         .from("workout_programme_sessions")
         .select("name")
@@ -154,6 +188,30 @@ export async function POST(req: NextRequest) {
         .insert(rows);
       if (exErr) {
         console.error("[/api/fitness/sessions POST] copy template", exErr);
+      }
+    } else if (libraryExercises.length > 0) {
+      // Snapshot library exercises onto the session. We store the
+      // numeric weight_kg on the snapshot (unit defaults to kg —
+      // callers can convert in the UI) and carry is_bodyweight
+      // through so the BW chip lights up on the log.
+      const rows = libraryExercises.map((e) => ({
+        session_id: created.id,
+        position: e.position,
+        name: e.name,
+        notes: e.notes,
+        rest_seconds: e.rest_seconds ?? 90,
+        save_to_template: false,
+        skipped: false,
+        is_bodyweight: !!e.is_bodyweight,
+      }));
+      const { error: exErr } = await supabase
+        .from("workout_session_exercises")
+        .insert(rows);
+      if (exErr) {
+        console.error(
+          "[/api/fitness/sessions POST] copy library workout",
+          exErr,
+        );
       }
     }
 
