@@ -208,7 +208,11 @@ export function TaskCalendarView({
       onDragEnd={handleDragEnd}
       onDragCancel={() => setDrag(null)}
     >
-      <div className="flex gap-4">
+      {/* Stack the no-date column under the grid below xl. The
+       *  calendar lives inside the split-pane's 55% column when a
+       *  task is open; at common viewport widths the side-by-side
+       *  layout starved both columns. */}
+      <div className="flex flex-col xl:flex-row gap-4">
         <div className="flex-1 min-w-0 flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-[family-name:var(--font-display)] italic text-ink-4">
@@ -388,7 +392,7 @@ function NoDateSidebar({
   return (
     <aside
       ref={setNodeRef}
-      className={`w-56 shrink-0 flex flex-col gap-2 rounded-md p-2 transition-colors ${
+      className={`w-full xl:w-56 xl:shrink-0 flex flex-col gap-2 rounded-md p-2 transition-colors ${
         isOver
           ? "bg-glow-2/10 ring-2 ring-glow-2"
           : "bg-transparent"
