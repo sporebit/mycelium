@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
+import { PendingEntitiesList } from "./PendingEntitiesList";
 
 type Classification = {
   kind?: string;
@@ -34,7 +35,7 @@ type Capture = {
   created_at: string;
 };
 
-type Tab = "needs_review" | "all";
+type Tab = "needs_review" | "all" | "entities";
 
 type Toast = { kind: "ok" | "error"; text: string } | null;
 
@@ -212,6 +213,7 @@ export function CaptureReviewClient() {
             [
               { v: "needs_review", label: "NEEDS REVIEW" },
               { v: "all", label: "ALL" },
+              { v: "entities", label: "NEW ENTITIES" },
             ] as const
           ).map((t) => {
             const active = tab === t.v;
@@ -235,7 +237,9 @@ export function CaptureReviewClient() {
         </div>
       </header>
 
-      {captures === null || loading ? (
+      {tab === "entities" ? (
+        <PendingEntitiesList />
+      ) : captures === null || loading ? (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>

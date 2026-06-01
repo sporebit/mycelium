@@ -241,13 +241,51 @@ export async function writeCapture(
       mentionSourceId = routedId;
     }
 
+    // For voice/Telegram captures, check whether new-person mentions
+    // should be diverted to /compost/review rather than silently
+    // auto-created. UI-created captures (source = 'web' / 'api') skip
+    // this — those are explicit by definition.
+    const isVoiceLike = source === "telegram";
+    let deferIfNew = false;
+    if (isVoiceLike) {
+      const { data: rule } = await supabase
+        .from("entity_review_rules")
+        .select("review_new")
+        .eq("user_id", userId)
+        .eq("entity_type", "person")
+        .maybeSingle();
+      deferIfNew = rule?.review_new === true;
+    }
+
     for (const m of classification.mentions) {
       try {
-        const res = await resolveMention(supabase, userId, m.name_hint || m.raw);
+        const res = await resolveMention(
+          supabase,
+          userId,
+          m.name_hint || m.raw,
+          { deferIfNew },
+        );
         await recordMention(supabase, userId, res, {
           type: mentionSourceType,
           id: mentionSourceId,
         });
+        // When the mention was deferred (would have auto-created a
+        // brand-new person), queue a pending_entities row so the user
+        // can resolve it on /compost/review.
+        if (
+          deferIfNew &&
+          !res.person_id &&
+          res.confidence === "unresolved" &&
+          !res.auto_created
+        ) {
+          await supabase.from("pending_entities").insert({
+            user_id: userId,
+            capture_id: rawCapture.id,
+            entity_type: "person",
+            entity_name: res.raw_alias,
+            additional_data: { source_kind: classification.kind },
+          });
+        }
       } catch (err) {
         console.error("[writeCapture] mention pipeline soft-fail:", err);
       }

@@ -19,7 +19,12 @@ type Supabase = ReturnType<typeof createServerClient>;
 export async function resolveMention(
   supabase: Supabase,
   userId: string,
-  rawAliasIn: string
+  rawAliasIn: string,
+  /** When set, skip the no-match auto-create branch and return an
+   *  unresolved result. Callers (voice/Telegram capture pipeline)
+   *  use this to enqueue a pending_entities row for human review
+   *  instead of silently creating a new person. */
+  opts: { deferIfNew?: boolean } = {},
 ): Promise<MentionResolution> {
   const rawAlias = normaliseAlias(rawAliasIn);
   if (!rawAlias) {
@@ -123,7 +128,18 @@ export async function resolveMention(
     };
   }
 
-  // 3. No match — auto-create
+  // 3. No match — auto-create, unless the caller asked to defer
+  // (voice/Telegram captures route through pending_entities instead).
+  if (opts.deferIfNew) {
+    return {
+      raw_alias: rawAlias,
+      person_id: null,
+      candidate_person_ids: [],
+      confidence: "unresolved",
+      auto_created: false,
+      needs_review: true,
+    };
+  }
   const { data: created, error: createErr } = await supabase
     .from("people")
     .insert({
