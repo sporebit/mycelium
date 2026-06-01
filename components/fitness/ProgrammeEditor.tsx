@@ -100,6 +100,7 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
     slot: WorkoutSlot,
     workout: Workout,
   ) {
+    setError(null);
     const r = await fetch(`/api/fitness/programmes/${programmeId}/sessions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -111,10 +112,18 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
         workout_id: workout.id,
       }),
     });
-    if (r.ok) {
-      setPickerSlot(null);
-      await load();
+    if (!r.ok) {
+      // The previous version silently no-op'd here, masking the real
+      // problem (slot CHECK violation on evening/extra). Migration
+      // 0035 fixed the underlying cause; the error surface stays so
+      // future failures show up immediately.
+      const j = (await r.json().catch(() => ({}))) as { error?: string };
+      setError(j.error ?? `Couldn't schedule (${r.status})`);
+      console.error("[ProgrammeEditor addSession]", r.status, j);
+      return;
     }
+    setPickerSlot(null);
+    await load();
   }
 
   async function patchSession(
