@@ -670,14 +670,19 @@ function PurchaseRow({
         ))}
       </select>
 
+      {/* Delete: always visible. Hover-reveal got missed on touch
+          devices and made the affordance feel absent, which is the
+          bug the user reported. The trash icon is muted by default
+          and shifts to danger tone on hover. */}
       <button
         type="button"
         onClick={onDelete}
         disabled={busy}
-        aria-label="Delete"
-        className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-danger transition-opacity text-sm shrink-0"
+        aria-label="Delete purchase"
+        title="Delete purchase"
+        className="text-ink-3 hover:text-danger disabled:opacity-40 transition-colors text-base shrink-0"
       >
-        ×
+        🗑
       </button>
     </li>
   );
