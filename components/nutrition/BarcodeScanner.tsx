@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { isLikelyBarcode } from "@/lib/nutrition/off";
+import type { Food } from "@/lib/nutrition/types-v2";
+import { LabelScanner } from "./LabelScanner";
 
 /**
  * Full-screen barcode scanner overlay. Uses @zxing/browser, loaded on
@@ -21,9 +23,14 @@ import { isLikelyBarcode } from "@/lib/nutrition/off";
 export function BarcodeScanner({
   onDetected,
   onClose,
+  onLabelSaved,
 }: {
   onDetected: (barcode: string) => void;
   onClose: () => void;
+  /** When set, a "Scan label instead" affordance is rendered.
+   *  Tapping switches the overlay to the Claude Vision OCR flow and
+   *  fires this callback with the saved food row. */
+  onLabelSaved?: (food: Food) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [status, setStatus] = useState<
@@ -32,6 +39,7 @@ export function BarcodeScanner({
   const [manual, setManual] = useState("");
   const [rejectedMsg, setRejectedMsg] = useState<string | null>(null);
   const rejectedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [labelMode, setLabelMode] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -127,6 +135,19 @@ export function BarcodeScanner({
 
   const showVideo = status === "initialising" || status === "scanning";
 
+  // Label-mode hands off to a dedicated scanner with its own camera
+  // stream and Claude Vision flow. Returning to barcode mode resets
+  // back into this component.
+  if (labelMode && onLabelSaved) {
+    return (
+      <LabelScanner
+        onSaved={onLabelSaved}
+        onClose={onClose}
+        onSwitchToBarcode={() => setLabelMode(false)}
+      />
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-[200] bg-ink-0/95 backdrop-blur-sm flex flex-col">
       <div className="flex items-center justify-between px-4 py-3 border-b border-ink-2">
@@ -192,6 +213,16 @@ export function BarcodeScanner({
             </p>
           )}
         </div>
+
+        {onLabelSaved && (
+          <button
+            type="button"
+            onClick={() => setLabelMode(true)}
+            className="text-[11px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
+          >
+            Scan label instead →
+          </button>
+        )}
 
         <form
           onSubmit={submitManual}
