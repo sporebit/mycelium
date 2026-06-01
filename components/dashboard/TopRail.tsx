@@ -86,7 +86,7 @@ export function TopRail() {
   const pathname = usePathname();
   return (
     <header className="sticky top-0 z-30 bg-ink-1/85 backdrop-blur-xl shadow-[0_1px_0_0_var(--ink-2)]">
-      <div className="mx-auto max-w-[1400px] flex items-center justify-between gap-3 px-4 sm:px-6 min-h-[52px]">
+      <div className="w-full flex items-center justify-between gap-3 px-4 sm:px-6 min-h-[52px]">
         <Wordmark />
         <nav aria-label="Primary" className="flex items-center gap-0.5 sm:gap-1">
           {TABS.map((t) => {
