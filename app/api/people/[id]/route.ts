@@ -58,7 +58,32 @@ type PatchBody = Partial<{
   mutual_interests: string | null;
   notes: string | null;
   needs_review: boolean;
+  /** Optional secondary aliases — primary alias is auto-managed
+   *  from first_name / display_name below. Setting an empty array
+   *  clears every non-primary alias. */
+  aliases: string[];
 }>;
+
+// Allow-list of column names the PATCH may write directly to the
+// people row. The PersonDrawer also sends `aliases`, which is a
+// separate table and handled in the alias block below — passing
+// `aliases` through to the people update would fail with "column
+// not found" on Supabase, which was the root cause of the visible
+// "update failed" toast.
+const PEOPLE_COLUMNS: ReadonlyArray<keyof PatchBody> = [
+  "first_name",
+  "last_name",
+  "display_name",
+  "relationship",
+  "phone",
+  "email",
+  "birthday",
+  "address",
+  "where_we_met",
+  "mutual_interests",
+  "notes",
+  "needs_review",
+];
 
 export async function PATCH(
   req: NextRequest,
@@ -75,7 +100,7 @@ export async function PATCH(
   }
 
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  for (const key of Object.keys(body) as (keyof PatchBody)[]) {
+  for (const key of PEOPLE_COLUMNS) {
     if (body[key] !== undefined) update[key] = body[key];
   }
 
@@ -139,6 +164,53 @@ export async function PATCH(
             .update({ alias: newPrimary })
             .eq("id", primary.id);
         }
+      }
+    }
+
+    // Sync secondary aliases when the caller sent an explicit array.
+    // We diff against existing non-primary aliases so adds, removes,
+    // and renames all converge in a single call.
+    if (Array.isArray(body.aliases)) {
+      const next = new Set(
+        body.aliases
+          .map((a) => normaliseAlias(a))
+          .filter((a): a is string => !!a),
+      );
+      const { data: existingAliases } = await supabase
+        .from("people_aliases")
+        .select("id, alias, is_primary")
+        .eq("person_id", id);
+      const removeIds: string[] = [];
+      const keep = new Set<string>();
+      for (const row of (existingAliases ?? []) as Array<{
+        id: string;
+        alias: string;
+        is_primary: boolean;
+      }>) {
+        if (row.is_primary) continue;
+        if (next.has(row.alias)) {
+          keep.add(row.alias);
+        } else {
+          removeIds.push(row.id);
+        }
+      }
+      if (removeIds.length > 0) {
+        await supabase
+          .from("people_aliases")
+          .delete()
+          .in("id", removeIds);
+      }
+      const toAdd = [...next].filter((a) => !keep.has(a));
+      if (toAdd.length > 0) {
+        await supabase
+          .from("people_aliases")
+          .insert(
+            toAdd.map((alias) => ({
+              person_id: id,
+              alias,
+              is_primary: false,
+            })),
+          );
       }
     }
 
