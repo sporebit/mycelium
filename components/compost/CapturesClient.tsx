@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Mono } from "@/components/dashboard/Mono";
 
 type Capture = {
@@ -72,10 +73,15 @@ function kindBadge(kind: string | undefined): { label: string; className: string
 }
 
 export function CapturesClient() {
+  const searchParams = useSearchParams();
+  const focusId = searchParams.get("focus");
   const [source, setSource] = useState("all");
   const [kind, setKind] = useState("all");
   const [captures, setCaptures] = useState<Capture[] | null>(null);
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(() =>
+    focusId ? new Set([focusId]) : new Set(),
+  );
+  const scrolledRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
@@ -88,13 +94,24 @@ export function CapturesClient() {
       .then((r) => r.json())
       .then((j: { captures?: Capture[] }) => {
         if (!mounted) return;
-        setCaptures(Array.isArray(j?.captures) ? j.captures : []);
+        const list = Array.isArray(j?.captures) ? j.captures : [];
+        setCaptures(list);
+        // When the URL ships a ?focus= id, expand that row and scroll
+        // it into view exactly once after the list lands. The ref
+        // guard stops a re-fetch (e.g. filter toggle) from re-scrolling.
+        if (focusId && !scrolledRef.current) {
+          scrolledRef.current = true;
+          queueMicrotask(() => {
+            const el = document.getElementById(`capture-${focusId}`);
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+          });
+        }
       })
       .catch(() => mounted && setCaptures([]));
     return () => {
       mounted = false;
     };
-  }, [source, kind]);
+  }, [source, kind, focusId]);
 
   function toggle(id: string) {
     setExpanded((cur) => {
@@ -144,7 +161,13 @@ export function CapturesClient() {
             const kindStr = typeof cls.kind === "string" ? cls.kind : undefined;
             const badge = kindBadge(kindStr);
             return (
-              <li key={c.id} className="growth-in">
+              <li
+                key={c.id}
+                id={`capture-${c.id}`}
+                className={`growth-in ${
+                  focusId === c.id ? "ring-2 ring-glow-2/40 bg-glow-2/5" : ""
+                }`}
+              >
                 <button
                   type="button"
                   onClick={() => toggle(c.id)}

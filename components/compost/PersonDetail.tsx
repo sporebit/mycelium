@@ -297,12 +297,18 @@ export function PersonDetail({ id }: { id: string }) {
           ) : (
             <ul className="flex flex-col divide-y divide-ink-2">
               {mentions.map((m) => {
+                // Each mention links to the specific source record.
+                // Captures route through `?focus=<id>` which the
+                // captures client honours by opening that capture's
+                // detail expanded.
                 const href =
                   m.source_type === "task"
-                    ? `/compost/tasks?focus=${m.source_id}`
+                    ? `/compost/tasks?task=${m.source_id}`
                     : m.source_type === "capture"
-                    ? "/compost/captures"
-                    : "/journal";
+                    ? `/compost/captures?focus=${m.source_id}`
+                    : m.source_type === "journal"
+                      ? `/journal?focus=${m.source_id}`
+                      : "/compost/captures";
                 return (
                   <li key={m.id} className="growth-in py-3 first:pt-0 last:pb-0">
                     <Link href={href} className="block group">
