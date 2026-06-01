@@ -142,13 +142,16 @@ export function CapturesClient() {
         const list = Array.isArray(j?.captures) ? j.captures : [];
         setCaptures(list);
         // When the URL ships a ?focus= id, expand that row and scroll
-        // it into view exactly once after the list lands. The ref
-        // guard stops a re-fetch (e.g. filter toggle) from re-scrolling.
+        // it into view exactly once after the list lands. queueMicrotask
+        // fired before React committed the new rows, so getElementById
+        // returned null. rAF runs after the paint following setCaptures.
         if (focusId && !scrolledRef.current) {
           scrolledRef.current = true;
-          queueMicrotask(() => {
+          requestAnimationFrame(() => {
             const el = document.getElementById(`capture-${focusId}`);
-            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
           });
         }
       })
