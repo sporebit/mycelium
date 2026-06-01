@@ -286,10 +286,14 @@ h1, h2, h3, h4, h5, h6 {
     90deg,
     var(--text-0) 0%,
     var(--text-0) 35%,
-    var(--glow-2) 50%,
+    var(--glow-0) 50%,
     var(--text-0) 65%,
     var(--text-0) 100%
   );
+  /* Root cause of "wordmark not animating": prior version used
+   * --glow-2 which is the deep #2a8b56 (badge background variant);
+   * against the dark TopRail backdrop the glow band was nearly
+   * invisible. --glow-0 (#84f5b8 bright mint) is the spec colour. */
   background-size: 200% 100%;
   background-position: 100% 0;
   background-clip: text;
