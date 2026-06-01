@@ -1,8 +1,53 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Mono } from "@/components/dashboard/Mono";
+
+/** Map routed_to (the supabase table name) to the user-facing link
+ *  + label. Returning null hides the routed-to row entirely. */
+function routedToLink(
+  routedTo: string | null,
+  routedId: string | null,
+  classification: Record<string, unknown> | null,
+): { href: string; label: string; title: string } | null {
+  if (!routedTo || !routedId) return null;
+  const clsTitle =
+    typeof classification?.title === "string"
+      ? (classification.title as string)
+      : null;
+  switch (routedTo) {
+    case "tasks":
+      return {
+        href: `/compost/tasks?task=${routedId}`,
+        label: "Task",
+        title: clsTitle ?? "open",
+      };
+    case "purchases":
+      return {
+        href: `/compost/purchases`,
+        label: "Purchase",
+        title: clsTitle ?? "open",
+      };
+    case "journal_entries":
+      return {
+        href: `/journal?focus=${routedId}`,
+        label: "Journal",
+        title: clsTitle ?? "open",
+      };
+    case "exercise_pain_logs":
+      return {
+        href: `/health/pain`,
+        label: "Pain log",
+        title: clsTitle ?? "open",
+      };
+    case "raw_captures":
+      return null;
+    default:
+      return null;
+  }
+}
 
 type Capture = {
   id: string;
@@ -160,6 +205,9 @@ export function CapturesClient() {
             const cls = c.classification ?? {};
             const kindStr = typeof cls.kind === "string" ? cls.kind : undefined;
             const badge = kindBadge(kindStr);
+            const title =
+              typeof cls.title === "string" ? (cls.title as string) : null;
+            const routed = routedToLink(c.routed_to, c.routed_id, cls);
             return (
               <li
                 key={c.id}
@@ -181,21 +229,45 @@ export function CapturesClient() {
                     {sourceIcon(c.source)}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <Mono className="text-[10px] text-ink-3">
-                        {relativeDate(c.created_at)}
-                      </Mono>
+                    <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                      <span className="flex items-center gap-2">
+                        <span>{relativeDate(c.created_at)}</span>
+                        <span>·</span>
+                        <span>{c.source}</span>
+                      </span>
                       <span
-                        className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 ${badge.className}`}
+                        className={`px-1.5 py-0.5 rounded-md border shrink-0 ${badge.className}`}
                       >
                         {badge.label}
                       </span>
                     </div>
-                    <div className="text-sm text-ink-4 mt-1 leading-snug break-words">
-                      {isOpen ? c.raw_text : truncate(c.raw_text, 200)}
+                    {title && (
+                      <div className="text-sm text-ink-4 font-medium mt-1 leading-snug break-words">
+                        {title}
+                      </div>
+                    )}
+                    <div className="text-[12px] text-ink-3 italic mt-1 leading-snug break-words font-[family-name:var(--font-display)]">
+                      {isOpen
+                        ? c.raw_text
+                        : truncate(c.raw_text, title ? 80 : 200)}
                     </div>
                   </div>
                 </button>
+                {routed && (
+                  <div className="px-4 pb-2 -mt-1">
+                    <Link
+                      href={routed.href}
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] text-ink-3 hover:text-accent transition-colors"
+                    >
+                      <span aria-hidden>→</span>
+                      <span className="text-accent">{routed.label}:</span>
+                      <span className="truncate max-w-[40ch]">
+                        {routed.title}
+                      </span>
+                    </Link>
+                  </div>
+                )}
                 {isOpen && (
                   <div className="px-4 pb-3">
                     <details className="rounded-md border border-ink-2 bg-ink-0/40 p-2">
