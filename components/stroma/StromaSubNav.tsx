@@ -7,6 +7,7 @@ const TABS = [
   { label: "OVERVIEW", href: "/stroma" },
   { label: "ASK", href: "/stroma/ask" },
   { label: "RULES", href: "/stroma/rules" },
+  { label: "ENTITY RULES", href: "/stroma/entity-rules" },
   { label: "INTEGRATIONS", href: "/stroma/integrations" },
 ];
 
