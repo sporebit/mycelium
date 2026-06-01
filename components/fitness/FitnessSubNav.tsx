@@ -7,10 +7,11 @@ const TABS = [
   { label: "OVERVIEW", href: "/fitness/overview" },
   { label: "TODAY", href: "/fitness" },
   { label: "CALENDAR", href: "/fitness/calendar" },
+  { label: "HISTORY", href: "/fitness/history" },
+  { label: "WORKOUTS", href: "/fitness/workouts" },
   { label: "PROGRAMMES", href: "/fitness/programmes" },
   { label: "PHASES", href: "/fitness/phases" },
   { label: "BODY", href: "/fitness/body" },
-  { label: "HISTORY", href: "/fitness/history" },
 ];
 
 export function FitnessSubNav() {
