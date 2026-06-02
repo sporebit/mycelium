@@ -86,27 +86,43 @@ export function TopRail() {
   const pathname = usePathname();
   return (
     <header className="sticky top-0 z-30 bg-ink-1/85 backdrop-blur-xl shadow-[0_1px_0_0_var(--ink-2)]">
-      <div className="w-full flex items-center justify-between gap-3 px-4 sm:px-6 min-h-[52px]">
+      <div className="w-full flex items-center gap-3 pl-4 sm:pl-6 min-h-[52px]">
         <Wordmark />
-        <nav aria-label="Primary" className="flex items-center gap-0.5 sm:gap-1">
-          {TABS.map((t) => {
-            const isActive = t.match(pathname);
-            return (
-              <Link
-                key={t.label}
-                href={t.href}
-                aria-current={isActive ? "page" : undefined}
-                className={`${visibilityClass(t.visibility)} inline-flex items-center justify-center min-h-[44px] px-2 sm:px-3 text-[10px] sm:text-xs font-[family-name:var(--font-mono)] tracking-[0.04em] uppercase rounded-md transition-colors ${
-                  isActive
-                    ? "bg-ink-2 text-accent"
-                    : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/70"
-                }`}
-              >
-                {t.label}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* The nav becomes a self-contained horizontal scroller on
+            small screens (where the wordmark + tabs can outrun the
+            viewport). `overscroll-behavior-x: contain` stops a rail
+            swipe at its boundary from yanking the page sideways. */}
+        <div className="relative flex-1 min-w-0">
+          <nav
+            aria-label="Primary"
+            className="no-scrollbar flex items-center gap-0.5 sm:gap-1 overflow-x-auto lg:justify-end pr-12 sm:pr-6 lg:pr-6 [overscroll-behavior-x:contain]"
+          >
+            {TABS.map((t) => {
+              const isActive = t.match(pathname);
+              return (
+                <Link
+                  key={t.label}
+                  href={t.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`${visibilityClass(t.visibility)} shrink-0 inline-flex items-center justify-center min-h-[44px] px-2 sm:px-3 text-[10px] sm:text-xs font-[family-name:var(--font-mono)] tracking-[0.04em] uppercase rounded-md transition-colors ${
+                    isActive
+                      ? "bg-ink-2 text-accent"
+                      : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/70"
+                  }`}
+                >
+                  {t.label}
+                </Link>
+              );
+            })}
+          </nav>
+          {/* Right-edge fade affordance — only when the rail can scroll
+              (mobile). Matches the header's ink-1 backdrop so it blends
+              into the sticky surface. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute top-0 right-0 bottom-0 w-10 lg:hidden bg-gradient-to-l from-ink-1 to-transparent"
+          />
+        </div>
       </div>
     </header>
   );
