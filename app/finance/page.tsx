@@ -8,6 +8,11 @@ const CARDS = [
     href: "/finance/snapshot",
     description: "Net worth, accounts, recent movement.",
   },
+  {
+    label: "Spending",
+    href: "/finance/spending",
+    description: "Import bank CSVs, view transactions, categorise.",
+  },
 ];
 
 export default function FinanceOverviewPage() {

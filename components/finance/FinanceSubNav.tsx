@@ -9,6 +9,7 @@ const TABS: SubNavTab[] = [
     match: (p) => p === "/finance",
   },
   { label: "SNAPSHOT", href: "/finance/snapshot" },
+  { label: "SPENDING", href: "/finance/spending" },
 ];
 
 export function FinanceSubNav() {
