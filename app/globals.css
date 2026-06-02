@@ -184,10 +184,24 @@ body {
    without establishing a scroll container, so position: sticky on
    descendants (e.g. MobileHeader, TopRail) keeps working. Any content
    that legitimately needs horizontal scroll (tables, code blocks) puts
-   it inside its own `overflow-x: auto` wrapper. */
+   it inside its own `overflow-x: auto` wrapper.
+   `overscroll-behavior-x: none` kills the iOS rubber-band swipe that
+   would otherwise drag the whole page sideways even with overflow clipped. */
 html,
 body {
   overflow-x: clip;
+  overscroll-behavior-x: none;
+}
+
+/* Utility: hide native scrollbars on horizontally-scrolling rails
+   (nav tabs, kanban). The rail keeps native touch scrolling; we just
+   don't want a chrome scrollbar shouting at the user on desktop. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Media and tables shouldn't burst out of their containers. SVGs are
