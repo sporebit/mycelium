@@ -118,7 +118,10 @@ function Column({
     status === "completed" || status === "cancelled";
 
   return (
-    <div className="flex flex-col gap-2 min-w-[240px] flex-shrink-0">
+    // Mobile: ~82vw wide (max 320px) with scroll-snap so each swipe
+    // settles on one column with a peek of the next — viable kanban UX
+    // when 10 columns can't possibly fit on screen. Desktop unchanged.
+    <div className="flex flex-col gap-2 w-[82vw] max-w-[320px] sm:w-auto sm:min-w-[240px] sm:max-w-none flex-shrink-0 snap-start">
       <button
         type="button"
         onClick={collapsible ? onToggleCollapsed : undefined}
@@ -250,7 +253,13 @@ export function TaskStatusBoard({
         setOverride(null);
       }}
     >
-      <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+      {/* Scroll-snap on mobile so columns settle to a real edge instead
+          of resting half-off-screen (the Projects-kanban "empty column
+          dangling on the left" bug). `overscroll-behavior-x: contain`
+          stops a horizontal kanban swipe from leaking into the page.
+          `-mx-4 px-4` is contained within `overflow-x: clip` on body,
+          so it never widens the page itself. */}
+      <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory scroll-pl-4 sm:snap-none [overscroll-behavior-x:contain]">
         {TASK_STATUSES.map((s) => (
           <Column
             key={s}
