@@ -10,10 +10,26 @@ import type { Workout } from "@/lib/fitness/workouts";
 import { SyncStatus } from "./SyncStatus";
 
 const KINDS: TemplateKind[] = ["resistance", "cardio", "conditioning", "mobility"];
+const CACHE_KEY = "mycelium.workout-now.templates";
 
 type Template =
   | { source: "programme"; id: string; name: string; kind: TemplateKind; dayLabel: string }
   | { source: "library"; id: string; name: string; kind: string; exerciseCount: number };
+
+function readCachedTemplates(): Template[] {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    return raw ? (JSON.parse(raw) as Template[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCachedTemplates(tpls: Template[]) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(tpls));
+  } catch { /* quota exceeded — non-critical */ }
+}
 
 export function WorkoutNowClient() {
   const router = useRouter();
@@ -66,10 +82,15 @@ export function WorkoutNowClient() {
 
         if (mounted) {
           setTemplates(tpls);
+          writeCachedTemplates(tpls);
           setLoading(false);
         }
       } catch {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          const cached = readCachedTemplates();
+          setTemplates(cached);
+          setLoading(false);
+        }
       }
     })();
     return () => { mounted = false; };
