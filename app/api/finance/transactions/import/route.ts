@@ -13,14 +13,64 @@ import { detectPayPal, parsePayPalCsv } from "@/lib/finance/paypal-csv";
 import { findOrCreateAccount, persistPayPalImport } from "@/lib/finance/paypal-persist";
 import { runPayPalMatcher, type MatchRunResult } from "@/lib/finance/paypal-match";
 import type { ImportResult } from "@/lib/types/transaction";
+import ExcelJS from "exceljs";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const PARSERS: CsvBankParser[] = [halifaxParser, revolutParser, amexParser];
 
+const EXCEL_EXTENSIONS = new Set([".xlsx", ".xls"]);
+
 function userId(): string | null {
   return process.env.USER_ID ?? null;
+}
+
+function isExcel(name: string): boolean {
+  const dot = name.lastIndexOf(".");
+  if (dot === -1) return false;
+  return EXCEL_EXTENSIONS.has(name.slice(dot).toLowerCase());
+}
+
+function cellToString(v: unknown): string {
+  if (v === null || v === undefined) return "";
+  if (typeof v === "number") return Number.isFinite(v) ? String(v) : "";
+  if (typeof v === "boolean") return String(v);
+  if (typeof v === "string") return v;
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    if ("result" in o) return cellToString(o.result);
+    if ("richText" in o && Array.isArray(o.richText))
+      return (o.richText as Array<{ text?: string }>).map((r) => r.text ?? "").join("");
+    if ("text" in o) return cellToString(o.text);
+    return "";
+  }
+  return "";
+}
+
+function csvEscape(s: string): string {
+  if (s.includes(",") || s.includes('"') || s.includes("\n"))
+    return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+async function excelToCsv(buffer: ArrayBuffer): Promise<string> {
+  const workbook = new ExcelJS.Workbook();
+  await (workbook.xlsx.load as (data: ArrayBuffer) => Promise<unknown>)(buffer);
+  const ws = workbook.worksheets[0];
+  if (!ws) return "";
+
+  const rows: string[] = [];
+  ws.eachRow({ includeEmpty: false }, (row) => {
+    const values = row.values as unknown[];
+    const cells: string[] = [];
+    for (let i = 1; i < values.length; i++) {
+      cells.push(csvEscape(cellToString(values[i])));
+    }
+    rows.push(cells.join(","));
+  });
+  return rows.join("\n");
 }
 
 export async function POST(req: NextRequest) {
@@ -34,7 +84,7 @@ export async function POST(req: NextRequest) {
     form = await req.formData();
   } catch {
     return NextResponse.json(
-      { error: "Expected multipart form with CSV file(s)" },
+      { error: "Expected multipart form with file(s)" },
       { status: 400 },
     );
   }
@@ -50,7 +100,24 @@ export async function POST(req: NextRequest) {
   for (const entry of files) {
     if (!(entry instanceof File)) continue;
     const fileName = entry.name;
-    const text = stripBom(await entry.text());
+
+    let text: string;
+    try {
+      if (isExcel(fileName)) {
+        const buf = await entry.arrayBuffer();
+        text = await excelToCsv(buf);
+      } else {
+        text = stripBom(await entry.text());
+      }
+    } catch (err) {
+      results.push({
+        file: fileName,
+        imported: 0,
+        skipped: 0,
+        errors: [{ line: 0, raw: "", reason: `Failed to read file: ${err instanceof Error ? err.message : String(err)}` }],
+      });
+      continue;
+    }
 
     const lines = normalizeLines(text);
     if (lines.length === 0) {
@@ -102,7 +169,7 @@ export async function POST(req: NextRequest) {
           {
             line: 1,
             raw: headerLine.slice(0, 200),
-            reason: `Unrecognised CSV format. Header: "${headerLine.slice(0, 100)}"`,
+            reason: `Unrecognised format. Header: "${headerLine.slice(0, 100)}"`,
           },
         ],
       });
@@ -197,5 +264,22 @@ export async function POST(req: NextRequest) {
     console.error("[import] PayPal matcher error:", err);
   }
 
-  return NextResponse.json({ results, match_result });
+  const totalImported = results.reduce((s, r) => s + r.imported, 0);
+  const totalSkipped = results.reduce((s, r) => s + r.skipped, 0);
+  const flatErrors: string[] = [];
+  for (const r of results) {
+    for (const e of r.errors) {
+      flatErrors.push(`${r.file}: ${e.reason}`);
+    }
+  }
+
+  return NextResponse.json({
+    results,
+    match_result,
+    filesProcessed: results.length,
+    imported: totalImported,
+    duplicatesSkipped: totalSkipped,
+    matched: match_result?.auto_matched ?? 0,
+    errors: flatErrors,
+  });
 }
