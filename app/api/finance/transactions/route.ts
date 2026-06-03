@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
 
     type TxnRow = Record<string, unknown> & {
       amount: number;
-      bank_accounts?: { account_number: string; label: string | null } | null;
+      bank_accounts?: { account_number: string | null; label: string | null } | null;
     };
 
     const transactions = (data ?? []).map((row: TxnRow) => {

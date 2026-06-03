@@ -16,7 +16,7 @@ export async function GET() {
     const supabase = createServerClient();
     const { data, error } = await supabase
       .from("bank_accounts")
-      .select("id, bank, account_number, sort_code, label, created_at")
+      .select("id, bank, external_key, account_number, sort_code, label, account_type, created_at")
       .eq("user_id", uid)
       .order("created_at", { ascending: true });
     if (error) throw error;

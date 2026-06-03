@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { parseHalifaxCsv, type ParsedRow } from "@/lib/finance/halifax-csv";
+import {
+  type CsvBankParser,
+  type NormalizedTxn,
+  stripBom,
+  normalizeLines,
+} from "@/lib/finance/csv-parser";
+import { halifaxParser } from "@/lib/finance/halifax-csv";
+import { revolutParser } from "@/lib/finance/revolut-csv";
+import { amexParser } from "@/lib/finance/amex-csv";
 import type { ImportResult } from "@/lib/types/transaction";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+const PARSERS: CsvBankParser[] = [halifaxParser, revolutParser, amexParser];
 
 function userId(): string | null {
   return process.env.USER_ID ?? null;
@@ -37,94 +47,123 @@ export async function POST(req: NextRequest) {
   for (const entry of files) {
     if (!(entry instanceof File)) continue;
     const fileName = entry.name;
-    const text = await entry.text();
-    const parsed = await parseHalifaxCsv(text);
+    const text = stripBom(await entry.text());
 
-    if (parsed.rows.length === 0) {
+    const lines = normalizeLines(text);
+    if (lines.length === 0) {
       results.push({
         file: fileName,
         imported: 0,
         skipped: 0,
+        errors: [{ line: 1, raw: "", reason: "Empty file" }],
+      });
+      continue;
+    }
+
+    const headerLine = lines[0].trim();
+    const parser = PARSERS.find((p) => p.detect(headerLine));
+    if (!parser) {
+      results.push({
+        file: fileName,
+        imported: 0,
+        skipped: 0,
+        errors: [
+          {
+            line: 1,
+            raw: headerLine.slice(0, 200),
+            reason: `Unrecognised CSV format. Header: "${headerLine.slice(0, 100)}"`,
+          },
+        ],
+      });
+      continue;
+    }
+
+    const parsed = await parser.parse(text);
+
+    if (parsed.txns.length === 0 && parsed.errors.length > 0) {
+      results.push({
+        file: fileName,
+        imported: 0,
+        skipped: 0,
+        skipped_by_state: parsed.skipped.length || undefined,
         errors: parsed.errors,
       });
       continue;
     }
 
-    // Group rows by account_number to upsert bank_accounts.
-    const accountNumbers = [...new Set(parsed.rows.map((r) => r.account_number))];
+    // Resolve accounts: findOrCreate each AccountDescriptor
     const accountIdMap = new Map<string, string>();
 
-    for (const acctNum of accountNumbers) {
-      const sample = parsed.rows.find((r) => r.account_number === acctNum)!;
-      const last4 = acctNum.slice(-4);
-      const defaultLabel = `Halifax ••${last4}`;
-
-      // Try to find existing account first.
+    for (const [extKey, desc] of parsed.accounts) {
       const { data: existing } = await supabase
         .from("bank_accounts")
         .select("id")
         .eq("user_id", uid)
-        .eq("account_number", acctNum)
+        .eq("bank", desc.bank)
+        .eq("external_key", extKey)
         .maybeSingle();
 
       if (existing) {
-        accountIdMap.set(acctNum, existing.id);
+        accountIdMap.set(extKey, existing.id);
       } else {
         const { data: created, error: createErr } = await supabase
           .from("bank_accounts")
           .insert({
             user_id: uid,
-            bank: "Halifax",
-            account_number: acctNum,
-            sort_code: sample.sort_code || null,
-            label: defaultLabel,
+            bank: desc.bank,
+            external_key: extKey,
+            label: desc.label,
+            account_type: desc.account_type,
+            account_number: desc.account_number ?? null,
+            sort_code: desc.sort_code ?? null,
           })
           .select("id")
           .single();
+
         if (createErr || !created) {
-          // Might be a race — try select again.
           const { data: retry } = await supabase
             .from("bank_accounts")
             .select("id")
             .eq("user_id", uid)
-            .eq("account_number", acctNum)
+            .eq("bank", desc.bank)
+            .eq("external_key", extKey)
             .single();
           if (retry) {
-            accountIdMap.set(acctNum, retry.id);
+            accountIdMap.set(extKey, retry.id);
           } else {
             parsed.errors.push({
               line: 0,
               raw: "",
-              reason: `Failed to create bank account for ${acctNum}: ${createErr?.message}`,
+              reason: `Failed to create account ${desc.bank} ${extKey}: ${createErr?.message}`,
             });
-            continue;
           }
         } else {
-          accountIdMap.set(acctNum, created.id);
+          accountIdMap.set(extKey, created.id);
         }
       }
     }
 
-    // Build insert rows, skipping any whose account wasn't resolved.
-    const insertRows = parsed.rows
-      .filter((r) => accountIdMap.has(r.account_number))
-      .map((r: ParsedRow) => ({
+    const insertRows = parsed.txns
+      .filter((t) => accountIdMap.has(t.account_key))
+      .map((t: NormalizedTxn) => ({
         user_id: uid,
-        account_id: accountIdMap.get(r.account_number)!,
-        txn_date: r.txn_date,
-        txn_type: r.txn_type,
-        description: r.description,
-        amount: r.amount,
-        debit: r.debit,
-        credit: r.credit,
-        balance: r.balance,
-        dedup_hash: r.dedup_hash,
+        account_id: accountIdMap.get(t.account_key)!,
+        txn_date: t.txn_date,
+        txn_type: t.txn_type,
+        description: t.description,
+        amount: t.amount,
+        debit: t.debit,
+        credit: t.credit,
+        balance: t.balance,
+        dedup_hash: t.dedup_hash,
+        fee: t.fee,
+        currency: t.currency,
+        state: t.state,
+        started_at: t.started_at,
+        completed_at: t.completed_at,
       }));
 
-    // Batch insert with ON CONFLICT DO NOTHING for dedup.
-    // Supabase JS client supports `onConflict` + `ignoreDuplicates`.
     let imported = 0;
-    let skipped = 0;
     const BATCH = 500;
 
     for (let i = 0; i < insertRows.length; i += BATCH) {
@@ -144,12 +183,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    skipped = insertRows.length - imported;
+    const skipped = insertRows.length - imported;
 
     results.push({
       file: fileName,
       imported,
       skipped,
+      skipped_by_state: parsed.skipped.length || undefined,
       errors: parsed.errors,
     });
   }
