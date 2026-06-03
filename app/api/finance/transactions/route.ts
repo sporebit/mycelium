@@ -23,29 +23,43 @@ export async function GET(req: NextRequest) {
 
   try {
     const supabase = createServerClient();
-    let q = supabase
+
+    let pageQ = supabase
       .from("transactions")
       .select("*, bank_accounts(account_number, label)", { count: "exact" })
-      .eq("user_id", uid)
+      .eq("user_id", uid);
+    let sumQ = supabase
+      .from("transactions")
+      .select("amount")
+      .eq("user_id", uid);
+
+    if (accountId && accountId !== "all") {
+      pageQ = pageQ.eq("account_id", accountId);
+      sumQ = sumQ.eq("account_id", accountId);
+    }
+    if (from) {
+      pageQ = pageQ.gte("txn_date", from);
+      sumQ = sumQ.gte("txn_date", from);
+    }
+    if (to) {
+      pageQ = pageQ.lte("txn_date", to);
+      sumQ = sumQ.lte("txn_date", to);
+    }
+    if (search) {
+      pageQ = pageQ.or(`description.ilike.%${search}%,enriched_merchant.ilike.%${search}%`);
+      sumQ = sumQ.or(`description.ilike.%${search}%,enriched_merchant.ilike.%${search}%`);
+    }
+
+    const pageQuery = pageQ
       .order("txn_date", { ascending: false })
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
-    if (accountId && accountId !== "all") {
-      q = q.eq("account_id", accountId);
-    }
-    if (from) {
-      q = q.gte("txn_date", from);
-    }
-    if (to) {
-      q = q.lte("txn_date", to);
-    }
-    if (search) {
-      q = q.or(`description.ilike.%${search}%,enriched_merchant.ilike.%${search}%`);
-    }
+    const [{ data, error, count }, { data: allAmounts, error: sumErr }] =
+      await Promise.all([pageQuery, sumQ]);
 
-    const { data, error, count } = await q;
     if (error) throw error;
+    if (sumErr) throw sumErr;
 
     type TxnRow = Record<string, unknown> & {
       amount: number;
@@ -63,11 +77,10 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // Summary: total credits, total debits, net.
     let totalIn = 0;
     let totalOut = 0;
-    for (const t of transactions) {
-      const amt = Number(t.amount);
+    for (const row of (allAmounts ?? []) as { amount: number }[]) {
+      const amt = Number(row.amount);
       if (amt > 0) totalIn += amt;
       else totalOut += amt;
     }
