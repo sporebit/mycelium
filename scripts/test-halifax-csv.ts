@@ -11,6 +11,7 @@ import {
 import { revolutParser } from "../lib/finance/revolut-csv";
 import { amexParser } from "../lib/finance/amex-csv";
 import { stripBom } from "../lib/finance/csv-parser";
+import { detectPayPal, parsePayPalCsv } from "../lib/finance/paypal-csv";
 
 const HALIFAX_FIXTURE = `Transaction Date,Transaction Type,Sort Code,Account Number,Transaction Description,Debit Amount,Credit Amount,Balance
 01/06/2026,FEE,'11-02-39,12706368,ACCOUNT FEE,19.00,,92.33
@@ -275,6 +276,121 @@ async function testAmex() {
   assert(apple.currency === "GBP", `Currency = GBP (got ${apple.currency})`);
 }
 
+// ── PayPal ──
+
+const PAYPAL_FIXTURE = `"Date","Time","Time Zone","Description","Currency","Gross","Fee","Net","Balance","Transaction ID","From Email Address","Name","Bank Name","Bank account","Postage and Packaging Amount","VAT","Invoice ID","Reference Txn ID"
+"15/05/2026","10:30:00","Europe/London","Express Checkout Payment","GBP","-14.99","0.00","-14.99","100.00","TXN001","buyer@email.com","ClarityCheck","","","0.00","0.00","","AUTH001"
+"15/05/2026","10:30:01","Europe/London","General Card Deposit","GBP","14.99","0.00","14.99","114.99","TXN002","","","Visa","x-1234","0.00","0.00","","TXN001"
+"20/05/2026","14:00:00","Europe/London","Pre-approved Payment Bill User Payment","GBP","-9.99","0.00","-9.99","90.01","TXN003","buyer@email.com","Netflix","","","0.00","0.00","","AUTH002"
+"25/05/2026","09:00:00","Europe/London","Express Checkout Payment","GBP","-5.00","-0.50","-5.50","84.51","TXN004","buyer@email.com","SmallShop","","","0.00","0.00","","AUTH003"
+"25/05/2026","09:00:01","Europe/London","Bank Deposit to PP Account","GBP","5.50","0.00","5.50","90.01","TXN005","","","Halifax","x-5678","0.00","0.00","","TXN004"
+"01/06/2026","12:00:00","Europe/London","General Currency Conversion","GBP","-10.00","0.00","-10.00","80.01","TXN006","","","","","0.00","0.00","","TXN007"
+"01/06/2026","12:00:01","Europe/London","Express Checkout Payment","USD","-12.00","0.00","-12.00","68.01","TXN007","buyer@email.com","USMerchant","","","0.00","0.00","","AUTH004"
+"28/05/2026","16:00:00","Europe/London","Refund","GBP","5.00","0.00","5.00","95.01","TXN008","buyer@email.com","SmallShop","","","0.00","0.00","","TXN004"`;
+
+async function testPayPal() {
+  console.log("\n\n=== PayPal Parser ===\n");
+
+  console.log("1. Header detection");
+  assert(
+    detectPayPal(
+      '"Date","Time","Time Zone","Description","Currency","Gross","Fee","Net","Balance","Transaction ID","From Email Address","Name","Bank Name","Bank account","Postage and Packaging Amount","VAT","Invoice ID","Reference Txn ID"',
+    ),
+    "PayPal header detected",
+  );
+  assert(!detectPayPal("Date,Description,Amount"), "AMEX header not detected as PayPal");
+
+  console.log("\n2. Parse fixture");
+  const result = await parsePayPalCsv(PAYPAL_FIXTURE);
+  assert(result.errors.length === 0, `No errors (got ${result.errors.length})`);
+  assert(result.payments.length === 4, `4 payment legs (got ${result.payments.length})`);
+
+  console.log("\n3. ClarityCheck is card-funded");
+  const clarity = result.payments.find((p) => p.merchant_name === "ClarityCheck")!;
+  assert(clarity !== undefined, "ClarityCheck found");
+  assert(clarity.funded === true, `funded = true (got ${clarity.funded})`);
+  assert(clarity.funding_type === "card", `funding_type = card (got ${clarity.funding_type})`);
+  assert(clarity.match_status === "pending", `match_status = pending (got ${clarity.match_status})`);
+  assert(clarity.amount === -14.99, `amount = -14.99 (got ${clarity.amount})`);
+
+  console.log("\n4. Netflix is balance-funded");
+  const netflix = result.payments.find((p) => p.merchant_name === "Netflix")!;
+  assert(netflix !== undefined, "Netflix found");
+  assert(netflix.funded === false, `funded = false (got ${netflix.funded})`);
+  assert(netflix.funding_type === null, `funding_type = null (got ${netflix.funding_type})`);
+  assert(netflix.match_status === "standalone", `match_status = standalone (got ${netflix.match_status})`);
+
+  console.log("\n5. SmallShop is bank-funded (with fee)");
+  const shop = result.payments.find((p) => p.merchant_name === "SmallShop")!;
+  assert(shop !== undefined, "SmallShop found");
+  assert(shop.funded === true, `funded = true (got ${shop.funded})`);
+  assert(shop.funding_type === "bank", `funding_type = bank (got ${shop.funding_type})`);
+  assert(shop.fee === -0.5, `fee = -0.50 (got ${shop.fee})`);
+  assert(shop.net === -5.5, `net = -5.50 (got ${shop.net})`);
+
+  console.log("\n6. USMerchant is balance-funded (currency conversion is not funding)");
+  const usMerch = result.payments.find((p) => p.merchant_name === "USMerchant")!;
+  assert(usMerch !== undefined, "USMerchant found");
+  assert(usMerch.funded === false, `funded = false (got ${usMerch.funded})`);
+  assert(usMerch.currency === "USD", `currency = USD (got ${usMerch.currency})`);
+
+  console.log("\n7. Summary counts");
+  assert(
+    result.summary.total_payments === 4,
+    `total_payments = 4 (got ${result.summary.total_payments})`,
+  );
+  assert(
+    result.summary.balance_funded === 2,
+    `balance_funded = 2 (got ${result.summary.balance_funded})`,
+  );
+  assert(
+    result.summary.card_funded === 1,
+    `card_funded = 1 (got ${result.summary.card_funded})`,
+  );
+  assert(
+    result.summary.bank_funded === 1,
+    `bank_funded = 1 (got ${result.summary.bank_funded})`,
+  );
+  assert(
+    result.summary.skipped_legs === 4,
+    `skipped_legs = 4 (got ${result.summary.skipped_legs})`,
+  );
+
+  console.log("\n8. Balance-funded standalone transactions");
+  assert(
+    result.balanceFundedTxns.length === 2,
+    `2 standalone txns (got ${result.balanceFundedTxns.length})`,
+  );
+  const netflixTxn = result.balanceFundedTxns.find((t) => t.description === "Netflix")!;
+  assert(netflixTxn !== undefined, "Netflix standalone txn found");
+  assert(netflixTxn.amount === -9.99, `Netflix amount = -9.99 (got ${netflixTxn.amount})`);
+  assert(netflixTxn.debit === 9.99, `Netflix debit = 9.99 (got ${netflixTxn.debit})`);
+  assert(netflixTxn.account_key === "PAYPAL", `account_key = PAYPAL`);
+
+  console.log("\n9. Card-funded NOT in standalone txns");
+  const clarityTxn = result.balanceFundedTxns.find((t) => t.description === "ClarityCheck");
+  assert(clarityTxn === undefined, "ClarityCheck NOT in standalone txns");
+
+  console.log("\n10. Account descriptor");
+  assert(result.account.bank === "PayPal", `bank = PayPal (got ${result.account.bank})`);
+  assert(
+    result.account.account_type === "wallet",
+    `account_type = wallet (got ${result.account.account_type})`,
+  );
+
+  console.log("\n11. Dedup: re-parse produces identical hashes");
+  const result2 = await parsePayPalCsv(PAYPAL_FIXTURE);
+  const hashes1 = result.balanceFundedTxns.map((t) => t.dedup_hash);
+  const hashes2 = result2.balanceFundedTxns.map((t) => t.dedup_hash);
+  assert(hashes1.every((h, i) => h === hashes2[i]), "All hashes match between two parses");
+
+  console.log("\n12. UK date parsing");
+  assert(
+    clarity.paypal_date === "2026-05-15",
+    `15/05/2026 → 2026-05-15 (got ${clarity.paypal_date})`,
+  );
+}
+
 // ── Auto-detect ──
 
 async function testAutoDetect() {
@@ -301,7 +417,16 @@ async function testAutoDetect() {
   assert(detect("Date,Description,Amount")?.id === "amex", "AMEX header → amex parser");
   assert(detect("Foo,Bar,Baz") === null, "Unknown header → null");
 
-  console.log("\n2. BOM stripping");
+  console.log("\n2. PayPal detection");
+  assert(
+    detectPayPal(
+      '"Date","Time","Time Zone","Description","Currency","Gross","Fee","Net","Balance","Transaction ID","From Email Address","Name","Bank Name","Bank account","Postage and Packaging Amount","VAT","Invoice ID","Reference Txn ID"',
+    ),
+    "PayPal header detected by detectPayPal",
+  );
+  assert(!detectPayPal("Date,Description,Amount"), "AMEX header rejected by detectPayPal");
+
+  console.log("\n3. BOM stripping");
   assert(stripBom("﻿hello") === "hello", "BOM stripped");
   assert(stripBom("hello") === "hello", "No BOM unchanged");
 }
@@ -314,6 +439,7 @@ async function main() {
   await testHalifax();
   await testRevolut();
   await testAmex();
+  await testPayPal();
   await testAutoDetect();
 
   console.log(`\n\n--- Results: ${passed} passed, ${failed} failed ---`);

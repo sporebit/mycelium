@@ -370,7 +370,7 @@ function ImportDropzone({
             Drop bank CSV files here, or click to browse
           </p>
           <Mono className="text-[11px] text-ink-3 mt-1">
-            Halifax, Revolut, and Amex · duplicates skipped automatically
+            Halifax, Revolut, Amex, and PayPal · duplicates skipped automatically
           </Mono>
         </>
       )}
@@ -419,6 +419,13 @@ function ImportResultsBanner({
               </Mono>
             )}
           </div>
+          {r.paypal_summary && (
+            <div className="flex items-center gap-3 pl-2">
+              <Mono className="text-[11px] text-ink-3">
+                {r.paypal_summary.total_payments} payments · {r.paypal_summary.balance_funded} balance · {r.paypal_summary.card_funded + r.paypal_summary.bank_funded} card/bank (pending match)
+              </Mono>
+            </div>
+          )}
           {r.errors.length > 0 && (
             <div className="flex flex-col gap-0.5 pl-2">
               {r.errors.map((err, j) => (

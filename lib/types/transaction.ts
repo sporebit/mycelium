@@ -28,6 +28,8 @@ export type Transaction = {
   state: string | null;
   started_at: string | null;
   completed_at: string | null;
+  enriched_merchant: string | null;
+  enrichment_source: string | null;
   created_at: string;
   account_number?: string | null;
   account_label?: string | null;
@@ -38,5 +40,11 @@ export type ImportResult = {
   imported: number;
   skipped: number;
   skipped_by_state?: number;
+  paypal_summary?: {
+    total_payments: number;
+    balance_funded: number;
+    card_funded: number;
+    bank_funded: number;
+  };
   errors: { line: number; raw: string; reason: string }[];
 };
