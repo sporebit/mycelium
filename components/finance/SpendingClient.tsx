@@ -73,6 +73,7 @@ export function SpendingClient() {
   const [matchCounts, setMatchCounts] = useState<MatchCounts | null>(null);
   const [ambiguousPayments, setAmbiguousPayments] = useState<AmbiguousPayment[]>([]);
   const [matching, setMatching] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
@@ -263,13 +264,54 @@ export function SpendingClient() {
     }
   }
 
+  // Sync PayPal via API.
+  async function handleSync() {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/finance/paypal/sync", { method: "POST" });
+      const j = (await res.json()) as {
+        fetched?: number;
+        imported?: number;
+        matched?: number;
+        error?: string;
+      };
+      if (!res.ok || j.error) {
+        setToast({ kind: "error", text: j.error ?? "Sync failed" });
+        return;
+      }
+      setToast({
+        kind: "ok",
+        text: `PayPal: ${j.fetched ?? 0} fetched, ${j.imported ?? 0} imported, ${j.matched ?? 0} matched`,
+      });
+      fetchTransactions();
+      fetchMatches();
+    } catch {
+      setToast({ kind: "error", text: "PayPal sync failed" });
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {/* Import section */}
-      <ImportDropzone
-        importing={importing}
-        onFiles={handleImport}
-      />
+      <div className="flex items-start gap-3">
+        <div className="flex-1">
+          <ImportDropzone
+            importing={importing}
+            onFiles={handleImport}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={handleSync}
+          disabled={syncing}
+          className="shrink-0 px-4 py-3 rounded-md border border-ink-2 bg-ink-1/50 hover:border-ink-3 text-sm text-text-1 hover:text-text-0 disabled:text-ink-3 transition-colors font-[family-name:var(--font-mono)]"
+        >
+          {syncing ? "Syncing…" : "Sync PayPal"}
+        </button>
+      </div>
 
       {/* Import results */}
       {importResults && (
@@ -286,7 +328,9 @@ export function SpendingClient() {
             counts={matchCounts}
             ambiguous={ambiguousPayments}
             matching={matching}
+            syncing={syncing}
             onRerun={handleRerunMatch}
+            onSync={handleSync}
             onResolve={handleResolve}
           />
         )}
@@ -726,13 +770,17 @@ function PayPalMatchPanel({
   counts,
   ambiguous,
   matching,
+  syncing,
   onRerun,
+  onSync,
   onResolve,
 }: {
   counts: MatchCounts;
   ambiguous: AmbiguousPayment[];
   matching: boolean;
+  syncing: boolean;
   onRerun: () => void;
+  onSync: () => void;
   onResolve: (paymentId: string, transactionId: string) => void;
 }) {
   return (
@@ -741,14 +789,24 @@ function PayPalMatchPanel({
         <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
           PayPal Matching
         </span>
-        <button
-          type="button"
-          onClick={onRerun}
-          disabled={matching}
-          className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-accent/80 disabled:text-ink-3 font-[family-name:var(--font-mono)] transition-colors"
-        >
-          {matching ? "Matching…" : "Re-run matching"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onSync}
+            disabled={syncing}
+            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-accent/80 disabled:text-ink-3 font-[family-name:var(--font-mono)] transition-colors"
+          >
+            {syncing ? "Syncing…" : "Sync PayPal"}
+          </button>
+          <button
+            type="button"
+            onClick={onRerun}
+            disabled={matching}
+            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-accent/80 disabled:text-ink-3 font-[family-name:var(--font-mono)] transition-colors"
+          >
+            {matching ? "Matching…" : "Re-run matching"}
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
