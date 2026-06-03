@@ -11,7 +11,16 @@
       "Bash(git -C /home/phil/mycelium add -A)",
       "Bash(git -C /home/phil/mycelium commit -m ' *)",
       "Bash(mkdir -p /home/phil/.claude/projects/-home-phil-mycelium/memory)",
-      "Bash(npx tsc *)"
-    ]
-  }
+      "Bash(npx tsc *)",
+      "Bash(git rm *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(supabase --version)",
+      "Bash(npx --no-install supabase --version)",
+      "Bash(node --env-file=.env.local /tmp/diag.mjs)",
+      "Bash(node --env-file=.env.local diag.mjs)"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "outputStyle": "Explanatory"
 }
