@@ -46,6 +46,45 @@ function fmtDate(iso: string): string {
   }
 }
 
+function isoDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+type DatePreset = { label: string; from: string; to: string };
+
+function getDatePresets(): DatePreset[] {
+  const today = new Date();
+  const todayIso = isoDate(today);
+
+  const d7 = new Date(today);
+  d7.setDate(d7.getDate() - 6);
+
+  const d30 = new Date(today);
+  d30.setDate(d30.getDate() - 29);
+
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  const yearStart = new Date(today.getFullYear(), 0, 1);
+
+  // UK tax year: 6 Apr – 5 Apr
+  const thisApr6 = new Date(today.getFullYear(), 3, 6);
+  const taxYearStart = today >= thisApr6
+    ? thisApr6
+    : new Date(today.getFullYear() - 1, 3, 6);
+  const lastTaxStart = new Date(taxYearStart.getFullYear() - 1, 3, 6);
+  const lastTaxEnd = new Date(taxYearStart.getFullYear(), 3, 5);
+
+  return [
+    { label: "7 days", from: isoDate(d7), to: todayIso },
+    { label: "30 days", from: isoDate(d30), to: todayIso },
+    { label: "This month", from: isoDate(monthStart), to: todayIso },
+    { label: "This year", from: isoDate(yearStart), to: todayIso },
+    { label: "This tax year", from: isoDate(taxYearStart), to: todayIso },
+    { label: "Last tax year", from: isoDate(lastTaxStart), to: isoDate(lastTaxEnd) },
+    { label: "All time", from: "", to: "" },
+  ];
+}
+
 // ---------------------------------------------------------------------------
 // SpendingClient
 // ---------------------------------------------------------------------------
@@ -65,6 +104,7 @@ export function SpendingClient() {
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [activePreset, setActivePreset] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast>(null);
   const [importResults, setImportResults] = useState<ImportResult[] | null>(
     null,
@@ -372,56 +412,92 @@ export function SpendingClient() {
       )}
 
       {/* Filters */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="search description…"
-          className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 placeholder:text-ink-3 outline-none focus:border-ink-3 transition-colors w-56"
-        />
-        {accounts.length > 0 && (
-          <select
-            value={accountFilter}
-            onChange={(e) => setAccountFilter(e.target.value)}
-            className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
-          >
-            <option value="all">All accounts</option>
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.label ?? a.account_number}
-              </option>
-            ))}
-          </select>
-        )}
-        <input
-          type="date"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
-          className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
-          placeholder="from"
-        />
-        <input
-          type="date"
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
-          className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
-          placeholder="to"
-        />
-        {(search || dateFrom || dateTo || accountFilter !== "all") && (
-          <button
-            type="button"
-            onClick={() => {
-              setSearch("");
-              setDateFrom("");
-              setDateTo("");
-              setAccountFilter("all");
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-3 flex-wrap">
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="search description…"
+            className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 placeholder:text-ink-3 outline-none focus:border-ink-3 transition-colors w-56"
+          />
+          {accounts.length > 0 && (
+            <select
+              value={accountFilter}
+              onChange={(e) => setAccountFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
+            >
+              <option value="all">All accounts</option>
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.label ?? a.account_number}
+                </option>
+              ))}
+            </select>
+          )}
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => {
+              setDateFrom(e.target.value);
+              setActivePreset(null);
             }}
-            className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
-          >
-            Clear
-          </button>
-        )}
+            className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
+            placeholder="from"
+          />
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => {
+              setDateTo(e.target.value);
+              setActivePreset(null);
+            }}
+            className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
+            placeholder="to"
+          />
+          {(search || dateFrom || dateTo || accountFilter !== "all") && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setDateFrom("");
+                setDateTo("");
+                setAccountFilter("all");
+                setActivePreset(null);
+              }}
+              className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        {/* Date presets — horizontal scroller on mobile */}
+        <div className="relative -mx-4 sm:mx-0">
+          <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pl-4 sm:pl-0 pr-12 sm:pr-0 [overscroll-behavior-x:contain]">
+            {getDatePresets().map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => {
+                  setDateFrom(p.from);
+                  setDateTo(p.to);
+                  setActivePreset(p.label);
+                }}
+                className={`shrink-0 px-2.5 py-1 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] transition-colors ${
+                  activePreset === p.label
+                    ? "bg-accent/15 text-accent border border-accent/30"
+                    : "bg-ink-1/60 text-ink-3 border border-ink-2 hover:text-ink-4 hover:border-ink-3"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute top-0 right-0 bottom-0 w-10 sm:hidden bg-gradient-to-l from-ink-0 to-transparent"
+          />
+        </div>
       </div>
 
       {/* Transactions table */}
