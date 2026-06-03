@@ -284,7 +284,7 @@ export function SpendingClient() {
       ) : transactions.length === 0 ? (
         <div className="rounded-md bg-ink-1 p-8 text-center">
           <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
-            No transactions yet. Import a Halifax CSV above to get started.
+            No transactions yet. Import a bank CSV above to get started.
           </p>
         </div>
       ) : (
@@ -367,10 +367,10 @@ function ImportDropzone({
       ) : (
         <>
           <p className="text-sm text-text-1">
-            Drop Halifax CSV files here, or click to browse
+            Drop bank CSV files here, or click to browse
           </p>
           <Mono className="text-[11px] text-ink-3 mt-1">
-            Multiple files OK — duplicates are skipped automatically
+            Halifax, Revolut, and Amex · duplicates skipped automatically
           </Mono>
         </>
       )}
@@ -411,6 +411,11 @@ function ImportResultsBanner({
             {r.skipped > 0 && (
               <Mono className="text-[11px] text-ink-3">
                 {r.skipped} skipped
+              </Mono>
+            )}
+            {r.skipped_by_state != null && r.skipped_by_state > 0 && (
+              <Mono className="text-[11px] text-ink-3">
+                {r.skipped_by_state} filtered (non-completed)
               </Mono>
             )}
           </div>
@@ -545,7 +550,7 @@ function TransactionRow({
       </td>
       <td className="px-3 py-1.5 text-right">
         <Mono className="text-[13px] text-text-1">
-          £{Number(txn.balance).toFixed(2)}
+          {txn.balance != null ? `£${Number(txn.balance).toFixed(2)}` : "—"}
         </Mono>
       </td>
       <td className="px-3 py-1.5">
