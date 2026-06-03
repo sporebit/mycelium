@@ -47,12 +47,5 @@ public/sw.js.map
 public/swe-worker-*.js
 public/swe-worker-*.js.map
 
-.vercel
-.env*
-
 # supabase CLI cache
 supabase/.temp/
-
-.vercel
-
-.vercel/
