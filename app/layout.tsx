@@ -21,6 +21,17 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Mycelium",
   description: "Personal AI dashboard",
+  appleWebApp: {
+    capable: true,
+    title: "Mycelium",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
+  other: {
+    "theme-color": "#0e1410",
+  },
 };
 
 export default function RootLayout({
