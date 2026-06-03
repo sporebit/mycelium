@@ -44,6 +44,34 @@ self.addEventListener("push", (event) => {
   );
 });
 
+// ── Background Sync: replay offline mutation queue ──
+self.addEventListener("sync", (event) => {
+  if (event.tag === "mycelium-sync") {
+    event.waitUntil(replayOfflineQueue());
+  }
+});
+
+async function replayOfflineQueue() {
+  const { openDB } = await import("idb");
+  const db = await openDB("mycelium-offline", 1);
+  const ops = await db.getAllFromIndex("syncQueue", "synced", 0);
+  for (const op of ops) {
+    try {
+      const res = await fetch(op.url, {
+        method: op.method,
+        headers: { "Content-Type": "application/json" },
+        body: op.body,
+      });
+      if (res.ok || res.status === 409) {
+        op.synced = 1;
+        await db.put("syncQueue", op);
+      }
+    } catch {
+      break;
+    }
+  }
+}
+
 // ── Notification click: focus or open the app ──
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();

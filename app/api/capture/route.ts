@@ -7,9 +7,9 @@ export const runtime = "nodejs";
 
 // Auth is handled by middleware (cookie session OR x-api-secret OR CRON_SECRET).
 export async function POST(req: NextRequest) {
-  let body: { text?: string };
+  let body: { text?: string; client_uuid?: string };
   try {
-    body = (await req.json()) as { text?: string };
+    body = (await req.json()) as { text?: string; client_uuid?: string };
   } catch {
     return NextResponse.json({ error: "bad json" }, { status: 400 });
   }
@@ -24,6 +24,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   }
 
+  if (body.client_uuid) {
+    const { createServerClient: csc } = await import("@/lib/supabase/server");
+    const sb = csc();
+    const { data: dup } = await sb
+      .from("raw_captures")
+      .select("id")
+      .eq("client_uuid", body.client_uuid)
+      .maybeSingle();
+    if (dup?.id) {
+      return NextResponse.json({ ok: true, deduplicated: true });
+    }
+  }
+
   try {
     const { classification, llm_source } = await classifyCapture(text, userId);
     const result = await writeCapture({
@@ -32,6 +45,7 @@ export async function POST(req: NextRequest) {
       rawText: text,
       classification,
       llmSource: llm_source,
+      clientUuid: body.client_uuid,
     });
 
     void embedAndStore({

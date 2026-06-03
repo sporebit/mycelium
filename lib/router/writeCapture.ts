@@ -11,6 +11,7 @@ export type WriteCaptureInput = {
   audioUrl?: string | null;
   classification: Classification;
   llmSource: "anthropic" | "openai" | "regex";
+  clientUuid?: string;
 };
 
 export type WriteCaptureResult = {
@@ -45,17 +46,20 @@ export async function writeCapture(
   };
 
   // a. INSERT into raw_captures (always — audit / memory continuity)
+  const captureRow: Record<string, unknown> = {
+    user_id: userId,
+    source,
+    raw_text: rawText,
+    audio_url: audioUrl ?? null,
+    classification: { ...classification, resolved_entity_id: entityId },
+    llm_source: llmSource,
+    ...ctx,
+  };
+  if (input.clientUuid) captureRow.client_uuid = input.clientUuid;
+
   const { data: rawCapture, error: rawErr } = await supabase
     .from("raw_captures")
-    .insert({
-      user_id: userId,
-      source,
-      raw_text: rawText,
-      audio_url: audioUrl ?? null,
-      classification: { ...classification, resolved_entity_id: entityId },
-      llm_source: llmSource,
-      ...ctx,
-    })
+    .insert(captureRow)
     .select("id")
     .single();
 

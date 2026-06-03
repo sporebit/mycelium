@@ -7,6 +7,7 @@ import { triggerGlowPulse } from "@/lib/motion";
 import { localDateKey } from "@/lib/util/date";
 import type { TemplateKind, TodayResponse } from "@/lib/fitness/types";
 import type { Workout } from "@/lib/fitness/workouts";
+import { SyncStatus } from "./SyncStatus";
 
 const KINDS: TemplateKind[] = ["resistance", "cardio", "conditioning", "mobility"];
 
@@ -128,9 +129,12 @@ export function WorkoutNowClient() {
   if (step === "kind") {
     return (
       <div className="flex flex-col gap-6 max-w-lg mx-auto">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
-          Workout Now
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+            Workout Now
+          </h1>
+          <SyncStatus />
+        </div>
         <p className="text-sm text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.04em]">
           What kind of session?
         </p>

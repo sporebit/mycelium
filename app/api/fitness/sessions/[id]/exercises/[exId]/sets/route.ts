@@ -16,6 +16,7 @@ type SetBody = {
   hold_seconds?: number | null;
   duration_min?: number | null;
   distance_km?: number | null;
+  client_uuid?: string;
 };
 
 async function ensureOwned(
@@ -68,22 +69,33 @@ export async function POST(
     if (!(await ensureOwned(supabase, sessionId, exId, uid))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
+    if (body.client_uuid) {
+      const { data: dup } = await supabase
+        .from("workout_sets")
+        .select("id")
+        .eq("client_uuid", body.client_uuid)
+        .maybeSingle();
+      if (dup?.id) {
+        return NextResponse.json({ ok: true });
+      }
+    }
+
+    const row: Record<string, unknown> = {
+      session_exercise_id: exId,
+      set_number: setNumber,
+      reps: body.reps ?? null,
+      weight: body.weight ?? null,
+      unit: body.unit ?? null,
+      hold_seconds: body.hold_seconds ?? null,
+      duration_min: body.duration_min ?? null,
+      distance_km: body.distance_km ?? null,
+      completed_at: new Date().toISOString(),
+    };
+    if (body.client_uuid) row.client_uuid = body.client_uuid;
+
     const { error } = await supabase
       .from("workout_sets")
-      .upsert(
-        {
-          session_exercise_id: exId,
-          set_number: setNumber,
-          reps: body.reps ?? null,
-          weight: body.weight ?? null,
-          unit: body.unit ?? null,
-          hold_seconds: body.hold_seconds ?? null,
-          duration_min: body.duration_min ?? null,
-          distance_km: body.distance_km ?? null,
-          completed_at: new Date().toISOString(),
-        },
-        { onConflict: "session_exercise_id,set_number" }
-      );
+      .upsert(row, { onConflict: "session_exercise_id,set_number" });
     if (error) {
       console.error("[sets POST]", error);
       return NextResponse.json({ error: "save failed" }, { status: 500 });

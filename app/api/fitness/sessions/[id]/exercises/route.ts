@@ -29,6 +29,7 @@ type AddBody = {
   distance_km?: number | null;
   intensity?: string | null;
   save_to_template?: boolean;
+  client_uuid?: string;
 };
 
 export async function POST(
@@ -54,6 +55,17 @@ export async function POST(
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
+    if (body.client_uuid) {
+      const { data: dup } = await supabase
+        .from("workout_session_exercises")
+        .select("id")
+        .eq("client_uuid", body.client_uuid)
+        .maybeSingle();
+      if (dup?.id) {
+        return NextResponse.json({ session_exercise_id: dup.id });
+      }
+    }
+
     const { data: maxRow } = await supabase
       .from("workout_session_exercises")
       .select("position")
@@ -63,20 +75,23 @@ export async function POST(
       .maybeSingle();
     const nextPos = ((maxRow?.position as number | undefined) ?? 0) + 1;
 
+    const row: Record<string, unknown> = {
+      session_id: sessionId,
+      position: nextPos,
+      name,
+      notes: body.notes ?? null,
+      rest_seconds: body.rest_seconds ?? 90,
+      duration_min: body.duration_min ?? null,
+      distance_km: body.distance_km ?? null,
+      intensity: body.intensity ?? null,
+      save_to_template: body.save_to_template ?? false,
+      skipped: false,
+    };
+    if (body.client_uuid) row.client_uuid = body.client_uuid;
+
     const { data, error } = await supabase
       .from("workout_session_exercises")
-      .insert({
-        session_id: sessionId,
-        position: nextPos,
-        name,
-        notes: body.notes ?? null,
-        rest_seconds: body.rest_seconds ?? 90,
-        duration_min: body.duration_min ?? null,
-        distance_km: body.distance_km ?? null,
-        intensity: body.intensity ?? null,
-        save_to_template: body.save_to_template ?? false,
-        skipped: false,
-      })
+      .insert(row)
       .select("id")
       .single();
     if (error || !data) {

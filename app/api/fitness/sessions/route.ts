@@ -25,6 +25,7 @@ type CreateBody = {
   calories?: number;
   /** Set true to create the session without started_at (pre-start, eg swap). */
   pre_start?: boolean;
+  client_uuid?: string;
 };
 
 export async function POST(req: NextRequest) {
@@ -56,6 +57,18 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = createServerClient();
+
+    // Idempotency: client_uuid dedup for offline-first replay
+    if (body.client_uuid) {
+      const { data: existing } = await supabase
+        .from("workout_sessions")
+        .select("id")
+        .eq("client_uuid", body.client_uuid)
+        .maybeSingle();
+      if (existing?.id) {
+        return NextResponse.json({ session_id: existing.id, resumed: true });
+      }
+    }
 
     // Idempotency: if a session for (user, date, programme_session_id) already
     // exists, return that one instead of creating a duplicate. This is what
@@ -148,6 +161,7 @@ export async function POST(req: NextRequest) {
       started_at: body.pre_start ? null : new Date().toISOString(),
       position: nextPosition,
     };
+    if (body.client_uuid) insertRow.client_uuid = body.client_uuid;
     if (body.session_type != null) insertRow.session_type = body.session_type;
     if (body.notes != null) insertRow.notes = body.notes;
     if (body.calories != null) insertRow.calories = body.calories;
