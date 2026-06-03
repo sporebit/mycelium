@@ -13,6 +13,8 @@ type FinishBody = {
   calories?: number | null;
   notes?: string | null;
   apply_template_updates?: boolean;
+  save_as_workout?: boolean;
+  workout_name?: string;
 };
 
 /**
@@ -161,10 +163,57 @@ export async function POST(
       }
     }
 
+    let saved_workout_id: string | null = null;
+    if (body.save_as_workout && !sess.programme_session_id) {
+      const { data: sessionRow } = await supabase
+        .from("workout_sessions")
+        .select("name, kind")
+        .eq("id", sessionId)
+        .single();
+      const wName = body.workout_name?.trim() || (sessionRow?.name as string) || "Workout";
+      const wKind = (sessionRow?.kind as string) || "other";
+
+      const { data: allExs } = await supabase
+        .from("workout_session_exercises")
+        .select("name, rest_seconds, is_bodyweight, position, notes")
+        .eq("session_id", sessionId)
+        .eq("skipped", false)
+        .order("position", { ascending: true });
+
+      if (allExs && allExs.length > 0) {
+        const { data: wRow } = await supabase
+          .from("workouts")
+          .insert({ user_id: uid, name: wName, default_kind: wKind })
+          .select("id")
+          .single();
+        if (wRow?.id) {
+          saved_workout_id = wRow.id as string;
+          const wExRows = (allExs as Array<{
+            name: string;
+            rest_seconds: number | null;
+            is_bodyweight: boolean;
+            position: number;
+            notes: string | null;
+          }>).map((ex, i) => ({
+            workout_id: wRow.id,
+            name: ex.name,
+            rest_seconds: ex.rest_seconds ?? 90,
+            is_bodyweight: !!ex.is_bodyweight,
+            position: i,
+            notes: ex.notes,
+            sets: 3,
+            reps_per_set: "8-12",
+          }));
+          await supabase.from("workout_exercises").insert(wExRows);
+        }
+      }
+    }
+
     return NextResponse.json({
       ok: true,
       template_updates: templateUpdates,
       template_inserts: templateInserts,
+      saved_workout_id,
     });
   } catch (err) {
     console.error("[finish]", err);

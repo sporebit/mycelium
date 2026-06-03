@@ -24,6 +24,8 @@ export function FinishModal({
     calories: number | null;
     notes: string | null;
     apply_template_updates: boolean;
+    save_as_workout?: boolean;
+    workout_name?: string;
   }) => Promise<void>;
 }) {
   const [calories, setCalories] = useState<string>(
@@ -32,6 +34,10 @@ export function FinishModal({
   const [notes, setNotes] = useState<string>(session.notes ?? "");
   const saveToTemplate = session.exercises.filter((e) => e.save_to_template);
   const [applyTpl, setApplyTpl] = useState<boolean>(saveToTemplate.length > 0);
+  const isBlankSession = !session.programme_session_id;
+  const hasExercises = session.exercises.filter((e) => !e.skipped).length > 0;
+  const [saveAsWorkout, setSaveAsWorkout] = useState(false);
+  const [workoutName, setWorkoutName] = useState(session.name ?? "");
   const [busy, setBusy] = useState(false);
 
   let totalSets = 0;
@@ -60,6 +66,8 @@ export function FinishModal({
         calories: Number.isFinite(cal) ? (cal as number) : null,
         notes: notes.trim() === "" ? null : notes.trim(),
         apply_template_updates: applyTpl,
+        save_as_workout: saveAsWorkout,
+        workout_name: workoutName.trim() || undefined,
       });
     } finally {
       setBusy(false);
@@ -117,6 +125,28 @@ export function FinishModal({
                 </ul>
               </div>
             </label>
+          )}
+
+          {isBlankSession && hasExercises && (
+            <div className="flex flex-col gap-2 p-3 rounded-md border border-ink-2 bg-ink-0/40">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={saveAsWorkout}
+                  onChange={(e) => setSaveAsWorkout(e.target.checked)}
+                />
+                <span className="text-sm text-ink-4">Save as reusable workout</span>
+              </label>
+              {saveAsWorkout && (
+                <input
+                  type="text"
+                  value={workoutName}
+                  onChange={(e) => setWorkoutName(e.target.value)}
+                  placeholder="Workout name"
+                  className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
+                />
+              )}
+            </div>
           )}
 
           <label className="flex flex-col gap-1">

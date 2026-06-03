@@ -842,6 +842,8 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
     calories: number | null;
     notes: string | null;
     apply_template_updates: boolean;
+    save_as_workout?: boolean;
+    workout_name?: string;
   }) {
     const r = await fetch(`/api/fitness/sessions/${session.id}/finish`, {
       method: "POST",
