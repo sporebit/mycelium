@@ -2,9 +2,11 @@ export type BankAccount = {
   id: string;
   user_id: string;
   bank: string;
-  account_number: string;
+  external_key: string;
+  account_number: string | null;
   sort_code: string | null;
   label: string | null;
+  account_type: string;
   created_at: string;
 };
 
@@ -18,18 +20,23 @@ export type Transaction = {
   amount: number;
   debit: number | null;
   credit: number | null;
-  balance: number;
+  balance: number | null;
   category: string | null;
   dedup_hash: string;
+  fee: number | null;
+  currency: string;
+  state: string | null;
+  started_at: string | null;
+  completed_at: string | null;
   created_at: string;
-  /** Hydrated client-side or via join. */
-  account_number?: string;
-  account_label?: string;
+  account_number?: string | null;
+  account_label?: string | null;
 };
 
 export type ImportResult = {
   file: string;
   imported: number;
   skipped: number;
+  skipped_by_state?: number;
   errors: { line: number; raw: string; reason: string }[];
 };

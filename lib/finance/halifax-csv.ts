@@ -1,34 +1,30 @@
-/**
- * Halifax CSV parser.
- *
- * Expected header (exact):
- *   Transaction Date,Transaction Type,Sort Code,Account Number,
- *   Transaction Description,Debit Amount,Credit Amount,Balance
- *
- * Gotchas handled:
- *   - DD/MM/YYYY dates (UK, never US)
- *   - Sort code has leading apostrophe ('11-02-39 → 11-02-39)
- *   - Two amount columns; exactly one populated per row
- *   - dedup_hash = sha-256 of account_number|txn_date|description|debit|credit|balance
- */
+import {
+  type CsvBankParser,
+  type AccountDescriptor,
+  type NormalizedTxn,
+  type CsvParseResult,
+  type ParseError,
+  parseUkDate,
+  parseAmount,
+  splitCsvLine,
+  dedupHash,
+  normalizeLines,
+} from "./csv-parser";
+
+export { dedupHash };
+export type { ParseError };
 
 export type ParsedRow = {
-  txn_date: string; // YYYY-MM-DD
+  txn_date: string;
   txn_type: string;
   sort_code: string;
   account_number: string;
   description: string;
-  amount: number; // signed: credit +, debit -
+  amount: number;
   debit: number | null;
   credit: number | null;
   balance: number;
   dedup_hash: string;
-};
-
-export type ParseError = {
-  line: number;
-  raw: string;
-  reason: string;
 };
 
 export type ParseResult = {
@@ -39,87 +35,8 @@ export type ParseResult = {
 const EXPECTED_HEADER =
   "Transaction Date,Transaction Type,Sort Code,Account Number,Transaction Description,Debit Amount,Credit Amount,Balance";
 
-function parseUkDate(raw: string): string | null {
-  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(raw.trim());
-  if (!m) return null;
-  const day = Number(m[1]);
-  const month = Number(m[2]);
-  const year = Number(m[3]);
-  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-}
-
-function parseAmount(raw: string): number | null {
-  const trimmed = raw.trim();
-  if (trimmed === "") return null;
-  const n = Number(trimmed);
-  if (Number.isNaN(n)) return null;
-  return Math.round(n * 100) / 100;
-}
-
-/**
- * Deterministic dedup hash. Uses the Web Crypto API (available in Node 18+
- * and all modern browsers) to produce a hex SHA-256 digest over the
- * canonical fields that uniquely identify a transaction row.
- *
- * Balance is included to disambiguate genuine same-day, same-amount repeats
- * (e.g. two £19 fees on the same day that happen to have different running
- * balances).
- */
-export async function dedupHash(
-  accountNumber: string,
-  txnDate: string,
-  description: string,
-  debit: string,
-  credit: string,
-  balance: string,
-): Promise<string> {
-  const payload = [accountNumber, txnDate, description, debit, credit, balance].join("|");
-  const encoded = new TextEncoder().encode(payload);
-
-  // Node 20+ globalThis.crypto.subtle is available; fall back to node:crypto
-  // for older runtimes (Vercel serverless).
-  if (typeof globalThis.crypto?.subtle?.digest === "function") {
-    const buf = await globalThis.crypto.subtle.digest("SHA-256", encoded);
-    return Array.from(new Uint8Array(buf))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-  }
-  // Fallback — dynamic import so it doesn't break browser bundles.
-  const { createHash } = await import("node:crypto");
-  return createHash("sha256").update(payload).digest("hex");
-}
-
-function splitCsvLine(line: string): string[] {
-  const fields: string[] = [];
-  let current = "";
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
-        current += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (ch === "," && !inQuotes) {
-      fields.push(current);
-      current = "";
-    } else {
-      current += ch;
-    }
-  }
-  fields.push(current);
-  return fields;
-}
-
 export async function parseHalifaxCsv(csvText: string): Promise<ParseResult> {
-  const lines = csvText
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .split("\n")
-    .filter((l) => l.trim() !== "");
+  const lines = normalizeLines(csvText);
 
   if (lines.length === 0) {
     return { rows: [], errors: [{ line: 1, raw: "", reason: "Empty file" }] };
@@ -129,7 +46,9 @@ export async function parseHalifaxCsv(csvText: string): Promise<ParseResult> {
   if (header !== EXPECTED_HEADER) {
     return {
       rows: [],
-      errors: [{ line: 1, raw: header, reason: "Unexpected header — not a Halifax CSV" }],
+      errors: [
+        { line: 1, raw: header, reason: "Unexpected header — not a Halifax CSV" },
+      ],
     };
   }
 
@@ -142,7 +61,11 @@ export async function parseHalifaxCsv(csvText: string): Promise<ParseResult> {
 
     const fields = splitCsvLine(raw);
     if (fields.length < 8) {
-      errors.push({ line: lineNum, raw, reason: `Expected 8 fields, got ${fields.length}` });
+      errors.push({
+        line: lineNum,
+        raw,
+        reason: `Expected 8 fields, got ${fields.length}`,
+      });
       continue;
     }
 
@@ -167,16 +90,24 @@ export async function parseHalifaxCsv(csvText: string): Promise<ParseResult> {
     const balance = parseAmount(balanceRaw);
 
     if (balance === null) {
-      errors.push({ line: lineNum, raw, reason: `Invalid balance: ${balanceRaw}` });
+      errors.push({
+        line: lineNum,
+        raw,
+        reason: `Invalid balance: ${balanceRaw}`,
+      });
       continue;
     }
 
     if (debit === null && credit === null) {
-      errors.push({ line: lineNum, raw, reason: "Both debit and credit are empty" });
+      errors.push({
+        line: lineNum,
+        raw,
+        reason: "Both debit and credit are empty",
+      });
       continue;
     }
 
-    const amount = credit !== null ? credit : -(debit!);
+    const amount = credit !== null ? credit : -debit!;
 
     if (!accountNumber) {
       errors.push({ line: lineNum, raw, reason: "Missing account number" });
@@ -208,3 +139,55 @@ export async function parseHalifaxCsv(csvText: string): Promise<ParseResult> {
 
   return { rows, errors };
 }
+
+export const halifaxParser: CsvBankParser = {
+  id: "halifax",
+
+  detect(headerLine: string): boolean {
+    return headerLine.trim() === EXPECTED_HEADER;
+  },
+
+  async parse(csvText: string): Promise<CsvParseResult> {
+    const legacy = await parseHalifaxCsv(csvText);
+
+    const accounts = new Map<string, AccountDescriptor>();
+    const txns: NormalizedTxn[] = [];
+
+    for (const row of legacy.rows) {
+      if (!accounts.has(row.account_number)) {
+        accounts.set(row.account_number, {
+          bank: "Halifax",
+          external_key: row.account_number,
+          label: `Halifax ••${row.account_number.slice(-4)}`,
+          account_type: "current",
+          account_number: row.account_number,
+          sort_code: row.sort_code || null,
+        });
+      }
+
+      txns.push({
+        account_key: row.account_number,
+        txn_date: row.txn_date,
+        txn_type: row.txn_type,
+        description: row.description,
+        amount: row.amount,
+        debit: row.debit,
+        credit: row.credit,
+        balance: row.balance,
+        dedup_hash: row.dedup_hash,
+        fee: null,
+        currency: "GBP",
+        state: null,
+        started_at: null,
+        completed_at: null,
+      });
+    }
+
+    return {
+      accounts,
+      txns,
+      skipped: [],
+      errors: legacy.errors,
+    };
+  },
+};
