@@ -10,6 +10,7 @@ import { halifaxParser } from "@/lib/finance/halifax-csv";
 import { revolutParser } from "@/lib/finance/revolut-csv";
 import { amexParser } from "@/lib/finance/amex-csv";
 import { detectPayPal, parsePayPalCsv } from "@/lib/finance/paypal-csv";
+import { runPayPalMatcher, type MatchRunResult } from "@/lib/finance/paypal-match";
 import type { ImportResult } from "@/lib/types/transaction";
 
 export const runtime = "nodejs";
@@ -316,5 +317,13 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  return NextResponse.json({ results });
+  // Run PayPal matcher after all imports (resolves pending payments against new statements)
+  let match_result: MatchRunResult | null = null;
+  try {
+    match_result = await runPayPalMatcher(supabase, uid);
+  } catch (err) {
+    console.error("[import] PayPal matcher error:", err);
+  }
+
+  return NextResponse.json({ results, match_result });
 }

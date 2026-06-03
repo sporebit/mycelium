@@ -6,6 +6,32 @@ import type { Transaction, BankAccount, ImportResult } from "@/lib/types/transac
 
 type Toast = { kind: "ok" | "error"; text: string } | null;
 
+type MatchCounts = {
+  matched: number;
+  ambiguous: number;
+  pending: number;
+  standalone: number;
+};
+
+type MatchCandidate = {
+  id: string;
+  description: string;
+  amount: number;
+  txn_date: string;
+  account_label: string | null;
+  account_type: string;
+};
+
+type AmbiguousPayment = {
+  id: string;
+  merchant_name: string | null;
+  amount: number;
+  paypal_date: string;
+  currency: string;
+  funding_type: string | null;
+  candidates: MatchCandidate[];
+};
+
 function fmtAmount(amount: number): string {
   const abs = Math.abs(amount).toFixed(2);
   return amount >= 0 ? `+£${abs}` : `-£${abs}`;
@@ -44,6 +70,9 @@ export function SpendingClient() {
     null,
   );
   const [importing, setImporting] = useState(false);
+  const [matchCounts, setMatchCounts] = useState<MatchCounts | null>(null);
+  const [ambiguousPayments, setAmbiguousPayments] = useState<AmbiguousPayment[]>([]);
+  const [matching, setMatching] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
@@ -65,6 +94,21 @@ export function SpendingClient() {
       cancelled = true;
     };
   }, []);
+
+  // Fetch PayPal match state.
+  const fetchMatches = useCallback(() => {
+    fetch("/api/finance/paypal/matches")
+      .then((r) => r.json())
+      .then((j: { counts?: MatchCounts; ambiguous?: AmbiguousPayment[] }) => {
+        setMatchCounts(j.counts ?? null);
+        setAmbiguousPayments(j.ambiguous ?? []);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetchMatches();
+  }, [fetchMatches]);
 
   // Fetch transactions whenever filters change.
   const fetchTransactions = useCallback(() => {
@@ -132,8 +176,9 @@ export function SpendingClient() {
         kind: "ok",
         text: `Imported ${totalImported}, skipped ${totalSkipped} dupes`,
       });
-      // Re-fetch transactions + accounts.
+      // Re-fetch transactions, accounts, and match state.
       fetchTransactions();
+      fetchMatches();
       fetch("/api/finance/accounts")
         .then((r) => r.json())
         .then((j: { accounts?: BankAccount[] }) => {
@@ -171,6 +216,53 @@ export function SpendingClient() {
     }
   }
 
+  // Re-run PayPal matcher.
+  async function handleRerunMatch() {
+    setMatching(true);
+    try {
+      const res = await fetch("/api/finance/paypal/match", { method: "POST" });
+      const j = (await res.json()) as {
+        ran?: { auto_matched: number; ambiguous: number };
+        counts?: MatchCounts;
+      };
+      if (j.counts) setMatchCounts(j.counts);
+      setToast({
+        kind: "ok",
+        text: `Matched ${j.ran?.auto_matched ?? 0}, ${j.ran?.ambiguous ?? 0} ambiguous`,
+      });
+      fetchMatches();
+      fetchTransactions();
+    } catch {
+      setToast({ kind: "error", text: "Matching failed" });
+    } finally {
+      setMatching(false);
+    }
+  }
+
+  // Resolve an ambiguous PayPal match.
+  async function handleResolve(paymentId: string, transactionId: string) {
+    try {
+      const res = await fetch(
+        `/api/finance/paypal/matches/${paymentId}/resolve`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ transaction_id: transactionId }),
+        },
+      );
+      if (!res.ok) {
+        const j = (await res.json()) as { error?: string };
+        setToast({ kind: "error", text: j.error ?? "Resolve failed" });
+        return;
+      }
+      setToast({ kind: "ok", text: "Match resolved" });
+      fetchMatches();
+      fetchTransactions();
+    } catch {
+      setToast({ kind: "error", text: "Resolve failed" });
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {/* Import section */}
@@ -186,6 +278,18 @@ export function SpendingClient() {
           onDismiss={() => setImportResults(null)}
         />
       )}
+
+      {/* PayPal matching panel */}
+      {matchCounts &&
+        matchCounts.matched + matchCounts.ambiguous + matchCounts.pending > 0 && (
+          <PayPalMatchPanel
+            counts={matchCounts}
+            ambiguous={ambiguousPayments}
+            matching={matching}
+            onRerun={handleRerunMatch}
+            onResolve={handleResolve}
+          />
+        )}
 
       {/* Summary strip */}
       {summary && transactions !== null && transactions.length > 0 && (
@@ -544,8 +648,20 @@ function TransactionRow({
       <td className="px-3 py-1.5 whitespace-nowrap">
         <Mono className="text-text-1 text-[13px]">{fmtDate(txn.txn_date)}</Mono>
       </td>
-      <td className="px-3 py-1.5 text-text-0 max-w-[300px] truncate">
-        {txn.description}
+      <td className="px-3 py-1.5 max-w-[300px]">
+        {txn.enriched_merchant ? (
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="text-text-0 truncate">{txn.enriched_merchant}</span>
+              <span className="shrink-0 text-[9px] uppercase tracking-[0.18em] text-accent/60 font-[family-name:var(--font-mono)] border border-accent/20 rounded px-1 py-px">
+                via PayPal
+              </span>
+            </div>
+            <span className="text-[11px] text-ink-3 truncate">{txn.description}</span>
+          </div>
+        ) : (
+          <span className="text-text-0 truncate block">{txn.description}</span>
+        )}
       </td>
       <td className="px-3 py-1.5">
         <Mono className="text-[11px] text-ink-3">{txn.txn_type}</Mono>
@@ -599,5 +715,111 @@ function TransactionRow({
         )}
       </td>
     </tr>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PayPalMatchPanel
+// ---------------------------------------------------------------------------
+
+function PayPalMatchPanel({
+  counts,
+  ambiguous,
+  matching,
+  onRerun,
+  onResolve,
+}: {
+  counts: MatchCounts;
+  ambiguous: AmbiguousPayment[];
+  matching: boolean;
+  onRerun: () => void;
+  onResolve: (paymentId: string, transactionId: string) => void;
+}) {
+  return (
+    <div className="rounded-md bg-ink-1 border border-ink-2 p-4 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          PayPal Matching
+        </span>
+        <button
+          type="button"
+          onClick={onRerun}
+          disabled={matching}
+          className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-accent/80 disabled:text-ink-3 font-[family-name:var(--font-mono)] transition-colors"
+        >
+          {matching ? "Matching…" : "Re-run matching"}
+        </button>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <Mono className="text-[11px] text-ok">{counts.matched} matched</Mono>
+        {counts.ambiguous > 0 && (
+          <Mono className="text-[11px] text-yellow-400">
+            {counts.ambiguous} ambiguous
+          </Mono>
+        )}
+        {counts.pending > 0 && (
+          <Mono className="text-[11px] text-ink-3">
+            {counts.pending} pending (no statement yet)
+          </Mono>
+        )}
+      </div>
+
+      {ambiguous.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {ambiguous.map((p) => (
+            <div
+              key={p.id}
+              className="rounded bg-ink-0/40 border border-ink-2 p-3 flex flex-col gap-2"
+            >
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-sm text-text-0 font-medium">
+                  {p.merchant_name ?? "Unknown"}
+                </span>
+                <Mono className="text-[11px] text-danger">
+                  {fmtAmount(p.amount)}
+                </Mono>
+                <Mono className="text-[11px] text-ink-3">
+                  {fmtDate(p.paypal_date)}
+                </Mono>
+                {p.currency !== "GBP" && (
+                  <Mono className="text-[10px] text-yellow-400">
+                    {p.currency}
+                  </Mono>
+                )}
+              </div>
+              {p.candidates.length > 0 ? (
+                <div className="flex flex-col gap-1.5 pl-2 border-l border-ink-2 ml-1">
+                  {p.candidates.map((c) => (
+                    <div key={c.id} className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => onResolve(p.id, c.id)}
+                        className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-accent/80 font-[family-name:var(--font-mono)] shrink-0 transition-colors"
+                      >
+                        This one
+                      </button>
+                      <span className="text-[12px] text-text-1 truncate min-w-0">
+                        {c.description}
+                      </span>
+                      <Mono className="text-[11px] text-ink-3 shrink-0">
+                        {fmtDate(c.txn_date)}
+                      </Mono>
+                      <Mono className="text-[11px] text-ink-3 shrink-0">
+                        {c.account_label ?? c.account_type}
+                      </Mono>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <Mono className="text-[11px] text-ink-3 pl-2">
+                  No candidates found
+                </Mono>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

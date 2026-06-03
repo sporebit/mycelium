@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
       q = q.lte("txn_date", to);
     }
     if (search) {
-      q = q.ilike("description", `%${search}%`);
+      q = q.or(`description.ilike.%${search}%,enriched_merchant.ilike.%${search}%`);
     }
 
     const { data, error, count } = await q;
