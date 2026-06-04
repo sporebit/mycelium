@@ -49,3 +49,6 @@ public/swe-worker-*.js.map
 
 # supabase CLI cache
 supabase/.temp/
+
+# graphify knowledge graph (generated)
+graphify-out/
