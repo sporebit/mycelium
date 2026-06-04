@@ -44,8 +44,10 @@ export function useSync() {
     window.addEventListener("offline", goOffline);
     window.addEventListener("focus", onFocus);
 
-    void refresh();
-    if (navigator.onLine) void sync();
+    queueMicrotask(() => {
+      void refresh();
+      if (navigator.onLine) void sync();
+    });
 
     return () => {
       window.removeEventListener("online", goOnline);
