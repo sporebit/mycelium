@@ -181,6 +181,29 @@ function PlacesIcon({ size = 22, ariaLabel = "Places" }: NavIconProps) {
   );
 }
 
+/** Clock with alarm bell for /reminders. */
+function ReminderIcon({ size = 22, ariaLabel = "Reminders" }: NavIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-label={ariaLabel}
+    >
+      <circle cx="20" cy="22" r="12" />
+      <path d="M20 15 L20 22 L25 22" />
+      <path d="M10 10 L14 14 M30 10 L26 14" />
+      <path d="M8 8 L12 12 M32 8 L28 12" />
+    </svg>
+  );
+}
+
 /** Desktop/monitor icon for /pc-build. */
 function PcBuildIcon({ size = 22, ariaLabel = "PC Build" }: NavIconProps) {
   return (
@@ -207,6 +230,7 @@ const SECTIONS: Item[] = [
   { label: "Health", href: "/health", Icon: HealthIcon },
   { label: "Nutrition", href: "/health/nutrition", Icon: NutritionIcon },
   { label: "Journal", href: "/journal", Icon: JournalIcon },
+  { label: "Reminders", href: "/reminders", Icon: ReminderIcon },
   { label: "Review", href: "/review", Icon: ReviewIcon },
   { label: "PC Build", href: "/pc-build", Icon: PcBuildIcon },
   { label: "Places", href: "/places", Icon: PlacesIcon },
