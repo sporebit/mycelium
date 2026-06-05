@@ -87,6 +87,28 @@ export function SupplementsClient() {
     }
   }
 
+  async function undoLog(suppId: string, logId: string) {
+    try {
+      const res = await fetch(`/api/supplements/${suppId}/log/${logId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        setError("Failed to undo");
+        return;
+      }
+      setSupplements(
+        (prev) =>
+          prev?.map((s) =>
+            s.id === suppId
+              ? { ...s, today_logs: s.today_logs.filter((l) => l.id !== logId) }
+              : s,
+          ) ?? null,
+      );
+    } catch {
+      setError("Network error");
+    }
+  }
+
   async function deactivate(suppId: string) {
     try {
       const res = await fetch(`/api/supplements/${suppId}`, {
@@ -175,6 +197,7 @@ export function SupplementsClient() {
               supplement={s}
               isLogging={logging.has(s.id)}
               onMarkTaken={() => markTaken(s.id)}
+              onUndoLog={(logId) => undoLog(s.id, logId)}
               onDeactivate={() => deactivate(s.id)}
             />
           ))}
@@ -188,80 +211,98 @@ function SupplementRow({
   supplement: s,
   isLogging,
   onMarkTaken,
+  onUndoLog,
   onDeactivate,
 }: {
   supplement: Supplement;
   isLogging: boolean;
   onMarkTaken: () => void;
+  onUndoLog: (logId: string) => void;
   onDeactivate: () => void;
 }) {
   const takenCount = s.today_logs.length;
-  const lastTaken = s.today_logs[0]?.taken_at;
 
   return (
-    <li className="rounded-md bg-ink-1 border border-ink-2 p-3 flex items-center gap-3">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-ink-4 font-medium truncate">
-            {s.name}
-          </span>
-          {s.brand && (
-            <span className="text-[10px] text-ink-3 uppercase tracking-[0.12em] font-[family-name:var(--font-mono)] shrink-0">
-              {s.brand}
+    <li className="rounded-md bg-ink-1 border border-ink-2 p-3 flex flex-col gap-2">
+      <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-ink-4 font-medium truncate">
+              {s.name}
             </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2 mt-0.5">
-          <Mono className="text-[11px] text-ink-3">{s.dose}</Mono>
-          <span className="text-[10px] text-ink-3 uppercase tracking-[0.12em] font-[family-name:var(--font-mono)]">
-            {s.form}
-          </span>
-          {s.schedule && (
-            <>
-              <span className="text-ink-2">·</span>
-              <span className="text-[10px] text-ink-3 italic font-[family-name:var(--font-display)]">
-                {s.schedule}
+            {s.brand && (
+              <span className="text-[10px] text-ink-3 uppercase tracking-[0.12em] font-[family-name:var(--font-mono)] shrink-0">
+                {s.brand}
               </span>
-            </>
-          )}
+            )}
+          </div>
+          <div className="flex items-center gap-2 mt-0.5">
+            <Mono className="text-[11px] text-ink-3">{s.dose}</Mono>
+            <span className="text-[10px] text-ink-3 uppercase tracking-[0.12em] font-[family-name:var(--font-mono)]">
+              {s.form}
+            </span>
+            {s.schedule && (
+              <>
+                <span className="text-ink-2">·</span>
+                <span className="text-[10px] text-ink-3 italic font-[family-name:var(--font-display)]">
+                  {s.schedule}
+                </span>
+              </>
+            )}
+          </div>
         </div>
-        {lastTaken && (
-          <Mono className="text-[10px] text-ok/70 mt-1 block">
-            ✓ {takenCount}× today · last {relativeTime(lastTaken)}
-          </Mono>
-        )}
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={onMarkTaken}
+            disabled={isLogging}
+            className="px-3 py-1.5 rounded-md bg-ok/15 border border-ok/40 text-ok hover:bg-ok/25 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-[family-name:var(--font-mono)] tracking-[0.12em] transition-colors"
+          >
+            {isLogging ? "…" : "TAKEN"}
+          </button>
+          <button
+            type="button"
+            onClick={onDeactivate}
+            title="Deactivate supplement"
+            className="p-1.5 rounded-md text-ink-3 hover:text-danger hover:bg-danger/10 transition-colors"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <div className="flex items-center gap-1.5 shrink-0">
-        <button
-          type="button"
-          onClick={onMarkTaken}
-          disabled={isLogging}
-          className="px-3 py-1.5 rounded-md bg-ok/15 border border-ok/40 text-ok hover:bg-ok/25 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-[family-name:var(--font-mono)] tracking-[0.12em] transition-colors"
-        >
-          {isLogging ? "…" : "TAKEN"}
-        </button>
-        <button
-          type="button"
-          onClick={onDeactivate}
-          title="Deactivate supplement"
-          className="p-1.5 rounded-md text-ink-3 hover:text-danger hover:bg-danger/10 transition-colors"
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      </div>
+      {takenCount > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Mono className="text-[10px] text-ok/70">
+            ✓ {takenCount}× today
+          </Mono>
+          {s.today_logs.map((log) => (
+            <button
+              key={log.id}
+              type="button"
+              onClick={() => onUndoLog(log.id)}
+              title="Undo this dose"
+              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-ink-2/60 text-[10px] text-ink-3 hover:text-danger hover:bg-danger/10 font-[family-name:var(--font-mono)] transition-colors"
+            >
+              {relativeTime(log.taken_at)}
+              <span className="text-[9px]">✕</span>
+            </button>
+          ))}
+        </div>
+      )}
     </li>
   );
 }
