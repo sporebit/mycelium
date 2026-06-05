@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { resolveExerciseNames } from "@/lib/fitness/resolve-aliases";
 import type { ExercisePainLog } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
@@ -32,12 +33,14 @@ export async function GET(
 
   try {
     const supabase = createServerClient();
+    const names = await resolveExerciseNames(supabase, uid, name);
+    const orFilter = names.map(n => `exercise_name.ilike.${n}`).join(",");
     const { data: logRows } = await supabase
       .from("exercise_pain_logs")
       .select(LOG_FIELDS)
       .eq("user_id", uid)
       .is("deleted_at", null)
-      .ilike("exercise_name", name)
+      .or(orFilter)
       .order("logged_at", { ascending: false });
     const logs = (logRows ?? []) as ExercisePainLog[];
     if (logs.length === 0) return NextResponse.json({ logs: [] });

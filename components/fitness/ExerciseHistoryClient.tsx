@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -530,6 +530,49 @@ export function ExerciseHistoryClient({
     };
   }, [name]);
 
+  type AliasRow = { id: string; canonical_name: string; alias: string; created_at: string };
+  const [aliases, setAliases] = useState<AliasRow[]>([]);
+  const [aliasesOpen, setAliasesOpen] = useState(false);
+  const [newAlias, setNewAlias] = useState("");
+
+  const canonicalName = data?.exercise_name ?? name;
+
+  const fetchAliases = useCallback(async () => {
+    const res = await fetch(
+      `/api/fitness/exercise-aliases?name=${encodeURIComponent(canonicalName)}`,
+      { cache: "no-store" }
+    );
+    if (res.ok) {
+      const j = (await res.json()) as { aliases: AliasRow[] };
+      setAliases(j.aliases ?? []);
+    }
+  }, [canonicalName]);
+
+  useEffect(() => {
+    if (canonicalName) fetchAliases();
+  }, [canonicalName, fetchAliases]);
+
+  async function addAlias() {
+    const trimmed = newAlias.trim();
+    if (!trimmed) return;
+    const res = await fetch("/api/fitness/exercise-aliases", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ canonical_name: canonicalName, alias: trimmed }),
+    });
+    if (res.ok) {
+      setNewAlias("");
+      fetchAliases();
+    }
+  }
+
+  async function removeAlias(id: string) {
+    const res = await fetch(`/api/fitness/exercise-aliases/${id}`, {
+      method: "DELETE",
+    });
+    if (res.ok) fetchAliases();
+  }
+
   const unit = data?.modal_unit ?? "kg";
 
   // Map session_id → pain log for fast lookup from the chart dot renderer
@@ -601,7 +644,60 @@ export function ExerciseHistoryClient({
         )}
       </div>
 
-      {/* Baseline card — shown above everything when one exists */}
+      {/* Aliases */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setAliasesOpen((v) => !v)}
+          className="text-[11px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase cursor-pointer"
+        >
+          {aliasesOpen ? "- ALIASES" : "+ ALIASES"}
+          {aliases.length > 0 && ` (${aliases.length})`}
+        </button>
+        {aliasesOpen && (
+          <div className="mt-2 flex flex-col gap-2">
+            {aliases.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {aliases.map((a) => (
+                  <span
+                    key={a.id}
+                    className="text-[11px] bg-ink-1 border border-ink-2 rounded-md px-2 py-1 font-[family-name:var(--font-mono)] text-ink-4 inline-flex items-center gap-1"
+                  >
+                    {a.alias}
+                    <button
+                      type="button"
+                      onClick={() => removeAlias(a.id)}
+                      className="text-ink-3 hover:text-danger text-xs"
+                    >
+                      x
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-1.5 items-center">
+              <input
+                type="text"
+                value={newAlias}
+                onChange={(e) => setNewAlias(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") addAlias();
+                }}
+                placeholder="Add alias..."
+                className="rounded-md bg-ink-0 border border-ink-2 px-2 py-1 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
+              />
+              <button
+                type="button"
+                onClick={addAlias}
+                className="bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase px-2 py-1 rounded-md"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       {baseline?.has_known_issues && <BaselineCard baseline={baseline} />}
 
       {data.sessions.length === 0 ? (

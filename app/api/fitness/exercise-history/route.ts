@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { resolveExerciseNames } from "@/lib/fitness/resolve-aliases";
 import {
   exerciseHistorySummary,
   findPRs,
@@ -32,17 +33,18 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = createServerClient();
 
-    // 1) Find every workout_session_exercises row with this name, joined to
-    //    the parent session (so we can scope by user + completed_at), ordered
-    //    by date desc, cap at MAX_SESSIONS.
+    const names = await resolveExerciseNames(supabase, uid, name);
+    const canonical = names[0];
+    const orFilter = names.map(n => `name.ilike.${n}`).join(",");
+
     const { data: exRows, error: exErr } = await supabase
       .from("workout_session_exercises")
       .select(
         "id, session_id, comment, notes, is_bodyweight, workout_sessions:session_id!inner(id, date, slot, user_id, completed_at)"
       )
-      .ilike("name", name)
+      .or(orFilter)
       .eq("skipped", false)
-      .limit(MAX_SESSIONS * 2); // padding so we can filter then trim
+      .limit(MAX_SESSIONS * 2);
     if (exErr) {
       console.error("[/api/fitness/exercise-history] ex fetch", exErr);
       return NextResponse.json({ error: "fetch failed" }, { status: 500 });
@@ -89,10 +91,11 @@ export async function GET(req: NextRequest) {
 
     // 2) Template notes — first non-null notes field from any
     //    workout_programme_exercises with this name.
+    const tplOrFilter = names.map(n => `name.ilike.${n}`).join(",");
     const { data: tplRows } = await supabase
       .from("workout_programme_exercises")
       .select("notes")
-      .ilike("name", name)
+      .or(tplOrFilter)
       .not("notes", "is", null)
       .limit(1);
     const templateNotes =
@@ -100,7 +103,7 @@ export async function GET(req: NextRequest) {
 
     if (top.length === 0) {
       const empty: ExerciseHistoryResponse = {
-        exercise_name: name,
+        exercise_name: canonical,
         template_notes: templateNotes,
         modal_unit: "kg",
         sessions: [],
@@ -160,7 +163,7 @@ export async function GET(req: NextRequest) {
     const isBodyweight = candidates.some((c) => c.is_bodyweight);
 
     const out: ExerciseHistoryResponse = {
-      exercise_name: name,
+      exercise_name: canonical,
       template_notes: templateNotes,
       modal_unit: mu,
       sessions: flagged,

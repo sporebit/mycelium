@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { resolveExerciseNames } from "@/lib/fitness/resolve-aliases";
 import type { ExerciseBaseline } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
@@ -22,11 +23,13 @@ export async function GET(
   if (!name) return NextResponse.json({ baseline: null });
   try {
     const supabase = createServerClient();
+    const names = await resolveExerciseNames(supabase, uid, name);
+    const orFilter = names.map(n => `exercise_name.ilike.${n}`).join(",");
     const { data } = await supabase
       .from("exercise_baselines")
       .select(BASELINE_FIELDS)
       .eq("user_id", uid)
-      .ilike("exercise_name", name)
+      .or(orFilter)
       .maybeSingle();
     return NextResponse.json({
       baseline: (data ?? null) as ExerciseBaseline | null,
