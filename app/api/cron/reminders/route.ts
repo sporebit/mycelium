@@ -27,6 +27,12 @@ export async function GET(req: NextRequest) {
   const bearer = req.headers.get("authorization")?.replace("Bearer ", "");
   const secret = process.env.REMINDERS_CRON_SECRET;
   if (!secret || bearer !== secret) {
+    console.warn("[cron/reminders 401]", {
+      envVarSet: !!secret,
+      headerPresent: !!req.headers.get("authorization"),
+      prefixStripped: bearer !== req.headers.get("authorization"),
+      matched: bearer === secret,
+    });
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
