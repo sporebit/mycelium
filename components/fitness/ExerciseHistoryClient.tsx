@@ -549,8 +549,21 @@ export function ExerciseHistoryClient({
   }, [canonicalName]);
 
   useEffect(() => {
-    if (canonicalName) fetchAliases();
-  }, [canonicalName, fetchAliases]);
+    if (!canonicalName) return;
+    let cancelled = false;
+    (async () => {
+      const res = await fetch(
+        `/api/fitness/exercise-aliases?name=${encodeURIComponent(canonicalName)}`,
+        { cache: "no-store" }
+      );
+      if (cancelled) return;
+      if (res.ok) {
+        const j = (await res.json()) as { aliases: AliasRow[] };
+        if (!cancelled) setAliases(j.aliases ?? []);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [canonicalName]);
 
   async function addAlias() {
     const trimmed = newAlias.trim();

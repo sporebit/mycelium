@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Reminder = {
   id: string;
@@ -83,6 +83,7 @@ function nowLondonTime(): string {
 const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
 
 export function RemindersClient() {
+  const [firedCutoff] = useState(() => Date.now() - FOURTEEN_DAYS_MS);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,8 +116,24 @@ export function RemindersClient() {
   }, []);
 
   useEffect(() => {
-    fetchReminders();
-  }, [fetchReminders]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/reminders");
+        if (cancelled) return;
+        if (!res.ok) throw new Error("fetch failed");
+        const j = (await res.json()) as { reminders: Reminder[] };
+        if (cancelled) return;
+        setReminders(j.reminders);
+        setError(null);
+      } catch {
+        if (!cancelled) setError("Failed to load reminders");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -192,21 +209,18 @@ export function RemindersClient() {
     }
   }
 
-  const now = Date.now();
-  const cutoff = now - FOURTEEN_DAYS_MS;
-
-  const upcoming = reminders.filter(
-    (r) => !r.sent_at && !r.recurrence,
-  );
-  const recurring = reminders.filter(
-    (r) => r.recurrence && !r.cancelled,
-  );
-  const fired = reminders
-    .filter((r) => r.sent_at && new Date(r.sent_at).getTime() > cutoff)
-    .sort(
-      (a, b) =>
-        new Date(b.sent_at!).getTime() - new Date(a.sent_at!).getTime(),
-    );
+  const { upcoming, recurring, fired } = useMemo(() => {
+    return {
+      upcoming: reminders.filter((r) => !r.sent_at && !r.recurrence),
+      recurring: reminders.filter((r) => r.recurrence && !r.cancelled),
+      fired: reminders
+        .filter((r) => r.sent_at && new Date(r.sent_at).getTime() > firedCutoff)
+        .sort(
+          (a, b) =>
+            new Date(b.sent_at!).getTime() - new Date(a.sent_at!).getTime(),
+        ),
+    };
+  }, [reminders, firedCutoff]);
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-6">
