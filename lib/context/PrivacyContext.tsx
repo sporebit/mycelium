@@ -9,8 +9,6 @@ import {
   type ReactNode,
 } from "react";
 
-const STORAGE_KEY = "miles-finance-hidden";
-
 export type PrivacyState = {
   financeHidden: boolean;
   toggle: () => void;
@@ -22,41 +20,14 @@ const PrivacyCtx = createContext<PrivacyState | null>(null);
 export function usePrivacy(): PrivacyState {
   const ctx = useContext(PrivacyCtx);
   if (!ctx) {
-    // Safe default for tests / pages rendered outside the provider tree.
-    return { financeHidden: false, toggle: () => {}, setHidden: () => {} };
+    return { financeHidden: true, toggle: () => {}, setHidden: () => {} };
   }
   return ctx;
 }
 
-function readStoredHidden(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.localStorage.getItem(STORAGE_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
 export function PrivacyProvider({ children }: { children: ReactNode }) {
-  const [financeHidden, setFinanceHidden] = useState<boolean>(() =>
-    readStoredHidden()
-  );
+  const [financeHidden, setFinanceHidden] = useState(true);
 
-  // Persist on every change.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      window.localStorage.setItem(
-        STORAGE_KEY,
-        financeHidden ? "true" : "false"
-      );
-    } catch {
-      /* quota / privacy mode — silently ignore */
-    }
-  }, [financeHidden]);
-
-  // Cmd/Ctrl+Shift+H toggles. Skipped when an input/textarea is focused so
-  // typing capital-H mid-sentence with modifiers doesn't accidentally fire.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const meta = e.metaKey || e.ctrlKey;

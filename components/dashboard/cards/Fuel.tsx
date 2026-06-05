@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
+import { Money } from "@/components/finance/Money";
 import type { FuelApiResponse, Station } from "@/lib/fuel/types";
 import type { CardWidth } from "@/lib/dashboard/card-registry";
 
@@ -19,11 +20,6 @@ function relativeTime(iso: string | null): string {
   if (h < 24) return `${Math.floor(h)}h ago`;
   const d = h / 24;
   return `${Math.floor(d)}d ago`;
-}
-
-function fmtPence(p: number | null): string {
-  if (p === null) return "—";
-  return `${p.toFixed(1)}p`;
 }
 
 function shortAddress(s: Station): string {
@@ -47,7 +43,7 @@ function StationRow({
           <span className="text-ink-3">{station.brand}</span> · {shortAddress(station)}
         </div>
       </div>
-      <Mono className="text-[11px] text-ink-4 shrink-0">{fmtPence(price)}</Mono>
+      <Mono className="text-[11px] text-ink-4 shrink-0"><Money value={price} format="pence" /></Mono>
       <Mono className="text-[10px] text-ink-3 shrink-0 w-12 text-right">
         {dist}mi
       </Mono>
@@ -139,7 +135,7 @@ export function Fuel({ width = 1 }: { width?: CardWidth } = {}) {
                     E10 avg
                   </div>
                   <Mono className="block text-2xl text-ink-4 mt-1">
-                    {fmtPence(data.summary.avgE10)}
+                    {data.summary.avgE10 != null ? <Money value={data.summary.avgE10} format="pence" /> : "—"}
                   </Mono>
                 </div>
                 <div>
@@ -147,7 +143,7 @@ export function Fuel({ width = 1 }: { width?: CardWidth } = {}) {
                     B7 avg
                   </div>
                   <Mono className="block text-2xl text-ink-4 mt-1">
-                    {fmtPence(data.summary.avgB7)}
+                    {data.summary.avgB7 != null ? <Money value={data.summary.avgB7} format="pence" /> : "—"}
                   </Mono>
                 </div>
               </div>
@@ -201,7 +197,7 @@ export function Fuel({ width = 1 }: { width?: CardWidth } = {}) {
                     E10 avg
                   </div>
                   <Mono className="block text-xl text-ink-4 mt-1">
-                    {fmtPence(data.summary.avgE10)}
+                    {data.summary.avgE10 != null ? <Money value={data.summary.avgE10} format="pence" /> : "—"}
                   </Mono>
                 </div>
                 <div>
@@ -209,7 +205,7 @@ export function Fuel({ width = 1 }: { width?: CardWidth } = {}) {
                     B7 avg
                   </div>
                   <Mono className="block text-xl text-ink-4 mt-1">
-                    {fmtPence(data.summary.avgB7)}
+                    {data.summary.avgB7 != null ? <Money value={data.summary.avgB7} format="pence" /> : "—"}
                   </Mono>
                 </div>
               </div>

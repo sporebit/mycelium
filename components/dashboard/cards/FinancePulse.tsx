@@ -3,16 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
-import { PrivateValue } from "@/components/PrivateValue";
+import { Money } from "@/components/finance/Money";
 import { usePrivacy } from "@/lib/context/PrivacyContext";
 import type {
   FinanceData,
   FinanceHistoryPoint,
 } from "@/lib/finance/types";
 import {
-  fmtCurrency,
-  fmtPercent,
-  fmtSigned,
   findClosestBefore,
   liveStatusLabel,
   liveTone,
@@ -45,31 +42,26 @@ function Sparkline({ points }: { points: number[] }) {
     .join(" ");
   const fill = `${d} L200,48 L0,48 Z`;
 
+  const strokeColor = financeHidden ? "var(--ink-3)" : "var(--glow-0)";
+  const fillOpacity = financeHidden ? "0.05" : "0.35";
+  const fillColor = financeHidden ? "var(--ink-3)" : "var(--glow-0)";
+
   return (
-    <div
-      className="h-12 rounded-lg border border-ink-2 bg-ink-0/40 relative overflow-hidden"
-      style={financeHidden ? { filter: "blur(6px)" } : undefined}
-      aria-hidden={financeHidden}
-    >
+    <div className="h-12 rounded-lg border border-ink-2 bg-ink-0/40 relative overflow-hidden">
       <svg
         viewBox="0 0 200 48"
         preserveAspectRatio="none"
         className="absolute inset-0 h-full w-full"
       >
-        <defs>
-          <linearGradient id="fp-spark" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="var(--glow-0)" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="var(--glow-0)" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path d={fill} fill="url(#fp-spark)" />
-        <path d={d} fill="none" stroke="var(--glow-0)" strokeWidth="1.2" />
+        <path d={fill} fill={fillColor} fillOpacity={fillOpacity} />
+        <path d={d} fill="none" stroke={strokeColor} strokeWidth="1.2" opacity={financeHidden ? 0.4 : 1} />
       </svg>
     </div>
   );
 }
 
 export function FinancePulse({ width = 2 }: { width?: CardWidth } = {}) {
+  const { financeHidden } = usePrivacy();
   const [data, setData] = useState<SnapshotResponse | null>(null);
   const [history, setHistory] = useState<FinanceHistoryPoint[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -134,7 +126,6 @@ export function FinancePulse({ width = 2 }: { width?: CardWidth } = {}) {
         return;
       }
       setData(j as SnapshotResponse);
-      // Re-fetch history so the new point shows in the sparkline
       const histRes = await fetch("/api/finance/history?months=2", {
         cache: "no-store",
       });
@@ -153,8 +144,9 @@ export function FinancePulse({ width = 2 }: { width?: CardWidth } = {}) {
   const lastRefreshed =
     data && "last_refreshed_at" in data ? data.last_refreshed_at : null;
   const tone = liveTone(lastRefreshed);
-  const toneClass =
-    tone === "ok"
+  const toneClass = financeHidden
+    ? "text-ink-3"
+    : tone === "ok"
       ? "text-ok"
       : tone === "warn"
         ? "text-warn"
@@ -207,7 +199,7 @@ export function FinancePulse({ width = 2 }: { width?: CardWidth } = {}) {
       borderless
       title="FINANCE PULSE"
       status={liveStatusLabel(tone)}
-      statusTone={tone}
+      statusTone={financeHidden ? "muted" : tone}
       topRight={
         <button
           type="button"
@@ -246,9 +238,7 @@ export function FinancePulse({ width = 2 }: { width?: CardWidth } = {}) {
                 <div>
                   <div className="card-eyebrow">Net worth</div>
                   <div className="card-hero-primary mt-1.5 tabular-nums">
-                    <PrivateValue>
-                      {fmtCurrency(snapshot.net_worth, snapshot.currency)}
-                    </PrivateValue>
+                    <Money value={snapshot.net_worth} currency={snapshot.currency} />
                   </div>
                   <div
                     className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mt-1 ${toneClass}`}
@@ -267,20 +257,18 @@ export function FinancePulse({ width = 2 }: { width?: CardWidth } = {}) {
                     <>
                       <Mono
                         className={`block mt-1.5 tabular-nums text-2xl ${
-                          deltas.dayDelta >= 0 ? "text-ok" : "text-danger"
+                          financeHidden ? "text-ink-3" : deltas.dayDelta >= 0 ? "text-ok" : "text-danger"
                         }`}
                       >
-                        <PrivateValue>
-                          {fmtSigned(deltas.dayDelta, snapshot.currency)}
-                        </PrivateValue>
+                        <Money value={deltas.dayDelta} format="signed" currency={snapshot.currency} />
                       </Mono>
                       {deltas.dayPct !== null && (
                         <Mono
                           className={`block text-xs mt-1 ${
-                            deltas.dayDelta >= 0 ? "text-ok/70" : "text-danger/70"
+                            financeHidden ? "text-ink-3" : deltas.dayDelta >= 0 ? "text-ok/70" : "text-danger/70"
                           }`}
                         >
-                          <PrivateValue>{fmtPercent(deltas.dayPct)}</PrivateValue>
+                          <Money value={deltas.dayPct} format="percent" />
                         </Mono>
                       )}
                     </>
@@ -296,24 +284,18 @@ export function FinancePulse({ width = 2 }: { width?: CardWidth } = {}) {
                     <>
                       <Mono
                         className={`block mt-1.5 tabular-nums text-2xl ${
-                          deltas.monthDelta >= 0 ? "text-ok" : "text-danger"
+                          financeHidden ? "text-ink-3" : deltas.monthDelta >= 0 ? "text-ok" : "text-danger"
                         }`}
                       >
-                        <PrivateValue>
-                          {fmtSigned(deltas.monthDelta, snapshot.currency)}
-                        </PrivateValue>
+                        <Money value={deltas.monthDelta} format="signed" currency={snapshot.currency} />
                       </Mono>
                       {deltas.monthPct !== null && (
                         <Mono
                           className={`block text-xs mt-1 ${
-                            deltas.monthDelta >= 0
-                              ? "text-ok/70"
-                              : "text-danger/70"
+                            financeHidden ? "text-ink-3" : deltas.monthDelta >= 0 ? "text-ok/70" : "text-danger/70"
                           }`}
                         >
-                          <PrivateValue>
-                            {fmtPercent(deltas.monthPct)}
-                          </PrivateValue>
+                          <Money value={deltas.monthPct} format="percent" />
                         </Mono>
                       )}
                     </>
@@ -331,9 +313,7 @@ export function FinancePulse({ width = 2 }: { width?: CardWidth } = {}) {
               <div>
                 <div className="card-eyebrow">Net worth</div>
                 <div className="card-hero-primary mt-1.5 tabular-nums">
-                  <PrivateValue>
-                    {fmtCurrency(snapshot.net_worth, snapshot.currency)}
-                  </PrivateValue>
+                  <Money value={snapshot.net_worth} currency={snapshot.currency} />
                 </div>
                 <div
                   className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mt-1 ${toneClass}`}
@@ -358,24 +338,18 @@ export function FinancePulse({ width = 2 }: { width?: CardWidth } = {}) {
                     <>
                       <Mono
                         className={`block text-sm mt-1 ${
-                          deltas.dayDelta >= 0 ? "text-ok" : "text-danger"
+                          financeHidden ? "text-ink-3" : deltas.dayDelta >= 0 ? "text-ok" : "text-danger"
                         }`}
                       >
-                        <PrivateValue>
-                          {fmtSigned(deltas.dayDelta, snapshot.currency)}
-                        </PrivateValue>
+                        <Money value={deltas.dayDelta} format="signed" currency={snapshot.currency} />
                       </Mono>
                       {deltas.dayPct !== null && (
                         <Mono
                           className={`block text-[11px] ${
-                            deltas.dayDelta >= 0
-                              ? "text-ok/70"
-                              : "text-danger/70"
+                            financeHidden ? "text-ink-3" : deltas.dayDelta >= 0 ? "text-ok/70" : "text-danger/70"
                           }`}
                         >
-                          <PrivateValue>
-                            {fmtPercent(deltas.dayPct)}
-                          </PrivateValue>
+                          <Money value={deltas.dayPct} format="percent" />
                         </Mono>
                       )}
                     </>
@@ -391,24 +365,18 @@ export function FinancePulse({ width = 2 }: { width?: CardWidth } = {}) {
                     <>
                       <Mono
                         className={`block text-sm mt-1 ${
-                          deltas.monthDelta >= 0 ? "text-ok" : "text-danger"
+                          financeHidden ? "text-ink-3" : deltas.monthDelta >= 0 ? "text-ok" : "text-danger"
                         }`}
                       >
-                        <PrivateValue>
-                          {fmtSigned(deltas.monthDelta, snapshot.currency)}
-                        </PrivateValue>
+                        <Money value={deltas.monthDelta} format="signed" currency={snapshot.currency} />
                       </Mono>
                       {deltas.monthPct !== null && (
                         <Mono
                           className={`block text-[11px] ${
-                            deltas.monthDelta >= 0
-                              ? "text-ok/70"
-                              : "text-danger/70"
+                            financeHidden ? "text-ink-3" : deltas.monthDelta >= 0 ? "text-ok/70" : "text-danger/70"
                           }`}
                         >
-                          <PrivateValue>
-                            {fmtPercent(deltas.monthPct)}
-                          </PrivateValue>
+                          <Money value={deltas.monthPct} format="percent" />
                         </Mono>
                       )}
                     </>

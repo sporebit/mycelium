@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mono } from "@/components/dashboard/Mono";
+import { Money } from "@/components/finance/Money";
 import type { Transaction, BankAccount, ImportResult } from "@/lib/types/transaction";
 
 type Toast = { kind: "ok" | "error"; text: string } | null;
@@ -31,11 +32,6 @@ type AmbiguousPayment = {
   funding_type: string | null;
   candidates: MatchCandidate[];
 };
-
-function fmtAmount(amount: number): string {
-  const abs = Math.abs(amount).toFixed(2);
-  return amount >= 0 ? `+£${abs}` : `-£${abs}`;
-}
 
 function fmtDate(iso: string): string {
   try {
@@ -383,7 +379,7 @@ export function SpendingClient() {
               IN
             </span>
             <Mono className="text-sm text-ok">
-              +£{summary.total_in.toFixed(2)}
+              <Money value={summary.total_in} format="amount" />
             </Mono>
           </div>
           <div className="flex flex-col">
@@ -391,7 +387,7 @@ export function SpendingClient() {
               OUT
             </span>
             <Mono className="text-sm text-danger">
-              -£{Math.abs(summary.total_out).toFixed(2)}
+              <Money value={summary.total_out} format="amount" />
             </Mono>
           </div>
           <div className="flex flex-col">
@@ -401,7 +397,7 @@ export function SpendingClient() {
             <Mono
               className={`text-sm ${summary.net >= 0 ? "text-ok" : "text-danger"}`}
             >
-              {summary.net >= 0 ? "+" : "-"}£{Math.abs(summary.net).toFixed(2)}
+              <Money value={summary.net} format="amount" />
             </Mono>
           </div>
           <div className="flex-1" />
@@ -788,12 +784,12 @@ function TransactionRow({
       </td>
       <td className="px-3 py-1.5 text-right">
         <Mono className={`text-[13px] ${amountColor}`}>
-          {fmtAmount(txn.amount)}
+          <Money value={txn.amount} format="amount" />
         </Mono>
       </td>
       <td className="px-3 py-1.5 text-right">
         <Mono className="text-[13px] text-text-1">
-          {txn.balance != null ? `£${Number(txn.balance).toFixed(2)}` : "—"}
+          {txn.balance != null ? <Money value={Number(txn.balance)} format="balance" /> : "—"}
         </Mono>
       </td>
       <td className="px-3 py-1.5">
@@ -911,7 +907,7 @@ function PayPalMatchPanel({
                   {p.merchant_name ?? "Unknown"}
                 </span>
                 <Mono className="text-[11px] text-danger">
-                  {fmtAmount(p.amount)}
+                  <Money value={p.amount} format="amount" />
                 </Mono>
                 <Mono className="text-[11px] text-ink-3">
                   {fmtDate(p.paypal_date)}

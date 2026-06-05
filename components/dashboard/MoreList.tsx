@@ -327,7 +327,7 @@ export function MoreList() {
             <div className="flex-1">
               <div className="text-base text-text-0">Privacy mode</div>
               <div className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.04em] uppercase">
-                Hide financial values across the app
+                Redact financial values (resets on reload)
               </div>
             </div>
             <span

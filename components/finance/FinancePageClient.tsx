@@ -3,16 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Panel } from "@/components/dashboard/Panel";
 import { Mono } from "@/components/dashboard/Mono";
-import { PrivateValue } from "@/components/PrivateValue";
+import { Money } from "@/components/finance/Money";
+import { usePrivacy } from "@/lib/context/PrivacyContext";
 import type {
   FinanceData,
   FinanceHistoryPoint,
 } from "@/lib/finance/types";
 import {
   breakDown,
-  fmtCurrency,
-  fmtPercent,
-  fmtSigned,
   liveTone,
   relativeTime,
 } from "@/lib/finance/helpers";
@@ -20,6 +18,39 @@ import {
 type SnapshotResponse =
   | (FinanceData & { date?: string })
   | { snapshot: null; last_refreshed_at: null; source: null };
+
+function EyeToggle() {
+  const { financeHidden, toggle } = usePrivacy();
+  const label = financeHidden ? "Show financial values" : "Hide financial values";
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      title={label}
+      aria-label={label}
+      aria-pressed={financeHidden}
+      className={`inline-flex items-center justify-center h-8 w-8 rounded-md transition-colors ${
+        financeHidden
+          ? "text-accent hover:text-accent/80"
+          : "text-ink-3 hover:text-ink-4"
+      }`}
+    >
+      {financeHidden ? (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+          <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+          <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+          <line x1="2" y1="2" x2="22" y2="22" />
+        </svg>
+      ) : (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      )}
+    </button>
+  );
+}
 
 function KpiBox({
   label,
@@ -30,8 +61,6 @@ function KpiBox({
   value: string;
   hint?: string;
 }) {
-  // Plain "—" placeholder should stay visible even in privacy mode; only
-  // wrap real values.
   const isPlaceholder = value === "—";
   return (
     <div className="rounded-xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl p-4">
@@ -39,7 +68,7 @@ function KpiBox({
         {label}
       </div>
       <Mono className="block text-2xl text-ink-4 mt-2">
-        {isPlaceholder ? value : <PrivateValue>{value}</PrivateValue>}
+        {isPlaceholder ? value : value}
       </Mono>
       {hint && (
         <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
@@ -65,6 +94,7 @@ function CategoryPanel({
   currency: string;
   tone?: "ok" | "warn" | "danger";
 }) {
+  const { financeHidden } = usePrivacy();
   const share = netWorth !== 0 ? (total / netWorth) * 100 : 0;
   const toneClass =
     tone === "danger" ? "text-danger" : tone === "warn" ? "text-warn" : "text-ok";
@@ -74,12 +104,12 @@ function CategoryPanel({
       title={title}
       topRight={
         <Mono>
-          <PrivateValue>{fmtPercent(share, 1)}</PrivateValue> OF NW
+          <Money value={share} format="percent" decimals={1} /> OF NW
         </Mono>
       }
     >
-      <Mono className={`block text-xl ${toneClass}`}>
-        <PrivateValue>{fmtCurrency(total, currency)}</PrivateValue>
+      <Mono className={`block text-xl ${financeHidden ? "text-ink-3" : toneClass}`}>
+        <Money value={total} currency={currency} />
       </Mono>
       <ul className="mt-3 flex flex-col divide-y divide-ink-2">
         {items.length === 0 ? (
@@ -93,7 +123,7 @@ function CategoryPanel({
                 {c.name}
               </span>
               <Mono className="text-[12px] text-ink-3 shrink-0">
-                <PrivateValue>{fmtCurrency(c.value, currency)}</PrivateValue>
+                <Money value={c.value} currency={currency} />
               </Mono>
             </li>
           ))
@@ -104,7 +134,7 @@ function CategoryPanel({
 }
 
 type MonthlyRow = {
-  period: string; // YYYY-MM
+  period: string;
   netWorth: number;
   liquid: number;
   invested: number;
@@ -113,7 +143,6 @@ type MonthlyRow = {
 };
 
 function groupByMonth(history: FinanceHistoryPoint[]): MonthlyRow[] {
-  // Newest-first input. For each YYYY-MM keep the FIRST occurrence (= latest snapshot of that month).
   const byMonth = new Map<string, FinanceHistoryPoint>();
   for (const p of history) {
     const ym = p.date.slice(0, 7);
@@ -132,7 +161,6 @@ function groupByMonth(history: FinanceHistoryPoint[]): MonthlyRow[] {
       delta: null,
     };
   });
-  // Compute delta vs prior (rows are newest-first → prior is the next row)
   for (let i = 0; i < rows.length; i++) {
     const prior = rows[i + 1];
     rows[i].delta = prior ? rows[i].netWorth - prior.netWorth : null;
@@ -149,6 +177,7 @@ function fmtMonth(ym: string): string {
 }
 
 export function FinancePageClient() {
+  const { financeHidden } = usePrivacy();
   const [data, setData] = useState<SnapshotResponse | null>(null);
   const [history, setHistory] = useState<FinanceHistoryPoint[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -226,8 +255,9 @@ export function FinancePageClient() {
   const lastRefreshed =
     data && "last_refreshed_at" in data ? data.last_refreshed_at : null;
   const tone = liveTone(lastRefreshed);
-  const toneClass =
-    tone === "ok"
+  const toneClass = financeHidden
+    ? "text-ink-3"
+    : tone === "ok"
       ? "text-ok"
       : tone === "warn"
         ? "text-warn"
@@ -252,9 +282,7 @@ export function FinancePageClient() {
           {snapshot ? (
             <>
               <Mono className="block text-4xl text-ink-4 mt-1">
-                <PrivateValue>
-                  {fmtCurrency(snapshot.net_worth, snapshot.currency)}
-                </PrivateValue>
+                <Money value={snapshot.net_worth} currency={snapshot.currency} />
               </Mono>
               <div
                 className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mt-1 ${toneClass}`}
@@ -283,14 +311,17 @@ export function FinancePageClient() {
             </div>
           )}
         </div>
-        <button
-          type="button"
-          onClick={refresh}
-          disabled={refreshing}
-          className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors shrink-0"
-        >
-          {refreshing ? "REFRESHING…" : "↻ REFRESH"}
-        </button>
+        <div className="flex items-center gap-1">
+          <EyeToggle />
+          <button
+            type="button"
+            onClick={refresh}
+            disabled={refreshing}
+            className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors shrink-0"
+          >
+            {refreshing ? "REFRESHING…" : "↻ REFRESH"}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -367,30 +398,22 @@ export function FinancePageClient() {
                       <td className="py-2 pr-3 text-ink-4">{fmtMonth(r.period)}</td>
                       <td className="text-right py-2 px-3">
                         <Mono className="text-ink-4">
-                          <PrivateValue>
-                            {fmtCurrency(r.netWorth, currency)}
-                          </PrivateValue>
+                          <Money value={r.netWorth} currency={currency} />
                         </Mono>
                       </td>
                       <td className="text-right py-2 px-3">
                         <Mono className="text-ink-3">
-                          <PrivateValue>
-                            {fmtCurrency(r.liquid, currency)}
-                          </PrivateValue>
+                          <Money value={r.liquid} currency={currency} />
                         </Mono>
                       </td>
                       <td className="text-right py-2 px-3">
                         <Mono className="text-ink-3">
-                          <PrivateValue>
-                            {fmtCurrency(r.invested, currency)}
-                          </PrivateValue>
+                          <Money value={r.invested} currency={currency} />
                         </Mono>
                       </td>
                       <td className="text-right py-2 px-3">
                         <Mono className="text-ink-3">
-                          <PrivateValue>
-                            {fmtCurrency(r.liabilities, currency)}
-                          </PrivateValue>
+                          <Money value={r.liabilities} currency={currency} />
                         </Mono>
                       </td>
                       <td className="text-right py-2 pl-3">
@@ -399,12 +422,14 @@ export function FinancePageClient() {
                         ) : (
                           <Mono
                             className={
-                              r.delta >= 0 ? "text-ok" : "text-danger"
+                              financeHidden
+                                ? "text-ink-3"
+                                : r.delta >= 0
+                                  ? "text-ok"
+                                  : "text-danger"
                             }
                           >
-                            <PrivateValue>
-                              {fmtSigned(r.delta, currency)}
-                            </PrivateValue>
+                            <Money value={r.delta} format="signed" currency={currency} />
                           </Mono>
                         )}
                       </td>
