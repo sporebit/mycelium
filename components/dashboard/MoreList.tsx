@@ -160,12 +160,34 @@ function NutritionIcon({ size = 22, ariaLabel = "Nutrition" }: NavIconProps) {
   );
 }
 
+/** Desktop/monitor icon for /pc-build. */
+function PcBuildIcon({ size = 22, ariaLabel = "PC Build" }: NavIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-label={ariaLabel}
+    >
+      <rect x="8" y="8" width="24" height="18" rx="2" />
+      <path d="M15 26 L25 26 M20 26 L20 32 M14 32 L26 32" />
+    </svg>
+  );
+}
+
 const SECTIONS: Item[] = [
   { label: "Finance", href: "/finance", Icon: FinanceIcon },
   { label: "Health", href: "/health", Icon: HealthIcon },
   { label: "Nutrition", href: "/health/nutrition", Icon: NutritionIcon },
   { label: "Journal", href: "/journal", Icon: JournalIcon },
   { label: "Review", href: "/review", Icon: ReviewIcon },
+  { label: "PC Build", href: "/pc-build", Icon: PcBuildIcon },
 ];
 
 function Chevron(): ReactNode {
