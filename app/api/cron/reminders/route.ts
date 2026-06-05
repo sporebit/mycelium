@@ -25,8 +25,8 @@ function nextDue(current: string, recurrence: string): string {
 
 export async function GET(req: NextRequest) {
   const bearer = req.headers.get("authorization")?.replace("Bearer ", "");
-  const secret = process.env.CRON_SECRET;
-  if (secret && bearer !== secret) {
+  const secret = process.env.REMINDERS_CRON_SECRET;
+  if (!secret || bearer !== secret) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
