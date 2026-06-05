@@ -9,7 +9,7 @@ import {
   type InlineKeyboardMarkup,
 } from "@/lib/telegram/api";
 import { transcribeAudio } from "@/lib/openai/whisper";
-import { classifyCapture } from "@/lib/router/classifyCapture";
+import { classifyCapture, type ReminderDetails } from "@/lib/router/classifyCapture";
 import { writeCapture } from "@/lib/router/writeCapture";
 import { embedAndStore } from "@/lib/router/embedAndStore";
 import { createServerClient } from "@/lib/supabase/server";
@@ -49,6 +49,62 @@ type TgUpdate = {
 function isQuotaError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return /429|insufficient_quota|billing|rate.limit/i.test(msg);
+}
+
+function computeReminderDueAt(r: ReminderDetails): Date {
+  const now = new Date();
+
+  // Relative: "in 30 minutes"
+  if (r.relative_minutes != null && r.relative_minutes > 0) {
+    return new Date(now.getTime() + r.relative_minutes * 60_000);
+  }
+
+  // Get current London time components
+  const londonNow = new Date(
+    now.toLocaleString("en-US", { timeZone: "Europe/London" }),
+  );
+  const londonOffsetMs = londonNow.getTime() - new Date(
+    now.toLocaleString("en-US", { timeZone: "UTC" }),
+  ).getTime();
+
+  // Parse target date in London
+  let targetDate = new Date(londonNow);
+
+  if (r.date === "tomorrow") {
+    targetDate.setDate(targetDate.getDate() + 1);
+  } else if (r.date && /^(mon|tue|wed|thu|fri|sat|sun)/i.test(r.date)) {
+    const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const targetDay = dayNames.findIndex((d) => r.date!.toLowerCase().startsWith(d.slice(0, 3)));
+    if (targetDay >= 0) {
+      const currentDay = targetDate.getDay();
+      let daysAhead = targetDay - currentDay;
+      if (daysAhead <= 0) daysAhead += 7;
+      targetDate.setDate(targetDate.getDate() + daysAhead);
+    }
+  } else if (r.date && /^\d{4}-\d{2}-\d{2}$/.test(r.date)) {
+    const [y, m, d] = r.date.split("-").map(Number);
+    targetDate = new Date(y, m - 1, d, targetDate.getHours(), targetDate.getMinutes());
+  }
+  // else: "today" or null → keep current date
+
+  // Apply time if given
+  if (r.time) {
+    const [h, m] = r.time.split(":").map(Number);
+    if (!isNaN(h) && !isNaN(m)) {
+      targetDate.setHours(h, m, 0, 0);
+    }
+  }
+
+  // Convert London wall-clock to UTC
+  const utcMs = targetDate.getTime() - londonOffsetMs;
+  let dueAt = new Date(utcMs);
+
+  // If the computed time is in the past, push to next day (for one-shot reminders)
+  if (dueAt.getTime() <= now.getTime() && !r.recurrence) {
+    dueAt = new Date(dueAt.getTime() + 24 * 60 * 60_000);
+  }
+
+  return dueAt;
 }
 
 function unauthorized() {
@@ -296,6 +352,41 @@ async function handleMessage(message: TgMessage): Promise<void> {
       await sendMessage(chatId, "⚠️ Workout routing failed — check logs.");
       return;
     }
+  }
+
+  // Reminder routing — insert into reminders table, skip generic capture.
+  if (classification.kind === "reminder" && classification.reminder) {
+    try {
+      const dueAt = computeReminderDueAt(classification.reminder);
+      const supabase = createServerClient();
+      await supabase.from("reminders").insert({
+        user_id: userId,
+        message: classification.reminder.reminder_message || classification.title,
+        due_at: dueAt.toISOString(),
+        recurrence: classification.reminder.recurrence || null,
+      });
+
+      const timeStr = dueAt.toLocaleString("en-GB", {
+        timeZone: "Europe/London",
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+      const recPart = classification.reminder.recurrence
+        ? ` (${classification.reminder.recurrence})`
+        : "";
+      await sendMessage(
+        chatId,
+        `⏰ Reminder set for ${timeStr}${recPart}: ${classification.reminder.reminder_message || classification.title}`,
+      );
+    } catch (err) {
+      console.error("[telegram] reminder insert failed:", err);
+      await sendMessage(chatId, "⚠️ Couldn't create reminder — check logs.");
+    }
+    return;
   }
 
   const result = await writeCapture({

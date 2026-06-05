@@ -6,7 +6,8 @@ export type CaptureKind =
   | "capture"
   | "workout"
   | "purchase"
-  | "pain_log";
+  | "pain_log"
+  | "reminder";
 export type CaptureUrgency = "today" | "this_week" | "this_month" | "someday";
 export type CaptureMood =
   | "energised"
@@ -60,6 +61,14 @@ export type PurchaseDetails = {
   list_type: PurchaseListType;
 };
 
+export type ReminderDetails = {
+  reminder_message: string;
+  time: string | null;
+  date: string | null;
+  relative_minutes: number | null;
+  recurrence: string | null;
+};
+
 export type ContextEnergy = "low" | "medium" | "high";
 
 export type Classification = {
@@ -74,6 +83,7 @@ export type Classification = {
   mentions: ClassificationMention[];
   purchase: PurchaseDetails | null; // only meaningful for purchases
   pain: PainDetails | null; // only meaningful for pain_log
+  reminder: ReminderDetails | null; // only meaningful for reminder
   /** Context fields — applies to every kind. The classifier sets them
    *  when they're clear from the text, otherwise leaves them null so
    *  the post-create suggester can fill in from history. */
@@ -97,6 +107,7 @@ const KINDS: readonly CaptureKind[] = [
   "workout",
   "purchase",
   "pain_log",
+  "reminder",
 ];
 
 const PAIN_FEEL_RATINGS: readonly PainFeel[] = [
@@ -145,8 +156,9 @@ const MOODS: readonly CaptureMood[] = [
 export const CLASSIFIER_SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
 
 Rules:
-- "kind" is one of: task, note, decision, journal, capture, workout, purchase, pain_log.
-  - task = an action the user needs to DO (not buy).
+- "kind" is one of: task, note, decision, journal, capture, workout, purchase, pain_log, reminder.
+  - task = an action the user needs to DO (not buy), with NO explicit time/date trigger.
+  - reminder = the user explicitly wants to be reminded at a specific time or after a delay. Signals: "remind me", "set a reminder", "in 30 minutes", "at 8pm", "every day at", "tomorrow at". If there's a concrete time/date/delay attached to a task-like request, classify as reminder, not task.
   - decision = a choice the user wants to record.
   - note = a fact or piece of info to remember.
   - journal = reflection, feeling, or observation about themselves or their day; longer-form expressive content; the kind of thing they'd want to re-read in a year.
@@ -168,7 +180,12 @@ Heuristics for workout (guidance):
   - Pure reflection about a workout WITHOUT concrete logging data ("the gym was hard today and I felt drained") is still journal, not workout.
 
 Examples:
-  - "Remind me to call Sarah tomorrow" -> task
+  - "Remind me to call Sarah tomorrow" -> reminder (reminder.reminder_message: "call Sarah", reminder.date: "tomorrow", reminder.time: null)
+  - "Remind me at 23:12 to turn the boiler off" -> reminder (reminder.reminder_message: "turn the boiler off", reminder.time: "23:12", reminder.date: "today")
+  - "In 30 minutes remind me to check the oven" -> reminder (reminder.reminder_message: "check the oven", reminder.relative_minutes: 30)
+  - "Every day at 8pm remind me to take my meds" -> reminder (reminder.reminder_message: "take my meds", reminder.time: "20:00", reminder.recurrence: "daily")
+  - "Set a reminder for Friday at 3pm to call the dentist" -> reminder (reminder.reminder_message: "call the dentist", reminder.date: "friday", reminder.time: "15:00")
+  - "File the taxes by end of month" -> task (no explicit time trigger, just a deadline)
   - "We decided to go with the React 19 upgrade after all" -> decision
   - "Stoic gym this morning was brutal but I noticed I'm finally enjoying the back-squat day. Body's adapting." -> journal
   - "Beautiful walk through Sandall Park, the geese are back" -> journal
@@ -219,6 +236,14 @@ Other fields:
     - currency: infer from symbol (£ → GBP, $ → USD, € → EUR). Default GBP.
     - want_or_need: "need" for "need / must / have to / running out / out of / it's overdue". "want" for "want / would like / thinking about / fancy". "unclear" if ambiguous.
     - list_type: "wishlist" only when the user explicitly signals it — phrases like "add to wishlist", "on my wishlist", "wishlist", "want someday", "for the wishlist", "would love eventually", or aspirational language with no near-term intent. Everything else (including "want", "fancy", "thinking about") stays "shopping" because shopping is the active to-buy list and wishlist is the aspirational set-aside.
+
+- "reminder" is an object ONLY when kind = "reminder"; null for every other kind. Shape:
+    { "reminder_message": <string>, "time": <HH:MM 24h or null>, "date": <"today" | "tomorrow" | day-of-week | ISO date | null>, "relative_minutes": <number or null>, "recurrence": <"daily" | "weekly" | "monthly" | null> }
+    - reminder_message: the actual thing to be reminded about, stripped of "remind me to" framing.
+    - time: 24-hour HH:MM format if a specific time is given. "8pm" → "20:00", "11:30am" → "11:30". Null if only relative.
+    - date: "today" (default if only a time is given), "tomorrow", a day name ("friday"), or ISO date. Null if only relative_minutes.
+    - relative_minutes: set when the user says "in X minutes/hours". "in 30 minutes" → 30, "in 2 hours" → 120. Null when an absolute time is given.
+    - recurrence: "daily", "weekly", or "monthly" if the user says "every day", "every week", etc. Null for one-shot reminders.
 
 Respond ONLY with a single JSON object matching this schema. No markdown, no preface.`;
 
@@ -329,6 +354,26 @@ function validate(obj: unknown): Classification | null {
     pain = { pain_regions, severity, feel_rating };
   }
 
+  // reminder is only meaningful for kind === 'reminder'.
+  let reminder: ReminderDetails | null = null;
+  if (kind === "reminder") {
+    const r = (o.reminder as Record<string, unknown> | null | undefined) ?? {};
+    const rm = typeof r.reminder_message === "string" ? r.reminder_message.trim() : "";
+    const time = typeof r.time === "string" && r.time.trim() ? r.time.trim() : null;
+    const date = typeof r.date === "string" && r.date.trim() ? r.date.trim() : null;
+    const relRaw = r.relative_minutes;
+    const relative_minutes =
+      typeof relRaw === "number" && Number.isFinite(relRaw) && relRaw > 0
+        ? Math.round(relRaw)
+        : null;
+    const recRaw = r.recurrence;
+    const recurrence =
+      typeof recRaw === "string" && ["daily", "weekly", "monthly"].includes(recRaw)
+        ? recRaw
+        : null;
+    reminder = { reminder_message: rm, time, date, relative_minutes, recurrence };
+  }
+
   // Context fields are optional on every kind. Permissively read each one;
   // anything unusable (wrong type, non-whitelisted energy) falls back to null.
   const context_where =
@@ -361,6 +406,7 @@ function validate(obj: unknown): Classification | null {
     mentions,
     purchase,
     pain,
+    reminder,
     context_where,
     context_device,
     context_energy,
@@ -553,8 +599,10 @@ function extractPainFromText(text: string): PainDetails {
 function classifyRegex(text: string): Classification {
   const lower = text.toLowerCase();
   const wordCount = text.trim().split(/\s+/).length;
+  const hasReminderWords =
+    /\b(remind me|set a reminder|reminder for|in \d+ minutes?|in \d+ hours?|at \d{1,2}:\d{2}|at \d{1,2}\s*[ap]m)\b/i.test(lower);
   const hasTaskWords =
-    /\b(todo|remind|task|need to|must|deadline|due)\b/.test(lower);
+    /\b(todo|task|need to|must|deadline|due)\b/.test(lower);
   const firstPerson =
     /\b(i|i'm|i've|i'll|today|felt|feeling|noticed)\b/.test(lower);
   const reflective =
@@ -604,6 +652,8 @@ function classifyRegex(text: string): Classification {
     kind = "pain_log";
   } else if (purchaseSignals) {
     kind = "purchase";
+  } else if (hasReminderWords) {
+    kind = "reminder";
   } else if (hasTaskWords) {
     kind = "task";
   } else if (
@@ -639,11 +689,61 @@ function classifyRegex(text: string): Classification {
     mentions: [],
     purchase: kind === "purchase" ? extractPurchaseFromText(text) : null,
     pain: kind === "pain_log" ? extractPainFromText(text) : null,
+    reminder: kind === "reminder" ? extractReminderFromText(text) : null,
     context_where: ctx.where,
     context_device: ctx.device,
     context_energy: ctx.energy,
     context_tag: ctx.tag,
   };
+}
+
+function extractReminderFromText(text: string): ReminderDetails {
+  const lower = text.toLowerCase();
+
+  // Strip "remind me to" / "set a reminder to/for" framing
+  let msg = text
+    .replace(/^remind me\s+(to\s+)?/i, "")
+    .replace(/^set a reminder\s+(to|for)\s+/i, "")
+    .replace(/\s+at\s+\d{1,2}(:\d{2})?\s*([ap]m)?/i, "")
+    .replace(/\s+in\s+\d+\s*(minutes?|hours?|mins?|hrs?)/i, "")
+    .replace(/\s*(tomorrow|today|tonight)\s*/i, "")
+    .trim();
+  if (!msg) msg = text.trim();
+
+  // Time: "at 23:12", "at 8pm", "at 11:30am"
+  let time: string | null = null;
+  const timeMatch = lower.match(/at\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)?/);
+  if (timeMatch) {
+    let h = parseInt(timeMatch[1]);
+    const m = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+    const ampm = timeMatch[3];
+    if (ampm === "pm" && h < 12) h += 12;
+    if (ampm === "am" && h === 12) h = 0;
+    time = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  }
+
+  // Relative: "in 30 minutes", "in 2 hours"
+  let relative_minutes: number | null = null;
+  const relMatch = lower.match(/in\s+(\d+)\s*(minutes?|mins?|hours?|hrs?)/);
+  if (relMatch) {
+    const n = parseInt(relMatch[1]);
+    const unit = relMatch[2];
+    relative_minutes = /hours?|hrs?/.test(unit) ? n * 60 : n;
+  }
+
+  // Date
+  let date: string | null = null;
+  if (/\btomorrow\b/.test(lower)) date = "tomorrow";
+  else if (/\btonight\b|\btoday\b/.test(lower)) date = "today";
+  else if (time && !relative_minutes) date = "today";
+
+  // Recurrence
+  let recurrence: string | null = null;
+  if (/\bevery\s+day\b|\bdaily\b/.test(lower)) recurrence = "daily";
+  else if (/\bevery\s+week\b|\bweekly\b/.test(lower)) recurrence = "weekly";
+  else if (/\bevery\s+month\b|\bmonthly\b/.test(lower)) recurrence = "monthly";
+
+  return { reminder_message: msg, time, date, relative_minutes, recurrence };
 }
 
 /**
