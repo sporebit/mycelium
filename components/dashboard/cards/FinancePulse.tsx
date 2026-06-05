@@ -244,9 +244,6 @@ export function FinancePulse({ width = 2 }: { width?: CardWidth } = {}) {
                     className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] mt-1 ${toneClass}`}
                   >
                     ● {relativeTime(lastRefreshed)}
-                    {data && "source" in data && data.source && (
-                      <span className="ml-2 text-ink-3">via {data.source}</span>
-                    )}
                   </div>
                 </div>
                 <div>
