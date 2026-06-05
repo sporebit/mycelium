@@ -12,6 +12,11 @@ const CARDS = [
     description: "Weight, measurements, body composition over time.",
   },
   {
+    label: "Supplements",
+    href: "/health/supplements",
+    description: "Active supplement stack with one-tap dose logging.",
+  },
+  {
     label: "Pain tracking",
     href: "/health/pain",
     description: "Standalone pain logs + recent session pain notes.",
