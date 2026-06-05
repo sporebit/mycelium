@@ -46,6 +46,11 @@ type TgUpdate = {
   callback_query?: TgCallbackQuery;
 };
 
+function isQuotaError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /429|insufficient_quota|billing|rate.limit/i.test(msg);
+}
+
 function unauthorized() {
   return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 }
@@ -184,18 +189,54 @@ async function handleMessage(message: TgMessage): Promise<void> {
   let audioUrl: string | null = null;
 
   if (message.voice) {
+    const fileId = message.voice.file_id;
     try {
-      const file = await getFile(message.voice.file_id);
+      const file = await getFile(fileId);
       audioUrl = file.file_path;
       const { buffer, contentType } = await downloadFile(file.file_path);
-      rawText = await transcribeAudio(
-        buffer,
-        `${message.voice.file_id}.ogg`,
-        message.voice.mime_type ?? contentType ?? "audio/ogg"
-      );
+
+      async function tryTranscribe(buf: ArrayBuffer, ct: string): Promise<string> {
+        return transcribeAudio(buf, `${fileId}.ogg`, message.voice?.mime_type ?? ct ?? "audio/ogg");
+      }
+
+      try {
+        rawText = await tryTranscribe(buffer, contentType);
+      } catch (firstErr) {
+        const isQuota = isQuotaError(firstErr);
+        if (!isQuota) {
+          // Retry once on transient errors
+          try {
+            rawText = await tryTranscribe(buffer, contentType);
+          } catch (retryErr) {
+            throw retryErr;
+          }
+        } else {
+          throw firstErr;
+        }
+      }
     } catch (err) {
-      console.error("[telegram] voice handling failed:", err);
-      await sendMessage(chatId, "⚠️ Couldn't transcribe that voice note.");
+      console.error("[telegram] voice transcription failed:", err);
+
+      // Persist the file_id so it can be retried later
+      try {
+        const supabase = createServerClient();
+        await supabase.from("raw_captures").insert({
+          user_id: userId,
+          source: "telegram",
+          raw_text: null,
+          audio_url: `tg-file:${fileId}`,
+          classification: { kind: "failed_transcription", error: String(err) },
+        });
+      } catch (persistErr) {
+        console.error("[telegram] failed to persist voice file_id:", persistErr);
+      }
+
+      const quota = isQuotaError(err);
+      if (quota) {
+        await sendMessage(chatId, "⚠️ Voice transcription failed — OpenAI quota/billing issue. Voice note saved for retry.");
+      } else {
+        await sendMessage(chatId, "⚠️ Voice transcription failed (transient error, retried). Voice note saved for retry.");
+      }
       return;
     }
   } else if (message.text) {
