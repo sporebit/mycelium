@@ -7,6 +7,21 @@ function userId(): string | null {
   return process.env.USER_ID ?? null;
 }
 
+function londonDayStart(): Date {
+  const now = new Date();
+  const londonDate = now.toLocaleDateString("en-CA", { timeZone: "Europe/London" });
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/London",
+    timeZoneName: "shortOffset",
+  }).formatToParts(now);
+  const tzName = parts.find((p) => p.type === "timeZoneName")?.value ?? "GMT";
+  const m = tzName.match(/GMT([+-]?\d+)?/);
+  const offsetH = m?.[1] ? parseInt(m[1]) : 0;
+  const midnight = new Date(`${londonDate}T00:00:00Z`);
+  midnight.setUTCHours(midnight.getUTCHours() - offsetH);
+  return midnight;
+}
+
 export async function GET() {
   const uid = userId();
   if (!uid)
@@ -23,14 +38,13 @@ export async function GET() {
       .order("name");
     if (sErr) throw sErr;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const dayStartUtc = londonDayStart();
 
     const { data: logs, error: lErr } = await supabase
       .from("supplement_logs")
       .select("id, supplement_id, taken_at")
       .eq("user_id", uid)
-      .gte("taken_at", today.toISOString())
+      .gte("taken_at", dayStartUtc.toISOString())
       .order("taken_at", { ascending: false });
     if (lErr) throw lErr;
 
