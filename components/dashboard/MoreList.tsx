@@ -160,6 +160,27 @@ function NutritionIcon({ size = 22, ariaLabel = "Nutrition" }: NavIconProps) {
   );
 }
 
+/** Map pin icon for /places. */
+function PlacesIcon({ size = 22, ariaLabel = "Places" }: NavIconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-label={ariaLabel}
+    >
+      <path d="M20 6 C 13 6, 8 11, 8 18 C 8 27, 20 34, 20 34 C 20 34, 32 27, 32 18 C 32 11, 27 6, 20 6 Z" />
+      <circle cx="20" cy="18" r="4" />
+    </svg>
+  );
+}
+
 /** Desktop/monitor icon for /pc-build. */
 function PcBuildIcon({ size = 22, ariaLabel = "PC Build" }: NavIconProps) {
   return (
@@ -188,6 +209,7 @@ const SECTIONS: Item[] = [
   { label: "Journal", href: "/journal", Icon: JournalIcon },
   { label: "Review", href: "/review", Icon: ReviewIcon },
   { label: "PC Build", href: "/pc-build", Icon: PcBuildIcon },
+  { label: "Places", href: "/places", Icon: PlacesIcon },
 ];
 
 function Chevron(): ReactNode {
