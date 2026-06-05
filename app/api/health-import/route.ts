@@ -53,8 +53,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
 
   const bearer = req.headers.get("authorization")?.replace("Bearer ", "");
-  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  if (secret && bearer !== secret) {
+  const secret = process.env.HEALTH_IMPORT_SECRET;
+  if (!secret || bearer !== secret) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
