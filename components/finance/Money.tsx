@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { usePrivacy } from "@/lib/context/PrivacyContext";
 
 type MoneyFormat = "currency" | "signed" | "percent" | "pence" | "amount" | "balance";
@@ -39,6 +40,31 @@ function fmt(value: number, format: MoneyFormat, currency: string, decimals: num
     case "balance":
       return `£${Number(value).toFixed(2)}`;
   }
+}
+
+export function PrivateText({
+  children,
+  placeholder = "••••••••••",
+  className = "",
+}: {
+  children: ReactNode;
+  placeholder?: string;
+  className?: string;
+}) {
+  const { financeHidden } = usePrivacy();
+
+  if (financeHidden) {
+    return (
+      <span
+        className={`inline-block select-none text-ink-3 ${className}`}
+        aria-label="Hidden text"
+      >
+        {placeholder}
+      </span>
+    );
+  }
+
+  return <>{children}</>;
 }
 
 export function Money({

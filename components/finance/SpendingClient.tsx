@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mono } from "@/components/dashboard/Mono";
-import { Money } from "@/components/finance/Money";
+import { Money, PrivateText } from "@/components/finance/Money";
 import type { Transaction, BankAccount, ImportResult } from "@/lib/types/transaction";
 
 type Toast = { kind: "ok" | "error"; text: string } | null;
@@ -768,15 +768,15 @@ function TransactionRow({
         {txn.enriched_merchant ? (
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-text-0 truncate">{txn.enriched_merchant}</span>
+              <span className="text-text-0 truncate"><PrivateText>{txn.enriched_merchant}</PrivateText></span>
               <span className="shrink-0 text-[9px] uppercase tracking-[0.18em] text-accent/60 font-[family-name:var(--font-mono)] border border-accent/20 rounded px-1 py-px">
                 via PayPal
               </span>
             </div>
-            <span className="text-[11px] text-ink-3 truncate">{txn.description}</span>
+            <span className="text-[11px] text-ink-3 truncate"><PrivateText>{txn.description}</PrivateText></span>
           </div>
         ) : (
-          <span className="text-text-0 truncate block">{txn.description}</span>
+          <span className="text-text-0 truncate block"><PrivateText>{txn.description}</PrivateText></span>
         )}
       </td>
       <td className="px-3 py-1.5">
@@ -930,7 +930,7 @@ function PayPalMatchPanel({
                         This one
                       </button>
                       <span className="text-[12px] text-text-1 truncate min-w-0">
-                        {c.description}
+                        <PrivateText>{c.description}</PrivateText>
                       </span>
                       <Mono className="text-[11px] text-ink-3 shrink-0">
                         {fmtDate(c.txn_date)}
