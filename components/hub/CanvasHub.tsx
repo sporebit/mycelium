@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTransition } from "@/lib/context/TransitionContext";
 
 const SECTIONS = [
   { key: "dashboard", label: "DASHBOARD", colour: "#e8e6dd", route: "/dashboard", angle: 0 },
@@ -76,16 +77,35 @@ function generateBrainGeo(): BrainGeo {
 export function CanvasHub() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const router = useRouter();
+  const { bloom } = useTransition();
   const [ready, setReady] = useState(false);
 
   const grainRef = useRef<HTMLCanvasElement | null>(null);
   const mouseRef = useRef<{ x: number; y: number }>({ x: -9999, y: -9999 });
   const hoveredRef = useRef<number>(-1);
+  const navigatingRef = useRef(false);
   const nodeStates = useRef<NodeState[]>(
     SECTIONS.map(() => ({ haloAlpha: 0.04, ghostAlpha: 0.18, nucleusAlpha: 0.7 })),
   );
   const brainGeoRef = useRef<BrainGeo | null>(null);
   const rafRef = useRef<number>(0);
+
+  const navigateToSection = useCallback(
+    async (sectionIndex: number, originX: number, originY: number) => {
+      if (navigatingRef.current) return;
+      navigatingRef.current = true;
+      const s = SECTIONS[sectionIndex];
+      await bloom({
+        colour: s.colour,
+        originX,
+        originY,
+        direction: "enter",
+      });
+      router.push(s.route);
+      navigatingRef.current = false;
+    },
+    [bloom, router],
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -144,7 +164,15 @@ export function CanvasHub() {
     }
     function handleClick() {
       const idx = hoveredRef.current;
-      if (idx >= 0) router.push(SECTIONS[idx].route);
+      if (idx < 0) return;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const orbitR = Math.min(w, h) * 0.32;
+      const s = SECTIONS[idx];
+      const rad = (s.angle * Math.PI) / 180;
+      const nx = w / 2 + orbitR * Math.sin(rad);
+      const ny = h / 2 - orbitR * Math.cos(rad);
+      navigateToSection(idx, nx, ny);
     }
     function handleTouch(e: TouchEvent) {
       const t = e.touches[0];
@@ -163,7 +191,7 @@ export function CanvasHub() {
         const dx = t.clientX - nx;
         const dy = t.clientY - ny;
         if (Math.sqrt(dx * dx + dy * dy) < nodeR * 2.5) {
-          router.push(s.route);
+          navigateToSection(i, t.clientX, t.clientY);
           return;
         }
       }
@@ -462,7 +490,7 @@ export function CanvasHub() {
       canvas.removeEventListener("click", handleClick);
       canvas.removeEventListener("touchstart", handleTouch);
     };
-  }, [router]);
+  }, [navigateToSection]);
 
   return (
     <div

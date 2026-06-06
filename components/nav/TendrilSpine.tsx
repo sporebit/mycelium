@@ -1,7 +1,9 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { useRef, useCallback } from "react";
 import { SECTIONS, type SectionConfig } from "@/lib/nav/sections";
+import { useTransition } from "@/lib/context/TransitionContext";
 
 function findSection(pathname: string): SectionConfig | null {
   for (const s of SECTIONS) {
@@ -24,7 +26,28 @@ function isActive(pathname: string, href: string): boolean {
 export function TendrilSpine() {
   const pathname = usePathname();
   const router = useRouter();
+  const { bloom } = useTransition();
+  const navigatingRef = useRef(false);
   const section = findSection(pathname);
+
+  const returnToHub = useCallback(
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (navigatingRef.current) return;
+      navigatingRef.current = true;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const originX = rect.left + rect.width / 2;
+      const originY = rect.top + rect.height / 2;
+      await bloom({
+        colour: section?.colour ?? "#84f5b8",
+        originX,
+        originY,
+        direction: "exit",
+      });
+      router.push("/");
+      navigatingRef.current = false;
+    },
+    [bloom, router, section?.colour],
+  );
 
   if (!section) return null;
 
@@ -151,7 +174,7 @@ export function TendrilSpine() {
       {/* Brain nucleus — return to hub */}
       <button
         type="button"
-        onClick={() => router.push("/")}
+        onClick={returnToHub}
         title="Return to hub"
         className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full"
         style={{
