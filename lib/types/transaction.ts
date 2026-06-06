@@ -30,6 +30,9 @@ export type Transaction = {
   completed_at: string | null;
   enriched_merchant: string | null;
   enrichment_source: string | null;
+  category_source: string | null;
+  ai_confidence: number | null;
+  category_locked: boolean;
   created_at: string;
   account_number?: string | null;
   account_label?: string | null;
