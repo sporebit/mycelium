@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { isValidCategory } from "@/lib/finance/categorise";
+import { isValidCategory } from "@/lib/finance/taxonomy";
 
 export const runtime = "nodejs";
 
@@ -21,23 +21,19 @@ export async function POST(
   }
 
   const cat = typeof body.category === "string" ? body.category.trim() : "";
-  if (!isValidCategory(cat)) {
-    return NextResponse.json(
-      { error: "invalid category", valid: [...new Set([])] },
-      { status: 400 },
-    );
+  if (cat !== "" && !isValidCategory(cat)) {
+    return NextResponse.json({ error: "invalid category" }, { status: 400 });
   }
+
+  const update = cat
+    ? { category: cat, category_source: "manual" as const, category_locked: true, ai_confidence: null }
+    : { category: null, category_source: null, category_locked: false, ai_confidence: null };
 
   try {
     const supabase = createServerClient();
     const { data, error } = await supabase
       .from("transactions")
-      .update({
-        category: cat,
-        category_source: "manual",
-        category_locked: true,
-        ai_confidence: null,
-      })
+      .update(update)
       .eq("id", id)
       .eq("user_id", uid)
       .select("id, category, category_source, category_locked")

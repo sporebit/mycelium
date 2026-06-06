@@ -18,8 +18,13 @@ export async function GET(req: NextRequest) {
   const from = url.searchParams.get("from");
   const to = url.searchParams.get("to");
   const search = url.searchParams.get("q");
+  const typeParam = url.searchParams.get("type");
+  const categoryParam = url.searchParams.get("category");
   const limit = Math.min(Number(url.searchParams.get("limit")) || 500, 2000);
   const offset = Number(url.searchParams.get("offset")) || 0;
+
+  const types = typeParam ? typeParam.split(",").filter(Boolean) : [];
+  const cats = categoryParam ? categoryParam.split(",").filter(Boolean) : [];
 
   try {
     const supabase = createServerClient();
@@ -28,38 +33,34 @@ export async function GET(req: NextRequest) {
       .from("transactions")
       .select("*, bank_accounts(account_number, label)", { count: "exact" })
       .eq("user_id", uid);
-    let sumQ = supabase
-      .from("transactions")
-      .select("amount")
-      .eq("user_id", uid);
 
-    if (accountId && accountId !== "all") {
-      pageQ = pageQ.eq("account_id", accountId);
-      sumQ = sumQ.eq("account_id", accountId);
-    }
-    if (from) {
-      pageQ = pageQ.gte("txn_date", from);
-      sumQ = sumQ.gte("txn_date", from);
-    }
-    if (to) {
-      pageQ = pageQ.lte("txn_date", to);
-      sumQ = sumQ.lte("txn_date", to);
-    }
-    if (search) {
-      pageQ = pageQ.or(`description.ilike.%${search}%,enriched_merchant.ilike.%${search}%`);
-      sumQ = sumQ.or(`description.ilike.%${search}%,enriched_merchant.ilike.%${search}%`);
-    }
+    if (accountId && accountId !== "all") pageQ = pageQ.eq("account_id", accountId);
+    if (from) pageQ = pageQ.gte("txn_date", from);
+    if (to) pageQ = pageQ.lte("txn_date", to);
+    if (search) pageQ = pageQ.or(`description.ilike.%${search}%,enriched_merchant.ilike.%${search}%`);
+    if (types.length > 0) pageQ = pageQ.in("txn_type", types);
+    if (cats.length > 0) pageQ = pageQ.in("category", cats);
 
     const pageQuery = pageQ
       .order("txn_date", { ascending: false })
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
-    const [{ data, error, count }, { data: allAmounts, error: sumErr }] =
-      await Promise.all([pageQuery, sumQ]);
+    const aggQ = supabase.rpc("txn_agg", {
+      p_user_id: uid,
+      p_account_id: accountId && accountId !== "all" ? accountId : null,
+      p_from: from || null,
+      p_to: to || null,
+      p_search: search || null,
+      p_types: types.length > 0 ? types : null,
+      p_categories: cats.length > 0 ? cats : null,
+    });
+
+    const [{ data, error, count }, { data: agg, error: aggErr }] =
+      await Promise.all([pageQuery, aggQ]);
 
     if (error) throw error;
-    if (sumErr) throw sumErr;
+    if (aggErr) throw aggErr;
 
     type TxnRow = Record<string, unknown> & {
       amount: number;
@@ -77,17 +78,13 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    let totalIn = 0;
-    let totalOut = 0;
-    for (const row of (allAmounts ?? []) as { amount: number }[]) {
-      const amt = Number(row.amount);
-      if (amt > 0) totalIn += amt;
-      else totalOut += amt;
-    }
+    const totalIn = Number(agg?.total_in ?? 0);
+    const totalOut = Number(agg?.total_out ?? 0);
 
     return NextResponse.json({
       transactions,
       total: count ?? transactions.length,
+      types: (agg?.types as string[]) ?? [],
       summary: {
         total_in: Math.round(totalIn * 100) / 100,
         total_out: Math.round(totalOut * 100) / 100,

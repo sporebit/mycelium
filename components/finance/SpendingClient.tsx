@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Mono } from "@/components/dashboard/Mono";
 import { Money, PrivateText } from "@/components/finance/Money";
 import type { Transaction, BankAccount, ImportResult } from "@/lib/types/transaction";
+import { TAXONOMY } from "@/lib/finance/taxonomy";
 
 type Toast = { kind: "ok" | "error"; text: string } | null;
 
@@ -88,7 +89,7 @@ function getDatePresets(): DatePreset[] {
 export function SpendingClient() {
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [availableTypes, setAvailableTypes] = useState<string[]>([]);
   const [total, setTotal] = useState(0);
   const [summary, setSummary] = useState<{
     total_in: number;
@@ -97,6 +98,8 @@ export function SpendingClient() {
   } | null>(null);
 
   const [accountFilter, setAccountFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState<string[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -106,6 +109,7 @@ export function SpendingClient() {
     null,
   );
   const [importing, setImporting] = useState(false);
+  const [categorising, setCategorising] = useState(false);
   const [matchCounts, setMatchCounts] = useState<MatchCounts | null>(null);
   const [ambiguousPayments, setAmbiguousPayments] = useState<AmbiguousPayment[]>([]);
   const [matching, setMatching] = useState(false);
@@ -154,6 +158,8 @@ export function SpendingClient() {
     if (search.trim()) params.set("q", search.trim());
     if (dateFrom) params.set("from", dateFrom);
     if (dateTo) params.set("to", dateTo);
+    if (typeFilter.length > 0) params.set("type", typeFilter.join(","));
+    if (categoryFilter.length > 0) params.set("category", categoryFilter.join(","));
 
     let cancelled = false;
     fetch(`/api/finance/transactions?${params}`)
@@ -162,6 +168,7 @@ export function SpendingClient() {
         (j: {
           transactions?: Transaction[];
           total?: number;
+          types?: string[];
           summary?: { total_in: number; total_out: number; net: number };
         }) => {
           if (cancelled) return;
@@ -169,19 +176,14 @@ export function SpendingClient() {
           setTransactions(txns);
           setTotal(j?.total ?? txns.length);
           setSummary(j?.summary ?? null);
-          // Build unique category set for datalist.
-          const cats = new Set<string>();
-          for (const t of txns) {
-            if (t.category) cats.add(t.category);
-          }
-          setCategories([...cats].sort());
+          if (j?.types) setAvailableTypes(j.types);
         },
       )
       .catch(() => setTransactions([]));
     return () => {
       cancelled = true;
     };
-  }, [accountFilter, search, dateFrom, dateTo]);
+  }, [accountFilter, search, dateFrom, dateTo, typeFilter, categoryFilter]);
 
   useEffect(() => {
     return fetchTransactions();
@@ -229,17 +231,24 @@ export function SpendingClient() {
     }
   }
 
-  // Inline category edit.
+  // Inline category edit via the dedicated category endpoint.
   async function patchCategory(id: string, category: string) {
     const prev = transactions ?? [];
     setTransactions((cur) =>
       (cur ?? []).map((t) =>
-        t.id === id ? { ...t, category: category || null } : t,
+        t.id === id
+          ? {
+              ...t,
+              category: category || null,
+              category_source: category ? "manual" : null,
+              category_locked: !!category,
+            }
+          : t,
       ),
     );
     try {
-      const res = await fetch(`/api/finance/transactions/${id}`, {
-        method: "PATCH",
+      const res = await fetch(`/api/finance/transactions/${id}/category`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category }),
       });
@@ -250,6 +259,38 @@ export function SpendingClient() {
     } catch {
       setTransactions(prev);
       setToast({ kind: "error", text: "Category update failed" });
+    }
+  }
+
+  // Run AI + rule categorisation on uncategorised transactions.
+  async function handleCategorise() {
+    if (categorising) return;
+    setCategorising(true);
+    try {
+      const res = await fetch("/api/finance/categorise", { method: "POST" });
+      const j = (await res.json()) as {
+        ruleMatched?: number;
+        aiCategorised?: number;
+        errors?: string[];
+        total?: number;
+      };
+      if (!res.ok) {
+        setToast({ kind: "error", text: "Categorisation failed" });
+        return;
+      }
+      if ((j.total ?? 0) === 0) {
+        setToast({ kind: "ok", text: "All transactions already categorised" });
+        return;
+      }
+      setToast({
+        kind: "ok",
+        text: `Categorised: ${j.ruleMatched ?? 0} rules, ${j.aiCategorised ?? 0} AI`,
+      });
+      fetchTransactions();
+    } catch {
+      setToast({ kind: "error", text: "Categorisation failed" });
+    } finally {
+      setCategorising(false);
     }
   }
 
@@ -339,6 +380,14 @@ export function SpendingClient() {
             onFiles={handleImport}
           />
         </div>
+        <button
+          type="button"
+          onClick={handleCategorise}
+          disabled={categorising}
+          className="shrink-0 px-4 py-3 rounded-md border border-accent/30 bg-accent/10 hover:border-accent/50 text-sm text-accent hover:text-accent/80 disabled:text-ink-3 disabled:border-ink-2 disabled:bg-ink-1/50 transition-colors font-[family-name:var(--font-mono)]"
+        >
+          {categorising ? "Categorising…" : "Categorise"}
+        </button>
         <button
           type="button"
           onClick={handleSync}
@@ -431,6 +480,20 @@ export function SpendingClient() {
               ))}
             </select>
           )}
+          {availableTypes.length > 0 && (
+            <MultiSelect
+              label="Type"
+              options={availableTypes}
+              selected={typeFilter}
+              onChange={setTypeFilter}
+            />
+          )}
+          <MultiSelect
+            label="Category"
+            options={[...TAXONOMY]}
+            selected={categoryFilter}
+            onChange={setCategoryFilter}
+          />
           <input
             type="date"
             value={dateFrom}
@@ -451,7 +514,7 @@ export function SpendingClient() {
             className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
             placeholder="to"
           />
-          {(search || dateFrom || dateTo || accountFilter !== "all") && (
+          {(search || dateFrom || dateTo || accountFilter !== "all" || typeFilter.length > 0 || categoryFilter.length > 0) && (
             <button
               type="button"
               onClick={() => {
@@ -459,6 +522,8 @@ export function SpendingClient() {
                 setDateFrom("");
                 setDateTo("");
                 setAccountFilter("all");
+                setTypeFilter([]);
+                setCategoryFilter([]);
                 setActivePreset(null);
               }}
               className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
@@ -510,7 +575,6 @@ export function SpendingClient() {
       ) : (
         <TransactionsTable
           transactions={transactions}
-          categories={categories}
           onPatchCategory={patchCategory}
         />
       )}
@@ -676,20 +740,13 @@ function ImportResultsBanner({
 
 function TransactionsTable({
   transactions,
-  categories,
   onPatchCategory,
 }: {
   transactions: Transaction[];
-  categories: string[];
   onPatchCategory: (id: string, category: string) => void;
 }) {
   return (
     <div className="rounded-md bg-ink-1 border border-ink-2 overflow-x-auto">
-      <datalist id="cat-suggestions">
-        {categories.map((c) => (
-          <option key={c} value={c} />
-        ))}
-      </datalist>
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-ink-2">
@@ -741,22 +798,6 @@ function TransactionRow({
   txn: Transaction;
   onPatchCategory: (id: string, category: string) => void;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(txn.category ?? "");
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    if (editing) inputRef.current?.focus();
-  }, [editing]);
-
-  function commit() {
-    setEditing(false);
-    const trimmed = draft.trim();
-    if (trimmed !== (txn.category ?? "")) {
-      onPatchCategory(txn.id, trimmed);
-    }
-  }
-
   const amountColor = txn.amount >= 0 ? "text-ok" : "text-danger";
 
   return (
@@ -797,40 +838,98 @@ function TransactionRow({
           {txn.account_label ?? txn.account_number ?? "—"}
         </Mono>
       </td>
-      <td className="px-3 py-1.5 min-w-[140px]">
-        {editing ? (
-          <input
-            ref={inputRef}
-            type="text"
-            list="cat-suggestions"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commit}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") commit();
-              if (e.key === "Escape") {
-                setDraft(txn.category ?? "");
-                setEditing(false);
-              }
-            }}
-            className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-0.5 outline-none focus:ring-1 focus:ring-glow-2/60"
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => {
-              setDraft(txn.category ?? "");
-              setEditing(true);
-            }}
-            className={`text-left text-sm w-full truncate rounded-sm px-1 -mx-1 hover:bg-ink-2/40 transition-colors ${
-              txn.category ? "text-text-0" : "text-ink-3 italic"
-            }`}
-          >
-            {txn.category || "—"}
-          </button>
-        )}
+      <td className="px-3 py-1.5 min-w-[160px]">
+        <select
+          value={txn.category ?? ""}
+          onChange={(e) => onPatchCategory(txn.id, e.target.value)}
+          className={`w-full bg-transparent rounded-sm text-sm px-1 py-0.5 -mx-1 outline-none hover:bg-ink-2/40 focus:ring-1 focus:ring-glow-2/60 transition-colors cursor-pointer ${
+            txn.category ? "text-text-0" : "text-ink-3"
+          }`}
+        >
+          <option value="">—</option>
+          {TAXONOMY.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
       </td>
     </tr>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MultiSelect
+// ---------------------------------------------------------------------------
+
+function MultiSelect({
+  label,
+  options,
+  selected,
+  onChange,
+}: {
+  label: string;
+  options: string[];
+  selected: string[];
+  onChange: (selected: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  function toggle(option: string) {
+    if (selected.includes(option)) {
+      onChange(selected.filter((s) => s !== option));
+    } else {
+      onChange([...selected, option]);
+    }
+  }
+
+  const display =
+    selected.length === 0 ? label : `${label} (${selected.length})`;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={`px-3 py-1.5 rounded-md border text-sm outline-none transition-colors ${
+          selected.length > 0
+            ? "border-accent/30 bg-accent/10 text-accent"
+            : "border-ink-2 bg-ink-0/40 text-ink-4 hover:border-ink-3"
+        }`}
+      >
+        {display}
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 bg-ink-1 border border-ink-2 rounded-md shadow-lg max-h-60 overflow-y-auto min-w-[200px]">
+          {options.map((opt) => (
+            <label
+              key={opt}
+              className="flex items-center gap-2 px-3 py-1.5 hover:bg-ink-2/40 cursor-pointer text-sm text-text-1"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(opt)}
+                onChange={() => toggle(opt)}
+                className="accent-[var(--color-accent)]"
+              />
+              {opt}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
