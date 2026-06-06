@@ -1,5 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server";
-import type { NormalizedTxn, ParseError } from "./csv-parser";
+import { normaliseTxnType, type NormalizedTxn, type ParseError } from "./csv-parser";
 import type { PayPalImportResult } from "./paypal-csv";
 
 type Supabase = ReturnType<typeof createServerClient>;
@@ -110,7 +110,7 @@ export async function persistPayPalImport(
     user_id: uid,
     account_id: accountId,
     txn_date: t.txn_date,
-    txn_type: t.txn_type,
+    txn_type: normaliseTxnType(t.txn_type, t.debit, t.credit),
     description: t.description,
     amount: t.amount,
     debit: t.debit,

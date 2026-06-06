@@ -105,6 +105,37 @@ export function splitCsvLine(line: string): string[] {
   return fields;
 }
 
+const TXN_TYPE_MAP: Record<string, string> = {
+  TFR: "Transfer",
+  DEB: "Card Payment",
+  "Express Checkout Payment": "Card Payment",
+  DD: "Direct Debit",
+  SO: "Standing Order",
+  FPO: "Faster Payment Out",
+  FPI: "Faster Payment In",
+  BGC: "Bank Giro Credit",
+  BP: "Bill Payment",
+  DEP: "Deposit",
+  FEE: "Fee",
+  Topup: "Top-up",
+  ATM: "Cash Withdrawal",
+  Exchange: "Currency Exchange",
+  CARD_CREDIT: "Card Refund",
+};
+
+export function normaliseTxnType(
+  raw: string,
+  debit: number | null,
+  credit: number | null,
+): string {
+  if (raw === "") {
+    if (debit != null) return "Card Payment";
+    if (credit != null) return "Card Refund";
+    return "";
+  }
+  return TXN_TYPE_MAP[raw] ?? raw;
+}
+
 export async function dedupHash(...parts: string[]): Promise<string> {
   const payload = parts.join("|");
   const encoded = new TextEncoder().encode(payload);

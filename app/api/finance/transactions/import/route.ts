@@ -5,6 +5,7 @@ import {
   type NormalizedTxn,
   stripBom,
   normalizeLines,
+  normaliseTxnType,
 } from "@/lib/finance/csv-parser";
 import { halifaxParser } from "@/lib/finance/halifax-csv";
 import { revolutParser } from "@/lib/finance/revolut-csv";
@@ -211,7 +212,7 @@ export async function POST(req: NextRequest) {
         user_id: uid,
         account_id: accountIdMap.get(t.account_key)!,
         txn_date: t.txn_date,
-        txn_type: t.txn_type,
+        txn_type: normaliseTxnType(t.txn_type, t.debit, t.credit),
         description: t.description,
         amount: t.amount,
         debit: t.debit,
