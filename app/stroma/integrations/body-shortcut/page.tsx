@@ -1,5 +1,3 @@
-import { Shell } from "@/components/dashboard/Shell";
-import { StromaSubNav } from "@/components/stroma/StromaSubNav";
 import { Panel } from "@/components/dashboard/Panel";
 import { Mono } from "@/components/dashboard/Mono";
 import { SecretCopy } from "@/components/fitness/SecretCopy";
@@ -16,9 +14,7 @@ export default function BodyShortcutSetupPage() {
   const url = `${baseUrl}/api/health/body-metrics`;
 
   return (
-    <Shell active="STROMA">
-      <StromaSubNav />
-      <div className="flex flex-col gap-4 max-w-2xl">
+    <div className="flex flex-col gap-4 max-w-2xl">
         <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
           iOS Shortcut — Body metrics
         </h1>
@@ -148,8 +144,7 @@ export default function BodyShortcutSetupPage() {
             with <Mono>source=&quot;manual&quot;</Mono>.
           </p>
         </Panel>
-      </div>
-    </Shell>
+    </div>
   );
 }
 

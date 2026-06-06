@@ -1,5 +1,3 @@
-import { Shell } from "@/components/dashboard/Shell";
-import { StromaSubNav } from "@/components/stroma/StromaSubNav";
 import { SectionOverview } from "@/components/dashboard/SectionOverview";
 
 const CARDS = [
@@ -22,13 +20,10 @@ const CARDS = [
 
 export default function StromaOverviewPage() {
   return (
-    <Shell active="STROMA">
-      <StromaSubNav />
-      <SectionOverview
-        title="Stroma"
-        tagline="The fungal layer underneath everything — search, rules, and inputs."
-        cards={CARDS}
-      />
-    </Shell>
+    <SectionOverview
+      title="Stroma"
+      tagline="The fungal layer underneath everything — search, rules, and inputs."
+      cards={CARDS}
+    />
   );
 }

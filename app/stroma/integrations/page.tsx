@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { Shell } from "@/components/dashboard/Shell";
-import { StromaSubNav } from "@/components/stroma/StromaSubNav";
 import { Panel } from "@/components/dashboard/Panel";
 import { Mono } from "@/components/dashboard/Mono";
 import { createServerClient } from "@/lib/supabase/server";
@@ -170,9 +168,7 @@ async function loadIntegrations(): Promise<Integration[]> {
 export default async function IntegrationsPage() {
   const integrations = await loadIntegrations();
   return (
-    <Shell active="STROMA">
-      <StromaSubNav />
-      <div className="flex flex-col gap-4 max-w-3xl">
+    <div className="flex flex-col gap-4 max-w-3xl">
         <header className="flex flex-col gap-1">
           <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
             Integrations
@@ -228,7 +224,6 @@ export default async function IntegrationsPage() {
             );
           })}
         </ul>
-      </div>
-    </Shell>
+    </div>
   );
 }

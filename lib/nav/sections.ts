@@ -1,0 +1,95 @@
+export type SubPage = { label: string; href: string; primary: boolean };
+
+export type SectionConfig = {
+  key: string;
+  label: string;
+  colour: string;
+  baseRoute: string;
+  subPages: SubPage[];
+};
+
+export const SECTIONS: SectionConfig[] = [
+  {
+    key: "organisation",
+    label: "ORGANISATION",
+    colour: "#f5b56d",
+    baseRoute: "/compost",
+    subPages: [
+      { label: "Tasks", href: "/compost/tasks", primary: true },
+      { label: "Captures", href: "/compost/captures", primary: true },
+      { label: "People", href: "/compost/people", primary: true },
+      { label: "Projects", href: "/compost", primary: false },
+      { label: "Decisions", href: "/compost/decisions", primary: false },
+      { label: "Purchases", href: "/compost", primary: false },
+      { label: "Entity review", href: "/compost/review", primary: false },
+    ],
+  },
+  {
+    key: "fitness",
+    label: "FITNESS",
+    colour: "#84f5b8",
+    baseRoute: "/fitness",
+    subPages: [
+      { label: "Today", href: "/fitness", primary: true },
+      { label: "Programmes", href: "/fitness/programmes", primary: true },
+      { label: "History", href: "/fitness/history", primary: true },
+      { label: "Baselines", href: "/fitness/baselines", primary: false },
+      { label: "Pain logs", href: "/fitness/pain", primary: false },
+      { label: "Body metrics", href: "/fitness/body", primary: false },
+      { label: "Workout now", href: "/workout-now", primary: false },
+    ],
+  },
+  {
+    key: "health",
+    label: "HEALTH",
+    colour: "#5de8e0",
+    baseRoute: "/health",
+    subPages: [
+      { label: "Nutrition", href: "/health/nutrition", primary: true },
+      { label: "Supplements", href: "/health/supplements", primary: true },
+      { label: "Body metrics", href: "/health/body", primary: false },
+      { label: "Gut health", href: "/draft/gut-health", primary: false },
+      { label: "Blood tests", href: "/draft/blood-tests", primary: false },
+      { label: "Recipes", href: "/draft/recipes", primary: false },
+    ],
+  },
+  {
+    key: "brain",
+    label: "BRAIN",
+    colour: "#84f5b8",
+    baseRoute: "/stroma",
+    subPages: [
+      { label: "Journal", href: "/journal", primary: true },
+      { label: "Reminders", href: "/reminders", primary: true },
+      { label: "Calendar", href: "/stroma", primary: true },
+      { label: "Watchlist", href: "/draft/watchlist", primary: false },
+      { label: "Places", href: "/places", primary: false },
+    ],
+  },
+  {
+    key: "finance",
+    label: "FINANCE",
+    colour: "#6db8f5",
+    baseRoute: "/finance",
+    subPages: [
+      { label: "Spending", href: "/finance", primary: true },
+      { label: "Net worth", href: "/finance/net-worth", primary: true },
+      { label: "Fuel", href: "/finance/fuel", primary: false },
+      { label: "Accounts", href: "/draft/accounts", primary: false },
+    ],
+  },
+  {
+    key: "studio",
+    label: "STUDIO",
+    colour: "#f56db5",
+    baseRoute: "/studio",
+    subPages: [
+      { label: "Music", href: "/studio", primary: true },
+      { label: "Footage", href: "/studio/footage", primary: true },
+      { label: "Design", href: "/studio/design", primary: true },
+      { label: "PC build", href: "/pc-build", primary: false },
+    ],
+  },
+];
+
+export const SECTION_BASE_ROUTES = SECTIONS.map((s) => s.baseRoute);

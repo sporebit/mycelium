@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Wordmark } from "./Wordmark";
+import { SECTION_BASE_ROUTES } from "@/lib/nav/sections";
 
 type Tab = {
   label: string;
@@ -84,8 +85,13 @@ function visibilityClass(v: Tab["visibility"]): string {
  */
 export function TopRail() {
   const pathname = usePathname();
+  const inSection = SECTION_BASE_ROUTES.some(
+    (base) => pathname === base || pathname.startsWith(base + "/"),
+  );
   return (
-    <header className="sticky top-0 z-30 bg-ink-1/85 backdrop-blur-xl shadow-[0_1px_0_0_var(--ink-2)]">
+    <header
+      className={`sticky top-0 z-30 bg-ink-1/85 backdrop-blur-xl shadow-[0_1px_0_0_var(--ink-2)]${inSection ? " lg:hidden" : ""}`}
+    >
       <div className="w-full flex items-center gap-3 pl-4 sm:pl-6 min-h-[52px]">
         <Wordmark />
         {/* The nav becomes a self-contained horizontal scroller on
