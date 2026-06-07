@@ -6,7 +6,7 @@ export default function StromaLayout({ children }: { children: ReactNode }) {
   return (
     <Shell active="STROMA">
       <TendrilSpine />
-      <div className="lg:pl-[52px]">{children}</div>
+      <div className="lg:pl-[88px]">{children}</div>
     </Shell>
   );
 }

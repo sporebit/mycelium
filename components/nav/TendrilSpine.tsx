@@ -31,7 +31,7 @@ export function TendrilSpine() {
   const section = findSection(pathname);
 
   const returnToHub = useCallback(
-    async (e: React.MouseEvent<HTMLButtonElement>) => {
+    async (e: React.MouseEvent<HTMLDivElement>) => {
       if (navigatingRef.current) return;
       navigatingRef.current = true;
       const rect = e.currentTarget.getBoundingClientRect();
@@ -53,116 +53,134 @@ export function TendrilSpine() {
 
   const primary = section.subPages.filter((sp) => sp.primary);
   const secondary = section.subPages.filter((sp) => !sp.primary);
-  const totalNodes = primary.length + secondary.length;
 
   return (
     <nav
       aria-label={`${section.label} navigation`}
-      className="hidden lg:flex fixed left-0 top-0 h-full w-[52px] z-40 flex-col items-center"
+      className="hidden lg:flex fixed left-0 top-0 h-full z-40 flex-col"
       style={{
-        background: "rgba(14,20,16,0.92)",
-        backdropFilter: "blur(8px)",
+        width: 88,
+        background: "#0e1410",
         borderRight: "0.5px solid rgba(255,255,255,0.06)",
       }}
     >
-      {/* Section label — vertical */}
+      {/* Section name — horizontal */}
       <div
-        className="pt-5 text-[9px] font-[family-name:var(--font-mono)] tracking-[2px]"
         style={{
-          writingMode: "vertical-rl",
-          transform: "rotate(180deg)",
+          fontSize: 11,
+          fontFamily: "monospace",
+          letterSpacing: 2,
           color: section.colour,
-          opacity: 0.6,
+          opacity: 0.62,
+          padding: "14px 10px 0",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
         }}
       >
         {section.label}
       </div>
 
-      {/* Spine line */}
+      {/* Node list */}
       <div
-        className="absolute left-1/2 -translate-x-1/2"
         style={{
-          top: 56,
-          bottom: 56,
-          width: 0.5,
-          background: section.colour,
-          opacity: 0.2,
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          paddingTop: 20,
+          gap: 2,
         }}
-      />
-
-      {/* Sub-page nodes */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2 flex flex-col"
-        style={{ top: 56, bottom: 56 }}
       >
-        {primary.map((sp, i) => {
+        {primary.map((sp) => {
           const active = isActive(pathname, sp.href);
-          const size = active ? 13 : 11;
-          const topPercent = totalNodes <= 1 ? 0 : (i / (totalNodes - 1)) * 60;
           return (
             <a
-              key={sp.href + sp.label}
+              key={sp.href}
               href={sp.href}
               onClick={(e) => {
                 e.preventDefault();
                 router.push(sp.href);
               }}
-              title={sp.label}
-              className="group absolute -translate-x-1/2 -translate-y-1/2"
-              style={{ top: `${topPercent}%`, left: 0 }}
+              style={{
+                height: 26,
+                display: "flex",
+                alignItems: "center",
+                padding: "0 8px",
+                gap: 8,
+                textDecoration: "none",
+                cursor: "pointer",
+              }}
             >
               <span
-                className="block rounded-full transition-all duration-150"
                 style={{
-                  width: size,
-                  height: size,
-                  background: section.colour,
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  flexShrink: 0,
+                  background: active ? section.colour : "transparent",
+                  border: `0.5px solid ${section.colour}`,
                   opacity: active ? 0.9 : 0.5,
-                  border: `1px solid ${section.colour}`,
                 }}
               />
               <span
-                className="absolute left-full ml-2 top-1/2 -translate-y-1/2 whitespace-nowrap text-[11px] font-[family-name:var(--font-mono)] opacity-0 group-hover:opacity-80 transition-opacity pointer-events-none"
-                style={{ color: section.colour }}
+                style={{
+                  fontSize: 11,
+                  fontFamily: "monospace",
+                  color: section.colour,
+                  opacity: active ? 0.88 : 0.52,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: 58,
+                }}
               >
                 {sp.label}
               </span>
             </a>
           );
         })}
-        {secondary.map((sp, i) => {
+        {secondary.map((sp) => {
           const active = isActive(pathname, sp.href);
-          const size = active ? 9 : 7;
-          const topPercent =
-            totalNodes <= 1
-              ? 100
-              : ((primary.length + i) / (totalNodes - 1)) * 100;
-          const clampedTop = Math.min(topPercent, 100);
           return (
             <a
-              key={sp.href + sp.label}
+              key={sp.href}
               href={sp.href}
               onClick={(e) => {
                 e.preventDefault();
                 router.push(sp.href);
               }}
-              title={sp.label}
-              className="group absolute -translate-x-1/2 -translate-y-1/2"
-              style={{ top: `${clampedTop}%`, left: 0 }}
+              style={{
+                height: 26,
+                display: "flex",
+                alignItems: "center",
+                padding: "0 8px",
+                gap: 8,
+                textDecoration: "none",
+                cursor: "pointer",
+              }}
             >
               <span
-                className="block rounded-full transition-all duration-150"
                 style={{
-                  width: size,
-                  height: size,
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+                  flexShrink: 0,
+                  marginLeft: 1.5,
                   background: active ? section.colour : "transparent",
-                  opacity: active ? 0.9 : 0.38,
                   border: `0.5px solid ${section.colour}`,
+                  opacity: active ? 0.9 : 0.3,
                 }}
               />
               <span
-                className="absolute left-full ml-2 top-1/2 -translate-y-1/2 whitespace-nowrap text-[11px] font-[family-name:var(--font-mono)] opacity-0 group-hover:opacity-80 transition-opacity pointer-events-none"
-                style={{ color: section.colour }}
+                style={{
+                  fontSize: 11,
+                  fontFamily: "monospace",
+                  color: section.colour,
+                  opacity: active ? 0.88 : 0.28,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: 58,
+                }}
               >
                 {sp.label}
               </span>
@@ -172,27 +190,56 @@ export function TendrilSpine() {
       </div>
 
       {/* Brain nucleus — return to hub */}
-      <button
-        type="button"
+      <div
         onClick={returnToHub}
-        title="Return to hub"
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            returnToHub(e as unknown as React.MouseEvent<HTMLDivElement>);
+          }
+        }}
         style={{
-          width: 20,
-          height: 20,
-          border: "0.5px solid rgba(132,245,184,0.45)",
+          padding: 12,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          cursor: "pointer",
         }}
       >
         <span
-          className="block rounded-full"
           style={{
-            width: 6,
-            height: 6,
-            background: "#84f5b8",
-            opacity: 0.85,
+            width: 20,
+            height: 20,
+            borderRadius: "50%",
+            border: "0.5px solid rgba(132,245,184,0.45)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
           }}
-        />
-      </button>
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: "#84f5b8",
+              opacity: 0.85,
+            }}
+          />
+        </span>
+        <span
+          style={{
+            fontSize: 11,
+            fontFamily: "monospace",
+            color: "rgba(132,245,184,0.42)",
+            letterSpacing: 1,
+          }}
+        >
+          HUB
+        </span>
+      </div>
     </nav>
   );
 }

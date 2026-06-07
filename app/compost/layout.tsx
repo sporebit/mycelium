@@ -6,7 +6,7 @@ export default function CompostLayout({ children }: { children: ReactNode }) {
   return (
     <Shell active="COMPOST">
       <TendrilSpine />
-      <div className="lg:pl-[52px]">{children}</div>
+      <div className="lg:pl-[88px]">{children}</div>
     </Shell>
   );
 }

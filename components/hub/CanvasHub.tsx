@@ -107,6 +107,22 @@ export function CanvasHub() {
     [bloom, router],
   );
 
+  const navigateToBrain = useCallback(
+    async (originX: number, originY: number) => {
+      if (navigatingRef.current) return;
+      navigatingRef.current = true;
+      await bloom({
+        colour: BRAIN_COLOUR,
+        originX,
+        originY,
+        direction: "enter",
+      });
+      router.push("/stroma");
+      navigatingRef.current = false;
+    },
+    [bloom, router],
+  );
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -164,9 +180,13 @@ export function CanvasHub() {
     }
     function handleClick() {
       const idx = hoveredRef.current;
-      if (idx < 0) return;
+      if (idx === -1) return;
       const w = window.innerWidth;
       const h = window.innerHeight;
+      if (idx === -2) {
+        navigateToBrain(w / 2, h / 2);
+        return;
+      }
       const orbitR = Math.min(w, h) * 0.32;
       const s = SECTIONS[idx];
       const rad = (s.angle * Math.PI) / 180;
@@ -194,6 +214,9 @@ export function CanvasHub() {
           navigateToSection(i, t.clientX, t.clientY);
           return;
         }
+      }
+      if (Math.hypot(t.clientX - cxC, t.clientY - cyC) < 58) {
+        navigateToBrain(t.clientX, t.clientY);
       }
     }
 
@@ -432,8 +455,11 @@ export function CanvasHub() {
         ctx!.restore();
       }
 
+      if (newHovered < 0 && Math.hypot(mx - cx, my - cy) < 58) {
+        newHovered = -2;
+      }
       hoveredRef.current = newHovered;
-      canvas!.style.cursor = newHovered >= 0 ? "pointer" : "default";
+      canvas!.style.cursor = newHovered !== -1 ? "pointer" : "default";
 
       // === 6. Labels ===
       ctx!.save();
@@ -463,18 +489,22 @@ export function CanvasHub() {
         drawSpacedText(ctx!, s.label, lx, ly, 3);
       }
 
-      ctx!.globalAlpha = 0.38;
-      ctx!.fillStyle = BRAIN_COLOUR;
-      ctx!.textAlign = "right";
-      ctx!.textBaseline = "middle";
-      drawSpacedText(ctx!, "BRAIN", cx - clusterR * 2.2, cy, 3);
-
       ctx!.globalAlpha = 0.28;
       ctx!.fillStyle = BRAIN_COLOUR;
       ctx!.textAlign = "center";
       ctx!.textBaseline = "top";
       drawSpacedText(ctx!, "MYCELIUM", cx, 42, 5);
 
+      ctx!.restore();
+
+      // BRAIN label — drawn last so it sits on top
+      ctx!.save();
+      ctx!.font = `13px ${MONO_FONT}`;
+      ctx!.textAlign = "center";
+      ctx!.textBaseline = "middle";
+      ctx!.fillStyle = BRAIN_COLOUR;
+      ctx!.globalAlpha = 0.72;
+      ctx!.fillText("BRAIN", cx, cy + 16);
       ctx!.restore();
 
       rafRef.current = requestAnimationFrame(draw);
@@ -490,7 +520,7 @@ export function CanvasHub() {
       canvas.removeEventListener("click", handleClick);
       canvas.removeEventListener("touchstart", handleTouch);
     };
-  }, [navigateToSection]);
+  }, [navigateToSection, navigateToBrain]);
 
   return (
     <div
