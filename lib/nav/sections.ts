@@ -18,7 +18,7 @@ export const SECTIONS: SectionConfig[] = [
       { label: "Tasks", href: "/compost/tasks", primary: true },
       { label: "Captures", href: "/compost/captures", primary: true },
       { label: "People", href: "/compost/people", primary: true },
-      { label: "Projects", href: "/compost", primary: false },
+      { label: "Projects", href: "/compost/projects", primary: false },
       { label: "Decisions", href: "/compost/decisions", primary: false },
       { label: "Purchases", href: "/compost", primary: false },
       { label: "Entity review", href: "/compost/review", primary: false },

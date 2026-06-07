@@ -13,65 +13,95 @@ const SECTIONS = [
   { key: "fitness", label: "FITNESS", colour: "#84f5b8", route: "/fitness", angle: 300 },
 ] as const;
 
-const BG = "#0e1410";
-const BRAIN_COLOUR = "#84f5b8";
-const MONO_FONT = '"Berkeley Mono", monospace';
+const BG = "#0a0f0b";
+const GLOW = "#84f5b8";
+const MONO = '"Berkeley Mono", monospace';
 
-type NodeState = { haloAlpha: number; ghostAlpha: number; nucleusAlpha: number };
+type Seg = { x1: number; y1: number; x2: number; y2: number; th: number };
 
-type BrainGeo = {
-  outer: { angle: number; rMul: number }[];
-  inner: { angle: number; rMul: number }[];
-  crossAngles: [number, number, number][];
-  tendrils: { angle: number; lenMul: number; cpOff: number }[];
-  junctions: { angle: number; distMul: number; r: number; alpha: number }[];
-};
+function mulberry32(seed: number) {
+  return () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
-function generateBrainGeo(): BrainGeo {
-  const outer: BrainGeo["outer"] = [];
-  for (let i = 0; i < 10; i++) {
-    const base = (i / 10) * Math.PI * 2;
-    const angle = base + (Math.random() - 0.5) * 0.5;
-    const rMul = 0.8 + Math.random() * 0.45;
-    outer.push({ angle, rMul });
+function clamp(v: number, lo: number, hi: number) {
+  return v < lo ? lo : v > hi ? hi : v;
+}
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
+}
+function easeOutCubic(t: number) {
+  return 1 - (1 - t) ** 3;
+}
+
+function qBezPt(
+  x0: number, y0: number,
+  cpx: number, cpy: number,
+  x1: number, y1: number,
+  t: number,
+) {
+  const mt = 1 - t;
+  return {
+    x: mt * mt * x0 + 2 * mt * t * cpx + t * t * x1,
+    y: mt * mt * y0 + 2 * mt * t * cpy + t * t * y1,
+  };
+}
+
+
+function buildBranch(
+  cx: number, cy: number, maxR: number,
+  count: number, startLen: number, startTh: number, depth: number,
+  seed: number,
+): Seg[] {
+  const r = mulberry32(seed);
+  const out: Seg[] = [];
+
+  function go(x: number, y: number, a: number, l: number, th: number, d: number) {
+    if (d === 0 || th < 0.15 || l < 1.2) return;
+    let ex = x + Math.cos(a) * l;
+    let ey = y + Math.sin(a) * l;
+    const dist = Math.hypot(ex - cx, ey - cy);
+    if (dist > maxR) {
+      const scale = maxR / dist;
+      ex = cx + (ex - cx) * scale;
+      ey = cy + (ey - cy) * scale;
+    }
+    if (Math.hypot(ex - x, ey - y) < 1) return;
+    out.push({ x1: x, y1: y, x2: ex, y2: ey, th });
+    const n = d > 3 ? 3 : 2;
+    for (let i = 0; i < n; i++) {
+      go(ex, ey, a + (r() - 0.5) * 1.1, l * (0.58 + r() * 0.18), th * (0.62 + r() * 0.1), d - 1);
+    }
   }
 
-  const inner: BrainGeo["inner"] = [];
-  for (let i = 0; i < 7; i++) {
-    const base = (i / 7) * Math.PI * 2;
-    const angle = base + (Math.random() - 0.5) * 0.5;
-    const rMul = 0.8 + Math.random() * 0.45;
-    inner.push({ angle, rMul });
+  for (let i = 0; i < count; i++) {
+    const ba = (i / count) * Math.PI * 2 + (r() - 0.5) * 0.4;
+    go(cx, cy, ba, startLen, startTh, depth);
   }
 
-  const crossAngles: [number, number, number][] = [
-    [-Math.PI / 2, Math.PI / 2, 0.3],
-    [Math.PI, 0, -0.25],
-    [-Math.PI / 4 - 0.2, Math.PI * 3 / 4 - 0.2, 0.28],
-    [Math.PI / 4 + 0.15, -Math.PI * 3 / 4 + 0.15, -0.22],
-  ];
+  out.sort((a, b) => b.th - a.th);
+  return out;
+}
 
-  const tendrils: BrainGeo["tendrils"] = [];
-  const tendrilBaseAngles = [0.3, 1.1, 2.3, 3.5, 5.0];
-  for (const a of tendrilBaseAngles) {
-    tendrils.push({
-      angle: a + (Math.random() - 0.5) * 0.3,
-      lenMul: 0.5,
-      cpOff: (Math.random() - 0.5) * 8,
-    });
+function drawSpacedText(
+  ctx: CanvasRenderingContext2D,
+  txt: string, x: number, y: number, sp: number,
+) {
+  const cs = txt.split("");
+  const tw = cs.reduce((s, c) => s + ctx.measureText(c).width, 0) + sp * (cs.length - 1);
+  let sx = ctx.textAlign === "center" ? x - tw / 2 : ctx.textAlign === "right" ? x - tw : x;
+  const saved = ctx.textAlign;
+  ctx.textAlign = "left";
+  for (const c of cs) {
+    ctx.fillText(c, sx, y);
+    sx += ctx.measureText(c).width + sp;
   }
-
-  const junctions: BrainGeo["junctions"] = [];
-  for (let i = 0; i < 11; i++) {
-    junctions.push({
-      angle: Math.random() * Math.PI * 2,
-      distMul: 0.15 + Math.random() * 0.75,
-      r: 1.2 + Math.random() * 1.0,
-      alpha: 0.35 + Math.random() * 0.17,
-    });
-  }
-
-  return { outer, inner, crossAngles, tendrils, junctions };
+  ctx.textAlign = saved;
 }
 
 export function CanvasHub() {
@@ -81,27 +111,23 @@ export function CanvasHub() {
   const [ready, setReady] = useState(false);
 
   const grainRef = useRef<HTMLCanvasElement | null>(null);
-  const mouseRef = useRef<{ x: number; y: number }>({ x: -9999, y: -9999 });
-  const hoveredRef = useRef<number>(-1);
+  const mouseRef = useRef({ x: -9999, y: -9999 });
+  const hoveredRef = useRef(-1);
+  const scalesRef = useRef(SECTIONS.map(() => 1.0));
+  const coreSegsRef = useRef<Seg[] | null>(null);
+  const clusterSegsRef = useRef<Seg[][] | null>(null);
+  const bgRef = useRef<HTMLImageElement | null>(null);
+  const bgOk = useRef(false);
+  const mountT = useRef(0);
+  const rafId = useRef(0);
   const navigatingRef = useRef(false);
-  const nodeStates = useRef<NodeState[]>(
-    SECTIONS.map(() => ({ haloAlpha: 0.04, ghostAlpha: 0.18, nucleusAlpha: 0.7 })),
-  );
-  const brainGeoRef = useRef<BrainGeo | null>(null);
-  const rafRef = useRef<number>(0);
 
   const navigateToSection = useCallback(
-    async (sectionIndex: number, originX: number, originY: number) => {
+    async (idx: number, originX: number, originY: number) => {
       if (navigatingRef.current) return;
       navigatingRef.current = true;
-      const s = SECTIONS[sectionIndex];
-      await bloom({
-        colour: s.colour,
-        originX,
-        originY,
-        direction: "enter",
-      });
-      router.push(s.route);
+      await bloom({ colour: SECTIONS[idx].colour, originX, originY, direction: "enter" });
+      router.push(SECTIONS[idx].route);
       navigatingRef.current = false;
     },
     [bloom, router],
@@ -111,12 +137,7 @@ export function CanvasHub() {
     async (originX: number, originY: number) => {
       if (navigatingRef.current) return;
       navigatingRef.current = true;
-      await bloom({
-        colour: BRAIN_COLOUR,
-        originX,
-        originY,
-        direction: "enter",
-      });
+      await bloom({ colour: GLOW, originX, originY, direction: "enter" });
       router.push("/stroma");
       navigatingRef.current = false;
     },
@@ -124,47 +145,58 @@ export function CanvasHub() {
   );
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
+    const cvs = canvasRef.current;
+    if (!cvs) return;
+    const ctx = cvs.getContext("2d");
     if (!ctx) return;
+    mountT.current = performance.now();
 
-    if (!brainGeoRef.current) {
-      brainGeoRef.current = generateBrainGeo();
+    if (!bgRef.current) {
+      const img = new Image();
+      img.onload = () => { bgOk.current = true; };
+      img.src = "/images/forest-bg.jpg";
+      bgRef.current = img;
     }
 
     function resize() {
       const dpr = window.devicePixelRatio || 1;
       const w = window.innerWidth;
       const h = window.innerHeight;
-      canvas!.width = w * dpr;
-      canvas!.height = h * dpr;
-      canvas!.style.width = `${w}px`;
-      canvas!.style.height = `${h}px`;
+      cvs!.width = w * dpr;
+      cvs!.height = h * dpr;
+      cvs!.style.width = `${w}px`;
+      cvs!.style.height = `${h}px`;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-      generateGrain(w, h);
-    }
 
-    function generateGrain(w: number, h: number) {
-      const dpr = window.devicePixelRatio || 1;
-      const offscreen = document.createElement("canvas");
-      offscreen.width = w * dpr;
-      offscreen.height = h * dpr;
-      const gCtx = offscreen.getContext("2d");
-      if (!gCtx) return;
-      gCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const count = Math.floor(w * h * 0.02);
-      for (let i = 0; i < count; i++) {
-        const gx = Math.random() * w;
-        const gy = Math.random() * h;
-        const alpha = 0.06 + Math.random() * 0.08;
-        gCtx.beginPath();
-        gCtx.arc(gx, gy, 0.6, 0, Math.PI * 2);
-        gCtx.fillStyle = `rgba(138,158,136,${alpha})`;
-        gCtx.fill();
+      const off = document.createElement("canvas");
+      off.width = w * dpr;
+      off.height = h * dpr;
+      const g = off.getContext("2d");
+      if (g) {
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const cnt = Math.floor(w * h * 0.02);
+        for (let i = 0; i < cnt; i++) {
+          g.beginPath();
+          g.arc(Math.random() * w, Math.random() * h, 0.6, 0, Math.PI * 2);
+          g.fillStyle = `rgba(138,158,136,${0.06 + Math.random() * 0.08})`;
+          g.fill();
+        }
+        grainRef.current = off;
       }
-      grainRef.current = offscreen;
+
+      const cxV = w * 0.5;
+      const cyV = h * 0.52;
+      const orbitR = Math.min(w, h) * 0.32;
+      const coreR = orbitR * 0.09;
+      const clusterR = orbitR * 0.12;
+
+      coreSegsRef.current = buildBranch(cxV, cyV, coreR * 1.5, 24, coreR * 0.55, 1.6, 6, 42);
+      clusterSegsRef.current = SECTIONS.map((s, i) => {
+        const rad = (s.angle * Math.PI) / 180;
+        const px = cxV + orbitR * Math.sin(rad);
+        const py = cyV - orbitR * Math.cos(rad);
+        return buildBranch(px, py, clusterR * 1.35, 18, clusterR * 0.45, 1.4, 5, 100 + i);
+      });
     }
 
     const ro = new ResizeObserver(() => resize());
@@ -172,353 +204,335 @@ export function CanvasHub() {
     resize();
     setReady(true);
 
-    function handleMouseMove(e: MouseEvent) {
-      mouseRef.current = { x: e.clientX, y: e.clientY };
-    }
-    function handleMouseLeave() {
-      mouseRef.current = { x: -9999, y: -9999 };
-    }
-    function handleClick() {
-      const idx = hoveredRef.current;
-      if (idx === -1) return;
+    function onMove(e: MouseEvent) { mouseRef.current = { x: e.clientX, y: e.clientY }; }
+    function onLeave() { mouseRef.current = { x: -9999, y: -9999 }; }
+
+    function onClick() {
+      const hov = hoveredRef.current;
+      if (hov === -1) return;
       const w = window.innerWidth;
       const h = window.innerHeight;
-      if (idx === -2) {
-        navigateToBrain(w / 2, h / 2);
+      const cxV = w * 0.5;
+      const cyV = h * 0.52;
+      if (hov === -2) {
+        navigateToBrain(cxV, cyV);
         return;
       }
       const orbitR = Math.min(w, h) * 0.32;
-      const s = SECTIONS[idx];
-      const rad = (s.angle * Math.PI) / 180;
-      const nx = w / 2 + orbitR * Math.sin(rad);
-      const ny = h / 2 - orbitR * Math.cos(rad);
-      navigateToSection(idx, nx, ny);
+      const rad = (SECTIONS[hov].angle * Math.PI) / 180;
+      navigateToSection(hov, cxV + orbitR * Math.sin(rad), cyV - orbitR * Math.cos(rad));
     }
-    function handleTouch(e: TouchEvent) {
+
+    function onTouch(e: TouchEvent) {
       const t = e.touches[0];
       if (!t) return;
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const cxC = w / 2;
-      const cyC = h / 2;
+      const cxV = w * 0.5;
+      const cyV = h * 0.52;
       const orbitR = Math.min(w, h) * 0.32;
-      const nodeR = Math.min(w, h) * 0.022;
+      const coreR = orbitR * 0.09;
+      const clusterR = orbitR * 0.12;
       for (let i = 0; i < SECTIONS.length; i++) {
-        const s = SECTIONS[i];
-        const rad = (s.angle * Math.PI) / 180;
-        const nx = cxC + orbitR * Math.sin(rad);
-        const ny = cyC - orbitR * Math.cos(rad);
-        const dx = t.clientX - nx;
-        const dy = t.clientY - ny;
-        if (Math.sqrt(dx * dx + dy * dy) < nodeR * 2.5) {
+        const rad = (SECTIONS[i].angle * Math.PI) / 180;
+        const px = cxV + orbitR * Math.sin(rad);
+        const py = cyV - orbitR * Math.cos(rad);
+        if (Math.hypot(t.clientX - px, t.clientY - py) < clusterR * 1.5) {
           navigateToSection(i, t.clientX, t.clientY);
           return;
         }
       }
-      if (Math.hypot(t.clientX - cxC, t.clientY - cyC) < 58) {
+      if (Math.hypot(t.clientX - cxV, t.clientY - cyV) < coreR * 1.8) {
         navigateToBrain(t.clientX, t.clientY);
       }
     }
 
-    canvas.addEventListener("mousemove", handleMouseMove);
-    canvas.addEventListener("mouseleave", handleMouseLeave);
-    canvas.addEventListener("click", handleClick);
-    canvas.addEventListener("touchstart", handleTouch, { passive: true });
-
-    function lerp(a: number, b: number, t: number) {
-      return a + (b - a) * t;
-    }
-
-    function bezierPt(
-      x0: number, y0: number,
-      cpx: number, cpy: number,
-      x1: number, y1: number,
-      t: number,
-    ) {
-      const mt = 1 - t;
-      return {
-        x: mt * mt * x0 + 2 * mt * t * cpx + t * t * x1,
-        y: mt * mt * y0 + 2 * mt * t * cpy + t * t * y1,
-      };
-    }
-
-    function bezierTangent(
-      x0: number, y0: number,
-      cpx: number, cpy: number,
-      x1: number, y1: number,
-      t: number,
-    ) {
-      const mt = 1 - t;
-      return {
-        x: 2 * mt * (cpx - x0) + 2 * t * (x1 - cpx),
-        y: 2 * mt * (cpy - y0) + 2 * t * (y1 - cpy),
-      };
-    }
+    cvs.addEventListener("mousemove", onMove);
+    cvs.addEventListener("mouseleave", onLeave);
+    cvs.addEventListener("click", onClick);
+    cvs.addEventListener("touchstart", onTouch, { passive: true });
 
     function draw(time: number) {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const cx = w / 2;
-      const cy = h / 2;
+      const cx = w * 0.5;
+      const cy = h * 0.52;
       const orbitR = Math.min(w, h) * 0.32;
-      const nodeR = Math.min(w, h) * 0.022;
-      const clusterR = orbitR * 0.15;
-      const geo = brainGeoRef.current!;
+      const coreR = orbitR * 0.09;
+      const clusterR = orbitR * 0.12;
+      const tsm = time - mountT.current;
+      const coreSegs = coreSegsRef.current;
+      const clusterSegs = clusterSegsRef.current;
 
       ctx!.clearRect(0, 0, w, h);
 
-      // === 1. Background ===
-      ctx!.fillStyle = BG;
+      // ── Background ──
+      if (bgOk.current && bgRef.current) {
+        ctx!.drawImage(bgRef.current, 0, 0, w, h);
+      } else {
+        ctx!.fillStyle = BG;
+        ctx!.fillRect(0, 0, w, h);
+      }
+      ctx!.fillStyle = "rgba(5,8,6,0.52)";
       ctx!.fillRect(0, 0, w, h);
+      if (grainRef.current) ctx!.drawImage(grainRef.current, 0, 0, w, h);
 
-      if (grainRef.current) {
-        ctx!.drawImage(grainRef.current, 0, 0, w, h);
-      }
-
-      ctx!.save();
-      ctx!.globalAlpha = 0.04;
-      ctx!.strokeStyle = "#8a9e88";
-      ctx!.lineWidth = 0.5;
-      const strataYs = [cy * 0.25, cy * 0.55, cy * 0.75];
-      for (const sy of strataYs) {
-        ctx!.beginPath();
-        for (let x = 0; x <= w; x += 2) {
-          const yv = sy + Math.sin((x / 340) * Math.PI * 2) * 4;
-          if (x === 0) ctx!.moveTo(x, yv);
-          else ctx!.lineTo(x, yv);
+      // ── Phase 1: Core forms (0–900ms) ──
+      const coreT = easeOutCubic(clamp(tsm / 900, 0, 1));
+      if (coreSegs && coreT > 0) {
+        const vis = Math.floor(coreT * coreSegs.length);
+        for (let si = 0; si < vis; si++) {
+          const s = coreSegs[si];
+          // Glow
+          ctx!.save();
+          ctx!.globalAlpha = 0.04;
+          ctx!.strokeStyle = GLOW;
+          ctx!.lineWidth = s.th * 3.5;
+          ctx!.lineCap = "round";
+          ctx!.beginPath();
+          ctx!.moveTo(s.x1, s.y1);
+          ctx!.lineTo(s.x2, s.y2);
+          ctx!.stroke();
+          ctx!.restore();
+          // Core
+          ctx!.save();
+          ctx!.globalAlpha = lerp(0.25, 0.55, s.th / 1.6);
+          ctx!.strokeStyle = GLOW;
+          ctx!.lineWidth = s.th;
+          ctx!.lineCap = "round";
+          ctx!.beginPath();
+          ctx!.moveTo(s.x1, s.y1);
+          ctx!.lineTo(s.x2, s.y2);
+          ctx!.stroke();
+          ctx!.restore();
         }
-        ctx!.stroke();
+        // Nucleus
+        ctx!.save();
+        ctx!.globalAlpha = 0.88 * coreT;
+        ctx!.fillStyle = GLOW;
+        ctx!.beginPath();
+        ctx!.arc(cx, cy, 5, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.restore();
       }
-      ctx!.restore();
 
-      // === 2. Atmospheric rings ===
-      ctx!.save();
-      ctx!.globalAlpha = 0.04;
-      ctx!.strokeStyle = "#e8e6dd";
-      ctx!.lineWidth = 0.5;
-      ctx!.beginPath();
-      ctx!.ellipse(cx + 4, cy - 2, w * 0.38, h * 0.42, 0, 0, Math.PI * 2);
-      ctx!.stroke();
-      ctx!.beginPath();
-      ctx!.ellipse(cx + 4, cy - 2, w * 0.32, h * 0.36, 0, 0, Math.PI * 2);
-      ctx!.stroke();
-      ctx!.restore();
-
-      // === 3. Growing threads ===
+      // ── Phase 2: Rhizomorphs (700ms + i*220ms, each 2000ms) ──
       for (let i = 0; i < SECTIONS.length; i++) {
+        const rStart = 700 + i * 220;
+        const rT = easeOutCubic(clamp((tsm - rStart) / 2000, 0, 1));
+        if (rT <= 0) continue;
+
         const s = SECTIONS[i];
         const rad = (s.angle * Math.PI) / 180;
-        const nx = cx + orbitR * Math.sin(rad);
-        const ny = cy - orbitR * Math.cos(rad);
-        const startX = cx + clusterR * Math.sin(rad);
-        const startY = cy - clusterR * Math.cos(rad);
-        const midX = (startX + nx) / 2;
-        const midY = (startY + ny) / 2;
-        const perpX = -(ny - startY);
-        const perpY = nx - startX;
-        const perpLen = Math.sqrt(perpX * perpX + perpY * perpY) || 1;
-        const cpx = midX + (perpX / perpLen) * orbitR * 0.14;
-        const cpy = midY + (perpY / perpLen) * orbitR * 0.14;
+        const sx = cx + coreR * Math.sin(rad);
+        const sy = cy - coreR * Math.cos(rad);
+        const ex = cx + orbitR * Math.sin(rad);
+        const ey = cy - orbitR * Math.cos(rad);
+        const mx2 = (sx + ex) / 2;
+        const my2 = (sy + ey) / 2;
+        const perpX = -(ey - sy);
+        const perpY = ex - sx;
+        const pLen = Math.hypot(perpX, perpY) || 1;
 
-        // a) Ghost guide
-        ctx!.save();
-        ctx!.globalAlpha = 0.07;
-        ctx!.strokeStyle = s.colour;
-        ctx!.lineWidth = 0.6;
-        ctx!.beginPath();
-        ctx!.moveTo(startX, startY);
-        ctx!.quadraticCurveTo(cpx, cpy, nx, ny);
-        ctx!.stroke();
-        ctx!.restore();
+        for (let j = -1; j <= 1; j++) {
+          const offset = j * 2.2;
+          const dirX = Math.cos(rad);
+          const dirY = Math.sin(rad);
+          const sxJ = sx + dirX * offset;
+          const syJ = sy + dirY * offset;
+          const exJ = ex + dirX * offset * 0.2;
+          const eyJ = ey + dirY * offset * 0.2;
+          const cpx = mx2 + (perpX / pLen) * orbitR * 0.03 + dirX * offset * 0.5;
+          const cpy = my2 + (perpY / pLen) * orbitR * 0.03 + dirY * offset * 0.5;
 
-        const growT = ((time / 5000 + i * 0.18) % 1);
+          const alpha = j === 0 ? 0.52 : 0.22;
 
-        // e) Glow simulation (beneath the growing front)
-        ctx!.save();
-        ctx!.globalAlpha = 0.03;
-        ctx!.strokeStyle = s.colour;
-        ctx!.lineWidth = 4;
-        ctx!.beginPath();
-        ctx!.moveTo(startX, startY);
-        for (let dt = 0.02; dt <= growT; dt += 0.02) {
-          const p = bezierPt(startX, startY, cpx, cpy, nx, ny, dt);
-          ctx!.lineTo(p.x, p.y);
+          // First half (thicker)
+          const lw1 = 2.5 - Math.abs(j) * 0.3;
+          ctx!.save();
+          ctx!.globalAlpha = alpha * rT;
+          ctx!.strokeStyle = s.colour;
+          ctx!.lineWidth = lw1;
+          ctx!.lineCap = "round";
+          ctx!.beginPath();
+          ctx!.moveTo(sxJ, syJ);
+          const halfT = Math.min(rT, 0.5);
+          for (let dt = 0.02; dt <= halfT; dt += 0.02) {
+            const p = qBezPt(sxJ, syJ, cpx, cpy, exJ, eyJ, dt);
+            ctx!.lineTo(p.x, p.y);
+          }
+          ctx!.stroke();
+          ctx!.restore();
+
+          // Second half (thinner)
+          if (rT > 0.5) {
+            const lw2 = 0.9 - Math.abs(j) * 0.15;
+            ctx!.save();
+            ctx!.globalAlpha = alpha * rT;
+            ctx!.strokeStyle = s.colour;
+            ctx!.lineWidth = lw2;
+            ctx!.lineCap = "round";
+            ctx!.beginPath();
+            const pHalf = qBezPt(sxJ, syJ, cpx, cpy, exJ, eyJ, 0.5);
+            ctx!.moveTo(pHalf.x, pHalf.y);
+            for (let dt = 0.52; dt <= rT; dt += 0.02) {
+              const p = qBezPt(sxJ, syJ, cpx, cpy, exJ, eyJ, dt);
+              ctx!.lineTo(p.x, p.y);
+            }
+            ctx!.stroke();
+            ctx!.restore();
+          }
         }
-        ctx!.stroke();
-        ctx!.restore();
 
-        // b) Growing front
-        ctx!.save();
-        ctx!.globalAlpha = 0.55;
-        ctx!.strokeStyle = s.colour;
-        ctx!.lineWidth = 0.8;
-        ctx!.beginPath();
-        ctx!.moveTo(startX, startY);
-        for (let dt = 0.02; dt <= growT; dt += 0.02) {
-          const p = bezierPt(startX, startY, cpx, cpy, nx, ny, dt);
-          ctx!.lineTo(p.x, p.y);
+        // Side branches at t=0.28, 0.50, 0.72
+        const mainCpx = mx2 + (perpX / pLen) * orbitR * 0.03;
+        const mainCpy = my2 + (perpY / pLen) * orbitR * 0.03;
+        for (const bt of [0.28, 0.50, 0.72]) {
+          if (rT < bt) continue;
+          const bp = qBezPt(sx, sy, mainCpx, mainCpy, ex, ey, bt);
+          const brSegs = buildBranch(
+            bp.x, bp.y, orbitR * 0.06,
+            3, orbitR * 0.022, 0.45, 3,
+            200 + i * 10 + Math.floor(bt * 100),
+          );
+          for (const seg of brSegs) {
+            ctx!.save();
+            ctx!.globalAlpha = 0.16;
+            ctx!.strokeStyle = s.colour;
+            ctx!.lineWidth = seg.th;
+            ctx!.lineCap = "round";
+            ctx!.beginPath();
+            ctx!.moveTo(seg.x1, seg.y1);
+            ctx!.lineTo(seg.x2, seg.y2);
+            ctx!.stroke();
+            ctx!.restore();
+          }
         }
-        ctx!.stroke();
-        ctx!.restore();
+      }
 
-        // c) Growing tip
-        const tip = bezierPt(startX, startY, cpx, cpy, nx, ny, growT);
-        ctx!.save();
-        ctx!.globalAlpha = 0.15;
-        ctx!.fillStyle = s.colour;
-        ctx!.beginPath();
-        ctx!.arc(tip.x, tip.y, 5, 0, Math.PI * 2);
-        ctx!.fill();
-        ctx!.restore();
-        ctx!.save();
-        ctx!.globalAlpha = 0.85;
-        ctx!.fillStyle = s.colour;
-        ctx!.beginPath();
-        ctx!.arc(tip.x, tip.y, 2.5, 0, Math.PI * 2);
-        ctx!.fill();
-        ctx!.restore();
+      // ── Phase 3: Terminal clusters (after rhizomorph completes per section) ──
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
+      let newHov = -1;
 
-        // d) Secondary branch at t=0.55
-        if (growT > 0.55) {
-          const branchBase = bezierPt(startX, startY, cpx, cpy, nx, ny, 0.55);
-          const tang = bezierTangent(startX, startY, cpx, cpy, nx, ny, 0.55);
-          const tLen = Math.sqrt(tang.x * tang.x + tang.y * tang.y) || 1;
-          const branchLen = orbitR * 0.06;
-          const bex = branchBase.x + (-tang.y / tLen) * branchLen;
-          const bey = branchBase.y + (tang.x / tLen) * branchLen;
-          const branchProgress = Math.min((growT - 0.55) / 0.45, 1);
-          const bpx = branchBase.x + (bex - branchBase.x) * branchProgress;
-          const bpy = branchBase.y + (bey - branchBase.y) * branchProgress;
+      if (clusterSegs) {
+        for (let i = 0; i < SECTIONS.length; i++) {
+          const cStart = 700 + i * 220 + 2000;
+          const cT = easeOutCubic(clamp((tsm - cStart) / 1400, 0, 1));
+          if (cT <= 0) continue;
+
+          const s = SECTIONS[i];
+          const rad = (s.angle * Math.PI) / 180;
+          const px = cx + orbitR * Math.sin(rad);
+          const py = cy - orbitR * Math.cos(rad);
+
+          // Hover
+          const dist = Math.hypot(mx - px, my - py);
+          if (dist < clusterR * 1.5) newHov = i;
+          const tgt = newHov === i ? 1.18 : 1.0;
+          scalesRef.current[i] = lerp(scalesRef.current[i], tgt, 0.1);
+          const sc = scalesRef.current[i];
+
+          const segs = clusterSegs[i];
+          const vis = Math.floor(cT * segs.length);
 
           ctx!.save();
-          ctx!.globalAlpha = 0.2;
-          ctx!.strokeStyle = s.colour;
-          ctx!.lineWidth = 0.3;
+          ctx!.translate(px, py);
+          ctx!.scale(sc, sc);
+          ctx!.translate(-px, -py);
+
+          for (let si = 0; si < vis; si++) {
+            const seg = segs[si];
+            // Glow
+            ctx!.save();
+            ctx!.globalAlpha = 0.05;
+            ctx!.strokeStyle = s.colour;
+            ctx!.lineWidth = seg.th * 3;
+            ctx!.lineCap = "round";
+            ctx!.beginPath();
+            ctx!.moveTo(seg.x1, seg.y1);
+            ctx!.lineTo(seg.x2, seg.y2);
+            ctx!.stroke();
+            ctx!.restore();
+            // Core
+            ctx!.save();
+            ctx!.globalAlpha = lerp(0.25, 0.55, seg.th / 1.4);
+            ctx!.strokeStyle = s.colour;
+            ctx!.lineWidth = seg.th;
+            ctx!.lineCap = "round";
+            ctx!.beginPath();
+            ctx!.moveTo(seg.x1, seg.y1);
+            ctx!.lineTo(seg.x2, seg.y2);
+            ctx!.stroke();
+            ctx!.restore();
+          }
+
+          // Cluster nucleus
+          ctx!.save();
+          ctx!.globalAlpha = 0.92 * cT;
+          ctx!.fillStyle = s.colour;
           ctx!.beginPath();
-          ctx!.moveTo(branchBase.x, branchBase.y);
-          ctx!.lineTo(bpx, bpy);
-          ctx!.stroke();
+          ctx!.arc(px, py, 4, 0, Math.PI * 2);
+          ctx!.fill();
+          ctx!.restore();
+
           ctx!.restore();
         }
       }
 
-      // === 4. Brain cluster ===
-      drawBrainCluster(ctx!, cx, cy, clusterR, time, geo);
-
-      // === 5. Section nodes ===
-      const mx = mouseRef.current.x;
-      const my = mouseRef.current.y;
-      let newHovered = -1;
-
-      for (let i = 0; i < SECTIONS.length; i++) {
-        const s = SECTIONS[i];
-        const rad = (s.angle * Math.PI) / 180;
-        const nx = cx + orbitR * Math.sin(rad);
-        const ny = cy - orbitR * Math.cos(rad);
-        const dx = mx - nx;
-        const dy = my - ny;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const isHovered = dist < nodeR * 2.5;
-        if (isHovered) newHovered = i;
-
-        const ns = nodeStates.current[i];
-        ns.haloAlpha = lerp(ns.haloAlpha, isHovered ? 0.1 : 0.04, 0.12);
-        ns.ghostAlpha = lerp(ns.ghostAlpha, isHovered ? 0.35 : 0.18, 0.12);
-        ns.nucleusAlpha = lerp(ns.nucleusAlpha, isHovered ? 1.0 : 0.7, 0.12);
-
-        // a) Outer glow halo
-        ctx!.save();
-        ctx!.globalAlpha = ns.haloAlpha;
-        ctx!.fillStyle = s.colour;
-        ctx!.beginPath();
-        ctx!.arc(nx, ny, nodeR * 1.8, 0, Math.PI * 2);
-        ctx!.fill();
-        ctx!.restore();
-
-        // b) Ghost ring
-        ctx!.save();
-        ctx!.globalAlpha = ns.ghostAlpha;
-        ctx!.strokeStyle = s.colour;
-        ctx!.lineWidth = 0.5;
-        ctx!.beginPath();
-        ctx!.arc(nx, ny, nodeR * 1.1, 0, Math.PI * 2);
-        ctx!.stroke();
-        ctx!.restore();
-
-        // c) Inner nucleus
-        ctx!.save();
-        ctx!.globalAlpha = ns.nucleusAlpha;
-        ctx!.fillStyle = s.colour;
-        ctx!.beginPath();
-        ctx!.arc(nx, ny, nodeR * 0.32, 0, Math.PI * 2);
-        ctx!.fill();
-        ctx!.restore();
+      // Brain hit test
+      if (newHov < 0 && Math.hypot(mx - cx, my - cy) < coreR * 1.8) {
+        newHov = -2;
       }
+      hoveredRef.current = newHov;
+      cvs!.style.cursor = newHov !== -1 ? "pointer" : "default";
 
-      if (newHovered < 0 && Math.hypot(mx - cx, my - cy) < 58) {
-        newHovered = -2;
-      }
-      hoveredRef.current = newHovered;
-      canvas!.style.cursor = newHovered !== -1 ? "pointer" : "default";
-
-      // === 6. Labels ===
-      ctx!.save();
-      ctx!.font = `11px ${MONO_FONT}`;
-      for (let i = 0; i < SECTIONS.length; i++) {
-        const s = SECTIONS[i];
-        const rad = (s.angle * Math.PI) / 180;
-        const nx = cx + orbitR * Math.sin(rad);
-        const ny = cy - orbitR * Math.cos(rad);
-        const dirX = Math.sin(rad);
-        const dirY = -Math.cos(rad);
-        const lx = nx + dirX * nodeR * 2.8;
-        const ly = ny + dirY * nodeR * 2.8;
-
-        ctx!.fillStyle = s.colour;
-        ctx!.globalAlpha = 0.85;
-
-        if (s.angle === 0 || s.angle === 180) {
-          ctx!.textAlign = "center";
-        } else if (s.angle > 180) {
-          ctx!.textAlign = "right";
-        } else {
-          ctx!.textAlign = "left";
+      // ── Phase 4: Labels (after last cluster + 300ms, fade 500ms) ──
+      const lastClusterEnd = 700 + 5 * 220 + 2000 + 1400;
+      const labelT = easeOutCubic(clamp((tsm - lastClusterEnd - 300) / 500, 0, 1));
+      if (labelT > 0) {
+        ctx!.save();
+        ctx!.font = `11px ${MONO}`;
+        for (let i = 0; i < SECTIONS.length; i++) {
+          const s = SECTIONS[i];
+          const rad = (s.angle * Math.PI) / 180;
+          const px = cx + orbitR * Math.sin(rad);
+          const py = cy - orbitR * Math.cos(rad);
+          const dx = Math.sin(rad);
+          const dy = -Math.cos(rad);
+          ctx!.fillStyle = s.colour;
+          ctx!.globalAlpha = 0.80 * labelT;
+          ctx!.textBaseline = "middle";
+          if (s.angle === 0 || s.angle === 180) ctx!.textAlign = "center";
+          else if (s.angle > 180) ctx!.textAlign = "right";
+          else ctx!.textAlign = "left";
+          drawSpacedText(ctx!, s.label, px + dx * clusterR * 2.1, py + dy * clusterR * 2.1, 3);
         }
-        ctx!.textBaseline = "middle";
+        ctx!.restore();
 
-        drawSpacedText(ctx!, s.label, lx, ly, 3);
+        // BRAIN label
+        ctx!.save();
+        ctx!.font = `13px ${MONO}`;
+        ctx!.textAlign = "center";
+        ctx!.textBaseline = "middle";
+        ctx!.fillStyle = GLOW;
+        ctx!.globalAlpha = 0.70 * labelT;
+        ctx!.fillText("BRAIN", cx, cy + coreR + 16);
+        ctx!.restore();
       }
 
-      ctx!.globalAlpha = 0.28;
-      ctx!.fillStyle = BRAIN_COLOUR;
-      ctx!.textAlign = "center";
-      ctx!.textBaseline = "top";
-      drawSpacedText(ctx!, "MYCELIUM", cx, 42, 5);
-
-      ctx!.restore();
-
-      // BRAIN label — drawn last so it sits on top
-      ctx!.save();
-      ctx!.font = `13px ${MONO_FONT}`;
-      ctx!.textAlign = "center";
-      ctx!.textBaseline = "middle";
-      ctx!.fillStyle = BRAIN_COLOUR;
-      ctx!.globalAlpha = 0.72;
-      ctx!.fillText("BRAIN", cx, cy + 16);
-      ctx!.restore();
-
-      rafRef.current = requestAnimationFrame(draw);
+      rafId.current = requestAnimationFrame(draw);
     }
 
-    rafRef.current = requestAnimationFrame(draw);
+    rafId.current = requestAnimationFrame(draw);
 
     return () => {
-      cancelAnimationFrame(rafRef.current);
+      cancelAnimationFrame(rafId.current);
       ro.disconnect();
-      canvas.removeEventListener("mousemove", handleMouseMove);
-      canvas.removeEventListener("mouseleave", handleMouseLeave);
-      canvas.removeEventListener("click", handleClick);
-      canvas.removeEventListener("touchstart", handleTouch);
+      cvs.removeEventListener("mousemove", onMove);
+      cvs.removeEventListener("mouseleave", onLeave);
+      cvs.removeEventListener("click", onClick);
+      cvs.removeEventListener("touchstart", onTouch);
     };
   }, [navigateToSection, navigateToBrain]);
 
@@ -546,163 +560,4 @@ export function CanvasHub() {
       />
     </div>
   );
-}
-
-function drawSpacedText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  spacing: number,
-) {
-  const chars = text.split("");
-  const totalWidth =
-    chars.reduce((sum, ch) => sum + ctx.measureText(ch).width, 0) +
-    spacing * (chars.length - 1);
-
-  let startX: number;
-  if (ctx.textAlign === "center") {
-    startX = x - totalWidth / 2;
-  } else if (ctx.textAlign === "right") {
-    startX = x - totalWidth;
-  } else {
-    startX = x;
-  }
-
-  const savedAlign = ctx.textAlign;
-  ctx.textAlign = "left";
-  let curX = startX;
-  for (const ch of chars) {
-    ctx.fillText(ch, curX, y);
-    curX += ctx.measureText(ch).width + spacing;
-  }
-  ctx.textAlign = savedAlign;
-}
-
-function drawBrainCluster(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  clusterR: number,
-  time: number,
-  geo: BrainGeo,
-) {
-  // Compute outer loop points with breathing
-  const outerPts: [number, number][] = geo.outer.map((p, i) => {
-    const breath = Math.sin(time * 0.0004 + i * 0.7) * 3;
-    const r = clusterR * p.rMul;
-    return [cx + Math.cos(p.angle) * r + breath, cy + Math.sin(p.angle) * r];
-  });
-
-  // a) Outer loop
-  ctx.save();
-  ctx.globalAlpha = 0.45;
-  ctx.strokeStyle = BRAIN_COLOUR;
-  ctx.lineWidth = 0.55;
-  drawClosedCurve(ctx, outerPts);
-  ctx.restore();
-
-  // Compute inner loop points with breathing
-  const innerR = clusterR * 0.6;
-  const innerPts: [number, number][] = geo.inner.map((p, i) => {
-    const breath = Math.sin(time * 0.0004 + i * 0.7 + 2) * 3;
-    const r = innerR * p.rMul;
-    return [cx + Math.cos(p.angle) * r + breath, cy + Math.sin(p.angle) * r];
-  });
-
-  // b) Inner loop
-  ctx.save();
-  ctx.globalAlpha = 0.38;
-  ctx.strokeStyle = BRAIN_COLOUR;
-  ctx.lineWidth = 0.48;
-  drawClosedCurve(ctx, innerPts);
-  ctx.restore();
-
-  // c) 4 crossing threads
-  for (const [startA, endA, cpMul] of geo.crossAngles) {
-    const sx = cx + Math.cos(startA) * clusterR;
-    const sy = cy + Math.sin(startA) * clusterR;
-    const ex = cx + Math.cos(endA) * clusterR;
-    const ey = cy + Math.sin(endA) * clusterR;
-    const perpX = -(ey - sy);
-    const perpY = ex - sx;
-    const pLen = Math.sqrt(perpX * perpX + perpY * perpY) || 1;
-    const cpx = (sx + ex) / 2 + (perpX / pLen) * clusterR * cpMul;
-    const cpy = (sy + ey) / 2 + (perpY / pLen) * clusterR * cpMul;
-
-    ctx.save();
-    ctx.globalAlpha = 0.3;
-    ctx.strokeStyle = BRAIN_COLOUR;
-    ctx.lineWidth = 0.4;
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.quadraticCurveTo(cpx, cpy, ex, ey);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  // d) 5 dangling tendrils
-  for (const t of geo.tendrils) {
-    const sx = cx + Math.cos(t.angle) * clusterR;
-    const sy = cy + Math.sin(t.angle) * clusterR;
-    const ex = cx + Math.cos(t.angle) * (clusterR + clusterR * t.lenMul);
-    const ey = cy + Math.sin(t.angle) * (clusterR + clusterR * t.lenMul);
-    const cpx = (sx + ex) / 2 + t.cpOff;
-    const cpy = (sy + ey) / 2 + t.cpOff;
-
-    ctx.save();
-    ctx.globalAlpha = 0.2;
-    ctx.strokeStyle = BRAIN_COLOUR;
-    ctx.lineWidth = 0.28;
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.quadraticCurveTo(cpx, cpy, ex, ey);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  // e) Junction nodes
-  for (const j of geo.junctions) {
-    const jx = cx + Math.cos(j.angle) * clusterR * j.distMul;
-    const jy = cy + Math.sin(j.angle) * clusterR * j.distMul;
-    ctx.save();
-    ctx.globalAlpha = j.alpha;
-    ctx.fillStyle = BRAIN_COLOUR;
-    ctx.beginPath();
-    ctx.arc(jx, jy, j.r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // f) Nucleus
-  ctx.save();
-  ctx.globalAlpha = 0.88;
-  ctx.fillStyle = BRAIN_COLOUR;
-  ctx.beginPath();
-  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
-
-function drawClosedCurve(
-  ctx: CanvasRenderingContext2D,
-  points: [number, number][],
-) {
-  const n = points.length;
-  if (n < 3) return;
-
-  ctx.beginPath();
-  const first = points[0];
-  const second = points[1];
-  ctx.moveTo((first[0] + second[0]) / 2, (first[1] + second[1]) / 2);
-
-  for (let i = 1; i <= n; i++) {
-    const p = points[i % n];
-    const next = points[(i + 1) % n];
-    const midX = (p[0] + next[0]) / 2;
-    const midY = (p[1] + next[1]) / 2;
-    ctx.quadraticCurveTo(p[0], p[1], midX, midY);
-  }
-  ctx.closePath();
-  ctx.stroke();
 }
