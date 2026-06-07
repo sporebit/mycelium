@@ -39,6 +39,20 @@ function easeOutCubic(t: number) {
   return 1 - (1 - t) ** 3;
 }
 
+function hexToRgb(hex: string): [number, number, number] {
+  const v = parseInt(hex.slice(1), 16);
+  return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+}
+
+function lerpColour(a: string, b: string, t: number): string {
+  const [ar, ag, ab] = hexToRgb(a);
+  const [br, bg, bb] = hexToRgb(b);
+  const r = Math.round(ar + (br - ar) * t);
+  const g = Math.round(ag + (bg - ag) * t);
+  const bl = Math.round(ab + (bb - ab) * t);
+  return `rgb(${r},${g},${bl})`;
+}
+
 function qBezPt(
   x0: number, y0: number,
   cpx: number, cpy: number,
@@ -187,7 +201,7 @@ export function CanvasHub() {
       const cxV = w * 0.5;
       const cyV = h * 0.52;
       const orbitR = Math.min(w, h) * 0.32;
-      const coreR = orbitR * 0.09;
+      const coreR = orbitR * 0.135;
       const clusterR = orbitR * 0.12;
 
       coreSegsRef.current = buildBranch(cxV, cyV, coreR * 1.5, 24, coreR * 0.55, 1.6, 6, 42);
@@ -231,7 +245,7 @@ export function CanvasHub() {
       const cxV = w * 0.5;
       const cyV = h * 0.52;
       const orbitR = Math.min(w, h) * 0.32;
-      const coreR = orbitR * 0.09;
+      const coreR = orbitR * 0.135;
       const clusterR = orbitR * 0.12;
       for (let i = 0; i < SECTIONS.length; i++) {
         const rad = (SECTIONS[i].angle * Math.PI) / 180;
@@ -258,7 +272,7 @@ export function CanvasHub() {
       const cx = w * 0.5;
       const cy = h * 0.52;
       const orbitR = Math.min(w, h) * 0.32;
-      const coreR = orbitR * 0.09;
+      const coreR = orbitR * 0.135;
       const clusterR = orbitR * 0.12;
       const tsm = time - mountT.current;
       const coreSegs = coreSegsRef.current;
@@ -333,72 +347,57 @@ export function CanvasHub() {
         const perpX = -(ey - sy);
         const perpY = ex - sx;
         const pLen = Math.hypot(perpX, perpY) || 1;
+        const pnx = perpX / pLen;
+        const pny = perpY / pLen;
 
-        for (let j = -1; j <= 1; j++) {
-          const offset = j * 2.2;
-          const dirX = Math.cos(rad);
-          const dirY = Math.sin(rad);
-          const sxJ = sx + dirX * offset;
-          const syJ = sy + dirY * offset;
-          const exJ = ex + dirX * offset * 0.2;
-          const eyJ = ey + dirY * offset * 0.2;
-          const cpx = mx2 + (perpX / pLen) * orbitR * 0.03 + dirX * offset * 0.5;
-          const cpy = my2 + (perpY / pLen) * orbitR * 0.03 + dirY * offset * 0.5;
+        const rng = mulberry32(i * 17 + 5);
+        const grad = ctx!.createLinearGradient(sx, sy, ex, ey);
+        grad.addColorStop(0.0, GLOW);
+        grad.addColorStop(1.0, s.colour);
 
-          const alpha = j === 0 ? 0.52 : 0.22;
+        for (let k = 0; k < 10; k++) {
+          const perpOff = (rng() - 0.5) * 9;
+          const cpJitter = (rng() - 0.5) * 14;
+          const lw = 0.28 + rng() * 0.38;
 
-          // First half (thicker)
-          const lw1 = 2.5 - Math.abs(j) * 0.3;
+          const sxK = sx + pnx * perpOff;
+          const syK = sy + pny * perpOff;
+          const exK = ex + pnx * perpOff * 0.12;
+          const eyK = ey + pny * perpOff * 0.12;
+          const cpx = mx2 + pnx * cpJitter;
+          const cpy = my2 + pny * cpJitter + rng() * orbitR * 0.05;
+
           ctx!.save();
-          ctx!.globalAlpha = alpha * rT;
-          ctx!.strokeStyle = s.colour;
-          ctx!.lineWidth = lw1;
+          ctx!.globalAlpha = 0.48 * rT;
+          ctx!.strokeStyle = grad;
+          ctx!.lineWidth = lw;
           ctx!.lineCap = "round";
           ctx!.beginPath();
-          ctx!.moveTo(sxJ, syJ);
-          const halfT = Math.min(rT, 0.5);
-          for (let dt = 0.02; dt <= halfT; dt += 0.02) {
-            const p = qBezPt(sxJ, syJ, cpx, cpy, exJ, eyJ, dt);
+          ctx!.moveTo(sxK, syK);
+          for (let dt = 0.02; dt <= rT; dt += 0.02) {
+            const p = qBezPt(sxK, syK, cpx, cpy, exK, eyK, dt);
             ctx!.lineTo(p.x, p.y);
           }
           ctx!.stroke();
           ctx!.restore();
-
-          // Second half (thinner)
-          if (rT > 0.5) {
-            const lw2 = 0.9 - Math.abs(j) * 0.15;
-            ctx!.save();
-            ctx!.globalAlpha = alpha * rT;
-            ctx!.strokeStyle = s.colour;
-            ctx!.lineWidth = lw2;
-            ctx!.lineCap = "round";
-            ctx!.beginPath();
-            const pHalf = qBezPt(sxJ, syJ, cpx, cpy, exJ, eyJ, 0.5);
-            ctx!.moveTo(pHalf.x, pHalf.y);
-            for (let dt = 0.52; dt <= rT; dt += 0.02) {
-              const p = qBezPt(sxJ, syJ, cpx, cpy, exJ, eyJ, dt);
-              ctx!.lineTo(p.x, p.y);
-            }
-            ctx!.stroke();
-            ctx!.restore();
-          }
         }
 
-        // Side branches at t=0.28, 0.50, 0.72
-        const mainCpx = mx2 + (perpX / pLen) * orbitR * 0.03;
-        const mainCpy = my2 + (perpY / pLen) * orbitR * 0.03;
-        for (const bt of [0.28, 0.50, 0.72]) {
+        // Side branches at t=0.18, 0.36, 0.54, 0.70, 0.85
+        const mainCpx = mx2 + pnx * 0;
+        const mainCpy = my2 + pny * 0;
+        for (const bt of [0.18, 0.36, 0.54, 0.70, 0.85]) {
           if (rT < bt) continue;
           const bp = qBezPt(sx, sy, mainCpx, mainCpy, ex, ey, bt);
+          const brCol = lerpColour(GLOW, s.colour, bt);
           const brSegs = buildBranch(
             bp.x, bp.y, orbitR * 0.06,
-            3, orbitR * 0.022, 0.45, 3,
+            3, orbitR * 0.032, 0.45, 4,
             200 + i * 10 + Math.floor(bt * 100),
           );
           for (const seg of brSegs) {
             ctx!.save();
             ctx!.globalAlpha = 0.16;
-            ctx!.strokeStyle = s.colour;
+            ctx!.strokeStyle = brCol;
             ctx!.lineWidth = seg.th;
             ctx!.lineCap = "round";
             ctx!.beginPath();
