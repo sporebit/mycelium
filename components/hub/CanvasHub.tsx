@@ -16,20 +16,9 @@ const BG = "#0a0f0b";
 const GLOW = "#84f5b8";
 const MONO = '"Berkeley Mono", monospace';
 const PIN_H = 14;
-const RING_RADII = [8, 13, 19, 26, 33, 40, 47, 53, 59];
-const BRAIN_HIT_R = 58;
+const RING_RADII = [10, 17, 24, 31, 38, 45, 52];
 
 type Seg = { x1: number; y1: number; x2: number; y2: number; th: number };
-
-type ClickState = {
-  idx: number;
-  ox: number;
-  oy: number;
-  col: string;
-  t0: number;
-  route: string;
-  done: boolean;
-};
 
 function mulberry32(seed: number) {
   return () => {
@@ -57,32 +46,6 @@ function easeInCubic(t: number) {
   return t * t * t;
 }
 
-function qBezPt(
-  x0: number, y0: number,
-  cpx: number, cpy: number,
-  x1: number, y1: number,
-  t: number,
-) {
-  const mt = 1 - t;
-  return {
-    x: mt * mt * x0 + 2 * mt * t * cpx + t * t * x1,
-    y: mt * mt * y0 + 2 * mt * t * cpy + t * t * y1,
-  };
-}
-
-function qBezTan(
-  x0: number, y0: number,
-  cpx: number, cpy: number,
-  x1: number, y1: number,
-  t: number,
-) {
-  const mt = 1 - t;
-  return {
-    x: 2 * mt * (cpx - x0) + 2 * t * (x1 - cpx),
-    y: 2 * mt * (cpy - y0) + 2 * t * (y1 - cpy),
-  };
-}
-
 function buildNetwork(
   cx: number,
   cy: number,
@@ -94,8 +57,12 @@ function buildNetwork(
   const out: Seg[] = [];
 
   function go(
-    x: number, y: number, a: number,
-    l: number, th: number, d: number,
+    x: number,
+    y: number,
+    a: number,
+    l: number,
+    th: number,
+    d: number,
   ) {
     if (d === 0 || th < 0.22 || l < 1.8) return;
     let ex = x + Math.cos(a) * l;
@@ -107,14 +74,21 @@ function buildNetwork(
     const n = d > 4 ? 3 : 2;
     for (let i = 0; i < n; i++) {
       go(
-        ex, ey, a + (r() - 0.5) * 1.1,
-        l * (0.6 + r() * 0.18), th * (0.64 + r() * 0.08), d - 1,
+        ex,
+        ey,
+        a + (r() - 0.5) * 1.1,
+        l * (0.6 + r() * 0.18),
+        th * (0.64 + r() * 0.08),
+        d - 1,
       );
     }
   }
 
   for (let i = 0; i < 10; i++) {
-    const ba = (i / 10) * Math.PI * 2 + (r() - 0.5) * 0.5;
+    const ba =
+      i < 6
+        ? (SECTIONS[i].angle * Math.PI) / 180 - Math.PI / 2 + (r() - 0.5) * 0.44
+        : (i / 10) * Math.PI * 2 + (r() - 0.5) * 0.5;
     go(cx, cy, ba, oR * 0.2, 2.4, 9);
   }
 
@@ -124,11 +98,10 @@ function buildNetwork(
 
 function buildRings(): { angle: number; rMul: number }[][] {
   const r = mulberry32(7);
-  return RING_RADII.map((_, ri) => {
-    if (ri < 5) return [];
+  return RING_RADII.map(() => {
     const pts: { angle: number; rMul: number }[] = [];
-    for (let i = 0; i < 14; i++) {
-      pts.push({ angle: (i / 14) * Math.PI * 2, rMul: 0.78 + r() * 0.44 });
+    for (let i = 0; i < 12; i++) {
+      pts.push({ angle: (i / 12) * Math.PI * 2, rMul: 0.85 + r() * 0.3 });
     }
     return pts;
   });
@@ -138,8 +111,12 @@ function buildPinThreads(seed: number): Seg[] {
   const r = mulberry32(seed);
   const out: Seg[] = [];
   function go(
-    x: number, y: number, a: number,
-    l: number, th: number, d: number,
+    x: number,
+    y: number,
+    a: number,
+    l: number,
+    th: number,
+    d: number,
   ) {
     if (d === 0 || th < 0.15 || l < 1) return;
     const ex = x + Math.cos(a) * l;
@@ -174,7 +151,10 @@ function drawClosedCurve(
 
 function drawSpacedText(
   ctx: CanvasRenderingContext2D,
-  txt: string, x: number, y: number, sp: number,
+  txt: string,
+  x: number,
+  y: number,
+  sp: number,
 ) {
   const cs = txt.split("");
   const tw =
@@ -200,7 +180,6 @@ function drawMushroomPin(
   colour: string,
   scale: number,
   threads: Seg[],
-  alpha: number,
 ) {
   const sH = PIN_H * 1.4 * scale;
   const sWb = PIN_H * 0.22 * scale;
@@ -210,7 +189,7 @@ function drawMushroomPin(
 
   for (const s of threads) {
     ctx.save();
-    ctx.globalAlpha = 0.18 * alpha;
+    ctx.globalAlpha = 0.18;
     ctx.strokeStyle = colour;
     ctx.lineWidth = s.th;
     ctx.lineCap = "round";
@@ -228,7 +207,7 @@ function drawMushroomPin(
   ctx.lineTo(-sWt / 2, -sH);
   ctx.closePath();
   ctx.fillStyle = colour;
-  ctx.globalAlpha = 0.6 * alpha;
+  ctx.globalAlpha = 0.6;
   ctx.fill();
 
   ctx.beginPath();
@@ -245,7 +224,7 @@ function drawMushroomPin(
   );
   ctx.closePath();
   ctx.fillStyle = colour;
-  ctx.globalAlpha = 0.82 * alpha;
+  ctx.globalAlpha = 0.82;
   ctx.fill();
 
   ctx.beginPath();
@@ -257,15 +236,25 @@ function drawMushroomPin(
   );
   ctx.strokeStyle = colour;
   ctx.lineWidth = 0.4;
-  ctx.globalAlpha = 0.35 * alpha;
+  ctx.globalAlpha = 0.35;
   ctx.stroke();
 
   ctx.beginPath();
   ctx.arc(0, -sH - cB * 0.55, cR * 1.7, 0, Math.PI * 2);
   ctx.fillStyle = colour;
-  ctx.globalAlpha = 0.06 * alpha;
+  ctx.globalAlpha = 0.06;
   ctx.fill();
 }
+
+type ClickState = {
+  idx: number;
+  ox: number;
+  oy: number;
+  col: string;
+  t0: number;
+  route: string;
+  done: boolean;
+};
 
 export function CanvasHub() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -330,7 +319,11 @@ export function CanvasHub() {
         grainRef.current = off;
       }
       netRef.current = buildNetwork(
-        w * 0.5, h * 0.55, Math.min(w, h) * 0.34, w, h,
+        w * 0.5,
+        h * 0.55,
+        Math.min(w, h) * 0.34,
+        w,
+        h,
       );
     }
 
@@ -346,33 +339,30 @@ export function CanvasHub() {
       mouseRef.current = { x: -9999, y: -9999 };
     }
 
-    function triggerClick(
-      ox: number, oy: number, col: string, route: string, idx: number,
-    ) {
+    function startClick(idx: number, pinX: number, pinY: number) {
       if (clickSt.current) return;
+      const sH = PIN_H * 1.4;
       clickSt.current = {
-        idx, ox, oy, col, t0: performance.now(), route, done: false,
+        idx,
+        ox: pinX,
+        oy: pinY - sH * 0.5,
+        col: SECTIONS[idx].colour,
+        t0: performance.now(),
+        route: SECTIONS[idx].route,
+        done: false,
       };
     }
 
     function onClick() {
-      const hov = hoveredRef.current;
+      const i = hoveredRef.current;
+      if (i < 0) return;
       const w = window.innerWidth;
       const h = window.innerHeight;
       const cx = w * 0.5;
       const cy = h * 0.55;
-      if (hov >= 0) {
-        const oR = Math.min(w, h) * 0.34;
-        const rad = (SECTIONS[hov].angle * Math.PI) / 180;
-        const px = cx + oR * Math.sin(rad);
-        const py = cy - oR * Math.cos(rad);
-        triggerClick(
-          px, py - PIN_H * 0.7,
-          SECTIONS[hov].colour, SECTIONS[hov].route, hov,
-        );
-      } else if (hov === -2) {
-        triggerClick(cx, cy, GLOW, "/stroma", -1);
-      }
+      const oR = Math.min(w, h) * 0.34;
+      const rad = (SECTIONS[i].angle * Math.PI) / 180;
+      startClick(i, cx + oR * Math.sin(rad), cy - oR * Math.cos(rad));
     }
 
     function onTouch(e: TouchEvent) {
@@ -394,15 +384,9 @@ export function CanvasHub() {
           t.clientY - py > -sH * 1.3 &&
           t.clientY - py < cR
         ) {
-          triggerClick(
-            px, py - PIN_H * 0.7,
-            SECTIONS[i].colour, SECTIONS[i].route, i,
-          );
+          startClick(i, px, py);
           return;
         }
-      }
-      if (Math.hypot(t.clientX - cx, t.clientY - cy) < BRAIN_HIT_R) {
-        triggerClick(cx, cy, GLOW, "/stroma", -1);
       }
     }
 
@@ -419,14 +403,9 @@ export function CanvasHub() {
       const oR = Math.min(w, h) * 0.34;
       const segs = netRef.current;
       const rings = ringsRef.current;
-      const tsm = time - mountT.current;
-
-      const bw = oR * 0.72;
-      const bh = oR * 0.56;
 
       ctx!.clearRect(0, 0, w, h);
 
-      // ── Background ──
       if (bgOk.current && bgRef.current) {
         ctx!.drawImage(bgRef.current, 0, 0, w, h);
       } else {
@@ -439,11 +418,14 @@ export function CanvasHub() {
         ctx!.fill();
         ctx!.restore();
       }
+
       ctx!.fillStyle = "rgba(8,14,10,0.35)";
       ctx!.fillRect(0, 0, w, h);
-      if (grainRef.current) ctx!.drawImage(grainRef.current, 0, 0, w, h);
 
-      // Strata
+      if (grainRef.current) {
+        ctx!.drawImage(grainRef.current, 0, 0, w, h);
+      }
+
       ctx!.save();
       ctx!.globalAlpha = 0.04;
       ctx!.strokeStyle = "#8a9e88";
@@ -459,42 +441,27 @@ export function CanvasHub() {
       }
       ctx!.restore();
 
-      // ── Phase 1: Rings (400–900ms) ──
-      const ringT = easeOutCubic(clamp((tsm - 400) / 500, 0, 1));
-      if (rings && ringT > 0) {
+      if (rings) {
         for (let ri = 0; ri < RING_RADII.length; ri++) {
-          const baseR = RING_RADII[ri];
-          const breath = Math.sin(time * 0.00035 + ri * 0.4) * 1.8;
-          const drawR = (baseR + breath) * ringT;
-          const opT = (baseR - 8) / (59 - 8);
-          const alpha = (0.30 - opT * 0.20) * ringT;
-          const lw = 1.0 - (ri / 8) * 0.7;
-
-          ctx!.save();
-          ctx!.globalAlpha = alpha;
-          ctx!.strokeStyle = GLOW;
-          ctx!.lineWidth = lw;
-
           const ring = rings[ri];
-          if (ring.length === 0) {
-            ctx!.beginPath();
-            ctx!.arc(cx, cy, Math.max(0.1, drawR), 0, Math.PI * 2);
-            ctx!.stroke();
-          } else {
-            const pts: [number, number][] = ring.map((p) => [
-              cx + Math.cos(p.angle) * drawR * p.rMul,
-              cy + Math.sin(p.angle) * drawR * p.rMul,
-            ]);
-            drawClosedCurve(ctx!, pts);
-          }
+          const bR =
+            RING_RADII[ri] + Math.sin(time * 0.00035 + ri * 0.4) * 1.8;
+          const pts: [number, number][] = ring.map((p) => [
+            cx + Math.cos(p.angle) * bR * p.rMul,
+            cy + Math.sin(p.angle) * bR * p.rMul,
+          ]);
+          ctx!.save();
+          ctx!.globalAlpha = 0.28 - (ri / 6) * 0.16;
+          ctx!.strokeStyle = GLOW;
+          ctx!.lineWidth = 1.0 - (ri / 6) * 0.7;
+          drawClosedCurve(ctx!, pts);
           ctx!.restore();
         }
       }
 
-      // ── Phase 3: L-system (1400–5500ms) ──
-      const netT = easeOutCubic(clamp((tsm - 1400) / 4100, 0, 1));
-      if (segs && netT > 0) {
-        const vis = Math.floor(netT * segs.length);
+      if (segs) {
+        const gp = easeOutCubic(clamp((time - mountT.current) / 4000, 0, 1));
+        const vis = Math.floor(gp * segs.length);
         for (let si = 0; si < vis; si++) {
           const s = segs[si];
           const fl = 1 + Math.sin(time * 0.0005 + si * 0.06) * 0.08;
@@ -521,82 +488,6 @@ export function CanvasHub() {
         }
       }
 
-      // ── Phase 2: Arterial threads (700–2400ms, staggered) ──
-      for (let i = 0; i < SECTIONS.length; i++) {
-        const aT = easeOutCubic(clamp((tsm - 700 - i * 180) / 1500, 0, 1));
-        if (aT <= 0) continue;
-        const s = SECTIONS[i];
-        const rad = (s.angle * Math.PI) / 180;
-        const sx = cx + bw * 0.44 * Math.sin(rad);
-        const sy = cy - bh * 0.44 * Math.cos(rad);
-        const ex = cx + oR * Math.sin(rad);
-        const ey = cy - oR * Math.cos(rad);
-        const mx2 = (sx + ex) / 2;
-        const my2 = (sy + ey) / 2;
-        const perpX = -(ey - sy);
-        const perpY = ex - sx;
-        const pLen = Math.hypot(perpX, perpY) || 1;
-        const cpx = mx2 + (perpX / pLen) * oR * 0.05;
-        const cpy = my2 + (perpY / pLen) * oR * 0.05;
-
-        // a) Glow pass
-        ctx!.save();
-        ctx!.globalAlpha = 0.04;
-        ctx!.strokeStyle = s.colour;
-        ctx!.lineWidth = 3.5;
-        ctx!.lineCap = "round";
-        ctx!.beginPath();
-        ctx!.moveTo(sx, sy);
-        for (let dt = 0.02; dt <= aT; dt += 0.02) {
-          const p = qBezPt(sx, sy, cpx, cpy, ex, ey, dt);
-          ctx!.lineTo(p.x, p.y);
-        }
-        ctx!.stroke();
-        ctx!.restore();
-
-        // b) Trunk pass
-        ctx!.save();
-        ctx!.globalAlpha = 0.50;
-        ctx!.strokeStyle = s.colour;
-        ctx!.lineWidth = 1.0;
-        ctx!.lineCap = "round";
-        ctx!.beginPath();
-        ctx!.moveTo(sx, sy);
-        for (let dt = 0.02; dt <= aT; dt += 0.02) {
-          const p = qBezPt(sx, sy, cpx, cpy, ex, ey, dt);
-          ctx!.lineTo(p.x, p.y);
-        }
-        ctx!.stroke();
-        ctx!.restore();
-
-        // c) Side branches at t=0.35, 0.60, 0.80
-        for (const bt of [0.35, 0.6, 0.8]) {
-          if (aT < bt) continue;
-          const bp = qBezPt(sx, sy, cpx, cpy, ex, ey, bt);
-          const tn = qBezTan(sx, sy, cpx, cpy, ex, ey, bt);
-          const ta = Math.atan2(tn.y, tn.x);
-          const bLen = oR * 0.035;
-          for (const sign of [-1, 1]) {
-            const ba = ta + sign * 0.663;
-            ctx!.save();
-            ctx!.globalAlpha = 0.18;
-            ctx!.strokeStyle = s.colour;
-            ctx!.lineWidth = 0.35;
-            ctx!.lineCap = "round";
-            ctx!.beginPath();
-            ctx!.moveTo(bp.x, bp.y);
-            ctx!.lineTo(
-              bp.x + Math.cos(ba) * bLen,
-              bp.y + Math.sin(ba) * bLen,
-            );
-            ctx!.stroke();
-            ctx!.restore();
-          }
-        }
-      }
-
-      // ── Phase 4: Mushroom pins + section labels (4200–5900ms) ──
-      const pinOp = easeOutCubic(clamp((tsm - 4200) / 1700, 0, 1));
       const mx = mouseRef.current.x;
       const my = mouseRef.current.y;
       let newHov = -1;
@@ -619,73 +510,56 @@ export function CanvasHub() {
         const tgt = newHov === i ? 1.2 : 1.0;
         scalesRef.current[i] = lerp(scalesRef.current[i], tgt, 0.12);
         const sway = Math.sin(time * 0.00085 + i * 1.1) * 0.022;
-        if (pinOp > 0) {
-          ctx!.save();
-          ctx!.translate(px, py);
-          ctx!.rotate(sway);
-          drawMushroomPin(
-            ctx!, s.colour, scalesRef.current[i],
-            pinThrRef.current[i] || [], pinOp,
-          );
-          ctx!.restore();
-        }
+        ctx!.save();
+        ctx!.translate(px, py);
+        ctx!.rotate(sway);
+        drawMushroomPin(
+          ctx!,
+          s.colour,
+          scalesRef.current[i],
+          pinThrRef.current[i] || [],
+        );
+        ctx!.restore();
       }
 
-      // Brain hit test (after pin checks, only if no pin hovered)
-      if (newHov < 0 && Math.hypot(mx - cx, my - cy) < BRAIN_HIT_R) {
-        newHov = -2;
-      }
       hoveredRef.current = newHov;
-      cvs!.style.cursor = newHov !== -1 ? "pointer" : "default";
+      cvs!.style.cursor = newHov >= 0 ? "pointer" : "default";
 
-      // Section labels (gated with pinOp)
-      if (pinOp > 0) {
-        ctx!.save();
-        ctx!.font = `11px ${MONO}`;
-        for (let i = 0; i < SECTIONS.length; i++) {
-          const s = SECTIONS[i];
-          const rad = (s.angle * Math.PI) / 180;
-          const px = cx + oR * Math.sin(rad);
-          const py = cy - oR * Math.cos(rad);
-          const dx = Math.sin(rad);
-          const dy = -Math.cos(rad);
-          ctx!.fillStyle = s.colour;
-          ctx!.globalAlpha = 0.8 * pinOp;
-          ctx!.textBaseline = "middle";
-          if (s.angle === 0 || s.angle === 180) ctx!.textAlign = "center";
-          else if (s.angle > 180) ctx!.textAlign = "right";
-          else ctx!.textAlign = "left";
-          drawSpacedText(
-            ctx!, s.label,
-            px + dx * PIN_H * 2.8, py + dy * PIN_H * 2.8, 3,
-          );
-        }
-        ctx!.restore();
-      }
-
-      // ── Phase 5: BRAIN + MYCELIUM labels (5200–5900ms) ──
-      const labelOp = easeOutCubic(clamp((tsm - 5200) / 700, 0, 1));
-      if (labelOp > 0) {
-        ctx!.save();
-        ctx!.font = `13px ${MONO}`;
-        ctx!.textAlign = "center";
+      ctx!.save();
+      ctx!.font = `11px ${MONO}`;
+      for (let i = 0; i < SECTIONS.length; i++) {
+        const s = SECTIONS[i];
+        const rad = (s.angle * Math.PI) / 180;
+        const px = cx + oR * Math.sin(rad);
+        const py = cy - oR * Math.cos(rad);
+        const dx = Math.sin(rad);
+        const dy = -Math.cos(rad);
+        ctx!.fillStyle = s.colour;
+        ctx!.globalAlpha = 0.8;
         ctx!.textBaseline = "middle";
-        ctx!.fillStyle = GLOW;
-        ctx!.globalAlpha = 0.72 * labelOp;
-        ctx!.fillText("BRAIN", cx, cy + 16);
-        ctx!.restore();
-
-        ctx!.save();
-        ctx!.font = `11px ${MONO}`;
-        ctx!.globalAlpha = 0.22 * labelOp;
-        ctx!.fillStyle = GLOW;
-        ctx!.textAlign = "center";
-        ctx!.textBaseline = "top";
-        drawSpacedText(ctx!, "MYCELIUM", cx, 38, 5);
-        ctx!.restore();
+        if (s.angle === 0 || s.angle === 180) ctx!.textAlign = "center";
+        else if (s.angle > 180) ctx!.textAlign = "right";
+        else ctx!.textAlign = "left";
+        drawSpacedText(
+          ctx!,
+          s.label,
+          px + dx * PIN_H * 2.8,
+          py + dy * PIN_H * 2.8,
+          3,
+        );
       }
+      ctx!.globalAlpha = 0.32;
+      ctx!.fillStyle = GLOW;
+      ctx!.textAlign = "right";
+      ctx!.textBaseline = "middle";
+      drawSpacedText(ctx!, "BRAIN", cx - 58, cy + 4, 3);
+      ctx!.globalAlpha = 0.22;
+      ctx!.fillStyle = GLOW;
+      ctx!.textAlign = "center";
+      ctx!.textBaseline = "top";
+      drawSpacedText(ctx!, "MYCELIUM", cx, 38, 5);
+      ctx!.restore();
 
-      // ── Click animation ──
       const cl = clickSt.current;
       if (cl) {
         const elapsed = time - cl.t0;
@@ -702,7 +576,7 @@ export function CanvasHub() {
         const bCB = bCR * 1.25;
         const bSWb = PIN_H * 0.22 * (1 + t1 * 5.5);
         const bSWt = PIN_H * 0.1 * (1 + t1 * 5.5);
-        const anim = Math.min(1, 0.8 + t1 * 0.2);
+        const alpha = Math.min(1, 0.8 + t1 * 0.2);
 
         ctx!.save();
         ctx!.translate(cl.ox, cl.oy + sH * 0.5);
@@ -714,7 +588,7 @@ export function CanvasHub() {
         ctx!.lineTo(-bSWt / 2, -bSH);
         ctx!.closePath();
         ctx!.fillStyle = cl.col;
-        ctx!.globalAlpha = 0.6 * anim;
+        ctx!.globalAlpha = 0.6 * alpha;
         ctx!.fill();
 
         ctx!.beginPath();
@@ -731,7 +605,7 @@ export function CanvasHub() {
         );
         ctx!.closePath();
         ctx!.fillStyle = cl.col;
-        ctx!.globalAlpha = 0.82 * anim;
+        ctx!.globalAlpha = 0.82 * alpha;
         ctx!.fill();
 
         ctx!.beginPath();
@@ -766,24 +640,36 @@ export function CanvasHub() {
           const rng = mulberry32(cl.idx * 3 + 1);
           const cSegs: Seg[] = [];
           const cBr = (
-            x: number, y: number, a: number,
-            l: number, th: number, d: number,
+            x: number,
+            y: number,
+            a: number,
+            l: number,
+            th: number,
+            d: number,
           ) => {
             if (d === 0 || th < 0.2 || l < 2) return;
-            const ex2 = x + Math.cos(a) * l;
-            const ey2 = y + Math.sin(a) * l;
-            cSegs.push({ x1: x, y1: y, x2: ex2, y2: ey2, th });
-            for (let j = 0; j < 2; j++) {
+            const ex = x + Math.cos(a) * l;
+            const ey = y + Math.sin(a) * l;
+            cSegs.push({ x1: x, y1: y, x2: ex, y2: ey, th });
+            for (let i = 0; i < 2; i++) {
               cBr(
-                ex2, ey2, a + (rng() - 0.5) * 1.2,
-                l * (0.55 + rng() * 0.2), th * 0.65, d - 1,
+                ex,
+                ey,
+                a + (rng() - 0.5) * 1.2,
+                l * (0.55 + rng() * 0.2),
+                th * 0.65,
+                d - 1,
               );
             }
           };
           for (let i = 0; i < 12; i++) {
             cBr(
-              cl.ox, cl.oy, (i / 12) * Math.PI * 2,
-              maxR * 0.06 * t3, 1.4 * (1 - t3 * 0.7), 5,
+              cl.ox,
+              cl.oy,
+              (i / 12) * Math.PI * 2,
+              maxR * 0.06 * t3,
+              1.4 * (1 - t3 * 0.7),
+              5,
             );
           }
           const fa = Math.max(0.05, 0.5 - t3 * 0.45);
