@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTransition } from "@/lib/context/TransitionContext";
 
 const SECTIONS = [
   { key: "dashboard", label: "DASHBOARD", colour: "#e8e6dd", route: "/dashboard", angle: 0 },
@@ -12,319 +13,142 @@ const SECTIONS = [
   { key: "fitness", label: "FITNESS", colour: "#84f5b8", route: "/fitness", angle: 300 },
 ] as const;
 
-const BG = "#0a0f0b";
-const GLOW = "#84f5b8";
-const MONO = '"Berkeley Mono", monospace';
-const PIN_H = 14;
-const RING_RADII = [10, 17, 24, 31, 38, 45, 52];
+const BG = "#0e1410";
+const BRAIN_COLOUR = "#84f5b8";
+const MONO_FONT = '"Berkeley Mono", monospace';
 
-type Seg = { x1: number; y1: number; x2: number; y2: number; th: number };
+type NodeState = { haloAlpha: number; ghostAlpha: number; nucleusAlpha: number };
 
-function mulberry32(seed: number) {
-  return () => {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function clamp(v: number, lo: number, hi: number) {
-  return v < lo ? lo : v > hi ? hi : v;
-}
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t;
-}
-function easeOutCubic(t: number) {
-  return 1 - (1 - t) ** 3;
-}
-function easeInOutCubic(t: number) {
-  return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
-}
-function easeInCubic(t: number) {
-  return t * t * t;
-}
-
-function buildNetwork(
-  cx: number,
-  cy: number,
-  oR: number,
-  w: number,
-  h: number,
-): Seg[] {
-  const r = mulberry32(42);
-  const out: Seg[] = [];
-
-  function go(
-    x: number,
-    y: number,
-    a: number,
-    l: number,
-    th: number,
-    d: number,
-  ) {
-    if (d === 0 || th < 0.22 || l < 1.8) return;
-    let ex = x + Math.cos(a) * l;
-    let ey = y + Math.sin(a) * l;
-    ex = clamp(ex, 10, w - 10);
-    ey = clamp(ey, 10, h - 10);
-    if (Math.hypot(ex - x, ey - y) < 1.8) return;
-    out.push({ x1: x, y1: y, x2: ex, y2: ey, th });
-    const n = d > 4 ? 3 : 2;
-    for (let i = 0; i < n; i++) {
-      go(
-        ex,
-        ey,
-        a + (r() - 0.5) * 1.1,
-        l * (0.6 + r() * 0.18),
-        th * (0.64 + r() * 0.08),
-        d - 1,
-      );
-    }
-  }
-
-  for (let i = 0; i < 10; i++) {
-    const ba =
-      i < 6
-        ? (SECTIONS[i].angle * Math.PI) / 180 - Math.PI / 2 + (r() - 0.5) * 0.44
-        : (i / 10) * Math.PI * 2 + (r() - 0.5) * 0.5;
-    go(cx, cy, ba, oR * 0.2, 2.4, 9);
-  }
-
-  out.sort((a, b) => b.th - a.th);
-  return out;
-}
-
-function buildRings(): { angle: number; rMul: number }[][] {
-  const r = mulberry32(7);
-  return RING_RADII.map(() => {
-    const pts: { angle: number; rMul: number }[] = [];
-    for (let i = 0; i < 12; i++) {
-      pts.push({ angle: (i / 12) * Math.PI * 2, rMul: 0.85 + r() * 0.3 });
-    }
-    return pts;
-  });
-}
-
-function buildPinThreads(seed: number): Seg[] {
-  const r = mulberry32(seed);
-  const out: Seg[] = [];
-  function go(
-    x: number,
-    y: number,
-    a: number,
-    l: number,
-    th: number,
-    d: number,
-  ) {
-    if (d === 0 || th < 0.15 || l < 1) return;
-    const ex = x + Math.cos(a) * l;
-    const ey = y + Math.sin(a) * l;
-    out.push({ x1: x, y1: y, x2: ex, y2: ey, th });
-    for (let i = 0; i < 2; i++) {
-      go(ex, ey, a + (r() - 0.5) * 1.4, l * 0.6, th * 0.6, d - 1);
-    }
-  }
-  for (const a of [Math.PI * 0.35, Math.PI * 0.65, Math.PI * 0.15, Math.PI * 0.85]) {
-    go(0, 0, a, 8, 0.6, 3);
-  }
-  return out;
-}
-
-function drawClosedCurve(
-  ctx: CanvasRenderingContext2D,
-  pts: [number, number][],
-) {
-  const n = pts.length;
-  if (n < 3) return;
-  ctx.beginPath();
-  ctx.moveTo((pts[0][0] + pts[1][0]) / 2, (pts[0][1] + pts[1][1]) / 2);
-  for (let i = 1; i <= n; i++) {
-    const p = pts[i % n];
-    const nx = pts[(i + 1) % n];
-    ctx.quadraticCurveTo(p[0], p[1], (p[0] + nx[0]) / 2, (p[1] + nx[1]) / 2);
-  }
-  ctx.closePath();
-  ctx.stroke();
-}
-
-function drawSpacedText(
-  ctx: CanvasRenderingContext2D,
-  txt: string,
-  x: number,
-  y: number,
-  sp: number,
-) {
-  const cs = txt.split("");
-  const tw =
-    cs.reduce((s, c) => s + ctx.measureText(c).width, 0) +
-    sp * (cs.length - 1);
-  let sx =
-    ctx.textAlign === "center"
-      ? x - tw / 2
-      : ctx.textAlign === "right"
-        ? x - tw
-        : x;
-  const saved = ctx.textAlign;
-  ctx.textAlign = "left";
-  for (const c of cs) {
-    ctx.fillText(c, sx, y);
-    sx += ctx.measureText(c).width + sp;
-  }
-  ctx.textAlign = saved;
-}
-
-function drawMushroomPin(
-  ctx: CanvasRenderingContext2D,
-  colour: string,
-  scale: number,
-  threads: Seg[],
-) {
-  const sH = PIN_H * 1.4 * scale;
-  const sWb = PIN_H * 0.22 * scale;
-  const sWt = PIN_H * 0.1 * scale;
-  const cR = PIN_H * 0.42 * scale;
-  const cB = cR * 1.25;
-
-  for (const s of threads) {
-    ctx.save();
-    ctx.globalAlpha = 0.18;
-    ctx.strokeStyle = colour;
-    ctx.lineWidth = s.th;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(s.x1, s.y1);
-    ctx.lineTo(s.x2, s.y2);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  ctx.beginPath();
-  ctx.moveTo(-sWb / 2, 0);
-  ctx.lineTo(sWb / 2, 0);
-  ctx.lineTo(sWt / 2, -sH);
-  ctx.lineTo(-sWt / 2, -sH);
-  ctx.closePath();
-  ctx.fillStyle = colour;
-  ctx.globalAlpha = 0.6;
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(-cR, -sH);
-  ctx.bezierCurveTo(
-    -cR * 1.05, -sH - cB * 0.6,
-    -cR * 0.5, -sH - cB,
-    0, -sH - cB,
-  );
-  ctx.bezierCurveTo(
-    cR * 0.5, -sH - cB,
-    cR * 1.05, -sH - cB * 0.6,
-    cR, -sH,
-  );
-  ctx.closePath();
-  ctx.fillStyle = colour;
-  ctx.globalAlpha = 0.82;
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(-cR * 0.9, -sH - cB * 0.15);
-  ctx.bezierCurveTo(
-    -cR * 0.4, -sH - cB * 0.95,
-    cR * 0.4, -sH - cB * 0.95,
-    cR * 0.9, -sH - cB * 0.15,
-  );
-  ctx.strokeStyle = colour;
-  ctx.lineWidth = 0.4;
-  ctx.globalAlpha = 0.35;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(0, -sH - cB * 0.55, cR * 1.7, 0, Math.PI * 2);
-  ctx.fillStyle = colour;
-  ctx.globalAlpha = 0.06;
-  ctx.fill();
-}
-
-type ClickState = {
-  idx: number;
-  ox: number;
-  oy: number;
-  col: string;
-  t0: number;
-  route: string;
-  done: boolean;
+type BrainGeo = {
+  outer: { angle: number; rMul: number }[];
+  inner: { angle: number; rMul: number }[];
+  crossAngles: [number, number, number][];
+  tendrils: { angle: number; lenMul: number; cpOff: number }[];
+  junctions: { angle: number; distMul: number; r: number; alpha: number }[];
 };
+
+function generateBrainGeo(): BrainGeo {
+  const outer: BrainGeo["outer"] = [];
+  for (let i = 0; i < 10; i++) {
+    const base = (i / 10) * Math.PI * 2;
+    const angle = base + (Math.random() - 0.5) * 0.5;
+    const rMul = 0.8 + Math.random() * 0.45;
+    outer.push({ angle, rMul });
+  }
+
+  const inner: BrainGeo["inner"] = [];
+  for (let i = 0; i < 7; i++) {
+    const base = (i / 7) * Math.PI * 2;
+    const angle = base + (Math.random() - 0.5) * 0.5;
+    const rMul = 0.8 + Math.random() * 0.45;
+    inner.push({ angle, rMul });
+  }
+
+  const crossAngles: [number, number, number][] = [
+    [-Math.PI / 2, Math.PI / 2, 0.3],
+    [Math.PI, 0, -0.25],
+    [-Math.PI / 4 - 0.2, Math.PI * 3 / 4 - 0.2, 0.28],
+    [Math.PI / 4 + 0.15, -Math.PI * 3 / 4 + 0.15, -0.22],
+  ];
+
+  const tendrils: BrainGeo["tendrils"] = [];
+  const tendrilBaseAngles = [0.3, 1.1, 2.3, 3.5, 5.0];
+  for (const a of tendrilBaseAngles) {
+    tendrils.push({
+      angle: a + (Math.random() - 0.5) * 0.3,
+      lenMul: 0.5,
+      cpOff: (Math.random() - 0.5) * 8,
+    });
+  }
+
+  const junctions: BrainGeo["junctions"] = [];
+  for (let i = 0; i < 11; i++) {
+    junctions.push({
+      angle: Math.random() * Math.PI * 2,
+      distMul: 0.15 + Math.random() * 0.75,
+      r: 1.2 + Math.random() * 1.0,
+      alpha: 0.35 + Math.random() * 0.17,
+    });
+  }
+
+  return { outer, inner, crossAngles, tendrils, junctions };
+}
 
 export function CanvasHub() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const router = useRouter();
+  const { bloom } = useTransition();
   const [ready, setReady] = useState(false);
 
   const grainRef = useRef<HTMLCanvasElement | null>(null);
-  const mouseRef = useRef({ x: -9999, y: -9999 });
-  const hoveredRef = useRef(-1);
-  const scalesRef = useRef(SECTIONS.map(() => 1.0));
-  const netRef = useRef<Seg[] | null>(null);
-  const ringsRef = useRef<{ angle: number; rMul: number }[][] | null>(null);
-  const pinThrRef = useRef<Seg[][]>([]);
-  const bgRef = useRef<HTMLImageElement | null>(null);
-  const bgOk = useRef(false);
-  const mountT = useRef(0);
-  const rafId = useRef(0);
-  const clickSt = useRef<ClickState | null>(null);
+  const mouseRef = useRef<{ x: number; y: number }>({ x: -9999, y: -9999 });
+  const hoveredRef = useRef<number>(-1);
+  const navigatingRef = useRef(false);
+  const nodeStates = useRef<NodeState[]>(
+    SECTIONS.map(() => ({ haloAlpha: 0.04, ghostAlpha: 0.18, nucleusAlpha: 0.7 })),
+  );
+  const brainGeoRef = useRef<BrainGeo | null>(null);
+  const rafRef = useRef<number>(0);
+
+  const navigateToSection = useCallback(
+    async (sectionIndex: number, originX: number, originY: number) => {
+      if (navigatingRef.current) return;
+      navigatingRef.current = true;
+      const s = SECTIONS[sectionIndex];
+      await bloom({
+        colour: s.colour,
+        originX,
+        originY,
+        direction: "enter",
+      });
+      router.push(s.route);
+      navigatingRef.current = false;
+    },
+    [bloom, router],
+  );
 
   useEffect(() => {
-    const cvs = canvasRef.current;
-    if (!cvs) return;
-    const ctx = cvs.getContext("2d");
-    if (!ctx) return;
-    mountT.current = performance.now();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    if (!ringsRef.current) ringsRef.current = buildRings();
-    if (!pinThrRef.current.length) {
-      pinThrRef.current = SECTIONS.map((_, i) => buildPinThreads(100 + i));
-    }
-    if (!bgRef.current) {
-      const img = new Image();
-      img.onload = () => {
-        bgOk.current = true;
-      };
-      img.src = "/images/forest-bg.jpg";
-      bgRef.current = img;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    if (!brainGeoRef.current) {
+      brainGeoRef.current = generateBrainGeo();
     }
 
     function resize() {
       const dpr = window.devicePixelRatio || 1;
       const w = window.innerWidth;
       const h = window.innerHeight;
-      cvs!.width = w * dpr;
-      cvs!.height = h * dpr;
-      cvs!.style.width = `${w}px`;
-      cvs!.style.height = `${h}px`;
+      canvas!.width = w * dpr;
+      canvas!.height = h * dpr;
+      canvas!.style.width = `${w}px`;
+      canvas!.style.height = `${h}px`;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const off = document.createElement("canvas");
-      off.width = w * dpr;
-      off.height = h * dpr;
-      const g = off.getContext("2d");
-      if (g) {
-        g.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const cnt = Math.floor(w * h * 0.02);
-        for (let i = 0; i < cnt; i++) {
-          g.beginPath();
-          g.arc(Math.random() * w, Math.random() * h, 0.6, 0, Math.PI * 2);
-          g.fillStyle = `rgba(138,158,136,${0.06 + Math.random() * 0.08})`;
-          g.fill();
-        }
-        grainRef.current = off;
+      generateGrain(w, h);
+    }
+
+    function generateGrain(w: number, h: number) {
+      const dpr = window.devicePixelRatio || 1;
+      const offscreen = document.createElement("canvas");
+      offscreen.width = w * dpr;
+      offscreen.height = h * dpr;
+      const gCtx = offscreen.getContext("2d");
+      if (!gCtx) return;
+      gCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = Math.floor(w * h * 0.02);
+      for (let i = 0; i < count; i++) {
+        const gx = Math.random() * w;
+        const gy = Math.random() * h;
+        const alpha = 0.06 + Math.random() * 0.08;
+        gCtx.beginPath();
+        gCtx.arc(gx, gy, 0.6, 0, Math.PI * 2);
+        gCtx.fillStyle = `rgba(138,158,136,${alpha})`;
+        gCtx.fill();
       }
-      netRef.current = buildNetwork(
-        w * 0.5,
-        h * 0.55,
-        Math.min(w, h) * 0.34,
-        w,
-        h,
-      );
+      grainRef.current = offscreen;
     }
 
     const ro = new ResizeObserver(() => resize());
@@ -332,94 +156,96 @@ export function CanvasHub() {
     resize();
     setReady(true);
 
-    function onMove(e: MouseEvent) {
+    function handleMouseMove(e: MouseEvent) {
       mouseRef.current = { x: e.clientX, y: e.clientY };
     }
-    function onLeave() {
+    function handleMouseLeave() {
       mouseRef.current = { x: -9999, y: -9999 };
     }
-
-    function startClick(idx: number, pinX: number, pinY: number) {
-      if (clickSt.current) return;
-      const sH = PIN_H * 1.4;
-      clickSt.current = {
-        idx,
-        ox: pinX,
-        oy: pinY - sH * 0.5,
-        col: SECTIONS[idx].colour,
-        t0: performance.now(),
-        route: SECTIONS[idx].route,
-        done: false,
-      };
-    }
-
-    function onClick() {
-      const i = hoveredRef.current;
-      if (i < 0) return;
+    function handleClick() {
+      const idx = hoveredRef.current;
+      if (idx < 0) return;
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const cx = w * 0.5;
-      const cy = h * 0.55;
-      const oR = Math.min(w, h) * 0.34;
-      const rad = (SECTIONS[i].angle * Math.PI) / 180;
-      startClick(i, cx + oR * Math.sin(rad), cy - oR * Math.cos(rad));
+      const orbitR = Math.min(w, h) * 0.32;
+      const s = SECTIONS[idx];
+      const rad = (s.angle * Math.PI) / 180;
+      const nx = w / 2 + orbitR * Math.sin(rad);
+      const ny = h / 2 - orbitR * Math.cos(rad);
+      navigateToSection(idx, nx, ny);
     }
-
-    function onTouch(e: TouchEvent) {
+    function handleTouch(e: TouchEvent) {
       const t = e.touches[0];
       if (!t) return;
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const cx = w * 0.5;
-      const cy = h * 0.55;
-      const oR = Math.min(w, h) * 0.34;
+      const cxC = w / 2;
+      const cyC = h / 2;
+      const orbitR = Math.min(w, h) * 0.32;
+      const nodeR = Math.min(w, h) * 0.022;
       for (let i = 0; i < SECTIONS.length; i++) {
-        const rad = (SECTIONS[i].angle * Math.PI) / 180;
-        const px = cx + oR * Math.sin(rad);
-        const py = cy - oR * Math.cos(rad);
-        const sH = PIN_H * 1.4;
-        const cR = PIN_H * 0.42;
-        if (
-          Math.abs(t.clientX - px) < cR * 1.8 &&
-          t.clientY - py > -sH * 1.3 &&
-          t.clientY - py < cR
-        ) {
-          startClick(i, px, py);
+        const s = SECTIONS[i];
+        const rad = (s.angle * Math.PI) / 180;
+        const nx = cxC + orbitR * Math.sin(rad);
+        const ny = cyC - orbitR * Math.cos(rad);
+        const dx = t.clientX - nx;
+        const dy = t.clientY - ny;
+        if (Math.sqrt(dx * dx + dy * dy) < nodeR * 2.5) {
+          navigateToSection(i, t.clientX, t.clientY);
           return;
         }
       }
     }
 
-    cvs.addEventListener("mousemove", onMove);
-    cvs.addEventListener("mouseleave", onLeave);
-    cvs.addEventListener("click", onClick);
-    cvs.addEventListener("touchstart", onTouch, { passive: true });
+    canvas.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("mouseleave", handleMouseLeave);
+    canvas.addEventListener("click", handleClick);
+    canvas.addEventListener("touchstart", handleTouch, { passive: true });
+
+    function lerp(a: number, b: number, t: number) {
+      return a + (b - a) * t;
+    }
+
+    function bezierPt(
+      x0: number, y0: number,
+      cpx: number, cpy: number,
+      x1: number, y1: number,
+      t: number,
+    ) {
+      const mt = 1 - t;
+      return {
+        x: mt * mt * x0 + 2 * mt * t * cpx + t * t * x1,
+        y: mt * mt * y0 + 2 * mt * t * cpy + t * t * y1,
+      };
+    }
+
+    function bezierTangent(
+      x0: number, y0: number,
+      cpx: number, cpy: number,
+      x1: number, y1: number,
+      t: number,
+    ) {
+      const mt = 1 - t;
+      return {
+        x: 2 * mt * (cpx - x0) + 2 * t * (x1 - cpx),
+        y: 2 * mt * (cpy - y0) + 2 * t * (y1 - cpy),
+      };
+    }
 
     function draw(time: number) {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const cx = w * 0.5;
-      const cy = h * 0.55;
-      const oR = Math.min(w, h) * 0.34;
-      const segs = netRef.current;
-      const rings = ringsRef.current;
+      const cx = w / 2;
+      const cy = h / 2;
+      const orbitR = Math.min(w, h) * 0.32;
+      const nodeR = Math.min(w, h) * 0.022;
+      const clusterR = orbitR * 0.15;
+      const geo = brainGeoRef.current!;
 
       ctx!.clearRect(0, 0, w, h);
 
-      if (bgOk.current && bgRef.current) {
-        ctx!.drawImage(bgRef.current, 0, 0, w, h);
-      } else {
-        ctx!.fillStyle = BG;
-        ctx!.fillRect(0, 0, w, h);
-        ctx!.save();
-        ctx!.fillStyle = "#160e08";
-        ctx!.beginPath();
-        ctx!.ellipse(cx, cy * 1.1, w * 0.28, h * 0.14, 0, 0, Math.PI * 2);
-        ctx!.fill();
-        ctx!.restore();
-      }
-
-      ctx!.fillStyle = "rgba(8,14,10,0.35)";
+      // === 1. Background ===
+      ctx!.fillStyle = BG;
       ctx!.fillRect(0, 0, w, h);
 
       if (grainRef.current) {
@@ -430,7 +256,8 @@ export function CanvasHub() {
       ctx!.globalAlpha = 0.04;
       ctx!.strokeStyle = "#8a9e88";
       ctx!.lineWidth = 0.5;
-      for (const sy of [cy * 0.25, cy * 0.55, cy * 0.75]) {
+      const strataYs = [cy * 0.25, cy * 0.55, cy * 0.75];
+      for (const sy of strataYs) {
         ctx!.beginPath();
         for (let x = 0; x <= w; x += 2) {
           const yv = sy + Math.sin((x / 340) * Math.PI * 2) * 4;
@@ -441,272 +268,229 @@ export function CanvasHub() {
       }
       ctx!.restore();
 
-      if (rings) {
-        for (let ri = 0; ri < RING_RADII.length; ri++) {
-          const ring = rings[ri];
-          const bR =
-            RING_RADII[ri] + Math.sin(time * 0.00035 + ri * 0.4) * 1.8;
-          const pts: [number, number][] = ring.map((p) => [
-            cx + Math.cos(p.angle) * bR * p.rMul,
-            cy + Math.sin(p.angle) * bR * p.rMul,
-          ]);
-          ctx!.save();
-          ctx!.globalAlpha = 0.28 - (ri / 6) * 0.16;
-          ctx!.strokeStyle = GLOW;
-          ctx!.lineWidth = 1.0 - (ri / 6) * 0.7;
-          drawClosedCurve(ctx!, pts);
-          ctx!.restore();
-        }
-      }
-
-      if (segs) {
-        const gp = easeOutCubic(clamp((time - mountT.current) / 4000, 0, 1));
-        const vis = Math.floor(gp * segs.length);
-        for (let si = 0; si < vis; si++) {
-          const s = segs[si];
-          const fl = 1 + Math.sin(time * 0.0005 + si * 0.06) * 0.08;
-          ctx!.save();
-          ctx!.globalAlpha = (s.th / 60) * fl;
-          ctx!.strokeStyle = GLOW;
-          ctx!.lineWidth = s.th * 3.5;
-          ctx!.lineCap = "round";
-          ctx!.beginPath();
-          ctx!.moveTo(s.x1, s.y1);
-          ctx!.lineTo(s.x2, s.y2);
-          ctx!.stroke();
-          ctx!.restore();
-          ctx!.save();
-          ctx!.globalAlpha = Math.min(0.55, s.th / 2.0) * fl;
-          ctx!.strokeStyle = GLOW;
-          ctx!.lineWidth = s.th;
-          ctx!.lineCap = "round";
-          ctx!.beginPath();
-          ctx!.moveTo(s.x1, s.y1);
-          ctx!.lineTo(s.x2, s.y2);
-          ctx!.stroke();
-          ctx!.restore();
-        }
-      }
-
-      const mx = mouseRef.current.x;
-      const my = mouseRef.current.y;
-      let newHov = -1;
-
-      for (let i = 0; i < SECTIONS.length; i++) {
-        if (clickSt.current?.idx === i) continue;
-        const s = SECTIONS[i];
-        const rad = (s.angle * Math.PI) / 180;
-        const px = cx + oR * Math.sin(rad);
-        const py = cy - oR * Math.cos(rad);
-        const sH = PIN_H * 1.4;
-        const cR = PIN_H * 0.42;
-        if (
-          Math.abs(mx - px) < cR * 1.8 &&
-          my - py > -sH * 1.3 &&
-          my - py < cR
-        ) {
-          newHov = i;
-        }
-        const tgt = newHov === i ? 1.2 : 1.0;
-        scalesRef.current[i] = lerp(scalesRef.current[i], tgt, 0.12);
-        const sway = Math.sin(time * 0.00085 + i * 1.1) * 0.022;
-        ctx!.save();
-        ctx!.translate(px, py);
-        ctx!.rotate(sway);
-        drawMushroomPin(
-          ctx!,
-          s.colour,
-          scalesRef.current[i],
-          pinThrRef.current[i] || [],
-        );
-        ctx!.restore();
-      }
-
-      hoveredRef.current = newHov;
-      cvs!.style.cursor = newHov >= 0 ? "pointer" : "default";
-
+      // === 2. Atmospheric rings ===
       ctx!.save();
-      ctx!.font = `11px ${MONO}`;
-      for (let i = 0; i < SECTIONS.length; i++) {
-        const s = SECTIONS[i];
-        const rad = (s.angle * Math.PI) / 180;
-        const px = cx + oR * Math.sin(rad);
-        const py = cy - oR * Math.cos(rad);
-        const dx = Math.sin(rad);
-        const dy = -Math.cos(rad);
-        ctx!.fillStyle = s.colour;
-        ctx!.globalAlpha = 0.8;
-        ctx!.textBaseline = "middle";
-        if (s.angle === 0 || s.angle === 180) ctx!.textAlign = "center";
-        else if (s.angle > 180) ctx!.textAlign = "right";
-        else ctx!.textAlign = "left";
-        drawSpacedText(
-          ctx!,
-          s.label,
-          px + dx * PIN_H * 2.8,
-          py + dy * PIN_H * 2.8,
-          3,
-        );
-      }
-      ctx!.globalAlpha = 0.32;
-      ctx!.fillStyle = GLOW;
-      ctx!.textAlign = "right";
-      ctx!.textBaseline = "middle";
-      drawSpacedText(ctx!, "BRAIN", cx - 58, cy + 4, 3);
-      ctx!.globalAlpha = 0.22;
-      ctx!.fillStyle = GLOW;
-      ctx!.textAlign = "center";
-      ctx!.textBaseline = "top";
-      drawSpacedText(ctx!, "MYCELIUM", cx, 38, 5);
+      ctx!.globalAlpha = 0.04;
+      ctx!.strokeStyle = "#e8e6dd";
+      ctx!.lineWidth = 0.5;
+      ctx!.beginPath();
+      ctx!.ellipse(cx + 4, cy - 2, w * 0.38, h * 0.42, 0, 0, Math.PI * 2);
+      ctx!.stroke();
+      ctx!.beginPath();
+      ctx!.ellipse(cx + 4, cy - 2, w * 0.32, h * 0.36, 0, 0, Math.PI * 2);
+      ctx!.stroke();
       ctx!.restore();
 
-      const cl = clickSt.current;
-      if (cl) {
-        const elapsed = time - cl.t0;
-        const prog = easeInOutCubic(clamp(elapsed / 1100, 0, 1));
-        const sH = PIN_H * 1.4;
-        const cR = PIN_H * 0.42;
+      // === 3. Growing threads ===
+      for (let i = 0; i < SECTIONS.length; i++) {
+        const s = SECTIONS[i];
+        const rad = (s.angle * Math.PI) / 180;
+        const nx = cx + orbitR * Math.sin(rad);
+        const ny = cy - orbitR * Math.cos(rad);
+        const startX = cx + clusterR * Math.sin(rad);
+        const startY = cy - clusterR * Math.cos(rad);
+        const midX = (startX + nx) / 2;
+        const midY = (startY + ny) / 2;
+        const perpX = -(ny - startY);
+        const perpY = nx - startX;
+        const perpLen = Math.sqrt(perpX * perpX + perpY * perpY) || 1;
+        const cpx = midX + (perpX / perpLen) * orbitR * 0.14;
+        const cpy = midY + (perpY / perpLen) * orbitR * 0.14;
 
-        const t1 = clamp(prog / 0.32, 0, 1);
-        const t2 = clamp((prog - 0.28) / 0.42, 0, 1);
-        const t3 = clamp((prog - 0.62) / 0.38, 0, 1);
-
-        const bSH = sH * (1 + t1 * 5.5);
-        const bCR = cR * (1 + t1 * 5.0);
-        const bCB = bCR * 1.25;
-        const bSWb = PIN_H * 0.22 * (1 + t1 * 5.5);
-        const bSWt = PIN_H * 0.1 * (1 + t1 * 5.5);
-        const alpha = Math.min(1, 0.8 + t1 * 0.2);
-
+        // a) Ghost guide
         ctx!.save();
-        ctx!.translate(cl.ox, cl.oy + sH * 0.5);
-
+        ctx!.globalAlpha = 0.07;
+        ctx!.strokeStyle = s.colour;
+        ctx!.lineWidth = 0.6;
         ctx!.beginPath();
-        ctx!.moveTo(-bSWb / 2, 0);
-        ctx!.lineTo(bSWb / 2, 0);
-        ctx!.lineTo(bSWt / 2, -bSH);
-        ctx!.lineTo(-bSWt / 2, -bSH);
-        ctx!.closePath();
-        ctx!.fillStyle = cl.col;
-        ctx!.globalAlpha = 0.6 * alpha;
-        ctx!.fill();
-
-        ctx!.beginPath();
-        ctx!.moveTo(-bCR, -bSH);
-        ctx!.bezierCurveTo(
-          -bCR * 1.05, -bSH - bCB * 0.6,
-          -bCR * 0.5, -bSH - bCB,
-          0, -bSH - bCB,
-        );
-        ctx!.bezierCurveTo(
-          bCR * 0.5, -bSH - bCB,
-          bCR * 1.05, -bSH - bCB * 0.6,
-          bCR, -bSH,
-        );
-        ctx!.closePath();
-        ctx!.fillStyle = cl.col;
-        ctx!.globalAlpha = 0.82 * alpha;
-        ctx!.fill();
-
-        ctx!.beginPath();
-        ctx!.moveTo(-bCR * 0.9, -bSH - bCB * 0.15);
-        ctx!.bezierCurveTo(
-          -bCR * 0.4, -bSH - bCB * 0.95,
-          bCR * 0.4, -bSH - bCB * 0.95,
-          bCR * 0.9, -bSH - bCB * 0.15,
-        );
-        ctx!.strokeStyle = cl.col;
-        ctx!.lineWidth = 0.4;
-        ctx!.globalAlpha = 0.35;
+        ctx!.moveTo(startX, startY);
+        ctx!.quadraticCurveTo(cpx, cpy, nx, ny);
         ctx!.stroke();
-
         ctx!.restore();
 
-        if (t2 > 0) {
-          const maxR = Math.hypot(w, h) * 0.75;
-          const fillR = bCR + maxR * easeInCubic(t2);
-          const ccy = cl.oy - bSH - bCB * 0.55;
+        const growT = ((time / 5000 + i * 0.18) % 1);
+
+        // e) Glow simulation (beneath the growing front)
+        ctx!.save();
+        ctx!.globalAlpha = 0.03;
+        ctx!.strokeStyle = s.colour;
+        ctx!.lineWidth = 4;
+        ctx!.beginPath();
+        ctx!.moveTo(startX, startY);
+        for (let dt = 0.02; dt <= growT; dt += 0.02) {
+          const p = bezierPt(startX, startY, cpx, cpy, nx, ny, dt);
+          ctx!.lineTo(p.x, p.y);
+        }
+        ctx!.stroke();
+        ctx!.restore();
+
+        // b) Growing front
+        ctx!.save();
+        ctx!.globalAlpha = 0.55;
+        ctx!.strokeStyle = s.colour;
+        ctx!.lineWidth = 0.8;
+        ctx!.beginPath();
+        ctx!.moveTo(startX, startY);
+        for (let dt = 0.02; dt <= growT; dt += 0.02) {
+          const p = bezierPt(startX, startY, cpx, cpy, nx, ny, dt);
+          ctx!.lineTo(p.x, p.y);
+        }
+        ctx!.stroke();
+        ctx!.restore();
+
+        // c) Growing tip
+        const tip = bezierPt(startX, startY, cpx, cpy, nx, ny, growT);
+        ctx!.save();
+        ctx!.globalAlpha = 0.15;
+        ctx!.fillStyle = s.colour;
+        ctx!.beginPath();
+        ctx!.arc(tip.x, tip.y, 5, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.restore();
+        ctx!.save();
+        ctx!.globalAlpha = 0.85;
+        ctx!.fillStyle = s.colour;
+        ctx!.beginPath();
+        ctx!.arc(tip.x, tip.y, 2.5, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.restore();
+
+        // d) Secondary branch at t=0.55
+        if (growT > 0.55) {
+          const branchBase = bezierPt(startX, startY, cpx, cpy, nx, ny, 0.55);
+          const tang = bezierTangent(startX, startY, cpx, cpy, nx, ny, 0.55);
+          const tLen = Math.sqrt(tang.x * tang.x + tang.y * tang.y) || 1;
+          const branchLen = orbitR * 0.06;
+          const bex = branchBase.x + (-tang.y / tLen) * branchLen;
+          const bey = branchBase.y + (tang.x / tLen) * branchLen;
+          const branchProgress = Math.min((growT - 0.55) / 0.45, 1);
+          const bpx = branchBase.x + (bex - branchBase.x) * branchProgress;
+          const bpy = branchBase.y + (bey - branchBase.y) * branchProgress;
+
           ctx!.save();
+          ctx!.globalAlpha = 0.2;
+          ctx!.strokeStyle = s.colour;
+          ctx!.lineWidth = 0.3;
           ctx!.beginPath();
-          ctx!.arc(cl.ox, ccy, fillR, 0, Math.PI * 2);
-          ctx!.fillStyle = cl.col;
-          ctx!.globalAlpha = Math.min(1.0, 0.3 + t2 * 0.85);
-          ctx!.fill();
+          ctx!.moveTo(branchBase.x, branchBase.y);
+          ctx!.lineTo(bpx, bpy);
+          ctx!.stroke();
           ctx!.restore();
-        }
-
-        if (t3 > 0) {
-          const maxR = Math.hypot(w, h) * 0.75;
-          const rng = mulberry32(cl.idx * 3 + 1);
-          const cSegs: Seg[] = [];
-          const cBr = (
-            x: number,
-            y: number,
-            a: number,
-            l: number,
-            th: number,
-            d: number,
-          ) => {
-            if (d === 0 || th < 0.2 || l < 2) return;
-            const ex = x + Math.cos(a) * l;
-            const ey = y + Math.sin(a) * l;
-            cSegs.push({ x1: x, y1: y, x2: ex, y2: ey, th });
-            for (let i = 0; i < 2; i++) {
-              cBr(
-                ex,
-                ey,
-                a + (rng() - 0.5) * 1.2,
-                l * (0.55 + rng() * 0.2),
-                th * 0.65,
-                d - 1,
-              );
-            }
-          };
-          for (let i = 0; i < 12; i++) {
-            cBr(
-              cl.ox,
-              cl.oy,
-              (i / 12) * Math.PI * 2,
-              maxR * 0.06 * t3,
-              1.4 * (1 - t3 * 0.7),
-              5,
-            );
-          }
-          const fa = Math.max(0.05, 0.5 - t3 * 0.45);
-          for (const seg of cSegs) {
-            ctx!.save();
-            ctx!.globalAlpha = fa;
-            ctx!.strokeStyle = cl.col;
-            ctx!.lineWidth = seg.th;
-            ctx!.lineCap = "round";
-            ctx!.beginPath();
-            ctx!.moveTo(seg.x1, seg.y1);
-            ctx!.lineTo(seg.x2, seg.y2);
-            ctx!.stroke();
-            ctx!.restore();
-          }
-        }
-
-        if (prog >= 1.0 && !cl.done) {
-          cl.done = true;
-          router.push(cl.route);
         }
       }
 
-      rafId.current = requestAnimationFrame(draw);
+      // === 4. Brain cluster ===
+      drawBrainCluster(ctx!, cx, cy, clusterR, time, geo);
+
+      // === 5. Section nodes ===
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
+      let newHovered = -1;
+
+      for (let i = 0; i < SECTIONS.length; i++) {
+        const s = SECTIONS[i];
+        const rad = (s.angle * Math.PI) / 180;
+        const nx = cx + orbitR * Math.sin(rad);
+        const ny = cy - orbitR * Math.cos(rad);
+        const dx = mx - nx;
+        const dy = my - ny;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const isHovered = dist < nodeR * 2.5;
+        if (isHovered) newHovered = i;
+
+        const ns = nodeStates.current[i];
+        ns.haloAlpha = lerp(ns.haloAlpha, isHovered ? 0.1 : 0.04, 0.12);
+        ns.ghostAlpha = lerp(ns.ghostAlpha, isHovered ? 0.35 : 0.18, 0.12);
+        ns.nucleusAlpha = lerp(ns.nucleusAlpha, isHovered ? 1.0 : 0.7, 0.12);
+
+        // a) Outer glow halo
+        ctx!.save();
+        ctx!.globalAlpha = ns.haloAlpha;
+        ctx!.fillStyle = s.colour;
+        ctx!.beginPath();
+        ctx!.arc(nx, ny, nodeR * 1.8, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.restore();
+
+        // b) Ghost ring
+        ctx!.save();
+        ctx!.globalAlpha = ns.ghostAlpha;
+        ctx!.strokeStyle = s.colour;
+        ctx!.lineWidth = 0.5;
+        ctx!.beginPath();
+        ctx!.arc(nx, ny, nodeR * 1.1, 0, Math.PI * 2);
+        ctx!.stroke();
+        ctx!.restore();
+
+        // c) Inner nucleus
+        ctx!.save();
+        ctx!.globalAlpha = ns.nucleusAlpha;
+        ctx!.fillStyle = s.colour;
+        ctx!.beginPath();
+        ctx!.arc(nx, ny, nodeR * 0.32, 0, Math.PI * 2);
+        ctx!.fill();
+        ctx!.restore();
+      }
+
+      hoveredRef.current = newHovered;
+      canvas!.style.cursor = newHovered >= 0 ? "pointer" : "default";
+
+      // === 6. Labels ===
+      ctx!.save();
+      ctx!.font = `11px ${MONO_FONT}`;
+      for (let i = 0; i < SECTIONS.length; i++) {
+        const s = SECTIONS[i];
+        const rad = (s.angle * Math.PI) / 180;
+        const nx = cx + orbitR * Math.sin(rad);
+        const ny = cy - orbitR * Math.cos(rad);
+        const dirX = Math.sin(rad);
+        const dirY = -Math.cos(rad);
+        const lx = nx + dirX * nodeR * 2.8;
+        const ly = ny + dirY * nodeR * 2.8;
+
+        ctx!.fillStyle = s.colour;
+        ctx!.globalAlpha = 0.85;
+
+        if (s.angle === 0 || s.angle === 180) {
+          ctx!.textAlign = "center";
+        } else if (s.angle > 180) {
+          ctx!.textAlign = "right";
+        } else {
+          ctx!.textAlign = "left";
+        }
+        ctx!.textBaseline = "middle";
+
+        drawSpacedText(ctx!, s.label, lx, ly, 3);
+      }
+
+      ctx!.globalAlpha = 0.38;
+      ctx!.fillStyle = BRAIN_COLOUR;
+      ctx!.textAlign = "right";
+      ctx!.textBaseline = "middle";
+      drawSpacedText(ctx!, "BRAIN", cx - clusterR * 2.2, cy, 3);
+
+      ctx!.globalAlpha = 0.28;
+      ctx!.fillStyle = BRAIN_COLOUR;
+      ctx!.textAlign = "center";
+      ctx!.textBaseline = "top";
+      drawSpacedText(ctx!, "MYCELIUM", cx, 42, 5);
+
+      ctx!.restore();
+
+      rafRef.current = requestAnimationFrame(draw);
     }
 
-    rafId.current = requestAnimationFrame(draw);
+    rafRef.current = requestAnimationFrame(draw);
 
     return () => {
-      cancelAnimationFrame(rafId.current);
+      cancelAnimationFrame(rafRef.current);
       ro.disconnect();
-      cvs.removeEventListener("mousemove", onMove);
-      cvs.removeEventListener("mouseleave", onLeave);
-      cvs.removeEventListener("click", onClick);
-      cvs.removeEventListener("touchstart", onTouch);
+      canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("mouseleave", handleMouseLeave);
+      canvas.removeEventListener("click", handleClick);
+      canvas.removeEventListener("touchstart", handleTouch);
     };
-  }, [router]);
+  }, [navigateToSection]);
 
   return (
     <div
@@ -732,4 +516,163 @@ export function CanvasHub() {
       />
     </div>
   );
+}
+
+function drawSpacedText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  spacing: number,
+) {
+  const chars = text.split("");
+  const totalWidth =
+    chars.reduce((sum, ch) => sum + ctx.measureText(ch).width, 0) +
+    spacing * (chars.length - 1);
+
+  let startX: number;
+  if (ctx.textAlign === "center") {
+    startX = x - totalWidth / 2;
+  } else if (ctx.textAlign === "right") {
+    startX = x - totalWidth;
+  } else {
+    startX = x;
+  }
+
+  const savedAlign = ctx.textAlign;
+  ctx.textAlign = "left";
+  let curX = startX;
+  for (const ch of chars) {
+    ctx.fillText(ch, curX, y);
+    curX += ctx.measureText(ch).width + spacing;
+  }
+  ctx.textAlign = savedAlign;
+}
+
+function drawBrainCluster(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  clusterR: number,
+  time: number,
+  geo: BrainGeo,
+) {
+  // Compute outer loop points with breathing
+  const outerPts: [number, number][] = geo.outer.map((p, i) => {
+    const breath = Math.sin(time * 0.0004 + i * 0.7) * 3;
+    const r = clusterR * p.rMul;
+    return [cx + Math.cos(p.angle) * r + breath, cy + Math.sin(p.angle) * r];
+  });
+
+  // a) Outer loop
+  ctx.save();
+  ctx.globalAlpha = 0.45;
+  ctx.strokeStyle = BRAIN_COLOUR;
+  ctx.lineWidth = 0.55;
+  drawClosedCurve(ctx, outerPts);
+  ctx.restore();
+
+  // Compute inner loop points with breathing
+  const innerR = clusterR * 0.6;
+  const innerPts: [number, number][] = geo.inner.map((p, i) => {
+    const breath = Math.sin(time * 0.0004 + i * 0.7 + 2) * 3;
+    const r = innerR * p.rMul;
+    return [cx + Math.cos(p.angle) * r + breath, cy + Math.sin(p.angle) * r];
+  });
+
+  // b) Inner loop
+  ctx.save();
+  ctx.globalAlpha = 0.38;
+  ctx.strokeStyle = BRAIN_COLOUR;
+  ctx.lineWidth = 0.48;
+  drawClosedCurve(ctx, innerPts);
+  ctx.restore();
+
+  // c) 4 crossing threads
+  for (const [startA, endA, cpMul] of geo.crossAngles) {
+    const sx = cx + Math.cos(startA) * clusterR;
+    const sy = cy + Math.sin(startA) * clusterR;
+    const ex = cx + Math.cos(endA) * clusterR;
+    const ey = cy + Math.sin(endA) * clusterR;
+    const perpX = -(ey - sy);
+    const perpY = ex - sx;
+    const pLen = Math.sqrt(perpX * perpX + perpY * perpY) || 1;
+    const cpx = (sx + ex) / 2 + (perpX / pLen) * clusterR * cpMul;
+    const cpy = (sy + ey) / 2 + (perpY / pLen) * clusterR * cpMul;
+
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = BRAIN_COLOUR;
+    ctx.lineWidth = 0.4;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo(cpx, cpy, ex, ey);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // d) 5 dangling tendrils
+  for (const t of geo.tendrils) {
+    const sx = cx + Math.cos(t.angle) * clusterR;
+    const sy = cy + Math.sin(t.angle) * clusterR;
+    const ex = cx + Math.cos(t.angle) * (clusterR + clusterR * t.lenMul);
+    const ey = cy + Math.sin(t.angle) * (clusterR + clusterR * t.lenMul);
+    const cpx = (sx + ex) / 2 + t.cpOff;
+    const cpy = (sy + ey) / 2 + t.cpOff;
+
+    ctx.save();
+    ctx.globalAlpha = 0.2;
+    ctx.strokeStyle = BRAIN_COLOUR;
+    ctx.lineWidth = 0.28;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo(cpx, cpy, ex, ey);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // e) Junction nodes
+  for (const j of geo.junctions) {
+    const jx = cx + Math.cos(j.angle) * clusterR * j.distMul;
+    const jy = cy + Math.sin(j.angle) * clusterR * j.distMul;
+    ctx.save();
+    ctx.globalAlpha = j.alpha;
+    ctx.fillStyle = BRAIN_COLOUR;
+    ctx.beginPath();
+    ctx.arc(jx, jy, j.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // f) Nucleus
+  ctx.save();
+  ctx.globalAlpha = 0.88;
+  ctx.fillStyle = BRAIN_COLOUR;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawClosedCurve(
+  ctx: CanvasRenderingContext2D,
+  points: [number, number][],
+) {
+  const n = points.length;
+  if (n < 3) return;
+
+  ctx.beginPath();
+  const first = points[0];
+  const second = points[1];
+  ctx.moveTo((first[0] + second[0]) / 2, (first[1] + second[1]) / 2);
+
+  for (let i = 1; i <= n; i++) {
+    const p = points[i % n];
+    const next = points[(i + 1) % n];
+    const midX = (p[0] + next[0]) / 2;
+    const midY = (p[1] + next[1]) / 2;
+    ctx.quadraticCurveTo(p[0], p[1], midX, midY);
+  }
+  ctx.closePath();
+  ctx.stroke();
 }
