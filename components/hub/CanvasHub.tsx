@@ -113,8 +113,8 @@ function buildNetwork(
     }
   }
 
-  for (let i = 0; i < 18; i++) {
-    const ba = (i / 18) * Math.PI * 2 + (r() - 0.5) * 0.5;
+  for (let i = 0; i < 10; i++) {
+    const ba = (i / 10) * Math.PI * 2 + (r() - 0.5) * 0.5;
     go(cx, cy, ba, oR * 0.2, 2.4, 9);
   }
 
@@ -265,42 +265,6 @@ function drawMushroomPin(
   ctx.fillStyle = colour;
   ctx.globalAlpha = 0.06 * alpha;
   ctx.fill();
-}
-
-function applyBrainClip(
-  ctx: CanvasRenderingContext2D,
-  cx: number, cy: number,
-  bw: number, bh: number,
-) {
-  ctx.beginPath();
-  ctx.moveTo(cx, cy - bh * 0.50);
-  ctx.bezierCurveTo(
-    cx - bw * 0.18, cy - bh * 0.58,
-    cx - bw * 0.42, cy - bh * 0.55,
-    cx - bw * 0.50, cy - bh * 0.20,
-  );
-  ctx.bezierCurveTo(
-    cx - bw * 0.56, cy + bh * 0.10,
-    cx - bw * 0.52, cy + bh * 0.38,
-    cx - bw * 0.20, cy + bh * 0.50,
-  );
-  ctx.bezierCurveTo(
-    cx - bw * 0.08, cy + bh * 0.56,
-    cx + bw * 0.08, cy + bh * 0.56,
-    cx + bw * 0.20, cy + bh * 0.50,
-  );
-  ctx.bezierCurveTo(
-    cx + bw * 0.52, cy + bh * 0.38,
-    cx + bw * 0.56, cy + bh * 0.10,
-    cx + bw * 0.50, cy - bh * 0.20,
-  );
-  ctx.bezierCurveTo(
-    cx + bw * 0.42, cy - bh * 0.55,
-    cx + bw * 0.18, cy - bh * 0.58,
-    cx, cy - bh * 0.50,
-  );
-  ctx.closePath();
-  ctx.clip();
 }
 
 export function CanvasHub() {
@@ -527,12 +491,9 @@ export function CanvasHub() {
         }
       }
 
-      // ── Phase 3: L-system inside brain clip (1400–5500ms) ──
+      // ── Phase 3: L-system (1400–5500ms) ──
       const netT = easeOutCubic(clamp((tsm - 1400) / 4100, 0, 1));
       if (segs && netT > 0) {
-        ctx!.save();
-        applyBrainClip(ctx!, cx, cy, bw, bh);
-
         const vis = Math.floor(netT * segs.length);
         for (let si = 0; si < vis; si++) {
           const s = segs[si];
@@ -558,25 +519,6 @@ export function CanvasHub() {
           ctx!.stroke();
           ctx!.restore();
         }
-
-        ctx!.restore();
-      }
-
-      // Longitudinal fissure
-      if (netT > 0) {
-        ctx!.save();
-        ctx!.beginPath();
-        ctx!.moveTo(cx, cy - bh * 0.47);
-        ctx!.bezierCurveTo(
-          cx + 5, cy - bh * 0.15,
-          cx - 5, cy + bh * 0.12,
-          cx, cy + bh * 0.47,
-        );
-        ctx!.strokeStyle = "rgba(8,14,10,0.55)";
-        ctx!.lineWidth = 2.5;
-        ctx!.globalAlpha = netT;
-        ctx!.stroke();
-        ctx!.restore();
       }
 
       // ── Phase 2: Arterial threads (700–2400ms, staggered) ──
