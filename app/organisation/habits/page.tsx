@@ -58,7 +58,7 @@ export default function HabitsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/habits-history?days=90")
+    fetch("/api/habits-history?days=365")
       .then((r) => r.json())
       .then((j: { history?: DayEntry[]; habits?: Habit[] }) => {
         if (cancelled) return;
@@ -163,8 +163,10 @@ export default function HabitsPage() {
           d30Total++;
           if (inDone) d30++;
         }
-        d90Total++;
-        if (inDone) d90++;
+        if (daysAgo < 90) {
+          d90Total++;
+          if (inDone) d90++;
+        }
 
         if (i === history.length - 1 && entry.date === today && !done.has(h.id) && !inDone) {
           // today not yet done — check from yesterday
@@ -273,57 +275,57 @@ export default function HabitsPage() {
         </div>
       </section>
 
-      {/* 90-day heatmap */}
+      {/* Year heatmap */}
       {history && (
         <section>
           <h2 className="text-[11px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-3">
-            Last 90 days
+            Last year
           </h2>
-          <div className="overflow-x-auto">
-            <div className="inline-flex flex-col gap-0">
-              {/* Month labels */}
-              <div className="relative" style={{ height: 16, marginBottom: 2 }}>
-                {monthLabels.map((ml, i) => (
-                  <span
-                    key={i}
-                    className="absolute text-[9px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em]"
-                    style={{ left: ml.col * (14 + 3), top: 0 }}
-                  >
-                    {ml.label}
-                  </span>
-                ))}
-              </div>
-              {/* Grid: 7 rows × N columns */}
-              <div style={{ display: "grid", gridTemplateRows: "repeat(7, 14px)", gridAutoFlow: "column", gridAutoColumns: 14, gap: 3 }}>
-                {weeks.flatMap((week, colIdx) =>
-                  week.map((entry, rowIdx) => {
-                    if (!entry) {
-                      return (
-                        <div
-                          key={`${colIdx}-${rowIdx}`}
-                          style={{ width: 14, height: 14 }}
-                        />
-                      );
-                    }
-                    const rate = entry.total > 0 ? entry.completed.length / entry.total : 0;
-                    return (
-                      <div
-                        key={entry.date}
-                        onMouseEnter={() => setHover(entry)}
-                        onMouseLeave={() => setHover(null)}
-                        title={`${fmtDate(entry.date)}: ${entry.completed.length}/${entry.total}`}
-                        style={{
-                          width: 14,
-                          height: 14,
-                          borderRadius: 3,
-                          backgroundColor: heatColour(rate),
-                          cursor: "default",
-                        }}
-                      />
-                    );
-                  })
-                )}
-              </div>
+          <div className="w-full">
+            {/* Month labels */}
+            <div className="relative" style={{ height: 16, marginBottom: 2 }}>
+              {monthLabels.map((ml, i) => (
+                <span
+                  key={i}
+                  className="absolute text-[9px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                  style={{ left: `${(ml.col / weeks.length) * 100}%`, top: 0 }}
+                >
+                  {ml.label}
+                </span>
+              ))}
+            </div>
+            {/* Grid: 7 rows × N columns, fluid */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${weeks.length}, 1fr)`,
+                gridTemplateRows: "repeat(7, 1fr)",
+                gridAutoFlow: "column",
+                gap: 3,
+                height: 100,
+              }}
+            >
+              {weeks.flatMap((week, colIdx) =>
+                week.map((entry, rowIdx) => {
+                  if (!entry) {
+                    return <div key={`${colIdx}-${rowIdx}`} />;
+                  }
+                  const rate = entry.total > 0 ? entry.completed.length / entry.total : 0;
+                  return (
+                    <div
+                      key={entry.date}
+                      onMouseEnter={() => setHover(entry)}
+                      onMouseLeave={() => setHover(null)}
+                      title={`${fmtDate(entry.date)}: ${entry.completed.length}/${entry.total}`}
+                      style={{
+                        borderRadius: 2,
+                        backgroundColor: heatColour(rate),
+                        cursor: "default",
+                      }}
+                    />
+                  );
+                })
+              )}
             </div>
           </div>
           {/* Hover tooltip */}
