@@ -47,7 +47,7 @@ import { CARD_REGISTRY, type CardWidth } from "@/lib/dashboard/card-registry";
 // Types & size configuration
 // ---------------------------------------------------------------------------
 
-type CardSize = "sm" | "md" | "tall" | "wide" | "lg" | "full";
+type CardSize = "sm" | "tall" | "tall-3" | "tall-4" | "md" | "md-3" | "md-4" | "wide" | "lg" | "full";
 
 type DashCardPref = {
   id: string;
@@ -57,18 +57,24 @@ type DashCardPref = {
 };
 
 const SIZE_CONFIG: Record<CardSize, { colSpan: number; rowSpan: number }> = {
-  sm:   { colSpan: 3,  rowSpan: 1 },
-  md:   { colSpan: 6,  rowSpan: 2 },
-  tall: { colSpan: 3,  rowSpan: 2 },
-  wide: { colSpan: 9,  rowSpan: 1 },
-  lg:   { colSpan: 9,  rowSpan: 2 },
-  full: { colSpan: 12, rowSpan: 1 },
+  sm:       { colSpan: 3,  rowSpan: 1 },
+  tall:     { colSpan: 3,  rowSpan: 2 },
+  "tall-3": { colSpan: 3,  rowSpan: 3 },
+  "tall-4": { colSpan: 3,  rowSpan: 4 },
+  md:       { colSpan: 6,  rowSpan: 2 },
+  "md-3":   { colSpan: 6,  rowSpan: 3 },
+  "md-4":   { colSpan: 6,  rowSpan: 4 },
+  wide:     { colSpan: 9,  rowSpan: 1 },
+  lg:       { colSpan: 9,  rowSpan: 2 },
+  full:     { colSpan: 12, rowSpan: 1 },
 };
 
-const ALL_SIZES: CardSize[] = ["sm", "md", "tall", "wide", "lg", "full"];
+const ALL_SIZES: CardSize[] = ["sm", "tall", "tall-3", "tall-4", "md", "md-3", "md-4", "wide", "lg", "full"];
 
 const SIZE_LABELS: Record<CardSize, string> = {
-  sm: "SM", md: "MD", tall: "TALL", wide: "WIDE", lg: "LG", full: "FULL",
+  sm: "SM", tall: "TALL", "tall-3": "TALL 3", "tall-4": "TALL 4",
+  md: "MD", "md-3": "MD 3", "md-4": "MD 4",
+  wide: "WIDE", lg: "LG", full: "FULL",
 };
 
 function sizeToWidth(size: CardSize): CardWidth {
@@ -466,12 +472,16 @@ function SortableCard({
 // ---------------------------------------------------------------------------
 
 const SHAPE_DIMS: Record<CardSize, { w: number; h: number }> = {
-  sm:   { w: 20, h: 12 },
-  md:   { w: 32, h: 24 },
-  tall: { w: 20, h: 24 },
-  wide: { w: 40, h: 12 },
-  lg:   { w: 40, h: 24 },
-  full: { w: 52, h: 12 },
+  sm:       { w: 20, h: 12 },
+  tall:     { w: 20, h: 24 },
+  "tall-3": { w: 20, h: 32 },
+  "tall-4": { w: 20, h: 38 },
+  md:       { w: 32, h: 24 },
+  "md-3":   { w: 32, h: 32 },
+  "md-4":   { w: 32, h: 38 },
+  wide:     { w: 40, h: 12 },
+  lg:       { w: 40, h: 24 },
+  full:     { w: 52, h: 12 },
 };
 
 function SizePicker({
@@ -518,7 +528,7 @@ function SizePicker({
         <span aria-hidden className="text-sm leading-none">⊞</span>
       </button>
       {open && (
-        <div className="absolute top-full right-0 mt-1 bg-ink-1 border border-ink-2 rounded-md shadow-lg p-2 grid grid-cols-2 gap-1.5 min-w-[180px]">
+        <div className="absolute top-full right-0 mt-1 bg-ink-1 border border-ink-2 rounded-md shadow-lg p-2 grid grid-cols-2 gap-1.5 min-w-[180px] max-h-[320px] overflow-y-auto">
           {ALL_SIZES.map((size) => {
             const sh = SHAPE_DIMS[size];
             const active = current === size;
