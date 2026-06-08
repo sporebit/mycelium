@@ -1,135 +1,122 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Wordmark } from "./Wordmark";
-import { SECTION_BASE_ROUTES } from "@/lib/nav/sections";
+import { SECTIONS } from "@/lib/nav/sections";
 
-type Tab = {
+type NavTab = {
   label: string;
   href: string;
-  /** Returns true when this tab represents the current pathname. */
   match: (pathname: string) => boolean;
-  /** Which viewports show this tab. */
-  visibility: "always" | "mobile" | "desktop";
+  colour?: string;
 };
 
-const TABS: Tab[] = [
+const TABS: NavTab[] = [
   {
-    label: "COMPOST",
-    href: "/compost",
-    match: (p) => p === "/compost" || p.startsWith("/compost/"),
-    visibility: "always",
+    label: "DASHBOARD",
+    href: "/",
+    match: (p) => p === "/",
   },
-  {
-    label: "FITNESS",
-    href: "/fitness",
-    match: (p) => p === "/fitness" || p.startsWith("/fitness/"),
-    visibility: "always",
-  },
-  {
-    label: "STROMA",
-    href: "/stroma",
-    match: (p) => p === "/stroma" || p.startsWith("/stroma/"),
-    visibility: "always",
-  },
-  {
-    label: "FINANCE",
-    href: "/finance",
-    match: (p) => p === "/finance" || p.startsWith("/finance/"),
-    visibility: "desktop",
-  },
-  {
-    label: "HEALTH",
-    href: "/health",
-    // Health is a top-level section alongside Compost/Fitness/Stroma —
-    // nutrition + body + pain live here, all worth a one-tap reach.
-    match: (p) =>
-      p === "/health" ||
-      p.startsWith("/health/") ||
-      p === "/nutrition" ||
-      p.startsWith("/nutrition/"),
-    visibility: "always",
-  },
-  {
-    label: "JOURNAL",
-    href: "/journal",
-    match: (p) => p === "/journal" || p.startsWith("/journal/"),
-    visibility: "desktop",
-  },
-  {
-    label: "REVIEW",
-    href: "/review",
-    match: (p) => p === "/review" || p.startsWith("/review/"),
-    visibility: "desktop",
-  },
-  {
-    label: "MORE",
-    href: "/more",
-    match: (p) => p === "/more" || p.startsWith("/more/"),
-    visibility: "mobile",
-  },
+  ...SECTIONS.map((s) => ({
+    label: s.label,
+    href: s.baseRoute,
+    match: (p: string) => p === s.baseRoute || p.startsWith(s.baseRoute + "/"),
+    colour: s.colour,
+  })),
 ];
 
-function visibilityClass(v: Tab["visibility"]): string {
-  if (v === "always") return "";
-  if (v === "desktop") return "hidden lg:inline-flex";
-  return "lg:hidden"; // mobile-only
-}
-
-/**
- * Single unified top bar — Mycelium wordmark on the left, primary nav on the
- * right. Desktop (≥1024px) shows every navigable section inline. Mobile
- * keeps a slim bar with the three primary sections plus a MORE link to the
- * full /more index for the remaining sections.
- */
 export function TopRail() {
   const pathname = usePathname();
-  const inSection = SECTION_BASE_ROUTES.some(
-    (base) => pathname === base || pathname.startsWith(base + "/"),
-  );
+  const [menuOpen, setMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpen]);
+
   return (
     <header
-      className={`sticky top-0 z-30 bg-ink-1/85 backdrop-blur-xl shadow-[0_1px_0_0_var(--ink-2)]${inSection ? " lg:hidden" : ""}`}
+      ref={headerRef}
+      className="sticky top-0 z-30 bg-ink-1/85 backdrop-blur-xl shadow-[0_1px_0_0_var(--ink-2)]"
     >
-      <div className="w-full flex items-center gap-3 pl-4 sm:pl-6 min-h-[52px]">
+      <div className="w-full flex items-center gap-3 pl-4 sm:pl-6 pr-4 sm:pr-6 min-h-[52px]">
         <Wordmark />
-        {/* The nav becomes a self-contained horizontal scroller on
-            small screens (where the wordmark + tabs can outrun the
-            viewport). `overscroll-behavior-x: contain` stops a rail
-            swipe at its boundary from yanking the page sideways. */}
-        <div className="relative flex-1 min-w-0">
-          <nav
-            aria-label="Primary"
-            className="no-scrollbar flex items-center gap-0.5 sm:gap-1 overflow-x-auto lg:justify-end pr-12 sm:pr-6 lg:pr-6 [overscroll-behavior-x:contain]"
-          >
-            {TABS.map((t) => {
-              const isActive = t.match(pathname);
-              return (
-                <Link
-                  key={t.label}
-                  href={t.href}
-                  aria-current={isActive ? "page" : undefined}
-                  className={`${visibilityClass(t.visibility)} shrink-0 inline-flex items-center justify-center min-h-[44px] px-2 sm:px-3 text-[10px] sm:text-xs font-[family-name:var(--font-mono)] tracking-[0.04em] uppercase rounded-md transition-colors ${
-                    isActive
-                      ? "bg-ink-2 text-accent"
-                      : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/70"
-                  }`}
-                >
-                  {t.label}
-                </Link>
-              );
-            })}
-          </nav>
-          {/* Right-edge fade affordance — only when the rail can scroll
-              (mobile). Matches the header's ink-1 backdrop so it blends
-              into the sticky surface. */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute top-0 right-0 bottom-0 w-10 lg:hidden bg-gradient-to-l from-ink-1 to-transparent"
-          />
-        </div>
+
+        {/* Desktop: inline section links */}
+        <nav
+          aria-label="Primary"
+          className="hidden md:flex flex-1 items-center gap-0.5 lg:gap-1 justify-end"
+        >
+          {TABS.map((t) => {
+            const isActive = t.match(pathname);
+            return (
+              <Link
+                key={t.label}
+                href={t.href}
+                aria-current={isActive ? "page" : undefined}
+                className={`shrink-0 inline-flex items-center justify-center min-h-[44px] px-2 lg:px-3 text-[10px] lg:text-xs font-[family-name:var(--font-mono)] tracking-[0.04em] uppercase rounded-md transition-colors ${
+                  isActive
+                    ? "bg-ink-2"
+                    : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/70"
+                }`}
+                style={isActive ? { color: t.colour ?? "var(--accent)" } : undefined}
+              >
+                {t.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Mobile: spacer + hamburger */}
+        <div className="flex-1 md:hidden" />
+        <button
+          type="button"
+          onClick={() => setMenuOpen((o) => !o)}
+          className="md:hidden w-10 h-10 flex items-center justify-center rounded-md text-ink-3 hover:text-ink-4 hover:bg-ink-2/70 transition-colors"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+        >
+          <span className="text-lg leading-none">{menuOpen ? "✕" : "☰"}</span>
+        </button>
       </div>
+
+      {/* Mobile dropdown */}
+      {menuOpen && (
+        <nav
+          aria-label="Primary"
+          className="md:hidden border-t border-ink-2 bg-ink-1/95 backdrop-blur-xl"
+        >
+          {TABS.map((t) => {
+            const isActive = t.match(pathname);
+            return (
+              <Link
+                key={t.label}
+                href={t.href}
+                onClick={() => setMenuOpen(false)}
+                className={`block px-6 py-3.5 text-sm font-[family-name:var(--font-mono)] tracking-[0.08em] uppercase transition-colors border-b border-ink-2/40 ${
+                  isActive ? "bg-ink-2/40" : "hover:bg-ink-2/20"
+                }`}
+                style={
+                  isActive
+                    ? { color: t.colour ?? "var(--accent)" }
+                    : { color: "var(--ink-3)" }
+                }
+              >
+                {t.label}
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </header>
   );
 }

@@ -51,19 +51,6 @@ export default function RootLayout({
         <HyphalThreads />
         <TransitionProvider>
           <PrivacyProvider>
-            <div
-              style={{
-                position: "fixed",
-                top: 12,
-                left: "50%",
-                transform: "translateX(-50%)",
-                zIndex: 100,
-                pointerEvents: "none",
-                userSelect: "none",
-              }}
-            >
-              <span className="mycelium-wordmark">MYCELIUM</span>
-            </div>
             <div className="relative z-10 flex-1 flex flex-col">{children}</div>
           </PrivacyProvider>
           <TransitionOverlay />

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "@/lib/context/TransitionContext";
 
 const SECTIONS = [
-  { key: "dashboard", label: "DASHBOARD", colour: "#e8e6dd", route: "/dashboard", angle: 0 },
+  { key: "dashboard", label: "DASHBOARD", colour: "#e8e6dd", route: "/", angle: 0 },
   { key: "finance", label: "FINANCE", colour: "#6db8f5", route: "/finance", angle: 60 },
   { key: "health", label: "HEALTH", colour: "#5de8e0", route: "/health", angle: 120 },
   { key: "organisation", label: "ORGANISATION", colour: "#f5b56d", route: "/compost", angle: 180 },

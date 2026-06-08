@@ -16,8 +16,8 @@ import Link from "next/link";
 export function Wordmark() {
   return (
     <Link
-      href="/"
-      aria-label="Mycelium — home"
+      href="/hub"
+      aria-label="Mycelium — hub"
       className="inline-flex items-center text-sm font-[family-name:var(--font-display)] font-medium uppercase tracking-[0.04em]"
     >
       <span aria-hidden className="wordmark-glow">

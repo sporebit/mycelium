@@ -468,27 +468,3 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* MYCELIUM colour-cycling wordmark (hub overlay) */
-@keyframes myceliumColour {
-  0%   { color: #84f5b8; }
-  16%  { color: #6db8f5; }
-  33%  { color: #5de8e0; }
-  50%  { color: #f5b56d; }
-  66%  { color: #f56db5; }
-  83%  { color: #84f5b8; }
-  100% { color: #84f5b8; }
-}
-.mycelium-wordmark {
-  animation: myceliumColour 14s linear infinite;
-  opacity: 0.35;
-  font-family: "Berkeley Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 5px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mycelium-wordmark {
-    animation: none !important;
-    color: #84f5b8;
-  }
-}

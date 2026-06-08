@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
       { source: "/crm/:path*", destination: "/compost/:path*", permanent: true },
       { source: "/brain", destination: "/stroma", permanent: true },
       { source: "/brain/:path*", destination: "/stroma/:path*", permanent: true },
+      { source: "/dashboard", destination: "/", permanent: true },
     ];
   },
 };
