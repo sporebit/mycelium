@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -15,8 +14,7 @@ import {
   KeyboardSensor,
   MouseSensor,
   TouchSensor,
-  closestCorners,
-  useDroppable,
+  closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -27,7 +25,7 @@ import {
   arrayMove,
   sortableKeyboardCoordinates,
   useSortable,
-  verticalListSortingStrategy,
+  rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Operator } from "./cards/Operator";
@@ -43,34 +41,140 @@ import { Journal } from "./cards/Journal";
 import { Fitness } from "./cards/Fitness";
 import { CaptureReview } from "./cards/CaptureReview";
 import { Glossary } from "./cards/Glossary";
-import { DashboardSettings } from "./DashboardSettings";
-import {
-  CARD_REGISTRY,
-  type CardCol,
-  type CardLayoutRow,
-  type CardWidth,
-} from "@/lib/dashboard/card-registry";
+import { CARD_REGISTRY, type CardWidth } from "@/lib/dashboard/card-registry";
 
-// Mobile = single-column stack regardless of saved columns. Synced
-// with the Shell's md: breakpoint so the dashboard collapses at the
-// same point as the mobile chrome.
-const MOBILE_QUERY = "(max-width: 767px)";
+// ---------------------------------------------------------------------------
+// Types & size configuration
+// ---------------------------------------------------------------------------
 
-function subscribeMobile(callback: () => void): () => void {
+type CardSize = "sm" | "md" | "tall" | "wide" | "lg" | "full";
+
+type DashCardPref = {
+  id: string;
+  size: CardSize;
+  order: number;
+  hidden: boolean;
+};
+
+const SIZE_CONFIG: Record<CardSize, { colSpan: number; rowSpan: number }> = {
+  sm:   { colSpan: 3,  rowSpan: 1 },
+  md:   { colSpan: 6,  rowSpan: 2 },
+  tall: { colSpan: 3,  rowSpan: 2 },
+  wide: { colSpan: 9,  rowSpan: 1 },
+  lg:   { colSpan: 9,  rowSpan: 2 },
+  full: { colSpan: 12, rowSpan: 1 },
+};
+
+const ALL_SIZES: CardSize[] = ["sm", "md", "tall", "wide", "lg", "full"];
+
+const SIZE_LABELS: Record<CardSize, string> = {
+  sm: "SM", md: "MD", tall: "TALL", wide: "WIDE", lg: "LG", full: "FULL",
+};
+
+function sizeToWidth(size: CardSize): CardWidth {
+  const span = SIZE_CONFIG[size].colSpan;
+  if (span <= 3) return 1;
+  if (span <= 6) return 2;
+  return 3;
+}
+
+function mdColSpan(size: CardSize): number {
+  return SIZE_CONFIG[size].colSpan >= 6 ? 6 : 3;
+}
+
+// ---------------------------------------------------------------------------
+// localStorage persistence
+// ---------------------------------------------------------------------------
+
+const STORAGE_KEY = "dashboard-cards";
+
+const DEFAULT_SIZES: Record<string, CardSize> = {
+  operator: "md",
+  session: "full",
+  habits: "md",
+  calendar: "md",
+  finance_pulse: "md",
+  goals: "tall",
+  key_blockers: "sm",
+  nutrition: "md",
+  fuel: "sm",
+  journal: "tall",
+  fitness: "md",
+  capture_review: "sm",
+  glossary: "sm",
+};
+
+function buildDefaults(): DashCardPref[] {
+  return Object.keys(CARD_REGISTRY).map((key, i) => ({
+    id: key,
+    size: DEFAULT_SIZES[key] ?? "md",
+    order: i,
+    hidden: false,
+  }));
+}
+
+function loadPrefs(): DashCardPref[] {
+  if (typeof window === "undefined") return buildDefaults();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return buildDefaults();
+    const parsed = JSON.parse(raw) as DashCardPref[];
+    if (!Array.isArray(parsed) || parsed.length === 0) return buildDefaults();
+    const existing = new Set(parsed.map((p) => p.id));
+    const reconciled = parsed.filter((p) => CARD_REGISTRY[p.id]);
+    let maxOrder = Math.max(0, ...reconciled.map((p) => p.order));
+    for (const key of Object.keys(CARD_REGISTRY)) {
+      if (!existing.has(key)) {
+        reconciled.push({
+          id: key,
+          size: DEFAULT_SIZES[key] ?? "md",
+          order: ++maxOrder,
+          hidden: false,
+        });
+      }
+    }
+    return reconciled;
+  } catch {
+    return buildDefaults();
+  }
+}
+
+function savePrefs(prefs: DashCardPref[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+  } catch { /* quota — acceptable loss */ }
+}
+
+// ---------------------------------------------------------------------------
+// Breakpoint detection
+// ---------------------------------------------------------------------------
+
+type Breakpoint = "sm" | "md" | "lg";
+const MD_Q = "(min-width: 768px) and (max-width: 1023px)";
+const LG_Q = "(min-width: 1024px)";
+
+function getBreakpoint(): Breakpoint {
+  if (typeof window === "undefined") return "lg";
+  if (window.matchMedia(LG_Q).matches) return "lg";
+  if (window.matchMedia(MD_Q).matches) return "md";
+  return "sm";
+}
+
+function subscribeBp(cb: () => void) {
   if (typeof window === "undefined") return () => {};
-  const mq = window.matchMedia(MOBILE_QUERY);
-  mq.addEventListener("change", callback);
-  return () => mq.removeEventListener("change", callback);
+  const a = window.matchMedia(MD_Q);
+  const b = window.matchMedia(LG_Q);
+  a.addEventListener("change", cb);
+  b.addEventListener("change", cb);
+  return () => {
+    a.removeEventListener("change", cb);
+    b.removeEventListener("change", cb);
+  };
 }
 
-function getMobileSnapshot(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia(MOBILE_QUERY).matches;
-}
-
-function getMobileServerSnapshot(): boolean {
-  return false;
-}
+// ---------------------------------------------------------------------------
+// Card component map
+// ---------------------------------------------------------------------------
 
 const CARD_COMPONENTS: Record<string, ComponentType<{ width: CardWidth }>> = {
   operator: Operator,
@@ -88,261 +192,98 @@ const CARD_COMPONENTS: Record<string, ComponentType<{ width: CardWidth }>> = {
   glossary: Glossary,
 };
 
-const COLS: CardCol[] = [1, 2, 3];
+// ---------------------------------------------------------------------------
+// DashboardGrid
+// ---------------------------------------------------------------------------
 
 export function DashboardGrid() {
-  const [layout, setLayout] = useState<CardLayoutRow[] | null>(null);
-  const [showSettings, setShowSettings] = useState(false);
-  const [hideConfirm, setHideConfirm] = useState<string | null>(null);
+  const [prefs, setPrefs] = useState<DashCardPref[] | null>(null);
+  const [editing, setEditing] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isMobile = useSyncExternalStore(
-    subscribeMobile,
-    getMobileSnapshot,
-    getMobileServerSnapshot,
+  const breakpoint = useSyncExternalStore(
+    subscribeBp,
+    getBreakpoint,
+    () => "lg" as Breakpoint,
   );
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 500, tolerance: 8 },
-    }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 500, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const r = await fetch("/api/dashboard/layout", { cache: "no-store" });
-        if (!r.ok || !mounted) return;
-        const j = (await r.json()) as { layout: CardLayoutRow[] };
-        if (mounted) setLayout(j.layout ?? []);
-      } catch {
-        if (mounted) setLayout([]);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
+    const loaded = loadPrefs();
+    queueMicrotask(() => setPrefs(loaded));
   }, []);
 
-  /** Debounced persist. Optimistic local state is the source of truth;
-   *  failures revert to the most-recent server state on next mount. */
-  const persist = useCallback((next: CardLayoutRow[]) => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async () => {
-      try {
-        await fetch("/api/dashboard/layout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ layout: next }),
-        });
-      } catch {
-        /* swallow — next page load reconciles from the server */
-      }
-    }, 300);
-  }, []);
+  function applyPrefs(next: DashCardPref[]) {
+    setPrefs(next);
+    savePrefs(next);
+  }
 
-  // ---------------------------------------------------------------------------
-  // Derived layout groups
-  // Spanners (width >= 2) render as full-width rows above the column
-  // grid, ordered by (col, position). Width=1 cards are bucketed by
-  // their `col` and ordered by `position`.
-  const visibleCards = useMemo(
-    () => (layout ?? []).filter((r) => !r.hidden && CARD_COMPONENTS[r.card_key]),
-    [layout],
-  );
-  const spanners = useMemo(
+  const visible = useMemo(
     () =>
-      [...visibleCards]
-        .filter((c) => c.width >= 2)
-        .sort((a, b) => {
-          if (a.col !== b.col) return a.col - b.col;
-          return a.position - b.position;
-        }),
-    [visibleCards],
+      (prefs ?? [])
+        .filter((p) => !p.hidden && CARD_COMPONENTS[p.id])
+        .sort((a, b) => a.order - b.order),
+    [prefs],
   );
-  const colCards = useMemo(() => {
-    const map = new Map<CardCol, CardLayoutRow[]>([
-      [1, []],
-      [2, []],
-      [3, []],
-    ]);
-    for (const c of visibleCards) {
-      if (c.width >= 2) continue;
-      map.get(c.col)!.push(c);
-    }
-    for (const list of map.values()) {
-      list.sort((a, b) => a.position - b.position);
-    }
-    return map;
-  }, [visibleCards]);
+
+  const hiddenCount = useMemo(
+    () => (prefs ?? []).filter((p) => p.hidden).length,
+    [prefs],
+  );
 
   const activeCard = useMemo(
-    () => visibleCards.find((c) => c.card_key === activeId) ?? null,
-    [activeId, visibleCards],
+    () => visible.find((c) => c.id === activeId) ?? null,
+    [activeId, visible],
   );
 
-  // ---------------------------------------------------------------------------
-  // Mutations
-
-  function applyLayout(next: CardLayoutRow[]) {
-    setLayout(next);
-    persist(next);
+  function changeSize(id: string, size: CardSize) {
+    if (!prefs) return;
+    applyPrefs(prefs.map((p) => (p.id === id ? { ...p, size } : p)));
   }
 
-  function changeWidth(cardKey: string, width: CardWidth) {
-    if (!layout) return;
-    const next = layout.map((r) =>
-      r.card_key === cardKey ? { ...r, width } : r,
-    );
-    // Width changes can move a card between the spanner stack and a
-    // column; renormalise per-bucket positions to 0..N-1 so the next
-    // drag starts from clean indices.
-    applyLayout(renormalisePositions(next));
+  function hideCard(id: string) {
+    if (!prefs) return;
+    applyPrefs(prefs.map((p) => (p.id === id ? { ...p, hidden: true } : p)));
   }
 
-  function hideCard(cardKey: string) {
-    if (!layout) return;
-    const next = layout.map((r) =>
-      r.card_key === cardKey ? { ...r, hidden: true } : r,
-    );
-    applyLayout(next);
-    setHideConfirm(null);
+  function showAllCards() {
+    if (!prefs) return;
+    applyPrefs(prefs.map((p) => ({ ...p, hidden: false })));
   }
 
-  function showCard(cardKey: string) {
-    if (!layout) return;
-    const next = layout.map((r) =>
-      r.card_key === cardKey ? { ...r, hidden: false } : r,
-    );
-    applyLayout(next);
+  function resetLayout() {
+    applyPrefs(buildDefaults());
   }
 
-  async function resetLayout() {
-    const r = await fetch("/api/dashboard/layout/reset", { method: "POST" });
-    if (r.ok) {
-      const fresh = await fetch("/api/dashboard/layout", { cache: "no-store" });
-      if (fresh.ok) {
-        const j = (await fresh.json()) as { layout: CardLayoutRow[] };
-        setLayout(j.layout ?? []);
-      }
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Drag-and-drop
   function handleDragStart(e: DragStartEvent) {
     setActiveId(String(e.active.id));
   }
 
   function handleDragEnd(e: DragEndEvent) {
     setActiveId(null);
-    if (!layout) return;
+    if (!prefs) return;
     const { active, over } = e;
-    if (!over) return;
-    const droppedId = String(active.id);
-    const overId = String(over.id);
-    if (droppedId === overId) return;
-
-    const activeRow = layout.find((r) => r.card_key === droppedId);
-    if (!activeRow) return;
-
-    // Spanners reorder among themselves only — they live in their own
-    // stack above the column grid. Use the width toggle to demote a
-    // spanner to width=1 and pull it into a column.
-    if (activeRow.width >= 2) {
-      const overRow = layout.find((r) => r.card_key === overId);
-      if (!overRow || overRow.width < 2) return;
-      const sortedSpanners = [...spanners];
-      const oldIdx = sortedSpanners.findIndex((s) => s.card_key === droppedId);
-      const newIdx = sortedSpanners.findIndex((s) => s.card_key === overId);
-      if (oldIdx < 0 || newIdx < 0) return;
-      const reordered = arrayMove(sortedSpanners, oldIdx, newIdx);
-      // Park every spanner in col 1 with sequential positions so they
-      // share a clean namespace — col doesn't matter for spanner
-      // rendering since they're always full-width.
-      const updates = new Map<string, { col: CardCol; position: number }>();
-      reordered.forEach((s, i) =>
-        updates.set(s.card_key, { col: 1, position: i }),
-      );
-      const next = layout.map((r) => {
-        const u = updates.get(r.card_key);
-        return u ? { ...r, col: u.col, position: u.position } : r;
-      });
-      applyLayout(renormalisePositions(next));
-      return;
-    }
-
-    // Column-card drop. The over target is either another column card
-    // (a sortable item) or one of the column droppable wrappers
-    // ("col-1" / "col-2" / "col-3"), which catch drops on the empty
-    // tail of the column.
-    const colMatch = /^col-(\d)$/.exec(overId);
-    let targetCol: CardCol;
-    let targetPosition: number;
-    if (colMatch) {
-      targetCol = Number(colMatch[1]) as CardCol;
-      const colList = colCards.get(targetCol) ?? [];
-      // Don't no-op when dropping on your own column's empty zone —
-      // there's nothing to do (already in this col), so just bail.
-      if (activeRow.col === targetCol) return;
-      targetPosition = colList.length;
-    } else {
-      const overRow = layout.find((r) => r.card_key === overId);
-      if (!overRow || overRow.width >= 2) return;
-      targetCol = overRow.col;
-      const colList = colCards.get(targetCol) ?? [];
-      const overIdxInCol = colList.findIndex(
-        (c) => c.card_key === overRow.card_key,
-      );
-      if (overIdxInCol < 0) return;
-      if (activeRow.col === targetCol) {
-        // Within-column reorder.
-        const oldIdxInCol = colList.findIndex(
-          (c) => c.card_key === activeRow.card_key,
-        );
-        const reordered = arrayMove(colList, oldIdxInCol, overIdxInCol);
-        const updates = new Map<string, number>();
-        reordered.forEach((c, i) => updates.set(c.card_key, i));
-        const next = layout.map((r) =>
-          updates.has(r.card_key)
-            ? { ...r, position: updates.get(r.card_key)! }
-            : r,
-        );
-        applyLayout(next);
-        return;
-      }
-      targetPosition = overIdxInCol;
-    }
-
-    // Cross-column move: pull active out of source col, splice into
-    // target col at targetPosition. Renumber both cols.
-    const sourceCol = activeRow.col;
-    const sourceList = (colCards.get(sourceCol) ?? []).filter(
-      (c) => c.card_key !== activeRow.card_key,
+    if (!over || active.id === over.id) return;
+    const ids = visible.map((c) => c.id);
+    const oldIdx = ids.indexOf(String(active.id));
+    const newIdx = ids.indexOf(String(over.id));
+    if (oldIdx < 0 || newIdx < 0) return;
+    const reordered = arrayMove(ids, oldIdx, newIdx);
+    const orderMap = new Map<string, number>();
+    reordered.forEach((id, i) => orderMap.set(id, i));
+    applyPrefs(
+      prefs.map((p) =>
+        orderMap.has(p.id) ? { ...p, order: orderMap.get(p.id)! } : p,
+      ),
     );
-    const targetList = [...(colCards.get(targetCol) ?? [])];
-    targetList.splice(targetPosition, 0, { ...activeRow, col: targetCol });
-
-    const updates = new Map<string, { col: CardCol; position: number }>();
-    sourceList.forEach((c, i) =>
-      updates.set(c.card_key, { col: sourceCol, position: i }),
-    );
-    targetList.forEach((c, i) =>
-      updates.set(c.card_key, { col: targetCol, position: i }),
-    );
-    const next = layout.map((r) => {
-      const u = updates.get(r.card_key);
-      return u ? { ...r, col: u.col, position: u.position } : r;
-    });
-    applyLayout(next);
   }
 
-  // ---------------------------------------------------------------------------
-  if (layout === null) {
+  if (prefs === null) {
     return (
       <div className="text-sm text-text-2 italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
@@ -350,115 +291,75 @@ export function DashboardGrid() {
     );
   }
 
-  // Mobile: ignore columns, render all cards in a single flex-col in
-  // order of (col * 100 + position) per the rebuild spec. Spanners
-  // and width=1 cards interleave naturally because spanners default
-  // to col 1.
-  if (isMobile) {
-    const ordered = [...visibleCards].sort((a, b) => {
-      if (a.col !== b.col) return a.col - b.col;
-      return a.position - b.position;
-    });
+  // Mobile: stacked, no drag
+  if (breakpoint === "sm") {
     return (
       <>
-        <CustomizeButton onClick={() => setShowSettings(true)} />
-        {ordered.length === 0 ? (
-          <EmptyState onCustomize={() => setShowSettings(true)} />
+        {visible.length === 0 ? (
+          <EmptyState onReset={resetLayout} />
         ) : (
           <div className="flex flex-col gap-4">
-            {ordered.map((row) => {
-              const Component = CARD_COMPONENTS[row.card_key];
+            {visible.map((pref) => {
+              const Component = CARD_COMPONENTS[pref.id];
               return (
-                <CardWrapper
-                  key={row.card_key}
-                  row={row}
-                  draggable={false}
-                  onChangeWidth={(w) => changeWidth(row.card_key, w)}
-                  onHide={() => setHideConfirm(row.card_key)}
-                >
-                  <Component width={row.width} />
-                </CardWrapper>
+                <div key={pref.id}>
+                  <Component width={sizeToWidth(pref.size)} />
+                </div>
               );
             })}
           </div>
         )}
-        {showSettings && (
-          <DashboardSettings
-            layout={layout}
-            onClose={() => setShowSettings(false)}
-            onToggleHidden={(key, hidden) =>
-              hidden ? hideCard(key) : showCard(key)
-            }
-            onReset={resetLayout}
-          />
-        )}
-        {hideConfirm && (
-          <HideConfirmModal
-            cardKey={hideConfirm}
-            onCancel={() => setHideConfirm(null)}
-            onConfirm={() => hideCard(hideConfirm)}
-          />
-        )}
+        <EditButton editing={editing} onClick={() => setEditing((e) => !e)} />
       </>
     );
   }
 
-  // Desktop: spanners stacked above, 3-column grid below. The DndContext
-  // wraps all of it so a card can drag from one column into another
-  // (or from a column into the spanner stack via the width toggle).
+  // Desktop / Tablet: CSS Grid dense masonry
+  const cols = breakpoint === "lg" ? 12 : 6;
+
   return (
     <>
-      <CustomizeButton onClick={() => setShowSettings(true)} />
-      {visibleCards.length === 0 ? (
-        <EmptyState onCustomize={() => setShowSettings(true)} />
+      {visible.length === 0 ? (
+        <EmptyState onReset={resetLayout} />
       ) : (
         <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
+          sensors={editing ? sensors : undefined}
+          collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          {spanners.length > 0 && (
-            <SortableContext
-              items={spanners.map((s) => s.card_key)}
-              strategy={verticalListSortingStrategy}
+          <SortableContext
+            items={visible.map((c) => c.id)}
+            strategy={rectSortingStrategy}
+          >
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                gridAutoRows: 128,
+                gridAutoFlow: "row dense",
+                gap: 16,
+              }}
             >
-              <div className="flex flex-col gap-4 mb-4">
-                {spanners.map((row) => {
-                  const Component = CARD_COMPONENTS[row.card_key];
-                  return (
-                    <SortableCard
-                      key={row.card_key}
-                      row={row}
-                      onChangeWidth={(w) => changeWidth(row.card_key, w)}
-                      onHide={() => setHideConfirm(row.card_key)}
-                    >
-                      <Component width={row.width} />
-                    </SortableCard>
-                  );
-                })}
-              </div>
-            </SortableContext>
-          )}
-
-          <div className="grid grid-cols-3 gap-4 items-start">
-            {COLS.map((col) => (
-              <DroppableColumn
-                key={col}
-                col={col}
-                cards={colCards.get(col) ?? []}
-                onChangeWidth={(key, w) => changeWidth(key, w)}
-                onHide={(key) => setHideConfirm(key)}
-              />
-            ))}
-          </div>
+              {visible.map((pref) => (
+                <SortableCard
+                  key={pref.id}
+                  pref={pref}
+                  cols={cols as 12 | 6}
+                  editing={editing}
+                  onChangeSize={(s) => changeSize(pref.id, s)}
+                  onHide={() => hideCard(pref.id)}
+                />
+              ))}
+            </div>
+          </SortableContext>
 
           <DragOverlay>
             {activeCard ? (
               <div className="opacity-90 ring-1 ring-glow-2/60 shadow-2xl rounded-md">
                 {(() => {
-                  const Component = CARD_COMPONENTS[activeCard.card_key];
-                  return <Component width={activeCard.width} />;
+                  const Component = CARD_COMPONENTS[activeCard.id];
+                  return <Component width={sizeToWidth(activeCard.size)} />;
                 })()}
               </div>
             ) : null}
@@ -466,330 +367,229 @@ export function DashboardGrid() {
         </DndContext>
       )}
 
-      {showSettings && (
-        <DashboardSettings
-          layout={layout}
-          onClose={() => setShowSettings(false)}
-          onToggleHidden={(key, hidden) =>
-            hidden ? hideCard(key) : showCard(key)
-          }
-          onReset={resetLayout}
-        />
+      {editing && hiddenCount > 0 && (
+        <div className="mt-3 flex items-center justify-center gap-2">
+          <span className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.08em]">
+            {hiddenCount} card{hiddenCount === 1 ? "" : "s"} hidden
+          </span>
+          <button
+            type="button"
+            onClick={showAllCards}
+            className="text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] text-accent hover:text-accent/80 transition-colors"
+          >
+            Show all
+          </button>
+        </div>
       )}
 
-      {hideConfirm && (
-        <HideConfirmModal
-          cardKey={hideConfirm}
-          onCancel={() => setHideConfirm(null)}
-          onConfirm={() => hideCard(hideConfirm)}
-        />
-      )}
+      <EditButton editing={editing} onClick={() => setEditing((e) => !e)} />
     </>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
-
-function renormalisePositions(rows: CardLayoutRow[]): CardLayoutRow[] {
-  // Per-col positions 0..N-1 for spanners (parked in col 1) + each
-  // column. Used after width changes that move cards between the
-  // spanner stack and a column.
-  const byBucket = new Map<string, CardLayoutRow[]>();
-  for (const r of rows) {
-    const bucket = r.width >= 2 ? "span" : `col-${r.col}`;
-    const list = byBucket.get(bucket) ?? [];
-    list.push(r);
-    byBucket.set(bucket, list);
-  }
-  for (const list of byBucket.values()) {
-    list.sort((a, b) => a.position - b.position);
-  }
-  const out: CardLayoutRow[] = [];
-  for (const list of byBucket.values()) {
-    list.forEach((r, i) => out.push({ ...r, position: i }));
-  }
-  return out;
-}
-
-function CustomizeButton({ onClick }: { onClick: () => void }) {
-  return (
-    <div className="flex items-center justify-end mb-3">
-      <button
-        type="button"
-        onClick={onClick}
-        className="text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-2 hover:text-text-0 px-2 py-1 rounded-sm border border-ink-3 hover:border-ink-4"
-      >
-        ⚙ CUSTOMIZE
-      </button>
-    </div>
-  );
-}
-
-function EmptyState({ onCustomize }: { onCustomize: () => void }) {
-  return (
-    <div className="text-sm text-text-2 italic font-[family-name:var(--font-display)] py-16 text-center">
-      All cards hidden.{" "}
-      <button
-        type="button"
-        onClick={onCustomize}
-        className="underline hover:text-text-0"
-      >
-        Open settings
-      </button>{" "}
-      to restore.
-    </div>
-  );
-}
-
+// SortableCard
 // ---------------------------------------------------------------------------
-// Droppable column — its own SortableContext over the cards currently
-// in it. The wrapping <div> registers as a droppable so dnd-kit can
-// land cross-column drops on the empty tail / empty column.
-function DroppableColumn({
-  col,
-  cards,
-  onChangeWidth,
-  onHide,
-}: {
-  col: CardCol;
-  cards: CardLayoutRow[];
-  onChangeWidth: (key: string, w: CardWidth) => void;
-  onHide: (key: string) => void;
-}) {
-  const { setNodeRef, isOver } = useDroppable({ id: `col-${col}` });
-  return (
-    <SortableContext
-      items={cards.map((c) => c.card_key)}
-      strategy={verticalListSortingStrategy}
-    >
-      <div
-        ref={setNodeRef}
-        className={`flex flex-col gap-4 min-h-[120px] rounded-md transition-colors ${
-          isOver ? "bg-glow-2/5 outline outline-1 outline-glow-2/30" : ""
-        }`}
-      >
-        {cards.length === 0 ? (
-          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] py-8 text-center border border-dashed border-ink-2 rounded-md">
-            Drop a card here
-          </div>
-        ) : (
-          cards.map((row) => {
-            const Component = CARD_COMPONENTS[row.card_key];
-            return (
-              <SortableCard
-                key={row.card_key}
-                row={row}
-                onChangeWidth={(w) => onChangeWidth(row.card_key, w)}
-                onHide={() => onHide(row.card_key)}
-              >
-                <Component width={row.width} />
-              </SortableCard>
-            );
-          })
-        )}
-      </div>
-    </SortableContext>
-  );
-}
 
-// ---------------------------------------------------------------------------
-// SortableCard — a single card that participates in @dnd-kit's sortable
-// list. Hover-revealed affordances (width toggle + drag handle + hide)
-// hang in the top-right.
 function SortableCard({
-  row,
-  onChangeWidth,
+  pref,
+  cols,
+  editing,
+  onChangeSize,
   onHide,
-  children,
 }: {
-  row: CardLayoutRow;
-  onChangeWidth: (w: CardWidth) => void;
+  pref: DashCardPref;
+  cols: 12 | 6;
+  editing: boolean;
+  onChangeSize: (s: CardSize) => void;
   onHide: () => void;
-  children: React.ReactNode;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: row.card_key });
-  const cfg = CARD_REGISTRY[row.card_key];
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: pref.id, disabled: !editing });
+
+  const cfg = SIZE_CONFIG[pref.size];
+  const colSpan = cols === 12 ? cfg.colSpan : mdColSpan(pref.size);
+
+  const Component = CARD_COMPONENTS[pref.id];
+  if (!Component) return null;
 
   const style: React.CSSProperties = {
+    gridColumn: `span ${colSpan}`,
+    gridRow: `span ${cfg.rowSpan}`,
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
   };
 
   return (
-    <CardWrapper
-      row={row}
-      draggable
-      dragRef={setNodeRef}
-      dragStyle={style}
-      dragAttributes={attributes}
-      dragListeners={listeners}
-      dragging={isDragging}
-      onChangeWidth={onChangeWidth}
-      onHide={onHide}
-      supports={cfg?.supports ?? [1, 2, 3]}
-    >
-      {children}
-    </CardWrapper>
-  );
-}
-
-// Shared chrome around a card. Mobile passes draggable=false; desktop
-// passes the dnd-kit refs/attributes/listeners.
-function CardWrapper({
-  row,
-  draggable,
-  dragRef,
-  dragStyle,
-  dragAttributes,
-  dragListeners,
-  dragging,
-  onChangeWidth,
-  onHide,
-  supports,
-  children,
-}: {
-  row: CardLayoutRow;
-  draggable: boolean;
-  dragRef?: (node: HTMLElement | null) => void;
-  dragStyle?: React.CSSProperties;
-  dragAttributes?: React.HTMLAttributes<HTMLElement>;
-  dragListeners?: React.HTMLAttributes<HTMLElement>;
-  dragging?: boolean;
-  onChangeWidth: (w: CardWidth) => void;
-  onHide: () => void;
-  supports?: CardWidth[];
-  children: React.ReactNode;
-}) {
-  const cfg = CARD_REGISTRY[row.card_key];
-  const cardSupports = supports ?? cfg?.supports ?? [1, 2, 3];
-  return (
     <div
-      ref={dragRef}
-      style={dragStyle}
-      className={`group relative ${
-        dragging ? "ring-1 ring-glow-2/60 shadow-2xl rounded-md" : ""
-      }`}
+      ref={setNodeRef}
+      style={style}
+      className={`relative overflow-hidden rounded-md ${
+        editing
+          ? "outline outline-1 outline-dashed outline-ink-3/40"
+          : ""
+      } ${isDragging ? "ring-1 ring-glow-2/60 shadow-2xl" : ""}`}
     >
-      {children}
-      <div className="absolute top-2 right-2 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150 sm:[@media(pointer:coarse)]:opacity-100">
-        <WidthToggle
-          current={row.width}
-          supports={cardSupports}
-          onChange={onChangeWidth}
-        />
-        {draggable && (
+      <Component width={sizeToWidth(pref.size)} />
+
+      {editing && (
+        <>
           <button
             type="button"
-            {...dragAttributes}
-            {...dragListeners}
+            {...attributes}
+            {...listeners}
             aria-label="Drag card"
-            className="h-7 w-7 flex items-center justify-center rounded-sm text-text-2 hover:text-text-0 bg-ink-2/60 hover:bg-ink-2 cursor-grab active:cursor-grabbing touch-none"
+            className="absolute top-2 left-2 z-10 h-7 w-7 flex items-center justify-center rounded-sm text-text-2 hover:text-text-0 bg-ink-2/80 hover:bg-ink-2 cursor-grab active:cursor-grabbing touch-none"
           >
             <span aria-hidden className="text-sm leading-none">⠿</span>
           </button>
-        )}
-        <button
-          type="button"
-          onClick={onHide}
-          aria-label="Hide card"
-          className="h-7 w-7 flex items-center justify-center rounded-sm text-text-2 hover:text-error bg-ink-2/60 hover:bg-ink-2"
-        >
-          <span aria-hidden className="text-sm leading-none">×</span>
-        </button>
-      </div>
+          <SizePicker
+            current={pref.size}
+            onChange={onChangeSize}
+            onHide={onHide}
+          />
+        </>
+      )}
     </div>
   );
 }
 
-function WidthToggle({
+// ---------------------------------------------------------------------------
+// SizePicker popover
+// ---------------------------------------------------------------------------
+
+const SHAPE_DIMS: Record<CardSize, { w: number; h: number }> = {
+  sm:   { w: 20, h: 12 },
+  md:   { w: 32, h: 24 },
+  tall: { w: 20, h: 24 },
+  wide: { w: 40, h: 12 },
+  lg:   { w: 40, h: 24 },
+  full: { w: 52, h: 12 },
+};
+
+function SizePicker({
   current,
-  supports,
   onChange,
+  onHide,
 }: {
-  current: CardWidth;
-  supports: CardWidth[];
-  onChange: (w: CardWidth) => void;
+  current: CardSize;
+  onChange: (s: CardSize) => void;
+  onHide: () => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
   return (
-    <div className="hidden sm:flex rounded-sm bg-ink-2/60 overflow-hidden">
-      {([1, 2, 3] as CardWidth[]).map((w) => {
-        const enabled = supports.includes(w);
-        const active = current === w;
-        return (
-          <button
-            key={w}
-            type="button"
-            disabled={!enabled}
-            onClick={() => enabled && onChange(w)}
-            aria-label={`Width ${w}`}
-            title={
-              enabled
-                ? `Width ${w}${w === 1 ? " (column card)" : " (spanner)"}`
-                : `This card needs ${supports[0]}+ columns`
-            }
-            className={`h-7 w-7 flex items-center justify-center text-[11px] font-[family-name:var(--font-mono)] transition-colors ${
-              active
-                ? "bg-glow-2 text-text-0"
-                : enabled
-                  ? "text-text-1 hover:bg-ink-2 hover:text-text-0"
-                  : "text-text-3 cursor-not-allowed opacity-50"
-            }`}
-          >
-            {w}
-          </button>
-        );
-      })}
+    <div ref={ref} className="absolute top-2 right-2 z-10 flex items-center gap-1">
+      <button
+        type="button"
+        onClick={onHide}
+        aria-label="Hide card"
+        className="h-7 w-7 flex items-center justify-center rounded-sm text-text-2 hover:text-error bg-ink-2/80 hover:bg-ink-2"
+      >
+        <span aria-hidden className="text-sm leading-none">×</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Change size"
+        className={`h-7 w-7 flex items-center justify-center rounded-sm bg-ink-2/80 hover:bg-ink-2 ${
+          open ? "text-text-0" : "text-text-2 hover:text-text-0"
+        }`}
+      >
+        <span aria-hidden className="text-sm leading-none">⊞</span>
+      </button>
+      {open && (
+        <div className="absolute top-full right-0 mt-1 bg-ink-1 border border-ink-2 rounded-md shadow-lg p-2 grid grid-cols-2 gap-1.5 min-w-[180px]">
+          {ALL_SIZES.map((size) => {
+            const sh = SHAPE_DIMS[size];
+            const active = current === size;
+            return (
+              <button
+                key={size}
+                type="button"
+                onClick={() => {
+                  onChange(size);
+                  setOpen(false);
+                }}
+                className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-sm transition-colors ${
+                  active
+                    ? "bg-glow-2/20 ring-1 ring-glow-2/40"
+                    : "hover:bg-ink-2/60"
+                }`}
+              >
+                <div
+                  className={`rounded-sm ${active ? "bg-glow-2/60" : "bg-ink-3/30"}`}
+                  style={{ width: sh.w, height: sh.h }}
+                />
+                <span className="text-[9px] font-[family-name:var(--font-mono)] tracking-[0.15em] text-ink-3">
+                  {SIZE_LABELS[size]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
-function HideConfirmModal({
-  cardKey,
-  onCancel,
-  onConfirm,
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function EditButton({
+  editing,
+  onClick,
 }: {
-  cardKey: string;
-  onCancel: () => void;
-  onConfirm: () => void;
+  editing: boolean;
+  onClick: () => void;
 }) {
-  const label = CARD_REGISTRY[cardKey]?.label ?? cardKey;
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
-      onClick={onCancel}
+    <button
+      type="button"
+      onClick={onClick}
+      className={`fixed bottom-6 right-6 z-[60] px-4 py-2.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase shadow-lg transition-colors border ${
+        editing
+          ? "bg-glow-2 border-glow-2 text-text-0 hover:bg-glow-1"
+          : "bg-ink-1 border-ink-2 text-ink-4 hover:text-text-0 hover:border-ink-3"
+      }`}
     >
-      <div
-        className="growth-in w-full sm:max-w-sm bg-ink-1 border border-ink-2 rounded-t-2xl sm:rounded-lg shadow-2xl flex flex-col"
-        onClick={(e) => e.stopPropagation()}
+      {editing ? "DONE" : "EDIT LAYOUT"}
+    </button>
+  );
+}
+
+function EmptyState({ onReset }: { onReset: () => void }) {
+  return (
+    <div className="text-sm text-text-2 italic font-[family-name:var(--font-display)] py-16 text-center">
+      All cards hidden.{" "}
+      <button
+        type="button"
+        onClick={onReset}
+        className="underline hover:text-text-0"
       >
-        <div className="px-5 pt-4 pb-3">
-          <h2 className="text-base text-text-0">Hide {label}?</h2>
-          <p className="text-sm text-text-1 mt-1 italic font-[family-name:var(--font-display)]">
-            You can restore it from Dashboard settings.
-          </p>
-        </div>
-        <div className="px-5 py-4 border-t border-ink-2 flex gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 h-11 rounded-sm border border-ink-4 text-text-1 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] hover:text-text-0 hover:bg-ink-2"
-          >
-            CANCEL
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="flex-[2] h-11 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
-          >
-            HIDE
-          </button>
-        </div>
-      </div>
+        Reset layout
+      </button>{" "}
+      to restore.
     </div>
   );
 }
