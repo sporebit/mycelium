@@ -36,6 +36,11 @@ const CARDS = [
     href: "/organisation/people",
     description: "Rolodex of mentions, captures, and shared context.",
   },
+  {
+    label: "Habits",
+    href: "/organisation/habits",
+    description: "Daily practices — streaks and history.",
+  },
 ];
 
 export default function CompostOverviewPage() {
