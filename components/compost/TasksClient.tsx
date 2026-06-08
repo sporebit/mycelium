@@ -196,7 +196,7 @@ export function TasksClient() {
         else p.set("view", next.view);
       }
       const s = p.toString();
-      router.replace(`/compost/tasks${s ? `?${s}` : ""}`);
+      router.replace(`/organisation/tasks${s ? `?${s}` : ""}`);
     },
     [router, searchParams],
   );
@@ -220,7 +220,7 @@ export function TasksClient() {
     const p = new URLSearchParams(searchParams.toString());
     p.delete("filter");
     const s = p.toString();
-    router.replace(`/compost/tasks${s ? `?${s}` : ""}`);
+    router.replace(`/organisation/tasks${s ? `?${s}` : ""}`);
   }
 
   const filteredTasks = useMemo(() => {

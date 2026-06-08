@@ -12,7 +12,7 @@ import { useCurrentDevice } from "@/lib/hooks/useCurrentDevice";
 /**
  * Dashboard surface for the NOW filter: top-five tasks matching the
  * user's current context. Tapping the panel header navigates to
- * /compost/tasks?filter=now where the same scoring is applied.
+ * /organisation/tasks?filter=now where the same scoring is applied.
  */
 export function Now() {
   const [currentCtx] = useCurrentContext();
@@ -53,7 +53,7 @@ export function Now() {
       title="NOW"
       topRight={
         <Link
-          href="/compost/tasks?filter=now"
+          href="/organisation/tasks?filter=now"
           className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
         >
           OPEN →
@@ -79,7 +79,7 @@ export function Now() {
           visible.map(({ task, score }) => (
             <li key={task.id} className="py-1.5">
               <Link
-                href={`/compost/tasks?task=${task.id}`}
+                href={`/organisation/tasks?task=${task.id}`}
                 className="flex items-center gap-2 hover:text-accent transition-colors"
               >
                 <span className="text-sm text-ink-4 flex-1 truncate">

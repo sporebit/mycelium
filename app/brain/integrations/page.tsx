@@ -101,7 +101,7 @@ async function loadIntegrations(): Promise<Integration[]> {
       appleHealthLastSync = (bm?.recorded_at as string | null) ?? null;
     }
   } catch (err) {
-    console.error("[/stroma/integrations] supabase status fetch failed:", err);
+    console.error("[/brain/integrations] supabase status fetch failed:", err);
   }
 
   out.push({
@@ -133,7 +133,7 @@ async function loadIntegrations(): Promise<Integration[]> {
     description:
       "Reads the latest weight + body composition values from HealthKit and posts to /api/health/body-metrics.",
     lastSync: appleHealthLastSync,
-    setupHref: "/stroma/integrations/body-shortcut",
+    setupHref: "/brain/integrations/body-shortcut",
   });
 
   out.push({

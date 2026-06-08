@@ -661,7 +661,7 @@ function MentionInput({
           ),
       ) && (
         <Link
-          href="/compost/people"
+          href="/organisation/people"
           className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] mt-1 inline-block"
         >
           Manage people →

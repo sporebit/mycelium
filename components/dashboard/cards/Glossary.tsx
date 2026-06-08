@@ -40,22 +40,22 @@ const NODES: NodeDef[] = [
   // Top-right
   {
     key: "stroma",
-    label: "STROMA",
+    label: "BRAIN",
     cx: 158,
     cy: 28,
     r: 8.5,
-    href: "/stroma",
-    match: (p) => p === "/stroma" || p.startsWith("/stroma/"),
+    href: "/brain",
+    match: (p) => p === "/brain" || p.startsWith("/brain/"),
   },
   // Left
   {
     key: "compost",
-    label: "COMPOST",
+    label: "ORGANISATION",
     cx: 22,
     cy: 70,
     r: 8.5,
-    href: "/compost",
-    match: (p) => p === "/compost" || p.startsWith("/compost/"),
+    href: "/organisation",
+    match: (p) => p === "/organisation" || p.startsWith("/organisation/"),
   },
   // Bottom-right
   {

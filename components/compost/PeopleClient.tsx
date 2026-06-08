@@ -132,7 +132,7 @@ export function PeopleClient() {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href="/compost/people/import-setup"
+            href="/organisation/people/import-setup"
             className="px-3 py-2 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
           >
             IMPORT
@@ -210,7 +210,7 @@ export function PeopleClient() {
           {visible.map((p) => (
             <Link
               key={p.id}
-              href={`/compost/people/${p.id}`}
+              href={`/organisation/people/${p.id}`}
               className="growth-in rounded-md bg-ink-1 hover:bg-ink-2 transition-colors p-4 flex items-start gap-3"
             >
               <span

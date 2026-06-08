@@ -324,7 +324,7 @@ export function ProjectDetail({ initialProject }: Props) {
     <div className="flex flex-col gap-6">
       <div>
         <Link
-          href="/compost/projects"
+          href="/organisation/projects"
           className="text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] inline-flex items-center gap-1"
         >
           ← PROJECTS
@@ -488,7 +488,7 @@ export function ProjectDetail({ initialProject }: Props) {
                         className="h-4 w-4 shrink-0 rounded-sm border border-ink-3 hover:border-accent flex items-center justify-center text-[10px] leading-none transition-colors"
                       />
                       <Link
-                        href={`/compost/tasks?focus=${encodeURIComponent(t.id)}`}
+                        href={`/organisation/tasks?focus=${encodeURIComponent(t.id)}`}
                         onClick={() => router.refresh()}
                         className="flex-1 min-w-0 text-sm text-text-0 hover:text-accent transition-colors truncate"
                       >
@@ -765,7 +765,7 @@ function BudgetSection({
                   {wantOrNeedPurchaseLabel(p.want_or_need)}
                 </span>
                 <Link
-                  href={`/compost/purchases?project=${project.id}`}
+                  href={`/organisation/purchases?project=${project.id}`}
                   className={`flex-1 min-w-0 text-sm hover:text-accent transition-colors truncate ${
                     purchased ? "text-ink-3 line-through" : "text-text-0"
                   }`}

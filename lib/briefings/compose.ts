@@ -120,7 +120,7 @@ export function composeMessage(
   if (data.reviewCount > 0) {
     const noun = data.reviewCount === 1 ? "capture" : "captures";
     sections.push(
-      `📥 ${data.reviewCount} ${noun} need review → mycelium.sporebit.com/compost/captures/review`,
+      `📥 ${data.reviewCount} ${noun} need review → mycelium.sporebit.com/organisation/captures/review`,
     );
   }
 

@@ -250,10 +250,10 @@ export function Session({ width = 1 }: { width?: CardWidth } = {}) {
                   )}
                 </div>
                 <Link
-                  href="/compost"
+                  href="/organisation"
                   className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] shrink-0"
                 >
-                  → COMPOST
+                  → TASKS
                 </Link>
               </li>
             ))}

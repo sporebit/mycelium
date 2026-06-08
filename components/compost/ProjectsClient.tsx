@@ -378,7 +378,7 @@ export function ProjectsClient() {
         ) : (
           <TaskStatusBoard
             tasks={kanbanProjectTasks}
-            onCardClick={(t) => router.push(`/compost/tasks?focus=${t.id}`)}
+            onCardClick={(t) => router.push(`/organisation/tasks?focus=${t.id}`)}
             onMoveStatus={(id, status) => void patchKanbanTask(id, status)}
           />
         )
@@ -399,7 +399,7 @@ export function ProjectsClient() {
           {visible.map((p) => (
             <li key={p.id}>
               <Link
-                href={`/compost/projects/${p.id}`}
+                href={`/organisation/projects/${p.id}`}
                 className="block bg-ink-1 rounded-md p-4 hover:bg-ink-2/30 transition-colors"
               >
                 <div className="flex items-center gap-3">

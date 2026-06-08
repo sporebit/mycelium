@@ -3,17 +3,17 @@ import { SectionOverview } from "@/components/dashboard/SectionOverview";
 const CARDS = [
   {
     label: "Ask",
-    href: "/stroma/ask",
+    href: "/brain/ask",
     description: "Search every capture, journal entry, decision, and note.",
   },
   {
     label: "Rules",
-    href: "/stroma/rules",
+    href: "/brain/rules",
     description: "How voice captures get classified and routed.",
   },
   {
     label: "Integrations",
-    href: "/stroma/integrations",
+    href: "/brain/integrations",
     description: "Telegram, iOS Shortcuts, and the rest of the input layer.",
   },
 ];
@@ -21,8 +21,8 @@ const CARDS = [
 export default function StromaOverviewPage() {
   return (
     <SectionOverview
-      title="Stroma"
-      tagline="The fungal layer underneath everything — search, rules, and inputs."
+      title="Brain"
+      tagline="Search, rules, and the intelligence layer underneath everything."
       cards={CARDS}
     />
   );

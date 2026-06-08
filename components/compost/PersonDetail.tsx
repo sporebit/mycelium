@@ -141,7 +141,7 @@ export function PersonDetail({ id }: { id: string }) {
     );
     if (!ok) return;
     const r = await fetch(`/api/people/${id}`, { method: "DELETE" });
-    if (r.ok) router.push("/compost/people");
+    if (r.ok) router.push("/organisation/people");
   }
 
   if (!person) {
@@ -166,7 +166,7 @@ export function PersonDetail({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-4">
       <Link
-        href="/compost/people"
+        href="/organisation/people"
         className="text-[11px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em] self-start"
       >
         ← PEOPLE
@@ -303,12 +303,12 @@ export function PersonDetail({ id }: { id: string }) {
                 // detail expanded.
                 const href =
                   m.source_type === "task"
-                    ? `/compost/tasks?task=${m.source_id}`
+                    ? `/organisation/tasks?task=${m.source_id}`
                     : m.source_type === "capture"
-                    ? `/compost/captures?focus=${m.source_id}`
+                    ? `/organisation/captures?focus=${m.source_id}`
                     : m.source_type === "journal"
                       ? `/journal?focus=${m.source_id}`
-                      : "/compost/captures";
+                      : "/organisation/captures";
                 return (
                   <li key={m.id} className="growth-in py-3 first:pt-0 last:pb-0">
                     <Link href={href} className="block group">

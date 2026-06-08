@@ -3,37 +3,37 @@ import { SectionOverview } from "@/components/dashboard/SectionOverview";
 const CARDS = [
   {
     label: "Tasks",
-    href: "/compost/tasks",
+    href: "/organisation/tasks",
     description: "Daily driver — list, kanban, table, calendar.",
   },
   {
     label: "Projects",
-    href: "/compost/projects",
+    href: "/organisation/projects",
     description: "Containers for task collections and rolled-up budgets.",
   },
   {
     label: "Purchases",
-    href: "/compost/purchases",
+    href: "/organisation/purchases",
     description: "Shopping list, wishlist, and bills tracked together.",
   },
   {
     label: "Captures",
-    href: "/compost/captures",
+    href: "/organisation/captures",
     description: "Raw voice and text input before it's routed.",
   },
   {
     label: "Review",
-    href: "/compost/captures/review",
+    href: "/organisation/captures/review",
     description: "Triage queue for ambiguous captures.",
   },
   {
     label: "Decisions",
-    href: "/compost/decisions",
+    href: "/organisation/decisions",
     description: "Choices you logged so you can find them later.",
   },
   {
     label: "People",
-    href: "/compost/people",
+    href: "/organisation/people",
     description: "Rolodex of mentions, captures, and shared context.",
   },
 ];
@@ -41,8 +41,8 @@ const CARDS = [
 export default function CompostOverviewPage() {
   return (
     <SectionOverview
-      title="Compost"
-      tagline="Where captured fragments break down into tasks, projects, and people."
+      title="Organisation"
+      tagline="Tasks, projects, people, and captures — your operational layer."
       cards={CARDS}
     />
   );

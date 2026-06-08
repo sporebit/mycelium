@@ -8,7 +8,7 @@ const SECTIONS = [
   { key: "dashboard", label: "DASHBOARD", colour: "#e8e6dd", route: "/", angle: 0 },
   { key: "finance", label: "FINANCE", colour: "#6db8f5", route: "/finance", angle: 60 },
   { key: "health", label: "HEALTH", colour: "#5de8e0", route: "/health", angle: 120 },
-  { key: "organisation", label: "ORGANISATION", colour: "#f5b56d", route: "/compost", angle: 180 },
+  { key: "organisation", label: "ORGANISATION", colour: "#f5b56d", route: "/organisation", angle: 180 },
   { key: "studio", label: "STUDIO", colour: "#f56db5", route: "/studio", angle: 240 },
   { key: "fitness", label: "FITNESS", colour: "#84f5b8", route: "/fitness", angle: 300 },
 ] as const;
@@ -152,7 +152,7 @@ export function CanvasHub() {
       if (navigatingRef.current) return;
       navigatingRef.current = true;
       await bloom({ colour: GLOW, originX, originY, direction: "enter" });
-      router.push("/stroma");
+      router.push("/brain");
       navigatingRef.current = false;
     },
     [bloom, router],

@@ -273,7 +273,7 @@ export function PurchasesClient({
 
       {initialProjectId && (
         <Link
-          href="/compost/purchases"
+          href="/organisation/purchases"
           className="text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] inline-flex items-center gap-1 self-start"
         >
           ← All purchases
@@ -606,7 +606,7 @@ function PurchaseRow({
 
       {purchase.project_id && purchase.project_name && (
         <Link
-          href={`/compost/projects/${purchase.project_id}`}
+          href={`/organisation/projects/${purchase.project_id}`}
           className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-accent/40 bg-accent/10 text-accent shrink-0 max-w-[140px] truncate"
           onClick={(e) => e.stopPropagation()}
         >

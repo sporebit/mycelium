@@ -47,7 +47,7 @@ function relativeDate(iso: string): string {
 }
 
 /**
- * Tab body for /compost/review's "NEW ENTITIES" view. Each row is one
+ * Tab body for /organisation/review's "NEW ENTITIES" view. Each row is one
  * voice/Telegram capture that mentioned a name we couldn't resolve to
  * an existing person; the user can CREATE, LINK to an existing
  * person, or REJECT.
@@ -150,7 +150,7 @@ export function PendingEntitiesList() {
 
             {p.capture && (
               <Link
-                href={`/compost/captures?focus=${p.capture.id}`}
+                href={`/organisation/captures?focus=${p.capture.id}`}
                 className="block rounded-md bg-ink-0/40 border border-ink-2/60 px-2 py-1.5 text-xs text-ink-3 italic font-[family-name:var(--font-display)] hover:border-ink-3 transition-colors"
               >
                 {p.capture.raw_text?.slice(0, 240) || "(no transcription)"}

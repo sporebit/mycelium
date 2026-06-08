@@ -25,6 +25,12 @@ const TABS: NavTab[] = [
     match: (p: string) => p === s.baseRoute || p.startsWith(s.baseRoute + "/"),
     colour: s.colour,
   })),
+  {
+    label: "REVIEW",
+    href: "/organisation/review",
+    match: (p) => p === "/organisation/review" || p.startsWith("/organisation/review/"),
+    colour: "#f5b56d",
+  },
 ];
 
 export function TopRail() {

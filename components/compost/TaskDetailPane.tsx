@@ -574,7 +574,7 @@ export function TaskDetailPane({
               {linkedCaptures.map((c) => (
                 <li key={c.id}>
                   <Link
-                    href={`/compost/captures`}
+                    href={`/organisation/captures`}
                     className="text-xs text-ink-3 hover:text-accent transition-colors block truncate"
                   >
                     {c.raw_text?.slice(0, 80) ?? `[${c.source}]`}

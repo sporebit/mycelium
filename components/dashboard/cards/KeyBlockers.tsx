@@ -87,7 +87,7 @@ export function KeyBlockers({ width = 2 }: { width?: CardWidth } = {}) {
   }
 
   function open(id: string) {
-    router.push(`/compost/tasks?focus=${encodeURIComponent(id)}`);
+    router.push(`/organisation/tasks?focus=${encodeURIComponent(id)}`);
   }
 
   return (
@@ -96,7 +96,7 @@ export function KeyBlockers({ width = 2 }: { width?: CardWidth } = {}) {
       title="KEY BLOCKERS"
       topRight={
         <Link
-          href="/compost/tasks?filter=blockers"
+          href="/organisation/tasks?filter=blockers"
           className="flex items-center gap-2 hover:text-ink-4 transition-colors"
         >
           <Mono>{total} ACTIVE</Mono>
@@ -106,7 +106,7 @@ export function KeyBlockers({ width = 2 }: { width?: CardWidth } = {}) {
       bottomCTA={
         total > shown.length ? (
           <Link
-            href="/compost/tasks?filter=blockers"
+            href="/organisation/tasks?filter=blockers"
             className="cursor-pointer hover:text-ink-4"
           >
             + {total - shown.length} MORE · VIEW ALL →

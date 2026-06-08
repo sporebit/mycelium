@@ -101,10 +101,10 @@ export function GlobalSearch() {
     }
   }
 
-  function openInStroma() {
+  function openInBrain() {
     const q = query.trim();
     closeModal();
-    router.push(q ? `/stroma?q=${encodeURIComponent(q)}` : "/stroma");
+    router.push(q ? `/brain?q=${encodeURIComponent(q)}` : "/brain");
   }
 
   if (!open) return null;
@@ -128,7 +128,7 @@ export function GlobalSearch() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            openInStroma();
+            openInBrain();
           }}
           className="px-4 py-3 border-b border-ink-2 flex items-center gap-3"
         >
@@ -175,13 +175,13 @@ export function GlobalSearch() {
         </div>
 
         <footer className="px-4 py-2 border-t border-ink-2 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-          <span>Esc to close · Enter to open in Stroma</span>
+          <span>Esc to close · Enter to open in Brain</span>
           <Link
-            href={query.trim() ? `/stroma?q=${encodeURIComponent(query.trim())}` : "/stroma"}
+            href={query.trim() ? `/brain?q=${encodeURIComponent(query.trim())}` : "/brain"}
             onClick={closeModal}
             className="hover:text-ink-4 transition-colors"
           >
-            Open in Stroma →
+            Open in Brain →
           </Link>
         </footer>
       </div>

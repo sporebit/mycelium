@@ -246,7 +246,7 @@ export async function writeCapture(
     }
 
     // For voice/Telegram captures, check whether new-person mentions
-    // should be diverted to /compost/review rather than silently
+    // should be diverted to /organisation/review rather than silently
     // auto-created. UI-created captures (source = 'web' / 'api') skip
     // this — those are explicit by definition.
     const isVoiceLike = source === "telegram";
@@ -275,7 +275,7 @@ export async function writeCapture(
         });
         // When the mention was deferred (would have auto-created a
         // brand-new person), queue a pending_entities row so the user
-        // can resolve it on /compost/review.
+        // can resolve it on /organisation/review.
         if (
           deferIfNew &&
           !res.person_id &&

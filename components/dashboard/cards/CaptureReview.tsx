@@ -55,7 +55,7 @@ export function CaptureReview(_props: { width?: CardWidth } = {}) {
       topRight={<Mono>QUEUE</Mono>}
       bottomCTA={
         <Link
-          href="/compost/captures/review"
+          href="/organisation/captures/review"
           className="hover:text-ink-4 transition-colors"
         >
           REVIEW →

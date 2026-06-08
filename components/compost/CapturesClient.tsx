@@ -20,13 +20,13 @@ function routedToLink(
   switch (routedTo) {
     case "tasks":
       return {
-        href: `/compost/tasks?task=${routedId}`,
+        href: `/organisation/tasks?task=${routedId}`,
         label: "Task",
         title: clsTitle ?? "open",
       };
     case "purchases":
       return {
-        href: `/compost/purchases`,
+        href: `/organisation/purchases`,
         label: "Purchase",
         title: clsTitle ?? "open",
       };

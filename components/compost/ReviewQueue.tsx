@@ -186,7 +186,7 @@ export function ReviewQueue({ onResolved }: { onResolved: () => void }) {
                 </div>
               </div>
               <Link
-                href={`/compost/people/${it.person.id}`}
+                href={`/organisation/people/${it.person.id}`}
                 className="px-3 py-1.5 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]"
               >
                 OPEN

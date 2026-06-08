@@ -14,7 +14,7 @@ import { ContextSwitcher } from "./ContextSwitcher";
 export function ContextSwitcherGate() {
   const pathname = usePathname();
   const visible =
-    pathname === "/compost/tasks" || pathname.startsWith("/compost/tasks/");
+    pathname === "/organisation/tasks" || pathname.startsWith("/organisation/tasks/");
   if (!visible) return null;
   return (
     <div className="w-full border-b border-ink-2/40 bg-ink-1/40">
