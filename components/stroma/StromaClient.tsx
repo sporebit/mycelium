@@ -9,11 +9,6 @@ import type { AskSource, SearchMatch } from "@/lib/memory/types";
 
 type Mode = "search" | "ask";
 
-const EXAMPLE_QUERIES = [
-  "what did I capture about Sarah?",
-  "decisions I made about pricing",
-  "tasks from 2 weeks ago",
-];
 
 async function streamAsk(
   question: string,
@@ -263,29 +258,6 @@ export function StromaClient() {
         </Panel>
       )}
 
-      {/* Example queries (only when nothing submitted yet) */}
-      {!hasResults && !noMemory && (
-        <div className="flex flex-col gap-3">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] text-center">
-            Try
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            {EXAMPLE_QUERIES.map((ex) => (
-              <button
-                key={ex}
-                type="button"
-                onClick={() => {
-                  setQuery(ex);
-                  submit(ex);
-                }}
-                className="px-3 py-1.5 rounded-full border border-ink-2 bg-ink-0/40 text-sm text-ink-3 hover:border-ink-3 hover:text-ink-4 transition-colors italic font-[family-name:var(--font-display)]"
-              >
-                {ex}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Results */}
       {mode === "search" ? (

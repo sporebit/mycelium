@@ -15,6 +15,7 @@ type FinishBody = {
   apply_template_updates?: boolean;
   save_as_workout?: boolean;
   workout_name?: string;
+  duration_minutes?: number;
 };
 
 /**
@@ -43,13 +44,19 @@ export async function POST(
     const supabase = createServerClient();
     const { data: sess } = await supabase
       .from("workout_sessions")
-      .select("id, user_id, programme_session_id")
+      .select("id, user_id, programme_session_id, started_at")
       .eq("id", sessionId)
       .eq("user_id", uid)
       .maybeSingle();
     if (!sess?.id) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-    const finishedAt = new Date().toISOString();
+    const finishedAt =
+      body.duration_minutes != null && sess.started_at
+        ? new Date(
+            new Date(sess.started_at as string).getTime() +
+              body.duration_minutes * 60000,
+          ).toISOString()
+        : new Date().toISOString();
     const { error: patchErr } = await supabase
       .from("workout_sessions")
       .update({

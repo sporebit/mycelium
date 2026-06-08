@@ -26,6 +26,7 @@ export function FinishModal({
     apply_template_updates: boolean;
     save_as_workout?: boolean;
     workout_name?: string;
+    duration_minutes?: number;
   }) => Promise<void>;
 }) {
   const [calories, setCalories] = useState<string>(
@@ -53,21 +54,27 @@ export function FinishModal({
   }
 
   const startedAt = session.started_at ? new Date(session.started_at) : null;
-  // Capture "now" once when the modal opens so the displayed total time is stable.
   const [openedAt] = useState<number>(() => Date.now());
   const elapsedMs = startedAt ? openedAt - startedAt.getTime() : 0;
+  const elapsedMin = Math.floor(elapsedMs / 60000);
+  const [durH, setDurH] = useState<string>(String(Math.floor(elapsedMin / 60)));
+  const [durM, setDurM] = useState<string>(String(elapsedMin % 60));
 
   async function submit() {
     if (busy) return;
     setBusy(true);
     try {
       const cal = calories.trim() === "" ? null : Number(calories);
+      const h = parseInt(durH) || 0;
+      const m = parseInt(durM) || 0;
+      const totalMin = h * 60 + m;
       await onConfirm({
         calories: Number.isFinite(cal) ? (cal as number) : null,
         notes: notes.trim() === "" ? null : notes.trim(),
         apply_template_updates: applyTpl,
         save_as_workout: saveAsWorkout,
         workout_name: workoutName.trim() || undefined,
+        duration_minutes: totalMin > 0 ? totalMin : undefined,
       });
     } finally {
       setBusy(false);
@@ -100,7 +107,27 @@ export function FinishModal({
         <div className="px-5 py-4 overflow-y-auto flex flex-col gap-4">
           <dl className="grid grid-cols-3 gap-2 text-center">
             <Stat label="Sets" value={String(totalSets)} />
-            <Stat label="Time" value={startedAt ? fmtMin(elapsedMs) : "—"} />
+            <div className="flex flex-col gap-0.5 p-2 rounded-md border border-ink-2 bg-ink-0/40">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                Time
+              </span>
+              <div className="flex items-center gap-1 justify-center">
+                <input
+                  inputMode="numeric"
+                  value={durH}
+                  onChange={(e) => setDurH(e.target.value.replace(/[^0-9]/g, ""))}
+                  className="w-8 text-center bg-transparent border-b border-ink-3 text-base font-[family-name:var(--font-mono)] text-ink-4 tabular-nums outline-none focus:border-accent"
+                />
+                <span className="text-xs text-ink-3">h</span>
+                <input
+                  inputMode="numeric"
+                  value={durM}
+                  onChange={(e) => setDurM(e.target.value.replace(/[^0-9]/g, ""))}
+                  className="w-8 text-center bg-transparent border-b border-ink-3 text-base font-[family-name:var(--font-mono)] text-ink-4 tabular-nums outline-none focus:border-accent"
+                />
+                <span className="text-xs text-ink-3">m</span>
+              </div>
+            </div>
             <Stat label="Volume" value={`${totalVolKg.toFixed(0)} kg`} />
           </dl>
 
