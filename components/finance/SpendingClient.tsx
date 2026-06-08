@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Mono } from "@/components/dashboard/Mono";
 import { Money, PrivateText } from "@/components/finance/Money";
 import type { Transaction, BankAccount, ImportResult } from "@/lib/types/transaction";
-import { TAXONOMY } from "@/lib/finance/taxonomy";
+import { TAXONOMY, CATEGORY_COLOURS } from "@/lib/finance/taxonomy";
 
 type Toast = { kind: "ok" | "error"; text: string } | null;
 
@@ -114,6 +114,10 @@ export function SpendingClient() {
   const [ambiguousPayments, setAmbiguousPayments] = useState<AmbiguousPayment[]>([]);
   const [matching, setMatching] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [overviewOpen, setOverviewOpen] = useState(false);
+  const [overviewData, setOverviewData] = useState<
+    { category: string; total: number }[] | null
+  >(null);
 
   useEffect(() => {
     if (!toast) return;
@@ -188,6 +192,26 @@ export function SpendingClient() {
   useEffect(() => {
     return fetchTransactions();
   }, [fetchTransactions]);
+
+  useEffect(() => {
+    if (!dateFrom || !dateTo) return;
+    let cancelled = false;
+    fetch("/api/finance/analysis/by-category", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ start: dateFrom, end: dateTo }),
+    })
+      .then((r) => r.json())
+      .then((d: { category: string; total: number }[]) => {
+        if (!cancelled) setOverviewData(Array.isArray(d) ? d : []);
+      })
+      .catch(() => {
+        if (!cancelled) setOverviewData(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [dateFrom, dateTo]);
 
   // Import handler.
   async function handleImport(files: FileList | File[]) {
@@ -453,6 +477,86 @@ export function SpendingClient() {
           <Mono className="text-[11px] text-ink-3">
             {total} transaction{total === 1 ? "" : "s"}
           </Mono>
+        </div>
+      )}
+
+      {/* Overview panel */}
+      {overviewData && overviewData.length > 0 && (
+        <div className="rounded-md bg-ink-1 border border-ink-2 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setOverviewOpen((o) => !o)}
+            className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-ink-2/20 transition-colors"
+          >
+            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              Overview
+            </span>
+            <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">
+              {overviewOpen ? "▲" : "▼"}
+            </span>
+          </button>
+          {/* Mini stacked bar */}
+          <div className="px-4 pb-2">
+            <div className="flex h-2.5 rounded-full overflow-hidden">
+              {(() => {
+                const overviewTotal = overviewData.reduce(
+                  (s, r) => s + Number(r.total),
+                  0,
+                );
+                if (overviewTotal === 0) return null;
+                return overviewData.map((row) => (
+                  <div
+                    key={row.category}
+                    style={{
+                      width: `${(Number(row.total) / overviewTotal) * 100}%`,
+                      backgroundColor:
+                        CATEGORY_COLOURS[row.category] ?? "var(--ink-3)",
+                    }}
+                    title={`${row.category}: £${Number(row.total).toFixed(2)}`}
+                  />
+                ));
+              })()}
+            </div>
+          </div>
+          {overviewOpen && (
+            <ul className="flex flex-col divide-y divide-ink-2/60 px-4 pb-3">
+              {overviewData.map((row) => {
+                const overviewTotal = overviewData.reduce(
+                  (s, r) => s + Number(r.total),
+                  0,
+                );
+                return (
+                  <li
+                    key={row.category}
+                    className="flex items-center justify-between py-1.5"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{
+                          backgroundColor:
+                            CATEGORY_COLOURS[row.category] ?? "var(--ink-3)",
+                        }}
+                      />
+                      <span className="text-sm text-ink-4 truncate">
+                        {row.category}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Mono className="text-[11px] text-ink-3 tabular-nums">
+                        {overviewTotal > 0
+                          ? `${((Number(row.total) / overviewTotal) * 100).toFixed(1)}%`
+                          : "—"}
+                      </Mono>
+                      <Mono className="text-sm text-text-0 tabular-nums">
+                        <Money value={Number(row.total)} format="balance" />
+                      </Mono>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       )}
 

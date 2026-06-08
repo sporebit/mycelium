@@ -11,6 +11,11 @@ const CARDS = [
     href: "/finance/spending",
     description: "Import bank CSVs, view transactions, categorise.",
   },
+  {
+    label: "Analysis",
+    href: "/finance/analysis",
+    description: "Category breakdowns, monthly trends, daily averages.",
+  },
 ];
 
 export default function FinanceOverviewPage() {
