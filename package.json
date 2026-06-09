@@ -29,6 +29,7 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
+    "@sentropic/graphify": "^0.10.0",
     "@tailwindcss/postcss": "^4",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20",
