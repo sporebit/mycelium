@@ -49,7 +49,7 @@ export const SECTIONS: SectionConfig[] = [
       { label: "Supplements", href: "/health/supplements", primary: true },
       { label: "Body metrics", href: "/health/body", primary: false },
       { label: "Gut health", href: "/draft/gut-health", primary: false },
-      { label: "Blood tests", href: "/draft/blood-tests", primary: false },
+      { label: "Blood tests", href: "/health/blood-tests", primary: false },
       { label: "Recipes", href: "/draft/recipes", primary: false },
     ],
   },

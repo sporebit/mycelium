@@ -21,6 +21,11 @@ const CARDS = [
     href: "/health/pain",
     description: "Standalone pain logs + recent session pain notes.",
   },
+  {
+    label: "Blood tests",
+    href: "/health/blood-tests",
+    description: "Markers, ranges, and trends across sessions.",
+  },
 ];
 
 export default function HealthOverviewPage() {
