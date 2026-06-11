@@ -304,8 +304,8 @@
     "hash": "42cf46ebc69f90bdaeff902ad61e1a0c"
   },
   "P:\\Projects\\Mycelium\\app\\api\\body-metrics\\route.ts": {
-    "mtime": 1779664482724.1084,
-    "hash": "974887eb48f442bd8525fe072db0cb55"
+    "mtime": 1781209949109.7134,
+    "hash": "4b2f184b69a2ec296eb849a5686cf877"
   },
   "P:\\Projects\\Mycelium\\app\\api\\briefings\\morning\\route.ts": {
     "mtime": 1779587107577.3694,
@@ -504,8 +504,8 @@
     "hash": "fac407978ea83d4fdb9109ef6d0034a5"
   },
   "P:\\Projects\\Mycelium\\app\\api\\fitness\\programmes\\[id]\\sessions\\route.ts": {
-    "mtime": 1779664366705.421,
-    "hash": "fc8b8269005d41ddbd80f8f960c2a690"
+    "mtime": 1781212193882.545,
+    "hash": "be4465269dcf1a11a265b21b153b71a2"
   },
   "P:\\Projects\\Mycelium\\app\\api\\fitness\\programmes\\route.ts": {
     "mtime": 1779664339054.7446,
@@ -908,40 +908,12 @@
     "hash": "5f466b1aa97252edd868a26d6420d86a"
   },
   "P:\\Projects\\Mycelium\\app\\api\\workouts\\[id]\\route.ts": {
-    "mtime": 1780348895857.6074,
-    "hash": "6a8aaf57013791fa94791e80d6fa8865"
+    "mtime": 1781215892165.507,
+    "hash": "62e7a35f310f3e2a358349891ff96c61"
   },
   "P:\\Projects\\Mycelium\\app\\api\\workouts\\route.ts": {
-    "mtime": 1780348880950.5674,
-    "hash": "e88b20d7b21d27c4471dfc92bf82c1ac"
-  },
-  "P:\\Projects\\Mycelium\\app\\brain\\ask\\page.tsx": {
-    "mtime": 1780786575570.0627,
-    "hash": "9ba70bd435b92306fd8d5f0c6534ae07"
-  },
-  "P:\\Projects\\Mycelium\\app\\brain\\entity-rules\\page.tsx": {
-    "mtime": 1780786609170.9348,
-    "hash": "c9c1ddf6defcc587eb2ab6134aae6f2b"
-  },
-  "P:\\Projects\\Mycelium\\app\\brain\\integrations\\body-shortcut\\page.tsx": {
-    "mtime": 1780786634209.8064,
-    "hash": "e970441d7f526d92b1c9c2ff42d83bad"
-  },
-  "P:\\Projects\\Mycelium\\app\\brain\\integrations\\page.tsx": {
-    "mtime": 1780958144357.4827,
-    "hash": "5843e48b8b664ba5da56181f0102c567"
-  },
-  "P:\\Projects\\Mycelium\\app\\brain\\layout.tsx": {
-    "mtime": 1780952401752.0786,
-    "hash": "3e64df730f7b1e931344eb713c82abf8"
-  },
-  "P:\\Projects\\Mycelium\\app\\brain\\page.tsx": {
-    "mtime": 1780958053918.387,
-    "hash": "5aee9a6dbd7c5900f3e833b7e996d890"
-  },
-  "P:\\Projects\\Mycelium\\app\\brain\\rules\\page.tsx": {
-    "mtime": 1780786604250.676,
-    "hash": "50b47cb30dc6b8619d74e7fb0fd1c9d2"
+    "mtime": 1781215861784.806,
+    "hash": "3956c31852df11837ed856f91b3dbcb7"
   },
   "P:\\Projects\\Mycelium\\app\\draft\\accounts\\page.tsx": {
     "mtime": 1780701328924.9944,
@@ -1268,8 +1240,8 @@
     "hash": "2c7a6f84bb1ca9499ef9eae4b087760c"
   },
   "P:\\Projects\\Mycelium\\components\\compost\\SubNav.tsx": {
-    "mtime": 1780958046239.6445,
-    "hash": "ca6c794c926a95c7b4e83914e6c11d9b"
+    "mtime": 1781215579387.5417,
+    "hash": "61c115cf218bbe882fa4f2dd5aed7b1c"
   },
   "P:\\Projects\\Mycelium\\components\\compost\\SuggestCapture.tsx": {
     "mtime": 1779579694249.7039,
@@ -1352,16 +1324,16 @@
     "hash": "70a864c896ace97bc568964936631fe8"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\DashboardGrid.tsx": {
-    "mtime": 1780958368514.043,
-    "hash": "ac12ddcc440d1ac74fda1525191c107d"
+    "mtime": 1781209931010.3413,
+    "hash": "ece6f8d8a59ea7b7341f74a59c0947bb"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\DashboardSettings.tsx": {
     "mtime": 1779832039611.0884,
     "hash": "6394479f4ae631511b92ad6324a6483a"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\FloatingCapture.tsx": {
-    "mtime": 1780085353845.109,
-    "hash": "cdff5ea39ac7bb8f6ec6b7c39ef4d373"
+    "mtime": 1781215228338.779,
+    "hash": "bc8a94a255100179f84e5deba4d4fa9d"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\GlobalSearch.tsx": {
     "mtime": 1780958184515.8298,
@@ -1432,8 +1404,8 @@
     "hash": "86b091d334e91c31a140d012720d4ddf"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\TopRail.tsx": {
-    "mtime": 1780957986137.6477,
-    "hash": "02fa0bd3e0e4306de5b19e7bbe621ba1"
+    "mtime": 1781209932488.3936,
+    "hash": "2765730bda025ba5a34050a8aa86d347"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\Wordmark.tsx": {
     "mtime": 1780957983358.984,
@@ -1528,8 +1500,8 @@
     "hash": "c743b4901da816817a080c219147ccfb"
   },
   "P:\\Projects\\Mycelium\\components\\finance\\FinanceSubNav.tsx": {
-    "mtime": 1780442584961.5095,
-    "hash": "de10762dc5f95338d018c37db074069d"
+    "mtime": 1781215578324.5425,
+    "hash": "ed686037fd7d567015e3d95385dce2d9"
   },
   "P:\\Projects\\Mycelium\\components\\finance\\Money.tsx": {
     "mtime": 1780691692370.8362,
@@ -1544,8 +1516,8 @@
     "hash": "572cd82941d19b04bdad8bd6253771df"
   },
   "P:\\Projects\\Mycelium\\components\\fitness\\BodyMetricsView.tsx": {
-    "mtime": 1779745547063.2314,
-    "hash": "5fa0ef232311f9a79816658983a32a59"
+    "mtime": 1781210009912.1108,
+    "hash": "fadf06aa1ae10cf511c8b02dbad8ed88"
   },
   "P:\\Projects\\Mycelium\\components\\fitness\\CalendarDayView.tsx": {
     "mtime": 1780080230836.8372,
@@ -1572,8 +1544,8 @@
     "hash": "41e968e4d209aabe89fe78124b9da0aa"
   },
   "P:\\Projects\\Mycelium\\components\\fitness\\FitnessSubNav.tsx": {
-    "mtime": 1780958569843.774,
-    "hash": "547443671c7e2c9b178aaf9cb76f5af4"
+    "mtime": 1781215227780.2446,
+    "hash": "500773bd4010a9f4340edc6dd01c7120"
   },
   "P:\\Projects\\Mycelium\\components\\fitness\\HistoryClient.tsx": {
     "mtime": 1780090095832.9075,
@@ -1624,8 +1596,8 @@
     "hash": "c8430c1e276231c617f5f75b97c1a808"
   },
   "P:\\Projects\\Mycelium\\components\\fitness\\WorkoutDetailClient.tsx": {
-    "mtime": 1780349135598.0706,
-    "hash": "4afdd2bebb9e224273855e1d77024dbb"
+    "mtime": 1781215962900.8022,
+    "hash": "b16ca620e263b2af2f38f56651d7620a"
   },
   "P:\\Projects\\Mycelium\\components\\fitness\\WorkoutEditor.tsx": {
     "mtime": 1780349137146.5774,
@@ -1636,8 +1608,8 @@
     "hash": "a51a5708a0f23429067fb6c77ec347bd"
   },
   "P:\\Projects\\Mycelium\\components\\fitness\\WorkoutsListClient.tsx": {
-    "mtime": 1780349016359.5676,
-    "hash": "c38bd4f69a64a33a0ad5019eef5f1ab5"
+    "mtime": 1781215926704.5522,
+    "hash": "5856ec166b1965873ebcd901e597d867"
   },
   "P:\\Projects\\Mycelium\\components\\health\\HealthSubNav.tsx": {
     "mtime": 1780690674760.859,
@@ -2004,8 +1976,8 @@
     "hash": "2c336dfae71fca739fbedb8a83bb5a70"
   },
   "P:\\Projects\\Mycelium\\lib\\fitness\\types.ts": {
-    "mtime": 1780348507867.5247,
-    "hash": "d2b11ddf74e581f18c4279ee447f6277"
+    "mtime": 1781209935248.4524,
+    "hash": "9f6f44822720995a8af5420b55594db3"
   },
   "P:\\Projects\\Mycelium\\lib\\fitness\\units.ts": {
     "mtime": 1779664276497.8057,
@@ -2020,8 +1992,8 @@
     "hash": "af45248753913aa716e12dd02cb80635"
   },
   "P:\\Projects\\Mycelium\\lib\\fitness\\workouts.ts": {
-    "mtime": 1780348860602.5603,
-    "hash": "4b82ab2e265df13f610259e14c90e0fa"
+    "mtime": 1781215828226.0498,
+    "hash": "c2e738fe023d2c9129e73d35de4d7cf5"
   },
   "P:\\Projects\\Mycelium\\lib\\fuel\\aggregate.ts": {
     "mtime": 1779585428995.7454,
@@ -2076,8 +2048,8 @@
     "hash": "4494f9c1a33bad09c7ea13411d58a17d"
   },
   "P:\\Projects\\Mycelium\\lib\\nav\\sections.ts": {
-    "mtime": 1781030494466.282,
-    "hash": "2456692cc4910c0afbfe97ebebf2e591"
+    "mtime": 1781215225037.384,
+    "hash": "c600bd078ce24e6e6f52363c6ddc402b"
   },
   "P:\\Projects\\Mycelium\\lib\\nutrition\\calc.ts": {
     "mtime": 1780247426208.892,
@@ -2260,8 +2232,8 @@
     "hash": "c781857532fe23af5612742d698aec52"
   },
   "P:\\Projects\\Mycelium\\next.config.ts": {
-    "mtime": 1780957975251.97,
-    "hash": "f8718d13c2eee47ea8edafba5a5d7969"
+    "mtime": 1781215231178.527,
+    "hash": "a7311e02e222748e86087cc41c9e3230"
   },
   "P:\\Projects\\Mycelium\\postcss.config.mjs": {
     "mtime": 1779482911130.906,
@@ -3298,5 +3270,121 @@
   "P:\\Projects\\Mycelium\\public\\window.svg": {
     "mtime": 1779484077577.147,
     "hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "P:\\Projects\\Mycelium\\app\\api\\agents\\[agentId]\\end-session\\route.ts": {
+    "mtime": 1781215422385.693,
+    "hash": "ca4c23ea6ad4d1390019d63b10ec0a9e"
+  },
+  "P:\\Projects\\Mycelium\\app\\api\\agents\\[agentId]\\route.ts": {
+    "mtime": 1781215412852.806,
+    "hash": "8d36991be1d7fd3c5f1192a88ffde769"
+  },
+  "P:\\Projects\\Mycelium\\app\\api\\fitness\\exercises\\[slug]\\route.ts": {
+    "mtime": 1781216057507.7654,
+    "hash": "7d755e7f2084007b34fa5a28bfbec6fb"
+  },
+  "P:\\Projects\\Mycelium\\app\\api\\fitness\\exercises\\route.ts": {
+    "mtime": 1781216031382.0461,
+    "hash": "17a31aaf2241001cc1ddb275bf80e9ab"
+  },
+  "P:\\Projects\\Mycelium\\app\\finance\\advisor\\page.tsx": {
+    "mtime": 1781215563209.5396,
+    "hash": "7a85ef7d55b58c52f48949c2ccb89f9a"
+  },
+  "P:\\Projects\\Mycelium\\app\\fitness\\coach\\page.tsx": {
+    "mtime": 1781215558132.744,
+    "hash": "245ac1051c4f1c197055b92e9b2f139c"
+  },
+  "P:\\Projects\\Mycelium\\app\\fitness\\exercises\\[slug]\\page.tsx": {
+    "mtime": 1781216152794.6353,
+    "hash": "9fcc1d8b92ff038478caa9a54da5077c"
+  },
+  "P:\\Projects\\Mycelium\\app\\fitness\\exercises\\page.tsx": {
+    "mtime": 1781216151688.7224,
+    "hash": "c7af537d6c1922e2d8ac3c745cc9a01f"
+  },
+  "P:\\Projects\\Mycelium\\app\\organisation\\assistant\\page.tsx": {
+    "mtime": 1781215563720.764,
+    "hash": "c0797acdaa1ebe647413abaee477c9ec"
+  },
+  "P:\\Projects\\Mycelium\\app\\the-boys\\[agentId]\\page.tsx": {
+    "mtime": 1781215531577.425,
+    "hash": "18fdc075813181b21e132d82c5cefe18"
+  },
+  "P:\\Projects\\Mycelium\\app\\the-boys\\ask\\page.tsx": {
+    "mtime": 1780786575570.0627,
+    "hash": "9ba70bd435b92306fd8d5f0c6534ae07"
+  },
+  "P:\\Projects\\Mycelium\\app\\the-boys\\entity-rules\\page.tsx": {
+    "mtime": 1780786609170.9348,
+    "hash": "c9c1ddf6defcc587eb2ab6134aae6f2b"
+  },
+  "P:\\Projects\\Mycelium\\app\\the-boys\\integrations\\body-shortcut\\page.tsx": {
+    "mtime": 1780786634209.8064,
+    "hash": "e970441d7f526d92b1c9c2ff42d83bad"
+  },
+  "P:\\Projects\\Mycelium\\app\\the-boys\\integrations\\page.tsx": {
+    "mtime": 1781215261535.3767,
+    "hash": "475d4fc8635501c9befce12e8906a9e8"
+  },
+  "P:\\Projects\\Mycelium\\app\\the-boys\\layout.tsx": {
+    "mtime": 1781215261035.9768,
+    "hash": "21d5dc0e8cbf2ed42f18d6d695c8b43c"
+  },
+  "P:\\Projects\\Mycelium\\app\\the-boys\\page.tsx": {
+    "mtime": 1781215474508.3179,
+    "hash": "1cdd072ab24f7ce4c5d9d11cb80f8ea5"
+  },
+  "P:\\Projects\\Mycelium\\app\\the-boys\\rules\\page.tsx": {
+    "mtime": 1780786604250.676,
+    "hash": "50b47cb30dc6b8619d74e7fb0fd1c9d2"
+  },
+  "P:\\Projects\\Mycelium\\components\\agents\\AgentChat.tsx": {
+    "mtime": 1781215529188.257,
+    "hash": "96e87f85c61c115c9794dd3897c9f7f0"
+  },
+  "P:\\Projects\\Mycelium\\components\\fitness\\ExerciseDetailClient.tsx": {
+    "mtime": 1781216147186.3938,
+    "hash": "b86cefc541f08c4bc046b214733de078"
+  },
+  "P:\\Projects\\Mycelium\\components\\fitness\\ExercisesListClient.tsx": {
+    "mtime": 1781216113095.9592,
+    "hash": "62ab56ec7a9f9ab21287414005efe647"
+  },
+  "P:\\Projects\\Mycelium\\components\\fitness\\MuscleMap.tsx": {
+    "mtime": 1781216084808.678,
+    "hash": "8c6792972013b8470da513011f7b7760"
+  },
+  "P:\\Projects\\Mycelium\\lib\\agents\\prompts.ts": {
+    "mtime": 1781215378772.324,
+    "hash": "37dea6241eb8a7fd9ed0e4c8ec6dd6a9"
+  },
+  "P:\\Projects\\Mycelium\\lib\\fitness\\muscle-map.ts": {
+    "mtime": 1781216009751.1409,
+    "hash": "6118b345f7dcf6ded163ac24a3130479"
+  },
+  "P:\\Projects\\Mycelium\\supabase\\migrations\\0052_body_metrics_units.sql": {
+    "mtime": 1781209936459.842,
+    "hash": "eeff88dac3373f751fbe4e73755ce821"
+  },
+  "P:\\Projects\\Mycelium\\supabase\\migrations\\0053_agents.sql": {
+    "mtime": 1781215271852.5825,
+    "hash": "6c89a34c92b47ca6d028139d01e6be47"
+  },
+  "P:\\Projects\\Mycelium\\.graphify\\GRAPH_REPORT.md": {
+    "mtime": 1781033773642.27,
+    "hash": "59cdc284a8601cc82f61753449024abf"
+  },
+  "P:\\Projects\\Mycelium\\public\\images\\forest-bgold.jpg": {
+    "mtime": 1780795220517.5657,
+    "hash": "d4684977d506172fd794273e661978c5"
+  },
+  "P:\\Projects\\Mycelium\\public\\images\\hf_20260607_183549_dbb4dcf3-9025-4fb7-be57-e427006f14b0.png": {
+    "mtime": 1780857408817.075,
+    "hash": "0bdb080b5a13e87548f4fbb4635f6b3e"
+  },
+  "P:\\Projects\\Mycelium\\.claude\\sounds\\done.wav": {
+    "mtime": 1780349159664.2795,
+    "hash": "306d3e297c0ecca4f26508071d976603"
   }
 }
