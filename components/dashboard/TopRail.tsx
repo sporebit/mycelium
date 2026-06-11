@@ -27,8 +27,8 @@ const TABS: NavTab[] = [
   })),
   {
     label: "REVIEW",
-    href: "/organisation/review",
-    match: (p) => p === "/organisation/review" || p.startsWith("/organisation/review/"),
+    href: "/organisation/captures/review",
+    match: (p) => p === "/organisation/captures/review" || p.startsWith("/organisation/captures/review/"),
     colour: "#f5b56d",
   },
 ];

@@ -577,7 +577,7 @@ function EditButton({
     <button
       type="button"
       onClick={onClick}
-      className={`fixed bottom-6 right-6 z-[60] px-4 py-2.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase shadow-lg transition-colors border ${
+      className={`fixed bottom-6 right-6 z-40 px-4 py-2.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase shadow-lg transition-colors border ${
         editing
           ? "bg-glow-2 border-glow-2 text-text-0 hover:bg-glow-1"
           : "bg-ink-1 border-ink-2 text-ink-4 hover:text-text-0 hover:border-ink-3"

@@ -1,10 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 type Toast = { kind: "success" | "error"; text: string } | null;
 
+const FAB_ROUTES = new Set([
+  "/",
+  "/organisation",
+  "/fitness",
+  "/health",
+  "/finance",
+  "/brain",
+  "/studio",
+]);
+
 export function FloatingCapture() {
+  const pathname = usePathname();
+  const showFab = FAB_ROUTES.has(pathname);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -91,20 +104,20 @@ export function FloatingCapture() {
         </div>
       )}
 
-      {/* Floating + button */}
-      {!open && (
+      {/* Floating + button — only on top-level landing pages */}
+      {showFab && !open && (
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Capture"
-          className="fixed bottom-6 right-6 z-40 h-12 w-12 rounded-full bg-accent text-ink-0 shadow-2xl hover:bg-accent/90 transition-transform hover:scale-105 flex items-center justify-center text-xl font-[family-name:var(--font-mono)]"
+          className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-accent text-ink-0 shadow-2xl hover:bg-accent/90 transition-transform hover:scale-105 flex items-center justify-center text-xl font-[family-name:var(--font-mono)]"
         >
           +
         </button>
       )}
 
-      {/* Modal */}
-      {open && (
+      {/* Modal — gated on showFab so navigating away closes it */}
+      {showFab && open && (
         <div
           className="fixed inset-0 z-[140] flex items-center justify-center px-4"
           onMouseDown={(e) => {
