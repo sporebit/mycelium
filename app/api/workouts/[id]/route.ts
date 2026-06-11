@@ -10,6 +10,7 @@ import {
   type WorkoutExercise,
   type WorkoutKind,
   type WorkoutSlot,
+  type WorkoutSessionSummary,
 } from "@/lib/fitness/workouts";
 
 export const runtime = "nodejs";
@@ -78,12 +79,74 @@ export async function GET(
         slot: r.slot,
       };
     });
+
+    // Session history via programme_sessions
+    const psIds = usedIn.map((u) => u.programme_session_id);
+    let sessions: WorkoutSessionSummary[] = [];
+    if (psIds.length > 0) {
+      const { data: wSessions } = await supabase
+        .from("workout_sessions")
+        .select("id, date, status, started_at, completed_at, programme_session_id")
+        .in("programme_session_id", psIds)
+        .in("status", ["completed", "attempted"])
+        .order("date", { ascending: false })
+        .limit(50);
+      const wsRows = (wSessions ?? []) as Array<{
+        id: string; date: string; status: string;
+        started_at: string | null; completed_at: string | null;
+      }>;
+      if (wsRows.length > 0) {
+        const wsIds = wsRows.map((s) => s.id);
+        const { data: sexRows } = await supabase
+          .from("workout_session_exercises")
+          .select("id, session_id")
+          .in("session_id", wsIds);
+        const seArr = (sexRows ?? []) as Array<{ id: string; session_id: string }>;
+        const volumeBySession = new Map<string, number>();
+        const setsBySession = new Map<string, number>();
+        if (seArr.length > 0) {
+          const exToSession = new Map<string, string>();
+          for (const e of seArr) exToSession.set(e.id, e.session_id);
+          const { data: setRows } = await supabase
+            .from("workout_sets")
+            .select("session_exercise_id, weight, reps")
+            .in("session_exercise_id", seArr.map((e) => e.id));
+          for (const s of (setRows ?? []) as Array<{
+            session_exercise_id: string; weight: number | null; reps: number | null;
+          }>) {
+            const sid = exToSession.get(s.session_exercise_id);
+            if (!sid) continue;
+            setsBySession.set(sid, (setsBySession.get(sid) || 0) + 1);
+            if (s.weight && s.reps) {
+              volumeBySession.set(sid, (volumeBySession.get(sid) || 0) + s.weight * s.reps);
+            }
+          }
+        }
+        sessions = wsRows.map((s) => {
+          let durationMinutes: number | null = null;
+          if (s.started_at && s.completed_at) {
+            durationMinutes = Math.round(
+              (new Date(s.completed_at).getTime() - new Date(s.started_at).getTime()) / 60000,
+            );
+          }
+          return {
+            session_id: s.id,
+            date: s.date,
+            status: s.status,
+            total_volume_kg: volumeBySession.get(s.id) || 0,
+            set_count: setsBySession.get(s.id) || 0,
+            duration_minutes: durationMinutes,
+          };
+        });
+      }
+    }
+
     const detail: WorkoutDetail = {
       ...workout,
-      exercises: ((exRows ?? []) as WorkoutExercise[]),
+      exercises: (exRows ?? []) as WorkoutExercise[],
       used_in: usedIn,
     };
-    return NextResponse.json({ workout: detail });
+    return NextResponse.json({ workout: detail, sessions });
   } catch (err) {
     console.error("[/api/workouts/:id GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });
@@ -143,9 +206,6 @@ export async function DELETE(
   const { id } = await ctx.params;
   try {
     const supabase = createServerClient();
-    // Soft-delete via archived_at; programme references stay intact
-    // (we don't dangle by cascading) but the workout disappears from
-    // the library list.
     const { error } = await supabase
       .from("workouts")
       .update({ archived_at: new Date().toISOString() })

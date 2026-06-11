@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import {
   WORKOUT_SELECT,
-  WORKOUT_EX_SELECT,
   WORKOUT_KINDS,
   WORKOUT_SLOTS,
   type Workout,
@@ -41,7 +40,7 @@ export async function GET(req: NextRequest) {
 
     if (workouts.length > 0) {
       const ids = workouts.map((w) => w.id);
-      // Exercise counts
+
       const { data: exRows } = await supabase
         .from("workout_exercises")
         .select("workout_id")
@@ -50,18 +49,75 @@ export async function GET(req: NextRequest) {
       for (const r of (exRows ?? []) as Array<{ workout_id: string }>) {
         exCounts.set(r.workout_id, (exCounts.get(r.workout_id) ?? 0) + 1);
       }
-      // Programme use counts
+
       const { data: useRows } = await supabase
         .from("workout_programme_sessions")
-        .select("workout_id")
+        .select("id, workout_id")
         .in("workout_id", ids);
       const useCounts = new Map<string, number>();
-      for (const r of (useRows ?? []) as Array<{ workout_id: string }>) {
+      const psToWorkout = new Map<string, string>();
+      for (const r of (useRows ?? []) as Array<{ id: string; workout_id: string }>) {
         useCounts.set(r.workout_id, (useCounts.get(r.workout_id) ?? 0) + 1);
+        psToWorkout.set(r.id, r.workout_id);
       }
+
+      // Session stats
+      const psIds = [...psToWorkout.keys()];
+      let sessionsByWorkout = new Map<string, Array<{ id: string; date: string }>>();
+      if (psIds.length > 0) {
+        const { data: sessions } = await supabase
+          .from("workout_sessions")
+          .select("id, date, programme_session_id")
+          .in("programme_session_id", psIds)
+          .in("status", ["completed", "attempted"])
+          .order("date", { ascending: false });
+        for (const s of (sessions ?? []) as Array<{ id: string; date: string; programme_session_id: string }>) {
+          const wid = psToWorkout.get(s.programme_session_id);
+          if (!wid) continue;
+          const arr = sessionsByWorkout.get(wid) || [];
+          arr.push({ id: s.id, date: s.date });
+          sessionsByWorkout.set(wid, arr);
+        }
+      }
+
+      // Volume sparkline data for recent sessions
+      const recentIds: string[] = [];
+      for (const [, wSessions] of sessionsByWorkout) {
+        for (const s of wSessions.slice(0, 8)) recentIds.push(s.id);
+      }
+      const volumeBySession = new Map<string, number>();
+      if (recentIds.length > 0) {
+        const { data: sexRows } = await supabase
+          .from("workout_session_exercises")
+          .select("id, session_id")
+          .in("session_id", recentIds);
+        const seIds = (sexRows ?? []) as Array<{ id: string; session_id: string }>;
+        if (seIds.length > 0) {
+          const exToSession = new Map<string, string>();
+          for (const e of seIds) exToSession.set(e.id, e.session_id);
+          const { data: setRows } = await supabase
+            .from("workout_sets")
+            .select("session_exercise_id, weight, reps")
+            .in("session_exercise_id", seIds.map((e) => e.id));
+          for (const s of (setRows ?? []) as Array<{ session_exercise_id: string; weight: number | null; reps: number | null }>) {
+            const sid = exToSession.get(s.session_exercise_id);
+            if (sid && s.weight && s.reps) {
+              volumeBySession.set(sid, (volumeBySession.get(sid) || 0) + s.weight * s.reps);
+            }
+          }
+        }
+      }
+
       for (const w of workouts) {
         w.exercise_count = exCounts.get(w.id) ?? 0;
         w.programme_use_count = useCounts.get(w.id) ?? 0;
+        const wSessions = sessionsByWorkout.get(w.id) || [];
+        w.times_performed = wSessions.length;
+        w.last_performed = wSessions[0]?.date ?? null;
+        w.recent_volumes = wSessions
+          .slice(0, 8)
+          .reverse()
+          .map((s) => volumeBySession.get(s.id) || 0);
       }
     }
 
@@ -118,7 +174,6 @@ export async function POST(req: NextRequest) {
     if (error || !data) throw error ?? new Error("insert failed");
     const workout = data as Workout;
 
-    // Seed exercises if any were passed in the create payload.
     const exs = Array.isArray(body.exercises) ? body.exercises : [];
     if (exs.length > 0) {
       const rows = exs.map((e, i) => ({

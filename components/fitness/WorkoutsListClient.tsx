@@ -19,6 +19,28 @@ const FILTERS: { value: Filter; label: string }[] = [
   ...WORKOUT_KINDS.map((k) => ({ value: k, label: KIND_LABEL[k].toUpperCase() })),
 ];
 
+function MiniSparkline({ values }: { values: number[] }) {
+  if (values.length < 2 || values.every((v) => v === 0)) return null;
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const range = max - min || 1;
+  const w = 80;
+  const h = 32;
+  const stepX = w / (values.length - 1);
+  const path = values
+    .map((v, i) => {
+      const x = i * stepX;
+      const y = h - 4 - ((v - min) / range) * (h - 8);
+      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-20 h-8 shrink-0" preserveAspectRatio="none">
+      <path d={path} fill="none" stroke="var(--glow-0)" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
 export function WorkoutsListClient() {
   const [filter, setFilter] = useState<Filter>("all");
   const [workouts, setWorkouts] = useState<Workout[] | null>(null);
@@ -132,22 +154,38 @@ export function WorkoutsListClient() {
                     </div>
                   </div>
                 </Link>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    <Mono>{w.exercise_count ?? 0} ex</Mono>
+                    {(w.times_performed ?? 0) > 0 && (
+                      <Mono>{w.times_performed} sessions</Mono>
+                    )}
+                  </div>
+                  <MiniSparkline values={w.recent_volumes ?? []} />
+                </div>
                 <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
                   <Mono>
-                    {w.exercise_count ?? 0} ex
-                    {w.programme_use_count != null
-                      ? ` · used in ${w.programme_use_count}`
-                      : ""}
+                    {w.last_performed
+                      ? `Last ${w.last_performed}`
+                      : "Never performed"}
                   </Mono>
-                  <button
-                    type="button"
-                    onClick={() => archive(w)}
-                    className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-danger transition-opacity"
-                    aria-label="Archive workout"
-                    title="Archive workout"
-                  >
-                    🗑
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/fitness/workouts/${w.id}`}
+                      className="text-accent hover:text-glow-1 transition-colors"
+                    >
+                      VIEW →
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => archive(w)}
+                      className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-danger transition-opacity"
+                      aria-label="Archive workout"
+                      title="Archive workout"
+                    >
+                      🗑
+                    </button>
+                  </div>
                 </div>
               </div>
             </li>

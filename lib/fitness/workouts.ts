@@ -29,6 +29,9 @@ export type Workout = {
   /** Lightweight counters populated on list endpoint. */
   exercise_count?: number;
   programme_use_count?: number;
+  last_performed?: string | null;
+  times_performed?: number;
+  recent_volumes?: number[];
 };
 
 export type WorkoutExercise = {
@@ -55,6 +58,21 @@ export type WorkoutDetail = Workout & {
     day_of_week: number;
     slot: string;
   }>;
+};
+
+export type WorkoutSessionSummary = {
+  session_id: string;
+  date: string;
+  status: string;
+  total_volume_kg: number;
+  set_count: number;
+  duration_minutes: number | null;
+};
+
+export type WorkoutWithStats = Workout & {
+  last_performed: string | null;
+  times_performed: number;
+  recent_volumes: number[];
 };
 
 export const WORKOUT_SELECT =
