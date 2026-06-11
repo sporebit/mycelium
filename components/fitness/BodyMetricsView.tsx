@@ -4,12 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Panel } from "@/components/dashboard/Panel";
 import { Mono } from "@/components/dashboard/Mono";
 import { localDateKey } from "@/lib/util/date";
-import { formatWeightInUnit } from "@/lib/fitness/units";
+import { formatWeight, toKg } from "@/lib/fitness/units";
 import type { BodyMetric, WeightUnit } from "@/lib/fitness/types";
 
 type Toast = { kind: "success" | "error"; text: string } | null;
 
 const UNITS: WeightUnit[] = ["kg", "lbs", "stone"];
+const UNIT_LABEL: Record<WeightUnit, string> = { kg: "kg", lbs: "lbs", stone: "st" };
 
 function fmtNum(n: number | null, suffix = "", decimals = 1): string {
   if (n === null || !Number.isFinite(n)) return "—";
@@ -28,7 +29,22 @@ export function BodyMetricsView() {
   const [bodyFat, setBodyFat] = useState<string>("");
   const [muscle, setMuscle] = useState<string>("");
   const [waist, setWaist] = useState<string>("");
+  const [arms, setArms] = useState<string>("");
+  const [thorax, setThorax] = useState<string>("");
+  const [thighs, setThighs] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
+
+  const [displayUnit, setDisplayUnit] = useState<WeightUnit>("kg");
+
+  useEffect(() => {
+    const stored = localStorage.getItem("body-metrics-weight-unit") as WeightUnit | null;
+    if (stored && UNITS.includes(stored)) setDisplayUnit(stored);
+  }, []);
+
+  function changeDisplayUnit(u: WeightUnit) {
+    setDisplayUnit(u);
+    localStorage.setItem("body-metrics-weight-unit", u);
+  }
 
   async function load() {
     const res = await fetch("/api/body-metrics?days=30", { cache: "no-store" });
@@ -74,6 +90,9 @@ export function BodyMetricsView() {
           body_fat_pct: bodyFat ? Number(bodyFat) : null,
           muscle_mass_kg: muscle ? Number(muscle) : null,
           waist_cm: waist ? Number(waist) : null,
+          arms_in: arms ? Number(arms) : null,
+          thorax_in: thorax ? Number(thorax) : null,
+          thighs_in: thighs ? Number(thighs) : null,
           notes: notes.trim() || null,
         }),
       });
@@ -87,6 +106,9 @@ export function BodyMetricsView() {
       setBodyFat("");
       setMuscle("");
       setWaist("");
+      setArms("");
+      setThorax("");
+      setThighs("");
       setNotes("");
       await load();
     } catch (err) {
@@ -96,7 +118,6 @@ export function BodyMetricsView() {
     }
   }
 
-  // Simple sparkline of weight (in kg, converting from logged unit if needed).
   const weightSpark = useMemo(() => {
     if (!entries || entries.length < 2) return null;
     const points = [...entries]
@@ -104,11 +125,7 @@ export function BodyMetricsView() {
       .map((e) => {
         const w = e.weight;
         if (w === null) return null;
-        // Convert to kg for plotting consistency.
-        if (e.weight_unit === "kg") return w;
-        if (e.weight_unit === "lbs") return w * 0.453592;
-        if (e.weight_unit === "stone") return w * 6.35029;
-        return w;
+        return toKg(w, e.weight_unit);
       })
       .filter((x): x is number => x !== null);
     if (points.length < 2) return null;
@@ -126,18 +143,40 @@ export function BodyMetricsView() {
     return { path, min, max };
   }, [entries]);
 
+  const inputCls =
+    "bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)] tabular-nums";
+  const labelCls =
+    "text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]";
+
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
-        Body metrics
-      </h1>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
+          Body metrics
+        </h1>
+        <div className="flex items-center gap-1.5">
+          <span className={labelCls}>Weight unit</span>
+          {UNITS.map((u) => (
+            <button
+              key={u}
+              type="button"
+              onClick={() => changeDisplayUnit(u)}
+              className={`px-2 py-1 rounded text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] uppercase transition-colors border ${
+                displayUnit === u
+                  ? "bg-accent/20 text-accent border-accent/40"
+                  : "text-ink-3 border-ink-2 hover:text-ink-4"
+              }`}
+            >
+              {UNIT_LABEL[u]}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <Panel title="Log entry">
         <form onSubmit={save} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <label className="flex flex-col gap-1 col-span-2 sm:col-span-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-              Date
-            </span>
+            <span className={labelCls}>Date</span>
             <input
               type="date"
               value={date}
@@ -146,22 +185,18 @@ export function BodyMetricsView() {
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-              Weight
-            </span>
+            <span className={labelCls}>Weight</span>
             <input
               type="number"
               step="0.1"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               placeholder="84.2"
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)] tabular-nums"
+              className={inputCls}
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-              Unit
-            </span>
+            <span className={labelCls}>Unit</span>
             <select
               value={unit}
               onChange={(e) => setUnit(e.target.value as WeightUnit)}
@@ -169,54 +204,80 @@ export function BodyMetricsView() {
             >
               {UNITS.map((u) => (
                 <option key={u} value={u}>
-                  {u}
+                  {UNIT_LABEL[u]}
                 </option>
               ))}
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-              Body fat %
-            </span>
+            <span className={labelCls}>Body fat %</span>
             <input
               type="number"
               step="0.1"
               value={bodyFat}
               onChange={(e) => setBodyFat(e.target.value)}
               placeholder="18.5"
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)] tabular-nums"
+              className={inputCls}
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-              Muscle (kg)
-            </span>
+            <span className={labelCls}>Muscle (kg)</span>
             <input
               type="number"
               step="0.1"
               value={muscle}
               onChange={(e) => setMuscle(e.target.value)}
               placeholder="40.0"
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)] tabular-nums"
+              className={inputCls}
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-              Waist (cm)
-            </span>
+            {/* Historical waist values pre-2026-06-11 were stored as cm */}
+            <span className={labelCls}>Waist (in)</span>
             <input
               type="number"
               step="0.1"
               value={waist}
               onChange={(e) => setWaist(e.target.value)}
-              placeholder="86"
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)] tabular-nums"
+              placeholder="34"
+              className={inputCls}
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className={labelCls}>Arms (in)</span>
+            <input
+              type="number"
+              step="0.1"
+              value={arms}
+              onChange={(e) => setArms(e.target.value)}
+              placeholder="15"
+              className={inputCls}
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className={labelCls}>Thorax (in)</span>
+            <input
+              type="number"
+              step="0.1"
+              value={thorax}
+              onChange={(e) => setThorax(e.target.value)}
+              placeholder="40"
+              className={inputCls}
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className={labelCls}>Thighs (in)</span>
+            <input
+              type="number"
+              step="0.1"
+              value={thighs}
+              onChange={(e) => setThighs(e.target.value)}
+              placeholder="24"
+              className={inputCls}
             />
           </label>
           <label className="flex flex-col gap-1 col-span-2 sm:col-span-4">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-              Notes
-            </span>
+            <span className={labelCls}>Notes</span>
             <input
               type="text"
               value={notes}
@@ -238,7 +299,10 @@ export function BodyMetricsView() {
       </Panel>
 
       {weightSpark && (
-        <Panel title="Weight (last 30 days)" topRight={<Mono>KG</Mono>}>
+        <Panel
+          title="Weight (last 30 days)"
+          topRight={<Mono>{UNIT_LABEL[displayUnit].toUpperCase()}</Mono>}
+        >
           <div className="relative h-12 rounded-lg border border-ink-2 bg-ink-0/40 overflow-hidden">
             <svg
               viewBox="0 0 200 48"
@@ -253,7 +317,8 @@ export function BodyMetricsView() {
               />
             </svg>
             <div className="absolute right-2 top-1 text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">
-              {weightSpark.min.toFixed(1)} – {weightSpark.max.toFixed(1)}
+              {formatWeight(weightSpark.min, displayUnit)} –{" "}
+              {formatWeight(weightSpark.max, displayUnit)}
             </div>
           </div>
         </Panel>
@@ -275,9 +340,13 @@ export function BodyMetricsView() {
                 <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-ink-2">
                   <th className="text-left py-2 pr-3">Date</th>
                   <th className="text-right py-2 px-3">Weight</th>
+                  <th className="text-center py-2 px-2">Unit</th>
                   <th className="text-right py-2 px-3">BF%</th>
                   <th className="text-right py-2 px-3">Muscle</th>
-                  <th className="text-right py-2 pl-3">Waist</th>
+                  <th className="text-right py-2 px-3">Waist</th>
+                  <th className="text-right py-2 px-3">Arms</th>
+                  <th className="text-right py-2 px-3">Thorax</th>
+                  <th className="text-right py-2 pl-3">Thighs</th>
                 </tr>
               </thead>
               <tbody>
@@ -287,8 +356,13 @@ export function BodyMetricsView() {
                     <td className="text-right py-2 px-3">
                       <Mono className="text-ink-4">
                         {e.weight !== null
-                          ? formatWeightInUnit(e.weight, e.weight_unit)
+                          ? formatWeight(toKg(e.weight, e.weight_unit), displayUnit)
                           : "—"}
+                      </Mono>
+                    </td>
+                    <td className="text-center py-2 px-2">
+                      <Mono className="text-ink-3">
+                        {e.weight !== null ? UNIT_LABEL[e.weight_unit] : "—"}
                       </Mono>
                     </td>
                     <td className="text-right py-2 px-3">
@@ -301,9 +375,24 @@ export function BodyMetricsView() {
                         {fmtNum(e.muscle_mass_kg, "kg")}
                       </Mono>
                     </td>
+                    <td className="text-right py-2 px-3">
+                      <Mono className="text-ink-3">
+                        {fmtNum(e.waist_cm, "in", 0)}
+                      </Mono>
+                    </td>
+                    <td className="text-right py-2 px-3">
+                      <Mono className="text-ink-3">
+                        {fmtNum(e.arms_in, "in", 1)}
+                      </Mono>
+                    </td>
+                    <td className="text-right py-2 px-3">
+                      <Mono className="text-ink-3">
+                        {fmtNum(e.thorax_in, "in", 1)}
+                      </Mono>
+                    </td>
                     <td className="text-right py-2 pl-3">
                       <Mono className="text-ink-3">
-                        {fmtNum(e.waist_cm, "cm", 0)}
+                        {fmtNum(e.thighs_in, "in", 1)}
                       </Mono>
                     </td>
                   </tr>

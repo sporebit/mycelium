@@ -135,6 +135,9 @@ export type BodyMetric = {
   bone_mass_kg: number | null;
   water_percent: number | null;
   waist_cm: number | null;
+  arms_in: number | null;
+  thorax_in: number | null;
+  thighs_in: number | null;
   notes: string | null;
   source: BodyMetricSource;
   recorded_at: string | null;
