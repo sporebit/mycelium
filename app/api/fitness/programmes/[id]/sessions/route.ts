@@ -35,10 +35,13 @@ export async function POST(
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
+  const VALID_SLOTS = new Set(["morning", "afternoon", "evening", "extra"]);
+  const VALID_KINDS = new Set(["cardio", "conditioning", "resistance", "mobility"]);
+
   let body: {
     day_of_week?: number;
-    slot?: "morning" | "afternoon";
-    kind?: "cardio" | "resistance";
+    slot?: string;
+    kind?: string;
     name?: string;
     notes?: string;
   };
@@ -51,12 +54,12 @@ export async function POST(
     typeof body.day_of_week !== "number" ||
     body.day_of_week < 0 ||
     body.day_of_week > 6 ||
-    (body.slot !== "morning" && body.slot !== "afternoon") ||
-    (body.kind !== "cardio" && body.kind !== "resistance") ||
+    !VALID_SLOTS.has(body.slot ?? "") ||
+    !VALID_KINDS.has(body.kind ?? "") ||
     !body.name?.trim()
   ) {
     return NextResponse.json(
-      { error: "day_of_week (0-6), slot (morning|afternoon), kind, name required" },
+      { error: "day_of_week (0-6), slot (morning|afternoon|evening|extra), kind (cardio|conditioning|resistance|mobility), name required" },
       { status: 400 }
     );
   }
