@@ -1,11 +1,7 @@
-import { SectionOverview } from "@/components/dashboard/SectionOverview";
+"use client";
+
+import { AgentChat } from "@/components/agents/AgentChat";
 
 export default function CoachPage() {
-  return (
-    <SectionOverview
-      title="Coach"
-      tagline="Your AI fitness coach — training, movement, and recovery guidance."
-      cards={[]}
-    />
-  );
+  return <AgentChat agentId="fitness" />;
 }

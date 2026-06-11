@@ -10,6 +10,7 @@ const TABS: SubNavTab[] = [
   },
   { label: "SNAPSHOT", href: "/finance/snapshot" },
   { label: "SPENDING", href: "/finance/spending" },
+  { label: "ADVISOR", href: "/finance/advisor" },
 ];
 
 export function FinanceSubNav() {

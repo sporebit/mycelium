@@ -11,6 +11,7 @@ const TABS: SubNavTab[] = [
   { label: "CAPTURES", href: "/organisation/captures" },
   { label: "REVIEW", href: "/organisation/captures/review" },
   { label: "DECISIONS", href: "/organisation/decisions" },
+  { label: "ASSISTANT", href: "/organisation/assistant" },
 ];
 
 export function SubNav() {
