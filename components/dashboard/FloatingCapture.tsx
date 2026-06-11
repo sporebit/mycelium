@@ -11,7 +11,7 @@ const FAB_ROUTES = new Set([
   "/fitness",
   "/health",
   "/finance",
-  "/brain",
+  "/the-boys",
   "/studio",
 ]);
 

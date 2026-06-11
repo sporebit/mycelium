@@ -5,9 +5,12 @@ import { usePathname } from "next/navigation";
 
 const TABS = [
   { label: "Today", href: "/fitness" },
+  { label: "Workouts", href: "/fitness/workouts" },
+  { label: "Exercises", href: "/fitness/exercises" },
   { label: "Programmes", href: "/fitness/programmes" },
   { label: "History", href: "/fitness/history" },
   { label: "Body", href: "/fitness/body" },
+  { label: "Coach", href: "/fitness/coach" },
 ];
 
 export function FitnessSubNav() {

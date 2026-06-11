@@ -5,7 +5,7 @@
 >
 > Keep it sectioned so edits stay surgical. Prune freely — shorter and accurate beats long and stale.
 >
-> _Last updated: 7 June 2026_
+> _Last updated: 9 June 2026_
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## 2. Tooling & workflow
 
-- Supabase CLI via Scoop; migrations applied with `supabase db push` from project root. **Latest migration: 0049** (`0049_txn_agg_function.sql`).
+- Supabase CLI via Scoop; migrations applied with `supabase db push` from project root. **Latest migration: 0050** (`0050_spend_analytics.sql` — spend_by_category + spend_by_month RPCs).
 - PowerShell `mycelium` function cds to project + runs `git status -sb`.
 - `AGENTS.md` instructs Claude Code to **auto-commit + push to main** after every code-changing task.
 - One commit per concern (clean atomic history). Parallel Claude Code sessions for non-conflicting work.
@@ -40,18 +40,18 @@
 - `graphify` — `/graphify` repo knowledge graph. Run `graphify update .` after code changes (no API cost). Current to HEAD `1c4c94d`.
 
 **MCP servers:**
-- 21st.dev **Magic** — user/global scope; UI component library. _(Note: rotate the API key that was pasted in plaintext.)_
+- 21st.dev **Magic** — user/global scope; UI component library. Key at `C:\Users\Phili\.claude.json` → `mcpServers.magic.env.API_KEY`. ✅ Rotated session 3.
 - **ruflo** — project scope, multi-agent meta-harness; connected via `npx`. Heavily over-scoped for a solo single-repo project — candidate to remove if it isn't earning its place.
 
 ---
 
 ## 3. Pillars / scope (6)
 
-1. **Organisation** — Tasks, Projects, People, Captures, Decisions, Purchases. Routes: `/compost/*` (rename to `/organisation/*` deferred).
-2. **Fitness** — Workouts, Programmes, Exercise History/Aliases, Baselines, Pain Logs, Workout Now. Routes: `/fitness/*`.
+1. **Organisation** — Tasks, Projects, People, Captures, Decisions, Purchases, **Habits**. Routes: `/organisation/*` (renamed from `/compost/*`; redirects in place).
+2. **Fitness** — Workouts, Programmes, Exercise History/Aliases, Baselines, Pain Logs, Workout Now. Routes: `/fitness/*`. Horizontal sub-nav: Today / Programmes / History / Body.
 3. **Health** — Nutrition, Supplements, Body Metrics (canonical; moved from Fitness). Drafts: Gut Health, Blood Tests, Recipes. Routes: `/health/*`. Apple Health pipeline code-done, not active.
-4. **Brain** — Journal, Reminders, Calendar, Stroma search/AI. Drafts: Watchlist, Places. Routes: `/stroma/*` (rename to `/brain/*` deferred).
-5. **Finance** — Spending (multi-bank), Net Worth, Fuel. Draft: Accounts register. Routes: `/finance/*`.
+4. **Brain** — Journal, Reminders, Calendar, search/AI. Drafts: Watchlist, Places. Routes: `/brain/*` (renamed from `/stroma/*`; redirects in place).
+5. **Finance** — Spending (multi-bank), Net Worth, Fuel, Analysis. Draft: Accounts register. Routes: `/finance/*`.
 6. **Studio** — Music, Footage, Design/Video, PC Build. Routes: `/studio/*`. Placeholder live; data models TBD.
 
 ---
@@ -62,53 +62,44 @@
 2. ~~Tickers + branding~~ ✅ done — rotating top-rail: BTC/ETH/USDT, NDX/SPX, Gold/Silver/Copper/Palladium/Oil; 60s polling; CoinGecko + Yahoo Finance; sunrise widget; MYCELIUM rebrand. (`4f1de0f`)
 3. ~~Finance privacy toggle~~ ✅ done — original blur (`2930edf`); upgraded to true redaction via `<Money>` + `<PrivateText>`, constant-width placeholder, default-hidden session-only (`d1629a2`, `7f3e80b`).
 4. ~~UK fuel prices~~ ✅ done — CMA data, Armthorpe + 5mi radius, ticker + home card. (`8f3124d`)
-5. **Spending tracking** ✅ Phase A + B complete. A: Halifax/Revolut/AMEX/PayPal imports, multi-bank schema, date-range presets. B: type normalisation (migration 0047 — raw bank codes → full words, normalised at import before dedup_hash), AI categorisation (migration 0048 — category_source/ai_confidence/category_locked; rules engine with transfer detection + self-name match + PHILIP WHELAN patterns; Claude Haiku batch; manual lock; txn_agg RPC fixing PostgREST 1000-row limit). **Still to do: C (other banks), D (analysis views).**
+5. **Spending tracking** ✅ Phase A + B + D complete. A: Halifax/Revolut/AMEX/PayPal imports, multi-bank schema, date-range presets. B: type normalisation (0047), AI categorisation (0048), rules engine, txn_agg RPC. D: migration 0050 (spend_by_category + spend_by_month RPCs), `/finance/analysis` page (period selector, summary cards, category bar chart, monthly stacked trend), mini overview panel on spending page. **Still to do: C (other banks).**
 6. **Live finances (later)** — Coinbase + Rabby + Revolut Stocks holdings via Yahoo Finance; banks manual. Revolut current account not viable without paid Open Banking.
 
 ---
 
 ## 5. Active work & open items  _(VERIFY — most likely to be stale)_
 
-**Built (session 3 — 7 June, migrations 0047–0048):**
-- **Type standardisation ✅** — migration 0047. Raw bank codes → canonical full words across all import paths. Normalisation runs before dedup_hash.
-- **Spending Phase B ✅** — migration 0048. Rules → AI (Haiku) → manual cascade. Internal transfer detection (Top-up type, self-name match, Revpoints). txn_agg RPC for accurate aggregation. Type + category filters. Inline category edit with lock flag. Commits: 6377f43, de29e73.
-- **Homescreen remodel ✅** — Commits 1c4d34, 34bbd5.
-  - `/` replaced with full-screen Canvas orbital hub (organic Brain centre, animated growing threads, grain/strata texture, section nodes in section accent colours).
-  - `/dashboard` = moved card grid. `/studio` = placeholder.
-  - TendrilSpine nav component on all section pages (left edge, 52px, primary/secondary nodes on a thread, Brain nucleus return button).
-  - Bloom transitions: clip-path circle expansion 480ms entry + 400ms opacity reveal. TransitionContext in `lib/context/`; imperative DOM for CSS transition trigger.
-  - Section sub-page config + primary/secondary splits in `lib/nav/sections.ts`.
+**Built (session 4 — 8–9 June):**
+- **Dashboard as home** ✅ — `/` = card grid (was `/dashboard`), `/hub` = Canvas rhizomorph hub. `/dashboard` redirects to `/`. Commits: c0008d5, a282de8.
+- **TendrilSpine removed** ✅ — replaced by TopRail on all section pages.
+- **TopRail rewritten** ✅ — 7 tabs: Dashboard / Organisation / Fitness / Health / Brain / Finance / Studio + Review. Hamburger on mobile. MYCELIUM wordmark links to `/hub`. MYCELIUM colour-cycle animation (14s, all 6 section colours) on wordmark.
+- **CSS Grid dense masonry dashboard** ✅ — 12-col grid, `grid-auto-flow: row dense`, 10 card sizes (sm/md/tall/wide/lg/full/tall-3/tall-4/md-3/md-4), localStorage persistence, edit mode with drag handles + size picker, responsive (6-col tablet, stacked mobile).
+- **Spending Phase D** ✅ — migration 0050. `spend_by_category` + `spend_by_month` RPCs. `/finance/analysis`: period selector, 4 summary cards, horizontal bar chart by category, stacked monthly trend (last 6 months). Mini collapsible overview panel on spending page. Commits: 078c4ef, 95aedc2.
+- **Route renames** ✅ — `app/compost/` → `app/organisation/`, `app/stroma/` → `app/brain/`. 19 files moved, 31 references updated. Backwards-compat redirects kept. Commit: 959714d.
+- **Fitness sub-nav** ✅ — horizontal tab bar in fitness layout: Today / Programmes / History / Body.
+- **Brain TRY prompts removed** ✅ — example query suggestions removed from ask page.
+- **Session time editable** ✅ — finish session modal has h/m number inputs; back-calculates `completed_at` from `started_at + duration_minutes`.
+- **Habits page** ✅ — `/organisation/habits`. Toggle tiles (full-page), 1-year heatmap (CSS Grid column-flow, 53 cols, 4 amber opacity tiers, hover tooltips, month labels), per-habit breakdown table (streak/30d/90d). Reads from `daily_logs.notes` JSON — no migration needed. Card added to Organisation landing page.
+- **Review nav item** ✅ — TopRail tab linking to `/organisation/review`.
 
-**Active HEAD:** `34bbd5`
+**Active HEAD:** post-72b629b (habits + heatmap commits pushed after, hashes not recorded)
 
-**Built (session 2 — 6 June, migrations 0046):**
-- **Reminders page** ✅ — `/reminders` (commit `d0feedd`). Upcoming / Recurring / Recently Fired; add-form with Europe/London wall-clock pickers; inline edit + delete; nav-wired via `MoreList.tsx` next to Journal.
-- **Exercise aliases** ✅ — migration 0046 (commit `5886f43`). `exercise_aliases` table; `lib/fitness/resolve-aliases.ts` shared helper; alias union via Supabase `.or()` filter across three routes (exercise-history, baselines, pain-logs — covers PRs/volume/progression/top-set since all derive from the history query); degrades to single-ILIKE when no aliases; CRUD at `/api/fitness/exercise-aliases`; collapsible alias UI on history page.
-- **Six draft scaffolds** ✅ — `/draft/{recipes,gut-health,blood-tests,accounts,studio,watchlist}` (commit `3dae355`). Local state only, no migrations, no nav, URL-only. Pending design sign-off before any become real.
-- **Build fix** — React 19 render-purity violations (commit `1c4c94d`). Note: the three feature commits don't build individually at HEAD; only `1c4c94d` makes the tree green. History won't bisect cleanly across this batch.
+**Built (session 3 — 7–8 June, migrations 0047–0048):**
+- **Type standardisation ✅** — migration 0047.
+- **Spending Phase B ✅** — migration 0048. Rules → AI (Haiku) → manual. Commits: 6377f43, de29e73.
+- **Homescreen remodel ✅** — rhizomorph cluster hub at `/hub`. Commits: 1c4d34, 34bbd5, 41daeda+.
 
-**Built (session 1 — 5 June, migrations 0041–0045):**
-- **Finance true redaction** — `<Money>` (amounts) + `<PrivateText>` (descriptions); constant-width placeholder; real value never in DOM; default-hidden session-only; sparkline at low opacity without monetary labels.
-- **Supplement tracker** — `/health/supplements` (migration 0041). One-tap TAKEN, × undo/delete, Europe/London day boundary, wired into health nav + overview.
-- **PC build log** — `/pc-build` (migration 0042). Current specs + dated upgrade history; mark-old-as-replaced flow.
-- **Places + map** — `/places` (migration 0043). Leaflet + OpenStreetMap, status-coloured pins, straight-line distance from DN3. Google Maps link → coords extraction.
-- **Telegram outbound + reminders** — migration 0044. Send helper on existing bot; `reminders` table; cron-job.org every 5 min; recurrence by row-insert.
-- **Apple Health ingest** — `POST /api/health-import` (migration 0045). Idempotent upserts; Europe/London date boundaries. ⚠️ Code live; pipeline not active until HAE setup.
-- **Middleware auth** — `/api/cron/reminders` and `/api/health-import` exempted from session gate; each handles own bearer-token auth.
-- **NL reminder parsing** — Telegram/voice "remind me at X to Y" → reminders row; Europe/London → UTC; Telegram confirms back.
-- **Graceful Whisper failure** — voice handler catches errors, replies in Telegram, preserves `file_id`.
+**Built (session 2 — 6 June, migration 0046):**
+- **Reminders page** ✅ — `/reminders` (`d0feedd`).
+- **Exercise aliases** ✅ — migration 0046 (`5886f43`).
+- **Six draft scaffolds** ✅ — `/draft/{recipes,gut-health,blood-tests,accounts,studio,watchlist}` (`3dae355`).
 
-**Outstanding setup (manual actions needed):**
-- `HEALTH_IMPORT_SECRET`: add to Vercel Production, redeploy, use as HAE bearer.
-- **Health Auto Export app**: install + configure; set to daily aggregation; follow `apple-health-setup-guide.md` (in session outputs).
-- **REMINDERS_CRON_SECRET**: rotate (partially visible in screenshot). Regenerate → update Vercel + cron-job.org header → redeploy.
-- **21st.dev Magic API key**: rotate (pasted in plaintext).
+**Outstanding setup (manual — keeps getting deferred):**
+- `HEALTH_IMPORT_SECRET`: add to Vercel Production + redeploy.
+- **Health Auto Export app**: install + configure; daily aggregation; `apple-health-setup-guide.md` in session outputs.
+- **REMINDERS_CRON_SECRET**: rotate (partially visible in screenshot).
 
-**Fuel error** — parked/unresolved from a prior session; still needs re-check before closing.
-
-**Active branch:** main (HEAD `1c4c94d`). `feature/workout-now-offline` merged.
-
-**Deferred:** PDF statement import; browser automation for bank exports.
+**Deferred:** PDF statement import; browser automation for bank exports; fuel error (parked).
 
 ---
 
@@ -158,11 +149,11 @@
 - ~~Exercise aliases~~ ✅ — (session 2, `5886f43`).
 
 **Still pending:**
-- **Spending tracking C–D** — C: other banks, D: analysis views.
+- **Spending tracking C** — other banks beyond Halifax/Revolut/AMEX/PayPal.
 - **Live finances** — Coinbase + Rabby + Revolut Stocks via Yahoo Finance. Banks manual.
 - **iOS Shortcut ⇄ Telegram full bidirectional parity** — expose `POST /api/fitness/pending-routes/[id]/resolve`; add `button_options` to `/api/capture-audio` response; Shortcut uses Choose-from-List + banner. v1 = workout picker only.
 - **`classifyCapture.ts` intent expansion** — broader NL intent handling beyond reminders.
-- ~~Homescreen remodel~~ ✅ — Canvas orbital hub, TendrilSpine, bloom transitions (session 3).
+- ~~Homescreen remodel~~ ✅ — rhizomorph hub at `/hub`, card grid dashboard at `/`, TopRail nav (sessions 3–4).
 - **Multi-user fitness** — user-scoping + auth. Per-set timing.
 - **Investment purchase tracker** — tag/kind for investment buys; price research + monitoring; eBay sold / StockX; `price_watch` table with scheduled checks.
 - **DB backup system** — nightly `pg_dump` off-site (S3/R2), retention 7d/4w/12m, restore test every 90d. First check if Supabase plan already includes automated backups.
@@ -205,11 +196,12 @@
 | Brain (hub centre) | `#84f5b8` | Shares primary glow — the organism's core |
 
 **Navigation architecture (locked):**
-- `/` = Canvas orbital hub. Brain = organic hyphal network at centre (Catmull-Rom closed loops, growing threads via progressive bezier draw). 6 section nodes orbit at radius `Math.min(w,h) * 0.32`.
-- Entry animation: node blooms (clip-path circle) 480ms → navigate → 400ms reveal.
-- Exit: nucleus button triggers reverse bloom from bottom → hub.
-- In-section nav: TendrilSpine (left edge, 52px). Primary nodes top 60% of spine, secondary lower 40%.
-- Grain texture: offscreen canvas, blit each frame (never regenerate per frame).
+- `/` = card grid dashboard (home). `/hub` = Canvas rhizomorph hub (accessible via MYCELIUM wordmark in TopRail).
+- Hub: dense L-system Brain core → 10-strand tapered rhizomorph bundles (Brain green `#84f5b8` → section colour gradient) → dense L-system cluster orbs as section nodes. Forest floor background (`/public/images/forest-bg.jpg`, overlay rgba(5,8,6,0.52)). Phased growth animation: dark → core → rhizomorphs → clusters → labels.
+- Entry animation: bloom transition (clip-path circle) 480ms → navigate → 400ms reveal. TransitionContext in `lib/context/`. Imperative DOM reflow for CSS trigger.
+- **TopRail** (all pages): Dashboard / Organisation / Fitness / Health / Brain / Finance / Studio / Review. Hamburger collapse on mobile. MYCELIUM wordmark → `/hub`; 14s colour-cycle animation (all 6 section colours).
+- Fitness: horizontal sub-nav tabs in layout (Today / Programmes / History / Body).
+- TendrilSpine removed.
 
 - **Type:** Inter Tight (UI), Recoleta (wordmark + H1). Scale 12–64. Radius 4/8/16/24.
 - **Wordmark:** "MYCELIUM ·" with pulsing spore-dot.
@@ -243,10 +235,16 @@
 - **CSS transitions need a forced reflow** — setting React state that applies the end value directly doesn't trigger animation (React batches it). Fix: imperative DOM access after `void el.offsetHeight`. Correct use of DOM manipulation in React (TransitionOverlay).
 - **Catmull-Rom via quadratic midpoints** — smooth closed organic curves: move to midpoint between point 0 and point 1, then `quadraticCurveTo` through each successive point to the next midpoint. Continuous curves that look irregular without being spiky.
 - **Growing thread animation** — progressive bezier draw (t=0 to growT, step dt=0.02, loop) rather than `setLineDash`; gives full control over tip effects and secondary branching timed to growT.
-- **Offscreen canvas for static textures** — grain generated once into an offscreen canvas, blitted each rAF frame. Regenerating 20k+ random dots at 60fps is fatal; blit costs near zero.
+- **`grid-auto-flow: row dense` fills masonry gaps** — CSS Grid handles irregular card sizes without JS; source order = placement priority. No library needed.
+- **`useSyncExternalStore` for breakpoint detection** — SSR-safe, avoids hydration mismatch vs `useEffect`+`useState` pattern.
+- **`createLinearGradient` on Canvas strands** — Brain green → section colour gradient along each filament; set gradient coords from node to cluster centre.
+- **Contribution heatmap layout** — `gridAutoFlow: "column"`, `gridTemplateRows: repeat(7, 1fr)`, fixed container height. Percentage-positioned month labels (`left: ${col/total*100}%`) scale with fluid grid; no pixel-width knowledge needed.
+- **`queueMicrotask(() => setState(null))`** — defers state reset to avoid React 19 cascading render warning when clearing after an optimistic update.
+- **Duration trust + back-calculation** — "trust the user" duration override in finish-session modal: back-calculate `completed_at = started_at + duration_minutes`. Don't block save on impossible combos; accept and store.
+- **Heatmap rate calculation guard** — when switching from 90-day to 1-year API fetch, ensure any "last-N-days" rate still filters by `daysAgo < N`; don't count the full history set.
 
 ---
 
 ## 10. Naming / metaphor (locked)
 
-Mycelium (organism) → **Compost** (CRM, where captures decompose), **Stroma** (Brain). Mycological metaphor is core; the name "Mycelium" is locked.
+Mycelium (organism) → **Organisation** (CRM / task space, routes `/organisation/*`; internal component dirs still named `compost`), **Brain** (routes `/brain/*`; was `stroma`). Mycological metaphor is core; the name "Mycelium" is locked.
