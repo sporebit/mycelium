@@ -60,7 +60,6 @@ function readNutrient(
 
 function productToResult(p: UsdaFood): FoodSearchResult {
   const nutrients = p.foodNutrients ?? [];
-  const sodiumMg = readNutrient(nutrients, USDA_NUTRIENT_IDS.sodium);
   return {
     id: null,
     name: p.description?.trim() || "Unnamed",

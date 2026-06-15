@@ -80,7 +80,7 @@ export function ExercisesListClient() {
             Exercises
           </h1>
           <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
-            Every exercise you've logged — progression tracking and personal bests.
+            Every exercise you&apos;ve logged — progression tracking and personal bests.
           </p>
         </div>
         <input

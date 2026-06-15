@@ -47,7 +47,7 @@ function statusBadgeClass(s: ItemStatus): string {
   }
 }
 
-function typeBadgeClass(_t: ItemType): string {
+function typeBadgeClass(_: ItemType): string {
   return "border-ink-2 text-ink-3 bg-ink-0";
 }
 

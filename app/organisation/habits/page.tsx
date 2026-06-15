@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import type { Habit } from "@/lib/config/habits";
 import { localDateKey } from "@/lib/util/date";
 import { HabitsConfigModal } from "@/components/dashboard/HabitsConfigModal";

@@ -172,10 +172,6 @@ export function StromaClient() {
   }
 
   const noMemory = memoryCount === 0;
-  const hasResults =
-    (mode === "search" && matches !== null) ||
-    (mode === "ask" && (askAnswer !== "" || askSources.length > 0 || submitting));
-
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-6">
       {/* Mode tabs */}

@@ -34,12 +34,11 @@ export function BodyMetricsView() {
   const [thighs, setThighs] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
 
-  const [displayUnit, setDisplayUnit] = useState<WeightUnit>("kg");
-
-  useEffect(() => {
+  const [displayUnit, setDisplayUnit] = useState<WeightUnit>(() => {
+    if (typeof window === "undefined") return "kg";
     const stored = localStorage.getItem("body-metrics-weight-unit") as WeightUnit | null;
-    if (stored && UNITS.includes(stored)) setDisplayUnit(stored);
-  }, []);
+    return stored && UNITS.includes(stored) ? stored : "kg";
+  });
 
   function changeDisplayUnit(u: WeightUnit) {
     setDisplayUnit(u);

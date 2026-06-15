@@ -5,14 +5,6 @@ import type { SessionDetail, SessionExercise } from "@/lib/fitness/types";
 import { toKg } from "@/lib/fitness/units";
 import { triggerGlowPulse } from "@/lib/motion";
 
-function fmtMin(ms: number): string {
-  const m = Math.floor(ms / 60000);
-  const h = Math.floor(m / 60);
-  const r = m % 60;
-  if (h > 0) return `${h}h ${r}m`;
-  return `${m}m`;
-}
-
 export function FinishModal({
   session,
   onClose,

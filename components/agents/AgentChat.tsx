@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Mono } from "@/components/dashboard/Mono";
 
 type Agent = {
   id: string;

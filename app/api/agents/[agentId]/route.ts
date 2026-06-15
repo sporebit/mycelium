@@ -176,7 +176,7 @@ export async function POST(
       .single();
     if (!agent) return NextResponse.json({ error: "agent not found" }, { status: 404 });
 
-    let conv = await supabase
+    const conv = await supabase
       .from("agent_conversations")
       .select("id")
       .eq("agent_id", agentId)

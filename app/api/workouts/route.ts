@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
 
       // Session stats
       const psIds = [...psToWorkout.keys()];
-      let sessionsByWorkout = new Map<string, Array<{ id: string; date: string }>>();
+      const sessionsByWorkout = new Map<string, Array<{ id: string; date: string }>>();
       if (psIds.length > 0) {
         const { data: sessions } = await supabase
           .from("workout_sessions")

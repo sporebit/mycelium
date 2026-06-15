@@ -35,9 +35,6 @@ function buildEmptyGrid(): PlannerGrid {
 
 const inputClass =
   "w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
-const labelClass =
-  "text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1 block";
-
 export function RecipesClient() {
   const [recipes] = useState<Recipe[]>(SAMPLE_RECIPES);
   const [planner, setPlanner] = useState<PlannerGrid>(buildEmptyGrid);

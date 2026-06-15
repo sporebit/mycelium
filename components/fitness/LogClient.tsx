@@ -118,7 +118,7 @@ function dataShapeOf(ex: SessionExercise): "sets_reps" | "hold" | "duration" | "
  *  10/10/8". Empty values just render as "—" (or "BW" when the
  *  exercise is bodyweight). The cardio "duration"/"distance" shapes
  *  use a different grid via `dataShapeOf`, so they're unaffected. */
-function showsWeightColumn(_ex: SessionExercise): boolean {
+function showsWeightColumn(_: SessionExercise): boolean {
   return true;
 }
 
