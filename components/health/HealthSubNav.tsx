@@ -14,22 +14,19 @@ const TABS: SubNavTab[] = [
     match: (p) => p === "/health/nutrition" || p.startsWith("/health/nutrition/"),
   },
   {
-    // Body metrics live under /fitness/body — we surface them as a Health
-    // tab without duplicating the route. The active match handles both
-    // surfaces.
-    label: "BODY",
-    href: "/fitness/body",
-    match: (p) => p === "/fitness/body" || p === "/health/body",
-  },
-  {
     label: "SUPPLEMENTS",
     href: "/health/supplements",
     match: (p) => p === "/health/supplements" || p.startsWith("/health/supplements/"),
   },
   {
-    label: "PAIN",
-    href: "/health/pain",
-    match: (p) => p === "/health/pain" || p.startsWith("/health/pain/"),
+    label: "BODY",
+    href: "/fitness/body",
+    match: (p) => p === "/fitness/body" || p === "/health/body",
+  },
+  {
+    label: "BLOOD TESTS",
+    href: "/health/blood-tests",
+    match: (p) => p === "/health/blood-tests" || p.startsWith("/health/blood-tests/"),
   },
 ];
 

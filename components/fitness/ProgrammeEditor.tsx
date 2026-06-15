@@ -152,8 +152,16 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
 
   if (error) {
     return (
-      <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
-        ⚠ {error}
+      <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)] flex items-center justify-between gap-2">
+        <span>⚠ {error}</span>
+        <button
+          type="button"
+          onClick={() => setError(null)}
+          className="shrink-0 text-danger/60 hover:text-danger"
+          aria-label="Dismiss error"
+        >
+          ×
+        </button>
       </div>
     );
   }

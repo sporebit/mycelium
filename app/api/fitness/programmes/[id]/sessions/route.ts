@@ -65,36 +65,26 @@ export async function POST(
   }
 
   try {
-    const upsertPayload = {
-      programme_id: programmeId,
-      day_of_week: body.day_of_week,
-      slot: body.slot,
-      kind: body.kind,
-      name: body.name.trim(),
-      notes: body.notes ?? null,
-    };
-    console.log("[sessions POST] upsert payload:", JSON.stringify(upsertPayload));
-
     const supabase = createServerClient();
     const { data, error } = await supabase
       .from("workout_programme_sessions")
-      .upsert(upsertPayload, { onConflict: "programme_id,day_of_week,slot" })
+      .upsert(
+        {
+          programme_id: programmeId,
+          day_of_week: body.day_of_week,
+          slot: body.slot,
+          kind: body.kind,
+          name: body.name.trim(),
+          notes: body.notes ?? null,
+        },
+        { onConflict: "programme_id,day_of_week,slot" }
+      )
       .select(SESSION_FIELDS)
       .single();
-
-    if (error) {
-      console.error("[sessions POST] supabase error:", JSON.stringify({
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint,
-      }));
-      throw error;
-    }
-    if (!data) throw new Error("upsert returned no data");
+    if (error || !data) throw error ?? new Error("upsert failed");
     return NextResponse.json({ session: data as TemplateSession });
   } catch (err) {
-    console.error("[sessions POST] catch:", err);
+    console.error("[/api/fitness/programmes/:id/sessions POST]", err);
     return NextResponse.json({ error: "create failed" }, { status: 500 });
   }
 }
