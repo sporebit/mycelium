@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
 import {
@@ -11,6 +11,25 @@ import {
 import type { ExerciseListItem } from "@/app/api/fitness/exercises/route";
 
 type Filter = "all" | MuscleGroup;
+
+const HIDDEN_KEY = "fitness-hidden-exercises";
+
+function readHidden(): Set<string> {
+  try {
+    const raw = localStorage.getItem(HIDDEN_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    return new Set(Array.isArray(arr) ? arr.filter((x: unknown) => typeof x === "string") : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeHidden(set: Set<string>) {
+  try {
+    localStorage.setItem(HIDDEN_KEY, JSON.stringify([...set]));
+  } catch { /* quota exceeded */ }
+}
 
 function MiniSparkline({ values }: { values: number[] }) {
   const nonZero = values.filter((v) => v > 0);
@@ -39,6 +58,18 @@ export function ExercisesListClient() {
   const [exercises, setExercises] = useState<ExerciseListItem[] | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
   const [search, setSearch] = useState("");
+  const [hidden, setHidden] = useState<Set<string>>(() =>
+    typeof window === "undefined" ? new Set() : readHidden()
+  );
+
+  const hideExercise = useCallback((name: string) => {
+    setHidden((prev) => {
+      const next = new Set(prev);
+      next.add(name);
+      writeHidden(next);
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,7 +86,7 @@ export function ExercisesListClient() {
 
   const visible = useMemo(() => {
     if (!exercises) return [];
-    let result = exercises;
+    let result = exercises.filter((e) => !hidden.has(e.name));
     if (filter !== "all") {
       result = result.filter((e) => e.muscle_group === filter);
     }
@@ -64,7 +95,7 @@ export function ExercisesListClient() {
       result = result.filter((e) => e.name.toLowerCase().includes(q));
     }
     return result;
-  }, [exercises, filter, search]);
+  }, [exercises, filter, search, hidden]);
 
   const availableGroups = useMemo(() => {
     if (!exercises) return [];
@@ -138,8 +169,22 @@ export function ExercisesListClient() {
             <li key={ex.slug}>
               <Link
                 href={`/fitness/exercises/${ex.slug}`}
-                className="block bg-ink-1 border border-ink-2 hover:border-ink-3 rounded-md p-4 transition-colors"
+                className="group relative block bg-ink-1 border border-ink-2 hover:border-ink-3 rounded-md p-4 transition-colors"
               >
+                <button
+                  type="button"
+                  aria-label={`Hide ${ex.name}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    hideExercise(ex.name);
+                  }}
+                  className="absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center text-ink-3 hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                    <path d="M2 2l8 8M10 2l-8 8" />
+                  </svg>
+                </button>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="text-base text-ink-4 truncate">{ex.name}</div>
