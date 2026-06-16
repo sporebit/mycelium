@@ -21,6 +21,7 @@ type ReviewBody = {
   entities?: string[]; // freeform entity name tags
   mentions?: Array<{ raw: string; name_hint: string }>;
   date_inferred?: string | null; // YYYY-MM-DD
+  scheduled_at?: string | null; // ISO 8601 timestamptz
 };
 
 const ALLOWED_KINDS = new Set([
@@ -116,6 +117,7 @@ async function createRoutedRow(
   rawText: string,
   audioUrl: string | null,
   classification: Record<string, unknown>,
+  scheduledAt?: string | null,
 ): Promise<{ routedTo: string; routedId: string }> {
   const kind = String(classification.kind ?? "capture");
   const title = String(classification.title ?? "Capture");
@@ -149,6 +151,7 @@ async function createRoutedRow(
         tags: tags.length ? tags : null,
         entity_id: entityId,
         owner: userId,
+        scheduled_at: scheduledAt ?? null,
       })
       .select("id")
       .single();
@@ -372,6 +375,7 @@ export async function PATCH(
         existing.raw_text ?? "",
         existing.audio_url ?? null,
         mergedClassification,
+        body.scheduled_at,
       );
       routedTo = result.routedTo;
       routedId = result.routedId;

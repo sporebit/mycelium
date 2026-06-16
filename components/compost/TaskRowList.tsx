@@ -75,6 +75,19 @@ function formatDue(date: string, task: Task): { label: string; tone: string } {
   return { label, tone: "text-ink-3" };
 }
 
+function fmtScheduled(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString("en-GB", {
+    timeZone: "Europe/London",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
 export function TaskRowList({
   task,
   selected,
@@ -276,6 +289,11 @@ export function TaskRowList({
         {due && (
           <Mono className={due.tone} title={`Due ${task.due_date}`}>
             {due.label}
+          </Mono>
+        )}
+        {task.scheduled_at && (
+          <Mono className="text-glow-2" title={`Scheduled ${task.scheduled_at}`}>
+            {fmtScheduled(task.scheduled_at)}
           </Mono>
         )}
         <span className="shrink-0">

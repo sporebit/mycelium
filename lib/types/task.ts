@@ -64,6 +64,7 @@ export type Task = {
   time_estimate_min: number | null;
   tags: string[] | null;
   due_date: string | null;
+  scheduled_at: string | null;
   owner: string | null;
   entity_id: string | null;
   entity_name: string | null;

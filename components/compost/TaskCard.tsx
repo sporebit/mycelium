@@ -23,6 +23,19 @@ function dueLabel(dueDate: string | null): string | null {
   return `${Math.abs(diffDays)}d overdue`;
 }
 
+function fmtScheduled(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString("en-GB", {
+    timeZone: "Europe/London",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
 function ownerInitials(owner: string | null): string {
   if (!owner) return "·";
   const parts = owner.trim().split(/\s+/);
@@ -107,7 +120,7 @@ export function TaskCard({
         )}
       </div>
 
-      {(tags.length > 0 || task.entity_name || task.project_name || due) && (
+      {(tags.length > 0 || task.entity_name || task.project_name || due || task.scheduled_at) && (
         <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
           <div className="flex items-center gap-1.5 min-w-0">
             {task.project_name && (
@@ -132,6 +145,9 @@ export function TaskCard({
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {due && <Mono className="text-ink-3">{due}</Mono>}
+            {task.scheduled_at && (
+              <Mono className="text-glow-2">{fmtScheduled(task.scheduled_at)}</Mono>
+            )}
             <span
               className="h-5 w-5 rounded-full bg-ink-2 border border-ink-2 flex items-center justify-center text-[9px] text-ink-3 shrink-0"
               title={task.owner ?? ""}

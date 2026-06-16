@@ -165,6 +165,9 @@ export function CaptureReviewClient() {
         if (draft.date_inferred !== undefined) {
           body.date_inferred = draft.date_inferred;
         }
+        if (draft.scheduled_at !== undefined) {
+          body.scheduled_at = draft.scheduled_at;
+        }
       }
       const r = await fetch(`/api/captures/${capture.id}/review`, {
         method: "PATCH",
@@ -316,18 +319,33 @@ function ReviewCard({
   const [dateInferred, setDateInferred] = useState<string>(
     typeof cls.date_inferred === "string" ? cls.date_inferred : "",
   );
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
 
-  const draft: Classification = useMemo(
-    () => ({
+  const draft: Classification = useMemo(() => {
+    let scheduled_at: string | null = null;
+    if (scheduledDate) {
+      const timePart = scheduledTime || "09:00";
+      const localIso = `${scheduledDate}T${timePart}:00`;
+      const asLondon = new Date(
+        new Date(localIso).toLocaleString("en-US", { timeZone: "Europe/London" }),
+      );
+      const utcIso = new Date(
+        new Date(localIso).getTime() -
+          (asLondon.getTime() - new Date(localIso).getTime()),
+      ).toISOString();
+      scheduled_at = utcIso;
+    }
+    return {
       kind,
       urgency,
       title,
       entities,
       mentions,
       date_inferred: dateInferred || null,
-    }),
-    [kind, urgency, title, entities, mentions, dateInferred],
-  );
+      scheduled_at,
+    };
+  }, [kind, urgency, title, entities, mentions, dateInferred, scheduledDate, scheduledTime]);
 
   const confidence = inferConfidence(cls);
   const isReviewed = !!capture.reviewed_at;
@@ -431,6 +449,28 @@ function ReviewCard({
           </div>
         </Field>
       </div>
+
+      {kind === "task" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="Scheduled date">
+            <input
+              type="date"
+              value={scheduledDate}
+              onChange={(e) => setScheduledDate(e.target.value)}
+              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+            />
+          </Field>
+          <Field label="Scheduled time">
+            <input
+              type="time"
+              value={scheduledTime}
+              onChange={(e) => setScheduledTime(e.target.value)}
+              placeholder="09:00"
+              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+            />
+          </Field>
+        </div>
+      )}
 
       <footer className="flex items-center gap-2 pt-1 flex-wrap">
         <button

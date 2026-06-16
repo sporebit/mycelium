@@ -19,6 +19,35 @@ function formatCreatedAt(iso: string | null | undefined): string | null {
   }
 }
 
+function scheduledToUtc(date: string, time: string): string {
+  const timePart = time || "09:00";
+  const localIso = `${date}T${timePart}:00`;
+  const asLondon = new Date(
+    new Date(localIso).toLocaleString("en-US", { timeZone: "Europe/London" }),
+  );
+  return new Date(
+    new Date(localIso).getTime() -
+      (asLondon.getTime() - new Date(localIso).getTime()),
+  ).toISOString();
+}
+
+function scheduledFromUtc(iso: string): { date: string; time: string } {
+  const d = new Date(iso);
+  const parts = d
+    .toLocaleString("en-GB", {
+      timeZone: "Europe/London",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+    .split(", ");
+  const [dd, mm, yyyy] = parts[0].split("/");
+  return { date: `${yyyy}-${mm}-${dd}`, time: parts[1] ?? "09:00" };
+}
+
 export type DrawerMode =
   | { kind: "edit"; task: Task }
   | { kind: "create" };
@@ -54,6 +83,8 @@ export function TaskDrawer({
   const [draftKey, setDraftKey] = useState(false);
   const [draftTags, setDraftTags] = useState("");
   const [draftDue, setDraftDue] = useState("");
+  const [draftScheduledDate, setDraftScheduledDate] = useState("");
+  const [draftScheduledTime, setDraftScheduledTime] = useState("");
   const [draftEst, setDraftEst] = useState<string>("");
   const [draftOwner, setDraftOwner] = useState<string>("");
   const [draftEntity, setDraftEntity] = useState<Entity | null>(null);
@@ -158,6 +189,9 @@ export function TaskDrawer({
       key: draftKey,
       tags: parseTagsString(draftTags).length ? parseTagsString(draftTags) : null,
       due_date: draftDue || null,
+      scheduled_at: draftScheduledDate
+        ? scheduledToUtc(draftScheduledDate, draftScheduledTime)
+        : null,
       time_estimate_min: draftEst ? Number(draftEst) || null : null,
       owner: draftOwner.trim() || null,
       entity_id: draftEntity?.id ?? null,
@@ -449,6 +483,62 @@ export function TaskDrawer({
                 }}
                 placeholder="30"
                 className="w-full bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+              />
+            </Field>
+          </div>
+
+          {/* SCHEDULED AT */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Scheduled date">
+              <input
+                type="date"
+                value={
+                  isCreate
+                    ? draftScheduledDate
+                    : task?.scheduled_at
+                      ? scheduledFromUtc(task.scheduled_at).date
+                      : ""
+                }
+                onChange={(e) => {
+                  if (isCreate) setDraftScheduledDate(e.target.value);
+                  else {
+                    if (!e.target.value) {
+                      patchField("scheduled_at", null);
+                    } else {
+                      const curTime = task?.scheduled_at
+                        ? scheduledFromUtc(task.scheduled_at).time
+                        : "09:00";
+                      patchField(
+                        "scheduled_at",
+                        scheduledToUtc(e.target.value, curTime),
+                      );
+                    }
+                  }
+                }}
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+              />
+            </Field>
+            <Field label="Scheduled time">
+              <input
+                type="time"
+                value={
+                  isCreate
+                    ? draftScheduledTime
+                    : task?.scheduled_at
+                      ? scheduledFromUtc(task.scheduled_at).time
+                      : ""
+                }
+                onChange={(e) => {
+                  if (isCreate) setDraftScheduledTime(e.target.value);
+                  else if (task?.scheduled_at) {
+                    const curDate = scheduledFromUtc(task.scheduled_at).date;
+                    patchField(
+                      "scheduled_at",
+                      scheduledToUtc(curDate, e.target.value),
+                    );
+                  }
+                }}
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
               />
             </Field>
           </div>

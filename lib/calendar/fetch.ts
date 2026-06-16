@@ -1,4 +1,5 @@
 import ICAL from "ical.js";
+import { createServerClient } from "@/lib/supabase/server";
 
 type Feed = { name: string; colour: string; url: string };
 
@@ -133,6 +134,51 @@ function parseFeed(
   return out;
 }
 
+async function fetchScheduledTasks(
+  windowStart: Date,
+  windowEnd: Date,
+): Promise<CalendarEvent[]> {
+  const uid = process.env.USER_ID;
+  if (!uid) return [];
+  try {
+    const supabase = createServerClient();
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("id, title, scheduled_at, time_estimate_min")
+      .eq("user_id", uid)
+      .is("deleted_at", null)
+      .is("completed_at", null)
+      .not("scheduled_at", "is", null)
+      .gte("scheduled_at", windowStart.toISOString())
+      .lte("scheduled_at", windowEnd.toISOString());
+    if (error || !data) return [];
+    return (data as Array<{
+      id: string;
+      title: string;
+      scheduled_at: string;
+      time_estimate_min: number | null;
+    }>).map((t) => {
+      const start = new Date(t.scheduled_at);
+      const durationMs = (t.time_estimate_min ?? 30) * 60_000;
+      const end = new Date(start.getTime() + durationMs);
+      return {
+        id: `task-${t.id}`,
+        title: t.title,
+        start: start.toISOString(),
+        end: end.toISOString(),
+        allDay: false,
+        calendarName: "Tasks",
+        calendarColour: "#a78bfa",
+        location: "",
+        description: "",
+      };
+    });
+  } catch (err) {
+    console.error("[calendar] scheduled tasks fetch failed:", err);
+    return [];
+  }
+}
+
 export async function getCalendarData(): Promise<CalendarData> {
   if (memoryCache && memoryCache.expiresAt > Date.now()) {
     return memoryCache.data;
@@ -148,18 +194,22 @@ export async function getCalendarData(): Promise<CalendarData> {
   const failed: string[] = [];
   const all: CalendarEvent[] = [];
 
-  await Promise.all(
-    feeds.map(async (feed) => {
-      try {
-        const text = await fetchIcs(feed.url, FETCH_TIMEOUT_MS);
-        const events = parseFeed(text, feed, windowStart, windowEnd);
-        all.push(...events);
-      } catch (err) {
-        console.error(`[calendar] feed '${feed.name}' failed:`, err);
-        failed.push(feed.name);
-      }
-    })
-  );
+  const [, scheduledTasks] = await Promise.all([
+    Promise.all(
+      feeds.map(async (feed) => {
+        try {
+          const text = await fetchIcs(feed.url, FETCH_TIMEOUT_MS);
+          const events = parseFeed(text, feed, windowStart, windowEnd);
+          all.push(...events);
+        } catch (err) {
+          console.error(`[calendar] feed '${feed.name}' failed:`, err);
+          failed.push(feed.name);
+        }
+      }),
+    ),
+    fetchScheduledTasks(windowStart, windowEnd),
+  ]);
+  all.push(...scheduledTasks);
 
   all.sort((a, b) => a.start.localeCompare(b.start));
   const data: CalendarData = { events: all, failedCalendars: failed };

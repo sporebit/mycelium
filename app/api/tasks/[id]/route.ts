@@ -59,6 +59,7 @@ const ALLOWED_FIELDS = new Set([
   "priority_score",
   "tags",
   "due_date",
+  "scheduled_at",
   "time_estimate_min",
   "owner",
   "entity_id",
@@ -242,7 +243,7 @@ export async function PATCH(
     const { data: beforeRow } = await supabase
       .from("tasks")
       .select(
-        "status, urgency, project_id, due_date, time_estimate_min, key, owner, entity_id, title, description, parent_task_id, tags",
+        "status, urgency, project_id, due_date, scheduled_at, time_estimate_min, key, owner, entity_id, title, description, parent_task_id, tags",
       )
       .eq("id", id)
       .eq("user_id", uid)

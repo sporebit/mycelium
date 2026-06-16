@@ -145,6 +145,7 @@ type CreateBody = {
   priority_score?: number;
   tags?: string[];
   due_date?: string | null;
+  scheduled_at?: string | null;
   time_estimate_min?: number | null;
   owner?: string;
   entity_id?: string | null;
@@ -252,6 +253,7 @@ export async function POST(req: NextRequest) {
         typeof body.priority_score === "number" ? body.priority_score : 0.5,
       tags: Array.isArray(body.tags) ? body.tags : inheritedTags,
       due_date: body.due_date ?? null,
+      scheduled_at: body.scheduled_at ?? null,
       time_estimate_min:
         typeof body.time_estimate_min === "number"
           ? body.time_estimate_min
