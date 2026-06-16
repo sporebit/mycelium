@@ -20,6 +20,35 @@ import { StatusDropdown } from "./StatusDropdown";
 import { ConvertSection } from "./ConvertSection";
 import type { ConvertibleKind } from "@/lib/convert/kinds";
 
+function scheduledToUtc(date: string, time: string): string {
+  const timePart = time || "09:00";
+  const localIso = `${date}T${timePart}:00`;
+  const asLondon = new Date(
+    new Date(localIso).toLocaleString("en-US", { timeZone: "Europe/London" }),
+  );
+  return new Date(
+    new Date(localIso).getTime() -
+      (asLondon.getTime() - new Date(localIso).getTime()),
+  ).toISOString();
+}
+
+function scheduledFromUtc(iso: string): { date: string; time: string } {
+  const d = new Date(iso);
+  const parts = d
+    .toLocaleString("en-GB", {
+      timeZone: "Europe/London",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+    .split(", ");
+  const [dd, mm, yyyy] = parts[0].split("/");
+  return { date: `${yyyy}-${mm}-${dd}`, time: parts[1] ?? "09:00" };
+}
+
 function formatDateTime(iso: string): string {
   try {
     return new Date(iso).toLocaleString("en-US", {
@@ -491,6 +520,58 @@ export function TaskDetailPane({
                 type="button"
                 onClick={() => onPatch({ due_date: null })}
                 aria-label="Clear due date"
+                className="text-ink-3 hover:text-ink-4 text-sm px-1"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </Field>
+        <Field label="Scheduled for">
+          <div className="flex items-center gap-1">
+            <input
+              type="date"
+              value={
+                task.scheduled_at
+                  ? scheduledFromUtc(task.scheduled_at).date
+                  : ""
+              }
+              onChange={(e) => {
+                if (!e.target.value) {
+                  onPatch({ scheduled_at: null });
+                } else {
+                  const curTime = task.scheduled_at
+                    ? scheduledFromUtc(task.scheduled_at).time
+                    : "09:00";
+                  onPatch({
+                    scheduled_at: scheduledToUtc(e.target.value, curTime),
+                  });
+                }
+              }}
+              className="flex-1 bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+            />
+            <input
+              type="time"
+              value={
+                task.scheduled_at
+                  ? scheduledFromUtc(task.scheduled_at).time
+                  : ""
+              }
+              onChange={(e) => {
+                if (task.scheduled_at) {
+                  const curDate = scheduledFromUtc(task.scheduled_at).date;
+                  onPatch({
+                    scheduled_at: scheduledToUtc(curDate, e.target.value),
+                  });
+                }
+              }}
+              className="w-24 bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+            />
+            {task.scheduled_at && (
+              <button
+                type="button"
+                onClick={() => onPatch({ scheduled_at: null })}
+                aria-label="Clear scheduled date"
                 className="text-ink-3 hover:text-ink-4 text-sm px-1"
               >
                 ✕
