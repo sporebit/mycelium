@@ -21,6 +21,8 @@ import {
   routeRawVoice,
 } from "@/lib/fitness/voice-route";
 import type { PendingButtonOption } from "@/lib/fitness/types";
+import { parseWeight } from "@/lib/health/parse-weight";
+import { localDateKey } from "@/lib/util/date";
 
 export const runtime = "nodejs";
 
@@ -311,6 +313,33 @@ async function handleMessage(message: TgMessage): Promise<void> {
   const lowered = rawText.trim().toLowerCase();
   if (lowered === "/pending" || lowered === "pending workouts") {
     await handlePendingCommand(chatId, userId);
+    return;
+  }
+
+  // Weight detection — short-circuit before classifier for simple weight logs
+  const parsedWeight = parseWeight(rawText);
+  if (parsedWeight) {
+    try {
+      const supabase = createServerClient();
+      const date = localDateKey();
+      await supabase.from("body_metrics").upsert(
+        {
+          user_id: userId,
+          date,
+          weight: parsedWeight.value_kg,
+          weight_unit: "kg",
+        },
+        { onConflict: "user_id,date" },
+      );
+      const display =
+        parsedWeight.original_unit === "kg"
+          ? `${parsedWeight.original_value} kg`
+          : `${parsedWeight.original_value} ${parsedWeight.original_unit} (${parsedWeight.value_kg} kg)`;
+      await sendMessage(chatId, `⚖️ Weight logged — ${display}`);
+    } catch (err) {
+      console.error("[telegram] weight log failed:", err);
+      await sendMessage(chatId, "⚠️ Couldn't log weight — check logs.");
+    }
     return;
   }
 

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
 import { PendingEntitiesList } from "./PendingEntitiesList";
+import { parseWeight } from "@/lib/health/parse-weight";
 
 type Classification = {
   kind?: string;
@@ -348,6 +349,30 @@ function ReviewCard({
     };
   }, [kind, urgency, title, entities, mentions, dateInferred, scheduledDate, scheduledTime]);
 
+  const detectedWeight = useMemo(
+    () => (capture.raw_text ? parseWeight(capture.raw_text) : null),
+    [capture.raw_text],
+  );
+  const [weightLogged, setWeightLogged] = useState(false);
+
+  async function logWeight() {
+    if (!detectedWeight || busy) return;
+    try {
+      const r = await fetch("/api/body-metrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          weight: detectedWeight.value_kg,
+          weight_unit: "kg",
+        }),
+      });
+      if (r.ok) {
+        setWeightLogged(true);
+        onAction("approve", draft);
+      }
+    } catch {}
+  }
+
   const confidence = inferConfidence(cls);
   const isReviewed = !!capture.reviewed_at;
 
@@ -474,6 +499,17 @@ function ReviewCard({
       )}
 
       <footer className="flex items-center gap-2 pt-1 flex-wrap">
+        {detectedWeight && !weightLogged && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={logWeight}
+            className="px-3 py-2 rounded-sm border border-ok/40 text-ok text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-ok/15 disabled:opacity-40"
+            title={`Log ${detectedWeight.value_kg} kg`}
+          >
+            LOG AS WEIGHT
+          </button>
+        )}
         <button
           type="button"
           disabled={busy}

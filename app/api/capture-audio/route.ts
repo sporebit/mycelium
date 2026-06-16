@@ -4,6 +4,9 @@ import { classifyCapture } from "@/lib/router/classifyCapture";
 import { writeCapture } from "@/lib/router/writeCapture";
 import { embedAndStore } from "@/lib/router/embedAndStore";
 import { routeRawVoice } from "@/lib/fitness/voice-route";
+import { parseWeight } from "@/lib/health/parse-weight";
+import { createServerClient } from "@/lib/supabase/server";
+import { localDateKey } from "@/lib/util/date";
 
 export const runtime = "nodejs";
 // Audio uploads can be sizeable; keep this generous.
@@ -75,6 +78,38 @@ export async function POST(req: NextRequest) {
       },
       { status: 200 }
     );
+  }
+
+  // 1b. Weight detection — short-circuit before classifier
+  const parsedWeight = parseWeight(trimmed);
+  if (parsedWeight && !forcedKind) {
+    try {
+      const supabase = createServerClient();
+      await supabase.from("body_metrics").upsert(
+        {
+          user_id: uid,
+          date: localDateKey(),
+          weight: parsedWeight.value_kg,
+          weight_unit: "kg",
+        },
+        { onConflict: "user_id,date" },
+      );
+      const display =
+        parsedWeight.original_unit === "kg"
+          ? `${parsedWeight.original_value} kg`
+          : `${parsedWeight.original_value} ${parsedWeight.original_unit} (${parsedWeight.value_kg} kg)`;
+      return NextResponse.json({
+        kind: "body_weight",
+        transcription: trimmed,
+        source,
+        routed: { weight_kg: parsedWeight.value_kg },
+        needs_confirmation: false,
+        pending_route_id: null,
+        summary: `Weight logged — ${display}`,
+      });
+    } catch (err) {
+      console.error("[capture-audio] weight log failed:", err);
+    }
   }
 
   // 2. Classify (skip if caller forced)
