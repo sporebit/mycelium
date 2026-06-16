@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { WORKOUT_KINDS, WORKOUT_SLOTS, type WorkoutKind, type WorkoutSlot } from "@/lib/fitness/workouts";
 import type { TemplateSession } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
-const SESSION_FIELDS = "id, programme_id, day_of_week, slot, kind, name, notes";
+const SESSION_FIELDS = "id, programme_id, day_of_week, slot, kind, name, notes, position, workout_id";
 
 function userId(): string | null {
   return process.env.USER_ID ?? null;
@@ -45,8 +46,12 @@ export async function PATCH(
   const update: Record<string, unknown> = {};
   if (typeof body.name === "string" && body.name.trim()) update.name = body.name.trim();
   if (body.notes !== undefined) update.notes = body.notes ?? null;
-  if (body.kind === "cardio" || body.kind === "resistance") update.kind = body.kind;
-  if (body.slot === "morning" || body.slot === "afternoon") update.slot = body.slot;
+  if (typeof body.kind === "string" && WORKOUT_KINDS.includes(body.kind as WorkoutKind)) {
+    update.kind = body.kind;
+  }
+  if (typeof body.slot === "string" && WORKOUT_SLOTS.includes(body.slot as WorkoutSlot)) {
+    update.slot = body.slot;
+  }
   if (
     typeof body.day_of_week === "number" &&
     body.day_of_week >= 0 &&
