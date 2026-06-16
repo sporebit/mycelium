@@ -21,7 +21,9 @@ export async function GET(req: NextRequest) {
   if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const url = new URL(req.url);
   const kind = url.searchParams.get("kind");
-  const includeArchived = url.searchParams.get("archived") === "true";
+  const includeArchived =
+    url.searchParams.get("include_archived") === "true" ||
+    url.searchParams.get("archived") === "true";
 
   try {
     const supabase = createServerClient();

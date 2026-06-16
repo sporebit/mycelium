@@ -14,9 +14,13 @@ export function ProgrammesList() {
   const [toast, setToast] = useState<Toast>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
 
-  async function load() {
-    const res = await fetch("/api/fitness/programmes", { cache: "no-store" });
+  async function load(archived: boolean) {
+    const url = archived
+      ? "/api/fitness/programmes?include_archived=true"
+      : "/api/fitness/programmes";
+    const res = await fetch(url, { cache: "no-store" });
     if (res.ok) {
       const j = (await res.json()) as { programmes?: Programme[] };
       setProgrammes(Array.isArray(j.programmes) ? j.programmes : []);
@@ -27,8 +31,11 @@ export function ProgrammesList() {
 
   useEffect(() => {
     let mounted = true;
+    const url = showArchived
+      ? "/api/fitness/programmes?include_archived=true"
+      : "/api/fitness/programmes";
     (async () => {
-      const res = await fetch("/api/fitness/programmes", { cache: "no-store" });
+      const res = await fetch(url, { cache: "no-store" });
       if (!mounted) return;
       if (res.ok) {
         const j = (await res.json()) as { programmes?: Programme[] };
@@ -40,13 +47,24 @@ export function ProgrammesList() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [showArchived]);
 
   useEffect(() => {
     if (!toast) return;
     const id = setTimeout(() => setToast(null), 3000);
     return () => clearTimeout(id);
   }, [toast]);
+
+  async function archive(p: Programme) {
+    setProgrammes((prev) => prev?.filter((x) => x.id !== p.id) ?? null);
+    await fetch(`/api/fitness/programmes/${p.id}/archive`, { method: "POST" });
+    void load(showArchived);
+  }
+
+  async function unarchive(p: Programme) {
+    await fetch(`/api/fitness/programmes/${p.id}/unarchive`, { method: "POST" });
+    void load(showArchived);
+  }
 
   async function runSeed() {
     setSeeding(true);
@@ -62,7 +80,7 @@ export function ProgrammesList() {
           kind: "success",
           text: `Seeded ${j.sessions_created} sessions · ${j.exercises_created} exercises`,
         });
-        await load();
+        await load(showArchived);
       }
     } catch (err) {
       setToast({ kind: "error", text: err instanceof Error ? err.message : "Seed error" });
@@ -87,7 +105,7 @@ export function ProgrammesList() {
         return;
       }
       setNewName("");
-      await load();
+      await load(showArchived);
     } finally {
       setCreating(false);
     }
@@ -102,11 +120,22 @@ export function ProgrammesList() {
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={() => setShowArchived((v) => !v)}
+            className={`px-3 py-1.5 rounded-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
+              showArchived
+                ? "border-accent/40 bg-accent/15 text-accent"
+                : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+            }`}
+          >
+            {showArchived ? "HIDE ARCHIVED" : "SHOW ARCHIVED"}
+          </button>
+          <button
+            type="button"
             onClick={runSeed}
             disabled={seeding}
             className="px-3 py-1.5 rounded-md border border-ink-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            {seeding ? "SEEDING…" : "SEED PHIL'S PROGRAMME"}
+            {seeding ? "SEEDING…" : "SEED"}
           </button>
         </div>
       </div>
@@ -147,29 +176,53 @@ export function ProgrammesList() {
         </Panel>
       ) : (
         <div className="flex flex-col gap-3">
-          {programmes.map((p) => (
-            <Panel
-              key={p.id}
-              title={p.name}
-              bottomCTA={
-                <Link
-                  href={`/fitness/programmes/${p.id}/edit`}
-                  className="hover:text-ink-4 transition-colors"
+          {programmes.map((p) => {
+            const isArchived = !!p.archived_at;
+            return (
+              <div key={p.id} className={`group relative ${isArchived ? "opacity-50" : ""}`}>
+                {isArchived ? (
+                  <button
+                    type="button"
+                    onClick={() => unarchive(p)}
+                    className="absolute top-2 right-2 h-6 px-2 rounded-full flex items-center justify-center text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] text-accent hover:bg-accent/15 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  >
+                    UNARCHIVE
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => archive(p)}
+                    aria-label={`Archive ${p.name}`}
+                    className="absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center text-ink-3 hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                      <path d="M2 2l8 8M10 2l-8 8" />
+                    </svg>
+                  </button>
+                )}
+                <Panel
+                  title={p.name}
+                  bottomCTA={
+                    <Link
+                      href={`/fitness/programmes/${p.id}/edit`}
+                      className="hover:text-ink-4 transition-colors"
+                    >
+                      EDIT →
+                    </Link>
+                  }
                 >
-                  EDIT →
-                </Link>
-              }
-            >
-              {p.description && (
-                <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
-                  {p.description}
-                </p>
-              )}
-              <div className="mt-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-                Created <Mono>{p.created_at.slice(0, 10)}</Mono>
+                  {p.description && (
+                    <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
+                      {p.description}
+                    </p>
+                  )}
+                  <div className="mt-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    Created <Mono>{p.created_at.slice(0, 10)}</Mono>
+                  </div>
+                </Panel>
               </div>
-            </Panel>
-          ))}
+            );
+          })}
         </div>
       )}
 

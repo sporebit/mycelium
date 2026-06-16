@@ -44,16 +44,19 @@ function MiniSparkline({ values }: { values: number[] }) {
 export function WorkoutsListClient() {
   const [filter, setFilter] = useState<Filter>("all");
   const [workouts, setWorkouts] = useState<Workout[] | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
-  async function load() {
-    const r = await fetch("/api/workouts");
+  async function load(archived: boolean) {
+    const url = archived ? "/api/workouts?include_archived=true" : "/api/workouts";
+    const r = await fetch(url);
     const j = (await r.json().catch(() => ({}))) as { workouts?: Workout[] };
     setWorkouts(Array.isArray(j.workouts) ? j.workouts : []);
   }
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/workouts")
+    const url = showArchived ? "/api/workouts?include_archived=true" : "/api/workouts";
+    fetch(url)
       .then((r) => r.json())
       .then((j: { workouts?: Workout[] }) => {
         if (cancelled) return;
@@ -63,7 +66,7 @@ export function WorkoutsListClient() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showArchived]);
 
   const visible = useMemo(() => {
     if (!workouts) return [];
@@ -72,14 +75,14 @@ export function WorkoutsListClient() {
   }, [workouts, filter]);
 
   async function archive(w: Workout) {
-    if (
-      !window.confirm(
-        `Archive "${w.name}"? Programmes referencing it will keep working until you re-link them.`,
-      )
-    )
-      return;
-    await fetch(`/api/workouts/${w.id}`, { method: "DELETE" });
-    void load();
+    setWorkouts((prev) => prev?.filter((x) => x.id !== w.id) ?? null);
+    await fetch(`/api/workouts/${w.id}/archive`, { method: "POST" });
+    void load(showArchived);
+  }
+
+  async function unarchive(w: Workout) {
+    await fetch(`/api/workouts/${w.id}/unarchive`, { method: "POST" });
+    void load(showArchived);
   }
 
   return (
@@ -94,12 +97,25 @@ export function WorkoutsListClient() {
             schedules them updates automatically.
           </p>
         </div>
-        <Link
-          href="/fitness/workouts/new"
-          className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
-        >
-          + NEW WORKOUT
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowArchived((v) => !v)}
+            className={`px-3 py-1.5 rounded-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
+              showArchived
+                ? "border-accent/40 bg-accent/15 text-accent"
+                : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+            }`}
+          >
+            {showArchived ? "HIDE ARCHIVED" : "SHOW ARCHIVED"}
+          </button>
+          <Link
+            href="/fitness/workouts/new"
+            className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+          >
+            + NEW WORKOUT
+          </Link>
+        </div>
       </header>
 
       <div className="flex items-center gap-1 rounded-md border border-ink-2 overflow-hidden self-start flex-wrap">
@@ -136,60 +152,76 @@ export function WorkoutsListClient() {
         </div>
       ) : (
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {visible.map((w) => (
-            <li key={w.id}>
-              <div className="bg-ink-1 border border-ink-2 hover:border-ink-3 rounded-md p-4 flex flex-col gap-2 transition-colors group">
-                <Link
-                  href={`/fitness/workouts/${w.id}`}
-                  className="flex items-start gap-2"
+          {visible.map((w) => {
+            const isArchived = !!w.archived_at;
+            return (
+              <li key={w.id}>
+                <div
+                  className={`bg-ink-1 border border-ink-2 hover:border-ink-3 rounded-md p-4 flex flex-col gap-2 transition-colors group relative ${
+                    isArchived ? "opacity-50" : ""
+                  }`}
                 >
-                  <span aria-hidden className="text-xl">
-                    {w.default_kind ? KIND_ICON[w.default_kind] : "·"}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-base text-ink-4 truncate">{w.name}</div>
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5">
-                      {w.default_kind ? KIND_LABEL[w.default_kind] : "—"}
-                      {w.default_slot ? ` · ${SLOT_LABEL[w.default_slot]}` : ""}
+                  {isArchived ? (
+                    <button
+                      type="button"
+                      onClick={() => unarchive(w)}
+                      className="absolute top-2 right-2 h-6 px-2 rounded-full flex items-center justify-center text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] text-accent hover:bg-accent/15 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    >
+                      UNARCHIVE
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => archive(w)}
+                      aria-label={`Archive ${w.name}`}
+                      className="absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center text-ink-3 hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <path d="M2 2l8 8M10 2l-8 8" />
+                      </svg>
+                    </button>
+                  )}
+                  <Link
+                    href={`/fitness/workouts/${w.id}`}
+                    className="flex items-start gap-2"
+                  >
+                    <span aria-hidden className="text-xl">
+                      {w.default_kind ? KIND_ICON[w.default_kind] : "·"}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-base text-ink-4 truncate">{w.name}</div>
+                      <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5">
+                        {w.default_kind ? KIND_LABEL[w.default_kind] : "—"}
+                        {w.default_slot ? ` · ${SLOT_LABEL[w.default_slot]}` : ""}
+                      </div>
                     </div>
+                  </Link>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                      <Mono>{w.exercise_count ?? 0} ex</Mono>
+                      {(w.times_performed ?? 0) > 0 && (
+                        <Mono>{w.times_performed} sessions</Mono>
+                      )}
+                    </div>
+                    <MiniSparkline values={w.recent_volumes ?? []} />
                   </div>
-                </Link>
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-                    <Mono>{w.exercise_count ?? 0} ex</Mono>
-                    {(w.times_performed ?? 0) > 0 && (
-                      <Mono>{w.times_performed} sessions</Mono>
-                    )}
-                  </div>
-                  <MiniSparkline values={w.recent_volumes ?? []} />
-                </div>
-                <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-                  <Mono>
-                    {w.last_performed
-                      ? `Last ${w.last_performed}`
-                      : "Never performed"}
-                  </Mono>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    <Mono>
+                      {w.last_performed
+                        ? `Last ${w.last_performed}`
+                        : "Never performed"}
+                    </Mono>
                     <Link
                       href={`/fitness/workouts/${w.id}`}
                       className="text-accent hover:text-glow-1 transition-colors"
                     >
                       VIEW →
                     </Link>
-                    <button
-                      type="button"
-                      onClick={() => archive(w)}
-                      className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-danger transition-opacity"
-                      aria-label="Archive workout"
-                      title="Archive workout"
-                    >
-                      🗑
-                    </button>
                   </div>
                 </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

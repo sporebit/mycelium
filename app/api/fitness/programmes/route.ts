@@ -8,16 +8,20 @@ function userId(): string | null {
   return process.env.USER_ID ?? null;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const uid = userId();
   if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+  const url = new URL(req.url);
+  const includeArchived = url.searchParams.get("include_archived") === "true";
   try {
     const supabase = createServerClient();
-    const { data, error } = await supabase
+    let q = supabase
       .from("workout_programmes")
-      .select("id, user_id, name, description, created_at, updated_at")
+      .select("id, user_id, name, description, created_at, updated_at, archived_at")
       .eq("user_id", uid)
       .order("created_at", { ascending: false });
+    if (!includeArchived) q = q.is("archived_at", null);
+    const { data, error } = await q;
     if (error) throw error;
     return NextResponse.json({ programmes: (data ?? []) as Programme[] });
   } catch (err) {
