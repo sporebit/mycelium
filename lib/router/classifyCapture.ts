@@ -7,7 +7,8 @@ export type CaptureKind =
   | "workout"
   | "purchase"
   | "pain_log"
-  | "reminder";
+  | "reminder"
+  | "media";
 export type CaptureUrgency = "today" | "this_week" | "this_month" | "someday";
 export type CaptureMood =
   | "energised"
@@ -69,6 +70,11 @@ export type ReminderDetails = {
   recurrence: string | null;
 };
 
+export type MediaDetails = {
+  media_type: "watch" | "listen" | "read";
+  creator: string | null;
+};
+
 export type ContextEnergy = "low" | "medium" | "high";
 
 export type Classification = {
@@ -84,6 +90,7 @@ export type Classification = {
   purchase: PurchaseDetails | null; // only meaningful for purchases
   pain: PainDetails | null; // only meaningful for pain_log
   reminder: ReminderDetails | null; // only meaningful for reminder
+  media: MediaDetails | null; // only meaningful for media
   /** Context fields — applies to every kind. The classifier sets them
    *  when they're clear from the text, otherwise leaves them null so
    *  the post-create suggester can fill in from history. */
@@ -108,6 +115,7 @@ const KINDS: readonly CaptureKind[] = [
   "purchase",
   "pain_log",
   "reminder",
+  "media",
 ];
 
 const PAIN_FEEL_RATINGS: readonly PainFeel[] = [
@@ -156,7 +164,7 @@ const MOODS: readonly CaptureMood[] = [
 export const CLASSIFIER_SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
 
 Rules:
-- "kind" is one of: task, note, decision, journal, capture, workout, purchase, pain_log, reminder.
+- "kind" is one of: task, note, decision, journal, capture, workout, purchase, pain_log, reminder, media.
   - task = an action the user needs to DO (not buy), with NO explicit time/date trigger.
   - reminder = the user explicitly wants to be reminded at a specific time or after a delay. Signals: "remind me", "set a reminder", "in 30 minutes", "at 8pm", "every day at", "tomorrow at". If there's a concrete time/date/delay attached to a task-like request, classify as reminder, not task.
   - decision = a choice the user wants to record.
@@ -165,6 +173,7 @@ Rules:
   - workout = a description of exercise the user just did, is doing, or is reporting on. Signals: set/rep patterns ("5x5", "3 sets of 8"), weights in kg/lbs ("80kg", "100lbs"), named exercises (bench press, squat, deadlift, RDL, lunges, etc.), cardio terms ("ran 5km", "10 mins on treadmill"), pain or feel words paired with body parts ("shoulder twinged", "left knee sore", "felt pumped"), session-shaped sentences ("did push day", "morning workout", "just finished legs").
   - purchase = the user wants to BUY, pay for, order, or acquire something — physical goods, services, bills, subscriptions. Classify by intent, not by specific trigger words. Examples: "buy milk", "pay the electric bill", "order a new keyboard", "I need to get a birthday card for mum", "pick up some protein powder", "renew the netflix sub". When in doubt and there's money or goods involved, prefer purchase over task: "book a dentist appointment" is a task (an action to perform), "buy a mouthguard" is a purchase (an item to acquire).
   - pain_log = a standalone report of body pain or discomfort that is NOT part of a workout session report. Signals: "my knee hurts", "shoulder pain", "back is sore", "lower back twinging today", "tweaked my wrist". Distinguishing from workout: there are no sets/reps/exercises being reported. Distinguishing from journal: pain_log is specifically about a body region + sensation, not broad reflection on how the day went.
+  - media = the user wants to add something to their watch, listen, or read list. Signals: "watch", "add to watch list", "read", "listen to", "check out this book/film/show/podcast/album/song/series/audiobook". The media object must include media_type ("watch" for films/shows/videos, "listen" for music/podcasts/audiobooks, "read" for books/articles) and creator (author/director/artist if mentioned, null otherwise).
   - capture = catch-all when none of the above clearly applies.
 
 Heuristics for journal (guidance, not strict):
@@ -202,6 +211,11 @@ Examples:
   - "My left knee is sore today, about a 4" -> pain_log (pain_regions: ["left_knee"], severity: 4, feel_rating: "moderate")
   - "Shoulder pain again, just a niggle" -> pain_log (pain_regions: ["other"], severity: null, feel_rating: "mild")
   - "Lower back twinged when I bent over, like a 6" -> pain_log (pain_regions: ["lower_back"], severity: 6, feel_rating: "moderate")
+  - "Watch The Bear season 3" -> media (media.media_type: "watch", media.creator: null)
+  - "Read Meditations by Marcus Aurelius" -> media (media.media_type: "read", media.creator: "Marcus Aurelius")
+  - "Listen to Huberman Lab podcast on sleep" -> media (media.media_type: "listen", media.creator: "Huberman Lab")
+  - "Add Oppenheimer to my watch list" -> media (media.media_type: "watch", media.creator: null)
+  - "Check out that book Atomic Habits by James Clear" -> media (media.media_type: "read", media.creator: "James Clear")
 
 Other fields:
 - "urgency" is one of: today, this_week, this_month, someday. For journal entries this is unused — pick "someday".
@@ -236,6 +250,11 @@ Other fields:
     - currency: infer from symbol (£ → GBP, $ → USD, € → EUR). Default GBP.
     - want_or_need: "need" for "need / must / have to / running out / out of / it's overdue". "want" for "want / would like / thinking about / fancy". "unclear" if ambiguous.
     - list_type: "wishlist" only when the user explicitly signals it — phrases like "add to wishlist", "on my wishlist", "wishlist", "want someday", "for the wishlist", "would love eventually", or aspirational language with no near-term intent. Everything else (including "want", "fancy", "thinking about") stays "shopping" because shopping is the active to-buy list and wishlist is the aspirational set-aside.
+
+- "media" is an object ONLY when kind = "media"; null for every other kind. Shape:
+    { "media_type": "watch" | "listen" | "read", "creator": <string or null> }
+    - media_type: "watch" for films, TV shows, videos, YouTube. "listen" for music, podcasts, audiobooks. "read" for books, articles, papers.
+    - creator: the author, director, artist, or creator if mentioned. Null if not stated.
 
 - "reminder" is an object ONLY when kind = "reminder"; null for every other kind. Shape:
     { "reminder_message": <string>, "time": <HH:MM 24h or null>, "date": <"today" | "tomorrow" | day-of-week | ISO date | null>, "relative_minutes": <number or null>, "recurrence": <"daily" | "weekly" | "monthly" | null> }
@@ -374,6 +393,23 @@ function validate(obj: unknown): Classification | null {
     reminder = { reminder_message: rm, time, date, relative_minutes, recurrence };
   }
 
+  // media is only meaningful for kind === 'media'.
+  let media: MediaDetails | null = null;
+  if (kind === "media") {
+    const m = (o.media as Record<string, unknown> | null | undefined) ?? {};
+    const mtRaw = (m as Record<string, unknown>).media_type;
+    const media_type: "watch" | "listen" | "read" =
+      mtRaw === "watch" || mtRaw === "listen" || mtRaw === "read"
+        ? mtRaw
+        : "watch";
+    const creatorRaw = (m as Record<string, unknown>).creator;
+    const creator =
+      typeof creatorRaw === "string" && creatorRaw.trim()
+        ? creatorRaw.trim()
+        : null;
+    media = { media_type, creator };
+  }
+
   // Context fields are optional on every kind. Permissively read each one;
   // anything unusable (wrong type, non-whitelisted energy) falls back to null.
   const context_where =
@@ -407,6 +443,7 @@ function validate(obj: unknown): Classification | null {
     purchase,
     pain,
     reminder,
+    media,
     context_where,
     context_device,
     context_energy,
@@ -631,6 +668,14 @@ function classifyRegex(text: string): Classification {
       lower
     );
 
+  // Media signals — watch/listen/read list intent.
+  const mediaSignals =
+    /\b(watch list|watch ?list|read list|reading list|listen list|add to (?:my )?(?:watch|read|listen)|check out (?:this |that )?(?:book|film|show|series|podcast|album|song|audiobook|movie))\b/.test(
+      lower,
+    ) ||
+    (/\b(watch|read|listen to)\b/.test(lower) &&
+      /\b(book|film|show|series|podcast|album|song|audiobook|movie|documentary|anime)\b/.test(lower));
+
   // Purchase signals — acquisition verbs + a few "bill / sub" nouns.
   // Workout signals take precedence (we don't want "ran for milk" to
   // classify as purchase if it's actually about exercise), but purchase
@@ -650,6 +695,8 @@ function classifyRegex(text: string): Classification {
     kind = "workout";
   } else if (painSignals) {
     kind = "pain_log";
+  } else if (mediaSignals) {
+    kind = "media";
   } else if (purchaseSignals) {
     kind = "purchase";
   } else if (hasReminderWords) {
@@ -690,11 +737,23 @@ function classifyRegex(text: string): Classification {
     purchase: kind === "purchase" ? extractPurchaseFromText(text) : null,
     pain: kind === "pain_log" ? extractPainFromText(text) : null,
     reminder: kind === "reminder" ? extractReminderFromText(text) : null,
+    media: kind === "media" ? extractMediaFromText(text) : null,
     context_where: ctx.where,
     context_device: ctx.device,
     context_energy: ctx.energy,
     context_tag: ctx.tag,
   };
+}
+
+function extractMediaFromText(text: string): MediaDetails {
+  const lower = text.toLowerCase();
+  let media_type: "watch" | "listen" | "read" = "watch";
+  if (/\b(read|book|article|paper)\b/.test(lower)) media_type = "read";
+  else if (/\b(listen|podcast|album|song|audiobook|music)\b/.test(lower))
+    media_type = "listen";
+  const byMatch = text.match(/\bby\s+([A-Z][A-Za-z\s.'-]+)/);
+  const creator = byMatch ? byMatch[1].trim() : null;
+  return { media_type, creator };
 }
 
 function extractReminderFromText(text: string): ReminderDetails {

@@ -163,6 +163,28 @@ export async function writeCapture(
     }
     routedTo = "exercise_pain_logs";
     routedId = row.id;
+  } else if (classification.kind === "media") {
+    const media = classification.media ?? { media_type: "watch" as const, creator: null };
+    const { data: mediaRow, error: mediaErr } = await supabase
+      .from("media_items")
+      .insert({
+        user_id: userId,
+        title: classification.title,
+        creator: media.creator,
+        media_type: media.media_type,
+        media_status: "backlog",
+        raw_capture_id: rawCapture.id,
+        tags: classification.tags.length > 0 ? classification.tags : null,
+      })
+      .select("id")
+      .single();
+    if (mediaErr || !mediaRow) {
+      throw new Error(
+        `media_items insert failed: ${mediaErr?.message ?? "unknown"}`,
+      );
+    }
+    routedTo = "media_items";
+    routedId = mediaRow.id;
   } else if (classification.kind === "journal") {
     const summary = classification.summary
       ? classification.summary.slice(0, 40)

@@ -6,7 +6,8 @@ export type ConvertibleKind =
   | "decision"
   | "note"
   | "capture"
-  | "pain_log";
+  | "pain_log"
+  | "media";
 
 export const CONVERTIBLE_KINDS: readonly ConvertibleKind[] = [
   "task",
@@ -16,6 +17,7 @@ export const CONVERTIBLE_KINDS: readonly ConvertibleKind[] = [
   "note",
   "capture",
   "pain_log",
+  "media",
 ];
 
 export const KIND_LABELS: Record<ConvertibleKind, string> = {
@@ -26,6 +28,7 @@ export const KIND_LABELS: Record<ConvertibleKind, string> = {
   note: "Note",
   capture: "Capture",
   pain_log: "Pain log",
+  media: "Media item",
 };
 
 export function kindTable(kind: ConvertibleKind): string {
@@ -38,6 +41,8 @@ export function kindTable(kind: ConvertibleKind): string {
       return "journal_entries";
     case "pain_log":
       return "exercise_pain_logs";
+    case "media":
+      return "media_items";
     case "decision":
     case "note":
     case "capture":

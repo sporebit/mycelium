@@ -17,6 +17,11 @@ const CARDS = [
     description: "Shopping list, wishlist, and bills tracked together.",
   },
   {
+    label: "Media",
+    href: "/organisation/media",
+    description: "Watch, listen, and read lists with status and ratings.",
+  },
+  {
     label: "Captures",
     href: "/organisation/captures",
     description: "Raw voice and text input before it's routed.",

@@ -6,6 +6,7 @@ const TABS: SubNavTab[] = [
   { label: "TASKS", href: "/organisation/tasks" },
   { label: "CAPTURES", href: "/organisation/captures" },
   { label: "HABITS", href: "/organisation/habits" },
+  { label: "MEDIA", href: "/organisation/media" },
   { label: "JOURNAL", href: "/journal" },
   { label: "REMINDERS", href: "/reminders" },
   { label: "REVIEW", href: "/organisation/captures/review" },

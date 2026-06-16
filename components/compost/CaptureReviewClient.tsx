@@ -44,6 +44,7 @@ const KIND_OPTIONS = [
   "journal",
   "workout",
   "purchase",
+  "media",
   "decision",
   "capture",
   "note",

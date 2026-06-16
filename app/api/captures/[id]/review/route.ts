@@ -32,6 +32,7 @@ const ALLOWED_KINDS = new Set([
   "capture",
   "workout",
   "purchase",
+  "media",
 ]);
 const ALLOWED_URGENCIES = new Set([
   "today",
@@ -225,6 +226,35 @@ async function createRoutedRow(
       );
     }
     return { routedTo: "purchases", routedId: data.id };
+  }
+
+  if (kind === "media") {
+    const mediaObj = (classification.media as Record<string, unknown> | undefined) ?? {};
+    const mediaType =
+      mediaObj.media_type === "watch" || mediaObj.media_type === "listen" || mediaObj.media_type === "read"
+        ? mediaObj.media_type
+        : "watch";
+    const creator =
+      typeof mediaObj.creator === "string" && mediaObj.creator.trim()
+        ? mediaObj.creator.trim()
+        : null;
+    const { data, error } = await supabase
+      .from("media_items")
+      .insert({
+        user_id: userId,
+        title,
+        creator,
+        media_type: mediaType,
+        media_status: "backlog",
+        tags: tags.length ? tags : null,
+        raw_capture_id: rawCaptureId,
+      })
+      .select("id")
+      .single();
+    if (error || !data) {
+      throw new Error(`media_items insert failed: ${error?.message ?? "no row"}`);
+    }
+    return { routedTo: "media_items", routedId: data.id };
   }
 
   // decision / note / capture / workout / other — leave in raw_captures.
