@@ -35,6 +35,23 @@ import type {
   WorkoutSessionType,
 } from "@/lib/fitness/types";
 
+const HIDDEN_KEY = "fitness-today-hidden";
+
+function readHidden(): Set<string> {
+  try {
+    const raw = localStorage.getItem(HIDDEN_KEY);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function writeHidden(set: Set<string>) {
+  try {
+    localStorage.setItem(HIDDEN_KEY, JSON.stringify([...set]));
+  } catch { /* quota */ }
+}
+
 function getLocalTodayKey(): string {
   return localDateKey();
 }
@@ -83,6 +100,9 @@ export function TodayView({
   const [starting, setStarting] = useState<string | null>(null);
   const [addFor, setAddFor] = useState<Slot | null>(null);
   const [toast, setToast] = useState<Toast>(null);
+  const [hidden, setHidden] = useState<Set<string>>(() =>
+    typeof window === "undefined" ? new Set() : readHidden()
+  );
 
   const load = useCallback(async () => {
     try {
@@ -196,6 +216,38 @@ export function TodayView({
     }
   }
 
+  async function removeEntry(entry: TodaySlotEntry) {
+    const key = entry.logged_session_id ?? `tpl:${entry.programme_session_id}`;
+
+    if (entry.completed && entry.logged_session_id) {
+      const next = new Set(hidden);
+      next.add(key);
+      setHidden(next);
+      writeHidden(next);
+      return;
+    }
+
+    setData((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev.slots };
+      for (const s of Object.keys(updated) as Slot[]) {
+        updated[s] = (updated[s] ?? []).filter(
+          (e) =>
+            (e.logged_session_id ?? `tpl:${e.programme_session_id}`) !== key
+        );
+      }
+      return { ...prev, slots: updated };
+    });
+
+    if (entry.logged_session_id) {
+      try {
+        await fetch(`/api/fitness/sessions/${entry.logged_session_id}`, {
+          method: "DELETE",
+        });
+      } catch { /* optimistic — already removed from UI */ }
+    }
+  }
+
   if (error) {
     return (
       <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
@@ -248,6 +300,7 @@ export function TodayView({
             key={slot}
             slot={slot}
             entries={entries}
+            hidden={hidden}
             programmeSessions={data.programme_sessions}
             todayDow={todayDow}
             typesByKey={typesByKey}
@@ -258,6 +311,7 @@ export function TodayView({
             onReorder={(newOrder) => void handleReorder(slot, newOrder)}
             onAdd={() => setAddFor(slot)}
             onSwapped={() => void load()}
+            onRemove={(e) => void removeEntry(e)}
           />
         );
       })}
@@ -294,7 +348,8 @@ export function TodayView({
 
 function SlotSection({
   slot,
-  entries,
+  entries: rawEntries,
+  hidden,
   programmeSessions,
   todayDow,
   typesByKey,
@@ -305,9 +360,11 @@ function SlotSection({
   onReorder,
   onAdd,
   onSwapped,
+  onRemove,
 }: {
   slot: Slot;
   entries: TodaySlotEntry[];
+  hidden: Set<string>;
   programmeSessions: TodayResponse["programme_sessions"];
   todayDow: number;
   typesByKey: Record<string, WorkoutSessionType>;
@@ -318,7 +375,11 @@ function SlotSection({
   onReorder: (newOrder: TodaySlotEntry[]) => void;
   onAdd: () => void;
   onSwapped: () => void;
+  onRemove: (entry: TodaySlotEntry) => void;
 }) {
+  const entries = rawEntries.filter(
+    (e) => !hidden.has(e.logged_session_id ?? `tpl:${e.programme_session_id}`)
+  );
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 500, tolerance: 8 } }),
@@ -371,6 +432,7 @@ function SlotSection({
                   isPast={isPast}
                   onStart={onStart}
                   onSwapped={onSwapped}
+                  onRemove={onRemove}
                 />
               ))}
             </div>
@@ -400,6 +462,7 @@ function SortableSessionCard(props: {
   isPast: boolean;
   onStart: (entry: TodaySlotEntry) => void;
   onSwapped: () => void;
+  onRemove: (entry: TodaySlotEntry) => void;
 }) {
   const {
     id,
@@ -412,6 +475,7 @@ function SortableSessionCard(props: {
     isPast,
     onStart,
     onSwapped,
+    onRemove,
   } = props;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id });
@@ -450,7 +514,7 @@ function SortableSessionCard(props: {
     <article
       ref={setNodeRef}
       style={style}
-      className={`growth-in rounded-md bg-ink-1 p-5 flex flex-col gap-3 ${
+      className={`growth-in rounded-md bg-ink-1 p-5 flex flex-col gap-3 group/card ${
         isDragging ? "ring-1 ring-glow-2/60 shadow-2xl" : ""
       }`}
     >
@@ -522,6 +586,16 @@ function SortableSessionCard(props: {
             onSwapped={onSwapped}
           />
         )}
+        <button
+          type="button"
+          onClick={() => onRemove(entry)}
+          aria-label={`Remove ${entry.name}`}
+          className="h-7 w-7 shrink-0 rounded-full flex items-center justify-center text-ink-3 hover:text-danger hover:bg-danger/10 md:opacity-0 md:group-hover/card:opacity-100 transition-all"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <path d="M2 2l8 8M10 2l-8 8" />
+          </svg>
+        </button>
       </div>
 
       {entry.exercises.length > 0 && (
