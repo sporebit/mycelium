@@ -26,6 +26,7 @@ type Extracted = {
   sugar_per_100g: number | null;
   saturated_fat_per_100g: number | null;
   salt_per_100g: number | null;
+  total_weight_g: number | null;
   ingredients: string | null;
   confidence: "high" | "medium" | "low";
 };
@@ -49,6 +50,7 @@ Schema (every key must be present; use null when unreadable):
   "sugar_per_100g": number | null,
   "saturated_fat_per_100g": number | null,
   "salt_per_100g": number | null,
+  "total_weight_g": number | null,
   "ingredients": string | null,
   "confidence": "high" | "medium" | "low"
 }
@@ -58,6 +60,7 @@ Rules:
   serving size in grams (and note this drove confidence down a notch).
 - US labels show sodium in mg — convert to salt in g (salt = sodium × 2.5 / 1000).
 - If a number isn't visible, set it to null.
+- "total_weight_g": the net weight of the package if printed (e.g. "500g" or "Net Wt. 1 lb" → 454). Null if not shown.
 - Set "confidence": "high" if every key value is clearly readable;
   "medium" if you had to convert or some values were partially obscured;
   "low" if the label was blurred / cropped / you mostly guessed.
@@ -108,6 +111,7 @@ function coerce(obj: unknown): Extracted | null {
     sugar_per_100g: safeNum(o.sugar_per_100g),
     saturated_fat_per_100g: safeNum(o.saturated_fat_per_100g),
     salt_per_100g: safeNum(o.salt_per_100g),
+    total_weight_g: safeNum(o.total_weight_g),
     ingredients:
       typeof o.ingredients === "string" && o.ingredients.trim()
         ? o.ingredients.trim()

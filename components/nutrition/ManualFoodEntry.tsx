@@ -3,32 +3,71 @@
 import { useState } from "react";
 import type { Food } from "@/lib/nutrition/types-v2";
 
-/**
- * Fallback entry form shown when an OFF barcode lookup misses. The
- * barcode field is pre-filled and read-only so the saved row carries
- * it forward and future scans of the same product hit the cache. Each
- * macro field is per-100g — same convention as the rest of the
- * nutrition system.
- */
+export type ScanPrefill = {
+  product_name: string;
+  brand: string | null;
+  kcal_per_100g: number | null;
+  protein_per_100g: number | null;
+  carbs_per_100g: number | null;
+  fat_per_100g: number | null;
+  fibre_per_100g: number | null;
+  sugar_per_100g: number | null;
+  saturated_fat_per_100g: number | null;
+  salt_per_100g: number | null;
+  serving_size_g: number | null;
+  total_weight_g: number | null;
+  confidence: "high" | "medium" | "low";
+};
+
 export function ManualFoodEntry({
   barcode,
+  prefill,
   onSaved,
   onClose,
   onRetry,
   retrying,
 }: {
   barcode: string;
+  prefill?: ScanPrefill | null;
   onSaved: (food: Food) => void;
   onClose: () => void;
   onRetry: () => void;
   retrying: boolean;
 }) {
-  const [name, setName] = useState("");
-  const [brand, setBrand] = useState("");
-  const [kcal, setKcal] = useState<string>("");
-  const [protein, setProtein] = useState<string>("");
-  const [carbs, setCarbs] = useState<string>("");
-  const [fat, setFat] = useState<string>("");
+  const [name, setName] = useState(prefill?.product_name ?? "");
+  const [brand, setBrand] = useState(prefill?.brand ?? "");
+  const [kcal, setKcal] = useState(
+    prefill?.kcal_per_100g != null ? String(prefill.kcal_per_100g) : "",
+  );
+  const [protein, setProtein] = useState(
+    prefill?.protein_per_100g != null ? String(prefill.protein_per_100g) : "",
+  );
+  const [carbs, setCarbs] = useState(
+    prefill?.carbs_per_100g != null ? String(prefill.carbs_per_100g) : "",
+  );
+  const [fat, setFat] = useState(
+    prefill?.fat_per_100g != null ? String(prefill.fat_per_100g) : "",
+  );
+  const [fibre, setFibre] = useState(
+    prefill?.fibre_per_100g != null ? String(prefill.fibre_per_100g) : "",
+  );
+  const [sugar, setSugar] = useState(
+    prefill?.sugar_per_100g != null ? String(prefill.sugar_per_100g) : "",
+  );
+  const [satFat, setSatFat] = useState(
+    prefill?.saturated_fat_per_100g != null
+      ? String(prefill.saturated_fat_per_100g)
+      : "",
+  );
+  const [salt, setSalt] = useState(
+    prefill?.salt_per_100g != null ? String(prefill.salt_per_100g) : "",
+  );
+  const [servingG, setServingG] = useState(
+    prefill?.serving_size_g != null ? String(prefill.serving_size_g) : "",
+  );
+  const [totalWeightG, setTotalWeightG] = useState(
+    prefill?.total_weight_g != null ? String(prefill.total_weight_g) : "",
+  );
   const [saveToLibrary, setSaveToLibrary] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +76,14 @@ export function ManualFoodEntry({
     if (!v.trim()) return null;
     const x = Number(v);
     return Number.isFinite(x) ? x : null;
+  }
+
+  const weight = n(totalWeightG);
+
+  function calcTotal(per100: string): string {
+    const v = n(per100);
+    if (v == null || weight == null || weight === 0) return "—";
+    return ((v * weight) / 100).toFixed(1);
   }
 
   async function save() {
@@ -60,6 +107,11 @@ export function ManualFoodEntry({
           protein_per_100g: n(protein),
           carbs_per_100g: n(carbs),
           fat_per_100g: n(fat),
+          fibre_per_100g: n(fibre),
+          sugar_per_100g: n(sugar),
+          saturated_fat_per_100g: n(satFat),
+          salt_per_100g: n(salt),
+          serving_size_g: n(servingG) ?? 100,
           is_favourite: saveToLibrary,
         }),
       });
@@ -77,6 +129,13 @@ export function ManualFoodEntry({
     }
   }
 
+  const confTone =
+    prefill?.confidence === "high"
+      ? "text-ok bg-ok/15 border-ok/40"
+      : prefill?.confidence === "medium"
+        ? "text-warn bg-warn/15 border-warn/40"
+        : "text-danger bg-danger/15 border-danger/40";
+
   return (
     <div className="fixed inset-0 z-[210] flex items-end md:items-center justify-center">
       <button
@@ -88,11 +147,11 @@ export function ManualFoodEntry({
       <div
         role="dialog"
         aria-label="Add food manually"
-        className="relative w-full max-w-md rounded-t-xl md:rounded-xl bg-ink-1 border border-ink-2 shadow-2xl flex flex-col overflow-hidden"
+        className="relative w-full max-w-md max-h-[90vh] rounded-t-xl md:rounded-xl bg-ink-1 border border-ink-2 shadow-2xl flex flex-col overflow-hidden"
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-ink-2">
           <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-            Add manually
+            {prefill ? "Label scanned" : "Add manually"}
           </span>
           <button
             type="button"
@@ -104,23 +163,46 @@ export function ManualFoodEntry({
           </button>
         </div>
 
-        <div className="flex flex-col gap-3 p-4">
+        <div className="flex flex-col gap-3 p-4 overflow-y-auto">
+          {prefill && (
+            <div
+              className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-2 py-1.5 rounded-md border ${confTone}`}
+            >
+              Label scanned · confidence: {prefill.confidence}
+              {prefill.confidence !== "high" && " — please double-check values"}
+            </div>
+          )}
+
           <div className="flex flex-col gap-1">
             <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
-              We couldn&apos;t find barcode{" "}
-              <span className="text-ink-4 font-[family-name:var(--font-mono)] not-italic">
-                {barcode}
-              </span>
-              . Add it manually so next time it&apos;s instant.
+              {prefill ? (
+                <>
+                  Review the extracted values for barcode{" "}
+                  <span className="text-ink-4 font-[family-name:var(--font-mono)] not-italic">
+                    {barcode}
+                  </span>
+                  .
+                </>
+              ) : (
+                <>
+                  We couldn&apos;t find barcode{" "}
+                  <span className="text-ink-4 font-[family-name:var(--font-mono)] not-italic">
+                    {barcode}
+                  </span>
+                  . Add it manually so next time it&apos;s instant.
+                </>
+              )}
             </p>
-            <button
-              type="button"
-              onClick={onRetry}
-              disabled={retrying}
-              className="self-start mt-1 text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 disabled:opacity-40 font-[family-name:var(--font-mono)]"
-            >
-              {retrying ? "LOOKING…" : "↺ LOOKUP AGAIN"}
-            </button>
+            {!prefill && (
+              <button
+                type="button"
+                onClick={onRetry}
+                disabled={retrying}
+                className="self-start mt-1 text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 disabled:opacity-40 font-[family-name:var(--font-mono)]"
+              >
+                {retrying ? "LOOKING…" : "↺ LOOKUP AGAIN"}
+              </button>
+            )}
           </div>
 
           <Field label="Name *">
@@ -180,7 +262,85 @@ export function ManualFoodEntry({
                 className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
               />
             </Field>
+            <Field label="Fibre / 100g">
+              <input
+                type="number"
+                inputMode="decimal"
+                value={fibre}
+                onChange={(e) => setFibre(e.target.value)}
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              />
+            </Field>
+            <Field label="Sugar / 100g">
+              <input
+                type="number"
+                inputMode="decimal"
+                value={sugar}
+                onChange={(e) => setSugar(e.target.value)}
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              />
+            </Field>
+            <Field label="Sat. fat / 100g">
+              <input
+                type="number"
+                inputMode="decimal"
+                value={satFat}
+                onChange={(e) => setSatFat(e.target.value)}
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              />
+            </Field>
+            <Field label="Salt / 100g">
+              <input
+                type="number"
+                inputMode="decimal"
+                value={salt}
+                onChange={(e) => setSalt(e.target.value)}
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              />
+            </Field>
           </div>
+
+          {prefill?.total_weight_g != null ? (
+            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] px-2 py-1.5 rounded-md bg-ink-2">
+              Total package: {prefill.total_weight_g}g
+            </div>
+          ) : (
+            <Field label="Total weight (g)">
+              <input
+                type="number"
+                inputMode="decimal"
+                value={totalWeightG}
+                onChange={(e) => setTotalWeightG(e.target.value)}
+                placeholder="e.g. 500"
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              />
+            </Field>
+          )}
+
+          <Field label="Serving size (g)">
+            <input
+              type="number"
+              inputMode="decimal"
+              value={servingG}
+              onChange={(e) => setServingG(e.target.value)}
+              placeholder="100"
+              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+            />
+          </Field>
+
+          {weight != null && weight > 0 && (
+            <div className="rounded-md bg-ink-0/40 border border-ink-2 px-3 py-2">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] block mb-1.5">
+                Package totals ({weight}g)
+              </span>
+              <div className="grid grid-cols-4 gap-2 text-[10px] font-[family-name:var(--font-mono)] text-ink-4 tabular-nums">
+                <span>{calcTotal(kcal)} kcal</span>
+                <span>P {calcTotal(protein)}g</span>
+                <span>C {calcTotal(carbs)}g</span>
+                <span>F {calcTotal(fat)}g</span>
+              </div>
+            </div>
+          )}
 
           <label className="flex items-center gap-2 mt-1 cursor-pointer">
             <input
@@ -208,7 +368,7 @@ export function ManualFoodEntry({
             </button>
             <button
               type="button"
-              onClick={save}
+              onClick={() => void save()}
               disabled={saving || !name.trim()}
               className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 disabled:opacity-40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
             >
@@ -221,7 +381,13 @@ export function ManualFoodEntry({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="flex flex-col gap-1">
       <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">

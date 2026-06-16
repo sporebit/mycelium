@@ -8,6 +8,7 @@ type Extracted = {
   brand: string | null;
   serving_size_g: number | null;
   servings_per_pack: number | null;
+  total_weight_g: number | null;
   kcal_per_100g: number | null;
   protein_per_100g: number | null;
   carbs_per_100g: number | null;
@@ -313,6 +314,12 @@ function ExtractedForm({
     setV((cur) => ({ ...cur, [k]: Number.isFinite(n as number) ? n : null }));
   }
 
+  function ct(per100: number | null): string {
+    if (per100 == null || v.total_weight_g == null || v.total_weight_g === 0)
+      return "—";
+    return ((per100 * v.total_weight_g) / 100).toFixed(1);
+  }
+
   const tone =
     v.confidence === "high"
       ? "text-ok bg-ok/15 border-ok/40"
@@ -364,7 +371,22 @@ function ExtractedForm({
         <NumField label="Sat. fat / 100g" value={v.saturated_fat_per_100g} onChange={(x) => num("saturated_fat_per_100g", x)} />
         <NumField label="Salt / 100g" value={v.salt_per_100g} onChange={(x) => num("salt_per_100g", x)} />
         <NumField label="Serving (g)" value={v.serving_size_g} onChange={(x) => num("serving_size_g", x)} />
+        <NumField label="Total weight (g)" value={v.total_weight_g} onChange={(x) => num("total_weight_g", x)} />
       </div>
+
+      {v.total_weight_g != null && v.total_weight_g > 0 && (
+        <div className="rounded-md bg-ink-0/40 border border-ink-2 px-3 py-2">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] block mb-1.5">
+            Package totals ({v.total_weight_g}g)
+          </span>
+          <div className="grid grid-cols-4 gap-2 text-[10px] font-[family-name:var(--font-mono)] text-ink-4 tabular-nums">
+            <span>{ct(v.kcal_per_100g)} kcal</span>
+            <span>P {ct(v.protein_per_100g)}g</span>
+            <span>C {ct(v.carbs_per_100g)}g</span>
+            <span>F {ct(v.fat_per_100g)}g</span>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-end gap-2 pt-2">
         <button
