@@ -21,11 +21,11 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mycelium",
+  title: "Myphilium",
   description: "Personal AI dashboard",
   appleWebApp: {
     capable: true,
-    title: "Mycelium",
+    title: "Myphilium",
     statusBarStyle: "black-translucent",
   },
   icons: {
