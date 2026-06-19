@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import { SpendingClient } from "@/components/finance/SpendingClient";
 
 export default function SpendingPage() {
-  return <SpendingClient />;
+  return (
+    <Suspense>
+      <SpendingClient />
+    </Suspense>
+  );
 }

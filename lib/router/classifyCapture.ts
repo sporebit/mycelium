@@ -8,7 +8,8 @@ export type CaptureKind =
   | "purchase"
   | "pain_log"
   | "reminder"
-  | "media";
+  | "media"
+  | "account";
 export type CaptureUrgency = "today" | "this_week" | "this_month" | "someday";
 export type CaptureMood =
   | "energised"
@@ -75,6 +76,12 @@ export type MediaDetails = {
   creator: string | null;
 };
 
+export type AccountDetails = {
+  cost_amount: number | null;
+  cost_period: "monthly" | "annual" | "one_off" | null;
+  status: "active" | "cancelled" | "paused" | "trial";
+};
+
 export type ContextEnergy = "low" | "medium" | "high";
 
 export type Classification = {
@@ -91,6 +98,7 @@ export type Classification = {
   pain: PainDetails | null; // only meaningful for pain_log
   reminder: ReminderDetails | null; // only meaningful for reminder
   media: MediaDetails | null; // only meaningful for media
+  account: AccountDetails | null; // only meaningful for account
   /** Context fields — applies to every kind. The classifier sets them
    *  when they're clear from the text, otherwise leaves them null so
    *  the post-create suggester can fill in from history. */
@@ -116,6 +124,7 @@ const KINDS: readonly CaptureKind[] = [
   "pain_log",
   "reminder",
   "media",
+  "account",
 ];
 
 const PAIN_FEEL_RATINGS: readonly PainFeel[] = [
@@ -164,7 +173,7 @@ const MOODS: readonly CaptureMood[] = [
 export const CLASSIFIER_SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
 
 Rules:
-- "kind" is one of: task, note, decision, journal, capture, workout, purchase, pain_log, reminder, media.
+- "kind" is one of: task, note, decision, journal, capture, workout, purchase, pain_log, reminder, media, account.
   - task = an action the user needs to DO (not buy), with NO explicit time/date trigger.
   - reminder = the user explicitly wants to be reminded at a specific time or after a delay. Signals: "remind me", "set a reminder", "in 30 minutes", "at 8pm", "every day at", "tomorrow at". If there's a concrete time/date/delay attached to a task-like request, classify as reminder, not task.
   - decision = a choice the user wants to record.
@@ -174,6 +183,7 @@ Rules:
   - purchase = the user wants to BUY, pay for, order, or acquire something — physical goods, services, bills, subscriptions. Classify by intent, not by specific trigger words. Examples: "buy milk", "pay the electric bill", "order a new keyboard", "I need to get a birthday card for mum", "pick up some protein powder", "renew the netflix sub". When in doubt and there's money or goods involved, prefer purchase over task: "book a dentist appointment" is a task (an action to perform), "buy a mouthguard" is a purchase (an item to acquire).
   - pain_log = a standalone report of body pain or discomfort that is NOT part of a workout session report. Signals: "my knee hurts", "shoulder pain", "back is sore", "lower back twinging today", "tweaked my wrist". Distinguishing from workout: there are no sets/reps/exercises being reported. Distinguishing from journal: pain_log is specifically about a body region + sensation, not broad reflection on how the day went.
   - media = the user wants to add something to their watch, listen, or read list. Signals: "watch", "add to watch list", "read", "listen to", "check out this book/film/show/podcast/album/song/series/audiobook". The media object must include media_type ("watch" for films/shows/videos, "listen" for music/podcasts/audiobooks, "read" for books/articles) and creator (author/director/artist if mentioned, null otherwise).
+  - account = the user wants to add, register, or manage a service/subscription account. Signals: "add [name] to my accounts", "signed up for", "subscribed to", "cancelled my [name]", "[name] costs", "opened a [name] account". This is for service accounts (Netflix, Spotify, AWS, etc.), NOT bank accounts. The title should be the service name. If the user says they "cancelled" a service, set account.status to "cancelled". If they're signing up or adding, set "active".
   - capture = catch-all when none of the above clearly applies.
 
 Heuristics for journal (guidance, not strict):
@@ -216,6 +226,9 @@ Examples:
   - "Listen to Huberman Lab podcast on sleep" -> media (media.media_type: "listen", media.creator: "Huberman Lab")
   - "Add Oppenheimer to my watch list" -> media (media.media_type: "watch", media.creator: null)
   - "Check out that book Atomic Habits by James Clear" -> media (media.media_type: "read", media.creator: "James Clear")
+  - "Add Netflix to my accounts, £10.99 a month" -> account (account.cost_amount: 10.99, account.cost_period: "monthly", account.status: "active")
+  - "Cancelled my Spotify subscription" -> account (account.status: "cancelled", account.cost_amount: null, account.cost_period: null)
+  - "Signed up for GitHub Pro, $4 a month" -> account (account.cost_amount: 4, account.cost_period: "monthly", account.status: "active")
 
 Other fields:
 - "urgency" is one of: today, this_week, this_month, someday. For journal entries this is unused — pick "someday".
@@ -255,6 +268,12 @@ Other fields:
     { "media_type": "watch" | "listen" | "read", "creator": <string or null> }
     - media_type: "watch" for films, TV shows, videos, YouTube. "listen" for music, podcasts, audiobooks. "read" for books, articles, papers.
     - creator: the author, director, artist, or creator if mentioned. Null if not stated.
+
+- "account" is an object ONLY when kind = "account"; null for every other kind. Shape:
+    { "cost_amount": <number or null>, "cost_period": "monthly" | "annual" | "one_off" | null, "status": "active" | "cancelled" | "paused" | "trial" }
+    - cost_amount: parse digits from currency context. Null if not stated.
+    - cost_period: "monthly" for "a month / per month / /mo". "annual" for "a year / per year / /yr". "one_off" for one-time. Null if unknown.
+    - status: "cancelled" when the user says they cancelled/ended/stopped. "trial" for "free trial / trying out". "paused" for "paused / on hold". "active" otherwise (default).
 
 - "reminder" is an object ONLY when kind = "reminder"; null for every other kind. Shape:
     { "reminder_message": <string>, "time": <HH:MM 24h or null>, "date": <"today" | "tomorrow" | day-of-week | ISO date | null>, "relative_minutes": <number or null>, "recurrence": <"daily" | "weekly" | "monthly" | null> }
@@ -410,6 +429,28 @@ function validate(obj: unknown): Classification | null {
     media = { media_type, creator };
   }
 
+  // account is only meaningful for kind === 'account'.
+  let account: AccountDetails | null = null;
+  if (kind === "account") {
+    const a = (o.account as Record<string, unknown> | null | undefined) ?? {};
+    const amtRaw = a.cost_amount;
+    const cost_amount =
+      typeof amtRaw === "number" && Number.isFinite(amtRaw) ? amtRaw : null;
+    const periodRaw = a.cost_period;
+    const cost_period =
+      typeof periodRaw === "string" &&
+      ["monthly", "annual", "one_off"].includes(periodRaw)
+        ? (periodRaw as "monthly" | "annual" | "one_off")
+        : null;
+    const statusRaw = a.status;
+    const status =
+      typeof statusRaw === "string" &&
+      ["active", "cancelled", "paused", "trial"].includes(statusRaw)
+        ? (statusRaw as "active" | "cancelled" | "paused" | "trial")
+        : "active";
+    account = { cost_amount, cost_period, status };
+  }
+
   // Context fields are optional on every kind. Permissively read each one;
   // anything unusable (wrong type, non-whitelisted energy) falls back to null.
   const context_where =
@@ -444,6 +485,7 @@ function validate(obj: unknown): Classification | null {
     pain,
     reminder,
     media,
+    account,
     context_where,
     context_device,
     context_energy,
@@ -686,6 +728,11 @@ function classifyRegex(text: string): Classification {
     ) ||
     /\b(bill|subscription|sub|renew|top up|topup|restock)\b/.test(lower);
 
+  // Account signals — service/subscription management.
+  const accountSignals =
+    /\b(add .+ to my accounts|signed up for|subscribed to|cancelled my|cancel my|opened .+ account)\b/.test(lower) &&
+    !purchaseSignals;
+
   let kind: CaptureKind = "capture";
   if (/\b(decided|decision|chose|choosing)\b/.test(lower)) {
     kind = "decision";
@@ -697,6 +744,8 @@ function classifyRegex(text: string): Classification {
     kind = "pain_log";
   } else if (mediaSignals) {
     kind = "media";
+  } else if (accountSignals) {
+    kind = "account";
   } else if (purchaseSignals) {
     kind = "purchase";
   } else if (hasReminderWords) {
@@ -738,6 +787,7 @@ function classifyRegex(text: string): Classification {
     pain: kind === "pain_log" ? extractPainFromText(text) : null,
     reminder: kind === "reminder" ? extractReminderFromText(text) : null,
     media: kind === "media" ? extractMediaFromText(text) : null,
+    account: kind === "account" ? extractAccountFromText(text) : null,
     context_where: ctx.where,
     context_device: ctx.device,
     context_energy: ctx.energy,
@@ -754,6 +804,23 @@ function extractMediaFromText(text: string): MediaDetails {
   const byMatch = text.match(/\bby\s+([A-Z][A-Za-z\s.'-]+)/);
   const creator = byMatch ? byMatch[1].trim() : null;
   return { media_type, creator };
+}
+
+function extractAccountFromText(text: string): AccountDetails {
+  const lower = text.toLowerCase();
+  let cost_amount: number | null = null;
+  const symbolMatch = text.match(/([£$€])\s*(\d+(?:\.\d+)?)/);
+  if (symbolMatch) {
+    cost_amount = Number(symbolMatch[2]);
+  }
+  let cost_period: "monthly" | "annual" | "one_off" | null = null;
+  if (/\b(a month|per month|monthly|\/mo)\b/.test(lower)) cost_period = "monthly";
+  else if (/\b(a year|per year|annual|yearly|\/yr)\b/.test(lower)) cost_period = "annual";
+  let status: "active" | "cancelled" | "paused" | "trial" = "active";
+  if (/\b(cancel|cancelled|ended|stopped)\b/.test(lower)) status = "cancelled";
+  else if (/\b(trial|free trial|trying)\b/.test(lower)) status = "trial";
+  else if (/\b(paused|on hold)\b/.test(lower)) status = "paused";
+  return { cost_amount, cost_period, status };
 }
 
 function extractReminderFromText(text: string): ReminderDetails {

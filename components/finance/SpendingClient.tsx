@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Mono } from "@/components/dashboard/Mono";
 import { Money, PrivateText } from "@/components/finance/Money";
 import type { Transaction, BankAccount, ImportResult } from "@/lib/types/transaction";
@@ -87,6 +88,7 @@ function getDatePresets(): DatePreset[] {
 // ---------------------------------------------------------------------------
 
 export function SpendingClient() {
+  const sp = useSearchParams();
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [availableTypes, setAvailableTypes] = useState<string[]>([]);
@@ -100,7 +102,7 @@ export function SpendingClient() {
   const [accountFilter, setAccountFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState<string[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(sp.get("q") ?? "");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [activePreset, setActivePreset] = useState<string | null>(null);

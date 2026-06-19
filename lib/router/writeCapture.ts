@@ -185,6 +185,31 @@ export async function writeCapture(
     }
     routedTo = "media_items";
     routedId = mediaRow.id;
+  } else if (classification.kind === "account") {
+    const acct = classification.account ?? {
+      cost_amount: null,
+      cost_period: null,
+      status: "active" as const,
+    };
+    const { data: acctRow, error: acctErr } = await supabase
+      .from("accounts")
+      .insert({
+        name: classification.title,
+        status: acct.status,
+        cost_amount: acct.cost_amount,
+        cost_currency: "GBP",
+        cost_period: acct.cost_period,
+        notes: rawText.trim() || null,
+      })
+      .select("id")
+      .single();
+    if (acctErr || !acctRow) {
+      throw new Error(
+        `accounts insert failed: ${acctErr?.message ?? "unknown"}`,
+      );
+    }
+    routedTo = "accounts";
+    routedId = acctRow.id;
   } else if (classification.kind === "journal") {
     const summary = classification.summary
       ? classification.summary.slice(0, 40)

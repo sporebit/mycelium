@@ -10,6 +10,7 @@ const TABS: SubNavTab[] = [
   },
   { label: "SPENDING", href: "/finance/spending" },
   { label: "ANALYSIS", href: "/finance/analysis" },
+  { label: "ACCOUNTS", href: "/finance/accounts" },
   { label: "FUEL", href: "/finance/fuel" },
   { label: "ADVISOR", href: "/finance/advisor" },
 ];
