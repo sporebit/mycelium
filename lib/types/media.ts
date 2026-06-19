@@ -22,6 +22,18 @@ export const MEDIA_STATUS_LABEL: Record<MediaStatus, string> = {
   dropped: "DROPPED",
 };
 
+export const MEDIA_STATUS_LABEL_BY_KIND: Record<MediaType, Record<MediaStatus, string>> = {
+  watch: { backlog: "WANT TO WATCH", in_progress: "WATCHING", completed: "WATCHED", dropped: "DROPPED" },
+  listen: { backlog: "WANT TO LISTEN", in_progress: "LISTENING", completed: "LISTENED", dropped: "DROPPED" },
+  read: { backlog: "WANT TO READ", in_progress: "READING", completed: "READ", dropped: "DROPPED" },
+};
+
+export const MEDIA_SUB_TYPES: Record<MediaType, readonly string[]> = {
+  watch: ["Film", "Series", "Other"],
+  listen: ["Music", "Podcast"],
+  read: ["Book", "Article", "Other"],
+};
+
 export type MediaItem = {
   id: string;
   user_id: string;
@@ -35,6 +47,9 @@ export type MediaItem = {
   url: string | null;
   raw_capture_id: string | null;
   completed_at: string | null;
+  owned: boolean;
+  streaming_services: string[] | null;
+  streaming_checked_at: string | null;
   created_at: string;
   updated_at: string;
 };

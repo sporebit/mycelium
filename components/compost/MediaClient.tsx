@@ -11,10 +11,11 @@ import {
   MEDIA_TYPES,
   MEDIA_STATUSES,
   MEDIA_TYPE_LABEL,
-  MEDIA_STATUS_LABEL,
+  MEDIA_STATUS_LABEL_BY_KIND,
 } from "@/lib/types/media";
 
 type Toast = { kind: "ok" | "error"; text: string } | null;
+type OwnedFilter = "all" | "owned" | "not_owned";
 
 const STATUS_TONE: Record<MediaStatus, string> = {
   backlog: "text-ink-3 bg-ink-2/40 border-ink-2",
@@ -22,6 +23,42 @@ const STATUS_TONE: Record<MediaStatus, string> = {
   completed: "text-ok bg-ok/15 border-ok/40",
   dropped: "text-ink-3 bg-ink-2/40 border-ink-2",
 };
+
+const STREAMING_BADGE: Record<string, { label: string; color: string }> = {
+  netflix: { label: "Netflix", color: "#E50914" },
+  prime: { label: "Prime", color: "#00A8E1" },
+  disney: { label: "Disney+", color: "#113CCF" },
+  apple: { label: "Apple TV+", color: "#555555" },
+  mubi: { label: "MUBI", color: "#000000" },
+};
+
+function streamingBadge(service: string) {
+  const known = STREAMING_BADGE[service];
+  return known ?? { label: service.charAt(0).toUpperCase() + service.slice(1), color: "var(--ink-2)" };
+}
+
+function justWatchUrl(title: string) {
+  return `https://www.justwatch.com/uk/search?q=${encodeURIComponent(title)}`;
+}
+
+function youtubeUrl(title: string) {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(title)}`;
+}
+
+function spotifyUrl(title: string, creator?: string | null) {
+  const q = creator ? `${title} ${creator}` : title;
+  return `https://open.spotify.com/search/${encodeURIComponent(q)}`;
+}
+
+function youtubeMusicUrl(title: string, creator?: string | null) {
+  const q = creator ? `${title} ${creator}` : title;
+  return `https://music.youtube.com/search?q=${encodeURIComponent(q)}`;
+}
+
+function amazonUrl(title: string, creator?: string | null) {
+  const q = creator ? `${title} ${creator}` : title;
+  return `https://www.amazon.co.uk/s?k=${encodeURIComponent(q)}`;
+}
 
 export function MediaClient() {
   const [tab, setTab] = useState<MediaType>("watch");
@@ -31,6 +68,9 @@ export function MediaClient() {
   const [draftTitle, setDraftTitle] = useState("");
   const [draftCreator, setDraftCreator] = useState("");
   const [adding, setAdding] = useState(false);
+  const [ownedFilter, setOwnedFilter] = useState<OwnedFilter>("all");
+
+  const statusLabels = MEDIA_STATUS_LABEL_BY_KIND[tab];
 
   const load = useCallback(() => {
     fetch(`/api/media?media_type=${tab}`, { cache: "no-store" })
@@ -119,9 +159,30 @@ export function MediaClient() {
     show("ok", "Deleted");
   }
 
+  async function refreshStreaming(item: MediaItem) {
+    const r = await fetch("/api/media/streaming", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: item.title }),
+    });
+    const j = (await r.json().catch(() => ({}))) as {
+      services?: string[];
+      checked_at?: string;
+    };
+    const services = j.services?.length ? j.services : null;
+    await patchItem(item.id, {
+      streaming_services: services,
+      streaming_checked_at: j.checked_at ?? new Date().toISOString(),
+    });
+  }
+
+  const filtered = tab === "read" && ownedFilter !== "all"
+    ? items.filter((i) => ownedFilter === "owned" ? i.owned : !i.owned)
+    : items;
+
   const grouped = MEDIA_STATUSES.reduce(
     (acc, s) => {
-      acc[s] = items.filter((i) => i.media_status === s);
+      acc[s] = filtered.filter((i) => i.media_status === s);
       return acc;
     },
     {} as Record<MediaStatus, MediaItem[]>,
@@ -146,7 +207,7 @@ export function MediaClient() {
                 type="button"
                 role="tab"
                 aria-selected={active}
-                onClick={() => setTab(t)}
+                onClick={() => { setTab(t); setOwnedFilter("all"); }}
                 className={`px-3 py-2 transition-colors ${
                   active
                     ? "bg-accent/15 text-accent"
@@ -191,6 +252,29 @@ export function MediaClient() {
         </button>
       </form>
 
+      {/* Read list ownership filter */}
+      {tab === "read" && items.length > 0 && (
+        <div className="flex items-center gap-1 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em]">
+          {(["all", "owned", "not_owned"] as const).map((f) => {
+            const labels: Record<OwnedFilter, string> = { all: "ALL", owned: "OWNED", not_owned: "NOT OWNED" };
+            return (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setOwnedFilter(f)}
+                className={`px-2 py-1 rounded-md transition-colors ${
+                  ownedFilter === f
+                    ? "bg-accent/15 text-accent"
+                    : "text-ink-3 hover:text-ink-4"
+                }`}
+              >
+                {labels[f]}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {loading ? (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
@@ -210,7 +294,7 @@ export function MediaClient() {
               <section key={status}>
                 <div className="flex items-center gap-2 mb-2">
                   <Mono className="text-[10px] text-ink-3">
-                    {MEDIA_STATUS_LABEL[status]}
+                    {statusLabels[status]}
                   </Mono>
                   <Mono className="text-[10px] text-ink-3">
                     {group.length}
@@ -221,8 +305,11 @@ export function MediaClient() {
                     <MediaRow
                       key={item.id}
                       item={item}
+                      tab={tab}
+                      statusLabels={statusLabels}
                       onPatch={patchItem}
                       onDelete={deleteItem}
+                      onRefreshStreaming={refreshStreaming}
                     />
                   ))}
                 </ul>
@@ -248,77 +335,188 @@ export function MediaClient() {
   );
 }
 
+/* ─── Links row per media type ─────────────────────────────── */
+
+function WatchLinks({ item, onRefresh }: { item: MediaItem; onRefresh: () => void }) {
+  const services = Array.isArray(item.streaming_services) ? item.streaming_services : [];
+  const jw = justWatchUrl(item.title);
+
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap mt-1">
+      {services.map((s) => {
+        const badge = streamingBadge(s);
+        return (
+          <a
+            key={s}
+            href={jw}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-[9px] font-[family-name:var(--font-mono)] tracking-wide px-1.5 py-0.5 rounded-full text-white/90 hover:opacity-80 transition-opacity"
+            style={{ backgroundColor: badge.color }}
+          >
+            {badge.label}
+          </a>
+        );
+      })}
+      <a
+        href={youtubeUrl(item.title)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+      >
+        ▶ YouTube
+      </a>
+      <button
+        type="button"
+        onClick={onRefresh}
+        className="text-[9px] text-ink-3 hover:text-accent font-[family-name:var(--font-mono)] transition-colors"
+        title="Refresh streaming availability"
+      >
+        ↻ Refresh
+      </button>
+    </div>
+  );
+}
+
+function ListenLinks({ item }: { item: MediaItem }) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap mt-1">
+      <a
+        href={spotifyUrl(item.title, item.creator)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+      >
+        🎵 Spotify
+      </a>
+      <a
+        href={youtubeMusicUrl(item.title, item.creator)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+      >
+        ▶ YouTube Music
+      </a>
+    </div>
+  );
+}
+
+function ReadLinks({ item }: { item: MediaItem }) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap mt-1">
+      <a
+        href={amazonUrl(item.title, item.creator)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+      >
+        🛒 Amazon
+      </a>
+    </div>
+  );
+}
+
+/* ─── Row ──────────────────────────────────────────────────── */
+
 function MediaRow({
   item,
+  tab,
+  statusLabels,
   onPatch,
   onDelete,
+  onRefreshStreaming,
 }: {
   item: MediaItem;
+  tab: MediaType;
+  statusLabels: Record<MediaStatus, string>;
   onPatch: (id: string, patch: Record<string, unknown>) => void;
   onDelete: (id: string) => void;
+  onRefreshStreaming: (item: MediaItem) => void;
 }) {
   const tone = STATUS_TONE[item.media_status];
   const isCompleted = item.media_status === "completed";
 
   return (
     <li
-      className={`group flex items-center gap-3 bg-ink-1 hover:bg-ink-2/60 rounded-md px-3 py-2 transition-colors ${
+      className={`group bg-ink-1 hover:bg-ink-2/60 rounded-md px-3 py-2 transition-colors ${
         isCompleted ? "opacity-60" : ""
       }`}
     >
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className={`text-sm ${isCompleted ? "text-ink-3 line-through" : "text-ink-4"}`}>
-            {item.title}
-          </span>
-          {item.creator && (
-            <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] truncate">
-              {item.creator}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            {tab === "read" && item.owned && (
+              <span className="text-[10px] shrink-0" title="Owned">📚</span>
+            )}
+            <span className={`text-sm ${isCompleted ? "text-ink-3 line-through" : "text-ink-4"}`}>
+              {item.title}
+            </span>
+            {item.creator && (
+              <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] truncate">
+                {item.creator}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {tab === "read" && (
+            <label className="flex items-center gap-1 cursor-pointer" title="I own this">
+              <input
+                type="checkbox"
+                checked={item.owned ?? false}
+                onChange={(e) => onPatch(item.id, { owned: e.target.checked })}
+                className="accent-accent w-3 h-3"
+              />
+              <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">OWN</span>
+            </label>
+          )}
+
+          {isCompleted && item.rating && (
+            <span className="text-[10px] text-warn font-[family-name:var(--font-mono)]">
+              {"★".repeat(item.rating)}{"☆".repeat(5 - item.rating)}
             </span>
           )}
+
+          <select
+            value={item.media_status}
+            onChange={(e) => {
+              const next = e.target.value as MediaStatus;
+              if (next === "completed" && !item.rating) {
+                const r = window.prompt("Rate 1-5 (optional):", "");
+                const rating = r ? Math.max(1, Math.min(5, parseInt(r) || 0)) : null;
+                onPatch(item.id, {
+                  media_status: next,
+                  ...(rating ? { rating } : {}),
+                });
+              } else {
+                onPatch(item.id, { media_status: next });
+              }
+            }}
+            className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border ${tone} bg-transparent cursor-pointer outline-none`}
+          >
+            {MEDIA_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {statusLabels[s]}
+              </option>
+            ))}
+          </select>
+
+          <button
+            type="button"
+            onClick={() => onDelete(item.id)}
+            className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-danger text-xs transition-opacity"
+            aria-label="Delete"
+          >
+            ✕
+          </button>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
-        {isCompleted && item.rating && (
-          <span className="text-[10px] text-warn font-[family-name:var(--font-mono)]">
-            {"★".repeat(item.rating)}{"☆".repeat(5 - item.rating)}
-          </span>
-        )}
-
-        <select
-          value={item.media_status}
-          onChange={(e) => {
-            const next = e.target.value as MediaStatus;
-            if (next === "completed" && !item.rating) {
-              const r = window.prompt("Rate 1-5 (optional):", "");
-              const rating = r ? Math.max(1, Math.min(5, parseInt(r) || 0)) : null;
-              onPatch(item.id, {
-                media_status: next,
-                ...(rating ? { rating } : {}),
-              });
-            } else {
-              onPatch(item.id, { media_status: next });
-            }
-          }}
-          className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border ${tone} bg-transparent cursor-pointer outline-none`}
-        >
-          {MEDIA_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {MEDIA_STATUS_LABEL[s]}
-            </option>
-          ))}
-        </select>
-
-        <button
-          type="button"
-          onClick={() => onDelete(item.id)}
-          className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-danger text-xs transition-opacity"
-          aria-label="Delete"
-        >
-          ✕
-        </button>
-      </div>
+      {/* Auto-generated links */}
+      {tab === "watch" && <WatchLinks item={item} onRefresh={() => onRefreshStreaming(item)} />}
+      {tab === "listen" && <ListenLinks item={item} />}
+      {tab === "read" && <ReadLinks item={item} />}
     </li>
   );
 }

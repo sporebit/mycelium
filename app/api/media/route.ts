@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { MEDIA_TYPES, MEDIA_STATUSES, type MediaType, type MediaStatus } from "@/lib/types/media";
+import { lookupStreaming } from "@/lib/media/streaming";
 
 export const runtime = "nodejs";
 
@@ -88,6 +89,11 @@ export async function POST(req: NextRequest) {
       .select("*")
       .single();
     if (error || !data) throw error ?? new Error("insert returned no row");
+
+    if (mediaType === "watch") {
+      lookupStreaming(data.id, title);
+    }
+
     return NextResponse.json({ item: data });
   } catch (err) {
     console.error("[/api/media POST]", err);

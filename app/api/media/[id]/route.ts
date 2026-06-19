@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { MEDIA_STATUSES, type MediaStatus } from "@/lib/types/media";
+import { lookupStreaming } from "@/lib/media/streaming";
 
 export const runtime = "nodejs";
 
@@ -17,6 +18,9 @@ const ALLOWED_FIELDS = new Set([
   "tags",
   "url",
   "completed_at",
+  "owned",
+  "streaming_services",
+  "streaming_checked_at",
 ]);
 
 export async function PATCH(
@@ -42,6 +46,7 @@ export async function PATCH(
       const n = Number(v);
       if (!Number.isInteger(n) || n < 1 || n > 5) continue;
     }
+    if (k === "owned" && typeof v !== "boolean") continue;
     update[k] = v;
   }
   update.updated_at = new Date().toISOString();
@@ -66,6 +71,11 @@ export async function PATCH(
     if (error || !data) {
       return NextResponse.json({ error: error?.message ?? "not found" }, { status: 404 });
     }
+
+    if ("title" in update && data.media_type === "watch") {
+      lookupStreaming(data.id, data.title);
+    }
+
     return NextResponse.json({ item: data });
   } catch (err) {
     console.error("[/api/media/:id PATCH]", err);
