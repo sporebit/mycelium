@@ -122,7 +122,7 @@ export function Calendar(_props: { width?: CardWidth } = {}) {
       topRight={<Mono>{monthLabel}</Mono>}
       bottomCTA={
         <Link
-          href="/fitness/calendar"
+          href="/organisation/calendar"
           className="cursor-pointer hover:text-ink-4 transition-colors"
         >
           OPEN MONTH →
