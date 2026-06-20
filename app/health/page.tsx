@@ -22,6 +22,11 @@ const CARDS = [
     description: "Standalone pain logs + recent session pain notes.",
   },
   {
+    label: "Gut health",
+    href: "/health/gut-health",
+    description: "Bristol Scale daily log with 30-day overview strip.",
+  },
+  {
     label: "Blood tests",
     href: "/health/blood-tests",
     description: "Markers, ranges, and trends across sessions.",

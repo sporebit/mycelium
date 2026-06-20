@@ -24,6 +24,11 @@ const TABS: SubNavTab[] = [
     match: (p) => p === "/fitness/body" || p === "/health/body",
   },
   {
+    label: "GUT HEALTH",
+    href: "/health/gut-health",
+    match: (p) => p === "/health/gut-health" || p.startsWith("/health/gut-health/"),
+  },
+  {
     label: "BLOOD TESTS",
     href: "/health/blood-tests",
     match: (p) => p === "/health/blood-tests" || p.startsWith("/health/blood-tests/"),
