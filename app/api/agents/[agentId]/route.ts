@@ -151,13 +151,30 @@ async function getDaBoiContext(supabase: ReturnType<typeof createServerClient>) 
     openTaskCount = count ?? 0;
   } catch { /* table may differ */ }
 
+  let avgCalories = "unknown";
+  try {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const { data: nutritionData } = await supabase
+      .from("nutrition_logs")
+      .select("calories")
+      .eq("user_id", uid)
+      .gte("logged_at", sevenDaysAgo.toISOString());
+    if (nutritionData && nutritionData.length > 0) {
+      const total = (nutritionData as { calories: number }[]).reduce((s, n) => s + (n.calories || 0), 0);
+      avgCalories = `${Math.round(total / nutritionData.length)} kcal`;
+    }
+  } catch { /* table may differ */ }
+
   return buildDaBoiPrompt({
     fitness_memory: memMap.get("fitness") || "none",
     finance_memory: memMap.get("finance") || "none",
     tasks_memory: memMap.get("tasks") || "none",
+    nutrition_memory: memMap.get("nutrition") || "none",
     recent_workouts: recentWorkouts,
     monthly_spend: monthlySpend,
     open_task_count: openTaskCount,
+    avg_calories: avgCalories,
   });
 }
 

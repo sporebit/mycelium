@@ -19,7 +19,7 @@ type AgentInfo = {
   memoryUpdatedAt: string | null;
 };
 
-const AGENT_IDS = ["da_boi", "fitness", "finance", "tasks"];
+const AGENT_IDS = ["da_boi", "fitness", "finance", "tasks", "nutrition"];
 
 function fmtTime(iso: string | null): string {
   if (!iso) return "never";

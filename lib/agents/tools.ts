@@ -113,6 +113,8 @@ export function toolsForAgent(agentId: string): ToolDef[] {
       return [...AGENT_TOOLS, ...FINANCE_TOOLS];
     case "fitness":
       return [AGENT_TOOLS[0]];
+    case "nutrition":
+      return [...AGENT_TOOLS];
     default:
       return [];
   }

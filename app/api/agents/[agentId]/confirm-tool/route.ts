@@ -124,9 +124,11 @@ export async function POST(
         fitness_memory: memMap.get("fitness") || "none",
         finance_memory: memMap.get("finance") || "none",
         tasks_memory: memMap.get("tasks") || "none",
+        nutrition_memory: memMap.get("nutrition") || "none",
         recent_workouts: "see conversation",
         monthly_spend: "see conversation",
         open_task_count: 0,
+        avg_calories: "see conversation",
       });
     } else {
       const { data: memory } = await supabase
