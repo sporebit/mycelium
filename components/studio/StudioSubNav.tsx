@@ -8,6 +8,11 @@ const TABS: SubNavTab[] = [
     href: "/studio",
     match: (p) => p === "/studio",
   },
+  {
+    label: "SPOTIFY",
+    href: "/studio/spotify",
+    match: (p) => p === "/studio/spotify" || p.startsWith("/studio/spotify/"),
+  },
 ];
 
 export function StudioSubNav() {
