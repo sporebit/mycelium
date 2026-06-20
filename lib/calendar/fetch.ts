@@ -22,8 +22,8 @@ export type CalendarData = {
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 5000;
-const WINDOW_BACK_DAYS = 7;
-const WINDOW_FORWARD_DAYS = 7;
+const WINDOW_BACK_DAYS = 45;
+const WINDOW_FORWARD_DAYS = 45;
 const RECUR_SAFETY_LIMIT = 500;
 
 let memoryCache:
@@ -134,6 +134,93 @@ function parseFeed(
   return out;
 }
 
+async function fetchBirthdays(
+  windowStart: Date,
+  windowEnd: Date,
+): Promise<CalendarEvent[]> {
+  const uid = process.env.USER_ID;
+  if (!uid) return [];
+  try {
+    const supabase = createServerClient();
+    const { data, error } = await supabase
+      .from("people")
+      .select("id, first_name, last_name, display_name, birthday")
+      .eq("user_id", uid)
+      .not("birthday", "is", null);
+    if (error || !data) return [];
+
+    const out: CalendarEvent[] = [];
+    const startYear = windowStart.getFullYear();
+    const endYear = windowEnd.getFullYear();
+
+    for (const p of data as Array<{ id: string; first_name: string; last_name: string | null; display_name: string | null; birthday: string }>) {
+      const name = p.display_name || `${p.first_name}${p.last_name ? ` ${p.last_name}` : ""}`;
+      const [, mm, dd] = p.birthday.split("-").map(Number);
+
+      for (let y = startYear; y <= endYear; y++) {
+        const bday = new Date(y, mm - 1, dd);
+        if (bday >= windowStart && bday <= windowEnd) {
+          const iso = bday.toISOString();
+          out.push({
+            id: `birthday-${p.id}-${y}`,
+            title: `${name}'s Birthday 🎂`,
+            start: iso,
+            end: iso,
+            allDay: true,
+            calendarName: "Birthdays",
+            calendarColour: "#f56db5",
+            location: "",
+            description: "",
+          });
+        }
+      }
+    }
+    return out;
+  } catch (err) {
+    console.error("[calendar] birthdays fetch failed:", err);
+    return [];
+  }
+}
+
+async function fetchEvents(
+  windowStart: Date,
+  windowEnd: Date,
+): Promise<CalendarEvent[]> {
+  try {
+    const supabase = createServerClient();
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .gte("start_at", windowStart.toISOString())
+      .lte("start_at", windowEnd.toISOString());
+    if (error || !data) return [];
+
+    return (data as Array<{
+      id: string;
+      title: string;
+      start_at: string;
+      end_at: string | null;
+      all_day: boolean;
+      location: string | null;
+      notes: string | null;
+      colour: string;
+    }>).map((e) => ({
+      id: `event-${e.id}`,
+      title: e.title,
+      start: e.start_at,
+      end: e.end_at || e.start_at,
+      allDay: e.all_day,
+      calendarName: "Events",
+      calendarColour: e.colour || "#e8e6dd",
+      location: e.location || "",
+      description: e.notes || "",
+    }));
+  } catch (err) {
+    console.error("[calendar] events fetch failed:", err);
+    return [];
+  }
+}
+
 async function fetchScheduledTasks(
   windowStart: Date,
   windowEnd: Date,
@@ -168,7 +255,7 @@ async function fetchScheduledTasks(
         end: end.toISOString(),
         allDay: false,
         calendarName: "Tasks",
-        calendarColour: "#a78bfa",
+        calendarColour: "#f5b56d",
         location: "",
         description: "",
       };
@@ -194,13 +281,13 @@ export async function getCalendarData(): Promise<CalendarData> {
   const failed: string[] = [];
   const all: CalendarEvent[] = [];
 
-  const [, scheduledTasks] = await Promise.all([
+  const [, scheduledTasks, birthdayEvents, customEvents] = await Promise.all([
     Promise.all(
       feeds.map(async (feed) => {
         try {
           const text = await fetchIcs(feed.url, FETCH_TIMEOUT_MS);
-          const events = parseFeed(text, feed, windowStart, windowEnd);
-          all.push(...events);
+          const parsed = parseFeed(text, feed, windowStart, windowEnd);
+          all.push(...parsed);
         } catch (err) {
           console.error(`[calendar] feed '${feed.name}' failed:`, err);
           failed.push(feed.name);
@@ -208,8 +295,12 @@ export async function getCalendarData(): Promise<CalendarData> {
       }),
     ),
     fetchScheduledTasks(windowStart, windowEnd),
+    fetchBirthdays(windowStart, windowEnd),
+    fetchEvents(windowStart, windowEnd),
   ]);
   all.push(...scheduledTasks);
+  all.push(...birthdayEvents);
+  all.push(...customEvents);
 
   all.sort((a, b) => a.start.localeCompare(b.start));
   const data: CalendarData = { events: all, failedCalendars: failed };
