@@ -17,6 +17,19 @@ import {
 type Toast = { kind: "ok" | "error"; text: string } | null;
 type OwnedFilter = "all" | "owned" | "not_owned";
 
+type Episode = {
+  id: string;
+  item_id: string;
+  title: string;
+  episode_number: number | null;
+  season_number: number | null;
+  duration_minutes: number | null;
+  listened_at: string | null;
+  rating: number | null;
+  comments: string | null;
+  created_at: string;
+};
+
 const STATUS_TONE: Record<MediaStatus, string> = {
   backlog: "text-ink-3 bg-ink-2/40 border-ink-2",
   in_progress: "text-accent bg-accent/15 border-accent/40",
@@ -60,6 +73,40 @@ function amazonUrl(title: string, creator?: string | null) {
   return `https://www.amazon.co.uk/s?k=${encodeURIComponent(q)}`;
 }
 
+function Stars({
+  rating,
+  onRate,
+  size = "text-[10px]",
+}: {
+  rating: number | null;
+  onRate?: (r: number) => void;
+  size?: string;
+}) {
+  return (
+    <span className={`${size} font-[family-name:var(--font-mono)]`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <span
+          key={n}
+          onClick={() => onRate?.(n)}
+          className={`${onRate ? "cursor-pointer hover:text-warn" : ""} ${
+            rating && n <= rating ? "text-warn" : "text-ink-2"
+          }`}
+        >
+          {rating && n <= rating ? "★" : "☆"}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function daysAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const days = Math.round(diff / 86400000);
+  if (days === 0) return "today";
+  if (days === 1) return "1 day ago";
+  return `${days} days ago`;
+}
+
 export function MediaClient() {
   const [tab, setTab] = useState<MediaType>("watch");
   const [items, setItems] = useState<MediaItem[]>([]);
@@ -69,6 +116,16 @@ export function MediaClient() {
   const [draftCreator, setDraftCreator] = useState("");
   const [adding, setAdding] = useState(false);
   const [ownedFilter, setOwnedFilter] = useState<OwnedFilter>("all");
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [episodes, setEpisodes] = useState<Map<string, Episode[]>>(new Map());
+  const [showEpisodeModal, setShowEpisodeModal] = useState<string | null>(null);
+  const [epTitle, setEpTitle] = useState("");
+  const [epNumber, setEpNumber] = useState("");
+  const [epSeason, setEpSeason] = useState("");
+  const [epDuration, setEpDuration] = useState("");
+  const [epRating, setEpRating] = useState(0);
+  const [epComments, setEpComments] = useState("");
+  const [epSaving, setEpSaving] = useState(false);
 
   const statusLabels = MEDIA_STATUS_LABEL_BY_KIND[tab];
 
@@ -176,6 +233,62 @@ export function MediaClient() {
     });
   }
 
+  async function loadEpisodes(itemId: string) {
+    const res = await fetch(`/api/media/${itemId}/episodes`);
+    const data = await res.json();
+    setEpisodes((prev) => new Map(prev).set(itemId, data.episodes ?? []));
+  }
+
+  function toggleExpand(itemId: string) {
+    if (expandedItem === itemId) {
+      setExpandedItem(null);
+    } else {
+      setExpandedItem(itemId);
+      if (!episodes.has(itemId)) loadEpisodes(itemId);
+    }
+  }
+
+  function resetEpisodeForm() {
+    setEpTitle(""); setEpNumber(""); setEpSeason("");
+    setEpDuration(""); setEpRating(0); setEpComments("");
+  }
+
+  async function saveEpisode() {
+    if (!showEpisodeModal || !epTitle.trim()) return;
+    setEpSaving(true);
+    try {
+      const res = await fetch(`/api/media/${showEpisodeModal}/episodes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: epTitle.trim(),
+          episode_number: epNumber ? Number(epNumber) : null,
+          season_number: epSeason ? Number(epSeason) : null,
+          duration_minutes: epDuration ? Number(epDuration) : null,
+          rating: epRating || null,
+          comments: epComments.trim() || null,
+        }),
+      });
+      if (res.ok) {
+        resetEpisodeForm();
+        setShowEpisodeModal(null);
+        loadEpisodes(showEpisodeModal);
+        show("ok", "Episode logged");
+      }
+    } finally {
+      setEpSaving(false);
+    }
+  }
+
+  async function deleteEpisode(itemId: string, episodeId: string) {
+    await fetch(`/api/media/${itemId}/episodes/${episodeId}`, { method: "DELETE" });
+    setEpisodes((prev) => {
+      const next = new Map(prev);
+      next.set(itemId, (next.get(itemId) ?? []).filter((e) => e.id !== episodeId));
+      return next;
+    });
+  }
+
   const filtered = tab === "read" && ownedFilter !== "all"
     ? items.filter((i) => ownedFilter === "owned" ? i.owned : !i.owned)
     : items;
@@ -187,6 +300,8 @@ export function MediaClient() {
     },
     {} as Record<MediaStatus, MediaItem[]>,
   );
+
+  const inputCls = "w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3";
 
   return (
     <div className="flex flex-col gap-4">
@@ -207,7 +322,7 @@ export function MediaClient() {
                 type="button"
                 role="tab"
                 aria-selected={active}
-                onClick={() => { setTab(t); setOwnedFilter("all"); }}
+                onClick={() => { setTab(t); setOwnedFilter("all"); setExpandedItem(null); }}
                 className={`px-3 py-2 transition-colors ${
                   active
                     ? "bg-accent/15 text-accent"
@@ -310,12 +425,73 @@ export function MediaClient() {
                       onPatch={patchItem}
                       onDelete={deleteItem}
                       onRefreshStreaming={refreshStreaming}
+                      expanded={expandedItem === item.id}
+                      onToggleExpand={() => toggleExpand(item.id)}
+                      episodes={episodes.get(item.id) ?? []}
+                      onLogEpisode={() => setShowEpisodeModal(item.id)}
+                      onDeleteEpisode={(epId) => deleteEpisode(item.id, epId)}
                     />
                   ))}
                 </ul>
               </section>
             );
           })}
+        </div>
+      )}
+
+      {/* Episode log modal */}
+      {showEpisodeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-ink-0 border border-ink-2 rounded-2xl w-full max-w-md p-6">
+            <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
+              Log Episode
+            </h2>
+            <div className="flex flex-col gap-3 mb-4">
+              <div>
+                <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">TITLE</label>
+                <input value={epTitle} onChange={(e) => setEpTitle(e.target.value)} className={inputCls} placeholder="Episode title" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">EPISODE #</label>
+                  <input type="number" value={epNumber} onChange={(e) => setEpNumber(e.target.value)} className={inputCls} />
+                </div>
+                <div>
+                  <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">SEASON #</label>
+                  <input type="number" value={epSeason} onChange={(e) => setEpSeason(e.target.value)} className={inputCls} />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">DURATION (min)</label>
+                <input type="number" value={epDuration} onChange={(e) => setEpDuration(e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">RATING</label>
+                <div className="mt-1">
+                  <Stars rating={epRating || null} onRate={setEpRating} size="text-xl" />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">COMMENTS</label>
+                <textarea value={epComments} onChange={(e) => setEpComments(e.target.value)} rows={2} className={`${inputCls} resize-y`} />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 justify-end">
+              <button
+                onClick={() => { resetEpisodeForm(); setShowEpisodeModal(null); }}
+                className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+              >
+                CANCEL
+              </button>
+              <button
+                onClick={saveEpisode}
+                disabled={epSaving || !epTitle.trim()}
+                className="px-4 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 disabled:opacity-40 transition-colors"
+              >
+                {epSaving ? "SAVING…" : "SAVE"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -416,6 +592,59 @@ function ReadLinks({ item }: { item: MediaItem }) {
   );
 }
 
+/* ─── Review form ─────────────────────────────────────────── */
+
+function ReviewForm({
+  item,
+  onPatch,
+}: {
+  item: MediaItem;
+  onPatch: (id: string, patch: Record<string, unknown>) => void;
+}) {
+  const [reviewText, setReviewText] = useState(item.review ?? "");
+  const [reviewRating, setReviewRating] = useState(item.rating ?? 0);
+  const [dirty, setDirty] = useState(false);
+
+  function save() {
+    onPatch(item.id, {
+      rating: reviewRating || null,
+      review: reviewText.trim() || null,
+      reviewed_at: new Date().toISOString(),
+    });
+    setDirty(false);
+  }
+
+  return (
+    <div className="mt-2 p-2 rounded-lg bg-ink-0/60 border border-ink-2/50">
+      <div className="flex items-center gap-2 mb-1">
+        <Stars
+          rating={reviewRating || null}
+          onRate={(r) => { setReviewRating(r); setDirty(true); }}
+          size="text-sm"
+        />
+        <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">
+          {item.reviewed_at ? `Reviewed ${daysAgo(item.reviewed_at)}` : "Rate & review"}
+        </span>
+      </div>
+      <textarea
+        value={reviewText}
+        onChange={(e) => { setReviewText(e.target.value); setDirty(true); }}
+        placeholder="What did you think?"
+        rows={2}
+        className="w-full bg-transparent border border-ink-2/40 rounded text-xs text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 placeholder:text-ink-3 resize-y"
+      />
+      {dirty && (
+        <button
+          onClick={save}
+          className="mt-1 px-2 py-0.5 rounded text-[9px] font-[family-name:var(--font-mono)] bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 transition-colors"
+        >
+          SAVE REVIEW
+        </button>
+      )}
+    </div>
+  );
+}
+
 /* ─── Row ──────────────────────────────────────────────────── */
 
 function MediaRow({
@@ -425,6 +654,11 @@ function MediaRow({
   onPatch,
   onDelete,
   onRefreshStreaming,
+  expanded,
+  onToggleExpand,
+  episodes,
+  onLogEpisode,
+  onDeleteEpisode,
 }: {
   item: MediaItem;
   tab: MediaType;
@@ -432,9 +666,15 @@ function MediaRow({
   onPatch: (id: string, patch: Record<string, unknown>) => void;
   onDelete: (id: string) => void;
   onRefreshStreaming: (item: MediaItem) => void;
+  expanded: boolean;
+  onToggleExpand: () => void;
+  episodes: Episode[];
+  onLogEpisode: () => void;
+  onDeleteEpisode: (episodeId: string) => void;
 }) {
   const tone = STATUS_TONE[item.media_status];
   const isCompleted = item.media_status === "completed";
+  const isPodcast = tab === "listen" && (item.creator?.toLowerCase().includes("podcast") || item.title.toLowerCase().includes("podcast"));
 
   return (
     <li
@@ -456,6 +696,11 @@ function MediaRow({
                 {item.creator}
               </span>
             )}
+            {isPodcast && episodes.length > 0 && (
+              <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">
+                {episodes.length} ep{episodes.length !== 1 ? "s" : ""}
+              </span>
+            )}
           </div>
         </div>
 
@@ -472,26 +717,25 @@ function MediaRow({
             </label>
           )}
 
-          {isCompleted && item.rating && (
-            <span className="text-[10px] text-warn font-[family-name:var(--font-mono)]">
-              {"★".repeat(item.rating)}{"☆".repeat(5 - item.rating)}
-            </span>
+          {item.rating && (
+            <Stars rating={item.rating} size="text-[10px]" />
+          )}
+
+          {isPodcast && (
+            <button
+              type="button"
+              onClick={onToggleExpand}
+              className="text-[9px] text-ink-3 hover:text-accent font-[family-name:var(--font-mono)] transition-colors"
+            >
+              {expanded ? "▲" : "▼"}
+            </button>
           )}
 
           <select
             value={item.media_status}
             onChange={(e) => {
               const next = e.target.value as MediaStatus;
-              if (next === "completed" && !item.rating) {
-                const r = window.prompt("Rate 1-5 (optional):", "");
-                const rating = r ? Math.max(1, Math.min(5, parseInt(r) || 0)) : null;
-                onPatch(item.id, {
-                  media_status: next,
-                  ...(rating ? { rating } : {}),
-                });
-              } else {
-                onPatch(item.id, { media_status: next });
-              }
+              onPatch(item.id, { media_status: next });
             }}
             className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border ${tone} bg-transparent cursor-pointer outline-none`}
           >
@@ -517,6 +761,63 @@ function MediaRow({
       {tab === "watch" && <WatchLinks item={item} onRefresh={() => onRefreshStreaming(item)} />}
       {tab === "listen" && <ListenLinks item={item} />}
       {tab === "read" && <ReadLinks item={item} />}
+
+      {/* Inline review form for completed items */}
+      {isCompleted && <ReviewForm item={item} onPatch={onPatch} />}
+
+      {/* Review text for non-completed items that have been reviewed */}
+      {!isCompleted && item.review && (
+        <p className="mt-1 text-xs text-ink-3 italic font-[family-name:var(--font-display)] truncate">
+          {item.review}
+        </p>
+      )}
+
+      {/* Podcast episodes section */}
+      {isPodcast && expanded && (
+        <div className="mt-2 border-t border-ink-2/40 pt-2">
+          <div className="flex items-center justify-between mb-2">
+            <Mono className="text-[10px] text-ink-3">EPISODES</Mono>
+            <button
+              type="button"
+              onClick={onLogEpisode}
+              className="text-[9px] text-accent font-[family-name:var(--font-mono)] hover:underline"
+            >
+              + LOG EPISODE
+            </button>
+          </div>
+          {episodes.length === 0 ? (
+            <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+              No episodes logged yet.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-1">
+              {episodes.map((ep) => (
+                <div key={ep.id} className="flex items-center gap-2 py-1 group/ep">
+                  {ep.episode_number != null && (
+                    <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)] w-8 shrink-0">
+                      {ep.season_number ? `S${ep.season_number}E${ep.episode_number}` : `#${ep.episode_number}`}
+                    </span>
+                  )}
+                  <span className="text-xs text-ink-4 flex-1 truncate">{ep.title}</span>
+                  {ep.rating && <Stars rating={ep.rating} size="text-[8px]" />}
+                  {ep.listened_at && (
+                    <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">
+                      {daysAgo(ep.listened_at)}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onDeleteEpisode(ep.id)}
+                    className="opacity-0 group-hover/ep:opacity-100 text-ink-3 hover:text-danger text-[9px] transition-opacity"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </li>
   );
 }

@@ -21,6 +21,8 @@ const ALLOWED_FIELDS = new Set([
   "owned",
   "streaming_services",
   "streaming_checked_at",
+  "review",
+  "reviewed_at",
 ]);
 
 export async function PATCH(

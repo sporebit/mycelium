@@ -50,6 +50,8 @@ export type MediaItem = {
   owned: boolean;
   streaming_services: string[] | null;
   streaming_checked_at: string | null;
+  review: string | null;
+  reviewed_at: string | null;
   created_at: string;
   updated_at: string;
 };
