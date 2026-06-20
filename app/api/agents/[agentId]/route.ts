@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { AGENT_SYSTEM_PROMPTS, buildDaBoiPrompt } from "@/lib/agents/prompts";
+import { toolsForAgent } from "@/lib/agents/tools";
 
 export const runtime = "nodejs";
 
@@ -8,14 +9,30 @@ function userId(): string | null {
   return process.env.USER_ID ?? null;
 }
 
+type ContentBlock =
+  | { type: "text"; text: string }
+  | { type: "tool_use"; id: string; name: string; input: Record<string, unknown> };
+
+type ApiResponse = {
+  content?: ContentBlock[];
+  stop_reason?: string;
+};
+
 async function callClaude(
   system: string,
-  messages: { role: string; content: string }[],
+  messages: { role: string; content: unknown }[],
+  tools?: Record<string, unknown>[],
   maxTokens = 1024,
-): Promise<string | null> {
+): Promise<ApiResponse | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514";
   if (!apiKey) return null;
+
+  const body: Record<string, unknown> = { model, max_tokens: maxTokens, system, messages };
+  if (tools && tools.length > 0) {
+    body.tools = tools;
+    body.tool_choice = { type: "auto" };
+  }
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -24,17 +41,14 @@ async function callClaude(
       "anthropic-version": "2023-06-01",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ model, max_tokens: maxTokens, system, messages }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
     console.error("[agents/callClaude] API error", res.status, await res.text());
     return null;
   }
-  const json = (await res.json()) as {
-    content?: { type: string; text?: string }[];
-  };
-  return json.content?.find((b) => b.type === "text")?.text ?? null;
+  return (await res.json()) as ApiResponse;
 }
 
 export async function GET(
@@ -147,6 +161,9 @@ async function getDaBoiContext(supabase: ReturnType<typeof createServerClient>) 
   });
 }
 
+const TOOL_CAPABILITY_SUFFIX =
+  "\n\nYou have tools available to create tasks and records in Mycelium directly. When the user asks you to create something, first describe what you plan to create and ask for confirmation. Only call the tool after they confirm.";
+
 export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ agentId: string }> },
@@ -227,18 +244,61 @@ export async function POST(
         : `You are an AI assistant. ${memory?.summary || ""}`;
     }
 
-    const reply = await callClaude(systemPrompt, chatMessages);
-    if (!reply) {
+    const tools = toolsForAgent(agentId);
+    if (tools.length > 0) {
+      systemPrompt += TOOL_CAPABILITY_SUFFIX;
+    }
+
+    const apiMessages = chatMessages.map((m) => ({ role: m.role, content: m.content }));
+    const response = await callClaude(systemPrompt, apiMessages, tools);
+    if (!response?.content) {
       return NextResponse.json({ error: "AI response failed" }, { status: 502 });
     }
 
-    await supabase.from("agent_messages").insert({
-      conversation_id: conversationId,
-      role: "assistant",
-      content: reply,
-    });
+    const textBlock = response.content.find((b) => b.type === "text") as
+      | { type: "text"; text: string }
+      | undefined;
+    const toolBlock = response.content.find((b) => b.type === "tool_use") as
+      | { type: "tool_use"; id: string; name: string; input: Record<string, unknown> }
+      | undefined;
 
-    return NextResponse.json({ reply, conversationId });
+    const replyText = textBlock?.text ?? "";
+
+    if (toolBlock) {
+      const storeContent = JSON.stringify({
+        text: replyText,
+        pending_tool: {
+          tool_use_id: toolBlock.id,
+          tool_name: toolBlock.name,
+          tool_input: toolBlock.input,
+        },
+      });
+      await supabase.from("agent_messages").insert({
+        conversation_id: conversationId,
+        role: "assistant",
+        content: storeContent,
+      });
+
+      return NextResponse.json({
+        reply: replyText,
+        conversationId,
+        pending_tool: {
+          tool_use_id: toolBlock.id,
+          tool_name: toolBlock.name,
+          tool_input: toolBlock.input,
+        },
+      });
+    }
+
+    if (replyText) {
+      await supabase.from("agent_messages").insert({
+        conversation_id: conversationId,
+        role: "assistant",
+        content: replyText,
+      });
+    }
+
+    return NextResponse.json({ reply: replyText, conversationId });
   } catch (err) {
     console.error("[/api/agents/:agentId POST]", err);
     return NextResponse.json({ error: "chat failed" }, { status: 500 });
