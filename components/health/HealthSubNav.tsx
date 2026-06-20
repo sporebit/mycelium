@@ -33,6 +33,11 @@ const TABS: SubNavTab[] = [
     href: "/health/blood-tests",
     match: (p) => p === "/health/blood-tests" || p.startsWith("/health/blood-tests/"),
   },
+  {
+    label: "VISION",
+    href: "/health/eye-prescription",
+    match: (p) => p === "/health/eye-prescription" || p.startsWith("/health/eye-prescription/"),
+  },
 ];
 
 export function HealthSubNav() {

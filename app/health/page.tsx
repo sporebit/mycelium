@@ -31,6 +31,11 @@ const CARDS = [
     href: "/health/blood-tests",
     description: "Markers, ranges, and trends across sessions.",
   },
+  {
+    label: "Vision",
+    href: "/health/eye-prescription",
+    description: "Eye prescriptions and contact lens history.",
+  },
 ];
 
 export default function HealthOverviewPage() {
