@@ -36,6 +36,11 @@ const CARDS = [
     href: "/health/eye-prescription",
     description: "Eye prescriptions and contact lens history.",
   },
+  {
+    label: "Recipes",
+    href: "/health/recipes",
+    description: "Recipe library with vision scan, meal planner, and shopping lists.",
+  },
 ];
 
 export default function HealthOverviewPage() {

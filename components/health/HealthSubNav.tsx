@@ -38,6 +38,16 @@ const TABS: SubNavTab[] = [
     href: "/health/eye-prescription",
     match: (p) => p === "/health/eye-prescription" || p.startsWith("/health/eye-prescription/"),
   },
+  {
+    label: "RECIPES",
+    href: "/health/recipes",
+    match: (p) => p === "/health/recipes" || p.startsWith("/health/recipes/"),
+  },
+  {
+    label: "SHOPPING LISTS",
+    href: "/health/shopping-lists",
+    match: (p) => p === "/health/shopping-lists" || p.startsWith("/health/shopping-lists/"),
+  },
 ];
 
 export function HealthSubNav() {
