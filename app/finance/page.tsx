@@ -16,6 +16,11 @@ const CARDS = [
     href: "/finance/analysis",
     description: "Category breakdowns, monthly trends, daily averages.",
   },
+  {
+    label: "Investments",
+    href: "/finance/investments",
+    description: "Portfolio tracker with auto price lookup for stocks, crypto, and more.",
+  },
 ];
 
 export default function FinanceOverviewPage() {
