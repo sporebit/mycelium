@@ -107,6 +107,19 @@ export const SECTIONS: SectionConfig[] = [
     ],
   },
   {
+    key: "drops",
+    label: "DROPS",
+    colour: "#84f5b8",
+    baseRoute: "/drops",
+    subPages: [
+      { label: "Calendar", href: "/drops/calendar", primary: true },
+      { label: "Wishlist", href: "/drops/wishlist", primary: true },
+      { label: "Raffles", href: "/drops/raffles", primary: true },
+      { label: "Cook Guides", href: "/drops/cook-guides", primary: false },
+      { label: "Monitor", href: "/drops/monitor", primary: false },
+    ],
+  },
+  {
     key: "other",
     label: "OTHER",
     colour: "#e8e6dd",
