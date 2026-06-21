@@ -53,7 +53,7 @@ vi.mock("idb", () => {
   };
 });
 
-import { enqueue, pendingOps, pendingCount, markSynced } from "./queue";
+import { enqueue, pendingOps, pendingCount } from "./queue";
 import { processQueue } from "./sync";
 
 beforeEach(() => {

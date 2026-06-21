@@ -128,8 +128,20 @@ export default function RecipesPage() {
   }, [weekStart]);
 
   useEffect(() => {
-    if (tab === "planner") loadMealPlan();
-  }, [tab, loadMealPlan]);
+    if (tab !== "planner") return;
+    let cancelled = false;
+    (async () => {
+      setLoadingMeals(true);
+      try {
+        const res = await fetch(`/api/health/meal-plan?week=${dateStr(weekStart)}`);
+        const data = await res.json();
+        if (!cancelled) setMealEntries(data.entries ?? []);
+      } finally {
+        if (!cancelled) setLoadingMeals(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [tab, weekStart]);
 
   const allTags = useMemo(() => {
     const set = new Set<string>();

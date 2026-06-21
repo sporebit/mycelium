@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Mono } from "@/components/dashboard/Mono";
 import { Money, PrivateText } from "@/components/finance/Money";
 
@@ -354,11 +355,12 @@ function AccountCard({
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center overflow-hidden bg-accent/15">
           {favicon && faviconOk ? (
-            <img
+            <Image
               src={favicon}
               alt=""
               width={20}
               height={20}
+              unoptimized
               className="w-5 h-5"
               onError={() => setFaviconOk(false)}
             />

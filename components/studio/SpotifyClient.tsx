@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Mono } from "@/components/dashboard/Mono";
 import {
   BarChart,
@@ -88,26 +89,31 @@ export function SpotifyClient() {
       .catch(() => setConnected(false));
   }, []);
 
-  const loadData = useCallback(() => {
+  useEffect(() => {
     if (!connected) return;
-    setLoading(true);
-    Promise.all([
-      fetch(`/api/spotify/top-tracks?range=${range}`).then((r) => r.json()),
-      fetch(`/api/spotify/top-artists?range=${range}`).then((r) => r.json()),
-      fetch("/api/spotify/recently-played").then((r) => r.json()),
-      fetch("/api/spotify/now-playing").then((r) => r.json()),
-    ])
-      .then(([tracks, artists, played, np]) => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const [tracks, artists, played, np] = await Promise.all([
+          fetch(`/api/spotify/top-tracks?range=${range}`).then((r) => r.json()),
+          fetch(`/api/spotify/top-artists?range=${range}`).then((r) => r.json()),
+          fetch("/api/spotify/recently-played").then((r) => r.json()),
+          fetch("/api/spotify/now-playing").then((r) => r.json()),
+        ]);
+        if (cancelled) return;
         setTopTracks(tracks?.items ?? []);
         setTopArtists(artists?.items ?? []);
         setRecent(played?.items ?? []);
         setNowPlaying(np?.playing ? np.data : null);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      } catch {
+        // fetch errors handled silently
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, [connected, range]);
-
-  useEffect(() => { loadData(); }, [loadData]);
 
   if (connected === null) {
     return (
@@ -172,9 +178,12 @@ export function SpotifyClient() {
         <div className="bg-ink-1 rounded-md p-4 flex items-center gap-4 border border-[#1DB954]/30">
           <div className="relative shrink-0">
             {nowPlaying.item.album.images.length > 0 && (
-              <img
+              <Image
                 src={smallImg(nowPlaying.item.album.images)}
                 alt=""
+                width={48}
+                height={48}
+                unoptimized
                 className="w-12 h-12 rounded-md"
               />
             )}
@@ -235,7 +244,7 @@ export function SpotifyClient() {
                 >
                   <Mono className="text-[10px] text-ink-3 w-5 text-right shrink-0">{i + 1}</Mono>
                   {track.album.images.length > 0 && (
-                    <img src={smallImg(track.album.images)} alt="" className="w-10 h-10 rounded shrink-0" />
+                    <Image src={smallImg(track.album.images)} alt="" width={40} height={40} unoptimized className="w-10 h-10 rounded shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="text-sm text-text-0 truncate group-hover:text-[#1DB954] transition-colors">
@@ -267,9 +276,12 @@ export function SpotifyClient() {
                   className="bg-ink-1 rounded-md p-3 hover:bg-ink-2/60 transition-colors group flex flex-col items-center gap-2"
                 >
                   {artist.images.length > 0 ? (
-                    <img
+                    <Image
                       src={smallImg(artist.images)}
                       alt=""
+                      width={64}
+                      height={64}
+                      unoptimized
                       className="w-16 h-16 rounded-full object-cover"
                     />
                   ) : (
@@ -311,7 +323,7 @@ export function SpotifyClient() {
                     className="flex items-center gap-3 p-2 rounded-md hover:bg-ink-1 transition-colors group"
                   >
                     {item.track.album.images.length > 0 && (
-                      <img src={smallImg(item.track.album.images)} alt="" className="w-10 h-10 rounded shrink-0" />
+                      <Image src={smallImg(item.track.album.images)} alt="" width={40} height={40} unoptimized className="w-10 h-10 rounded shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="text-sm text-text-0 truncate group-hover:text-[#1DB954] transition-colors">
