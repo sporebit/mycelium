@@ -10,6 +10,7 @@ const PUBLIC_PREFIXES = [
   "/api/cron/reminders",
   "/api/health-import",
   "/api/studio/pc-metrics",
+  "/api/cron/drops-monitor",
 ];
 
 function isPublic(pathname: string): boolean {
