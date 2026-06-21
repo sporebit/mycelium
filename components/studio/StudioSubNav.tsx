@@ -14,6 +14,11 @@ const TABS: SubNavTab[] = [
     match: (p) => p === "/studio/spotify" || p.startsWith("/studio/spotify/"),
   },
   {
+    label: "PC",
+    href: "/studio/pc",
+    match: (p) => p === "/studio/pc",
+  },
+  {
     label: "ENGINEER",
     href: "/the-boys/engineer",
     match: (p) => p === "/the-boys/engineer",
