@@ -70,6 +70,7 @@ export type TemplateSession = {
   name: string;
   notes: string | null;
   position: number;
+  workout_id: string | null;
   exercises?: TemplateExercise[];
 };
 

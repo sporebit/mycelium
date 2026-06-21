@@ -4,7 +4,7 @@ import type { TemplateSession } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
-const SESSION_FIELDS = "id, programme_id, day_of_week, slot, kind, name, notes";
+const SESSION_FIELDS = "id, programme_id, day_of_week, slot, kind, name, notes, position, workout_id";
 
 function userId(): string | null {
   return process.env.USER_ID ?? null;
@@ -44,6 +44,7 @@ export async function POST(
     kind?: string;
     name?: string;
     notes?: string;
+    workout_id?: string;
   };
   try {
     body = (await req.json()) as typeof body;
@@ -65,29 +66,21 @@ export async function POST(
   }
 
   try {
-    const payload = {
-      programme_id: programmeId,
-      day_of_week: body.day_of_week,
-      slot: body.slot,
-      kind: body.kind,
-      name: body.name.trim(),
-      notes: body.notes ?? null,
-    };
-    console.error("[DIAG programmes/:id/sessions POST] payload:", JSON.stringify(payload));
-
     const supabase = createServerClient();
     const { data, error } = await supabase
       .from("workout_programme_sessions")
-      .upsert(
-        payload,
-        { onConflict: "programme_id,day_of_week,slot" }
-      )
+      .insert({
+        programme_id: programmeId,
+        day_of_week: body.day_of_week,
+        slot: body.slot,
+        kind: body.kind,
+        name: body.name.trim(),
+        notes: body.notes ?? null,
+        workout_id: body.workout_id ?? null,
+      })
       .select(SESSION_FIELDS)
       .single();
-    if (error || !data) {
-      console.error("[DIAG programmes/:id/sessions POST] supabase error:", JSON.stringify(error));
-      throw error ?? new Error("upsert failed");
-    }
+    if (error || !data) throw error ?? new Error("insert failed");
     return NextResponse.json({ session: data as TemplateSession });
   } catch (err) {
     console.error("[/api/fitness/programmes/:id/sessions POST]", err);
