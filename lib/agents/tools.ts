@@ -103,10 +103,75 @@ export const FINANCE_TOOLS: ToolDef[] = [
   },
 ];
 
+export const VENTURE_TOOLS: ToolDef[] = [
+  {
+    name: "create_venture",
+    description:
+      "Create a new venture/business idea in Mycelium Ventures. Use when Phil describes a new business idea he wants to track.",
+    input_schema: {
+      type: "object",
+      properties: {
+        name: { type: "string" },
+        tagline: { type: "string" },
+        kind: {
+          type: "string",
+          enum: ["business", "store", "project", "idea"],
+        },
+        parent_id: {
+          type: "string",
+          description: "UUID of parent venture if this is a child",
+        },
+        description: { type: "string" },
+        problem: { type: "string" },
+        target_market: { type: "string" },
+        mvp: { type: "string" },
+        revenue_model: { type: "string" },
+        status: {
+          type: "string",
+          enum: ["idea", "exploring", "building", "launched", "paused", "closed"],
+        },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "update_venture",
+    description:
+      "Update fields on an existing venture. Use when Phil refines his thinking on a business.",
+    input_schema: {
+      type: "object",
+      properties: {
+        venture_id: {
+          type: "string",
+          description: "UUID of the venture to update",
+        },
+        fields: {
+          type: "object",
+          description: "Key-value pairs of fields to update",
+        },
+      },
+      required: ["venture_id", "fields"],
+    },
+  },
+  {
+    name: "add_venture_step",
+    description: "Add a launch step to a venture.",
+    input_schema: {
+      type: "object",
+      properties: {
+        venture_id: { type: "string" },
+        title: { type: "string" },
+        description: { type: "string" },
+      },
+      required: ["venture_id", "title"],
+    },
+  },
+];
+
 export function toolsForAgent(agentId: string): ToolDef[] {
   switch (agentId) {
     case "da_boi":
-      return [...AGENT_TOOLS, ...FINANCE_TOOLS];
+      return [...AGENT_TOOLS, ...FINANCE_TOOLS, ...VENTURE_TOOLS];
     case "tasks":
       return [...AGENT_TOOLS];
     case "finance":
@@ -114,6 +179,10 @@ export function toolsForAgent(agentId: string): ToolDef[] {
     case "fitness":
       return [AGENT_TOOLS[0]];
     case "nutrition":
+      return [...AGENT_TOOLS];
+    case "founder":
+      return [...AGENT_TOOLS, ...VENTURE_TOOLS];
+    case "engineer":
       return [...AGENT_TOOLS];
     default:
       return [];
@@ -206,6 +275,54 @@ export async function executeTool(
       result: data,
       summary: `Updated ${data[0].name} to ${data[0].status}`,
     };
+  }
+
+  if (toolName === "create_venture") {
+    const { data, error } = await supabase
+      .from("ventures")
+      .insert({
+        name: toolInput.name as string,
+        tagline: (toolInput.tagline as string) || null,
+        kind: (toolInput.kind as string) || "idea",
+        parent_id: (toolInput.parent_id as string) || null,
+        description: (toolInput.description as string) || null,
+        problem: (toolInput.problem as string) || null,
+        target_market: (toolInput.target_market as string) || null,
+        mvp: (toolInput.mvp as string) || null,
+        revenue_model: (toolInput.revenue_model as string) || null,
+        status: (toolInput.status as string) || "idea",
+      })
+      .select("id, name")
+      .single();
+    if (error) return { ok: false, result: error.message, summary: "Venture creation failed" };
+    return { ok: true, result: data, summary: `Created venture: ${data.name}` };
+  }
+
+  if (toolName === "update_venture") {
+    const ventureId = toolInput.venture_id as string;
+    const fields = toolInput.fields as Record<string, unknown>;
+    const { data, error } = await supabase
+      .from("ventures")
+      .update({ ...fields, updated_at: new Date().toISOString() })
+      .eq("id", ventureId)
+      .select("id, name")
+      .single();
+    if (error) return { ok: false, result: error.message, summary: "Venture update failed" };
+    return { ok: true, result: data, summary: `Updated venture: ${data.name}` };
+  }
+
+  if (toolName === "add_venture_step") {
+    const { data, error } = await supabase
+      .from("venture_steps")
+      .insert({
+        venture_id: toolInput.venture_id as string,
+        title: toolInput.title as string,
+        description: (toolInput.description as string) || null,
+      })
+      .select("id, title")
+      .single();
+    if (error) return { ok: false, result: error.message, summary: "Step creation failed" };
+    return { ok: true, result: data, summary: `Added step: ${data.title}` };
   }
 
   return { ok: false, result: "Unknown tool", summary: "Unknown tool" };

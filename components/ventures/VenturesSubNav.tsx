@@ -23,6 +23,11 @@ const TABS: SubNavTab[] = [
     href: "/ventures/ads",
     match: (p) => p === "/ventures/ads",
   },
+  {
+    label: "FOUNDER",
+    href: "/the-boys/founder",
+    match: (p) => p === "/the-boys/founder",
+  },
 ];
 
 export function VenturesSubNav() {

@@ -171,6 +171,8 @@ async function getDaBoiContext(supabase: ReturnType<typeof createServerClient>) 
     finance_memory: memMap.get("finance") || "none",
     tasks_memory: memMap.get("tasks") || "none",
     nutrition_memory: memMap.get("nutrition") || "none",
+    founder_memory: memMap.get("founder") || "none",
+    engineer_memory: memMap.get("engineer") || "none",
     recent_workouts: recentWorkouts,
     monthly_spend: monthlySpend,
     open_task_count: openTaskCount,

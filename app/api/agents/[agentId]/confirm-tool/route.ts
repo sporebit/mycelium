@@ -125,6 +125,8 @@ export async function POST(
         finance_memory: memMap.get("finance") || "none",
         tasks_memory: memMap.get("tasks") || "none",
         nutrition_memory: memMap.get("nutrition") || "none",
+        founder_memory: memMap.get("founder") || "none",
+        engineer_memory: memMap.get("engineer") || "none",
         recent_workouts: "see conversation",
         monthly_spend: "see conversation",
         open_task_count: 0,
