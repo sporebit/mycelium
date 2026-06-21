@@ -5,9 +5,17 @@ export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = req.headers.get("authorization");
-    const secret = process.env.PC_METRICS_SECRET;
-    if (!secret || auth !== `Bearer ${secret}`) {
+    const authHeader = req.headers.get("authorization") ?? "";
+    const receivedToken = authHeader.replace("Bearer ", "").trim();
+    const envSecret = process.env.PC_METRICS_SECRET ?? "";
+
+    console.log("[pc-metrics] received token length:", receivedToken.length);
+    console.log("[pc-metrics] received token start:", receivedToken.substring(0, 8));
+    console.log("[pc-metrics] env secret length:", envSecret.length);
+    console.log("[pc-metrics] env secret start:", envSecret.substring(0, 8));
+    console.log("[pc-metrics] match:", receivedToken === envSecret);
+
+    if (!envSecret || receivedToken !== envSecret) {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
 
