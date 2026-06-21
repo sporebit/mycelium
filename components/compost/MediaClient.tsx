@@ -555,6 +555,7 @@ function WatchLinks({ item, onRefresh }: { item: MediaItem; onRefresh: () => voi
 }
 
 function ListenLinks({ item }: { item: MediaItem }) {
+  const isPodcast = item.creator?.toLowerCase().includes("podcast") || item.title.toLowerCase().includes("podcast");
   return (
     <div className="flex items-center gap-2 flex-wrap mt-1">
       <a
@@ -563,7 +564,7 @@ function ListenLinks({ item }: { item: MediaItem }) {
         rel="noopener noreferrer"
         className="text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
       >
-        🎵 Spotify
+        {isPodcast ? "🎙" : "🎵"} Spotify
       </a>
       <a
         href={youtubeMusicUrl(item.title, item.creator)}
@@ -573,6 +574,16 @@ function ListenLinks({ item }: { item: MediaItem }) {
       >
         ▶ YouTube Music
       </a>
+      {isPodcast && (
+        <a
+          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(item.title + " podcast")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+        >
+          ▶ YouTube
+        </a>
+      )}
     </div>
   );
 }
