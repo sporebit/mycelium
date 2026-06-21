@@ -94,6 +94,18 @@ export const SECTIONS: SectionConfig[] = [
       { label: "PC build", href: "/pc-build", primary: false },
     ],
   },
+  {
+    key: "ventures",
+    label: "VENTURES",
+    colour: "#84f5b8",
+    baseRoute: "/ventures",
+    subPages: [
+      { label: "Overview", href: "/ventures", primary: true },
+      { label: "Tree", href: "/ventures/tree", primary: true },
+      { label: "Inspiration", href: "/ventures/inspiration", primary: true },
+      { label: "Ads", href: "/ventures/ads", primary: false },
+    ],
+  },
 ];
 
 export const SECTION_BASE_ROUTES = SECTIONS.map((s) => s.baseRoute);
