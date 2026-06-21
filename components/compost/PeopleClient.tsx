@@ -45,6 +45,21 @@ function avatarColor(name: string): string {
   return palette[h % palette.length];
 }
 
+function formatBirthday(iso: string): string {
+  const [, mm, dd] = iso.split("-").map(Number);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${dd} ${months[mm - 1]}`;
+}
+
+function daysUntilBirthday(iso: string): number {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const [, mm, dd] = iso.split("-").map(Number);
+  let next = new Date(now.getFullYear(), mm - 1, dd);
+  if (next < now) next = new Date(now.getFullYear() + 1, mm - 1, dd);
+  return Math.ceil((next.getTime() - now.getTime()) / 86_400_000);
+}
+
 export function PeopleClient() {
   const [people, setPeople] = useState<PersonWithAliases[] | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
@@ -111,6 +126,14 @@ export function PeopleClient() {
     }
     return list;
   }, [people, filter, relationship]);
+
+  const upcomingBirthdays = useMemo(() => {
+    if (!people) return [];
+    return people
+      .filter((p) => p.birthday && daysUntilBirthday(p.birthday) <= 30)
+      .sort((a, b) => daysUntilBirthday(a.birthday!) - daysUntilBirthday(b.birthday!))
+      .slice(0, 8);
+  }, [people]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -193,6 +216,45 @@ export function PeopleClient() {
         )}
       </div>
 
+      {upcomingBirthdays.length > 0 && filter !== "review" && (
+        <div className="rounded-md border border-[#f56db5]/30 bg-[#f56db5]/5 p-3">
+          <div className="text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] text-[#f56db5] mb-2">
+            UPCOMING BIRTHDAYS
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {upcomingBirthdays.map((p) => {
+              const days = daysUntilBirthday(p.birthday!);
+              return (
+                <Link
+                  key={p.id}
+                  href={`/organisation/people/${p.id}`}
+                  className="flex items-center gap-2 rounded-md bg-[#f56db5]/10 hover:bg-[#f56db5]/20 transition-colors px-3 py-1.5"
+                >
+                  <span
+                    className={`shrink-0 h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-[family-name:var(--font-display)] ${avatarColor(displayName(p))}`}
+                  >
+                    {initialsOf(p)}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-xs text-text-0 font-[family-name:var(--font-display)] truncate">
+                      {displayName(p)}
+                    </div>
+                    <div className="text-[10px] font-[family-name:var(--font-mono)] text-[#f56db5]">
+                      {formatBirthday(p.birthday!)}{" "}
+                      {days === 0
+                        ? "— today! 🎉"
+                        : days === 1
+                          ? "— tomorrow"
+                          : `— in ${days}d`}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {filter === "review" ? (
         <ReviewQueue onResolved={() => void load()} />
       ) : people === null ? (
@@ -231,6 +293,20 @@ export function PeopleClient() {
                 </div>
                 <div className="text-[11px] text-text-2 font-[family-name:var(--font-mono)] tracking-[0.08em] mt-0.5">
                   {p.relationship ? `${p.relationship} · ` : ""}
+                  {p.birthday && (
+                    <span>
+                      {"🎂 "}
+                      {formatBirthday(p.birthday)}
+                      {daysUntilBirthday(p.birthday) <= 7 && (
+                        <span className="text-[#f56db5] ml-1">
+                          ({daysUntilBirthday(p.birthday) === 0
+                            ? "today!"
+                            : `in ${daysUntilBirthday(p.birthday)}d`})
+                        </span>
+                      )}
+                      {" · "}
+                    </span>
+                  )}
                   {p.mention_count
                     ? `${p.mention_count} mention${p.mention_count === 1 ? "" : "s"} · `
                     : ""}
