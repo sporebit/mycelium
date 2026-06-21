@@ -106,6 +106,16 @@ export const SECTIONS: SectionConfig[] = [
       { label: "Ads", href: "/ventures/ads", primary: false },
     ],
   },
+  {
+    key: "other",
+    label: "OTHER",
+    colour: "#e8e6dd",
+    baseRoute: "/other",
+    subPages: [
+      { label: "Settings", href: "/other/settings", primary: true },
+      { label: "Export", href: "/other/export", primary: true },
+    ],
+  },
 ];
 
 export const SECTION_BASE_ROUTES = SECTIONS.map((s) => s.baseRoute);
