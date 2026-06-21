@@ -114,6 +114,7 @@ export const SECTIONS: SectionConfig[] = [
     subPages: [
       { label: "Settings", href: "/other/settings", primary: true },
       { label: "Export", href: "/other/export", primary: true },
+      { label: "API Usage", href: "/other/api-usage", primary: true },
     ],
   },
 ];

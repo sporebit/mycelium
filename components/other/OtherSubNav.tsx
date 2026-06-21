@@ -13,6 +13,11 @@ const TABS: SubNavTab[] = [
     href: "/other/export",
     match: (p) => p === "/other/export",
   },
+  {
+    label: "API USAGE",
+    href: "/other/api-usage",
+    match: (p) => p === "/other/api-usage",
+  },
 ];
 
 export function OtherSubNav() {

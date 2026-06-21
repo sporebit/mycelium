@@ -130,8 +130,6 @@ export async function POST(req: NextRequest) {
     }
 
     if (format === "csv") {
-      const { Readable } = await import("stream");
-
       const parts: { name: string; content: string }[] = [];
       for (const [name, rows] of Object.entries(allData)) {
         if (rows.length > 0) parts.push({ name, content: toCsv(rows) });
