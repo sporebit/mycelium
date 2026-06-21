@@ -9,6 +9,7 @@ const PUBLIC_PREFIXES = [
   "/api/telegram/webhook",
   "/api/cron/reminders",
   "/api/health-import",
+  "/api/studio/pc-metrics",
 ];
 
 function isPublic(pathname: string): boolean {
