@@ -65,23 +65,29 @@ export async function POST(
   }
 
   try {
+    const payload = {
+      programme_id: programmeId,
+      day_of_week: body.day_of_week,
+      slot: body.slot,
+      kind: body.kind,
+      name: body.name.trim(),
+      notes: body.notes ?? null,
+    };
+    console.error("[DIAG programmes/:id/sessions POST] payload:", JSON.stringify(payload));
+
     const supabase = createServerClient();
     const { data, error } = await supabase
       .from("workout_programme_sessions")
       .upsert(
-        {
-          programme_id: programmeId,
-          day_of_week: body.day_of_week,
-          slot: body.slot,
-          kind: body.kind,
-          name: body.name.trim(),
-          notes: body.notes ?? null,
-        },
+        payload,
         { onConflict: "programme_id,day_of_week,slot" }
       )
       .select(SESSION_FIELDS)
       .single();
-    if (error || !data) throw error ?? new Error("upsert failed");
+    if (error || !data) {
+      console.error("[DIAG programmes/:id/sessions POST] supabase error:", JSON.stringify(error));
+      throw error ?? new Error("upsert failed");
+    }
     return NextResponse.json({ session: data as TemplateSession });
   } catch (err) {
     console.error("[/api/fitness/programmes/:id/sessions POST]", err);
