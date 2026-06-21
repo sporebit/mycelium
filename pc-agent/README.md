@@ -4,10 +4,22 @@ Sends PC hardware metrics to your Mycelium dashboard every 30s.
 
 ## Setup
 
-1. Edit `config.js` — set `PC_METRICS_SECRET` to your actual secret
+1. Set the secret (see below)
 2. `npm install`
 3. `node install-service.js` (run as Administrator)
 4. `net start MyceliumPCAgent`
+
+## Setting the secret
+
+Set `PC_METRICS_SECRET` as a Windows environment variable:
+
+```powershell
+[System.Environment]::SetEnvironmentVariable("PC_METRICS_SECRET", "your-secret", "Machine")
+```
+
+Then restart the service.
+
+Or set it in `config.js` locally (`config.js` is gitignored).
 
 ## Logs
 

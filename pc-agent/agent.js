@@ -1,6 +1,8 @@
 const si = require("systeminformation");
 const config = require("./config");
 
+const secret = process.env.PC_METRICS_SECRET || config.PC_METRICS_SECRET;
+
 async function collectAndSend() {
   try {
     const [cpu, cpuTemp, cpuSpeed, graphics, mem, net, time, disks] =
@@ -61,7 +63,7 @@ async function collectAndSend() {
     const res = await fetch(config.MYCELIUM_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${config.PC_METRICS_SECRET}`,
+        Authorization: `Bearer ${secret}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
