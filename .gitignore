@@ -50,5 +50,9 @@ public/swe-worker-*.js.map
 # supabase CLI cache
 supabase/.temp/
 
+# PC agent logs
+pc-agent/logs/
+pc-agent/node_modules/
+
 # graphify knowledge graph (generated)
 graphify-out/

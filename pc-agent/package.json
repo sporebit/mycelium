@@ -1,0 +1,15 @@
+{
+  "name": "mycelium-pc-agent",
+  "version": "1.0.0",
+  "description": "Mycelium PC metrics agent for Windows",
+  "main": "agent.js",
+  "scripts": {
+    "start": "node agent.js",
+    "install-service": "node install-service.js",
+    "uninstall-service": "node uninstall-service.js"
+  },
+  "dependencies": {
+    "systeminformation": "^5.0.0",
+    "node-windows": "^1.0.0-beta.8"
+  }
+}
