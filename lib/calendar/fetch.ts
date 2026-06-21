@@ -266,6 +266,131 @@ async function fetchScheduledTasks(
   }
 }
 
+function getPayday(year: number, month: number): Date {
+  const sixteenth = new Date(year, month, 16);
+  const dow = sixteenth.getDay();
+  if (dow === 6 || dow === 0) return new Date(year, month, 14);
+  return sixteenth;
+}
+
+function generatePaydays(
+  windowStart: Date,
+  windowEnd: Date,
+): CalendarEvent[] {
+  const out: CalendarEvent[] = [];
+  const d = new Date(windowStart.getFullYear(), windowStart.getMonth(), 1);
+  const endLimit = new Date(windowEnd);
+  endLimit.setMonth(endLimit.getMonth() + 1);
+
+  while (d <= endLimit) {
+    const payday = getPayday(d.getFullYear(), d.getMonth());
+    if (payday >= windowStart && payday <= windowEnd) {
+      const iso = payday.toISOString();
+      out.push({
+        id: `payday-${d.getFullYear()}-${d.getMonth()}`,
+        title: "💰 Payday",
+        start: iso,
+        end: iso,
+        allDay: true,
+        calendarName: "Payday",
+        calendarColour: "#84f5b8",
+        location: "",
+        description: "",
+      });
+    }
+    d.setMonth(d.getMonth() + 1);
+  }
+  return out;
+}
+
+async function fetchDirectDebits(
+  windowStart: Date,
+  windowEnd: Date,
+): Promise<CalendarEvent[]> {
+  try {
+    const supabase = createServerClient();
+    const { data, error } = await supabase
+      .from("accounts")
+      .select("id, name, cost_amount, cost_period, renewal_date, status")
+      .in("status", ["active", "trial"])
+      .not("cost_amount", "is", null)
+      .gt("cost_amount", 0)
+      .not("renewal_date", "is", null);
+
+    if (error || !data) return [];
+
+    const out: CalendarEvent[] = [];
+
+    for (const a of data as Array<{
+      id: string;
+      name: string;
+      cost_amount: number;
+      cost_period: string;
+      renewal_date: string;
+      status: string;
+    }>) {
+      const renewalDate = new Date(a.renewal_date + "T00:00:00");
+      const dayOfMonth = renewalDate.getDate();
+      const title = `💳 ${a.name} — £${a.cost_amount}`;
+
+      if (a.cost_period === "monthly") {
+        const d = new Date(windowStart.getFullYear(), windowStart.getMonth(), 1);
+        const endLimit = new Date(windowEnd);
+        endLimit.setMonth(endLimit.getMonth() + 1);
+
+        while (d <= endLimit) {
+          const y = d.getFullYear();
+          const m = d.getMonth();
+          const lastDay = new Date(y, m + 1, 0).getDate();
+          const actualDay = Math.min(dayOfMonth, lastDay);
+          const eventDate = new Date(y, m, actualDay);
+
+          if (eventDate >= windowStart && eventDate <= windowEnd) {
+            const iso = eventDate.toISOString();
+            out.push({
+              id: `bill-${a.id}-${y}-${m}`,
+              title,
+              start: iso,
+              end: iso,
+              allDay: true,
+              calendarName: "Bills",
+              calendarColour: "#6db8f5",
+              location: "",
+              description: "",
+            });
+          }
+          d.setMonth(d.getMonth() + 1);
+        }
+      } else if (a.cost_period === "annual") {
+        const startYear = windowStart.getFullYear();
+        const endYear = windowEnd.getFullYear();
+        for (let y = startYear; y <= endYear; y++) {
+          const eventDate = new Date(y, renewalDate.getMonth(), renewalDate.getDate());
+          if (eventDate >= windowStart && eventDate <= windowEnd) {
+            const iso = eventDate.toISOString();
+            out.push({
+              id: `bill-${a.id}-${y}`,
+              title,
+              start: iso,
+              end: iso,
+              allDay: true,
+              calendarName: "Bills",
+              calendarColour: "#6db8f5",
+              location: "",
+              description: "",
+            });
+          }
+        }
+      }
+    }
+
+    return out;
+  } catch (err) {
+    console.error("[calendar] direct debits fetch failed:", err);
+    return [];
+  }
+}
+
 export async function getCalendarData(): Promise<CalendarData> {
   if (memoryCache && memoryCache.expiresAt > Date.now()) {
     return memoryCache.data;
@@ -281,7 +406,7 @@ export async function getCalendarData(): Promise<CalendarData> {
   const failed: string[] = [];
   const all: CalendarEvent[] = [];
 
-  const [, scheduledTasks, birthdayEvents, customEvents] = await Promise.all([
+  const [, scheduledTasks, birthdayEvents, customEvents, directDebits] = await Promise.all([
     Promise.all(
       feeds.map(async (feed) => {
         try {
@@ -297,10 +422,13 @@ export async function getCalendarData(): Promise<CalendarData> {
     fetchScheduledTasks(windowStart, windowEnd),
     fetchBirthdays(windowStart, windowEnd),
     fetchEvents(windowStart, windowEnd),
+    fetchDirectDebits(windowStart, windowEnd),
   ]);
   all.push(...scheduledTasks);
   all.push(...birthdayEvents);
   all.push(...customEvents);
+  all.push(...directDebits);
+  all.push(...generatePaydays(windowStart, windowEnd));
 
   all.sort((a, b) => a.start.localeCompare(b.start));
   const data: CalendarData = { events: all, failedCalendars: failed };
