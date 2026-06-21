@@ -521,6 +521,7 @@ function DropCard({
     >
       {drop.image_url && (
         <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0 bg-ink-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={drop.image_url}
             alt={drop.name}
