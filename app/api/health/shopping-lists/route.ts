@@ -28,6 +28,24 @@ type Ingredient = {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const supabase = createServerClient();
+
+    // Simple list creation mode (no recipe_ids)
+    if (!body.recipe_ids) {
+      const { data, error } = await supabase
+        .from("shopping_lists")
+        .insert({
+          title: body.title || "Shopping List",
+          items: body.items ?? [],
+          default_list: body.default_list ?? false,
+        })
+        .select("*")
+        .single();
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ ok: true, list: data });
+    }
+
+    // Recipe-based creation mode
     const { week_start, recipe_ids } = body as {
       week_start: string;
       recipe_ids: string[];
@@ -40,7 +58,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = createServerClient();
     const { data: recipes, error: recErr } = await supabase
       .from("recipes")
       .select("id, title, ingredients")

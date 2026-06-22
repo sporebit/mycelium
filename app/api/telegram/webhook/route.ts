@@ -9,7 +9,7 @@ import {
   type InlineKeyboardMarkup,
 } from "@/lib/telegram/api";
 import { transcribeAudio } from "@/lib/openai/whisper";
-import { classifyCapture, type ReminderDetails } from "@/lib/router/classifyCapture";
+import { classifyCapture, detectShoppingListItem, type ReminderDetails } from "@/lib/router/classifyCapture";
 import { writeCapture } from "@/lib/router/writeCapture";
 import { embedAndStore } from "@/lib/router/embedAndStore";
 import { createServerClient } from "@/lib/supabase/server";
@@ -339,6 +339,48 @@ async function handleMessage(message: TgMessage): Promise<void> {
     } catch (err) {
       console.error("[telegram] weight log failed:", err);
       await sendMessage(chatId, "⚠️ Couldn't log weight — check logs.");
+    }
+    return;
+  }
+
+  // Shopping list detection — bypass classifier for direct "add to shopping list" commands
+  const shoppingItem = detectShoppingListItem(rawText);
+  if (shoppingItem) {
+    try {
+      const supabase = createServerClient();
+      let { data: defaultList } = await supabase
+        .from("shopping_lists")
+        .select("id, items")
+        .eq("default_list", true)
+        .limit(1)
+        .maybeSingle();
+
+      if (!defaultList) {
+        const { data: newList } = await supabase
+          .from("shopping_lists")
+          .insert({ title: "My Shopping List", default_list: true, items: [] })
+          .select("id, items")
+          .single();
+        defaultList = newList;
+      }
+
+      if (defaultList) {
+        const items = [...((defaultList.items as unknown[]) ?? [])];
+        items.push({
+          id: crypto.randomUUID(),
+          name: shoppingItem,
+          checked: false,
+          added_by: "voice",
+        });
+        await supabase
+          .from("shopping_lists")
+          .update({ items })
+          .eq("id", defaultList.id);
+        await sendMessage(chatId, `✓ Added ${shoppingItem} to your shopping list`);
+      }
+    } catch (err) {
+      console.error("[telegram] shopping list add failed:", err);
+      await sendMessage(chatId, "⚠️ Couldn't add to shopping list — check logs.");
     }
     return;
   }

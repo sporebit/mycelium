@@ -925,6 +925,18 @@ export async function buildClassifierSystemPrompt(
     : CLASSIFIER_SYSTEM_PROMPT;
 }
 
+export function detectShoppingListItem(text: string): string | null {
+  const lower = text.toLowerCase().trim();
+  let match: RegExpMatchArray | null;
+  match = lower.match(/^add\s+(.+?)\s+to\s+(?:my\s+)?shopping(?:\s+list)?$/);
+  if (match) return match[1].trim();
+  match = lower.match(/^i\s+need\s+to\s+buy\s+(.+)$/);
+  if (match) return match[1].trim();
+  match = lower.match(/^add\s+(.+?)\s+to\s+shopping$/);
+  if (match) return match[1].trim();
+  return null;
+}
+
 export async function classifyCapture(
   text: string,
   /** Pulls user-defined capture rules into the system prompt.
