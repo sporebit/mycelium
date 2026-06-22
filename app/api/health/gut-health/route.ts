@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
         time_of_day: body.time_of_day || null,
         felt_finished: body.felt_finished ?? null,
         wipe_type: body.wipe_type || null,
-        pain: body.pain ?? null,
+        discomfort: body.discomfort ?? null,
         blood: body.blood ?? false,
         urgent: body.urgent ?? false,
         notes: body.notes || null,

@@ -9,7 +9,7 @@ type GutEntry = {
   time_of_day: string | null;
   felt_finished: boolean | null;
   wipe_type: string | null;
-  pain: number | null;
+  discomfort: number | null;
   blood: boolean;
   urgent: boolean;
   notes: string | null;
@@ -24,6 +24,16 @@ const BRISTOL = [
   { type: 6, name: "Fluffy pieces", icon: "≋≋", color: "#3b82f6" },
   { type: 7, name: "Watery", icon: "〰", color: "#3b82f6" },
 ];
+
+const BRISTOL_HEALTH: Record<number, string> = {
+  1: "Severe constipation",
+  2: "Mild constipation",
+  3: "Normal",
+  4: "Ideal",
+  5: "Lacking fibre",
+  6: "Mild diarrhoea",
+  7: "Severe diarrhoea",
+};
 
 const TOD_LABELS: Record<string, string> = {
   morning: "Morning",
@@ -46,9 +56,9 @@ function bristolColor(type: number): string {
   return "#3b82f6";
 }
 
-function painColor(pain: number): string {
-  if (pain <= 3) return "#22c55e";
-  if (pain <= 6) return "#f59e0b";
+function discomfortColor(val: number): string {
+  if (val <= 3) return "#22c55e";
+  if (val <= 6) return "#f59e0b";
   return "#ef4444";
 }
 
@@ -69,15 +79,22 @@ export default function GutHealthPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const [bristolType, setBristolType] = useState(4);
   const [timeOfDay, setTimeOfDay] = useState("morning");
   const [feltFinished, setFeltFinished] = useState<boolean | null>(null);
   const [wipeType, setWipeType] = useState("");
-  const [pain, setPain] = useState(0);
+  const [discomfort, setDiscomfort] = useState(0);
   const [blood, setBlood] = useState(false);
   const [urgent, setUrgent] = useState(false);
   const [notes, setNotes] = useState("");
+
+  const [bristolOpen, setBristolOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try { return localStorage.getItem("gut_bristol_chart_open") === "true"; } catch { return false; }
+  });
 
   const load = useCallback(async () => {
     try {
@@ -96,32 +113,57 @@ export default function GutHealthPage() {
     setTimeOfDay("morning");
     setFeltFinished(null);
     setWipeType("");
-    setPain(0);
+    setDiscomfort(0);
     setBlood(false);
     setUrgent(false);
     setNotes("");
   }
 
+  function startEdit(entry: GutEntry) {
+    setEditingId(entry.id);
+    setBristolType(entry.bristol_type);
+    setTimeOfDay(entry.time_of_day || "morning");
+    setFeltFinished(entry.felt_finished);
+    setWipeType(entry.wipe_type || "");
+    setDiscomfort(entry.discomfort ?? 0);
+    setBlood(entry.blood);
+    setUrgent(entry.urgent);
+    setNotes(entry.notes || "");
+    setShowModal(true);
+  }
+
+  function closeModal() {
+    resetForm();
+    setEditingId(null);
+    setShowModal(false);
+  }
+
   async function handleSave() {
     setSaving(true);
     try {
-      const res = await fetch("/api/health/gut-health", {
-        method: "POST",
+      const payload = {
+        bristol_type: bristolType,
+        time_of_day: timeOfDay,
+        felt_finished: feltFinished,
+        wipe_type: wipeType || null,
+        discomfort,
+        blood,
+        urgent,
+        notes: notes.trim() || null,
+      };
+
+      const url = editingId
+        ? `/api/health/gut-health/${editingId}`
+        : "/api/health/gut-health";
+      const method = editingId ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bristol_type: bristolType,
-          time_of_day: timeOfDay,
-          felt_finished: feltFinished,
-          wipe_type: wipeType || null,
-          pain,
-          blood,
-          urgent,
-          notes: notes.trim() || null,
-        }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
-        resetForm();
-        setShowModal(false);
+        closeModal();
         load();
       }
     } finally {
@@ -132,6 +174,18 @@ export default function GutHealthPage() {
   async function handleDelete(id: string) {
     await fetch(`/api/health/gut-health/${id}`, { method: "DELETE" });
     setEntries((prev) => prev.filter((e) => e.id !== id));
+  }
+
+  function requestDelete(id: string) {
+    if (confirmDelete === id) {
+      handleDelete(id);
+      setConfirmDelete(null);
+      return;
+    }
+    setConfirmDelete(id);
+    setTimeout(() => {
+      setConfirmDelete((prev) => (prev === id ? null : prev));
+    }, 3000);
   }
 
   const overviewDots = useMemo(() => {
@@ -223,6 +277,7 @@ export default function GutHealthPage() {
               <div className="flex flex-col gap-2">
                 {dayEntries.map((e) => {
                   const b = BRISTOL[e.bristol_type - 1];
+                  const isConfirming = confirmDelete === e.id;
                   return (
                     <div
                       key={e.id}
@@ -246,19 +301,30 @@ export default function GutHealthPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          {e.pain !== null && e.pain > 0 && (
+                          {e.discomfort !== null && e.discomfort > 0 && (
                             <span
                               className="text-sm font-[family-name:var(--font-mono)] font-bold"
-                              style={{ color: painColor(e.pain) }}
+                              style={{ color: discomfortColor(e.discomfort) }}
                             >
-                              {e.pain}/10
+                              Discomfort {e.discomfort}/10
                             </span>
                           )}
                           <button
-                            onClick={() => handleDelete(e.id)}
-                            className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-danger text-xs transition-opacity"
+                            onClick={() => startEdit(e)}
+                            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 text-ink-3 hover:text-accent text-xs transition-opacity"
+                            title="Edit"
                           >
-                            ✕
+                            ✎
+                          </button>
+                          <button
+                            onClick={() => requestDelete(e.id)}
+                            className={`text-xs transition-all ${
+                              isConfirming
+                                ? "text-danger text-[10px] font-[family-name:var(--font-mono)]"
+                                : "opacity-100 md:opacity-0 md:group-hover:opacity-100 text-ink-3 hover:text-danger"
+                            }`}
+                          >
+                            {isConfirming ? "Tap again" : "✕"}
                           </button>
                         </div>
                       </div>
@@ -266,9 +332,9 @@ export default function GutHealthPage() {
                       {/* Flags row */}
                       {(e.urgent || e.blood || e.felt_finished) && (
                         <div className="flex items-center gap-2 mt-2 text-[10px] font-[family-name:var(--font-mono)]">
-                          {e.urgent && <span className="text-danger">🚨 Urgent</span>}
-                          {e.blood && <span className="text-danger">🩸 Blood</span>}
-                          {e.felt_finished && <span className="text-ok">✓ Felt finished</span>}
+                          {e.urgent && <span className="text-danger">{"🚨"} Urgent</span>}
+                          {e.blood && <span className="text-danger">{"🩸"} Blood</span>}
+                          {e.felt_finished && <span className="text-ok">{"✓"} Felt finished</span>}
                         </div>
                       )}
 
@@ -299,14 +365,14 @@ export default function GutHealthPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-ink-0 border border-ink-2 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
             <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
-              Log Entry
+              {editingId ? "Edit Entry" : "Log Entry"}
             </h2>
 
             {/* Bristol type selector */}
             <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
               BRISTOL TYPE
             </p>
-            <div className="grid grid-cols-7 gap-1 mb-4">
+            <div className="grid grid-cols-7 gap-1 mb-2">
               {BRISTOL.map((b) => (
                 <button
                   key={b.type}
@@ -322,9 +388,34 @@ export default function GutHealthPage() {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-ink-4 font-[family-name:var(--font-display)] mb-4">
+            <p className="text-xs text-ink-4 font-[family-name:var(--font-display)] mb-2">
               {BRISTOL[bristolType - 1].name}
             </p>
+
+            {/* Bristol chart reference */}
+            <button
+              onClick={() => {
+                const next = !bristolOpen;
+                setBristolOpen(next);
+                try { localStorage.setItem("gut_bristol_chart_open", String(next)); } catch { /* noop */ }
+              }}
+              className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em] mb-2 hover:text-ink-4 transition-colors flex items-center gap-1"
+            >
+              {bristolOpen ? "▾" : "▸"} What do these mean?
+            </button>
+            {bristolOpen && (
+              <div className="mb-4 rounded-lg border border-ink-2 bg-ink-1/50 p-3">
+                {BRISTOL.map((b) => (
+                  <div key={b.type} className="flex items-center gap-3 py-1">
+                    <span className="text-base shrink-0 w-8 text-center" style={{ color: b.color }}>{b.icon}</span>
+                    <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] shrink-0 w-3">{b.type}</span>
+                    <span className="text-xs text-ink-4 font-[family-name:var(--font-display)] shrink-0">{b.name}</span>
+                    <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">&mdash; {BRISTOL_HEALTH[b.type]}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {!bristolOpen && <div className="mb-2" />}
 
             {/* Time of day */}
             <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
@@ -390,16 +481,16 @@ export default function GutHealthPage() {
               ))}
             </div>
 
-            {/* Pain slider */}
+            {/* Discomfort slider */}
             <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
-              PAIN: <span style={{ color: painColor(pain) }}>{pain}/10</span>
+              DISCOMFORT: <span style={{ color: discomfortColor(discomfort) }}>{discomfort}/10</span>
             </p>
             <input
               type="range"
               min={0}
               max={10}
-              value={pain}
-              onChange={(e) => setPain(Number(e.target.value))}
+              value={discomfort}
+              onChange={(e) => setDiscomfort(Number(e.target.value))}
               className="w-full mb-4 accent-[var(--color-accent)]"
             />
 
@@ -412,7 +503,7 @@ export default function GutHealthPage() {
                   onChange={(e) => setBlood(e.target.checked)}
                   className="accent-[var(--color-danger)]"
                 />
-                🩸 Blood
+                {"🩸"} Blood
               </label>
               <label className="flex items-center gap-2 text-xs text-ink-4 font-[family-name:var(--font-mono)] cursor-pointer">
                 <input
@@ -421,7 +512,7 @@ export default function GutHealthPage() {
                   onChange={(e) => setUrgent(e.target.checked)}
                   className="accent-[var(--color-danger)]"
                 />
-                🚨 Urgent
+                {"🚨"} Urgent
               </label>
             </div>
 
@@ -440,7 +531,7 @@ export default function GutHealthPage() {
             {/* Actions */}
             <div className="flex items-center gap-2 justify-end">
               <button
-                onClick={() => { resetForm(); setShowModal(false); }}
+                onClick={closeModal}
                 className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
               >
                 CANCEL
