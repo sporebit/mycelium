@@ -24,7 +24,7 @@ const PARSE_PROMPT = `Extract a recipe from this image and return ONLY valid JSO
 Format ingredients consistently: amount as a string (e.g. '2', '1/2', '1 tbsp'), unit separately, name as clean ingredient name.
 Format method as numbered steps, each as a complete instruction.
 If this is a Gousto recipe card, extract the Gousto branding as source_name: 'Gousto'.
-If a value is not visible, return null.`;
+If a value is not visible, return null for that field rather than omitting it.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,6 +42,20 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const base64 = buffer.toString("base64");
     const mediaType = file.type || "image/jpeg";
+
+    const existingDataStr = formData.get("existing_data") as string | null;
+    let existingData = null;
+    if (existingDataStr) {
+      try { existingData = JSON.parse(existingDataStr); } catch { /* ignore */ }
+    }
+
+    const prompt = existingData
+      ? `Here is what has already been extracted from a previous page of this recipe: ${JSON.stringify(existingData)}
+
+Now look at this new page and extract any additional or corrected information. Return the COMPLETE merged recipe JSON combining both pages. If the new page has the method but the previous had the ingredients, combine them. Fill in any nulls from the previous extraction if this page has that information.
+
+${PARSE_PROMPT}`
+      : PARSE_PROMPT;
 
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -61,7 +75,7 @@ export async function POST(req: NextRequest) {
                 type: "image",
                 source: { type: "base64", media_type: mediaType, data: base64 },
               },
-              { type: "text", text: PARSE_PROMPT },
+              { type: "text", text: prompt },
             ],
           },
         ],

@@ -88,6 +88,9 @@ export default function RecipesPage() {
   const [formIngredients, setFormIngredients] = useState<Ingredient[]>([]);
   const [formMethod, setFormMethod] = useState<MethodStep[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+  const additionalFileRef = useRef<HTMLInputElement>(null);
+  const [pageCount, setPageCount] = useState(0);
+  const [scanningPage, setScanningPage] = useState(0);
 
   // Meal planner
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()));
@@ -169,6 +172,43 @@ export default function RecipesPage() {
     setFormPrepTime(""); setFormCookTime(""); setFormServings("4");
     setFormCuisine(""); setFormTags(""); setFormNotes("");
     setFormIngredients([]); setFormMethod([]);
+    setPageCount(0); setScanningPage(0);
+  }
+
+  function populateForm(r: Record<string, unknown>, merge = false) {
+    const recipe = r as {
+      title?: string; source_name?: string; source_url?: string;
+      prep_time_minutes?: number; cook_time_minutes?: number;
+      servings?: number; cuisine?: string; tags?: string[];
+      notes?: string; ingredients?: Ingredient[]; method?: MethodStep[];
+    };
+    setFormTitle(recipe.title || (merge ? formTitle : "") || "");
+    setFormSourceName(recipe.source_name || (merge ? formSourceName : "") || "");
+    setFormSourceUrl(recipe.source_url || (merge ? formSourceUrl : "") || "");
+    setFormPrepTime(recipe.prep_time_minutes?.toString() || (merge ? formPrepTime : "") || "");
+    setFormCookTime(recipe.cook_time_minutes?.toString() || (merge ? formCookTime : "") || "");
+    setFormServings(recipe.servings?.toString() || (merge ? formServings : "4") || "4");
+    setFormCuisine(recipe.cuisine || (merge ? formCuisine : "") || "");
+    setFormTags((recipe.tags || []).join(", ") || (merge ? formTags : "") || "");
+    setFormNotes(recipe.notes || (merge ? formNotes : "") || "");
+    if (recipe.ingredients?.length) setFormIngredients(recipe.ingredients);
+    if (recipe.method?.length) setFormMethod(recipe.method);
+  }
+
+  function getCurrentFormData() {
+    return {
+      title: formTitle || null,
+      source_name: formSourceName || null,
+      source_url: formSourceUrl || null,
+      prep_time_minutes: formPrepTime ? Number(formPrepTime) : null,
+      cook_time_minutes: formCookTime ? Number(formCookTime) : null,
+      servings: Number(formServings) || null,
+      cuisine: formCuisine || null,
+      tags: formTags.split(",").map((t) => t.trim()).filter(Boolean),
+      notes: formNotes || null,
+      ingredients: formIngredients,
+      method: formMethod,
+    };
   }
 
   async function handleScan(file: File) {
@@ -179,21 +219,29 @@ export default function RecipesPage() {
       const res = await fetch("/api/health/recipes/parse", { method: "POST", body: fd });
       const data = await res.json();
       if (data.ok && data.recipe) {
-        const r = data.recipe;
-        setFormTitle(r.title || "");
-        setFormSourceName(r.source_name || "");
-        setFormSourceUrl(r.source_url || "");
-        setFormPrepTime(r.prep_time_minutes?.toString() || "");
-        setFormCookTime(r.cook_time_minutes?.toString() || "");
-        setFormServings(r.servings?.toString() || "4");
-        setFormCuisine(r.cuisine || "");
-        setFormTags((r.tags || []).join(", "));
-        setFormNotes(r.notes || "");
-        setFormIngredients(r.ingredients || []);
-        setFormMethod(r.method || []);
+        populateForm(data.recipe as Record<string, unknown>);
+        setPageCount(1);
       }
     } finally {
       setScanning(false);
+    }
+  }
+
+  async function handleAdditionalPage(file: File) {
+    const page = pageCount + 1;
+    setScanningPage(page);
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+      fd.append("existing_data", JSON.stringify(getCurrentFormData()));
+      const res = await fetch("/api/health/recipes/parse", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.ok && data.recipe) {
+        populateForm(data.recipe as Record<string, unknown>, true);
+        setPageCount(page);
+      }
+    } finally {
+      setScanningPage(0);
     }
   }
 
@@ -536,6 +584,33 @@ export default function RecipesPage() {
                 }}
               />
             </div>
+
+            {/* Add another page */}
+            {pageCount > 0 && !scanning && (
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => additionalFileRef.current?.click()}
+                  disabled={scanningPage > 0}
+                  className="flex-1 py-3 rounded-lg border border-dashed border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] hover:bg-accent/5 transition-colors disabled:opacity-40"
+                >
+                  {scanningPage > 0
+                    ? `READING PAGE ${scanningPage}…`
+                    : `+ ADD ANOTHER PAGE (${pageCount} scanned)`}
+                </button>
+                <input
+                  ref={additionalFileRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleAdditionalPage(f);
+                    e.target.value = "";
+                  }}
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div className="col-span-2">
