@@ -91,6 +91,7 @@ export default function RecipesPage() {
   const additionalFileRef = useRef<HTMLInputElement>(null);
   const [pageCount, setPageCount] = useState(0);
   const [scanningPage, setScanningPage] = useState(0);
+  const [scanError, setScanError] = useState("");
 
   // Meal planner
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()));
@@ -172,7 +173,7 @@ export default function RecipesPage() {
     setFormPrepTime(""); setFormCookTime(""); setFormServings("4");
     setFormCuisine(""); setFormTags(""); setFormNotes("");
     setFormIngredients([]); setFormMethod([]);
-    setPageCount(0); setScanningPage(0);
+    setPageCount(0); setScanningPage(0); setScanError("");
   }
 
   function populateForm(r: Record<string, unknown>, merge = false) {
@@ -189,10 +190,23 @@ export default function RecipesPage() {
     setFormCookTime(recipe.cook_time_minutes?.toString() || (merge ? formCookTime : "") || "");
     setFormServings(recipe.servings?.toString() || (merge ? formServings : "4") || "4");
     setFormCuisine(recipe.cuisine || (merge ? formCuisine : "") || "");
-    setFormTags((recipe.tags || []).join(", ") || (merge ? formTags : "") || "");
+    const tags = Array.isArray(recipe.tags) ? recipe.tags : recipe.tags ? [String(recipe.tags)] : [];
+    setFormTags(tags.join(", ") || (merge ? formTags : "") || "");
     setFormNotes(recipe.notes || (merge ? formNotes : "") || "");
-    if (recipe.ingredients?.length) setFormIngredients(recipe.ingredients);
-    if (recipe.method?.length) setFormMethod(recipe.method);
+    if (Array.isArray(recipe.ingredients) && recipe.ingredients.length) {
+      setFormIngredients(recipe.ingredients.map((ing) => ({
+        amount: String(ing.amount ?? ""),
+        unit: ing.unit ?? null,
+        name: String(ing.name ?? ""),
+        notes: ing.notes ?? null,
+      })));
+    }
+    if (Array.isArray(recipe.method) && recipe.method.length) {
+      setFormMethod(recipe.method.map((s, i) => ({
+        step: typeof s.step === "number" ? s.step : i + 1,
+        instruction: String(s.instruction ?? ""),
+      })));
+    }
   }
 
   function getCurrentFormData() {
@@ -213,15 +227,22 @@ export default function RecipesPage() {
 
   async function handleScan(file: File) {
     setScanning(true);
+    setScanError("");
     try {
       const fd = new FormData();
       fd.append("image", file);
       const res = await fetch("/api/health/recipes/parse", { method: "POST", body: fd });
       const data = await res.json();
+      console.log("[recipe scan] response:", data);
       if (data.ok && data.recipe) {
         populateForm(data.recipe as Record<string, unknown>);
         setPageCount(1);
+      } else {
+        setScanError(data.error || "Could not extract recipe from image");
       }
+    } catch (err) {
+      console.error("[recipe scan]", err);
+      setScanError("Scan failed — please try again");
     } finally {
       setScanning(false);
     }
@@ -230,16 +251,23 @@ export default function RecipesPage() {
   async function handleAdditionalPage(file: File) {
     const page = pageCount + 1;
     setScanningPage(page);
+    setScanError("");
     try {
       const fd = new FormData();
       fd.append("image", file);
       fd.append("existing_data", JSON.stringify(getCurrentFormData()));
       const res = await fetch("/api/health/recipes/parse", { method: "POST", body: fd });
       const data = await res.json();
+      console.log("[recipe scan] page response:", data);
       if (data.ok && data.recipe) {
         populateForm(data.recipe as Record<string, unknown>, true);
         setPageCount(page);
+      } else {
+        setScanError(data.error || "Could not extract recipe from page");
       }
+    } catch (err) {
+      console.error("[recipe scan page]", err);
+      setScanError("Page scan failed — please try again");
     } finally {
       setScanningPage(0);
     }
@@ -584,6 +612,10 @@ export default function RecipesPage() {
                 }}
               />
             </div>
+
+            {scanError && (
+              <p className="text-xs text-danger font-[family-name:var(--font-mono)] mb-3">{scanError}</p>
+            )}
 
             {/* Add another page */}
             {pageCount > 0 && !scanning && (
