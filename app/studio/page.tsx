@@ -1,8 +1,9 @@
-import Link from "next/link";
+import { DraggableCardGrid } from "@/components/dashboard/DraggableCardGrid";
 import { PCOverviewCard } from "@/components/studio/PCOverviewCard";
 
-const STATIC_CARDS = [
+const CARDS = [
   {
+    key: "spotify",
     label: "Spotify",
     href: "/studio/spotify",
     description: "Listening stats, top tracks, play history.",
@@ -21,21 +22,11 @@ export default function StudioPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {STATIC_CARDS.map((c) => (
-          <Link
-            key={c.href}
-            href={c.href}
-            className="block rounded-md bg-ink-1 border border-ink-2 hover:border-ink-3 px-4 py-3 transition-colors"
-          >
-            <div className="text-base text-ink-4">{c.label}</div>
-            <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
-              {c.description}
-            </div>
-          </Link>
-        ))}
-        <PCOverviewCard />
-      </div>
+      <DraggableCardGrid
+        section="studio"
+        cards={CARDS}
+        suffix={<PCOverviewCard />}
+      />
     </div>
   );
 }

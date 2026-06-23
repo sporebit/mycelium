@@ -33,8 +33,8 @@ type MealEntry = {
   recipes: { id: string; title: string; image_url: string | null } | null;
 };
 
-const MEAL_TYPES = ["breakfast", "lunch", "dinner"] as const;
-const MEAL_LABELS: Record<string, string> = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner", snack: "Snack" };
+const MEAL_TYPES = ["breakfast", "lunch", "dinner", "evening_meal", "snack_1", "snack_2"] as const;
+const MEAL_LABELS: Record<string, string> = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner", evening_meal: "Evening Meal", snack_1: "Snack 1", snack_2: "Snack 2" };
 
 function getMonday(date: Date): Date {
   const d = new Date(date);

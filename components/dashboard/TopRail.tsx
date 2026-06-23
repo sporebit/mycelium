@@ -19,18 +19,27 @@ const TABS: NavTab[] = [
     href: "/",
     match: (p) => p === "/",
   },
-  ...SECTIONS.map((s) => ({
-    label: s.label,
-    href: s.baseRoute,
-    match: (p: string) => p === s.baseRoute || p.startsWith(s.baseRoute + "/"),
-    colour: s.colour,
-  })),
-  {
-    label: "REVIEW",
-    href: "/organisation/captures/review",
-    match: (p) => p === "/organisation/captures/review" || p.startsWith("/organisation/captures/review/"),
-    colour: "#f5b56d",
-  },
+  ...SECTIONS.flatMap((s): NavTab[] => {
+    const tab: NavTab = {
+      label: s.label,
+      href: s.baseRoute,
+      match: (p: string) => p === s.baseRoute || p.startsWith(s.baseRoute + "/"),
+      colour: s.colour,
+    };
+    return s.key === "the-boys"
+      ? [
+          {
+            label: "REVIEW",
+            href: "/organisation/captures/review",
+            match: (p: string) =>
+              p === "/organisation/captures/review" ||
+              p.startsWith("/organisation/captures/review/"),
+            colour: "#f5b56d",
+          },
+          tab,
+        ]
+      : [tab];
+  }),
 ];
 
 export function TopRail() {

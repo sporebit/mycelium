@@ -14,11 +14,6 @@ const TABS: SubNavTab[] = [
     match: (p) => p === "/health/nutrition" || p.startsWith("/health/nutrition/"),
   },
   {
-    label: "NUTRITIONIST",
-    href: "/the-boys/nutrition",
-    match: (p) => p === "/the-boys/nutrition",
-  },
-  {
     label: "SUPPLEMENTS",
     href: "/health/supplements",
     match: (p) => p === "/health/supplements" || p.startsWith("/health/supplements/"),
@@ -52,6 +47,11 @@ const TABS: SubNavTab[] = [
     label: "SHOPPING LISTS",
     href: "/health/shopping-lists",
     match: (p) => p === "/health/shopping-lists" || p.startsWith("/health/shopping-lists/"),
+  },
+  {
+    label: "NUTRITIONIST",
+    href: "/the-boys/nutrition",
+    match: (p) => p === "/the-boys/nutrition",
   },
 ];
 

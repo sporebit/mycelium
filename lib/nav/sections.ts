@@ -58,18 +58,6 @@ export const SECTIONS: SectionConfig[] = [
     ],
   },
   {
-    key: "the-boys",
-    label: "THE BOYS",
-    colour: "#5de8e0",
-    baseRoute: "/the-boys",
-    subPages: [
-      { label: "Da Boi", href: "/the-boys/da_boi", primary: true },
-      { label: "Ask", href: "/the-boys/ask", primary: true },
-      { label: "Rules", href: "/the-boys/rules", primary: false },
-      { label: "Integrations", href: "/the-boys/integrations", primary: false },
-    ],
-  },
-  {
     key: "finance",
     label: "FINANCE",
     colour: "#6db8f5",
@@ -117,6 +105,18 @@ export const SECTIONS: SectionConfig[] = [
       { label: "Raffles", href: "/drops/raffles", primary: true },
       { label: "Cook Guides", href: "/drops/cook-guides", primary: false },
       { label: "Monitor", href: "/drops/monitor", primary: false },
+    ],
+  },
+  {
+    key: "the-boys",
+    label: "THE BOYS",
+    colour: "#5de8e0",
+    baseRoute: "/the-boys",
+    subPages: [
+      { label: "Da Boi", href: "/the-boys/da_boi", primary: true },
+      { label: "Ask", href: "/the-boys/ask", primary: true },
+      { label: "Rules", href: "/the-boys/rules", primary: false },
+      { label: "Integrations", href: "/the-boys/integrations", primary: false },
     ],
   },
   {
