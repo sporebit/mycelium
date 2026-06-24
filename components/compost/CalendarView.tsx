@@ -15,6 +15,28 @@ type CalendarEvent = {
   description: string;
 };
 
+type WeatherDay = {
+  date: string;
+  temp_min: number;
+  temp_max: number;
+  description: string;
+  icon: string;
+  rain_chance: number;
+};
+
+function weatherEmoji(desc: string): string {
+  const d = desc.toLowerCase();
+  if (d.includes("thunderstorm")) return "⛈️";
+  if (d.includes("snow")) return "🌨️";
+  if (d.includes("rain") || d.includes("drizzle")) return "🌧️";
+  if (d.includes("mist") || d.includes("fog") || d.includes("haze")) return "🌫️";
+  if (d.includes("overcast")) return "☁️";
+  if (d.includes("broken") || d.includes("scattered")) return "⛅";
+  if (d.includes("few clouds")) return "🌤️";
+  if (d.includes("clear")) return "☀️";
+  return "☁️";
+}
+
 const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 const COLOUR_LEGEND = [
@@ -75,6 +97,7 @@ export function CalendarView() {
   const [selected, setSelected] = useState(() => ymd(today));
   const [events, setEvents] = useState<CalendarEvent[] | null>(null);
   const [failed, setFailed] = useState<string[]>([]);
+  const [weatherByDate, setWeatherByDate] = useState<Record<string, WeatherDay>>({});
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -100,6 +123,20 @@ export function CalendarView() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/weather")
+      .then((r) => r.json())
+      .then((j: { forecast?: WeatherDay[] }) => {
+        if (cancelled || !Array.isArray(j?.forecast)) return;
+        const map: Record<string, WeatherDay> = {};
+        for (const d of j.forecast) map[d.date] = d;
+        setWeatherByDate(map);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   const cells = useMemo(() => monthGrid(year, month), [year, month]);
   const todayKey = ymd(today);
@@ -265,6 +302,7 @@ export function CalendarView() {
           const dayEvts = eventsByDay.get(key) ?? [];
           const allDayEvts = dayEvts.filter((e) => e.allDay);
           const timedEvts = dayEvts.filter((e) => !e.allDay);
+          const weather = weatherByDate[key];
 
           return (
             <button
@@ -279,9 +317,17 @@ export function CalendarView() {
                     : "hover:bg-ink-2/30"
               } ${!isCurrentMonth ? "opacity-40" : ""}`}
             >
-              <Mono className={`text-xs ${isToday ? "text-accent" : isCurrentMonth ? "text-ink-4" : "text-ink-3"}`}>
-                {d.getDate()}
-              </Mono>
+              <div className="flex items-center justify-between gap-0.5">
+                <Mono className={`text-xs ${isToday ? "text-accent" : isCurrentMonth ? "text-ink-4" : "text-ink-3"}`}>
+                  {d.getDate()}
+                </Mono>
+                {weather && isCurrentMonth && (
+                  <span className="text-[8px] text-ink-3 font-[family-name:var(--font-mono)] flex items-center gap-px shrink-0">
+                    <span>{weatherEmoji(weather.description)}</span>
+                    <span>{weather.temp_max}°</span>
+                  </span>
+                )}
+              </div>
               {/* All-day event chips */}
               {allDayEvts.slice(0, 1).map((e) => (
                 <span
@@ -322,6 +368,15 @@ export function CalendarView() {
             {new Date(selected + "T00:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }).toUpperCase()}
           </Mono>
           <Mono className="text-[10px] text-ink-3">{dayEvents.length}</Mono>
+          {weatherByDate[selected] && (
+            <Mono className="text-[10px] text-ink-3 bg-ink-2 px-1.5 py-0.5 rounded-md ml-auto">
+              {weatherEmoji(weatherByDate[selected].description)}{" "}
+              {weatherByDate[selected].temp_min}–{weatherByDate[selected].temp_max}°C
+              {weatherByDate[selected].rain_chance > 30 && (
+                <span className="ml-1">{weatherByDate[selected].rain_chance}% 🌧️</span>
+              )}
+            </Mono>
+          )}
         </div>
 
         {events === null ? (
@@ -338,36 +393,44 @@ export function CalendarView() {
           </div>
         ) : (
           <ul className="flex flex-col gap-1">
-            {dayEvents.map((e) => (
-              <li
-                key={e.id}
-                className="flex items-center gap-3 bg-ink-1 hover:bg-ink-2/60 rounded-md px-3 py-2.5 transition-colors"
-              >
-                <span
-                  className="w-1 h-8 rounded-full shrink-0"
-                  style={{ backgroundColor: e.calendarColour }}
-                />
-                <Mono className="text-[11px] text-ink-3 w-24 shrink-0">
-                  {e.allDay ? "ALL DAY" : fmtTimeRange(e.start, e.end)}
-                </Mono>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-ink-4 truncate">{e.title}</div>
-                  {e.location && (
-                    <div className="text-[11px] text-ink-3 truncate">{e.location}</div>
-                  )}
-                </div>
-                <span
-                  style={{
-                    color: e.calendarColour,
-                    backgroundColor: hexAlpha(e.calendarColour, "1A"),
-                    borderColor: hexAlpha(e.calendarColour, "66"),
-                  }}
-                  className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0"
+            {dayEvents.map((e) => {
+              const w = weatherByDate[selected];
+              return (
+                <li
+                  key={e.id}
+                  className="flex items-center gap-3 bg-ink-1 hover:bg-ink-2/60 rounded-md px-3 py-2.5 transition-colors"
                 >
-                  {e.calendarName}
-                </span>
-              </li>
-            ))}
+                  <span
+                    className="w-1 h-8 rounded-full shrink-0"
+                    style={{ backgroundColor: e.calendarColour }}
+                  />
+                  <Mono className="text-[11px] text-ink-3 w-24 shrink-0">
+                    {e.allDay ? "ALL DAY" : fmtTimeRange(e.start, e.end)}
+                  </Mono>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-ink-4 truncate">{e.title}</div>
+                    {e.location && (
+                      <div className="text-[11px] text-ink-3 truncate">{e.location}</div>
+                    )}
+                  </div>
+                  {w && (
+                    <Mono className="text-[10px] text-ink-3 bg-ink-2 px-1.5 py-0.5 rounded-md shrink-0">
+                      {weatherEmoji(w.description)} {w.temp_max}°C
+                    </Mono>
+                  )}
+                  <span
+                    style={{
+                      color: e.calendarColour,
+                      backgroundColor: hexAlpha(e.calendarColour, "1A"),
+                      borderColor: hexAlpha(e.calendarColour, "66"),
+                    }}
+                    className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0"
+                  >
+                    {e.calendarName}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
