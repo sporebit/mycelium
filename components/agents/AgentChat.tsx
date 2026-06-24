@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mono } from "@/components/dashboard/Mono";
+import { VoiceChatOverlay } from "./VoiceChatOverlay";
 
 type Agent = {
   id: string;
@@ -66,6 +67,7 @@ export function AgentChat({
   const [confirming, setConfirming] = useState(false);
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
+  const [voiceChatOpen, setVoiceChatOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const didAutoSubmit = useRef(false);
@@ -455,6 +457,22 @@ export function AgentChat({
         </button>
         <button
           type="button"
+          onClick={() => setVoiceChatOpen(true)}
+          disabled={sending || !!pendingTool || recording || transcribing}
+          aria-label="Voice chat"
+          className="px-3 py-2 rounded-md border border-ink-2 bg-ink-1 text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M2 10v3" />
+            <path d="M6 6v11" />
+            <path d="M10 3v18" />
+            <path d="M14 8v7" />
+            <path d="M18 5v13" />
+            <path d="M22 10v3" />
+          </svg>
+        </button>
+        <button
+          type="button"
           onClick={() => sendMessage(input)}
           disabled={sending || !input.trim() || !!pendingTool}
           className="px-4 py-2 rounded-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
@@ -475,6 +493,16 @@ export function AgentChat({
         >
           {toast.text}
         </div>
+      )}
+
+      {/* Voice Chat Overlay */}
+      {voiceChatOpen && agent && (
+        <VoiceChatOverlay
+          agentId={agentId}
+          agentName={agent.display_name}
+          accentColour={agent.accent_colour ?? "var(--accent)"}
+          onClose={() => setVoiceChatOpen(false)}
+        />
       )}
     </div>
   );
