@@ -87,7 +87,7 @@ export default function SettingsPage() {
       <ProfileSection settings={settings} onPatch={patch} />
       <AppearanceSection settings={settings} onPatch={patch} />
       <NotificationsSection settings={settings} onPatch={patch} />
-      <IntegrationsSection settings={settings} />
+      <IntegrationsSection settings={settings} onPatch={patch} />
       <FeatureFlagsSection settings={settings} onPatch={patch} />
       <CaptureSourcesSection settings={settings} onPatch={patch} />
       <AIConfigSection settings={settings} onPatch={patch} />
@@ -333,14 +333,42 @@ function NotificationsSection({ settings, onPatch }: { settings: Settings; onPat
   );
 }
 
-function IntegrationsSection({ settings }: { settings: Settings }) {
+function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatch: (f: Record<string, unknown>) => void }) {
+  const googleConnected = !!settings.google_refresh_token;
+
+  async function disconnectGoogle() {
+    await onPatch({
+      google_refresh_token: null,
+      google_access_token: null,
+      google_token_expires_at: null,
+    });
+  }
+
   return (
     <SectionCard title="INTEGRATIONS">
       <IntegrationRow
         name="Google Calendar"
-        description="Reading iCal feeds"
-        status={settings.google_calendar_enabled ? "Enabled" : "Disabled"}
-        statusOk={!!settings.google_calendar_enabled}
+        description={googleConnected ? "OAuth write access" : "Reading iCal feeds"}
+        status={googleConnected ? "Connected" : "Not connected"}
+        statusOk={googleConnected}
+        action={
+          googleConnected ? (
+            <button
+              type="button"
+              onClick={disconnectGoogle}
+              className="text-[10px] text-danger hover:underline font-[family-name:var(--font-mono)]"
+            >
+              DISCONNECT
+            </button>
+          ) : (
+            <Link
+              href="/api/google/auth"
+              className="text-[10px] text-accent hover:underline font-[family-name:var(--font-mono)]"
+            >
+              CONNECT
+            </Link>
+          )
+        }
       />
       <IntegrationRow
         name="Spotify"
