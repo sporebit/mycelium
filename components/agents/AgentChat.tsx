@@ -64,9 +64,13 @@ export function AgentChat({
   const [toast, setToast] = useState<Toast>(null);
   const [pendingTool, setPendingTool] = useState<PendingTool | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const didAutoSubmit = useRef(false);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     if (!toast) return;
@@ -224,6 +228,60 @@ export function AgentChat({
     }
   }
 
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = typeof MediaRecorder !== "undefined" &&
+        MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : typeof MediaRecorder !== "undefined" &&
+          MediaRecorder.isTypeSupported("audio/mp4")
+          ? "audio/mp4"
+          : "audio/webm";
+      const recorder = new MediaRecorder(stream, { mimeType });
+      chunksRef.current = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        if (blob.size === 0) return;
+        setTranscribing(true);
+        try {
+          const ext = mimeType.includes("mp4") ? "mp4" : "webm";
+          const fd = new FormData();
+          fd.append("audio", blob, `recording.${ext}`);
+          const res = await fetch("/api/capture-audio", { method: "POST", body: fd });
+          const data = await res.json();
+          if (data.transcription) {
+            setInput((prev) => prev ? `${prev} ${data.transcription}` : data.transcription);
+            inputRef.current?.focus();
+          } else {
+            setToast({ kind: "error", text: "Could not transcribe audio" });
+          }
+        } catch {
+          setToast({ kind: "error", text: "Transcription failed" });
+        } finally {
+          setTranscribing(false);
+        }
+      };
+      recorder.start();
+      recorderRef.current = recorder;
+      setRecording(true);
+    } catch {
+      setToast({ kind: "error", text: "Microphone access denied" });
+    }
+  }
+
+  function stopRecording() {
+    if (recorderRef.current?.state === "recording") {
+      recorderRef.current.stop();
+    }
+    recorderRef.current = null;
+    setRecording(false);
+  }
+
   const colour = agent?.accent_colour ?? "var(--accent)";
 
   if (loading) {
@@ -363,9 +421,38 @@ export function AgentChat({
           onKeyDown={onKeyDown}
           placeholder={`Message ${agent?.display_name ?? "agent"}…`}
           rows={1}
-          disabled={sending || !!pendingTool}
+          disabled={sending || !!pendingTool || transcribing}
           className="flex-1 bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2.5 outline-none focus:border-ink-3 placeholder:text-ink-3 resize-none"
         />
+        <button
+          type="button"
+          onClick={recording ? stopRecording : startRecording}
+          disabled={sending || !!pendingTool || transcribing}
+          aria-label={recording ? "Stop recording" : "Record voice"}
+          className={`px-3 py-2 rounded-md border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+            recording
+              ? "bg-danger/15 border-danger/40 text-danger animate-pulse"
+              : transcribing
+                ? "bg-ink-1 border-ink-2 text-ink-3"
+                : "bg-ink-1 border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+          }`}
+        >
+          {transcribing ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" aria-hidden>
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
+          ) : recording ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+              <rect x="6" y="6" width="12" height="12" rx="2" />
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <rect x="9" y="2" width="6" height="11" rx="3" />
+              <path d="M5 10a7 7 0 0 0 14 0" />
+              <line x1="12" y1="19" x2="12" y2="22" />
+            </svg>
+          )}
+        </button>
         <button
           type="button"
           onClick={() => sendMessage(input)}
