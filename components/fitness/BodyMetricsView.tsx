@@ -8,6 +8,16 @@ import { formatWeight, toKg } from "@/lib/fitness/units";
 import type { BodyMetric, WeightUnit } from "@/lib/fitness/types";
 
 type Toast = { kind: "success" | "error"; text: string } | null;
+type Range = "1M" | "3M" | "6M" | "1Y" | "All";
+
+const RANGE_DAYS: Record<Range, number> = {
+  "1M": 30,
+  "3M": 90,
+  "6M": 180,
+  "1Y": 365,
+  All: 0,
+};
+const RANGES: Range[] = ["1M", "3M", "6M", "1Y", "All"];
 
 const UNITS: WeightUnit[] = ["kg", "lbs", "stone"];
 const UNIT_LABEL: Record<WeightUnit, string> = { kg: "kg", lbs: "lbs", stone: "st" };
@@ -21,6 +31,7 @@ export function BodyMetricsView() {
   const [entries, setEntries] = useState<BodyMetric[] | null>(null);
   const [toast, setToast] = useState<Toast>(null);
   const [saving, setSaving] = useState(false);
+  const [range, setRange] = useState<Range>("3M");
 
   const today = useMemo(() => localDateKey(), []);
   const [date, setDate] = useState<string>(today);
@@ -46,7 +57,7 @@ export function BodyMetricsView() {
   }
 
   async function load() {
-    const res = await fetch("/api/body-metrics?days=30", { cache: "no-store" });
+    const res = await fetch(`/api/body-metrics?days=${RANGE_DAYS[range]}`, { cache: "no-store" });
     if (res.ok) {
       const j = (await res.json()) as { entries?: BodyMetric[] };
       setEntries(Array.isArray(j.entries) ? j.entries : []);
@@ -55,18 +66,20 @@ export function BodyMetricsView() {
 
   useEffect(() => {
     let mounted = true;
-    (async () => {
-      const res = await fetch("/api/body-metrics?days=30", { cache: "no-store" });
-      if (!mounted) return;
-      if (res.ok) {
-        const j = (await res.json()) as { entries?: BodyMetric[] };
+    const ctrl = new AbortController();
+    fetch(`/api/body-metrics?days=${RANGE_DAYS[range]}`, { cache: "no-store", signal: ctrl.signal })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((j: { entries?: BodyMetric[] }) => {
         if (mounted) setEntries(Array.isArray(j.entries) ? j.entries : []);
-      } else if (mounted) setEntries([]);
-    })();
+      })
+      .catch(() => {
+        if (mounted) setEntries([]);
+      });
     return () => {
       mounted = false;
+      ctrl.abort();
     };
-  }, []);
+  }, [range]);
 
   useEffect(() => {
     if (!toast) return;
@@ -153,22 +166,41 @@ export function BodyMetricsView() {
         <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
           Body metrics
         </h1>
-        <div className="flex items-center gap-1.5">
-          <span className={labelCls}>Weight unit</span>
-          {UNITS.map((u) => (
-            <button
-              key={u}
-              type="button"
-              onClick={() => changeDisplayUnit(u)}
-              className={`px-2 py-1 rounded text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] uppercase transition-colors border ${
-                displayUnit === u
-                  ? "bg-accent/20 text-accent border-accent/40"
-                  : "text-ink-3 border-ink-2 hover:text-ink-4"
-              }`}
-            >
-              {UNIT_LABEL[u]}
-            </button>
-          ))}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <span className={labelCls}>Range</span>
+            {RANGES.map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRange(r)}
+                className={`px-2 py-1 rounded text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] uppercase transition-colors border ${
+                  range === r
+                    ? "bg-accent/20 text-accent border-accent/40"
+                    : "text-ink-3 border-ink-2 hover:text-ink-4"
+                }`}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className={labelCls}>Unit</span>
+            {UNITS.map((u) => (
+              <button
+                key={u}
+                type="button"
+                onClick={() => changeDisplayUnit(u)}
+                className={`px-2 py-1 rounded text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] uppercase transition-colors border ${
+                  displayUnit === u
+                    ? "bg-accent/20 text-accent border-accent/40"
+                    : "text-ink-3 border-ink-2 hover:text-ink-4"
+                }`}
+              >
+                {UNIT_LABEL[u]}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -298,7 +330,7 @@ export function BodyMetricsView() {
 
       {weightSpark && (
         <Panel
-          title="Weight (last 30 days)"
+          title={`Weight (${range === "All" ? "all time" : `last ${range.toLowerCase()}`})`}
           topRight={<Mono>{UNIT_LABEL[displayUnit].toUpperCase()}</Mono>}
         >
           <div className="relative h-12 rounded-lg border border-ink-2 bg-ink-0/40 overflow-hidden">

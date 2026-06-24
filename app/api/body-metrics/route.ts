@@ -17,26 +17,26 @@ function userId(): string | null {
 export async function GET(req: NextRequest) {
   const uid = userId();
   if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  const days = Math.min(
-    365,
-    Math.max(
-      1,
-      parseInt(new URL(req.url).searchParams.get("days") ?? "30", 10) || 30
-    )
-  );
+  const rawDays = new URL(req.url).searchParams.get("days") ?? "90";
+  const days = rawDays === "0" ? 0 : Math.max(1, parseInt(rawDays, 10) || 90);
 
   try {
     const today = localDateKey();
-    let earliest = today;
-    for (let i = 0; i < days - 1; i++) earliest = previousDateKey(earliest);
     const supabase = createServerClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from("body_metrics")
       .select(FIELDS)
       .eq("user_id", uid)
-      .gte("date", earliest)
       .lte("date", today)
       .order("date", { ascending: false });
+
+    if (days > 0) {
+      let earliest = today;
+      for (let i = 0; i < days - 1; i++) earliest = previousDateKey(earliest);
+      query = query.gte("date", earliest);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return NextResponse.json({ entries: (data ?? []) as BodyMetric[] });
   } catch (err) {
