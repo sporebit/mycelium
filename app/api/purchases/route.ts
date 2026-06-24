@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import {
+  PURCHASE_CATEGORIES,
   PURCHASE_LIST_TYPES,
   PURCHASE_URGENCIES,
   PURCHASE_WANT_OR_NEED,
   type Purchase,
+  type PurchaseCategory,
   type PurchaseListType,
   type PurchaseUrgency,
   type PurchaseWantOrNeed,
@@ -13,7 +15,7 @@ import {
 export const runtime = "nodejs";
 
 const PURCHASE_SELECT =
-  "id, user_id, title, amount, currency, want_or_need, urgency, list_type, project_id, completed_at, raw_capture_id, created_at, updated_at, projects(name)";
+  "id, user_id, title, amount, currency, want_or_need, urgency, list_type, category, project_id, completed_at, raw_capture_id, created_at, updated_at, projects(name)";
 
 type PurchaseRow = Omit<Purchase, "project_name"> & {
   projects: { name: string } | { name: string }[] | null;
@@ -81,6 +83,7 @@ type CreateBody = {
   want_or_need?: PurchaseWantOrNeed | null;
   urgency?: PurchaseUrgency;
   list_type?: PurchaseListType;
+  category?: PurchaseCategory | null;
   project_id?: string | null;
 };
 
@@ -124,6 +127,10 @@ export async function POST(req: NextRequest) {
         body.list_type && PURCHASE_LIST_TYPES.includes(body.list_type)
           ? body.list_type
           : "shopping",
+      category:
+        body.category && PURCHASE_CATEGORIES.includes(body.category)
+          ? body.category
+          : null,
       project_id:
         body.project_id !== undefined ? body.project_id : null,
     };

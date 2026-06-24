@@ -41,6 +41,28 @@ const ALLOWED_URGENCIES = new Set([
   "someday",
 ]);
 
+const CATEGORY_KEYWORDS: [string[], string][] = [
+  [["milk", "eggs", "bread", "chicken", "vegetable", "fruit", "cheese", "butter", "rice", "pasta", "flour", "sugar", "cereal"], "groceries"],
+  [["phone", "laptop", "tablet", "headphone", "keyboard", "mouse", "monitor", "cable", "charger", "speaker", "camera"], "electronics"],
+  [["shirt", "shoes", "jacket", "jeans", "trainer", "socks", "coat", "hoodie", "hat", "gloves"], "clothing"],
+  [["furniture", "rug", "lamp", "shelf", "desk", "chair", "curtain", "pillow", "bedding", "towel", "cleaning"], "home"],
+  [["supplement", "vitamin", "medication", "prescription", "medicine", "toothpaste", "shampoo"], "health"],
+  [["gym", "weights", "dumbbell", "protein", "creatine", "resistance band", "yoga mat"], "fitness"],
+  [["subscription", "netflix", "spotify", "membership", "renewal"], "subscriptions"],
+  [["game", "movie", "concert", "ticket", "book", "album"], "entertainment"],
+  [["fuel", "petrol", "diesel", "car", "bus", "train", "uber", "taxi", "parking", "mot", "tyre"], "transport"],
+  [["restaurant", "takeaway", "coffee shop", "nandos"], "dining"],
+  [["gift", "present", "birthday", "christmas"], "gifts"],
+];
+
+function inferPurchaseCategory(title: string): string | null {
+  const t = title.toLowerCase();
+  for (const [keywords, cat] of CATEGORY_KEYWORDS) {
+    if (keywords.some((k) => t.includes(k))) return cat;
+  }
+  return null;
+}
+
 function mergeClassification(
   existing: Record<string, unknown> | null,
   body: ReviewBody,
@@ -206,6 +228,16 @@ async function createRoutedRow(
         : "unclear";
     const ltRaw = purchaseRaw.list_type;
     const listType = ltRaw === "wishlist" ? "wishlist" : "shopping";
+    const VALID_CATS = [
+      "groceries", "electronics", "clothing", "home", "health",
+      "fitness", "subscriptions", "entertainment", "transport",
+      "dining", "gifts", "other",
+    ];
+    const catRaw = purchaseRaw.category;
+    const category =
+      typeof catRaw === "string" && VALID_CATS.includes(catRaw)
+        ? catRaw
+        : inferPurchaseCategory(title);
     const { data, error } = await supabase
       .from("purchases")
       .insert({
@@ -216,6 +248,7 @@ async function createRoutedRow(
         want_or_need: wantOrNeed,
         urgency,
         list_type: listType,
+        category,
         raw_capture_id: rawCaptureId,
       })
       .select("id")

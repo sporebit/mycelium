@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import {
+  PURCHASE_CATEGORIES,
   PURCHASE_LIST_TYPES,
   PURCHASE_URGENCIES,
   PURCHASE_WANT_OR_NEED,
@@ -10,7 +11,7 @@ import {
 export const runtime = "nodejs";
 
 const PURCHASE_SELECT =
-  "id, user_id, title, amount, currency, want_or_need, urgency, list_type, project_id, completed_at, raw_capture_id, created_at, updated_at, projects(name)";
+  "id, user_id, title, amount, currency, want_or_need, urgency, list_type, category, project_id, completed_at, raw_capture_id, created_at, updated_at, projects(name)";
 
 type PurchaseRow = Omit<Purchase, "project_name"> & {
   projects: { name: string } | { name: string }[] | null;
@@ -30,6 +31,7 @@ const ALLOWED_FIELDS = new Set([
   "want_or_need",
   "urgency",
   "list_type",
+  "category",
   "project_id",
   "completed_at",
 ]);
@@ -95,6 +97,18 @@ export async function PATCH(
       if (
         typeof v !== "string" ||
         !PURCHASE_LIST_TYPES.includes(v as (typeof PURCHASE_LIST_TYPES)[number])
+      ) {
+        continue;
+      }
+    }
+    if (k === "category") {
+      if (v === null) {
+        update.category = null;
+        continue;
+      }
+      if (
+        typeof v !== "string" ||
+        !PURCHASE_CATEGORIES.includes(v as (typeof PURCHASE_CATEGORIES)[number])
       ) {
         continue;
       }

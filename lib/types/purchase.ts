@@ -26,6 +26,35 @@ export const PURCHASE_LIST_TYPES: readonly PurchaseListType[] = [
   "wishlist",
 ];
 
+export type PurchaseCategory =
+  | "groceries"
+  | "electronics"
+  | "clothing"
+  | "home"
+  | "health"
+  | "fitness"
+  | "subscriptions"
+  | "entertainment"
+  | "transport"
+  | "dining"
+  | "gifts"
+  | "other";
+
+export const PURCHASE_CATEGORIES: readonly PurchaseCategory[] = [
+  "groceries",
+  "electronics",
+  "clothing",
+  "home",
+  "health",
+  "fitness",
+  "subscriptions",
+  "entertainment",
+  "transport",
+  "dining",
+  "gifts",
+  "other",
+];
+
 export type Purchase = {
   id: string;
   user_id: string;
@@ -35,6 +64,7 @@ export type Purchase = {
   want_or_need: PurchaseWantOrNeed | null;
   urgency: PurchaseUrgency;
   list_type: PurchaseListType;
+  category: PurchaseCategory | null;
   project_id: string | null;
   /** Populated server-side by the API GET when joining `projects.name`. */
   project_name?: string | null;

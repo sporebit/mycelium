@@ -5,9 +5,11 @@ import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
 import type { Project } from "@/lib/types/project";
 import {
+  PURCHASE_CATEGORIES,
   PURCHASE_URGENCIES,
   currencySymbol,
   type Purchase,
+  type PurchaseCategory,
   type PurchaseListType,
   type PurchaseUrgency,
   type PurchaseWantOrNeed,
@@ -76,6 +78,7 @@ export function PurchasesClient({
   const [draft, setDraft] = useState("");
   const [draftListType, setDraftListType] =
     useState<PurchaseListType>("shopping");
+  const [categoryFilter, setCategoryFilter] = useState<PurchaseCategory | "all">("all");
   const [adding, setAdding] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast>(null);
@@ -237,14 +240,18 @@ export function PurchasesClient({
   }, [purchases]);
 
   function applyFilter(list: Purchase[]): Purchase[] {
-    if (filter === "all") return list;
+    let result = list;
     if (filter === "want") {
-      return list.filter((p) => p.want_or_need === "want");
+      result = result.filter((p) => p.want_or_need === "want");
+    } else if (filter === "need") {
+      result = result.filter((p) => p.want_or_need === "need");
+    } else if (filter !== "all") {
+      result = result.filter((p) => p.urgency === filter);
     }
-    if (filter === "need") {
-      return list.filter((p) => p.want_or_need === "need");
+    if (categoryFilter !== "all") {
+      result = result.filter((p) => p.category === categoryFilter);
     }
-    return list.filter((p) => p.urgency === filter);
+    return result;
   }
 
   const visibleShopping = applyFilter(shopping);
@@ -309,24 +316,42 @@ export function PurchasesClient({
         </button>
       </form>
 
-      <div className="flex items-center gap-1 rounded-md border border-ink-2 overflow-hidden self-start">
-        {FILTERS.map((f) => {
-          const active = filter === f.value;
-          return (
-            <button
-              key={f.value}
-              type="button"
-              onClick={() => setFilter(f.value)}
-              className={`px-3 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
-                active
-                  ? "bg-accent/15 text-accent"
-                  : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/40"
-              }`}
-            >
-              {f.label}
-            </button>
-          );
-        })}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1 rounded-md border border-ink-2 overflow-hidden">
+          {FILTERS.map((f) => {
+            const active = filter === f.value;
+            return (
+              <button
+                key={f.value}
+                type="button"
+                onClick={() => setFilter(f.value)}
+                className={`px-3 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
+                  active
+                    ? "bg-accent/15 text-accent"
+                    : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/40"
+                }`}
+              >
+                {f.label}
+              </button>
+            );
+          })}
+        </div>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value as PurchaseCategory | "all")}
+          className={`text-[11px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-2 py-1.5 rounded-md border cursor-pointer ${
+            categoryFilter !== "all"
+              ? "bg-accent/15 text-accent border-accent/40"
+              : "bg-ink-0/40 border-ink-2 text-ink-3"
+          }`}
+        >
+          <option value="all">ALL CATEGORIES</option>
+          {PURCHASE_CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {c.toUpperCase().replace("_", " ")}
+            </option>
+          ))}
+        </select>
       </div>
 
       {purchases === null ? (
@@ -354,6 +379,9 @@ export function PurchasesClient({
             onChangeProject={(p, v) =>
               void patchPurchase(p.id, { project_id: v })
             }
+            onChangeCategory={(p, v) =>
+              void patchPurchase(p.id, { category: v })
+            }
             onChangeListType={(p, v) =>
               void patchPurchase(p.id, { list_type: v })
             }
@@ -378,6 +406,9 @@ export function PurchasesClient({
             }
             onChangeProject={(p, v) =>
               void patchPurchase(p.id, { project_id: v })
+            }
+            onChangeCategory={(p, v) =>
+              void patchPurchase(p.id, { category: v })
             }
             onChangeListType={(p, v) =>
               void patchPurchase(p.id, { list_type: v })
@@ -404,6 +435,9 @@ export function PurchasesClient({
               }
               onChangeProject={(p, v) =>
                 void patchPurchase(p.id, { project_id: v })
+              }
+              onChangeCategory={(p, v) =>
+                void patchPurchase(p.id, { category: v })
               }
               onChangeListType={(p, v) =>
                 void patchPurchase(p.id, { list_type: v })
@@ -473,6 +507,7 @@ function Section({
   onChangeWantOrNeed,
   onChangeUrgency,
   onChangeProject,
+  onChangeCategory,
   onChangeListType,
   onDelete,
 }: {
@@ -488,6 +523,7 @@ function Section({
   onChangeWantOrNeed: (p: Purchase, v: PurchaseWantOrNeed) => void;
   onChangeUrgency: (p: Purchase, v: PurchaseUrgency) => void;
   onChangeProject: (p: Purchase, v: string | null) => void;
+  onChangeCategory: (p: Purchase, v: PurchaseCategory | null) => void;
   onChangeListType: (p: Purchase, v: PurchaseListType) => void;
   onDelete: (p: Purchase) => void;
 }) {
@@ -523,6 +559,7 @@ function Section({
               onChangeWantOrNeed={(v) => onChangeWantOrNeed(p, v)}
               onChangeUrgency={(v) => onChangeUrgency(p, v)}
               onChangeProject={(v) => onChangeProject(p, v)}
+              onChangeCategory={(v) => onChangeCategory(p, v)}
               onChangeListType={(v) => onChangeListType(p, v)}
               onDelete={() => onDelete(p)}
             />
@@ -541,6 +578,7 @@ function PurchaseRow({
   onChangeWantOrNeed,
   onChangeUrgency,
   onChangeProject,
+  onChangeCategory,
   onChangeListType,
   onDelete,
 }: {
@@ -551,6 +589,7 @@ function PurchaseRow({
   onChangeWantOrNeed: (v: PurchaseWantOrNeed) => void;
   onChangeUrgency: (v: PurchaseUrgency) => void;
   onChangeProject: (v: string | null) => void;
+  onChangeCategory: (v: PurchaseCategory | null) => void;
   onChangeListType: (v: PurchaseListType) => void;
   onDelete: () => void;
 }) {
@@ -641,6 +680,23 @@ function PurchaseRow({
               {purchase.project_name}
             </option>
           )}
+      </select>
+
+      <select
+        value={purchase.category ?? ""}
+        onChange={(e) =>
+          onChangeCategory((e.target.value || null) as PurchaseCategory | null)
+        }
+        disabled={busy}
+        className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-ink-0/40 border-ink-2 text-ink-3 cursor-pointer max-w-[120px]"
+        title="Category"
+      >
+        <option value="">— CATEGORY —</option>
+        {PURCHASE_CATEGORIES.map((c) => (
+          <option key={c} value={c}>
+            {c.toUpperCase().replace("_", " ")}
+          </option>
+        ))}
       </select>
 
       <select
