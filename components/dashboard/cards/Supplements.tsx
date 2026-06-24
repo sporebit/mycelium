@@ -1,0 +1,186 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Panel } from "../Panel";
+import { Mono } from "../Mono";
+import { localDateKey } from "@/lib/util/date";
+import type { CardWidth } from "@/lib/dashboard/card-registry";
+
+type DailyLog = { id: string; taken_at: string };
+
+type DailyItem = {
+  id: string;
+  name: string;
+  dose: string;
+  form: string;
+  fasted: boolean;
+  with_food: boolean;
+  log: DailyLog | null;
+};
+
+type Slot = {
+  slot: string;
+  label: string;
+  items: DailyItem[];
+};
+
+type DailyData = {
+  date: string;
+  slots: Slot[];
+  progress: { taken: number; total: number };
+};
+
+export function Supplements({ width = 1 }: { width?: CardWidth } = {}) {
+  const [data, setData] = useState<DailyData | null>(null);
+  const [toggling, setToggling] = useState<Set<string>>(new Set());
+  const today = localDateKey();
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/supplements/daily?date=${today}`)
+      .then((r) => r.json())
+      .then((d: DailyData) => {
+        if (!cancelled) setData(d);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [today]);
+
+  async function toggle(item: DailyItem, slot: string) {
+    if (toggling.has(item.id)) return;
+    setToggling((s) => new Set(s).add(item.id));
+
+    try {
+      if (item.log) {
+        const res = await fetch(
+          `/api/supplements/${item.id}/log/${item.log.id}`,
+          { method: "DELETE" },
+        );
+        if (!res.ok) return;
+        setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            progress: { ...prev.progress, taken: prev.progress.taken - 1 },
+            slots: prev.slots.map((s) => ({
+              ...s,
+              items: s.items.map((i) =>
+                i.id === item.id ? { ...i, log: null } : i,
+              ),
+            })),
+          };
+        });
+      } else {
+        const res = await fetch(`/api/supplements/${item.id}/log`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ date: today, timing_slot: slot }),
+        });
+        if (!res.ok) return;
+        const { log } = (await res.json()) as { log: DailyLog };
+        setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            progress: { ...prev.progress, taken: prev.progress.taken + 1 },
+            slots: prev.slots.map((s) => ({
+              ...s,
+              items: s.items.map((i) =>
+                i.id === item.id ? { ...i, log } : i,
+              ),
+            })),
+          };
+        });
+      }
+    } finally {
+      setToggling((s) => {
+        const next = new Set(s);
+        next.delete(item.id);
+        return next;
+      });
+    }
+  }
+
+  const pct =
+    data && data.progress.total > 0
+      ? Math.round((data.progress.taken / data.progress.total) * 100)
+      : 0;
+
+  return (
+    <Panel
+      borderless
+      title="SUPPLEMENTS"
+      topRight={
+        <Link
+          href="/health/supplements"
+          className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
+        >
+          OPEN →
+        </Link>
+      }
+    >
+      {data === null ? (
+        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
+          Loading…
+        </div>
+      ) : data.progress.total === 0 ? (
+        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
+          No active supplements
+        </div>
+      ) : (
+        <div className={width >= 3 ? "mt-2 grid grid-cols-2 gap-x-6" : "contents"}>
+          <div>
+            {/* Progress */}
+            <div className="mt-2 flex items-baseline gap-2">
+              <Mono className="text-2xl text-ink-4 tabular-nums">
+                {data.progress.taken}/{data.progress.total}
+              </Mono>
+              <Mono className="text-[10px] text-ink-3">
+                {pct}%
+              </Mono>
+            </div>
+            <div className="mt-1.5 h-1.5 rounded-full bg-ink-2 overflow-hidden">
+              <div
+                className="h-full bg-ok transition-[width] duration-300 rounded-full"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Slot groups */}
+          <div className="mt-3 flex flex-col gap-2">
+            {data.slots.map((slot) => (
+              <div key={slot.slot}>
+                <Mono className="text-[9px] text-ink-3 mb-1">
+                  {slot.label.toUpperCase()}
+                </Mono>
+                <div className="flex flex-wrap gap-1">
+                  {slot.items.map((item) => {
+                    const taken = !!item.log;
+                    const busy = toggling.has(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => toggle(item, slot.slot)}
+                        disabled={busy}
+                        className={`px-2 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] transition-colors disabled:opacity-50 ${
+                          taken
+                            ? "bg-ok/15 text-ok"
+                            : "bg-ink-1 text-ink-3 hover:text-ink-4"
+                        }`}
+                      >
+                        {item.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </Panel>
+  );
+}

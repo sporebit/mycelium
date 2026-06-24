@@ -41,6 +41,7 @@ import { Journal } from "./cards/Journal";
 import { Fitness } from "./cards/Fitness";
 import { CaptureReview } from "./cards/CaptureReview";
 import { Glossary } from "./cards/Glossary";
+import { Supplements } from "./cards/Supplements";
 import { CARD_REGISTRY, type CardWidth } from "@/lib/dashboard/card-registry";
 
 // ---------------------------------------------------------------------------
@@ -196,6 +197,7 @@ const CARD_COMPONENTS: Record<string, ComponentType<{ width: CardWidth }>> = {
   fitness: Fitness,
   capture_review: CaptureReview,
   glossary: Glossary,
+  supplements: Supplements,
 };
 
 // ---------------------------------------------------------------------------
