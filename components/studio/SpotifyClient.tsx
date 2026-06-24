@@ -78,6 +78,23 @@ type PlayItem = {
   playCount?: number;
 };
 
+type TrackCount = {
+  track_id: string;
+  track_name: string;
+  artist_names: string;
+  album_name: string | null;
+  album_art_url: string | null;
+  duration_ms: number | null;
+  count: number;
+};
+
+type ArtistCount = {
+  name: string;
+  count: number;
+};
+
+type CountsPeriod = "7d" | "30d" | "90d" | "all";
+
 function msToMin(ms: number): string {
   const m = Math.floor(ms / 60000);
   const s = Math.floor((ms % 60000) / 1000);
@@ -162,7 +179,7 @@ const INPUT =
 export function SpotifyClient() {
   const [connected, setConnected] = useState<boolean | null>(null);
   const [range, setRange] = useState<TimeRange>("medium_term");
-  const [tab, setTab] = useState<"tracks" | "artists" | "recent">("tracks");
+  const [tab, setTab] = useState<"tracks" | "artists" | "plays" | "recent">("tracks");
   const [limit, setLimit] = useState<Limit>(25);
 
   const [topTracks, setTopTracks] = useState<Track[]>([]);
@@ -187,6 +204,13 @@ export function SpotifyClient() {
   const [customTo, setCustomTo] = useState("");
   const [historyPlays, setHistoryPlays] = useState<PlayRecord[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Play counts
+  const [countsPeriod, setCountsPeriod] = useState<CountsPeriod>("all");
+  const [trackCounts, setTrackCounts] = useState<TrackCount[]>([]);
+  const [artistCounts, setArtistCounts] = useState<ArtistCount[]>([]);
+  const [totalPlays, setTotalPlays] = useState(0);
+  const [loadingCounts, setLoadingCounts] = useState(false);
 
   // Patterns
   const [patternView, setPatternView] = useState<PatternView>("hours");
@@ -270,6 +294,36 @@ export function SpotifyClient() {
     })();
     return () => { cancelled = true; };
   }, [connected, recentPreset, customFrom, customTo]);
+
+  // Load play counts
+  useEffect(() => {
+    if (!connected) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingCounts(true);
+      try {
+        const now = new Date();
+        let params = "counts=true";
+        if (countsPeriod !== "all") {
+          const days = countsPeriod === "7d" ? 7 : countsPeriod === "30d" ? 30 : 90;
+          const from = new Date(now.getTime() - days * 86_400_000).toISOString().split("T")[0];
+          params += `&from=${from}`;
+        }
+        const res = await fetch(`/api/spotify/plays?${params}`);
+        const data = await res.json();
+        if (!cancelled) {
+          setTrackCounts(data.track_counts ?? []);
+          setArtistCounts(data.artist_counts ?? []);
+          setTotalPlays(data.total_plays ?? 0);
+        }
+      } catch {
+        // ignore
+      } finally {
+        if (!cancelled) setLoadingCounts(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [connected, countsPeriod]);
 
   // ─── Computed ──────────────────────────────────────────────
 
@@ -361,6 +415,14 @@ export function SpotifyClient() {
     return needsDb ? dbToPlayItems(historyPlays) : recentToPlayItems(recent);
   }, [recent, historyPlays, recentPreset]);
 
+  const trackCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const tc of trackCounts) {
+      map.set(tc.track_id, tc.count);
+    }
+    return map;
+  }, [trackCounts]);
+
   // ─── Early returns ────────────────────────────────────────
 
   if (connected === null) {
@@ -427,7 +489,7 @@ export function SpotifyClient() {
             ))}
           </div>
           {/* Limit */}
-          {tab !== "recent" && (
+          {tab !== "recent" && tab !== "plays" && (
             <div className="flex items-center gap-1">
               {([10, 25, 50] as const).map((n) => (
                 <button
@@ -481,14 +543,14 @@ export function SpotifyClient() {
 
       {/* Tabs */}
       <div className="flex items-center gap-1">
-        {(["tracks", "artists", "recent"] as const).map((t) => (
+        {(["tracks", "artists", "plays", "recent"] as const).map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
             className={`${CHIP} ${tab === t ? "bg-accent/15 text-accent" : CHIP_OFF}`}
           >
-            {t === "tracks" ? "TOP TRACKS" : t === "artists" ? "TOP ARTISTS" : "RECENTLY PLAYED"}
+            {t === "tracks" ? "TOP TRACKS" : t === "artists" ? "TOP ARTISTS" : t === "plays" ? "PLAY COUNTS" : "RECENTLY PLAYED"}
           </button>
         ))}
       </div>
@@ -636,6 +698,100 @@ export function SpotifyClient() {
             </>
           )}
 
+          {/* ─── PLAY COUNTS ──────────────────────────────── */}
+          {tab === "plays" && (
+            <>
+              <div className="flex items-center gap-3 flex-wrap">
+                <Mono className="text-[10px] text-ink-3">
+                  {totalPlays.toLocaleString()} TOTAL PLAYS
+                </Mono>
+                <div className="flex items-center gap-1 ml-auto">
+                  {(["7d", "30d", "90d", "all"] as const).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setCountsPeriod(p)}
+                      className={`${CHIP} ${countsPeriod === p ? CHIP_ON : CHIP_OFF}`}
+                    >
+                      {p === "7d" ? "7 DAYS" : p === "30d" ? "30 DAYS" : p === "90d" ? "90 DAYS" : "ALL TIME"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {loadingCounts ? (
+                <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+                  Loading counts…
+                </div>
+              ) : (
+                <>
+                  {/* Most Played Tracks */}
+                  <div className="flex flex-col gap-1">
+                    <Mono className="text-[10px] text-ink-3 px-2">MOST PLAYED TRACKS</Mono>
+                    {trackCounts.slice(0, 50).map((tc, i) => (
+                      <a
+                        key={tc.track_id}
+                        href={`https://open.spotify.com/track/${tc.track_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-2 rounded-md hover:bg-ink-1 transition-colors group"
+                      >
+                        <Mono className="text-[10px] text-ink-3 w-5 text-right shrink-0">{i + 1}</Mono>
+                        {tc.album_art_url && (
+                          <Image src={tc.album_art_url} alt="" width={40} height={40} unoptimized className="w-10 h-10 rounded shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm text-text-0 truncate group-hover:text-[#1DB954] transition-colors">
+                            {tc.track_name}
+                          </div>
+                          <div className="text-xs text-ink-3 truncate">
+                            {tc.artist_names}{tc.album_name ? ` · ${tc.album_name}` : ""}
+                          </div>
+                        </div>
+                        <Mono className="text-[10px] text-[#1DB954] shrink-0">
+                          ×{tc.count}
+                        </Mono>
+                      </a>
+                    ))}
+                    {trackCounts.length === 0 && (
+                      <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+                        No play data yet.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Most Played Artists */}
+                  <div className="flex flex-col gap-2 mt-4">
+                    <Mono className="text-[10px] text-ink-3 px-2">MOST PLAYED ARTISTS</Mono>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {artistCounts.slice(0, 20).map((ac, i) => (
+                        <div
+                          key={ac.name}
+                          className="bg-ink-1 rounded-md p-3 flex flex-col items-center gap-1"
+                        >
+                          <div className="w-12 h-12 rounded-full bg-ink-2 flex items-center justify-center text-lg text-ink-3">
+                            {ac.name.charAt(0)}
+                          </div>
+                          <Mono className="text-[9px] text-ink-3">#{i + 1}</Mono>
+                          <div className="text-sm text-text-0 truncate w-full text-center">
+                            {ac.name}
+                          </div>
+                          <Mono className="text-[10px] text-[#1DB954]">
+                            {ac.count} plays
+                          </Mono>
+                        </div>
+                      ))}
+                    </div>
+                    {artistCounts.length === 0 && (
+                      <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+                        No play data yet.
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
           {/* ─── RECENTLY PLAYED ────────────────────────────── */}
           {tab === "recent" && (
             <>
@@ -727,6 +883,11 @@ export function SpotifyClient() {
                       {item.playCount != null && item.playCount > 1 && (
                         <Mono className="text-[10px] text-[#1DB954] shrink-0">
                           ×{item.playCount}
+                        </Mono>
+                      )}
+                      {!dedup && (trackCountMap.get(item.trackId) ?? 0) > 1 && (
+                        <Mono className="text-[10px] text-[#1DB954]/50 shrink-0">
+                          {trackCountMap.get(item.trackId)} plays
                         </Mono>
                       )}
                       <Mono className="text-[10px] text-ink-3 shrink-0">
