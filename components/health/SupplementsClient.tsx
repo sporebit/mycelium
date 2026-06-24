@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Mono } from "@/components/dashboard/Mono";
+import { DailyChecklist } from "@/components/health/DailyChecklist";
 
 type SupplementLog = { id: string; supplement_id: string; taken_at: string };
 
@@ -29,7 +30,10 @@ function relativeTime(iso: string): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
+type Tab = "daily" | "schedule";
+
 export function SupplementsClient() {
+  const [tab, setTab] = useState<Tab>("daily");
   const [supplements, setSupplements] = useState<Supplement[] | null>(null);
   const [logging, setLogging] = useState<Set<string>>(new Set());
   const [showAdd, setShowAdd] = useState(false);
@@ -153,6 +157,13 @@ export function SupplementsClient() {
     }
   }
 
+  const tabCls = (t: Tab) =>
+    `px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors border ${
+      tab === t
+        ? "bg-accent/20 text-accent border-accent/40"
+        : "text-ink-3 border-ink-2 hover:text-ink-4"
+    }`;
+
   return (
     <div className="flex flex-col gap-5">
       <header className="flex items-start justify-between gap-4">
@@ -164,13 +175,23 @@ export function SupplementsClient() {
             Active supplements and daily dose tracking.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowAdd((v) => !v)}
-          className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors shrink-0"
-        >
-          {showAdd ? "CANCEL" : "+ ADD"}
-        </button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button type="button" onClick={() => setTab("daily")} className={tabCls("daily")}>
+            DAILY
+          </button>
+          <button type="button" onClick={() => setTab("schedule")} className={tabCls("schedule")}>
+            SCHEDULE
+          </button>
+          {tab === "schedule" && (
+            <button
+              type="button"
+              onClick={() => setShowAdd((v) => !v)}
+              className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ml-1"
+            >
+              {showAdd ? "CANCEL" : "+ ADD"}
+            </button>
+          )}
+        </div>
       </header>
 
       {error && (
@@ -179,29 +200,35 @@ export function SupplementsClient() {
         </div>
       )}
 
-      {showAdd && <AddForm onSubmit={addSupplement} />}
-
-      {supplements === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-6 text-center">
-          Loading…
-        </div>
-      ) : supplements.length === 0 ? (
-        <div className="rounded-md bg-ink-1 p-6 text-center text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
-          No active supplements. Tap + ADD to get started.
-        </div>
+      {tab === "daily" ? (
+        <DailyChecklist />
       ) : (
-        <ul className="flex flex-col gap-2">
-          {supplements.map((s) => (
-            <SupplementRow
-              key={s.id}
-              supplement={s}
-              isLogging={logging.has(s.id)}
-              onMarkTaken={() => markTaken(s.id)}
-              onUndoLog={(logId) => undoLog(s.id, logId)}
-              onDeactivate={() => deactivate(s.id)}
-            />
-          ))}
-        </ul>
+        <>
+          {showAdd && <AddForm onSubmit={addSupplement} />}
+
+          {supplements === null ? (
+            <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-6 text-center">
+              Loading…
+            </div>
+          ) : supplements.length === 0 ? (
+            <div className="rounded-md bg-ink-1 p-6 text-center text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+              No active supplements. Tap + ADD to get started.
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {supplements.map((s) => (
+                <SupplementRow
+                  key={s.id}
+                  supplement={s}
+                  isLogging={logging.has(s.id)}
+                  onMarkTaken={() => markTaken(s.id)}
+                  onUndoLog={(logId) => undoLog(s.id, logId)}
+                  onDeactivate={() => deactivate(s.id)}
+                />
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </div>
   );
