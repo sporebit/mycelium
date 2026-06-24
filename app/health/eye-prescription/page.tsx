@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Prescription = {
   id: string;
@@ -131,7 +131,11 @@ export default function VisionPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanned, setScanned] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
   const [expandedHistory, setExpandedHistory] = useState<Set<string>>(new Set());
+  const fileRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [prescribedAt, setPrescribedAt] = useState(() => new Date().toISOString().slice(0, 10));
@@ -184,6 +188,61 @@ export default function VisionPage() {
     setFormNotes("");
   }
 
+  async function handleScan(file: File) {
+    setScanning(true);
+    setScanError(null);
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+      const res = await fetch("/api/health/eye-prescription/parse", {
+        method: "POST",
+        body: fd,
+      });
+      const j = await res.json();
+      if (!res.ok || !j.ok) {
+        setScanError("Couldn't read prescription — please enter manually");
+        resetForm();
+        setShowModal(true);
+        return;
+      }
+      const p = j.prescription;
+      const s = (v: unknown) => (v !== null && v !== undefined ? String(v) : "");
+      if (p.prescribed_at) setPrescribedAt(p.prescribed_at);
+      if (p.optician) setOptician(p.optician);
+      setIsContactLens(!!p.is_contact_lens);
+      if (p.left_eye) {
+        setLeftSphere(s(p.left_eye.sphere));
+        setLeftCylinder(s(p.left_eye.cylinder));
+        setLeftAxis(s(p.left_eye.axis));
+        setLeftAdd(s(p.left_eye.add_power));
+        setLeftPd(s(p.left_eye.pupillary_distance));
+        setLeftBc(s(p.left_eye.base_curve));
+        setLeftDia(s(p.left_eye.diameter));
+        setLeftBrand(s(p.left_eye.brand));
+      }
+      if (p.right_eye) {
+        setRightSphere(s(p.right_eye.sphere));
+        setRightCylinder(s(p.right_eye.cylinder));
+        setRightAxis(s(p.right_eye.axis));
+        setRightAdd(s(p.right_eye.add_power));
+        setRightPd(s(p.right_eye.pupillary_distance));
+        setRightBc(s(p.right_eye.base_curve));
+        setRightDia(s(p.right_eye.diameter));
+        setRightBrand(s(p.right_eye.brand));
+      }
+      if (p.notes) setFormNotes(p.notes);
+      setScanned(true);
+      setShowModal(true);
+    } catch {
+      setScanError("Couldn't read prescription — please enter manually");
+      resetForm();
+      setShowModal(true);
+    } finally {
+      setScanning(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
   async function handleSave() {
     if (!prescribedAt) return;
     setSaving(true);
@@ -231,6 +290,8 @@ export default function VisionPage() {
       });
       if (res.ok) {
         resetForm();
+        setScanned(false);
+        setScanError(null);
         setShowModal(false);
         load();
       }
@@ -303,12 +364,32 @@ export default function VisionPage() {
         <h1 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic">
           Vision
         </h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
-        >
-          ADD PRESCRIPTION
-        </button>
+        <div className="flex items-center gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleScan(f);
+            }}
+          />
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={scanning}
+            className="px-3 py-1.5 rounded-md bg-ok/15 border border-ok/40 text-ok text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-ok/25 disabled:opacity-40 transition-colors"
+          >
+            {scanning ? "READING…" : "SCAN PRESCRIPTION"}
+          </button>
+          <button
+            onClick={() => { resetForm(); setScanned(false); setScanError(null); setShowModal(true); }}
+            className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
+          >
+            ADD PRESCRIPTION
+          </button>
+        </div>
       </div>
 
       {prescriptions.length === 0 ? (
@@ -377,9 +458,21 @@ export default function VisionPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-ink-0 border border-ink-2 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-            <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
-              Add Prescription
-            </h2>
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic">
+                Add Prescription
+              </h2>
+              {scanned && (
+                <span className="text-[9px] uppercase tracking-[0.12em] px-1.5 py-0.5 rounded bg-ok/15 text-ok border border-ok/30 font-[family-name:var(--font-mono)]">
+                  Scanned
+                </span>
+              )}
+            </div>
+            {scanError && (
+              <div className="rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-[11px] text-warn font-[family-name:var(--font-mono)] mb-4">
+                {scanError}
+              </div>
+            )}
 
             {/* Date + Optician */}
             <div className="grid grid-cols-2 gap-3 mb-4">
@@ -516,7 +609,7 @@ export default function VisionPage() {
             {/* Actions */}
             <div className="flex items-center gap-2 justify-end">
               <button
-                onClick={() => { resetForm(); setShowModal(false); }}
+                onClick={() => { resetForm(); setScanned(false); setScanError(null); setShowModal(false); }}
                 className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
               >
                 CANCEL
