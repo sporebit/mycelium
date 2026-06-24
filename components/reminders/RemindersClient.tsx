@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useMemo, useState } from "react";
 
 type Reminder = {
   id: string;
@@ -82,11 +82,12 @@ function nowLondonTime(): string {
 
 const FOURTEEN_DAYS_MS = 14 * 24 * 60 * 60 * 1000;
 
-export function RemindersClient() {
+export function RemindersClient({ focusId }: { focusId: string | null }) {
   const [firedCutoff] = useState(() => Date.now() - FOURTEEN_DAYS_MS);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const scrolledRef = useRef(false);
 
   const [msg, setMsg] = useState("");
   const [date, setDate] = useState(() => nowLondonDate());
@@ -134,6 +135,15 @@ export function RemindersClient() {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (!focusId || loading || scrolledRef.current) return;
+    scrolledRef.current = true;
+    requestAnimationFrame(() => {
+      const el = document.querySelector(`[data-reminder-id="${CSS.escape(focusId)}"]`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }, [focusId, loading]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -329,6 +339,7 @@ export function RemindersClient() {
                   onSaveEdit={() => handleSaveEdit(r.id)}
                   onDelete={() => handleDelete(r.id)}
                   timeLabel={formatLondon(r.due_at)}
+                  focused={r.id === focusId}
                 />
               ))
             )}
@@ -358,6 +369,7 @@ export function RemindersClient() {
                   onSaveEdit={() => handleSaveEdit(r.id)}
                   onDelete={() => handleDelete(r.id)}
                   timeLabel={formatLondon(r.due_at)}
+                  focused={r.id === focusId}
                 />
               ))
             )}
@@ -391,6 +403,7 @@ export function RemindersClient() {
                       ? `Fired ${formatLondon(r.sent_at)}`
                       : formatLondon(r.due_at)
                   }
+                  focused={r.id === focusId}
                 />
               ))
             )}
@@ -443,6 +456,7 @@ function ReminderRow({
   onSaveEdit,
   onDelete,
   timeLabel,
+  focused,
 }: {
   reminder: Reminder;
   editing: boolean;
@@ -460,10 +474,11 @@ function ReminderRow({
   onSaveEdit: () => void;
   onDelete: () => void;
   timeLabel: string;
+  focused: boolean;
 }) {
   if (editing) {
     return (
-      <div className="bg-ink-1 border border-ink-2 rounded-md p-3 flex flex-col gap-2">
+      <div data-reminder-id={reminder.id} className="bg-ink-1 border border-ink-2 rounded-md p-3 flex flex-col gap-2">
         <input
           type="text"
           value={editMsg}
@@ -516,7 +531,12 @@ function ReminderRow({
   }
 
   return (
-    <div className="bg-ink-1 border border-ink-2 rounded-md p-3 flex items-center gap-3">
+    <div
+      data-reminder-id={reminder.id}
+      className={`bg-ink-1 border rounded-md p-3 flex items-center gap-3 transition-colors ${
+        focused ? "border-accent ring-1 ring-accent/30" : "border-ink-2"
+      }`}
+    >
       <div className="flex-1 min-w-0">
         <div className="text-sm text-text-0 truncate">{reminder.message}</div>
         <div className="flex items-center gap-2 mt-1">

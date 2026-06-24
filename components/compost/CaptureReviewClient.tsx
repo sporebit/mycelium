@@ -92,6 +92,24 @@ function routedTarget(c: Capture): string {
   return `${c.routed_to} · ${c.routed_id.slice(0, 8)}`;
 }
 
+function routedUrl(c: Capture): string | null {
+  if (!c.routed_to || !c.routed_id) return null;
+  switch (c.routed_to) {
+    case "media":
+      return `/organisation/media?focus=${c.routed_id}`;
+    case "task":
+      return `/organisation/tasks?focus=${c.routed_id}`;
+    case "journal":
+      return `/organisation/journal?focus=${c.routed_id}`;
+    case "purchase":
+      return `/organisation/purchases?focus=${c.routed_id}`;
+    case "reminder":
+      return `/reminders?reminder=${c.routed_id}`;
+    default:
+      return null;
+  }
+}
+
 export function CaptureReviewClient() {
   const [tab, setTab] = useState<Tab>("needs_review");
   const [captures, setCaptures] = useState<Capture[] | null>(null);
@@ -470,9 +488,18 @@ function ReviewCard({
           />
         </Field>
         <Field label="Routed to">
-          <div className="text-sm text-text-1 px-3 py-2 rounded-sm bg-ink-0/40 border border-ink-2 font-[family-name:var(--font-mono)] truncate">
-            {routedTarget(capture)}
-          </div>
+          {routedUrl(capture) ? (
+            <Link
+              href={routedUrl(capture)!}
+              className="text-sm text-accent px-3 py-2 rounded-sm bg-ink-0/40 border border-accent/30 font-[family-name:var(--font-mono)] truncate block hover:bg-accent/10 transition-colors"
+            >
+              {routedTarget(capture)} →
+            </Link>
+          ) : (
+            <div className="text-sm text-text-1 px-3 py-2 rounded-sm bg-ink-0/40 border border-ink-2 font-[family-name:var(--font-mono)] truncate">
+              {routedTarget(capture)}
+            </div>
+          )}
         </Field>
       </div>
 
