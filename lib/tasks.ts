@@ -7,7 +7,7 @@ type RawTaskRow = Omit<Task, "entity_name" | "project_name" | "project_colour" |
 };
 
 export const TASK_SELECT =
-  "id, user_id, title, description, urgency, status, key, priority_score, time_estimate_min, tags, due_date, scheduled_at, owner, entity_id, project_id, completed_at, created_at, updated_at, parent_task_id, converted_from, context_where, context_device, context_energy, context_tag, entities(name), projects(name, colour)";
+  "id, user_id, title, description, urgency, status, key, priority_score, time_estimate_min, tags, due_date, scheduled_at, owner, entity_id, project_id, completed_at, created_at, updated_at, parent_task_id, converted_from, context_where, context_device, context_energy, context_tag, google_event_id, entities(name), projects(name, colour)";
 
 export function serializeTask(row: RawTaskRow): Task {
   const ent = Array.isArray(row.entities) ? row.entities[0] : row.entities;

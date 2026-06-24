@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { pushEventToGoogle } from "@/lib/google/sync";
 
 export const runtime = "nodejs";
 
@@ -40,6 +41,15 @@ export async function POST(req: NextRequest) {
       .select("*")
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    if (data) {
+      pushEventToGoogle(data as {
+        id: string; title: string; start_at: string;
+        end_at?: string | null; all_day?: boolean;
+        location?: string | null; notes?: string | null;
+      }).catch(() => {});
+    }
+
     return NextResponse.json({ ok: true, event: data });
   } catch (err) {
     console.error("[events POST]", err);

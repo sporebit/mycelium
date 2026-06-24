@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { pushDropToGoogle } from "@/lib/google/sync";
 
 export const runtime = "nodejs";
 
@@ -85,6 +86,19 @@ export async function POST(req: NextRequest) {
         colour,
         notes: notes || null,
       });
+    }
+
+    if (data && body.drop_date && body.drop_date_confirmed) {
+      pushDropToGoogle({
+        id: (data as { id: string }).id,
+        name: body.name,
+        brand: body.brand,
+        drop_date: body.drop_date,
+        drop_type: body.drop_type,
+        retail_price: body.retail_price,
+        product_url: body.product_url,
+        notes: body.notes,
+      }).catch(() => {});
     }
 
     return NextResponse.json({ ok: true, drop: data });

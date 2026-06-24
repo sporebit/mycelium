@@ -10,6 +10,7 @@ import {
 } from "@/lib/types/task";
 import { extractNameMentions } from "@/lib/people/regex-extract";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
+import { pushTaskToGoogle } from "@/lib/google/sync";
 
 type Supabase = ReturnType<typeof createServerClient>;
 
@@ -285,6 +286,16 @@ export async function POST(req: NextRequest) {
       title,
       body.description ?? null
     );
+
+    if (body.scheduled_at) {
+      const row = data as { id: string; title: string; description: string | null; scheduled_at: string };
+      pushTaskToGoogle({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        scheduled_at: row.scheduled_at,
+      }).catch(() => {});
+    }
 
     return NextResponse.json({
       task: serializeTask(data as Parameters<typeof serializeTask>[0]),

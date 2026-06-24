@@ -14,6 +14,7 @@ import {
 import { extractNameMentions } from "@/lib/people/regex-extract";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { logTaskActivity } from "@/lib/task-activity";
+import { pushTaskToGoogle, removeGoogleEvent } from "@/lib/google/sync";
 
 type Supabase = ReturnType<typeof createServerClient>;
 
@@ -288,6 +289,24 @@ export async function PATCH(
       );
     }
 
+    // Google Calendar sync (fire-and-forget)
+    const row = data as unknown as {
+      id: string; title: string; description: string | null;
+      scheduled_at: string | null; google_event_id: string | null;
+      completed_at: string | null;
+    };
+    if (update.status === "completed" || update.completed_at) {
+      removeGoogleEvent("tasks", row.google_event_id).catch(() => {});
+    } else if (row.scheduled_at && ("scheduled_at" in update || "title" in update || "description" in update)) {
+      pushTaskToGoogle({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        scheduled_at: row.scheduled_at,
+        google_event_id: row.google_event_id,
+      }).catch(() => {});
+    }
+
     return NextResponse.json({
       task: serializeTask(data as Parameters<typeof serializeTask>[0]),
     });
@@ -309,6 +328,14 @@ export async function DELETE(
 
   try {
     const supabase = createServerClient();
+
+    const { data: existing } = await supabase
+      .from("tasks")
+      .select("google_event_id")
+      .eq("id", id)
+      .eq("user_id", uid)
+      .maybeSingle();
+
     // FK is ON DELETE CASCADE, so sub-tasks go with the parent automatically.
     const { error } = await supabase
       .from("tasks")
@@ -316,6 +343,11 @@ export async function DELETE(
       .eq("id", id)
       .eq("user_id", uid);
     if (error) throw error;
+
+    if (existing?.google_event_id) {
+      removeGoogleEvent("tasks", existing.google_event_id).catch(() => {});
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[/api/tasks/:id DELETE]", err);

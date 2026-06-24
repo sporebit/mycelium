@@ -88,6 +88,7 @@ export type Task = {
   context_device?: string | null;
   context_energy?: "low" | "medium" | "high" | null;
   context_tag?: string | null;
+  google_event_id?: string | null;
   // Populated by callers that want the nested view (e.g. include_children=true
   // on /api/tasks, or client-side attachment).
   sub_tasks?: Task[];

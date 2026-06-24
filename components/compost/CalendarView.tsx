@@ -250,6 +250,7 @@ export function CalendarView() {
           >
             ADD EVENT
           </button>
+          <SyncButton />
           <button
             type="button"
             onClick={prev}
@@ -556,5 +557,40 @@ export function CalendarView() {
         </div>
       )}
     </div>
+  );
+}
+
+function SyncButton() {
+  const [syncing, setSyncing] = useState(false);
+  const [label, setLabel] = useState("SYNC");
+
+  async function sync() {
+    setSyncing(true);
+    setLabel("SYNCING…");
+    try {
+      const res = await fetch("/api/google/sync", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setLabel(`✓ ${data.synced}`);
+      } else {
+        setLabel("FAILED");
+      }
+    } catch {
+      setLabel("FAILED");
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setLabel("SYNC"), 2500);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={sync}
+      disabled={syncing}
+      className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors disabled:opacity-50"
+    >
+      {label}
+    </button>
   );
 }

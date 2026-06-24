@@ -335,6 +335,8 @@ function NotificationsSection({ settings, onPatch }: { settings: Settings; onPat
 
 function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatch: (f: Record<string, unknown>) => void }) {
   const googleConnected = !!settings.google_refresh_token;
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
 
   async function disconnectGoogle() {
     await onPatch({
@@ -344,22 +346,55 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
     });
   }
 
+  async function syncGoogle() {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch("/api/google/sync", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setSyncResult(`✓ Synced ${data.synced} events${data.updated?.length ? `, ${data.updated.length} updated` : ""}`);
+      } else {
+        setSyncResult("Sync failed");
+      }
+    } catch {
+      setSyncResult("Sync failed");
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncResult(null), 3000);
+    }
+  }
+
   return (
     <SectionCard title="INTEGRATIONS">
       <IntegrationRow
         name="Google Calendar"
-        description={googleConnected ? "OAuth write access" : "Reading iCal feeds"}
+        description={googleConnected ? "OAuth write access — bidirectional sync" : "Reading iCal feeds"}
         status={googleConnected ? "Connected" : "Not connected"}
         statusOk={googleConnected}
         action={
           googleConnected ? (
-            <button
-              type="button"
-              onClick={disconnectGoogle}
-              className="text-[10px] text-danger hover:underline font-[family-name:var(--font-mono)]"
-            >
-              DISCONNECT
-            </button>
+            <div className="flex items-center gap-2">
+              {syncResult ? (
+                <Mono className="text-[10px] text-ok">{syncResult}</Mono>
+              ) : (
+                <button
+                  type="button"
+                  onClick={syncGoogle}
+                  disabled={syncing}
+                  className="text-[10px] text-accent hover:underline font-[family-name:var(--font-mono)] disabled:opacity-50"
+                >
+                  {syncing ? "SYNCING…" : "SYNC NOW"}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={disconnectGoogle}
+                className="text-[10px] text-danger hover:underline font-[family-name:var(--font-mono)]"
+              >
+                DISCONNECT
+              </button>
+            </div>
           ) : (
             <Link
               href="/api/google/auth"

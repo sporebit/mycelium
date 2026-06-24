@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { pushEventToGoogle, removeGoogleEvent } from "@/lib/google/sync";
 
 export const runtime = "nodejs";
 
@@ -22,6 +23,16 @@ export async function PATCH(
       .select("*")
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    if (data) {
+      pushEventToGoogle(data as {
+        id: string; title: string; start_at: string;
+        end_at?: string | null; all_day?: boolean;
+        location?: string | null; notes?: string | null;
+        google_event_id?: string | null;
+      }).catch(() => {});
+    }
+
     return NextResponse.json({ ok: true, event: data });
   } catch (err) {
     console.error("[events/:id PATCH]", err);
@@ -36,8 +47,20 @@ export async function DELETE(
   try {
     const { id } = await ctx.params;
     const supabase = createServerClient();
+
+    const { data: existing } = await supabase
+      .from("events")
+      .select("google_event_id")
+      .eq("id", id)
+      .maybeSingle();
+
     const { error } = await supabase.from("events").delete().eq("id", id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    if (existing?.google_event_id) {
+      removeGoogleEvent("events", existing.google_event_id).catch(() => {});
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[events/:id DELETE]", err);
