@@ -34,6 +34,7 @@ type DailyData = {
 export function Supplements({ width = 1 }: { width?: CardWidth } = {}) {
   const [data, setData] = useState<DailyData | null>(null);
   const [toggling, setToggling] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const today = localDateKey();
 
   useEffect(() => {
@@ -148,36 +149,62 @@ export function Supplements({ width = 1 }: { width?: CardWidth } = {}) {
             </div>
           </div>
 
-          {/* Slot groups */}
-          <div className="mt-3 flex flex-col gap-2">
-            {data.slots.map((slot) => (
-              <div key={slot.slot}>
-                <Mono className="text-[9px] text-ink-3 mb-1">
-                  {slot.label.toUpperCase()}
-                </Mono>
-                <div className="flex flex-wrap gap-1">
-                  {slot.items.map((item) => {
-                    const taken = !!item.log;
-                    const busy = toggling.has(item.id);
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => toggle(item, slot.slot)}
-                        disabled={busy}
-                        className={`px-2 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] transition-colors disabled:opacity-50 ${
-                          taken
-                            ? "bg-ok/15 text-ok"
-                            : "bg-ink-1 text-ink-3 hover:text-ink-4"
-                        }`}
-                      >
-                        {item.name}
-                      </button>
-                    );
-                  })}
+          {/* Slot groups — collapsed by default */}
+          <div className="mt-3 flex flex-col gap-1.5">
+            {data.slots.map((slot) => {
+              const takenCount = slot.items.filter((i) => i.log).length;
+              const allDone = takenCount === slot.items.length;
+              const isOpen = expanded.has(slot.slot);
+              return (
+                <div key={slot.slot}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpanded((s) => {
+                        const next = new Set(s);
+                        if (next.has(slot.slot)) next.delete(slot.slot);
+                        else next.add(slot.slot);
+                        return next;
+                      })
+                    }
+                    className={`w-full flex items-center gap-2 px-2 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] transition-colors ${
+                      allDone
+                        ? "bg-ok/10 text-ok"
+                        : "bg-ink-1 text-ink-3 hover:text-ink-4"
+                    }`}
+                  >
+                    <span className="uppercase">{slot.label}</span>
+                    <span className="ml-auto tabular-nums">
+                      {takenCount}/{slot.items.length}
+                    </span>
+                    {allDone && <span>✓</span>}
+                  </button>
+                  {isOpen && (
+                    <div className="flex flex-wrap gap-1 mt-1 ml-1">
+                      {slot.items.map((item) => {
+                        const taken = !!item.log;
+                        const busy = toggling.has(item.id);
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => toggle(item, slot.slot)}
+                            disabled={busy}
+                            className={`px-2 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] transition-colors disabled:opacity-50 ${
+                              taken
+                                ? "bg-ok/15 text-ok"
+                                : "bg-ink-2 text-ink-3 hover:text-ink-4"
+                            }`}
+                          >
+                            {item.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
