@@ -61,11 +61,15 @@ type Capture = {
   created_at: string;
 };
 
-const SOURCES = [
-  { id: "all", label: "ALL" },
-  { id: "telegram", label: "TELEGRAM" },
-  { id: "web", label: "WEB" },
-];
+type SourceConfig = { label: string; icon: string; visible: boolean };
+
+const DEFAULT_SOURCE_CONFIG: Record<string, SourceConfig> = {
+  api: { label: "API", icon: "⚡", visible: true },
+  telegram: { label: "Telegram", icon: "✈", visible: true },
+  web: { label: "Web", icon: "▢", visible: true },
+  ios: { label: "iOS", icon: "📱", visible: true },
+  shortcut: { label: "Shortcut", icon: "⌘", visible: true },
+};
 
 const KINDS = [
   { id: "all", label: "ALL" },
@@ -97,11 +101,8 @@ function truncate(s: string | null, n: number): string {
   return s.slice(0, n) + "…";
 }
 
-function sourceIcon(s: string): string {
-  if (s === "telegram") return "✈";
-  if (s === "web") return "▢";
-  if (s === "api") return "⚡";
-  return "·";
+function getSourceConfig(s: string, config: Record<string, SourceConfig>): SourceConfig {
+  return config[s] ?? DEFAULT_SOURCE_CONFIG[s] ?? { label: s, icon: "·", visible: true };
 }
 
 function kindBadge(kind: string | undefined): { label: string; className: string } {
@@ -126,7 +127,27 @@ export function CapturesClient() {
   const [expanded, setExpanded] = useState<Set<string>>(() =>
     focusId ? new Set([focusId]) : new Set(),
   );
+  const [sourceConfig, setSourceConfig] = useState<Record<string, SourceConfig>>(DEFAULT_SOURCE_CONFIG);
   const scrolledRef = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/settings", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j: { settings?: Record<string, unknown> }) => {
+        if (cancelled) return;
+        const saved = j.settings?.capture_source_labels as Record<string, SourceConfig> | undefined;
+        if (saved) {
+          const merged: Record<string, SourceConfig> = {};
+          for (const [k, v] of Object.entries(DEFAULT_SOURCE_CONFIG)) {
+            merged[k] = { ...v, ...(saved[k] ?? {}) };
+          }
+          setSourceConfig(merged);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -175,7 +196,12 @@ export function CapturesClient() {
       <div className="flex items-center gap-4">
         <FilterGroup
           label="Source"
-          options={SOURCES}
+          options={[
+            { id: "all", label: "ALL" },
+            ...Object.entries(sourceConfig)
+              .filter(([, v]) => v.visible)
+              .map(([k, v]) => ({ id: k, label: v.label.toUpperCase() })),
+          ]}
           value={source}
           onChange={setSource}
         />
@@ -227,16 +253,16 @@ export function CapturesClient() {
                   <span
                     aria-hidden
                     className="text-ink-3 text-base w-5 shrink-0 mt-0.5"
-                    title={c.source}
+                    title={getSourceConfig(c.source, sourceConfig).label}
                   >
-                    {sourceIcon(c.source)}
+                    {getSourceConfig(c.source, sourceConfig).icon}
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
                       <span className="flex items-center gap-2">
                         <span>{relativeDate(c.created_at)}</span>
                         <span>·</span>
-                        <span>{c.source}</span>
+                        <span>{getSourceConfig(c.source, sourceConfig).label}</span>
                       </span>
                       <span
                         className={`px-1.5 py-0.5 rounded-md border shrink-0 ${badge.className}`}

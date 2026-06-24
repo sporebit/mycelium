@@ -89,6 +89,7 @@ export default function SettingsPage() {
       <NotificationsSection settings={settings} onPatch={patch} />
       <IntegrationsSection settings={settings} />
       <FeatureFlagsSection settings={settings} onPatch={patch} />
+      <CaptureSourcesSection settings={settings} onPatch={patch} />
       <AIConfigSection settings={settings} onPatch={patch} />
       <DataSection stats={stats} />
       <DangerZoneSection />
@@ -433,6 +434,76 @@ function FeatureFlagsSection({ settings, onPatch }: { settings: Settings; onPatc
           onToggle={(v) => onPatch({ [f.key]: v })}
         />
       ))}
+    </SectionCard>
+  );
+}
+
+type SourceConfig = { label: string; icon: string; visible: boolean };
+
+const DEFAULT_SOURCE_CONFIG: Record<string, SourceConfig> = {
+  api: { label: "API", icon: "⚡", visible: true },
+  telegram: { label: "Telegram", icon: "✈", visible: true },
+  web: { label: "Web", icon: "▢", visible: true },
+  ios: { label: "iOS", icon: "📱", visible: true },
+  shortcut: { label: "Shortcut", icon: "⌘", visible: true },
+};
+
+function CaptureSourcesSection({ settings, onPatch }: { settings: Settings; onPatch: (f: Record<string, unknown>) => void }) {
+  const saved = settings.capture_source_labels as Record<string, SourceConfig> | undefined;
+  const config: Record<string, SourceConfig> = {};
+  for (const [k, v] of Object.entries(DEFAULT_SOURCE_CONFIG)) {
+    config[k] = { ...v, ...(saved?.[k] ?? {}) };
+  }
+
+  const [drafts, setDrafts] = useState<Record<string, SourceConfig>>(config);
+
+  function save(key: string, field: keyof SourceConfig, value: string | boolean) {
+    const updated = { ...drafts, [key]: { ...drafts[key], [field]: value } };
+    setDrafts(updated);
+    onPatch({ capture_source_labels: updated });
+  }
+
+  return (
+    <SectionCard title="CAPTURE SOURCES">
+      <div className="text-xs text-ink-3 mb-1">
+        Customise the icon and label shown for each capture source.
+      </div>
+      <div className="flex flex-col gap-3">
+        {Object.entries(drafts).map(([key, source]) => (
+          <div key={key} className="flex items-center gap-2">
+            <input
+              type="text"
+              value={source.icon}
+              onChange={(e) => setDrafts((d) => ({ ...d, [key]: { ...d[key], icon: e.target.value } }))}
+              onBlur={() => save(key, "icon", drafts[key].icon)}
+              className="w-10 bg-ink-0 border border-ink-2 rounded-md text-sm text-center text-text-0 py-1.5 outline-none focus:border-accent"
+              title="Icon"
+            />
+            <input
+              type="text"
+              value={source.label}
+              onChange={(e) => setDrafts((d) => ({ ...d, [key]: { ...d[key], label: e.target.value } }))}
+              onBlur={() => save(key, "label", drafts[key].label)}
+              className="flex-1 bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+              title="Label"
+            />
+            <Mono className="text-[9px] text-ink-3 w-16 text-right shrink-0">{key}</Mono>
+            <button
+              type="button"
+              onClick={() => save(key, "visible", !source.visible)}
+              className={`shrink-0 w-10 h-5 rounded-full transition-colors relative ${
+                source.visible ? "bg-ok" : "bg-ink-3"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                  source.visible ? "left-5" : "left-0.5"
+                }`}
+              />
+            </button>
+          </div>
+        ))}
+      </div>
     </SectionCard>
   );
 }
