@@ -6,7 +6,7 @@ import type { BodyMetric, WeightUnit } from "@/lib/fitness/types";
 export const runtime = "nodejs";
 
 const FIELDS =
-  "id, user_id, date, weight, weight_unit, body_fat_pct, muscle_mass_kg, waist_cm, arms_in, thorax_in, thighs_in, notes, created_at";
+  "id, user_id, date, weight, weight_unit, body_fat_pct, muscle_mass_kg, waist_in, arms_in, thorax_in, thighs_in, notes, created_at";
 
 const VALID_UNITS: WeightUnit[] = ["kg", "lbs", "stone"];
 
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
           weight_unit: unit,
           body_fat_pct: body.body_fat_pct ?? null,
           muscle_mass_kg: body.muscle_mass_kg ?? null,
-          waist_cm: body.waist_cm ?? null,
+          waist_in: body.waist_in ?? null,
           arms_in: body.arms_in ?? null,
           thorax_in: body.thorax_in ?? null,
           thighs_in: body.thighs_in ?? null,

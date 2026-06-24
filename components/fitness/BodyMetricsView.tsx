@@ -88,7 +88,7 @@ export function BodyMetricsView() {
           weight_unit: unit,
           body_fat_pct: bodyFat ? Number(bodyFat) : null,
           muscle_mass_kg: muscle ? Number(muscle) : null,
-          waist_cm: waist ? Number(waist) : null,
+          waist_in: waist ? Number(waist) : null,
           arms_in: arms ? Number(arms) : null,
           thorax_in: thorax ? Number(thorax) : null,
           thighs_in: thighs ? Number(thighs) : null,
@@ -231,7 +231,6 @@ export function BodyMetricsView() {
             />
           </label>
           <label className="flex flex-col gap-1">
-            {/* Historical waist values pre-2026-06-11 were stored as cm */}
             <span className={labelCls}>Waist (in)</span>
             <input
               type="number"
@@ -376,7 +375,7 @@ export function BodyMetricsView() {
                     </td>
                     <td className="text-right py-2 px-3">
                       <Mono className="text-ink-3">
-                        {fmtNum(e.waist_cm, "in", 0)}
+                        {fmtNum(e.waist_in, "in", 0)}
                       </Mono>
                     </td>
                     <td className="text-right py-2 px-3">

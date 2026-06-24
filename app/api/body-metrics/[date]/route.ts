@@ -5,7 +5,7 @@ import type { BodyMetric, WeightUnit } from "@/lib/fitness/types";
 export const runtime = "nodejs";
 
 const FIELDS =
-  "id, user_id, date, weight, weight_unit, body_fat_pct, muscle_mass_kg, waist_cm, notes, created_at";
+  "id, user_id, date, weight, weight_unit, body_fat_pct, muscle_mass_kg, waist_in, notes, created_at";
 
 const VALID_UNITS: WeightUnit[] = ["kg", "lbs", "stone"];
 
@@ -49,7 +49,7 @@ export async function PATCH(
           weight_unit: unit,
           body_fat_pct: body.body_fat_pct ?? null,
           muscle_mass_kg: body.muscle_mass_kg ?? null,
-          waist_cm: body.waist_cm ?? null,
+          waist_in: body.waist_in ?? null,
           notes: body.notes ?? null,
         },
         { onConflict: "user_id,date" }
