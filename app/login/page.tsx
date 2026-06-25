@@ -60,7 +60,7 @@ export default function LoginPage() {
     <main className="min-h-screen flex flex-col items-center justify-center bg-ink-0">
       <div className="flex flex-col items-center gap-8">
         <h1 className="text-2xl font-semibold text-ink-4 tracking-tight">
-          Myphilium
+          Mycelium
         </h1>
         <Suspense>
           <LoginForm />

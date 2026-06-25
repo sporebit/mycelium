@@ -17,11 +17,11 @@ export function Wordmark() {
   return (
     <Link
       href="/"
-      aria-label="Myphilium — dashboard"
+      aria-label="Mycelium — dashboard"
       className="inline-flex items-center text-sm font-[family-name:var(--font-display)] font-medium uppercase tracking-[0.04em]"
     >
       <span aria-hidden className="wordmark-glow mycelium-wordmark">
-        Myphilium
+        Mycelium
       </span>
       <span
         aria-hidden

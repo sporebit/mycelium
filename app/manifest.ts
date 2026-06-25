@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Myphilium",
-    short_name: "Myphilium",
+    name: "Mycelium",
+    short_name: "Mycelium",
     description: "Personal AI dashboard",
     start_url: "/",
     display: "standalone",
