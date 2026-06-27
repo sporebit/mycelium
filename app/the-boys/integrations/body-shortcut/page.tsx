@@ -20,7 +20,7 @@ export default function BodyShortcutSetupPage() {
         </h1>
         <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
           Reads the latest weight + body fat % from Apple Health and posts
-          them to Mycelium. Run it after stepping off your scale — or
+          them to Myphelium2. Run it after stepping off your scale — or
           schedule it daily via Personal Automations.
         </p>
 
@@ -71,7 +71,7 @@ export default function BodyShortcutSetupPage() {
               title="Get Dictionary from input"
               body={
                 <>
-                  Build a dictionary with the keys Mycelium expects:
+                  Build a dictionary with the keys Myphelium2 expects:
                   <ul className="mt-1 list-disc list-inside text-[13px] text-ink-3">
                     <li>
                       <Mono>weight_kg</Mono> → numeric value of{" "}
@@ -118,7 +118,7 @@ export default function BodyShortcutSetupPage() {
                   <ul className="list-disc list-inside text-[13px] text-ink-3 mt-1">
                     <li>Get Dictionary Value · Key: <Mono>summary</Mono></li>
                     <li>
-                      Title: <Mono>Mycelium</Mono> · Body: the dictionary
+                      Title: <Mono>Myphelium2</Mono> · Body: the dictionary
                       value · Sound: Off
                     </li>
                   </ul>

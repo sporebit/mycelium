@@ -80,7 +80,7 @@ export default function SettingsPage() {
           Settings
         </h1>
         <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
-          Configure your Mycelium experience.
+          Configure your Myphelium2 experience.
         </p>
       </header>
 

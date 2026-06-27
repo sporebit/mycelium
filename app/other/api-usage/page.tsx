@@ -525,10 +525,10 @@ export default function ApiUsagePage() {
           </a>
         </div>
 
-        {/* SECTION 4 — Internal Mycelium API calls */}
+        {/* SECTION 4 — Internal Myphelium2 API calls */}
         <div className="rounded-md bg-ink-1 p-5 flex flex-col gap-4">
           <Mono className="text-[11px] text-ink-3 tracking-[0.18em]">
-            INTERNAL MYCELIUM USAGE
+            INTERNAL MYPHELIUM2 USAGE
           </Mono>
           <Mono className="text-[9px] text-ink-3 block">
             Estimated Anthropic token spend by feature this month

@@ -264,7 +264,7 @@ export function PeopleClient() {
       ) : visible.length === 0 ? (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
           {(people?.length ?? 0) === 0
-            ? "No people yet. Add one above, or mention someone in a capture — Mycelium will auto-create them here."
+            ? "No people yet. Add one above, or mention someone in a capture — Myphelium2 will auto-create them here."
             : "No people match these filters."}
         </div>
       ) : (

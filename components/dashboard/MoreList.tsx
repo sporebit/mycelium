@@ -332,7 +332,7 @@ export function MoreList() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: "Mycelium",
+          title: "Myphelium2",
           body: "Test notification — push is working.",
           url: "/more",
         }),
@@ -364,7 +364,7 @@ export function MoreList() {
                 onClick={install.state.prompt}
                 className="text-sm text-text-0 hover:text-accent transition-colors"
               >
-                Install Mycelium
+                Install Myphelium2
               </button>
             ) : (
               <span className="text-sm text-ink-3">

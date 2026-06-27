@@ -21,7 +21,7 @@ const SAMPLE_ACCOUNTS: ServiceAccount[] = [
   { id: "a2", name: "GitHub", email: "pwhelanonline@gmail.com", purpose: "Code hosting and CI", status: "active", opened: "2017-08-01", monthlyCost: null, notes: "Free tier, Pro via work" },
   { id: "a3", name: "AWS", email: "pwhelanonline@gmail.com", purpose: "Cloud infra for side projects", status: "active", opened: "2020-01-10", monthlyCost: 14.50, notes: "Mostly S3 and Lambda" },
   { id: "a4", name: "Adobe Creative Cloud", email: "pwhelanonline@gmail.com", purpose: "Design and video editing", status: "cancelled", opened: "2021-06-01", monthlyCost: null, notes: "Cancelled Jan 2025, moved to Figma + DaVinci" },
-  { id: "a5", name: "Vercel", email: "pwhelanonline@gmail.com", purpose: "Frontend deployment", status: "active", opened: "2023-02-20", monthlyCost: 20.00, notes: "Pro plan for Mycelium" },
+  { id: "a5", name: "Vercel", email: "pwhelanonline@gmail.com", purpose: "Frontend deployment", status: "active", opened: "2023-02-20", monthlyCost: 20.00, notes: "Pro plan for Myphelium2" },
   { id: "a6", name: "NordVPN", email: "pwhelanonline@gmail.com", purpose: "VPN", status: "inactive", opened: "2022-11-01", monthlyCost: null, notes: "Annual plan expired, deciding whether to renew" },
 ];
 

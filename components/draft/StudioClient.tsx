@@ -46,7 +46,7 @@ const SAMPLE_FOOTAGE: FootageItem[] = [
 
 const SAMPLE_DESIGN: DesignProject[] = [
   { id: "d1", name: "Album Cover - Signal Loss", type: "Graphic Design", status: "in-progress", deadline: "2026-06-15" },
-  { id: "d2", name: "Mycelium Promo Video", type: "Video", status: "backlog", deadline: null },
+  { id: "d2", name: "Myphelium2 Promo Video", type: "Video", status: "backlog", deadline: null },
   { id: "d3", name: "Brand Guidelines v2", type: "Design System", status: "review", deadline: "2026-06-10" },
   { id: "d4", name: "Live Session Edit", type: "Video", status: "done", deadline: null },
 ];

@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 /**
- * Mycelium wordmark — anchors the top bar on every viewport.
+ * Myphelium2 wordmark — anchors the top bar on every viewport.
  *
- * The text reads "Mycelium" rendered uppercase via CSS, in Recoleta (the
+ * The text reads "Myphelium2" rendered uppercase via CSS, in Recoleta (the
  * --font-display family). A 3-second bioluminescent glow sweeps L→R
  * across the letterforms via `wordmark-glow` (background-clip: text +
  * animated background-position), defined in globals.css. The trailing
@@ -17,11 +17,11 @@ export function Wordmark() {
   return (
     <Link
       href="/"
-      aria-label="Mycelium — dashboard"
+      aria-label="Myphelium2 — dashboard"
       className="inline-flex items-center text-sm font-[family-name:var(--font-display)] font-medium uppercase tracking-[0.04em]"
     >
       <span aria-hidden className="wordmark-glow mycelium-wordmark">
-        Mycelium
+        Myphelium2
       </span>
       <span
         aria-hidden

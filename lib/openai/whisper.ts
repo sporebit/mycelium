@@ -16,7 +16,7 @@ export async function transcribeAudio(
   // Vocabulary hint — biases Whisper toward spelling of frequent terms.
   form.append(
     "prompt",
-    "A personal capture, possibly about tasks, ideas, meetings, reflections, or daily observations. Names of people and places may include: Phil, Sporebit, Mycelium, Armthorpe, Doncaster."
+    "A personal capture, possibly about tasks, ideas, meetings, reflections, or daily observations. Names of people and places may include: Phil, Sporebit, Myphelium2, Armthorpe, Doncaster."
   );
   // Deterministic output (default is 0, but we set it explicitly).
   form.append("temperature", "0");

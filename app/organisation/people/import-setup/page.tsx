@@ -17,7 +17,7 @@ export default function PeopleImportSetupPage() {
         Bulk-import contacts from iPhone
       </h1>
       <p className="text-sm text-text-1 leading-relaxed">
-        A one-tap iOS Shortcut that exports your Contacts to Mycelium&apos;s
+        A one-tap iOS Shortcut that exports your Contacts to Myphelium2&apos;s
         Rolodex. Existing rows are merged (we only fill blanks); new rows are
         created with first / first-last / last aliases.
       </p>
@@ -54,7 +54,7 @@ export default function PeopleImportSetupPage() {
             Outside the loop, build:
             <pre className="mt-1 text-[12px] text-text-1 bg-ink-2 rounded-sm p-3 overflow-x-auto">{`{ "people": <the list from step 2> }`}</pre>
           </Step>
-          <Step n={4} title="POST to Mycelium">
+          <Step n={4} title="POST to Myphelium2">
             <ul className="list-disc list-inside text-[13px] text-text-1">
               <li>URL: <Mono>{url}</Mono></li>
               <li>Method: <Mono>POST</Mono></li>
@@ -67,7 +67,7 @@ export default function PeopleImportSetupPage() {
           </Step>
           <Step n={5} title="Show Notification">
             Show <Mono>created · updated · skipped</Mono> counts from the
-            response. Title: <Mono>Mycelium import</Mono>.
+            response. Title: <Mono>Myphelium2 import</Mono>.
           </Step>
         </ol>
       </Panel>

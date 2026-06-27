@@ -10,7 +10,7 @@ export const AGENT_TOOLS: ToolDef[] = [
   {
     name: "create_task",
     description:
-      "Create a task in Mycelium Organisation. Use when the user asks you to create, add, or remember something as a task. Always confirm with the user before calling this.",
+      "Create a task in Myphelium2 Organisation. Use when the user asks you to create, add, or remember something as a task. Always confirm with the user before calling this.",
     input_schema: {
       type: "object",
       properties: {
@@ -59,7 +59,7 @@ export const FINANCE_TOOLS: ToolDef[] = [
   {
     name: "create_account",
     description:
-      "Add a new account/subscription to the Mycelium accounts register. Use when the user mentions opening, signing up for, or adding a service.",
+      "Add a new account/subscription to the Myphelium2 accounts register. Use when the user mentions opening, signing up for, or adding a service.",
     input_schema: {
       type: "object",
       properties: {
@@ -107,7 +107,7 @@ export const VENTURE_TOOLS: ToolDef[] = [
   {
     name: "create_venture",
     description:
-      "Create a new venture/business idea in Mycelium Ventures. Use when Phil describes a new business idea he wants to track.",
+      "Create a new venture/business idea in Myphelium2 Ventures. Use when Phil describes a new business idea he wants to track.",
     input_schema: {
       type: "object",
       properties: {

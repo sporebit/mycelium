@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 
 /**
- * Apple Health → Mycelium webhook for body metrics. Designed for the
+ * Apple Health → Myphelium2 webhook for body metrics. Designed for the
  * iOS Shortcut that reads the latest weight + body composition values
  * from HealthKit and POSTs them here on a schedule.
  *

@@ -181,7 +181,7 @@ async function getDaBoiContext(supabase: ReturnType<typeof createServerClient>) 
 }
 
 const TOOL_CAPABILITY_SUFFIX =
-  "\n\nYou have tools available to create tasks and records in Mycelium directly. When the user asks you to create something, first describe what you plan to create and ask for confirmation. Only call the tool after they confirm.";
+  "\n\nYou have tools available to create tasks and records in Myphelium2 directly. When the user asks you to create something, first describe what you plan to create and ask for confirmation. Only call the tool after they confirm.";
 
 export async function POST(
   req: NextRequest,

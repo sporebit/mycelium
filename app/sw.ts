@@ -31,11 +31,11 @@ self.addEventListener("push", (event) => {
   try {
     payload = event.data.json();
   } catch {
-    payload = { title: "Mycelium", body: event.data.text() };
+    payload = { title: "Myphelium2", body: event.data.text() };
   }
 
   event.waitUntil(
-    self.registration.showNotification(payload.title ?? "Mycelium", {
+    self.registration.showNotification(payload.title ?? "Myphelium2", {
       body: payload.body ?? "",
       icon: payload.icon ?? "/icons/icon-192.png",
       badge: "/icons/icon-192.png",

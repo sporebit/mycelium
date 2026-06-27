@@ -156,7 +156,7 @@ export default function TheBoysPage() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Ask anything across all of Mycelium…"
+          placeholder="Ask anything across all of Myphelium2…"
           className="flex-1 bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2.5 outline-none focus:border-ink-3 placeholder:text-ink-3"
         />
         <button

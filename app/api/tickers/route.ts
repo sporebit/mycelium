@@ -102,7 +102,7 @@ async function fetchYahooSymbol(
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}`;
     const res = await fetchWithTimeout(url, {
       headers: {
-        "User-Agent": "Mycelium/1.0",
+        "User-Agent": "Myphelium2/1.0",
         Accept: "application/json",
       },
     });

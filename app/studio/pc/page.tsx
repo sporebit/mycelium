@@ -183,7 +183,7 @@ export default function PCDashboardPage() {
 
       {isOffline && !current && (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
-          No metrics received yet. Start the Mycelium PC Agent on your machine.
+          No metrics received yet. Start the Myphelium2 PC Agent on your machine.
         </div>
       )}
 

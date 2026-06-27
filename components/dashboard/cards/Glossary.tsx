@@ -184,7 +184,7 @@ function OrganismDiagram({
       preserveAspectRatio="xMidYMid meet"
       className={`w-full ${large ? "max-h-[280px]" : "max-h-[200px]"}`}
       role="img"
-      aria-label="Mycelium organism diagram"
+      aria-label="Myphelium2 organism diagram"
     >
       {/* Hyphal threads — centre out to each peripheral node */}
       <g

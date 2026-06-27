@@ -101,9 +101,9 @@ export default function ShortcutSetupPage() {
             body={
               <>
                 <ul className="list-disc list-inside text-[13px] text-ink-3">
-                  <li>Title: <Mono>Mycelium</Mono></li>
+                  <li>Title: <Mono>Myphelium2</Mono></li>
                   <li>
-                    Body: the Dictionary Value from step 3 (Mycelium&apos;s
+                    Body: the Dictionary Value from step 3 (Myphelium2&apos;s
                     rendered summary, e.g. &quot;💪 Logged to Mon PM Legs…&quot;)
                   </li>
                   <li>Sound: Off</li>

@@ -46,7 +46,7 @@ type OffProduct = {
   countries_tags?: string[];
 };
 
-const USER_AGENT = "Mycelium-Local/1.0";
+const USER_AGENT = "Myphelium2-Local/1.0";
 
 function num(v: unknown): number | null {
   if (v === null || v === undefined || v === "") return null;

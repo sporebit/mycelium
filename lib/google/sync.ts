@@ -25,7 +25,7 @@ function oneHourLater(iso: string): string {
   return new Date(new Date(iso).getTime() + 3600_000).toISOString();
 }
 
-// ─── PUSH: Mycelium → Google ───────────────────────────────────
+// ─── PUSH: Myphelium2 → Google ──────────────────────────────────
 
 export async function pushTaskToGoogle(task: {
   id: string;
@@ -168,7 +168,7 @@ export async function removeGoogleEvent(
   }
 }
 
-// ─── PULL: Google → Mycelium ───────────────────────────────────
+// ─── PULL: Google → Myphelium2 ──────────────────────────────────
 
 export type SyncResult = { synced: number; updated: string[] };
 

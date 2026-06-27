@@ -224,7 +224,7 @@ export function CapturesClient() {
       ) : captures.length === 0 ? (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
           {kind === "all" && source === "all"
-            ? "Speak anything to begin — Mycelium will route it where it fits."
+            ? "Speak anything to begin — Myphelium2 will route it where it fits."
             : "No captures match these filters."}
         </div>
       ) : (
