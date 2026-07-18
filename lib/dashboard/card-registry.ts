@@ -53,6 +53,7 @@ export const CARD_REGISTRY: Record<string, CardConfig> = {
   glossary:      { label: "Glossary",       supports: [1, 2, 3], default_width: 1, default_col: 3, default_position: 3 },
   fuel:          { label: "Fuel",           supports: [1, 2, 3], default_width: 1, default_col: 3, default_position: 4 },
   supplements:   { label: "Supplements",   supports: [1, 2, 3], default_width: 1, default_col: 1, default_position: 5 },
+  bins:          { label: "Bins",          supports: [1, 2, 3], default_width: 1, default_col: 2, default_position: 3 },
 };
 
 export const CARD_KEYS = Object.keys(CARD_REGISTRY);

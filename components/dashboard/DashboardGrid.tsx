@@ -42,6 +42,7 @@ import { Fitness } from "./cards/Fitness";
 import { CaptureReview } from "./cards/CaptureReview";
 import { Glossary } from "./cards/Glossary";
 import { Supplements } from "./cards/Supplements";
+import { Bins } from "./cards/Bins";
 import { CARD_REGISTRY, type CardWidth } from "@/lib/dashboard/card-registry";
 
 // ---------------------------------------------------------------------------
@@ -109,6 +110,7 @@ const DEFAULT_SIZES: Record<string, CardSize> = {
   fitness: "md",
   capture_review: "sm",
   glossary: "sm",
+  bins: "sm",
 };
 
 function buildDefaults(): DashCardPref[] {
@@ -198,6 +200,7 @@ const CARD_COMPONENTS: Record<string, ComponentType<{ width: CardWidth }>> = {
   capture_review: CaptureReview,
   glossary: Glossary,
   supplements: Supplements,
+  bins: Bins,
 };
 
 // ---------------------------------------------------------------------------

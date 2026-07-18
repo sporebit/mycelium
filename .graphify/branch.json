@@ -3,14 +3,14 @@
   "branchName": "main",
   "worktreePath": "P:\\Projects\\Mycelium",
   "upstream": "origin/main",
-  "mergeBase": "bbe34408e4cba583534eda3062bc1802afac655e",
+  "mergeBase": "a249eb8b14b99ff9294e8fe40dd1368de7dac164",
   "firstSeenHead": "676ae66cced3ed6e41872596ee3386b7b9aa3399",
-  "lastSeenHead": "ecd19dc07db9b994f3efd1bd225fa6e278e1bdd2",
-  "lastAnalyzedHead": "ecd19dc07db9b994f3efd1bd225fa6e278e1bdd2",
+  "lastSeenHead": "a249eb8b14b99ff9294e8fe40dd1368de7dac164",
+  "lastAnalyzedHead": "a249eb8b14b99ff9294e8fe40dd1368de7dac164",
   "stale": false,
   "staleReason": null,
   "staleSince": null,
   "lifecycleEvent": null,
   "createdAt": "2026-06-09T19:36:13.990Z",
-  "updatedAt": "2026-06-11T22:16:19.499Z"
+  "updatedAt": "2026-07-18T17:34:18.123Z"
 }
