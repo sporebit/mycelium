@@ -58,3 +58,6 @@ pc-agent/node_modules/
 
 # graphify knowledge graph (generated)
 graphify-out/
+
+# screenshots dumped by scripts/screenshot.mjs — never committed
+screenshots/

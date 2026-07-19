@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { TopRail } from "./TopRail";
 import { GlobalSearch } from "./GlobalSearch";
 import { FloatingCapture } from "./FloatingCapture";
 import { ContextSwitcherGate } from "./ContextSwitcherGate";
@@ -32,12 +31,6 @@ export function Shell({
   void _active;
   return (
     <div className="min-h-screen flex flex-col">
-      {/* TopRail is mobile-only during the P1→P4 nav rebuild. On lg it's
-          replaced by the persistent left Sidebar; on <lg the mobile TabBar
-          from P3 will supersede it in Part 4. */}
-      <div className="lg:hidden">
-        <TopRail />
-      </div>
       <ContextSwitcherGate />
 
       <div className="flex-1 flex flex-col lg:flex-row min-w-0">

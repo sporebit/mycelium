@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SearchMatch } from "@/lib/memory/types";
 import { SourceCard } from "@/components/stroma/SourceCard";
+import { SECTIONS } from "@/lib/nav/sections";
 
 export function GlobalSearch() {
   const router = useRouter();
@@ -107,6 +108,29 @@ export function GlobalSearch() {
     router.push(q ? `/brain?q=${encodeURIComponent(q)}` : "/brain");
   }
 
+  // Navigation results derived from the sections registry. Empty query
+  // shows nothing (memory prompt handles that); non-empty query matches
+  // section labels + subpage labels case-insensitively.
+  const navResults = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [] as { label: string; href: string }[];
+    const out: { label: string; href: string }[] = [];
+    if ("dashboard".includes(q) || "home".includes(q)) {
+      out.push({ label: "Dashboard", href: "/" });
+    }
+    for (const s of SECTIONS) {
+      if (s.label.toLowerCase().includes(q)) {
+        out.push({ label: s.label, href: s.baseRoute });
+      }
+      for (const sp of s.subPages) {
+        if (sp.label.toLowerCase().includes(q)) {
+          out.push({ label: `${s.label} → ${sp.label}`, href: sp.href });
+        }
+      }
+    }
+    return out.slice(0, 8);
+  }, [query]);
+
   if (!open) return null;
 
   return (
@@ -151,6 +175,29 @@ export function GlobalSearch() {
         </form>
 
         <div className="max-h-[55vh] overflow-y-auto p-3">
+          {navResults.length > 0 && (
+            <div className="mb-3">
+              <div className="px-1 pb-1 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
+                Navigate
+              </div>
+              <ul className="flex flex-col">
+                {navResults.map((r) => (
+                  <li key={r.href}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeModal();
+                        router.push(r.href);
+                      }}
+                      className="w-full text-left px-2 py-1.5 rounded-v2-sm text-sm text-text-mid hover:bg-surface-2 hover:text-text-hi transition-colors"
+                    >
+                      {r.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {error ? (
             <div className="text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)] px-1 py-2">
               ⚠ {error}
@@ -160,9 +207,11 @@ export function GlobalSearch() {
               Type to search across all captures, tasks, and notes.
             </div>
           ) : matches === null ? null : matches.length === 0 ? (
-            <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] px-1 py-3">
-              No matches.
-            </div>
+            navResults.length === 0 ? (
+              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] px-1 py-3">
+                No matches.
+              </div>
+            ) : null
           ) : (
             <ul className="flex flex-col gap-2">
               {matches.map((m) => (

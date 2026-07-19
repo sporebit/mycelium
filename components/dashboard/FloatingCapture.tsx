@@ -114,20 +114,22 @@ export function FloatingCapture() {
         </div>
       )}
 
-      {/* Floating + button — only on top-level landing pages */}
+      {/* Floating + button — desktop only (mobile uses the TabBar centre
+          FAB); still only on top-level landing pages per FAB_ROUTES. */}
       {showFab && !open && (
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Capture"
-          className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-accent text-ink-0 shadow-2xl hover:bg-accent/90 transition-transform hover:scale-105 flex items-center justify-center text-xl font-[family-name:var(--font-mono)]"
+          className="hidden lg:flex fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-accent text-ink-0 shadow-2xl hover:bg-accent/90 transition-transform hover:scale-105 items-center justify-center text-xl font-[family-name:var(--font-mono)]"
         >
           +
         </button>
       )}
 
-      {/* Modal — gated on showFab so navigating away closes it */}
-      {showFab && open && (
+      {/* Modal — opens on any route via the "open-capture" event, so it
+          renders whenever `open` is true regardless of showFab. */}
+      {open && (
         <div
           className="fixed inset-0 z-[140] flex items-center justify-center px-4"
           onMouseDown={(e) => {

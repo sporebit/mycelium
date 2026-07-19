@@ -13,7 +13,7 @@ const ENERGY_LABEL: Record<ContextEnergy, string> = {
 };
 
 /**
- * Compact context strip rendered under the TopRail nav. Shows the
+ * Compact context strip rendered under the top of the shell. Shows the
  * auto-detected device, then user-settable where/energy/context dropdowns.
  * Stored in localStorage via useCurrentContext so all surfaces see the
  * same selection.
