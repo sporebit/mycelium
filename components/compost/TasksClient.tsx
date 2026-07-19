@@ -31,6 +31,7 @@ import { localDateKey } from "@/lib/util/date";
 import { useCurrentContext } from "@/lib/hooks/useCurrentContext";
 import { useCurrentDevice } from "@/lib/hooks/useCurrentDevice";
 import { scoreTaskForContext } from "@/lib/compost/now-filter";
+import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 
 const VIEW_STORAGE_KEY = "miles-crm-view";
 const SHOW_COMPLETED_STORAGE_KEY = "mycelium:showCompleted";
@@ -106,26 +107,67 @@ export function TasksClient() {
       ? detailState
       : null;
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(VIEW_STORAGE_KEY, view);
-  }, [view]);
+  // ui_prefs is now source of truth for view / show-completed / show-project.
+  // Legacy localStorage keys (VIEW_STORAGE_KEY etc.) are read once for the
+  // initial paint via the useState lazy inits above, and — if present but
+  // ui_prefs is still at defaults — migrated on first hydration below.
+  // After migration the app stops writing to localStorage; those keys remain
+  // as inert fallback and never get read again.
+  const { prefs: uiPrefs, setPrefs: writeUiPrefs, isLoading: uiPrefsLoading } =
+    useUiPrefs();
+  const hydratedRef = useRef(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(
-      SHOW_COMPLETED_STORAGE_KEY,
-      showCompleted ? "true" : "false",
-    );
-  }, [showCompleted]);
+    if (uiPrefsLoading || hydratedRef.current) return;
+    hydratedRef.current = true;
+    const cv = uiPrefs.compost_view;
+    const cc = uiPrefs.compost_show_completed;
+    const cp = uiPrefs.compost_show_project;
+    const isDefault = cv === "list" && !cc && !cp;
+    const legacyView = readView();
+    const legacyCompleted = readShowCompleted();
+    const legacyProject = readShowProjectTasks();
+    const legacyHasValue =
+      legacyView !== "list" || legacyCompleted || legacyProject;
+
+    if (isDefault && legacyHasValue) {
+      // Migrate legacy localStorage → ui_prefs; local state was already
+      // seeded from localStorage via lazy init so no state sync needed.
+      void writeUiPrefs({
+        compost_view: legacyView,
+        compost_show_completed: legacyCompleted,
+        compost_show_project: legacyProject,
+      });
+    } else if (!isDefault) {
+      // Adopt stored ui_prefs values into local state (may differ from
+      // localStorage). queueMicrotask defers past the effect body per the
+      // codebase's set-state-in-effect pattern.
+      queueMicrotask(() => {
+        if (cv !== view) setView(cv as CrmView);
+        if (cc !== showCompleted) setShowCompleted(cc);
+        if (cp !== showProjectTasks) setShowProjectTasks(cp);
+      });
+    }
+    // deps intentionally minimal — this runs exactly once per mount.
+  }, [uiPrefsLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(
-      SHOW_PROJECT_TASKS_KEY,
-      showProjectTasks ? "true" : "false",
-    );
-  }, [showProjectTasks]);
+    if (!hydratedRef.current) return;
+    if (uiPrefs.compost_view === view) return;
+    void writeUiPrefs({ compost_view: view });
+  }, [view, uiPrefs.compost_view, writeUiPrefs]);
+
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    if (uiPrefs.compost_show_completed === showCompleted) return;
+    void writeUiPrefs({ compost_show_completed: showCompleted });
+  }, [showCompleted, uiPrefs.compost_show_completed, writeUiPrefs]);
+
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    if (uiPrefs.compost_show_project === showProjectTasks) return;
+    void writeUiPrefs({ compost_show_project: showProjectTasks });
+  }, [showProjectTasks, uiPrefs.compost_show_project, writeUiPrefs]);
 
   useEffect(() => {
     let mounted = true;

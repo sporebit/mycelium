@@ -12,6 +12,9 @@ export type UiPrefs = {
   dashboard_layout: Record<string, unknown>;
   dashboard_view: "today" | "everything";
   ventures_incubator_expanded: boolean;
+  compost_view: string;
+  compost_show_completed: boolean;
+  compost_show_project: boolean;
 };
 
 export const UI_PREFS_DEFAULTS: UiPrefs = {
@@ -24,6 +27,9 @@ export const UI_PREFS_DEFAULTS: UiPrefs = {
   dashboard_layout: {},
   dashboard_view: "today",
   ventures_incubator_expanded: false,
+  compost_view: "list",
+  compost_show_completed: false,
+  compost_show_project: false,
 };
 
 /**
