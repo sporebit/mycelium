@@ -1,16 +1,17 @@
 import type { ReactNode } from "react";
 import { SectionLabel } from "./SectionLabel";
+import { Surface } from "@/components/ui";
 
 /**
  * Panel — the standard surface used for dashboard cards and sub-page panels.
  *
- * When `borderless` is true (D2/D3 home-dashboard treatment): renders a
- * solid `bg-ink-1` surface with no border, 8px radius, and 24px padding.
- * Relies on the ink-0 / ink-1 contrast for elevation.
+ * Frame is now rendered via <Surface>. Pixel-equivalent to the pre-v2 output:
+ *   borderless → Surface level=1, border=false, radius=false (own rounded-md).
+ *   classic    → Surface level=1, border=true, radius=false (own rounded-2xl)
+ *                plus translucent bg + backdrop blur + ink-2 border colour
+ *                pushed via !-important className overrides.
  *
- * When `borderless` is false (the existing treatment, kept for fitness
- * sub-pages, programmes editor, etc.): renders the translucent
- * `bg-ink-1/60` with the `border-ink-2` hairline and a larger 2xl radius.
+ * SectionLabel and header/body/footer layout are unchanged.
  */
 export function Panel({
   title,
@@ -33,9 +34,11 @@ export function Panel({
   className?: string;
   bodyClassName?: string;
 }) {
-  const shellClass = borderless
-    ? "relative rounded-md bg-ink-1"
-    : "relative rounded-2xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl shadow-[0_1px_0_0_var(--ink-2)_inset]";
+  // Classic variant carries extra styling Surface doesn't know about; the
+  // `!` prefix guarantees these win over Surface's baseline utilities.
+  const surfaceClass = borderless
+    ? "relative rounded-md"
+    : "relative !bg-ink-1/60 !border-ink-2 rounded-2xl backdrop-blur-xl shadow-[0_1px_0_0_var(--ink-2)_inset]";
   const headerPad = borderless ? "px-6 pt-6 pb-3" : "px-5 pt-4 pb-3";
   const bodyPad = borderless ? "px-6 pb-6" : "px-5 pb-5";
   const footerPad = borderless
@@ -43,7 +46,13 @@ export function Panel({
     : "px-5 py-3 border-t border-ink-2";
 
   return (
-    <section className={`${shellClass} ${className}`}>
+    <Surface
+      as="section"
+      level={1}
+      border={!borderless}
+      radius={false}
+      className={`${surfaceClass} ${className}`}
+    >
       {(title || topRight) && (
         <header className={`flex items-center justify-between ${headerPad}`}>
           {title ? (
@@ -70,6 +79,6 @@ export function Panel({
           {bottomCTA}
         </footer>
       )}
-    </section>
+    </Surface>
   );
 }

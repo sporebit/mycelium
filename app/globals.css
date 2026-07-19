@@ -327,6 +327,12 @@ h1, h2, h3, h4, h5, h6 {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+
+/* v2 primitive: <Skeleton> shimmer (see components/ui/Skeleton.tsx). */
+@keyframes skeleton-shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
 .ticker-fade-in {
   animation: ticker-fade-in var(--dur-base) var(--ease-out);
 }
