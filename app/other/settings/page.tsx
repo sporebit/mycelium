@@ -441,6 +441,20 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
         status="Connected"
         statusOk
       />
+      <IntegrationRow
+        name="Fitness Shortcut Setup"
+        description="iOS Shortcut → workout capture pipeline"
+        status="Configure"
+        statusOk={false}
+        action={
+          <Link
+            href="/fitness/shortcut-setup"
+            className="text-[10px] text-accent hover:underline font-[family-name:var(--font-mono)]"
+          >
+            OPEN →
+          </Link>
+        }
+      />
     </SectionCard>
   );
 }
