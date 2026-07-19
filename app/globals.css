@@ -121,18 +121,9 @@
   --hyphal-stroke: rgba(232, 230, 221, 0.15);
 }
 
-/* Recoleta is a paid font from Latinotype.
-   Purchase at: https://www.latinotype.com/recoleta
-   Place the woff2 in /public/fonts/ and uncomment the @font-face below.
-   Until then, the fallback chain in --font-display falls through to
-   Söhne Breit, then Inter Tight, then a system serif. */
-
-/* @font-face {
-  font-family: "Recoleta";
-  src: url("/fonts/recoleta-semibold.woff2") format("woff2");
-  font-weight: 600;
-  font-display: swap;
-} */
+/* Display face: Fraunces via next/font (layout.tsx). To swap to
+   Recoleta later: change the next/font import + --font-fraunces wiring
+   there; this stack picks it up everywhere. */
 
 /* ---------------------------------------------------------------------------
    Tailwind v4 @theme — exposes tokens as utility classes.
@@ -223,6 +214,7 @@
     "Inter Tight", "Inter",
     -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-display:
+    var(--font-fraunces),
     "Recoleta", "Söhne Breit",
     var(--font-inter-tight),
     "Inter Tight", serif;
