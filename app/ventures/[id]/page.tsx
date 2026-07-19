@@ -78,13 +78,23 @@ export default function VentureDetailPage() {
       </div>
     );
 
+  // Ads tab hidden unless there's activity — keeps a fresh venture's
+  // tab row lean. "Activity" = any ad row OR any recorded spend.
+  const hasAdActivity =
+    ads.length > 0 || ads.some((a) => (a.budget_spent ?? 0) > 0);
   const tabs: { id: VentureTab; label: string }[] = [
-    { id: "overview", label: "OVERVIEW" },
-    { id: "plan", label: "PLAN" },
-    { id: "steps", label: `STEPS (${stepsComplete}/${steps.length})` },
-    { id: "ads", label: `ADS (${ads.length})` },
-    { id: "notes", label: "NOTES" },
+    { id: "overview", label: "Overview" },
+    { id: "plan", label: "Plan" },
+    { id: "steps", label: `Steps (${stepsComplete}/${steps.length})` },
+    ...(hasAdActivity
+      ? [{ id: "ads" as const, label: `Ads (${ads.length})` }]
+      : []),
+    { id: "notes", label: "Notes" },
   ];
+  // If Ads was previously active but now hidden, snap back to Overview.
+  if (tab === "ads" && !hasAdActivity) {
+    setTab("overview");
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -103,35 +113,40 @@ export default function VentureDetailPage() {
           style={{ backgroundColor: venture.accent_colour }}
         />
         <div className="flex-1 min-w-0">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="text-2xl font-semibold text-text-hi tracking-[-0.02em] leading-[1.15]">
             {venture.name}
           </h1>
           {venture.tagline && (
-            <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+            <p className="text-sm text-text-mid">
               {venture.tagline}
             </p>
           )}
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {tabs.map((t) => {
-          const active = tab === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setTab(t.id)}
-              className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
-                active
-                  ? "border-accent/50 bg-accent/15 text-accent"
-                  : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
-              }`}
-            >
-              {t.label}
-            </button>
-          );
-        })}
+      {/* 5-tab row: horizontal scroll on narrow — SegmentedControl's
+          sliding pill assumes similar-width labels, but the counter labels
+          (e.g. "Steps (3/12)") vary too much for that to look clean. */}
+      <div className="-mx-4 sm:mx-0 overflow-x-auto no-scrollbar">
+        <div className="inline-flex items-center gap-1 px-4 sm:px-0 bg-surface-1 border border-hairline rounded-v2-md p-0.5">
+          {tabs.map((t) => {
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTab(t.id)}
+                className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-v2-sm text-[12px] font-[family-name:var(--font-inter-tight)] transition-colors duration-[var(--dur-fast)] [transition-timing-function:var(--ease-out)] ${
+                  active
+                    ? "bg-surface-3 text-text-hi"
+                    : "text-text-lo hover:text-text-mid"
+                }`}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {tab === "overview" && (

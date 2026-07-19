@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Mono } from "@/components/dashboard/Mono";
+import { Sheet, Button, Label } from "@/components/ui";
 import { PLATFORM_OPTIONS, type Ad } from "@/lib/ventures/types";
 import { mutateApi } from "@/lib/data/mutateApi";
 
 type AdsPayload = { ads: Ad[] };
 
+/**
+ * Sheet-based ad editor (P3 Part 4 restyle). Right panel on desktop,
+ * bottom sheet on mobile — Sheet primitive handles the auto-side detection.
+ */
 export function AdModal({
   ventureId,
   adsKey,
@@ -59,8 +63,7 @@ export function AdModal({
       notes: form.notes || null,
     };
 
-    const optimisticId =
-      existing?.id ?? `optimistic-${Date.now()}`;
+    const optimisticId = existing?.id ?? `optimistic-${Date.now()}`;
 
     await mutateApi<AdsPayload>(
       adsKey,
@@ -105,162 +108,149 @@ export function AdModal({
   }
 
   const inputCls =
-    "w-full bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent";
+    "w-full bg-surface-0 border border-hairline rounded-v2-sm text-sm text-text-hi px-3 py-2 outline-none focus:border-glow";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-0/60 backdrop-blur-sm overflow-y-auto py-8">
-      <div className="bg-ink-1 border border-ink-2 rounded-lg p-6 w-full max-w-lg">
-        <div className="text-base text-text-0 font-[family-name:var(--font-display)] mb-4">
-          {existing ? "Edit Ad" : "Add Ad"}
+    <Sheet open onClose={onClose} title={existing ? "Edit ad" : "Add ad"}>
+      <div className="flex flex-col gap-3">
+        <div>
+          <Label>Platform</Label>
+          <select
+            value={form.platform}
+            onChange={(e) => set("platform", e.target.value)}
+            className={`${inputCls} mt-1`}
+          >
+            {PLATFORM_OPTIONS.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
         </div>
-        <div className="flex flex-col gap-3">
+        <div>
+          <Label>Campaign name</Label>
+          <input
+            className={`${inputCls} mt-1`}
+            value={form.campaign_name}
+            onChange={(e) => set("campaign_name", e.target.value)}
+          />
+        </div>
+        <div>
+          <Label>Headline</Label>
+          <input
+            className={`${inputCls} mt-1`}
+            value={form.headline}
+            onChange={(e) => set("headline", e.target.value)}
+          />
+        </div>
+        <div>
+          <Label>Body copy</Label>
+          <textarea
+            className={`${inputCls} mt-1`}
+            rows={3}
+            value={form.body_copy}
+            onChange={(e) => set("body_copy", e.target.value)}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <Mono className="text-[10px] text-ink-3 mb-1">PLATFORM</Mono>
+            <Label>Media URL</Label>
+            <input
+              className={`${inputCls} mt-1`}
+              value={form.media_url}
+              onChange={(e) => set("media_url", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Media type</Label>
             <select
-              value={form.platform}
-              onChange={(e) => set("platform", e.target.value)}
-              className={inputCls}
+              value={form.media_type}
+              onChange={(e) => set("media_type", e.target.value)}
+              className={`${inputCls} mt-1`}
             >
-              {PLATFORM_OPTIONS.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
+              <option value="image">Image</option>
+              <option value="video">Video</option>
+              <option value="carousel">Carousel</option>
             </select>
           </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <Mono className="text-[10px] text-ink-3 mb-1">CAMPAIGN NAME</Mono>
+            <Label>Start date</Label>
             <input
-              className={inputCls}
-              value={form.campaign_name}
-              onChange={(e) => set("campaign_name", e.target.value)}
+              type="date"
+              className={`${inputCls} mt-1`}
+              value={form.start_date}
+              onChange={(e) => set("start_date", e.target.value)}
             />
           </div>
           <div>
-            <Mono className="text-[10px] text-ink-3 mb-1">HEADLINE</Mono>
+            <Label>End date</Label>
             <input
-              className={inputCls}
-              value={form.headline}
-              onChange={(e) => set("headline", e.target.value)}
-            />
-          </div>
-          <div>
-            <Mono className="text-[10px] text-ink-3 mb-1">BODY COPY</Mono>
-            <textarea
-              className={inputCls}
-              rows={3}
-              value={form.body_copy}
-              onChange={(e) => set("body_copy", e.target.value)}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Mono className="text-[10px] text-ink-3 mb-1">MEDIA URL</Mono>
-              <input
-                className={inputCls}
-                value={form.media_url}
-                onChange={(e) => set("media_url", e.target.value)}
-              />
-            </div>
-            <div>
-              <Mono className="text-[10px] text-ink-3 mb-1">MEDIA TYPE</Mono>
-              <select
-                value={form.media_type}
-                onChange={(e) => set("media_type", e.target.value)}
-                className={inputCls}
-              >
-                <option value="image">Image</option>
-                <option value="video">Video</option>
-                <option value="carousel">Carousel</option>
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Mono className="text-[10px] text-ink-3 mb-1">START DATE</Mono>
-              <input
-                type="date"
-                className={inputCls}
-                value={form.start_date}
-                onChange={(e) => set("start_date", e.target.value)}
-              />
-            </div>
-            <div>
-              <Mono className="text-[10px] text-ink-3 mb-1">END DATE</Mono>
-              <input
-                type="date"
-                className={inputCls}
-                value={form.end_date}
-                onChange={(e) => set("end_date", e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div>
-              <Mono className="text-[10px] text-ink-3 mb-1">BUDGET (£)</Mono>
-              <input
-                type="number"
-                className={inputCls}
-                value={form.budget_spent}
-                onChange={(e) => set("budget_spent", e.target.value)}
-              />
-            </div>
-            <div>
-              <Mono className="text-[10px] text-ink-3 mb-1">IMPRESSIONS</Mono>
-              <input
-                type="number"
-                className={inputCls}
-                value={form.impressions}
-                onChange={(e) => set("impressions", e.target.value)}
-              />
-            </div>
-            <div>
-              <Mono className="text-[10px] text-ink-3 mb-1">CLICKS</Mono>
-              <input
-                type="number"
-                className={inputCls}
-                value={form.clicks}
-                onChange={(e) => set("clicks", e.target.value)}
-              />
-            </div>
-            <div>
-              <Mono className="text-[10px] text-ink-3 mb-1">ROAS</Mono>
-              <input
-                type="number"
-                step="0.1"
-                className={inputCls}
-                value={form.roas}
-                onChange={(e) => set("roas", e.target.value)}
-              />
-            </div>
-          </div>
-          <div>
-            <Mono className="text-[10px] text-ink-3 mb-1">NOTES</Mono>
-            <textarea
-              className={inputCls}
-              rows={2}
-              value={form.notes}
-              onChange={(e) => set("notes", e.target.value)}
+              type="date"
+              className={`${inputCls} mt-1`}
+              value={form.end_date}
+              onChange={(e) => set("end_date", e.target.value)}
             />
           </div>
         </div>
-        <div className="flex justify-end gap-2 mt-5">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-3 py-1.5 text-xs text-ink-3 hover:text-text-0"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={save}
-            className="px-4 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.12em]"
-          >
-            {existing ? "UPDATE" : "ADD"}
-          </button>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <Label>Budget £</Label>
+            <input
+              type="number"
+              className={`${inputCls} mt-1`}
+              value={form.budget_spent}
+              onChange={(e) => set("budget_spent", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Impressions</Label>
+            <input
+              type="number"
+              className={`${inputCls} mt-1`}
+              value={form.impressions}
+              onChange={(e) => set("impressions", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Clicks</Label>
+            <input
+              type="number"
+              className={`${inputCls} mt-1`}
+              value={form.clicks}
+              onChange={(e) => set("clicks", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>ROAS</Label>
+            <input
+              type="number"
+              step="0.1"
+              className={`${inputCls} mt-1`}
+              value={form.roas}
+              onChange={(e) => set("roas", e.target.value)}
+            />
+          </div>
+        </div>
+        <div>
+          <Label>Notes</Label>
+          <textarea
+            className={`${inputCls} mt-1`}
+            rows={2}
+            value={form.notes}
+            onChange={(e) => set("notes", e.target.value)}
+          />
         </div>
       </div>
-    </div>
+      <div className="flex justify-end gap-2 mt-5">
+        <Button variant="ghost" size="sm" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button variant="primary" size="sm" onClick={save}>
+          {existing ? "Update" : "Add"}
+        </Button>
+      </div>
+    </Sheet>
   );
 }

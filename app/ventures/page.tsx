@@ -39,7 +39,7 @@ export default function VenturesThisWeekPage() {
         </div>
       ) : active.length === 0 ? (
         <div className="text-sm text-text-lo italic py-8 text-center">
-          Nothing active. Move an incubator idea up when you're ready.
+          Nothing active. Move an incubator idea up when you&apos;re ready.
         </div>
       ) : (
         <ul className="flex flex-col gap-3">

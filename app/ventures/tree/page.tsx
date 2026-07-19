@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Mono } from "@/components/dashboard/Mono";
+import { Surface, Sheet, Button, Label } from "@/components/ui";
 import { useApi } from "@/lib/data/useApi";
 import { mutateApi } from "@/lib/data/mutateApi";
 import type { Venture } from "@/lib/ventures/types";
@@ -17,13 +17,16 @@ const KIND_ICONS: Record<string, string> = {
   idea: "💡",
 };
 
-const STATUS_COLOURS: Record<string, string> = {
-  launched: "bg-ok/20 text-ok",
-  building: "bg-info/20 text-info",
-  exploring: "bg-warn/20 text-warn",
-  idea: "bg-ink-3/20 text-ink-3",
-  paused: "bg-ink-3/20 text-ink-3",
-  closed: "bg-danger/20 text-danger",
+const STATUS_CHIP =
+  "px-1.5 py-0.5 rounded-v2-sm text-[9px] uppercase tracking-[0.1em] font-[family-name:var(--font-jetbrains-mono)]";
+
+const STATUS_TONE: Record<string, string> = {
+  launched: "bg-glow-wash text-glow",
+  building: "bg-surface-2 text-text-hi",
+  exploring: "bg-surface-2 text-v2-warn",
+  idea: "bg-surface-2 text-text-lo",
+  paused: "bg-surface-2 text-text-lo",
+  closed: "bg-surface-2 text-v2-error",
 };
 
 type TreeVenture = Pick<
@@ -35,51 +38,64 @@ function TreeNode({
   venture,
   allVentures,
   onAdd,
+  depth,
 }: {
   venture: TreeVenture;
   allVentures: TreeVenture[];
   onAdd: (parentId: string) => void;
+  depth: number;
 }) {
   const [expanded, setExpanded] = useState(true);
   const kids = allVentures.filter((c) => c.parent_id === venture.id);
+  // Cap Surface level at 3 per spec; depth 0 is root row.
+  const level = Math.min(depth + 1, 3) as 1 | 2 | 3;
 
   return (
-    <div className="ml-4 border-l border-ink-2 pl-4">
-      <div className="flex items-center gap-2 py-1.5 group">
-        {kids.length > 0 && (
+    <div className={depth > 0 ? "ml-4 border-l border-hairline pl-3" : ""}>
+      <Surface
+        level={level}
+        interactive
+        className="flex items-center gap-2 px-3 py-2 mt-1 group"
+      >
+        {kids.length > 0 ? (
           <button
             type="button"
             onClick={() => setExpanded((e) => !e)}
-            className="text-ink-3 hover:text-text-0 text-xs w-4"
+            className="text-text-lo hover:text-text-hi text-xs w-4 shrink-0"
+            aria-label={expanded ? "Collapse" : "Expand"}
           >
             {expanded ? "▾" : "▸"}
           </button>
+        ) : (
+          <span className="w-4 shrink-0" />
         )}
-        {kids.length === 0 && <span className="w-4" />}
         <span
           className="w-2.5 h-2.5 rounded-full shrink-0"
           style={{ backgroundColor: venture.accent_colour }}
+          aria-hidden
         />
-        <span className="text-sm mr-1">{KIND_ICONS[venture.kind] ?? "📋"}</span>
+        <span className="text-sm shrink-0" aria-hidden>
+          {KIND_ICONS[venture.kind] ?? "📋"}
+        </span>
         <Link
           href={`/ventures/${venture.id}`}
-          className="font-[family-name:var(--font-display)] text-text-0 hover:text-accent transition-colors truncate"
+          className="text-sm text-text-hi hover:text-glow transition-colors truncate min-w-0 flex-1"
         >
           {venture.name}
         </Link>
         <span
-          className={`shrink-0 px-1.5 py-0.5 rounded text-[9px] font-[family-name:var(--font-mono)] tracking-[0.1em] uppercase ${STATUS_COLOURS[venture.status] ?? ""}`}
+          className={`shrink-0 ${STATUS_CHIP} ${STATUS_TONE[venture.status] ?? "bg-surface-2 text-text-lo"}`}
         >
           {venture.status}
         </span>
         <button
           type="button"
           onClick={() => onAdd(venture.id)}
-          className="opacity-0 group-hover:opacity-100 text-[10px] text-ink-3 hover:text-accent font-[family-name:var(--font-mono)] tracking-[0.1em] transition-opacity ml-auto"
+          className="opacity-0 group-hover:opacity-100 text-[10px] text-text-lo hover:text-glow font-[family-name:var(--font-jetbrains-mono)] tracking-[0.1em] transition-opacity"
         >
-          + ADD CHILD
+          + child
         </button>
-      </div>
+      </Surface>
       {expanded &&
         kids.map((kid) => (
           <TreeNode
@@ -87,6 +103,7 @@ function TreeNode({
             venture={kid}
             allVentures={allVentures}
             onAdd={onAdd}
+            depth={depth + 1}
           />
         ))}
     </div>
@@ -107,9 +124,6 @@ export default function VenturesTreePage() {
     setAdding(null);
     setNewName("");
 
-    // Optimistic: prepend a placeholder venture so the tree updates
-    // instantly. SWR revalidates after the POST completes; the placeholder
-    // is replaced by the real row from the server.
     const optimisticId = `optimistic-${Date.now()}`;
     await mutateApi<{ ventures: Venture[] }>(
       VENTURES_KEY,
@@ -156,28 +170,29 @@ export default function VenturesTreePage() {
   }
 
   const roots = (ventures ?? []).filter((v) => !v.parent_id);
+  const parentName = ventures?.find((v) => v.id === adding)?.name ?? "";
 
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="text-2xl font-semibold text-text-hi tracking-[-0.02em] leading-[1.15]">
           Venture Tree
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <p className="text-sm text-text-mid">
           The full hierarchy at a glance.
         </p>
       </header>
 
       {ventures === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic py-12 text-center">
           Loading…
         </div>
       ) : roots.length === 0 ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic py-12 text-center">
           No ventures yet.
         </div>
       ) : (
-        <div className="rounded-md bg-ink-1 p-4">
+        <div className="flex flex-col gap-1">
           {roots.map((root) => (
             <TreeNode
               key={root.id}
@@ -187,49 +202,55 @@ export default function VenturesTreePage() {
                 setAdding(parentId);
                 setNewName("");
               }}
+              depth={0}
             />
           ))}
         </div>
       )}
 
-      {adding && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-0/60 backdrop-blur-sm">
-          <div className="bg-ink-1 border border-ink-2 rounded-lg p-6 w-full max-w-sm">
-            <div className="text-sm text-text-0 font-[family-name:var(--font-display)] mb-3">
-              Add child venture
-            </div>
-            <Mono className="text-[10px] text-ink-3 mb-3">
-              Parent: {ventures?.find((v) => v.id === adding)?.name}
-            </Mono>
-            <input
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="Venture name…"
-              className="w-full bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent mb-3"
-              autoFocus
-              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setAdding(null)}
-                className="px-3 py-1.5 text-xs text-ink-3 hover:text-text-0"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleAdd}
-                disabled={!newName.trim()}
-                className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.12em] disabled:opacity-40"
-              >
-                ADD
-              </button>
-            </div>
-          </div>
+      <Sheet
+        open={!!adding}
+        onClose={() => {
+          setAdding(null);
+          setNewName("");
+        }}
+        title="Add child venture"
+      >
+        <Label>Parent</Label>
+        <div className="text-sm text-text-hi mt-1 mb-4">{parentName}</div>
+        <Label>Name</Label>
+        <input
+          autoFocus
+          type="text"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          placeholder="Venture name…"
+          className="w-full mt-1 bg-surface-0 border border-hairline rounded-v2-sm text-sm text-text-hi px-3 py-2 outline-none focus:border-glow"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void handleAdd();
+          }}
+        />
+        <div className="flex justify-end gap-2 mt-5">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setAdding(null);
+              setNewName("");
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleAdd}
+            disabled={!newName.trim()}
+          >
+            Add
+          </Button>
         </div>
-      )}
+      </Sheet>
     </div>
   );
 }
