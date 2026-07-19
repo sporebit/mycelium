@@ -10,6 +10,7 @@ export type UiPrefs = {
   // Freeform bag for the DashboardGrid layout so future card shape changes
   // don't require a migration. Shape: { prefs: DashCardPref[] }.
   dashboard_layout: Record<string, unknown>;
+  dashboard_view: "today" | "everything";
 };
 
 export const UI_PREFS_DEFAULTS: UiPrefs = {
@@ -20,6 +21,7 @@ export const UI_PREFS_DEFAULTS: UiPrefs = {
   tickers_expanded: false,
   sidebar_collapsed: false,
   dashboard_layout: {},
+  dashboard_view: "today",
 };
 
 /**

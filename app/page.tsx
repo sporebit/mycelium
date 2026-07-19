@@ -1,9 +1,7 @@
 import { Shell } from "@/components/dashboard/Shell";
 import { OperatorZone } from "@/components/dashboard/OperatorZone";
 import { TodayHeader } from "@/components/dashboard/today/TodayHeader";
-import { NowBlock } from "@/components/dashboard/today/NowBlock";
-import { TimelineRail } from "@/components/dashboard/today/TimelineRail";
-import { GlanceRow } from "@/components/dashboard/today/GlanceRow";
+import { DashboardSwitcher } from "@/components/dashboard/today/DashboardSwitcher";
 import { createServerClient } from "@/lib/supabase/server";
 import {
   buildHeadlineContext,
@@ -28,9 +26,7 @@ export default async function DashboardPage() {
     <Shell active="HOME">
       <OperatorZone candidates={candidates} />
       <TodayHeader />
-      <NowBlock />
-      <TimelineRail />
-      <GlanceRow />
+      <DashboardSwitcher />
     </Shell>
   );
 }
