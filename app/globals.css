@@ -121,9 +121,10 @@
   --hyphal-stroke: rgba(232, 230, 221, 0.15);
 }
 
-/* Display face: Fraunces via next/font (layout.tsx). To swap to
-   Recoleta later: change the next/font import + --font-fraunces wiring
-   there; this stack picks it up everywhere. */
+/* Display face: Inter Tight weight 600 with tighter tracking.
+   There is no separate display family — hierarchy comes from weight
+   and size, not typeface. If a serif is ever wanted, load it in
+   layout.tsx and prepend its variable to --font-display below. */
 
 /* ---------------------------------------------------------------------------
    Tailwind v4 @theme — exposes tokens as utility classes.
@@ -213,11 +214,13 @@
     var(--font-inter-tight),
     "Inter Tight", "Inter",
     -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  /* Display face resolves to Inter Tight — the family is intentionally
+     shared with --font-sans. Headings differentiate via weight 600 and
+     the tighter tracking baked into h1..h6 / .card-hero below. */
   --font-display:
-    var(--font-fraunces),
-    "Recoleta", "Söhne Breit",
     var(--font-inter-tight),
-    "Inter Tight", serif;
+    "Inter Tight", "Inter",
+    -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono:
     "Berkeley Mono",
     var(--font-jetbrains-mono),
@@ -279,6 +282,8 @@ table {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
   color: var(--text-0);
 }
 
@@ -533,7 +538,8 @@ h1, h2, h3, h4, h5, h6 {
 .card-hero {
   font-family: var(--font-display);
   font-size: var(--text-48);
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   line-height: 1.1;
   color: var(--text-0);
   font-feature-settings: "tnum";
@@ -541,7 +547,8 @@ h1, h2, h3, h4, h5, h6 {
 .card-hero-primary {
   font-family: var(--font-display);
   font-size: var(--text-52);
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   line-height: 1.1;
   color: var(--glow-0);
   font-feature-settings: "tnum";
