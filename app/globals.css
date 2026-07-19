@@ -7,24 +7,65 @@
 :root {
   color-scheme: dark;
 
-  /* LOAM — background scale, warm dark */
-  --ink-0: #0e1410;          /* page background, deepest */
-  --ink-1: #141c17;          /* card surface */
-  --ink-2: #1c2620;          /* elevated surface, modal */
-  --ink-3: #283328;          /* hover state, divider */
-  --ink-4: #3a4639;          /* border, structure */
+  /* ================= Loam & Glow v2 — canonical tokens =================
+     New code uses ONLY these names. Legacy names below are aliases kept
+     for ~1200 existing usages and are frozen — never extend legacy usage.
+     Collision-resolved names: --v2-warn, --v2-error, --v2-info,
+     --v2-radius-sm, --v2-radius-md (existing --warn/--error/--info have
+     the same semantic but different rendering; --radius-sm/md exist with
+     smaller values). All other v2 names had no collision. */
+  --surface-0: #0b100d;
+  --surface-1: #10160f;
+  --surface-2: #161d15;
+  --surface-3: #1c241b;
+  --hairline: rgba(232, 230, 221, 0.08);
+  --hairline-strong: rgba(232, 230, 221, 0.14);
+  --text-hi: #ecebe3;
+  --text-mid: #a8a89d;
+  --text-lo: #6d6f64;
+  --text-ghost: #454840;
+  --glow: #84f5b8;
+  --glow-dim: #4fae7f;
+  --glow-wash: rgba(132, 245, 184, 0.07);
+  --v2-warn: #f5b56d;
+  --v2-error: #e07a5f;
+  --v2-info: #95b4d6;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --dur-page: 480ms;
+  --v2-radius-sm: 6px;
+  --v2-radius-md: 10px;
+  /* --radius-lg (16px) and --radius-xl (24px) below match v2 values by
+     coincidence — no v2-prefixed duplicates needed. */
 
-  /* TEXT — warm whites, never pure */
-  --text-0: #e8e6dd;         /* primary text */
-  --text-1: #b8b5a5;         /* secondary text */
-  --text-2: #7a786c;         /* muted, labels */
-  --text-3: #4d4b43;         /* placeholder, disabled */
+  /* LOAM — background scale (rewired to v2 surfaces). */
+  --ink-0: var(--surface-0);
+  --ink-1: var(--surface-1);
+  --ink-2: var(--surface-2);
+  /* DELIBERATE TRAP PRESERVED: ink-3/ink-4 are TEXT tokens in practice
+     (~685 usages via the @theme text-ink-3/text-ink-4 mapping to text-2/
+     text-0). Keep them mapped to text values. Do NOT "fix" this to
+     surfaces — that would recolour every card label and body text. */
+  --ink-3: var(--text-lo);
+  --ink-4: var(--text-hi);
 
-  /* GLOW — the bioluminescent accent (DISCIPLINE: use sparingly) */
-  --glow-0: #84f5b8;         /* hero numbers, active state, PR markers */
-  --glow-1: #5fd396;         /* hover variant */
-  --glow-2: #2a8b56;         /* deeper, for badge backgrounds */
-  --glow-3: #1a3d2a;         /* very dim, subtle highlights */
+  /* TEXT — warm whites, never pure (rewired to v2 text). */
+  --text-0: var(--text-hi);
+  --text-1: var(--text-mid);
+  --text-2: var(--text-lo);
+  --text-3: var(--text-ghost);
+
+  /* GLOW — the bioluminescent accent.
+     --glow-0/1 rewire to v2 glow tokens; --glow-2/3 stay as literals —
+     they are named deep/badge variants referenced directly and are not
+     part of the v2 scale. */
+  --glow-0: var(--glow);
+  --glow-1: var(--glow-dim);
+  --glow-2: #2a8b56;
+  --glow-3: #1a3d2a;
 
   /* EARTH — semantic warnings, never aggressive */
   --warn: #f5b56d;           /* amber, dried polypore */
@@ -103,6 +144,34 @@
    bg-ink-3 / border-ink-4 (which were near-zero usage in the old palette).
    --------------------------------------------------------------------------- */
 @theme {
+  /* ── v2 canonical utilities ────────────────────────────────────────
+     bg-surface-0..3, text-hi/mid/lo/ghost, border-hairline(-strong),
+     text-glow / text-glow-dim / bg-glow-wash. Radius v2 utilities
+     (rounded-v2-sm/md/lg/xl) are namespaced separately so they do not
+     stomp the ~47 existing rounded-lg sites that expect Tailwind's 8px
+     default. */
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-text-hi: var(--text-hi);
+  --color-text-mid: var(--text-mid);
+  --color-text-lo: var(--text-lo);
+  --color-text-ghost: var(--text-ghost);
+  --color-glow: var(--glow);
+  --color-glow-dim: var(--glow-dim);
+  --color-glow-wash: var(--glow-wash);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-v2-warn: var(--v2-warn);
+  --color-v2-error: var(--v2-error);
+  --color-v2-info: var(--v2-info);
+  --radius-v2-sm: var(--v2-radius-sm);
+  --radius-v2-md: var(--v2-radius-md);
+  --radius-v2-lg: 16px;
+  --radius-v2-xl: 24px;
+
+  /* ── Legacy utilities (frozen, values now flow via v2 aliases) ──── */
   /* Background scale */
   --color-ink-0: var(--ink-0);
   --color-ink-1: var(--ink-1);
@@ -259,7 +328,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 .habit-count-pulse {
-  animation: habit-count-pulse 300ms ease-out;
+  animation: habit-count-pulse var(--dur-slow) var(--ease-out);
 }
 
 @keyframes ticker-fade-in {
@@ -267,7 +336,7 @@ h1, h2, h3, h4, h5, h6 {
   to   { opacity: 1; }
 }
 .ticker-fade-in {
-  animation: ticker-fade-in 200ms ease-out;
+  animation: ticker-fade-in var(--dur-base) var(--ease-out);
 }
 
 /* ---------------------------------------------------------------------------
@@ -281,7 +350,7 @@ h1, h2, h3, h4, h5, h6 {
   50%      { opacity: 1.0; }
 }
 .spore-pulse {
-  animation: spore-pulse 5s ease-in-out infinite;
+  animation: spore-pulse 5s var(--ease-out) infinite;
 }
 
 /* wordmark-glow — 3.5s bioluminescent L→R sweep across the Mycelium
@@ -314,7 +383,7 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  animation: wordmark-glow-sweep 3.5s ease-in-out infinite;
+  animation: wordmark-glow-sweep 3.5s var(--ease-out) infinite;
 }
 
 /* growth-in — replaces fade-in for newly-arriving elements (tasks,
@@ -332,7 +401,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 .growth-in {
-  animation: growth-in var(--duration-base) var(--ease-default);
+  animation: growth-in var(--dur-base) var(--ease-out);
 }
 
 /* glow-pulse — one-shot interactive feedback. Apply the class via
@@ -343,7 +412,7 @@ h1, h2, h3, h4, h5, h6 {
   100% { box-shadow: 0 0 0 0 transparent; }
 }
 .glow-pulse {
-  animation: glow-pulse var(--duration-base) var(--ease-default);
+  animation: glow-pulse var(--dur-base) var(--ease-out);
 }
 
 /* drawer-slide-in — used by TaskDrawer and any future side-drawer.
@@ -354,7 +423,7 @@ h1, h2, h3, h4, h5, h6 {
   100% { transform: translateX(0);    opacity: 1; }
 }
 .drawer-slide-in {
-  animation: drawer-slide-in var(--duration-base) var(--ease-default);
+  animation: drawer-slide-in var(--dur-base) var(--ease-out);
 }
 
 @keyframes detail-pane-slide-in {
@@ -362,7 +431,7 @@ h1, h2, h3, h4, h5, h6 {
   100% { transform: translateX(0);  opacity: 1; }
 }
 .detail-pane-slide-in {
-  animation: detail-pane-slide-in 200ms ease-out;
+  animation: detail-pane-slide-in var(--dur-base) var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -459,7 +528,7 @@ h1, h2, h3, h4, h5, h6 {
 .glossary-pulse {
   transform-origin: center;
   transform-box: fill-box;
-  animation: glossary-pulse 2.6s ease-in-out infinite;
+  animation: glossary-pulse 2.6s var(--ease-out) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
