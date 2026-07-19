@@ -4,6 +4,7 @@ import { GlobalSearch } from "./GlobalSearch";
 import { FloatingCapture } from "./FloatingCapture";
 import { ContextSwitcherGate } from "./ContextSwitcherGate";
 import { ApiErrorToast } from "@/components/ui";
+import { Sidebar } from "@/components/shell/Sidebar";
 
 /**
  * The Shell wraps every page with the single unified TopRail nav.
@@ -29,24 +30,32 @@ export function Shell({
   void _active;
   return (
     <div className="min-h-screen flex flex-col">
-      <TopRail />
+      {/* TopRail is mobile-only during the P1→P4 nav rebuild. On lg it's
+          replaced by the persistent left Sidebar; on <lg the mobile TabBar
+          from P3 will supersede it in Part 4. */}
+      <div className="lg:hidden">
+        <TopRail />
+      </div>
       <ContextSwitcherGate />
 
-      {/* No max-width — the kanban view alone needs 10 columns wide,
-          which exceeded the prior 1400px clamp and forced horizontal
-          page scroll. Pages that want a narrower reading column can
-          set their own max-width inside `children`. */}
-      <main className="flex-1 w-full px-4 sm:px-6 py-4 sm:py-6">
-        {children ? (
-          children
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)_360px] gap-4 mx-auto max-w-[1400px]">
-            <div className="flex flex-col gap-4 min-w-0">{left}</div>
-            <div className="flex flex-col gap-4 min-w-0">{centre}</div>
-            <div className="flex flex-col gap-4 min-w-0">{right}</div>
-          </div>
-        )}
-      </main>
+      <div className="flex-1 flex flex-col lg:flex-row min-w-0">
+        <Sidebar />
+        {/* No max-width — the kanban view alone needs 10 columns wide,
+            which exceeded the prior 1400px clamp and forced horizontal
+            page scroll. Pages that want a narrower reading column can
+            set their own max-width inside `children`. */}
+        <main className="flex-1 w-full px-4 sm:px-6 py-4 sm:py-6 min-w-0">
+          {children ? (
+            children
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)_360px] gap-4 mx-auto max-w-[1400px]">
+              <div className="flex flex-col gap-4 min-w-0">{left}</div>
+              <div className="flex flex-col gap-4 min-w-0">{centre}</div>
+              <div className="flex flex-col gap-4 min-w-0">{right}</div>
+            </div>
+          )}
+        </main>
+      </div>
 
       <GlobalSearch />
       <FloatingCapture />

@@ -6,6 +6,7 @@ export type UiPrefs = {
   pinned_mobile_tabs: string[];
   hidden_sections: string[];
   tickers_expanded: boolean;
+  sidebar_collapsed: boolean;
 };
 
 export const UI_PREFS_DEFAULTS: UiPrefs = {
@@ -14,6 +15,7 @@ export const UI_PREFS_DEFAULTS: UiPrefs = {
   pinned_mobile_tabs: ["dashboard", "organisation", "fitness", "health"],
   hidden_sections: [],
   tickers_expanded: false,
+  sidebar_collapsed: false,
 };
 
 /**

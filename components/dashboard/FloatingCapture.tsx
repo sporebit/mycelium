@@ -35,6 +35,16 @@ export function FloatingCapture() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  // External trigger: Sidebar / TabBar dispatch "open-capture" to open the
+  // same capture modal without needing a shared React context.
+  useEffect(() => {
+    function onOpen() {
+      setOpen(true);
+    }
+    window.addEventListener("open-capture", onOpen);
+    return () => window.removeEventListener("open-capture", onOpen);
+  }, []);
+
   useEffect(() => {
     if (open) requestAnimationFrame(() => textareaRef.current?.focus());
   }, [open]);
