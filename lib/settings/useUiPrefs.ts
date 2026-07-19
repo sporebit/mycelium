@@ -9,7 +9,7 @@ import {
 } from "./uiPrefs";
 
 export function useUiPrefs() {
-  const { data } = useApi<UiPrefs>(UI_PREFS_KEY);
+  const { data, isLoading } = useApi<UiPrefs>(UI_PREFS_KEY);
   const prefs: UiPrefs = { ...UI_PREFS_DEFAULTS, ...(data ?? {}) };
 
   async function setPrefs(partial: Partial<UiPrefs>): Promise<void> {
@@ -27,5 +27,5 @@ export function useUiPrefs() {
     );
   }
 
-  return { prefs, setPrefs };
+  return { prefs, setPrefs, isLoading };
 }

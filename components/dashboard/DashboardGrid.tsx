@@ -37,6 +37,7 @@ import { Goals } from "./cards/Goals";
 import { KeyBlockers } from "./cards/KeyBlockers";
 import { Nutrition } from "./cards/Nutrition";
 import { Journal } from "./cards/Journal";
+import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { Fitness } from "./cards/Fitness";
 import { CaptureReview } from "./cards/CaptureReview";
 import { Glossary } from "./cards/Glossary";
@@ -90,10 +91,12 @@ function mdColSpan(size: CardSize): number {
 }
 
 // ---------------------------------------------------------------------------
-// localStorage persistence
+// Persistence — ui_prefs.dashboard_layout is source of truth.
+// Legacy "dashboard-cards" localStorage is read ONCE for one-time migration
+// after which it is inert (spec: don't delete it, just stop reading).
 // ---------------------------------------------------------------------------
 
-const STORAGE_KEY = "dashboard-cards";
+const LEGACY_STORAGE_KEY = "dashboard-cards";
 
 const DEFAULT_SIZES: Record<string, CardSize> = {
   operator: "md",
@@ -120,36 +123,34 @@ function buildDefaults(): DashCardPref[] {
   }));
 }
 
-function loadPrefs(): DashCardPref[] {
-  if (typeof window === "undefined") return buildDefaults();
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return buildDefaults();
-    const parsed = JSON.parse(raw) as DashCardPref[];
-    if (!Array.isArray(parsed) || parsed.length === 0) return buildDefaults();
-    const existing = new Set(parsed.map((p) => p.id));
-    const reconciled = parsed.filter((p) => CARD_REGISTRY[p.id]);
-    let maxOrder = Math.max(0, ...reconciled.map((p) => p.order));
-    for (const key of Object.keys(CARD_REGISTRY)) {
-      if (!existing.has(key)) {
-        reconciled.push({
-          id: key,
-          size: DEFAULT_SIZES[key] ?? "md",
-          order: ++maxOrder,
-          hidden: false,
-        });
-      }
+function reconcile(parsed: DashCardPref[]): DashCardPref[] {
+  const filtered = parsed.filter((p) => CARD_REGISTRY[p.id]);
+  const existing = new Set(filtered.map((p) => p.id));
+  let maxOrder = Math.max(0, ...filtered.map((p) => p.order));
+  for (const key of Object.keys(CARD_REGISTRY)) {
+    if (!existing.has(key)) {
+      filtered.push({
+        id: key,
+        size: DEFAULT_SIZES[key] ?? "md",
+        order: ++maxOrder,
+        hidden: false,
+      });
     }
-    return reconciled;
-  } catch {
-    return buildDefaults();
   }
+  return filtered;
 }
 
-function savePrefs(prefs: DashCardPref[]) {
+function readLegacyLocal(): DashCardPref[] | null {
+  if (typeof window === "undefined") return null;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
-  } catch { /* quota — acceptable loss */ }
+    const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as DashCardPref[];
+    if (!Array.isArray(parsed) || parsed.length === 0) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -205,7 +206,7 @@ const CARD_COMPONENTS: Record<string, ComponentType<{ width: CardWidth }>> = {
 // ---------------------------------------------------------------------------
 
 export function DashboardGrid() {
-  const [prefs, setPrefs] = useState<DashCardPref[] | null>(null);
+  const { prefs: uiPrefs, setPrefs: writeUiPrefs, isLoading } = useUiPrefs();
   const [editing, setEditing] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -221,14 +222,29 @@ export function DashboardGrid() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
+  const stored = (uiPrefs.dashboard_layout as { prefs?: DashCardPref[] } | undefined)
+    ?.prefs;
+  const prefs: DashCardPref[] | null = isLoading
+    ? null
+    : stored && stored.length > 0
+      ? reconcile(stored)
+      : buildDefaults();
+
+  // One-time migration: if ui_prefs.dashboard_layout is empty AND a legacy
+  // localStorage key exists, write the legacy value into ui_prefs. Never
+  // read localStorage after this — ui_prefs is source of truth.
   useEffect(() => {
-    const loaded = loadPrefs();
-    queueMicrotask(() => setPrefs(loaded));
-  }, []);
+    if (isLoading) return;
+    if (stored && stored.length > 0) return;
+    const legacy = readLegacyLocal();
+    if (!legacy) return;
+    void writeUiPrefs({
+      dashboard_layout: { prefs: reconcile(legacy) },
+    });
+  }, [isLoading, stored, writeUiPrefs]);
 
   function applyPrefs(next: DashCardPref[]) {
-    setPrefs(next);
-    savePrefs(next);
+    void writeUiPrefs({ dashboard_layout: { prefs: next } });
   }
 
   const visible = useMemo(
