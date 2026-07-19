@@ -338,6 +338,17 @@ h1, h2, h3, h4, h5, h6 {
   from { transform: translateX(-100%); }
   to   { transform: translateX(100%); }
 }
+
+/* Route content transition — see components/shell/PageFade.tsx.
+   CSS-only fallback for View Transitions; the experimental Next 15 flag
+   was intentionally not enabled (see P5 report). */
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-fade-in {
+  animation: page-fade-in var(--dur-page) var(--ease-out);
+}
 .ticker-fade-in {
   animation: ticker-fade-in var(--dur-base) var(--ease-out);
 }
@@ -469,8 +480,15 @@ h1, h2, h3, h4, h5, h6 {
 [data-motion="off"] .drawer-slide-in,
 [data-motion="off"] .detail-pane-slide-in,
 [data-motion="off"] .habit-count-pulse,
-[data-motion="off"] .ticker-fade-in {
+[data-motion="off"] .ticker-fade-in,
+[data-motion="off"] .page-fade-in {
   animation: none !important;
+}
+/* Reduced: opacity-only, no rise, shorter duration. */
+[data-motion="reduced"] .page-fade-in {
+  animation: none;
+  opacity: 1;
+  transform: none;
 }
 [data-motion="off"] .wordmark-glow {
   animation: none !important;

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { triggerFieldPulse } from "@/lib/motion";
 
 type Toast = { kind: "success" | "error"; text: string } | null;
 
@@ -78,6 +79,14 @@ export function FloatingCapture() {
       } else {
         setToast({ kind: "success", text: "✓ Captured" });
         closeModal();
+        // Ripple emanates from bottom-centre — works for both desktop
+        // FloatingCapture (bottom-right) and mobile TabBar FAB (bottom
+        // -centre); slight offset for FloatingCapture is imperceptible
+        // in the ambient background.
+        triggerFieldPulse(
+          window.innerWidth / 2,
+          window.innerHeight - 40,
+        );
       }
     } catch (err) {
       setToast({

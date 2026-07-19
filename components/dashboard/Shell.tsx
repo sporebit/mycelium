@@ -6,6 +6,7 @@ import { ApiErrorToast } from "@/components/ui";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { TabBar } from "@/components/shell/TabBar";
 import { SubChips } from "@/components/shell/SubChips";
+import { PageFade } from "@/components/shell/PageFade";
 
 /**
  * The Shell wraps every page with the single unified TopRail nav.
@@ -41,15 +42,17 @@ export function Shell({
             set their own max-width inside `children`. */}
         <main className="flex-1 w-full px-4 sm:px-6 py-4 sm:py-6 pb-20 lg:pb-6 min-w-0">
           <SubChips />
-          {children ? (
-            children
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)_360px] gap-4 mx-auto max-w-[1400px]">
-              <div className="flex flex-col gap-4 min-w-0">{left}</div>
-              <div className="flex flex-col gap-4 min-w-0">{centre}</div>
-              <div className="flex flex-col gap-4 min-w-0">{right}</div>
-            </div>
-          )}
+          <PageFade>
+            {children ? (
+              children
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)_360px] gap-4 mx-auto max-w-[1400px]">
+                <div className="flex flex-col gap-4 min-w-0">{left}</div>
+                <div className="flex flex-col gap-4 min-w-0">{centre}</div>
+                <div className="flex flex-col gap-4 min-w-0">{right}</div>
+              </div>
+            )}
+          </PageFade>
         </main>
       </div>
 

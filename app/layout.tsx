@@ -5,7 +5,7 @@ import { PrivacyProvider } from "@/lib/context/PrivacyContext";
 import { TransitionProvider } from "@/lib/context/TransitionContext";
 import { TransitionOverlay } from "@/components/nav/TransitionOverlay";
 import { SoilGrain } from "@/components/dashboard/SoilGrain";
-import { HyphalThreads } from "@/components/dashboard/HyphalThreads";
+import { MyceliumField } from "@/components/art/MyceliumField";
 import { createServerClient } from "@/lib/supabase/server";
 import { UI_PREFS_DEFAULTS, getUiPrefs } from "@/lib/settings/uiPrefs";
 
@@ -64,7 +64,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-ink-0 text-ink-4">
         <SoilGrain />
-        <HyphalThreads />
+        <MyceliumField />
         <TransitionProvider>
           <PrivacyProvider>
             <div className="relative z-10 flex-1 flex flex-col">{children}</div>
