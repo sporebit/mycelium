@@ -3,6 +3,7 @@ import { TopRail } from "./TopRail";
 import { GlobalSearch } from "./GlobalSearch";
 import { FloatingCapture } from "./FloatingCapture";
 import { ContextSwitcherGate } from "./ContextSwitcherGate";
+import { ApiErrorToast } from "@/components/ui";
 
 /**
  * The Shell wraps every page with the single unified TopRail nav.
@@ -49,6 +50,7 @@ export function Shell({
 
       <GlobalSearch />
       <FloatingCapture />
+      <ApiErrorToast />
     </div>
   );
 }

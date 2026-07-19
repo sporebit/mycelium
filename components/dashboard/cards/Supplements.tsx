@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
 import { localDateKey } from "@/lib/util/date";
 import type { CardWidth } from "@/lib/dashboard/card-registry";
+import { useApi } from "@/lib/data/useApi";
+import { mutateApi } from "@/lib/data/mutateApi";
 
 type DailyLog = { id: string; taken_at: string };
 
@@ -32,75 +34,77 @@ type DailyData = {
 };
 
 export function Supplements({ width = 1 }: { width?: CardWidth } = {}) {
-  const [data, setData] = useState<DailyData | null>(null);
-  const [toggling, setToggling] = useState<Set<string>>(new Set());
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [toggling, setToggling] = useState<Set<string>>(new Set());
   const today = localDateKey();
+  const key = `/api/supplements/daily?date=${today}`;
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/supplements/daily?date=${today}`)
-      .then((r) => r.json())
-      .then((d: DailyData) => {
-        if (!cancelled) setData(d);
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [today]);
+  const { data } = useApi<DailyData>(key);
 
   async function toggle(item: DailyItem, slot: string) {
     if (toggling.has(item.id)) return;
     setToggling((s) => new Set(s).add(item.id));
 
-    try {
-      if (item.log) {
-        const res = await fetch(
-          `/api/supplements/${item.id}/log/${item.log.id}`,
-          { method: "DELETE" },
-        );
-        if (!res.ok) return;
-        setData((prev) => {
-          if (!prev) return prev;
+    const currentlyLogged = !!item.log;
+    // Capture timestamp outside the optimistic updater — the updater is
+    // called during render by SWR, and React 19 forbids Date.now() there.
+    const nowIso = new Date().toISOString();
+
+    await mutateApi<DailyData>(
+      key,
+      (current) => {
+        if (!current) {
           return {
-            ...prev,
-            progress: { ...prev.progress, taken: prev.progress.taken - 1 },
-            slots: prev.slots.map((s) => ({
-              ...s,
-              items: s.items.map((i) =>
-                i.id === item.id ? { ...i, log: null } : i,
-              ),
-            })),
+            date: today,
+            slots: [],
+            progress: { taken: 0, total: 0 },
           };
-        });
-      } else {
-        const res = await fetch(`/api/supplements/${item.id}/log`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ date: today, timing_slot: slot }),
-        });
-        if (!res.ok) return;
-        const { log } = (await res.json()) as { log: DailyLog };
-        setData((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            progress: { ...prev.progress, taken: prev.progress.taken + 1 },
-            slots: prev.slots.map((s) => ({
-              ...s,
-              items: s.items.map((i) =>
-                i.id === item.id ? { ...i, log } : i,
-              ),
-            })),
-          };
-        });
-      }
-    } finally {
-      setToggling((s) => {
-        const next = new Set(s);
-        next.delete(item.id);
-        return next;
-      });
-    }
+        }
+        return {
+          ...current,
+          progress: {
+            ...current.progress,
+            taken:
+              current.progress.taken + (currentlyLogged ? -1 : 1),
+          },
+          slots: current.slots.map((s) => ({
+            ...s,
+            items: s.items.map((i) =>
+              i.id === item.id
+                ? {
+                    ...i,
+                    log: currentlyLogged
+                      ? null
+                      : { id: "optimistic", taken_at: nowIso },
+                  }
+                : i,
+            ),
+          })),
+        };
+      },
+      async () => {
+        if (currentlyLogged && item.log) {
+          const res = await fetch(
+            `/api/supplements/${item.id}/log/${item.log.id}`,
+            { method: "DELETE" },
+          );
+          if (!res.ok) throw new Error(`unlog failed (${res.status})`);
+        } else {
+          const res = await fetch(`/api/supplements/${item.id}/log`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ date: today, timing_slot: slot }),
+          });
+          if (!res.ok) throw new Error(`log failed (${res.status})`);
+        }
+      },
+    );
+
+    setToggling((s) => {
+      const next = new Set(s);
+      next.delete(item.id);
+      return next;
+    });
   }
 
   const pct =
@@ -121,7 +125,7 @@ export function Supplements({ width = 1 }: { width?: CardWidth } = {}) {
         </Link>
       }
     >
-      {data === null ? (
+      {data === undefined ? (
         <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
           Loading…
         </div>
@@ -132,7 +136,6 @@ export function Supplements({ width = 1 }: { width?: CardWidth } = {}) {
       ) : (
         <div className={width >= 3 ? "mt-2 grid grid-cols-2 gap-x-6" : "contents"}>
           <div>
-            {/* Progress */}
             <div className="mt-2 flex items-baseline gap-2">
               <Mono className="text-2xl text-ink-4 tabular-nums">
                 {data.progress.taken}/{data.progress.total}
@@ -149,7 +152,6 @@ export function Supplements({ width = 1 }: { width?: CardWidth } = {}) {
             </div>
           </div>
 
-          {/* Slot groups — collapsed by default */}
           <div className="mt-3 flex flex-col gap-1.5">
             {data.slots.map((slot) => {
               const takenCount = slot.items.filter((i) => i.log).length;
