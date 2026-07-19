@@ -36,7 +36,6 @@ import { FinancePulse } from "./cards/FinancePulse";
 import { Goals } from "./cards/Goals";
 import { KeyBlockers } from "./cards/KeyBlockers";
 import { Nutrition } from "./cards/Nutrition";
-import { Fuel } from "./cards/Fuel";
 import { Journal } from "./cards/Journal";
 import { Fitness } from "./cards/Fitness";
 import { CaptureReview } from "./cards/CaptureReview";
@@ -105,7 +104,6 @@ const DEFAULT_SIZES: Record<string, CardSize> = {
   goals: "tall",
   key_blockers: "sm",
   nutrition: "md",
-  fuel: "sm",
   journal: "tall",
   fitness: "md",
   capture_review: "sm",
@@ -194,7 +192,6 @@ const CARD_COMPONENTS: Record<string, ComponentType<{ width: CardWidth }>> = {
   goals: Goals,
   key_blockers: KeyBlockers,
   nutrition: Nutrition,
-  fuel: Fuel,
   journal: Journal,
   fitness: Fitness,
   capture_review: CaptureReview,

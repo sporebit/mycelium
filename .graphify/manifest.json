@@ -944,8 +944,8 @@
     "hash": "afdac02cefddd015397b651b64823ea7"
   },
   "P:\\Projects\\Mycelium\\app\\finance\\layout.tsx": {
-    "mtime": 1781550748350.4053,
-    "hash": "9afa69ff928ffa077064072e417a9850"
+    "mtime": 1784426251262.7134,
+    "hash": "355e302c20cce7f50151cd6516f431e0"
   },
   "P:\\Projects\\Mycelium\\app\\finance\\page.tsx": {
     "mtime": 1782251973202.9807,
@@ -984,8 +984,8 @@
     "hash": "021d748fa28e8c91ae4f8aba6adc76cf"
   },
   "P:\\Projects\\Mycelium\\app\\fitness\\layout.tsx": {
-    "mtime": 1780958530565.313,
-    "hash": "7746a00c69da5f828af7a8d8aa8686bf"
+    "mtime": 1784426248118.223,
+    "hash": "fcfe02acf20ed42307a5b4932d9e8e4b"
   },
   "P:\\Projects\\Mycelium\\app\\fitness\\log\\[id]\\page.tsx": {
     "mtime": 1779666766785.511,
@@ -1032,8 +1032,8 @@
     "hash": "ebc1548c62720b447e495920e9febcc6"
   },
   "P:\\Projects\\Mycelium\\app\\health\\layout.tsx": {
-    "mtime": 1781550746515.0322,
-    "hash": "c6a51338736d4d9cbb5b3ceffc2c401f"
+    "mtime": 1784426249671.479,
+    "hash": "d320a1e153b853fd104f000d52b2a618"
   },
   "P:\\Projects\\Mycelium\\app\\health\\nutrition\\page.tsx": {
     "mtime": 1780250676377.9307,
@@ -1060,8 +1060,8 @@
     "hash": "dd55da8da58b2ce0d331bfbe4d648baf"
   },
   "P:\\Projects\\Mycelium\\app\\layout.tsx": {
-    "mtime": 1784424802612.4753,
-    "hash": "59cb84e28526c114e7577a9856c364a4"
+    "mtime": 1784426618690.977,
+    "hash": "5712e3c8b813a2deba80c8513e151987"
   },
   "P:\\Projects\\Mycelium\\app\\login\\page.tsx": {
     "mtime": 1782582260629.8347,
@@ -1100,8 +1100,8 @@
     "hash": "0dc0a5837750a1ac3b2b418b01a36ed7"
   },
   "P:\\Projects\\Mycelium\\app\\organisation\\layout.tsx": {
-    "mtime": 1781550744530.9084,
-    "hash": "bee7d83107ccc1ac3f78f7847bc40d34"
+    "mtime": 1784426211378.0352,
+    "hash": "e8b988c0cfa4dc5b4b96c2965d95dd33"
   },
   "P:\\Projects\\Mycelium\\app\\organisation\\page.tsx": {
     "mtime": 1782251924679.467,
@@ -1148,8 +1148,8 @@
     "hash": "d909121d56fea3a2645f60d7939b1225"
   },
   "P:\\Projects\\Mycelium\\app\\reminders\\page.tsx": {
-    "mtime": 1782322292715.0144,
-    "hash": "3f888abbd8c0e55a9943baac965ba80f"
+    "mtime": 1784426222669.0332,
+    "hash": "0414c7f1c1a90f34208e1a4d2b806bab"
   },
   "P:\\Projects\\Mycelium\\app\\review\\[isoWeek]\\page.tsx": {
     "mtime": 1779580058870.1113,
@@ -1160,8 +1160,8 @@
     "hash": "93c886efff0e28cc0884b6ef95c00274"
   },
   "P:\\Projects\\Mycelium\\app\\studio\\layout.tsx": {
-    "mtime": 1781550750031.2068,
-    "hash": "1b3908382bb003e3dc9d49d72160d4c7"
+    "mtime": 1784426254373.025,
+    "hash": "a5cea902cd8a7388f099237ef6bf6e67"
   },
   "P:\\Projects\\Mycelium\\app\\studio\\page.tsx": {
     "mtime": 1782251979557.7346,
@@ -1239,10 +1239,6 @@
     "mtime": 1780356737807.3096,
     "hash": "2c7a6f84bb1ca9499ef9eae4b087760c"
   },
-  "P:\\Projects\\Mycelium\\components\\compost\\SubNav.tsx": {
-    "mtime": 1781911736233.779,
-    "hash": "896961eae01e527e2a6a83ee64cedca3"
-  },
   "P:\\Projects\\Mycelium\\components\\compost\\SuggestCapture.tsx": {
     "mtime": 1779579694249.7039,
     "hash": "fd053a85bc514363677b521f9af380fd"
@@ -1316,8 +1312,8 @@
     "hash": "ad8b7b1c5fcfbae0b0d06f1097c2a264"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\ContextSwitcher.tsx": {
-    "mtime": 1780253106264.4224,
-    "hash": "5be5f905ec816d0a389eeb53a9573872"
+    "mtime": 1784426300560.0825,
+    "hash": "73fae7c8ffff6bd47ee5602b8f93c327"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\ContextSwitcherGate.tsx": {
     "mtime": 1780958051064.5432,
@@ -1332,20 +1328,16 @@
     "hash": "6394479f4ae631511b92ad6324a6483a"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\FloatingCapture.tsx": {
-    "mtime": 1781215228338.779,
-    "hash": "bc8a94a255100179f84e5deba4d4fa9d"
+    "mtime": 1784426621948.036,
+    "hash": "1a61fb40c408d8eceb2606d88eb1f6c1"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\GlobalSearch.tsx": {
-    "mtime": 1780958184515.8298,
-    "hash": "cad94957c63aab38823dee5df3561f2b"
+    "mtime": 1784426282605.2468,
+    "hash": "35e6f9a2cbaf5cf0090b9b86faf7701f"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\HabitsConfigModal.tsx": {
     "mtime": 1779579595048.0676,
     "hash": "b60867c7a600c124d447fbe9e51f57d8"
-  },
-  "P:\\Projects\\Mycelium\\components\\dashboard\\HyphalThreads.tsx": {
-    "mtime": 1780352984476.8467,
-    "hash": "e2649739c333730346f138ec6ea489b0"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\LiveClock.tsx": {
     "mtime": 1779506979092.6204,
@@ -1384,16 +1376,12 @@
     "hash": "90bde8978fec5b0e62e6e6cb5fc56e64"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\Shell.tsx": {
-    "mtime": 1784424539026.1606,
-    "hash": "fd812c509161a830684ad68a5e875587"
+    "mtime": 1784426611491.6494,
+    "hash": "6e277d3ccdc7b43b4379fe053654fc88"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\SoilGrain.tsx": {
     "mtime": 1779913455296.2505,
     "hash": "4a694a4ed9fafd940e5dd57b1333f331"
-  },
-  "P:\\Projects\\Mycelium\\components\\dashboard\\SubNavRail.tsx": {
-    "mtime": 1782251841244.296,
-    "hash": "8c98bed14150cc01a0791766a57a3e10"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\SunWidget.tsx": {
     "mtime": 1779581959411.1133,
@@ -1402,10 +1390,6 @@
   "P:\\Projects\\Mycelium\\components\\dashboard\\Tickers.tsx": {
     "mtime": 1779585537809.9673,
     "hash": "86b091d334e91c31a140d012720d4ddf"
-  },
-  "P:\\Projects\\Mycelium\\components\\dashboard\\TopRail.tsx": {
-    "mtime": 1782336992191.7593,
-    "hash": "a5afaaa080c7dc6d9a1c24dff45b20f6"
   },
   "P:\\Projects\\Mycelium\\components\\dashboard\\Wordmark.tsx": {
     "mtime": 1782582271233.7913,
@@ -1499,10 +1483,6 @@
     "mtime": 1780690068753.733,
     "hash": "c743b4901da816817a080c219147ccfb"
   },
-  "P:\\Projects\\Mycelium\\components\\finance\\FinanceSubNav.tsx": {
-    "mtime": 1781999594011.361,
-    "hash": "633fae34ee47374d80270584528f6ea8"
-  },
   "P:\\Projects\\Mycelium\\components\\finance\\Money.tsx": {
     "mtime": 1780691692370.8362,
     "hash": "aadd1a2143ae8a877655b91b0f0a978c"
@@ -1542,10 +1522,6 @@
   "P:\\Projects\\Mycelium\\components\\fitness\\FinishModal.tsx": {
     "mtime": 1781547310378.4546,
     "hash": "ef403d9b79b2f3a407936d71a31f0edf"
-  },
-  "P:\\Projects\\Mycelium\\components\\fitness\\FitnessSubNav.tsx": {
-    "mtime": 1782251864053.1353,
-    "hash": "a21b9d1d0214ff5e90495d9349b42f83"
   },
   "P:\\Projects\\Mycelium\\components\\fitness\\HistoryClient.tsx": {
     "mtime": 1780090095832.9075,
@@ -1611,10 +1587,6 @@
     "mtime": 1781636330813.4521,
     "hash": "39931dcd471897570251d708854df007"
   },
-  "P:\\Projects\\Mycelium\\components\\health\\HealthSubNav.tsx": {
-    "mtime": 1782251872934.6653,
-    "hash": "fb8e720d44d7da1d1157325e6b44b51b"
-  },
   "P:\\Projects\\Mycelium\\components\\health\\NutritionTable.tsx": {
     "mtime": 1779912499295.3806,
     "hash": "7fa069f7c618a27507a61bf36dce3a96"
@@ -1658,10 +1630,6 @@
   "P:\\Projects\\Mycelium\\components\\journal\\JournalClient.tsx": {
     "mtime": 1779815579559.575,
     "hash": "34167d0547ab0ad8b94cc43295c97c82"
-  },
-  "P:\\Projects\\Mycelium\\components\\nav\\TendrilSpine.tsx": {
-    "mtime": 1780856194225.241,
-    "hash": "69440bc00f92a0ab11fbc73c1c8f8c72"
   },
   "P:\\Projects\\Mycelium\\components\\nav\\TransitionOverlay.tsx": {
     "mtime": 1780787233403.1428,
@@ -1762,10 +1730,6 @@
   "P:\\Projects\\Mycelium\\components\\stroma\\StromaClient.tsx": {
     "mtime": 1781547312271.7063,
     "hash": "6aa8eff4f7746c47a283f00d2fdd0b31"
-  },
-  "P:\\Projects\\Mycelium\\components\\stroma\\StromaSubNav.tsx": {
-    "mtime": 1780958052075.3386,
-    "hash": "817965aac21cdd8a66e02d79cf0aceef"
   },
   "P:\\Projects\\Mycelium\\eslint.config.mjs": {
     "mtime": 1779484078464.6272,
@@ -2044,12 +2008,12 @@
     "hash": "fd5a74ad44b0fba3f9a1c599a1ed1fe3"
   },
   "P:\\Projects\\Mycelium\\lib\\motion.ts": {
-    "mtime": 1779744100870.9104,
-    "hash": "4494f9c1a33bad09c7ea13411d58a17d"
+    "mtime": 1784426551259.0723,
+    "hash": "49b44692283986e983a076b5ee850ea8"
   },
   "P:\\Projects\\Mycelium\\lib\\nav\\sections.ts": {
-    "mtime": 1782251876047.2004,
-    "hash": "68ea46444ab5e2376b1c36a199de2ecc"
+    "mtime": 1784425434559.227,
+    "hash": "78e3cbac26080a5be9348fd2c336f14c"
   },
   "P:\\Projects\\Mycelium\\lib\\nutrition\\calc.ts": {
     "mtime": 1780247426208.892,
@@ -3372,8 +3336,8 @@
     "hash": "6c89a34c92b47ca6d028139d01e6be47"
   },
   "P:\\Projects\\Mycelium\\.graphify\\GRAPH_REPORT.md": {
-    "mtime": 1784415611587.2153,
-    "hash": "9e430a20f2ad4ed88a1ec8c107e405c4"
+    "mtime": 1784424977328.2092,
+    "hash": "0976b0fa0396fac45024558cf59b7964"
   },
   "P:\\Projects\\Mycelium\\public\\images\\forest-bgold.jpg": {
     "mtime": 1780795220517.5657,
@@ -3418,10 +3382,6 @@
   "P:\\Projects\\Mycelium\\components\\compost\\MediaClient.tsx": {
     "mtime": 1782000341467.9922,
     "hash": "5a59667a8ca573809d6f6cb57e44a31a"
-  },
-  "P:\\Projects\\Mycelium\\components\\studio\\StudioSubNav.tsx": {
-    "mtime": 1782005313315.4524,
-    "hash": "44576621d39668d2caab03c0ab95eeb0"
   },
   "P:\\Projects\\Mycelium\\lib\\health\\parse-weight.ts": {
     "mtime": 1781649859811.8223,
@@ -3740,8 +3700,8 @@
     "hash": "a383b599ae28eafb4ba7f11c4dec9c5a"
   },
   "P:\\Projects\\Mycelium\\app\\drops\\layout.tsx": {
-    "mtime": 1782057231116.5437,
-    "hash": "fb044d5a2a3494aec802899fa04e22ac"
+    "mtime": 1784426252832.5327,
+    "hash": "f6dee79b49c7c5688ac030de45c0c03f"
   },
   "P:\\Projects\\Mycelium\\app\\drops\\monitor\\page.tsx": {
     "mtime": 1782057909832.2654,
@@ -3800,8 +3760,8 @@
     "hash": "1610d61c7ae858fdb67de06ded1b46be"
   },
   "P:\\Projects\\Mycelium\\app\\other\\layout.tsx": {
-    "mtime": 1782010411735.422,
-    "hash": "5edcadd75ac6254a7d673336e7f94804"
+    "mtime": 1784426257565.667,
+    "hash": "1def3e67bffbf69abd582584952a376c"
   },
   "P:\\Projects\\Mycelium\\app\\other\\page.tsx": {
     "mtime": 1782010412952.236,
@@ -3832,8 +3792,8 @@
     "hash": "528774ff23c0a971d2f6931347d25eb6"
   },
   "P:\\Projects\\Mycelium\\app\\ventures\\layout.tsx": {
-    "mtime": 1782004429402.211,
-    "hash": "4df539d049f149e5c31483e66f4e0f57"
+    "mtime": 1784426256022.778,
+    "hash": "2a93c63f89bf1e88574dc5becec11c57"
   },
   "P:\\Projects\\Mycelium\\app\\ventures\\page.tsx": {
     "mtime": 1782004453649.6895,
@@ -3859,10 +3819,6 @@
     "mtime": 1784424593791.9766,
     "hash": "ce0cc90fab016a8b949a14291747756a"
   },
-  "P:\\Projects\\Mycelium\\components\\drops\\DropsSubNav.tsx": {
-    "mtime": 1782057229187.5015,
-    "hash": "fcdf0da6e1a7eba392c21e1cec2f2928"
-  },
   "P:\\Projects\\Mycelium\\components\\finance\\AccountsClient.tsx": {
     "mtime": 1782001128009.652,
     "hash": "6df5db377c7df03a36786a0cf81153ec"
@@ -3879,10 +3835,6 @@
     "mtime": 1782321929072.3054,
     "hash": "058fea162012a07d6eb73cf6e0dbc597"
   },
-  "P:\\Projects\\Mycelium\\components\\other\\OtherSubNav.tsx": {
-    "mtime": 1782044726161.973,
-    "hash": "119a7556facbeb1b6dff29ed9b86e1e1"
-  },
   "P:\\Projects\\Mycelium\\components\\studio\\PCOverviewCard.tsx": {
     "mtime": 1782005516581.352,
     "hash": "60df913a8d1094704e2a0dfa4315d344"
@@ -3890,10 +3842,6 @@
   "P:\\Projects\\Mycelium\\components\\studio\\SpotifyClient.tsx": {
     "mtime": 1782330276485.7217,
     "hash": "8839e4789fc66dd540454b95036be7d0"
-  },
-  "P:\\Projects\\Mycelium\\components\\ventures\\VenturesSubNav.tsx": {
-    "mtime": 1782005097219.8794,
-    "hash": "a98b9977d9793bb95d739d78def3dc15"
   },
   "P:\\Projects\\Mycelium\\lib\\agents\\tools.ts": {
     "mtime": 1782582278571.5303,
@@ -4092,7 +4040,7 @@
     "hash": "16b076e5a78fc11b7219b1ae6efdefa3"
   },
   "P:\\Projects\\Mycelium\\components\\ui\\Skeleton.tsx": {
-    "mtime": 1784424132886.3745,
+    "mtime": 1784426743137.0188,
     "hash": "2a4bd2fde1a0bce6c045fe5ec3b44000"
   },
   "P:\\Projects\\Mycelium\\components\\ui\\Surface.tsx": {
@@ -4112,8 +4060,8 @@
     "hash": "0bd0ac8fa3b64028519c8ad81bf00b40"
   },
   "P:\\Projects\\Mycelium\\lib\\settings\\uiPrefs.ts": {
-    "mtime": 1784424787642.355,
-    "hash": "c66f79b5132fbaf1a7af8637ca117c72"
+    "mtime": 1784425694744.1226,
+    "hash": "8a4879371acb16288ab6f135239ab6db"
   },
   "P:\\Projects\\Mycelium\\lib\\settings\\useUiPrefs.ts": {
     "mtime": 1784424792217.9697,
@@ -4122,5 +4070,41 @@
   "P:\\Projects\\Mycelium\\supabase\\migrations\\0091_ui_prefs.sql": {
     "mtime": 1784424756683.3428,
     "hash": "2f593ffe02117460ee51846a495ab2e7"
+  },
+  "P:\\Projects\\Mycelium\\components\\art\\MyceliumField.tsx": {
+    "mtime": 1784426825456.8901,
+    "hash": "d2cf11a6bea3902e19a3a5a91a3ce336"
+  },
+  "P:\\Projects\\Mycelium\\components\\shell\\PageFade.tsx": {
+    "mtime": 1784426584164.8076,
+    "hash": "47f8f25d208275247a9193fd5be96b48"
+  },
+  "P:\\Projects\\Mycelium\\components\\shell\\Sidebar.tsx": {
+    "mtime": 1784425933929.6143,
+    "hash": "a44d57ced2f147006f1b71b1a072a156"
+  },
+  "P:\\Projects\\Mycelium\\components\\shell\\SubChips.tsx": {
+    "mtime": 1784425970094.2212,
+    "hash": "5f055717183a248a10551a56f74c63ac"
+  },
+  "P:\\Projects\\Mycelium\\components\\shell\\TabBar.tsx": {
+    "mtime": 1784425963165.8008,
+    "hash": "b43db498ebaf1ded49ee5b639e59edba"
+  },
+  "P:\\Projects\\Mycelium\\components\\shell\\sectionIcons.ts": {
+    "mtime": 1784425927192.6492,
+    "hash": "965ea8edd9d485b084dd4af7418b7de8"
+  },
+  "P:\\Projects\\Mycelium\\scripts\\screenshot.mjs": {
+    "mtime": 1784420798382.1536,
+    "hash": "bcd0ccded281b707d35aa0ff064180bd"
+  },
+  "P:\\Projects\\Mycelium\\supabase\\migrations\\0067_events.sql": {
+    "mtime": 1781998782202.6506,
+    "hash": "f36473291e5985f85fcce5968af938a2"
+  },
+  "P:\\Projects\\Mycelium\\supabase\\migrations\\0068_investments.sql": {
+    "mtime": 1781998785004.0215,
+    "hash": "19c679b7b0b6e613c63476c377e7bfe7"
   }
 }
