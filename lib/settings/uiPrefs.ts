@@ -11,6 +11,7 @@ export type UiPrefs = {
   // don't require a migration. Shape: { prefs: DashCardPref[] }.
   dashboard_layout: Record<string, unknown>;
   dashboard_view: "today" | "everything";
+  ventures_incubator_expanded: boolean;
 };
 
 export const UI_PREFS_DEFAULTS: UiPrefs = {
@@ -22,6 +23,7 @@ export const UI_PREFS_DEFAULTS: UiPrefs = {
   sidebar_collapsed: false,
   dashboard_layout: {},
   dashboard_view: "today",
+  ventures_incubator_expanded: false,
 };
 
 /**
