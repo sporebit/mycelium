@@ -371,7 +371,18 @@ status enum values used for "active" filtering.
 
 ---
 
-## P4 — ORGANISATION / COMPOST ⬜ NOT STARTED — DAILY DRIVER, NEEDS A FRESH SESSION
+## P4 — ORGANISATION / COMPOST 🔶 GROUNDWORK DONE — PARTS 2, 4, 5 PENDING
+
+**Landed tonight (mechanical, low-risk):**
+- ✅ **Part 1** (`27a49f4`) — split TasksClient inline components → `TaskDetailPaneWrap`, `TaskMainView`, `TaskListSkeleton`, `ProjectFilterDropdown`. Build-verified only; behavioural sweep of all seven views + every keyboard shortcut + bulk + detail pane + drawer needs a real browser session before P4 Part 2.
+- ✅ **Part 3** (`179527a`) — `miles-crm-view`, `mycelium:showCompleted`, `mycelium:showProjectTasks` migrated to `ui_prefs.compost_view` / `compost_show_completed` / `compost_show_project`. Legacy keys stay as inert fallback. URL param sync untouched.
+
+**Fresh-session, rested-read next unit:**
+- ⬜ **Part 2** — useApi + optimistic mutations for tasks/captures/people/projects/purchases/decisions. Kanban drag, bulk actions, detail-pane edits all become instant. `triggerFieldPulse()` on task completion.
+- ⬜ **Part 4** — v2 primitives across all seven views + Sheet-based detail pane/drawer + density-driven table row height.
+- ⬜ **Part 5** — mobile swipe (right = done, left = reschedule sheet, long-press = bulk).
+
+
 
 ```
 TASK: v2 pass on Organisation/Compost, the daily driver. PRESENTATION AND
@@ -494,7 +505,22 @@ ViewSwitcher pattern chosen; gesture library needed or not.
 
 ---
 
-## P5 — FITNESS ⬜ NOT STARTED
+## P5 — FITNESS 🔶 PART 1 DONE — PARTS 2, 3, 4 PENDING
+
+**Landed tonight:**
+- ✅ **Part 1** (`0b9a10e`) — localStorage audit + migration. Full audit list:
+  - `body-metrics-weight-unit` → `ui_prefs.fitness_ui.weight_unit`
+  - `fitness-hidden-exercises` → `ui_prefs.fitness_ui.hidden_exercises`
+  - `fitness-today-hidden` → `ui_prefs.fitness_ui.hidden_completed_sessions`
+  - `LogClient.tsx` per-workout weight-unit — **NOT** migrated (per-workout scoped, not a user-wide pref)
+  - `WorkoutNowClient.tsx` template cache — **NOT** migrated (data cache, not a pref)
+
+**Fresh-session, rested-read next unit — set-logging is the highest-stakes mutation in the app; do not batch with P4:**
+- ⬜ **Part 2** — set-logging optimistic. UI advances to next set on submit, rest timer starts on optimistic save (else rest desyncs).
+- ⬜ **Part 3** — live session focus mode (sidebar/tabbar collapse, confirm-to-exit).
+- ⬜ **Part 4** — history/programmes/body restyle.
+
+
 
 ```
 TASK: v2 pass on Fitness. Set-logging flow is sacred — improve feel, change
@@ -1286,8 +1312,9 @@ after a day of real usage.
 | P1.5 | ✅ Done | (nav follow-up commit) | Assistant added, shortcut-setup routed via Settings |
 | P2 | 🔶 Fired, unverified by use | 4 commits expected | **VERIFY BY USE before P4** |
 | P3 | ✅ Done | c527a49, bff473f, d053c67, 0ff48e7 | Follow-ups: (a) inspiration board restyle deferred (own commit); (b) Founder agent verification not run — verify tool calls reflect in new UI next time it's open |
-| P4 | ⬜ Not started | — | Daily driver — fresh session only, after P2/P3 verified by use |
-| P5–P11 | ⬜ Not started | — | — |
+| P4 | 🔶 Groundwork done | 27a49f4 (split), 179527a (prefs) | Parts 2/4/5 pending — fresh session; run browser behavioural sweep (7 views + shortcuts + bulk + detail + drawer) before Part 2 |
+| P5 | 🔶 Part 1 done | 0b9a10e | Parts 2/3/4 pending — Part 2 set-logging is highest-stakes mutation, fresh session only |
+| P6–P11 | ⬜ Not started | — | — |
 
 **Before P4 (Compost) starts, in any session: manually complete a task,
 check a venture step, and confirm both survive a reload. If either fails,
