@@ -5,6 +5,8 @@ import { FloatingCapture } from "./FloatingCapture";
 import { ContextSwitcherGate } from "./ContextSwitcherGate";
 import { ApiErrorToast } from "@/components/ui";
 import { Sidebar } from "@/components/shell/Sidebar";
+import { TabBar } from "@/components/shell/TabBar";
+import { SubChips } from "@/components/shell/SubChips";
 
 /**
  * The Shell wraps every page with the single unified TopRail nav.
@@ -44,7 +46,8 @@ export function Shell({
             which exceeded the prior 1400px clamp and forced horizontal
             page scroll. Pages that want a narrower reading column can
             set their own max-width inside `children`. */}
-        <main className="flex-1 w-full px-4 sm:px-6 py-4 sm:py-6 min-w-0">
+        <main className="flex-1 w-full px-4 sm:px-6 py-4 sm:py-6 pb-20 lg:pb-6 min-w-0">
+          <SubChips />
           {children ? (
             children
           ) : (
@@ -57,6 +60,7 @@ export function Shell({
         </main>
       </div>
 
+      <TabBar />
       <GlobalSearch />
       <FloatingCapture />
       <ApiErrorToast />

@@ -7,35 +7,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Home as HomeIcon,
-  Inbox,
-  Dumbbell,
-  HeartPulse,
-  PoundSterling,
-  Palette,
-  Rocket,
-  ShoppingBag,
-  Bot,
   Settings as SettingsIcon,
   PlusCircle,
   MoreHorizontal,
-  type LucideIcon,
 } from "lucide-react";
 import { SECTIONS, type SectionConfig, type SubPage } from "@/lib/nav/sections";
 import { Wordmark } from "@/components/dashboard/Wordmark";
 import { PrivacyToggle } from "@/components/dashboard/PrivacyToggle";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
-
-const SECTION_ICONS: Record<string, LucideIcon> = {
-  organisation: Inbox,
-  fitness: Dumbbell,
-  health: HeartPulse,
-  finance: PoundSterling,
-  studio: Palette,
-  ventures: Rocket,
-  drops: ShoppingBag,
-  "the-boys": Bot,
-  other: MoreHorizontal,
-};
+import { SECTION_ICONS } from "./sectionIcons";
 
 function isSectionActive(pathname: string, section: SectionConfig): boolean {
   return (
