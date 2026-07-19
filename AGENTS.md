@@ -18,6 +18,15 @@ After all concerns are committed, push once at the end: `git push origin main`.
 For single-concern tasks, one commit is fine. Use judgment — don't manufacture splits that aren't natural.
 
 Skip this entire flow only for exploratory tasks (reading files, answering questions) with no code changes.
+
+## Before every push
+
+Run `npx next build` and wait for it to succeed. If it fails, fix the underlying issue before pushing — don't push and hope, and don't disable the failing rule.
+
+`tsc --noEmit` is **NOT** sufficient. The production build gates on ESLint (`prefer-const`, `no-unused-vars`, `react-hooks/exhaustive-deps`, etc.) in addition to types. A green `tsc` with a red `next build` is a real and recurring failure mode — the Vercel build for commit `230d686` failed exactly this way (single `prefer-const` error in a new dashboard card that `tsc` accepted).
+
+Do not set `eslint.ignoreDuringBuilds` in `next.config.*` to sidestep this. The gate is the point.
+
 ## Database migrations
 
 This project uses the Supabase CLI. Migration files live in `supabase/migrations/`, numbered `NNNN_description.sql`.
