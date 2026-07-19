@@ -22,6 +22,10 @@ import { TaskDetailPane } from "./TaskDetailPane";
 import { TaskBulkBar } from "./TaskBulkBar";
 import { ShortcutHintBar, ShortcutHelpModal } from "./TaskShortcutHelp";
 import { TaskDrawer, type DrawerMode } from "./TaskDrawer";
+import { TaskDetailPaneWrap } from "./TaskDetailPaneWrap";
+import { TaskMainView } from "./TaskMainView";
+import { TaskListSkeleton } from "./TaskListSkeleton";
+import { ProjectFilterDropdown } from "./ProjectFilterDropdown";
 import { isBlocker } from "@/lib/blockers";
 import { localDateKey } from "@/lib/util/date";
 import { useCurrentContext } from "@/lib/hooks/useCurrentContext";
@@ -693,7 +697,7 @@ export function TasksClient() {
 
   // Render the active main view
   const mainView = (
-    <MainView
+    <TaskMainView
       view={view}
       tasks={nowFiltered}
       projects={projects}
@@ -830,13 +834,13 @@ export function TasksClient() {
 
       {/* Body */}
       {tasks === null ? (
-        <ListSkeleton />
+        <TaskListSkeleton />
       ) : splitPane ? (
         <div className="flex gap-0 relative">
           <div className="flex-1 min-w-0 md:pr-3 md:w-[55%]">{mainView}</div>
           <div className="hidden md:flex md:w-[45%] sticky top-2 self-start max-h-[calc(100vh-6rem)]">
             {detail && (
-              <DetailPaneWrap
+              <TaskDetailPaneWrap
                 detail={detail}
                 detailLoading={detailLoading}
                 projects={projects}
@@ -863,7 +867,7 @@ export function TasksClient() {
           {/* Mobile: full-screen overlay */}
           <div className="md:hidden fixed inset-0 z-40">
             {detail && (
-              <DetailPaneWrap
+              <TaskDetailPaneWrap
                 detail={detail}
                 detailLoading={detailLoading}
                 projects={projects}
@@ -900,7 +904,7 @@ export function TasksClient() {
                 className="flex-1 bg-ink-0/60 backdrop-blur-sm cursor-default"
               />
               <div className="w-full md:w-[480px] max-w-full">
-                <DetailPaneWrap
+                <TaskDetailPaneWrap
                   detail={detail}
                   detailLoading={detailLoading}
                   projects={projects}
@@ -973,309 +977,6 @@ export function TasksClient() {
           }`}
         >
           {toast.text}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function DetailPaneWrap({
-  detail,
-  detailLoading,
-  projects,
-  onClose,
-  onPatch,
-  onAddComment,
-  onDeleteComment,
-  onAddSubtask,
-  onJumpToTask,
-  onTogglePatch,
-  onDelete,
-  onConverted,
-  onError,
-}: {
-  detail: TaskDetail;
-  detailLoading: boolean;
-  projects: Project[];
-  onClose: () => void;
-  onPatch: (patch: Partial<Task>) => void;
-  onAddComment: (body: string) => Promise<void>;
-  onDeleteComment: (id: string) => Promise<void>;
-  onAddSubtask: (title: string) => Promise<void>;
-  onJumpToTask: (id: string) => void;
-  onTogglePatch: (id: string, patch: Partial<Task>) => void;
-  onDelete: () => void;
-  onConverted: (newKind: string, newId: string) => void;
-  onError: (msg: string) => void;
-}) {
-  return (
-    <TaskDetailPane
-      key={detail.task.id}
-      task={detail.task}
-      comments={detail.comments}
-      activity={detail.activity}
-      subtasks={detail.subtasks}
-      linkedCaptures={detail.linked_captures}
-      projects={projects}
-      onClose={onClose}
-      onPatch={onPatch}
-      onAddComment={onAddComment}
-      onDeleteComment={onDeleteComment}
-      onAddSubtask={onAddSubtask}
-      onJumpToTask={onJumpToTask}
-      onTogglePatch={onTogglePatch}
-      onDelete={onDelete}
-      onConverted={onConverted}
-      onError={onError}
-      loading={detailLoading}
-    />
-  );
-}
-
-function MainView({
-  view,
-  tasks,
-  projects,
-  selected,
-  focusedId,
-  onOpen,
-  onToggleSelect,
-  onPatch,
-  onDuplicate,
-  onDelete,
-  onMoveStatus,
-  onMoveUrgency,
-  tasksById,
-  onError,
-  onCreateForDate,
-  onBulkPatchDueDate,
-}: {
-  view: CrmView;
-  tasks: Task[];
-  projects: Project[];
-  selected: Set<string>;
-  focusedId: string | null;
-  onOpen: (t: Task) => void;
-  onToggleSelect: (id: string) => void;
-  onPatch: (id: string, patch: Partial<Task>) => void;
-  onDuplicate: (t: Task) => void;
-  onDelete: (t: Task) => void;
-  onMoveStatus: (id: string, status: TaskStatus) => void;
-  onMoveUrgency: (
-    id: string,
-    urgency: TaskUrgency,
-    priorityScore: number,
-    extra?: Partial<Task>,
-  ) => void;
-  tasksById: Map<string, Task>;
-  onError: (m: string) => void;
-  onCreateForDate: (date: string) => void;
-  onBulkPatchDueDate: (ids: string[], dueDate: string | null) => void;
-}) {
-  switch (view) {
-    case "list":
-      return (
-        <TaskListView
-          tasks={tasks}
-          selected={selected}
-          focusedId={focusedId}
-          projects={projects}
-          onOpen={onOpen}
-          onToggleSelect={onToggleSelect}
-          onPatch={onPatch}
-          onDuplicate={onDuplicate}
-          onDelete={onDelete}
-        />
-      );
-    case "table":
-      return (
-        <TaskTableView
-          tasks={tasks}
-          selected={selected}
-          projects={projects}
-          onOpen={onOpen}
-          onToggleSelect={onToggleSelect}
-          onPatch={onPatch}
-        />
-      );
-    case "calendar":
-      return (
-        <TaskCalendarView
-          tasks={tasks}
-          onOpen={onOpen}
-          onCreateForDate={onCreateForDate}
-          onPatchDueDate={(id, dueDate) => onPatch(id, { due_date: dueDate })}
-          onBulkPatchDueDate={onBulkPatchDueDate}
-        />
-      );
-    case "status":
-      return (
-        <TaskStatusBoard
-          tasks={tasks}
-          onCardClick={onOpen}
-          onMoveStatus={onMoveStatus}
-        />
-      );
-    case "kanban":
-      return (
-        <TaskBoard
-          tasks={tasks}
-          onCardClick={onOpen}
-          onMove={onMoveUrgency}
-          onStatusChange={onMoveStatus}
-        />
-      );
-    case "smart":
-      return (
-        <TaskSmart
-          onCardClick={onOpen}
-          onError={onError}
-          tasksById={tasksById}
-          onStatusChange={onMoveStatus}
-        />
-      );
-    case "category":
-      return (
-        <TaskCategory
-          tasks={tasks}
-          onCardClick={onOpen}
-          onStatusChange={onMoveStatus}
-        />
-      );
-  }
-}
-
-function ListSkeleton() {
-  return (
-    <ul className="flex flex-col gap-1.5">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <li
-          key={i}
-          className="bg-ink-1 rounded-md px-3 py-2 flex items-center gap-3 animate-pulse"
-        >
-          <div className="h-3.5 w-3.5 rounded-sm bg-ink-2" />
-          <div className="h-4 w-20 rounded-md bg-ink-2" />
-          <div className="h-4 flex-1 max-w-[40%] rounded-md bg-ink-2/70" />
-          <div className="ml-auto h-3 w-16 rounded-md bg-ink-2/60" />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function ProjectFilterDropdown({
-  projects,
-  selected,
-  onChange,
-}: {
-  projects: Project[];
-  selected: Set<string>;
-  onChange: (next: Set<string>) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onDoc(e: MouseEvent) {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, [open]);
-
-  function toggle(key: string) {
-    const next = new Set(selected);
-    if (next.has(key)) next.delete(key);
-    else next.add(key);
-    onChange(next);
-  }
-
-  function clear() {
-    onChange(new Set());
-  }
-
-  const count = selected.size;
-  const label =
-    count === 0
-      ? "ALL PROJECTS"
-      : count === 1
-        ? (() => {
-            const only = Array.from(selected)[0];
-            if (only === "__none__") return "NO PROJECT";
-            return (
-              projects.find((p) => p.id === only)?.name.toUpperCase() ??
-              "1 PROJECT"
-            );
-          })()
-        : `${count} PROJECTS`;
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className={`px-3 py-1.5 rounded-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
-          count > 0
-            ? "border-accent/40 bg-accent/15 text-accent"
-            : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
-        }`}
-      >
-        ◆ {label}
-      </button>
-      {open && (
-        <div className="absolute z-50 left-0 mt-2 w-64 max-h-80 overflow-y-auto rounded-md bg-ink-1 border border-ink-2 shadow-2xl p-2 flex flex-col gap-0.5">
-          <div className="flex items-center justify-between px-2 pt-1 pb-2">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-              Filter by project
-            </span>
-            {count > 0 && (
-              <button
-                type="button"
-                onClick={clear}
-                className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-          <label className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-ink-2/40 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={selected.has("__none__")}
-              onChange={() => toggle("__none__")}
-              className="accent-accent"
-            />
-            <span className="text-sm text-ink-3 italic">No project</span>
-          </label>
-          {projects.map((p) => (
-            <label
-              key={p.id}
-              className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-ink-2/40 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={selected.has(p.id)}
-                onChange={() => toggle(p.id)}
-                className="accent-accent"
-              />
-              {p.colour && (
-                <span
-                  aria-hidden
-                  style={{ backgroundColor: p.colour }}
-                  className="h-2.5 w-2.5 rounded-full shrink-0"
-                />
-              )}
-              <span className="text-sm text-text-0 truncate flex-1">
-                {p.name}
-              </span>
-            </label>
-          ))}
-          {projects.length === 0 && (
-            <div className="px-2 py-3 text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
-              No active projects yet.
-            </div>
-          )}
         </div>
       )}
     </div>
