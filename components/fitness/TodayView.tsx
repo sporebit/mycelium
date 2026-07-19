@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -46,11 +47,9 @@ function readHidden(): Set<string> {
   }
 }
 
-function writeHidden(set: Set<string>) {
-  try {
-    localStorage.setItem(HIDDEN_KEY, JSON.stringify([...set]));
-  } catch { /* quota */ }
-}
+// writeHidden removed — ui_prefs.fitness_ui.hidden_completed_sessions is
+// source of truth after P5 Part 1 migration; legacy HIDDEN_KEY is read once
+// for initial paint + one-time migration only.
 
 function getLocalTodayKey(): string {
   return localDateKey();
@@ -103,6 +102,29 @@ export function TodayView({
   const [hidden, setHidden] = useState<Set<string>>(() =>
     typeof window === "undefined" ? new Set() : readHidden()
   );
+
+  const { prefs: uiPrefs, setPrefs: writeUiPrefs, isLoading: uiPrefsLoading } =
+    useUiPrefs();
+  const hydratedRef = useRef(false);
+
+  useEffect(() => {
+    if (uiPrefsLoading || hydratedRef.current) return;
+    hydratedRef.current = true;
+    const stored = uiPrefs.fitness_ui.hidden_completed_sessions;
+    if (stored.length > 0) {
+      queueMicrotask(() => setHidden(new Set(stored)));
+    } else if (typeof window !== "undefined") {
+      const legacy = readHidden();
+      if (legacy.size > 0) {
+        void writeUiPrefs({
+          fitness_ui: {
+            ...uiPrefs.fitness_ui,
+            hidden_completed_sessions: [...legacy],
+          },
+        });
+      }
+    }
+  }, [uiPrefsLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const load = useCallback(async () => {
     try {
@@ -223,7 +245,12 @@ export function TodayView({
       const next = new Set(hidden);
       next.add(key);
       setHidden(next);
-      writeHidden(next);
+      void writeUiPrefs({
+        fitness_ui: {
+          ...uiPrefs.fitness_ui,
+          hidden_completed_sessions: [...next],
+        },
+      });
       return;
     }
 

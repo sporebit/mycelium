@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
+import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import {
   MUSCLE_GROUPS,
   MUSCLE_GROUP_LABEL,
@@ -12,6 +13,8 @@ import type { ExerciseListItem } from "@/app/api/fitness/exercises/route";
 
 type Filter = "all" | MuscleGroup;
 
+// Legacy key — still read once for initial paint + one-time migration.
+// After migration ui_prefs.fitness_ui.hidden_exercises is source of truth.
 const HIDDEN_KEY = "fitness-hidden-exercises";
 
 function readHidden(): Set<string> {
@@ -23,12 +26,6 @@ function readHidden(): Set<string> {
   } catch {
     return new Set();
   }
-}
-
-function writeHidden(set: Set<string>) {
-  try {
-    localStorage.setItem(HIDDEN_KEY, JSON.stringify([...set]));
-  } catch { /* quota exceeded */ }
 }
 
 function MiniSparkline({ values }: { values: number[] }) {
@@ -62,14 +59,39 @@ export function ExercisesListClient() {
     typeof window === "undefined" ? new Set() : readHidden()
   );
 
-  const hideExercise = useCallback((name: string) => {
-    setHidden((prev) => {
-      const next = new Set(prev);
-      next.add(name);
-      writeHidden(next);
-      return next;
-    });
-  }, []);
+  const { prefs: uiPrefs, setPrefs: writeUiPrefs, isLoading: uiPrefsLoading } =
+    useUiPrefs();
+  const hydratedRef = useRef(false);
+
+  useEffect(() => {
+    if (uiPrefsLoading || hydratedRef.current) return;
+    hydratedRef.current = true;
+    const stored = uiPrefs.fitness_ui.hidden_exercises;
+    if (stored.length > 0) {
+      queueMicrotask(() => setHidden(new Set(stored)));
+    } else if (typeof window !== "undefined") {
+      const legacy = readHidden();
+      if (legacy.size > 0) {
+        void writeUiPrefs({
+          fitness_ui: { ...uiPrefs.fitness_ui, hidden_exercises: [...legacy] },
+        });
+      }
+    }
+  }, [uiPrefsLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const hideExercise = useCallback(
+    (name: string) => {
+      setHidden((prev) => {
+        const next = new Set(prev);
+        next.add(name);
+        void writeUiPrefs({
+          fitness_ui: { ...uiPrefs.fitness_ui, hidden_exercises: [...next] },
+        });
+        return next;
+      });
+    },
+    [uiPrefs.fitness_ui, writeUiPrefs],
+  );
 
   useEffect(() => {
     let cancelled = false;

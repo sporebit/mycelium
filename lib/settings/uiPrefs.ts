@@ -15,6 +15,14 @@ export type UiPrefs = {
   compost_view: string;
   compost_show_completed: boolean;
   compost_show_project: boolean;
+  fitness_ui: {
+    // "kg" | "lbs" | "stone" — kept as string here to avoid an import cycle
+    // with lib/fitness/types.ts; the concrete WeightUnit union is enforced
+    // at each read site.
+    weight_unit: string;
+    hidden_exercises: string[];
+    hidden_completed_sessions: string[];
+  };
 };
 
 export const UI_PREFS_DEFAULTS: UiPrefs = {
@@ -30,6 +38,11 @@ export const UI_PREFS_DEFAULTS: UiPrefs = {
   compost_view: "list",
   compost_show_completed: false,
   compost_show_project: false,
+  fitness_ui: {
+    weight_unit: "kg",
+    hidden_exercises: [],
+    hidden_completed_sessions: [],
+  },
 };
 
 /**

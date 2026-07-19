@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Panel } from "@/components/dashboard/Panel";
 import { Mono } from "@/components/dashboard/Mono";
 import { localDateKey } from "@/lib/util/date";
 import { formatWeight, toKg } from "@/lib/fitness/units";
 import type { BodyMetric, WeightUnit } from "@/lib/fitness/types";
+import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 
 type Toast = { kind: "success" | "error"; text: string } | null;
 type Range = "1M" | "3M" | "6M" | "1Y" | "All";
@@ -45,15 +46,42 @@ export function BodyMetricsView() {
   const [thighs, setThighs] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
 
+  // ui_prefs is source of truth for weight_unit. Legacy localStorage key
+  // still read once for instant paint; hydration effect below migrates it.
+  const { prefs: uiPrefs, setPrefs: writeUiPrefs, isLoading: uiPrefsLoading } =
+    useUiPrefs();
   const [displayUnit, setDisplayUnit] = useState<WeightUnit>(() => {
     if (typeof window === "undefined") return "kg";
     const stored = localStorage.getItem("body-metrics-weight-unit") as WeightUnit | null;
     return stored && UNITS.includes(stored) ? stored : "kg";
   });
+  const hydratedRef = useRef(false);
+
+  useEffect(() => {
+    if (uiPrefsLoading || hydratedRef.current) return;
+    hydratedRef.current = true;
+    const stored = uiPrefs.fitness_ui.weight_unit;
+    if (stored !== "kg") {
+      queueMicrotask(() => {
+        if (UNITS.includes(stored as WeightUnit)) {
+          setDisplayUnit(stored as WeightUnit);
+        }
+      });
+    } else if (typeof window !== "undefined") {
+      const legacy = localStorage.getItem("body-metrics-weight-unit") as WeightUnit | null;
+      if (legacy && UNITS.includes(legacy) && legacy !== "kg") {
+        void writeUiPrefs({
+          fitness_ui: { ...uiPrefs.fitness_ui, weight_unit: legacy },
+        });
+      }
+    }
+  }, [uiPrefsLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function changeDisplayUnit(u: WeightUnit) {
     setDisplayUnit(u);
-    localStorage.setItem("body-metrics-weight-unit", u);
+    void writeUiPrefs({
+      fitness_ui: { ...uiPrefs.fitness_ui, weight_unit: u },
+    });
   }
 
   async function load() {
