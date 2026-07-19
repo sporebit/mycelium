@@ -1,20 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
-
-type Venture = {
-  id: string;
-  name: string;
-  tagline: string | null;
-  parent_id: string | null;
-  kind: string;
-  status: string;
-  description: string | null;
-  accent_colour: string;
-  sort_order: number;
-};
+import { useApi } from "@/lib/data/useApi";
+import type { Venture } from "@/lib/ventures/types";
 
 const STATUS_COLOURS: Record<string, string> = {
   launched: "bg-ok/20 text-ok",
@@ -26,22 +16,9 @@ const STATUS_COLOURS: Record<string, string> = {
 };
 
 export default function VenturesOverviewPage() {
-  const [ventures, setVentures] = useState<Venture[] | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const r = await fetch("/api/ventures", { cache: "no-store" });
-        if (!r.ok || cancelled) return;
-        const j = await r.json();
-        if (!cancelled) setVentures(j.ventures ?? []);
-      } catch {
-        if (!cancelled) setVentures([]);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
+  // Shared cache with /ventures/tree and /ventures/[id]'s all-ventures fetch.
+  const { data } = useApi<{ ventures: Venture[] }>("/api/ventures");
+  const ventures = data?.ventures ?? null;
 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {};

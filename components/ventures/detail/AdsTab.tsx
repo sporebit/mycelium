@@ -1,23 +1,26 @@
 "use client";
 
 import { PLATFORM_COLOURS, PLATFORM_OPTIONS, type Ad } from "@/lib/ventures/types";
+import { mutateApi } from "@/lib/data/mutateApi";
+
+type AdsPayload = { ads: Ad[] };
 
 export function AdsTab({
   ventureId,
   ads,
+  adsKey,
   platformFilter,
   onPlatformFilter,
   onAdd,
   onEdit,
-  onReload,
 }: {
   ventureId: string;
   ads: Ad[];
+  adsKey: string;
   platformFilter: string;
   onPlatformFilter: (v: string) => void;
   onAdd: () => void;
   onEdit: (ad: Ad) => void;
-  onReload: () => void;
 }) {
   const filtered =
     platformFilter === "all"
@@ -25,10 +28,21 @@ export function AdsTab({
       : ads.filter((a) => a.platform === platformFilter);
 
   async function deleteAd(adId: string) {
-    await fetch(`/api/ventures/${ventureId}/ads/${adId}`, {
-      method: "DELETE",
-    });
-    onReload();
+    await mutateApi<AdsPayload>(
+      adsKey,
+      (current) => ({
+        ads: (current?.ads ?? []).filter((a) => a.id !== adId),
+      }),
+      async () => {
+        const res = await fetch(
+          `/api/ventures/${ventureId}/ads/${adId}`,
+          { method: "DELETE" },
+        );
+        if (!res.ok && res.status !== 404) {
+          throw new Error(`ad delete failed (${res.status})`);
+        }
+      },
+    );
   }
 
   return (

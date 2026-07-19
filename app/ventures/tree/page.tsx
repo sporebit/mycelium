@@ -1,18 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
+import { useApi } from "@/lib/data/useApi";
+import { mutateApi } from "@/lib/data/mutateApi";
+import type { Venture } from "@/lib/ventures/types";
 
-type Venture = {
-  id: string;
-  name: string;
-  tagline: string | null;
-  parent_id: string | null;
-  kind: string;
-  status: string;
-  accent_colour: string;
-};
+const VENTURES_KEY = "/api/ventures";
 
 const KIND_ICONS: Record<string, string> = {
   organisation: "🏢",
@@ -31,13 +26,18 @@ const STATUS_COLOURS: Record<string, string> = {
   closed: "bg-danger/20 text-danger",
 };
 
+type TreeVenture = Pick<
+  Venture,
+  "id" | "name" | "tagline" | "parent_id" | "kind" | "status" | "accent_colour"
+>;
+
 function TreeNode({
   venture,
   allVentures,
   onAdd,
 }: {
-  venture: Venture;
-  allVentures: Venture[];
+  venture: TreeVenture;
+  allVentures: TreeVenture[];
   onAdd: (parentId: string) => void;
 }) {
   const [expanded, setExpanded] = useState(true);
@@ -94,44 +94,65 @@ function TreeNode({
 }
 
 export default function VenturesTreePage() {
-  const [ventures, setVentures] = useState<Venture[] | null>(null);
+  const { data } = useApi<{ ventures: Venture[] }>(VENTURES_KEY);
+  const ventures = data?.ventures ?? null;
+
   const [adding, setAdding] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const r = await fetch("/api/ventures", { cache: "no-store" });
-        if (!r.ok || cancelled) return;
-        const j = await r.json();
-        if (!cancelled) setVentures(j.ventures ?? []);
-      } catch {
-        if (!cancelled) setVentures([]);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
   async function handleAdd() {
-    if (!newName.trim() || !adding) return;
-    await fetch("/api/ventures", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: newName.trim(),
-        parent_id: adding,
-        kind: "idea",
-        status: "idea",
-      }),
-    });
+    const name = newName.trim();
+    if (!name || !adding) return;
+    const parentId = adding;
     setAdding(null);
     setNewName("");
-    const r = await fetch("/api/ventures", { cache: "no-store" });
-    if (r.ok) {
-      const j = await r.json();
-      setVentures(j.ventures ?? []);
-    }
+
+    // Optimistic: prepend a placeholder venture so the tree updates
+    // instantly. SWR revalidates after the POST completes; the placeholder
+    // is replaced by the real row from the server.
+    const optimisticId = `optimistic-${Date.now()}`;
+    await mutateApi<{ ventures: Venture[] }>(
+      VENTURES_KEY,
+      (current) => ({
+        ventures: [
+          ...(current?.ventures ?? []),
+          {
+            id: optimisticId,
+            name,
+            tagline: null,
+            parent_id: parentId,
+            kind: "idea",
+            status: "idea",
+            description: null,
+            problem: null,
+            target_market: null,
+            mvp: null,
+            revenue_model: null,
+            pricing_notes: null,
+            cost_estimate_monthly: null,
+            cost_estimate_setup: null,
+            revenue_projection_monthly: null,
+            brand_notes: null,
+            competitors: null,
+            website_url: null,
+            accent_colour: "#84f5b8",
+          },
+        ],
+      }),
+      async () => {
+        const res = await fetch(VENTURES_KEY, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            parent_id: parentId,
+            kind: "idea",
+            status: "idea",
+          }),
+        });
+        if (!res.ok) throw new Error(`venture create failed (${res.status})`);
+      },
+    );
   }
 
   const roots = (ventures ?? []).filter((v) => !v.parent_id);

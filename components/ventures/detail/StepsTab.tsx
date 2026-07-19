@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
 import {
   STEP_STATUS_CYCLE,
@@ -8,55 +9,113 @@ import {
   type Step,
   type Venture,
 } from "@/lib/ventures/types";
+import { mutateApi } from "@/lib/data/mutateApi";
+
+type StepsPayload = { steps: Step[] };
 
 export function StepsTab({
   ventureId,
   steps,
-  onReload,
+  stepsKey,
 }: {
   ventureId: string;
   steps: Step[];
-  onReload: () => void;
+  stepsKey: string;
 }) {
   const [newTitle, setNewTitle] = useState("");
   const done = steps.filter((s) => s.status === "done").length;
   const pct = steps.length > 0 ? Math.round((done / steps.length) * 100) : 0;
 
   async function addStep() {
-    if (!newTitle.trim()) return;
-    await fetch(`/api/ventures/${ventureId}/steps`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: newTitle.trim() }),
-    });
+    const title = newTitle.trim();
+    if (!title) return;
+    // Capture id + sort_order outside the optimistic updater — the updater
+    // runs during render and React 19 forbids Date.now()/Math.random() there.
+    const optimisticId = `optimistic-${Date.now()}`;
+    const nextSortOrder =
+      Math.max(0, ...steps.map((s) => s.sort_order ?? 0)) + 1;
     setNewTitle("");
-    onReload();
+    await mutateApi<StepsPayload>(
+      stepsKey,
+      (current) => ({
+        steps: [
+          ...(current?.steps ?? []),
+          {
+            id: optimisticId,
+            venture_id: ventureId,
+            title,
+            description: null,
+            status: "todo",
+            linked_task_id: null,
+            sort_order: nextSortOrder,
+          },
+        ],
+      }),
+      async () => {
+        const res = await fetch(`/api/ventures/${ventureId}/steps`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title }),
+        });
+        if (!res.ok) throw new Error(`step create failed (${res.status})`);
+      },
+    );
   }
 
   async function toggleStatus(step: Step) {
     const next = STEP_STATUS_CYCLE[step.status] ?? "todo";
-    await fetch(`/api/ventures/${ventureId}/steps/${step.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: next }),
-    });
-    onReload();
+    await mutateApi<StepsPayload>(
+      stepsKey,
+      (current) => ({
+        steps: (current?.steps ?? []).map((s) =>
+          s.id === step.id ? { ...s, status: next } : s,
+        ),
+      }),
+      async () => {
+        const res = await fetch(
+          `/api/ventures/${ventureId}/steps/${step.id}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: next }),
+          },
+        );
+        if (!res.ok) throw new Error(`step update failed (${res.status})`);
+      },
+    );
   }
 
   async function deleteStep(stepId: string) {
-    await fetch(`/api/ventures/${ventureId}/steps/${stepId}`, {
-      method: "DELETE",
-    });
-    onReload();
+    await mutateApi<StepsPayload>(
+      stepsKey,
+      (current) => ({
+        steps: (current?.steps ?? []).filter((s) => s.id !== stepId),
+      }),
+      async () => {
+        const res = await fetch(
+          `/api/ventures/${ventureId}/steps/${stepId}`,
+          { method: "DELETE" },
+        );
+        if (!res.ok && res.status !== 404) {
+          throw new Error(`step delete failed (${res.status})`);
+        }
+      },
+    );
   }
 
   async function createAsTask(step: Step) {
-    const r = await fetch("/api/ventures", { cache: "no-store" });
+    // Look up venture name for prefix. Reads from the same allVentures SWR
+    // cache that the controller populates — this raw fetch here is a fine
+    // one-shot lookup; it doesn't need optimistic treatment.
     let ventureName = "";
-    if (r.ok) {
-      const j = await r.json();
-      const v = (j.ventures as Venture[])?.find((v) => v.id === ventureId);
-      ventureName = v?.name ?? "";
+    try {
+      const r = await fetch("/api/ventures");
+      if (r.ok) {
+        const j = (await r.json()) as { ventures?: Venture[] };
+        ventureName = j.ventures?.find((v) => v.id === ventureId)?.name ?? "";
+      }
+    } catch {
+      /* non-fatal */
     }
     const taskRes = await fetch("/api/tasks", {
       method: "POST",
@@ -67,18 +126,29 @@ export function StepsTab({
         urgency: "someday",
       }),
     });
-    if (taskRes.ok) {
-      const taskData = await taskRes.json();
-      const taskId = taskData.task?.id ?? taskData.id;
-      if (taskId) {
-        await fetch(`/api/ventures/${ventureId}/steps/${step.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ linked_task_id: taskId }),
-        });
-      }
-    }
-    onReload();
+    if (!taskRes.ok) return;
+    const taskData = (await taskRes.json()) as { task?: { id?: string }; id?: string };
+    const taskId = taskData.task?.id ?? taskData.id;
+    if (!taskId) return;
+    await mutateApi<StepsPayload>(
+      stepsKey,
+      (current) => ({
+        steps: (current?.steps ?? []).map((s) =>
+          s.id === step.id ? { ...s, linked_task_id: taskId } : s,
+        ),
+      }),
+      async () => {
+        const res = await fetch(
+          `/api/ventures/${ventureId}/steps/${step.id}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ linked_task_id: taskId }),
+          },
+        );
+        if (!res.ok) throw new Error(`step link failed (${res.status})`);
+      },
+    );
   }
 
   return (
@@ -146,7 +216,12 @@ export function StepsTab({
                 </button>
               )}
               {s.linked_task_id && (
-                <Mono className="text-[9px] text-ok">LINKED</Mono>
+                <Link
+                  href={`/organisation/tasks?task=${s.linked_task_id}`}
+                  className="text-[9px] text-ok hover:underline font-[family-name:var(--font-mono)] tracking-[0.1em] px-1.5 py-0.5"
+                >
+                  LINKED →
+                </Link>
               )}
               <button
                 type="button"

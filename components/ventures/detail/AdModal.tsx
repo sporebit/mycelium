@@ -3,14 +3,19 @@
 import { useState } from "react";
 import { Mono } from "@/components/dashboard/Mono";
 import { PLATFORM_OPTIONS, type Ad } from "@/lib/ventures/types";
+import { mutateApi } from "@/lib/data/mutateApi";
+
+type AdsPayload = { ads: Ad[] };
 
 export function AdModal({
   ventureId,
+  adsKey,
   existing,
   onClose,
   onSaved,
 }: {
   ventureId: string;
+  adsKey: string;
   existing: Ad | null;
   onClose: () => void;
   onSaved: () => void;
@@ -54,19 +59,48 @@ export function AdModal({
       notes: form.notes || null,
     };
 
-    if (existing) {
-      await fetch(`/api/ventures/${ventureId}/ads/${existing.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } else {
-      await fetch(`/api/ventures/${ventureId}/ads`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    }
+    const optimisticId =
+      existing?.id ?? `optimistic-${Date.now()}`;
+
+    await mutateApi<AdsPayload>(
+      adsKey,
+      (current) => {
+        const list = current?.ads ?? [];
+        if (existing) {
+          return {
+            ads: list.map((a) =>
+              a.id === existing.id ? ({ ...a, ...payload } as Ad) : a,
+            ),
+          };
+        }
+        return {
+          ads: [
+            ...list,
+            { id: optimisticId, venture_id: ventureId, ...(payload as object) } as Ad,
+          ],
+        };
+      },
+      async () => {
+        if (existing) {
+          const res = await fetch(
+            `/api/ventures/${ventureId}/ads/${existing.id}`,
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            },
+          );
+          if (!res.ok) throw new Error(`ad update failed (${res.status})`);
+        } else {
+          const res = await fetch(`/api/ventures/${ventureId}/ads`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) throw new Error(`ad create failed (${res.status})`);
+        }
+      },
+    );
     onSaved();
   }
 

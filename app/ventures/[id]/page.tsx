@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { OverviewTab } from "@/components/ventures/detail/OverviewTab";
@@ -15,52 +15,32 @@ import {
   type Venture,
   type VentureTab,
 } from "@/lib/ventures/types";
+import { useApi } from "@/lib/data/useApi";
+import { mutateApi } from "@/lib/data/mutateApi";
 
 export default function VentureDetailPage() {
   const params = useParams();
   const ventureId = params.id as string;
-  const [venture, setVenture] = useState<Venture | null>(null);
-  const [allVentures, setAllVentures] = useState<Venture[]>([]);
-  const [steps, setSteps] = useState<Step[]>([]);
-  const [ads, setAds] = useState<Ad[]>([]);
+
+  const ventureKey = `/api/ventures/${ventureId}`;
+  const allVenturesKey = "/api/ventures";
+  const stepsKey = `/api/ventures/${ventureId}/steps`;
+  const adsKey = `/api/ventures/${ventureId}/ads`;
+
+  const { data: ventureData } = useApi<{ venture: Venture }>(ventureKey);
+  const { data: allData } = useApi<{ ventures: Venture[] }>(allVenturesKey);
+  const { data: stepsData } = useApi<{ steps: Step[] }>(stepsKey);
+  const { data: adsData } = useApi<{ ads: Ad[] }>(adsKey);
+
+  const venture = ventureData?.venture ?? null;
+  const allVentures = allData?.ventures ?? [];
+  const steps = stepsData?.steps ?? [];
+  const ads = adsData?.ads ?? [];
+
   const [tab, setTab] = useState<VentureTab>("overview");
   const [showAdModal, setShowAdModal] = useState(false);
   const [editingAd, setEditingAd] = useState<Ad | null>(null);
   const [adPlatformFilter, setAdPlatformFilter] = useState("all");
-
-  const load = useCallback(async () => {
-    const [vr, ar, sr, adr] = await Promise.all([
-      fetch(`/api/ventures/${ventureId}`, { cache: "no-store" }),
-      fetch("/api/ventures", { cache: "no-store" }),
-      fetch(`/api/ventures/${ventureId}/steps`, { cache: "no-store" }),
-      fetch(`/api/ventures/${ventureId}/ads`, { cache: "no-store" }),
-    ]);
-    if (vr.ok) {
-      const j = await vr.json();
-      setVenture(j.venture);
-    }
-    if (ar.ok) {
-      const j = await ar.json();
-      setAllVentures(j.ventures ?? []);
-    }
-    if (sr.ok) {
-      const j = await sr.json();
-      setSteps(j.steps ?? []);
-    }
-    if (adr.ok) {
-      const j = await adr.json();
-      setAds(j.ads ?? []);
-    }
-  }, [ventureId]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      await load();
-      if (cancelled) return;
-    })();
-    return () => { cancelled = true; };
-  }, [load]);
 
   const parent = useMemo(
     () => allVentures.find((v) => v.id === venture?.parent_id),
@@ -73,12 +53,22 @@ export default function VentureDetailPage() {
   const stepsComplete = steps.filter((s) => s.status === "done").length;
 
   async function patchVenture(fields: Partial<Venture>) {
-    await fetch(`/api/ventures/${ventureId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(fields),
-    });
-    setVenture((prev) => (prev ? { ...prev, ...fields } : prev));
+    await mutateApi<{ venture: Venture }>(
+      ventureKey,
+      (current) => ({
+        venture: current?.venture
+          ? { ...current.venture, ...fields }
+          : ({ ...fields } as Venture),
+      }),
+      async () => {
+        const res = await fetch(ventureKey, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(fields),
+        });
+        if (!res.ok) throw new Error(`venture update failed (${res.status})`);
+      },
+    );
   }
 
   if (!venture)
@@ -156,16 +146,13 @@ export default function VentureDetailPage() {
       )}
       {tab === "plan" && <PlanTab venture={venture} onPatch={patchVenture} />}
       {tab === "steps" && (
-        <StepsTab
-          ventureId={ventureId}
-          steps={steps}
-          onReload={load}
-        />
+        <StepsTab ventureId={ventureId} steps={steps} stepsKey={stepsKey} />
       )}
       {tab === "ads" && (
         <AdsTab
           ventureId={ventureId}
           ads={ads}
+          adsKey={adsKey}
           platformFilter={adPlatformFilter}
           onPlatformFilter={setAdPlatformFilter}
           onAdd={() => {
@@ -176,7 +163,6 @@ export default function VentureDetailPage() {
             setEditingAd(ad);
             setShowAdModal(true);
           }}
-          onReload={load}
         />
       )}
       {tab === "notes" && <NotesTab venture={venture} onPatch={patchVenture} />}
@@ -184,12 +170,10 @@ export default function VentureDetailPage() {
       {showAdModal && (
         <AdModal
           ventureId={ventureId}
+          adsKey={adsKey}
           existing={editingAd}
           onClose={() => setShowAdModal(false)}
-          onSaved={() => {
-            setShowAdModal(false);
-            void load();
-          }}
+          onSaved={() => setShowAdModal(false)}
         />
       )}
     </div>
