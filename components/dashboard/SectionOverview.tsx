@@ -1,4 +1,4 @@
-import { DraggableCardGrid, type DraggableCard } from "./DraggableCardGrid";
+import { DraggableCardGrid } from "./DraggableCardGrid";
 
 export type OverviewCard = {
   key: string;

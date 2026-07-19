@@ -76,6 +76,9 @@ export function Bins({ width = 1 }: { width?: CardWidth } = {}) {
       }
     }
     void load();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (
