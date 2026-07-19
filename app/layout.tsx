@@ -6,6 +6,8 @@ import { TransitionProvider } from "@/lib/context/TransitionContext";
 import { TransitionOverlay } from "@/components/nav/TransitionOverlay";
 import { SoilGrain } from "@/components/dashboard/SoilGrain";
 import { HyphalThreads } from "@/components/dashboard/HyphalThreads";
+import { createServerClient } from "@/lib/supabase/server";
+import { UI_PREFS_DEFAULTS, getUiPrefs } from "@/lib/settings/uiPrefs";
 
 const interTight = Inter_Tight({
   variable: "--font-inter-tight",
@@ -49,14 +51,28 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Server-render data-motion so [data-motion="off"] takes effect on the
+  // very first paint — no client flash, no hydration mismatch.
+  const uid = process.env.USER_ID;
+  let motion = UI_PREFS_DEFAULTS.motion;
+  if (uid) {
+    try {
+      const supabase = createServerClient();
+      const prefs = await getUiPrefs(supabase, uid);
+      motion = prefs.motion;
+    } catch (err) {
+      console.error("[layout/uiPrefs]", err);
+    }
+  }
   return (
     <html
       lang="en"
+      data-motion={motion}
       className={`${interTight.variable} ${jetbrainsMono.variable} ${fraunces.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-ink-0 text-ink-4">

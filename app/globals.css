@@ -455,6 +455,42 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* ui_prefs.motion = "off" → same treatment as prefers-reduced-motion,
+   applied per-user regardless of OS setting. Server-rendered as
+   data-motion="off" on <html> in app/layout.tsx. */
+[data-motion="off"] .spore-pulse,
+[data-motion="off"] .growth-in,
+[data-motion="off"] .glow-pulse,
+[data-motion="off"] .drawer-slide-in,
+[data-motion="off"] .detail-pane-slide-in,
+[data-motion="off"] .habit-count-pulse,
+[data-motion="off"] .ticker-fade-in {
+  animation: none !important;
+}
+[data-motion="off"] .wordmark-glow {
+  animation: none !important;
+  background-image: none;
+  color: var(--text-0);
+  -webkit-text-fill-color: var(--text-0);
+}
+
+/* ui_prefs.motion = "reduced" → mirror prefers-reduced-motion behaviour. */
+[data-motion="reduced"] .spore-pulse,
+[data-motion="reduced"] .growth-in,
+[data-motion="reduced"] .glow-pulse,
+[data-motion="reduced"] .drawer-slide-in,
+[data-motion="reduced"] .detail-pane-slide-in,
+[data-motion="reduced"] .habit-count-pulse,
+[data-motion="reduced"] .ticker-fade-in {
+  animation: none !important;
+}
+[data-motion="reduced"] .wordmark-glow {
+  animation: none !important;
+  background-image: none;
+  color: var(--text-0);
+  -webkit-text-fill-color: var(--text-0);
+}
+
 /* Sub-task hyphal connector. Attach `is-subtask` to the outer wrapper
    of any sub-task card and the L-shaped corner draws up to the parent
    sitting directly above. Decorative only — no layout impact. */
