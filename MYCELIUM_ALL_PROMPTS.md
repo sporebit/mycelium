@@ -630,7 +630,7 @@ programme reflects it).
 
 ---
 
-## P6 — HEALTH + NUTRITION ⬜ NOT STARTED
+## P6 — HEALTH + NUTRITION 🔶 PARTS 1, 2 DONE — PARTS 3, 4, 5 PENDING
 
 ```
 TASK: v2 pass on Health + Nutrition. Two heavy monoliths get split
@@ -1314,7 +1314,8 @@ after a day of real usage.
 | P3 | ✅ Done | c527a49, bff473f, d053c67, 0ff48e7 | Follow-ups: (a) inspiration board restyle deferred (own commit); (b) Founder agent verification not run — verify tool calls reflect in new UI next time it's open |
 | P4 | 🔶 Groundwork done | 27a49f4 (split), 179527a (prefs) | Parts 2/4/5 pending — fresh session; run browser behavioural sweep (7 views + shortcuts + bulk + detail + drawer) before Part 2 |
 | P5 | 🔶 Part 1 done | 0b9a10e | Parts 2/3/4 pending — Part 2 set-logging is highest-stakes mutation, fresh session only |
-| P6–P11 | ⬜ Not started | — | — |
+| P6 | 🔶 Parts 1+2 done | 119f795 (blood-tests split), 7be7063 (recipes split) | Parts 3/4/5 pending. Both splits were zero-behaviour-change and are **unverified by use** — exercise blood-test parsing + weekly planner + Vision multi-page merge before Part 3. Part 3 must also fix the supplements cache key: daily-checklist page needs the SAME `/api/supplements/daily?date=${today}` key as the P0 dashboard card and P2 TimelineRail |
+| P7–P11 | ⬜ Not started | — | — |
 
 **Before P4 (Compost) starts, in any session: manually complete a task,
 check a venture step, and confirm both survive a reload. If either fails,
