@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
 import { PersonDrawer } from "./PersonDrawer";
@@ -61,50 +62,26 @@ function daysUntilBirthday(iso: string): number {
 }
 
 export function PeopleClient() {
-  const [people, setPeople] = useState<PersonWithAliases[] | null>(null);
-  const [reviewCount, setReviewCount] = useState(0);
   const [filter, setFilter] = useState<Filter>("all");
   const [relationship, setRelationship] = useState<string>("all");
   const [drawerMode, setDrawerMode] = useState<
     { kind: "create" } | { kind: "edit"; person: PersonWithAliases } | null
   >(null);
 
-  const load = async () => {
-    try {
-      const r = await fetch("/api/people", { cache: "no-store" });
-      if (!r.ok) return;
-      const j = (await r.json()) as {
-        people: PersonWithAliases[];
-        review_count: number;
-      };
-      setPeople(j.people ?? []);
-      setReviewCount(j.review_count ?? 0);
-    } catch {
-      setPeople([]);
-    }
-  };
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const r = await fetch("/api/people", { cache: "no-store" });
-        if (!r.ok || !mounted) return;
-        const j = (await r.json()) as {
-          people: PersonWithAliases[];
-          review_count: number;
-        };
-        if (!mounted) return;
-        setPeople(j.people ?? []);
-        setReviewCount(j.review_count ?? 0);
-      } catch {
-        if (mounted) setPeople([]);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  // One cache entry for /api/people, shared with anything else reading it.
+  // `load` is now SWR's revalidate, which replaces the two hand-written
+  // copies of this fetch that used to sit here.
+  const { data, error, mutate } = useApi<{
+    people: PersonWithAliases[];
+    review_count: number;
+  }>("/api/people");
+  const people = useMemo<PersonWithAliases[] | null>(() => {
+    if (error) return [];
+    if (!data) return null;
+    return data.people ?? [];
+  }, [data, error]);
+  const reviewCount = data?.review_count ?? 0;
+  const load = () => void mutate();
 
   const relationships = useMemo(() => {
     const s = new Set<string>();

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
 import { Mono } from "@/components/dashboard/Mono";
 import { SuggestCapture } from "./SuggestCapture";
 
@@ -53,27 +54,23 @@ function sourceIcon(s: string): string {
 
 export function DecisionsClient() {
   const [source, setSource] = useState("all");
-  const [decisions, setDecisions] = useState<Capture[] | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 
-  useEffect(() => {
-    let mounted = true;
-    const p = new URLSearchParams();
-    if (source !== "all") p.set("source", source);
-    p.set("kind", "decision");
-    p.set("limit", "100");
-
-    fetch(`/api/captures?${p.toString()}`)
-      .then((r) => r.json())
-      .then((j: { captures?: Capture[] }) => {
-        if (!mounted) return;
-        setDecisions(Array.isArray(j?.captures) ? j.captures : []);
-      })
-      .catch(() => mounted && setDecisions([]));
-    return () => {
-      mounted = false;
-    };
-  }, [source]);
+  // The SWR key is the raw path, so changing the source filter selects a
+  // different cache entry rather than clobbering the current one.
+  const params = new URLSearchParams();
+  if (source !== "all") params.set("source", source);
+  params.set("kind", "decision");
+  params.set("limit", "100");
+  const { data, error } = useApi<{ captures?: Capture[] }>(
+    `/api/captures?${params.toString()}`,
+  );
+  // null while loading; [] on failure — same contract the old effect had.
+  const decisions = useMemo<Capture[] | null>(() => {
+    if (error) return [];
+    if (!data) return null;
+    return Array.isArray(data.captures) ? data.captures : [];
+  }, [data, error]);
 
   function toggle(id: string) {
     setExpanded((cur) => {

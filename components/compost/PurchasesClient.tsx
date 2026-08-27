@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { mutate as globalMutate } from "swr";
+import { useApi } from "@/lib/data/useApi";
+import { mutateApi } from "@/lib/data/mutateApi";
+import { apiWrite, jsonBody } from "@/lib/data/apiWrite";
 import Link from "next/link";
+
+const ACTIVE_PROJECTS_KEY = "/api/projects?status=active";
 import { Mono } from "@/components/dashboard/Mono";
 import type { Project } from "@/lib/types/project";
 import {
@@ -72,8 +78,6 @@ export function PurchasesClient({
    *  project-detail purchases-page link. */
   initialProjectId?: string;
 } = {}) {
-  const [purchases, setPurchases] = useState<Purchase[] | null>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
   const [draft, setDraft] = useState("");
   const [draftListType, setDraftListType] =
@@ -83,32 +87,26 @@ export function PurchasesClient({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const url = initialProjectId
-      ? `/api/purchases?project_id=${encodeURIComponent(initialProjectId)}`
-      : "/api/purchases";
-    fetch(url, { cache: "no-store" })
-      .then((r) => r.json())
-      .then((j: { purchases?: Purchase[] }) => {
-        if (cancelled) return;
-        setPurchases(Array.isArray(j?.purchases) ? j.purchases : []);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setPurchases([]);
-      });
-    fetch("/api/projects?status=active")
-      .then((r) => r.json())
-      .then((j: { projects?: Project[] }) => {
-        if (cancelled) return;
-        setProjects(Array.isArray(j?.projects) ? j.projects : []);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [initialProjectId]);
+  // The project-scoped and unscoped lists are different paths, so they get
+  // their own cache entries rather than overwriting each other.
+  const purchasesKey = initialProjectId
+    ? `/api/purchases?project_id=${encodeURIComponent(initialProjectId)}`
+    : "/api/purchases";
+  const { data: purchasesData, error: purchasesError } = useApi<{
+    purchases?: Purchase[];
+  }>(purchasesKey);
+  const purchases = useMemo<Purchase[] | null>(() => {
+    if (purchasesError) return [];
+    if (!purchasesData) return null;
+    return Array.isArray(purchasesData.purchases) ? purchasesData.purchases : [];
+  }, [purchasesData, purchasesError]);
+
+  const { data: projectsData } = useApi<{ projects?: Project[] }>(
+    ACTIVE_PROJECTS_KEY,
+  );
+  const projects: Project[] = Array.isArray(projectsData?.projects)
+    ? projectsData.projects
+    : [];
 
   useEffect(() => {
     if (!toast) return;
@@ -127,24 +125,31 @@ export function PurchasesClient({
     if (!title) return;
     setAdding(true);
     try {
-      const res = await fetch("/api/purchases", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          list_type: draftListType,
-          project_id: initialProjectId ?? null,
-        }),
-      });
-      const j = (await res.json().catch(() => ({}))) as {
-        purchase?: Purchase;
-        error?: string;
-      };
-      if (!res.ok || !j.purchase) {
-        showToast("error", j.error ?? "Add failed");
+      let created: Purchase | undefined;
+      try {
+        const j = await apiWrite<{ purchase?: Purchase }>("/api/purchases", {
+          method: "POST",
+          ...jsonBody({
+            title,
+            list_type: draftListType,
+            project_id: initialProjectId ?? null,
+          }),
+        });
+        created = j.purchase;
+      } catch (e) {
+        showToast("error", e instanceof Error ? e.message : "Add failed");
         return;
       }
-      setPurchases((cur) => [j.purchase!, ...(cur ?? [])]);
+      if (!created) {
+        showToast("error", "Add failed");
+        return;
+      }
+      const purchase = created;
+      await globalMutate<{ purchases?: Purchase[] }>(
+        purchasesKey,
+        (cur) => ({ ...cur, purchases: [purchase, ...(cur?.purchases ?? [])] }),
+        { revalidate: false },
+      );
       setDraft("");
     } finally {
       setAdding(false);
@@ -154,54 +159,43 @@ export function PurchasesClient({
   async function patchPurchase(id: string, patch: Partial<Purchase>) {
     if (busyId) return;
     setBusyId(id);
-    const prev = purchases ?? [];
-    setPurchases((cur) =>
-      (cur ?? []).map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    // mutateApi applies the optimistic value, rolls back on refusal and
+    // revalidates from the server afterwards.
+    await mutateApi<{ purchases?: Purchase[] }>(
+      purchasesKey,
+      (cur) => ({
+        ...cur,
+        purchases: (cur?.purchases ?? []).map((p) =>
+          p.id === id ? { ...p, ...patch } : p,
+        ),
+      }),
+      () =>
+        apiWrite(`/api/purchases/${id}`, {
+          method: "PATCH",
+          ...jsonBody(patch),
+        }),
+      {
+        onError: (e) =>
+          showToast("error", e instanceof Error ? e.message : "Update failed"),
+      },
     );
-    try {
-      const res = await fetch(`/api/purchases/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patch),
-      });
-      const j = (await res.json().catch(() => ({}))) as {
-        purchase?: Purchase;
-        error?: string;
-      };
-      if (!res.ok || !j.purchase) {
-        setPurchases(prev);
-        showToast("error", j.error ?? "Update failed");
-        return;
-      }
-      setPurchases((cur) =>
-        (cur ?? []).map((p) => (p.id === id ? j.purchase! : p)),
-      );
-    } catch {
-      setPurchases(prev);
-      showToast("error", "Update failed");
-    } finally {
-      setBusyId(null);
-    }
+    setBusyId(null);
   }
 
   async function deletePurchase(id: string) {
     if (busyId) return;
     if (!window.confirm("Delete this purchase? This can't be undone.")) return;
     setBusyId(id);
-    const prev = purchases ?? [];
-    setPurchases((cur) => (cur ?? []).filter((p) => p.id !== id));
-    try {
-      const res = await fetch(`/api/purchases/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        setPurchases(prev);
-        showToast("error", "Delete failed");
-      }
-    } catch {
-      setPurchases(prev);
-      showToast("error", "Delete failed");
-    } finally {
-      setBusyId(null);
-    }
+    await mutateApi<{ purchases?: Purchase[] }>(
+      purchasesKey,
+      (cur) => ({
+        ...cur,
+        purchases: (cur?.purchases ?? []).filter((p) => p.id !== id),
+      }),
+      () => apiWrite(`/api/purchases/${id}`, { method: "DELETE" }),
+      { onError: () => showToast("error", "Delete failed") },
+    );
+    setBusyId(null);
   }
 
   function togglePurchased(p: Purchase) {

@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
+import { mutateApi } from "@/lib/data/mutateApi";
+import { apiWrite, jsonBody } from "@/lib/data/apiWrite";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mono } from "@/components/dashboard/Mono";
@@ -11,6 +14,9 @@ import {
 } from "@/lib/types/project";
 import type { Task, TaskStatus } from "@/lib/types/task";
 import { TaskStatusBoard } from "./TaskStatusBoard";
+
+const PROJECTS_KEY = "/api/projects";
+const KANBAN_TASKS_KEY = "/api/tasks?status=open&include_completed=true";
 
 type Filter = ProjectStatus | "all";
 type View = "list" | "kanban";
@@ -61,7 +67,6 @@ function initialView(): View {
 
 export function ProjectsClient() {
   const router = useRouter();
-  const [projects, setProjects] = useState<Project[] | null>(null);
   const [filter, setFilter] = useState<Filter>("active");
   const [view, setView] = useState<View>(initialView);
   const [showNew, setShowNew] = useState(false);
@@ -76,7 +81,6 @@ export function ProjectsClient() {
   // Kanban-mode state. `kanbanFilter === null` means the user hasn't
   // touched the filter — we render with the implicit default of "all
   // active projects" computed from the loaded project list.
-  const [kanbanTasks, setKanbanTasks] = useState<Task[] | null>(null);
   const [kanbanFilter, setKanbanFilter] = useState<Set<string> | null>(null);
 
   useEffect(() => {
@@ -84,34 +88,26 @@ export function ProjectsClient() {
     window.localStorage.setItem(VIEW_KEY, view);
   }, [view]);
 
-  useEffect(() => {
-    let mounted = true;
-    fetch("/api/projects")
-      .then((r) => r.json())
-      .then((j: { projects?: Project[] }) => {
-        if (!mounted) return;
-        setProjects(Array.isArray(j?.projects) ? j.projects : []);
-      })
-      .catch(() => mounted && setProjects([]));
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  // SWR keys are the raw paths, so these entries are shared with every
+  // other surface that reads the same endpoint. The kanban key is null
+  // until the kanban view is open, which is how useApi expresses
+  // "don't fetch yet".
+  const { data: projectsData, error: projectsError, mutate: mutateProjects } =
+    useApi<{ projects?: Project[] }>(PROJECTS_KEY);
+  const projects = useMemo<Project[] | null>(() => {
+    if (projectsError) return [];
+    if (!projectsData) return null;
+    return Array.isArray(projectsData.projects) ? projectsData.projects : [];
+  }, [projectsData, projectsError]);
 
-  useEffect(() => {
-    if (view !== "kanban") return;
-    let mounted = true;
-    fetch("/api/tasks?status=open&include_completed=true")
-      .then((r) => r.json())
-      .then((j: { tasks?: Task[] }) => {
-        if (!mounted) return;
-        setKanbanTasks(Array.isArray(j?.tasks) ? j.tasks : []);
-      })
-      .catch(() => mounted && setKanbanTasks([]));
-    return () => {
-      mounted = false;
-    };
-  }, [view]);
+  const { data: kanbanData, error: kanbanError } = useApi<{ tasks?: Task[] }>(
+    view === "kanban" ? KANBAN_TASKS_KEY : null,
+  );
+  const kanbanTasks = useMemo<Task[] | null>(() => {
+    if (kanbanError) return [];
+    if (!kanbanData) return null;
+    return Array.isArray(kanbanData.tasks) ? kanbanData.tasks : [];
+  }, [kanbanData, kanbanError]);
 
   // Effective filter: explicit user selection wins; otherwise default
   // to all active projects so the kanban shows something meaningful on
@@ -132,31 +128,23 @@ export function ProjectsClient() {
   }, [kanbanTasks, effectiveKanbanFilter]);
 
   async function patchKanbanTask(id: string, status: TaskStatus) {
-    const prev = kanbanTasks ?? [];
-    setKanbanTasks((cur) =>
-      (cur ?? []).map((t) => (t.id === id ? { ...t, status } : t))
+    // mutateApi rolls the cache back itself if the PATCH is refused, so the
+    // hand-written prev/restore dance this used to do is no longer needed.
+    await mutateApi<{ tasks?: Task[] }>(
+      KANBAN_TASKS_KEY,
+      (cur) => ({
+        ...cur,
+        tasks: (cur?.tasks ?? []).map((t) =>
+          t.id === id ? { ...t, status } : t,
+        ),
+      }),
+      () =>
+        apiWrite(`/api/tasks/${id}`, {
+          method: "PATCH",
+          ...jsonBody({ status }),
+        }),
+      { onError: () => setError("Status update failed") },
     );
-    try {
-      const res = await fetch(`/api/tasks/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-      if (!res.ok) {
-        setKanbanTasks(prev);
-        setError("Status update failed");
-        return;
-      }
-      const j = (await res.json()) as { task?: Task };
-      if (j.task) {
-        setKanbanTasks((cur) =>
-          (cur ?? []).map((t) => (t.id === id ? j.task! : t))
-        );
-      }
-    } catch {
-      setKanbanTasks(prev);
-      setError("Status update failed");
-    }
   }
 
   useEffect(() => {
@@ -180,21 +168,30 @@ export function ProjectsClient() {
     }
     setSaving(true);
     try {
-      const res = await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          description: draft.description.trim() || null,
-          colour: draft.colour.trim() || null,
-        }),
-      });
-      const j = (await res.json()) as { project?: Project; error?: string };
-      if (!res.ok || !j.project) {
-        setError(j.error ?? "Create failed");
+      let created: Project | undefined;
+      try {
+        const j = await apiWrite<{ project?: Project }>("/api/projects", {
+          method: "POST",
+          ...jsonBody({
+            name,
+            description: draft.description.trim() || null,
+            colour: draft.colour.trim() || null,
+          }),
+        });
+        created = j.project;
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Create failed");
         return;
       }
-      setProjects((cur) => [j.project!, ...(cur ?? [])]);
+      if (!created) {
+        setError("Create failed");
+        return;
+      }
+      const project = created;
+      await mutateProjects(
+        (cur) => ({ ...cur, projects: [project, ...(cur?.projects ?? [])] }),
+        { revalidate: false },
+      );
       setDraft({ name: "", description: "", colour: COLOUR_PRESETS[0] });
       setShowNew(false);
     } finally {

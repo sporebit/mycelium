@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Mono } from "@/components/dashboard/Mono";
@@ -123,64 +124,54 @@ export function CapturesClient() {
   const focusId = searchParams.get("focus");
   const [source, setSource] = useState("all");
   const [kind, setKind] = useState("all");
-  const [captures, setCaptures] = useState<Capture[] | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(() =>
     focusId ? new Set([focusId]) : new Set(),
   );
-  const [sourceConfig, setSourceConfig] = useState<Record<string, SourceConfig>>(DEFAULT_SOURCE_CONFIG);
   const scrolledRef = useRef(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/settings", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((j: { settings?: Record<string, unknown> }) => {
-        if (cancelled) return;
-        const saved = j.settings?.capture_source_labels as Record<string, SourceConfig> | undefined;
-        if (saved) {
-          const merged: Record<string, SourceConfig> = {};
-          for (const [k, v] of Object.entries(DEFAULT_SOURCE_CONFIG)) {
-            merged[k] = { ...v, ...(saved[k] ?? {}) };
-          }
-          setSourceConfig(merged);
-        }
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
+  // Shares the "/api/settings" cache entry with every other consumer of it.
+  const { data: settingsData } = useApi<{ settings?: Record<string, unknown> }>(
+    "/api/settings",
+  );
+  const sourceConfig = useMemo<Record<string, SourceConfig>>(() => {
+    const saved = settingsData?.settings?.capture_source_labels as
+      | Record<string, SourceConfig>
+      | undefined;
+    if (!saved) return DEFAULT_SOURCE_CONFIG;
+    const merged: Record<string, SourceConfig> = {};
+    for (const [k, v] of Object.entries(DEFAULT_SOURCE_CONFIG)) {
+      merged[k] = { ...v, ...(saved[k] ?? {}) };
+    }
+    return merged;
+  }, [settingsData]);
 
-  useEffect(() => {
-    let mounted = true;
-    const p = new URLSearchParams();
-    if (source !== "all") p.set("source", source);
-    if (kind !== "all") p.set("kind", kind);
-    p.set("limit", "100");
+  // Key includes the filters, so each filter combination is its own cache
+  // entry instead of overwriting a shared one.
+  const params = new URLSearchParams();
+  if (source !== "all") params.set("source", source);
+  if (kind !== "all") params.set("kind", kind);
+  params.set("limit", "100");
+  const { data: capturesData, error: capturesError } = useApi<{
+    captures?: Capture[];
+  }>(`/api/captures?${params.toString()}`);
+  const captures = useMemo<Capture[] | null>(() => {
+    if (capturesError) return [];
+    if (!capturesData) return null;
+    return Array.isArray(capturesData.captures) ? capturesData.captures : [];
+  }, [capturesData, capturesError]);
 
-    fetch(`/api/captures?${p.toString()}`)
-      .then((r) => r.json())
-      .then((j: { captures?: Capture[] }) => {
-        if (!mounted) return;
-        const list = Array.isArray(j?.captures) ? j.captures : [];
-        setCaptures(list);
-        // When the URL ships a ?focus= id, expand that row and scroll
-        // it into view exactly once after the list lands. queueMicrotask
-        // fired before React committed the new rows, so getElementById
-        // returned null. rAF runs after the paint following setCaptures.
-        if (focusId && !scrolledRef.current) {
-          scrolledRef.current = true;
-          requestAnimationFrame(() => {
-            const el = document.getElementById(`capture-${focusId}`);
-            if (el) {
-              el.scrollIntoView({ behavior: "smooth", block: "center" });
-            }
-          });
-        }
-      })
-      .catch(() => mounted && setCaptures([]));
-    return () => {
-      mounted = false;
-    };
-  }, [source, kind, focusId]);
+  // When the URL ships a ?focus= id, expand that row and scroll it into
+  // view exactly once after the list lands. rAF runs after the paint that
+  // commits the rows — getElementById returns null any earlier.
+  useEffect(() => {
+    if (!captures || !focusId || scrolledRef.current) return;
+    scrolledRef.current = true;
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`capture-${focusId}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }, [captures, focusId]);
+
 
   function toggle(id: string) {
     setExpanded((cur) => {
