@@ -12,14 +12,6 @@ import type {
 } from "@/lib/types/task";
 import type { Project } from "@/lib/types/project";
 import { ViewSwitcher, type CrmView } from "./ViewSwitcher";
-import { TaskBoard } from "./TaskBoard";
-import { TaskStatusBoard } from "./TaskStatusBoard";
-import { TaskSmart } from "./TaskSmart";
-import { TaskCategory } from "./TaskCategory";
-import { TaskListView } from "./TaskListView";
-import { TaskTableView } from "./TaskTableView";
-import { TaskCalendarView } from "./TaskCalendarView";
-import { TaskDetailPane } from "./TaskDetailPane";
 import { TaskBulkBar } from "./TaskBulkBar";
 import { ShortcutHintBar, ShortcutHelpModal } from "./TaskShortcutHelp";
 import { TaskDrawer, type DrawerMode } from "./TaskDrawer";
