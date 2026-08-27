@@ -1,5 +1,8 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+> **Setting up on a new machine?** See [SETUP.md](./SETUP.md) — toolchain install,
+> Git auth, Supabase CLI, and the build/push workflow.
+
 ## Getting Started
 
 First, run the development server:
