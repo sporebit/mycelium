@@ -143,7 +143,9 @@ export function TasksClient() {
       // localStorage). queueMicrotask defers past the effect body per the
       // codebase's set-state-in-effect pattern.
       queueMicrotask(() => {
-        if (cv !== view) setView(cv as CrmView);
+        // An explicit ?view= in the URL is a deep link and outranks the
+        // stored preference; adopting cv here would clobber it.
+        if (!viewParam && cv !== view) setView(cv as CrmView);
         if (cc !== showCompleted) setShowCompleted(cc);
         if (cp !== showProjectTasks) setShowProjectTasks(cp);
       });
