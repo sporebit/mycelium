@@ -57,7 +57,9 @@ pc-agent/daemon/
 pc-agent/node_modules/
 
 # graphify knowledge graph (generated)
+# graphify <=0.9 wrote to graphify-out/; 0.10+ writes to .graphify/
 graphify-out/
+.graphify/
 
 # screenshots dumped by scripts/screenshot.mjs — never committed
 screenshots/
