@@ -527,14 +527,18 @@ export function TasksClient() {
   ) {
     const ids = Array.from(selected);
     if (ids.length === 0) return;
+    const prev = tasks ?? [];
     if (action.kind === "delete") {
-      const prev = tasks ?? [];
       setTasks((cur) => (cur ?? []).filter((t) => !selected.has(t.id)));
       clearSelection();
       try {
-        await Promise.all(
+        const results = await Promise.all(
           ids.map((id) => fetch(`/api/tasks/${id}`, { method: "DELETE" })),
         );
+        // fetch only rejects on a network failure — a 4xx/5xx resolves
+        // normally, so the responses must be checked explicitly or a
+        // server-side refusal reads as success and never rolls back.
+        if (results.some((r) => !r.ok)) throw new Error("delete rejected");
         showToast(`Deleted ${ids.length} tasks`, "success");
       } catch {
         setTasks(prev);
@@ -554,17 +558,24 @@ export function TasksClient() {
       ),
     );
     try {
-      await Promise.all(
-        ids.map((id) =>
-          fetch(`/api/tasks/${id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(patch),
-          }),
-        ),
-      );
+      // /api/tasks/bulk applies the patch in one statement: a single round
+      // trip instead of N, and the whole selection lands or none of it does.
+      const r = await fetch("/api/tasks/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, patch }),
+      });
+      if (!r.ok) throw new Error("bulk rejected");
+      const j = (await r.json().catch(() => ({}))) as { tasks?: Task[] };
+      // Reconcile with the server snapshot so the endpoint's side-effects
+      // (completed_at coupling, updated_at) flow back into the list.
+      if (Array.isArray(j.tasks)) {
+        const byId = new Map(j.tasks.map((t) => [t.id, t] as const));
+        setTasks((cur) => (cur ?? []).map((t) => byId.get(t.id) ?? t));
+      }
       showToast(`Updated ${ids.length} tasks`, "success");
     } catch {
+      setTasks(prev);
       showToast("Bulk update failed");
     }
   }
