@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { apiWrite, jsonBody, reportApiError } from "@/lib/data/apiWrite";
 import Link from "next/link";
 import {
   DndContext,
@@ -117,12 +118,17 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
 
   async function patchProgramme(patch: Partial<ProgrammeDetail>) {
     if (!detail) return;
+    const prev = detail;
     setDetail({ ...detail, ...patch });
-    await fetch(`/api/fitness/programmes/${programmeId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
-    });
+    try {
+      await apiWrite(`/api/fitness/programmes/${programmeId}`, {
+        method: "PATCH",
+        ...jsonBody(patch),
+      });
+    } catch (e) {
+      setDetail(prev);
+      reportApiError(e, "Could not update programme");
+    }
   }
 
   async function addSession(

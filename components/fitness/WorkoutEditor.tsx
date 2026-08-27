@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiWrite, jsonBody, reportApiError } from "@/lib/data/apiWrite";
 import {
   DndContext,
   PointerSensor,
@@ -88,22 +89,33 @@ export function WorkoutEditor({
   }
 
   async function patchExercise(id: string, patch: Partial<WorkoutExercise>) {
+    const prev = exercises;
     setExercises((cur) =>
       cur.map((e) => (e.id === id ? { ...e, ...patch } : e)),
     );
-    await fetch(`/api/workouts/${workout.id}/exercises/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
-    });
+    try {
+      await apiWrite(
+        `/api/workouts/${workout.id}/exercises/${id}`,
+        { method: "PATCH", ...jsonBody(patch) },
+      );
+    } catch (e) {
+      setExercises(prev);
+      reportApiError(e, "Could not update exercise");
+    }
   }
 
   async function removeExercise(id: string) {
     if (!window.confirm("Remove this exercise from the workout?")) return;
+    const prev = exercises;
     setExercises((cur) => cur.filter((e) => e.id !== id));
-    await fetch(`/api/workouts/${workout.id}/exercises/${id}`, {
-      method: "DELETE",
-    });
+    try {
+      await apiWrite(`/api/workouts/${workout.id}/exercises/${id}`, {
+        method: "DELETE",
+      });
+    } catch (e) {
+      setExercises(prev);
+      reportApiError(e, "Could not remove exercise");
+    }
   }
 
   async function handleDragEnd(e: DragEndEvent) {
@@ -113,13 +125,18 @@ export function WorkoutEditor({
     const oldIdx = ids.indexOf(String(active.id));
     const newIdx = ids.indexOf(String(over.id));
     if (oldIdx < 0 || newIdx < 0) return;
+    const prev = exercises;
     const next = arrayMove(exercises, oldIdx, newIdx);
     setExercises(next);
-    await fetch(`/api/workouts/${workout.id}/exercises/reorder`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderedIds: next.map((x) => x.id) }),
-    });
+    try {
+      await apiWrite(`/api/workouts/${workout.id}/exercises/reorder`, {
+        method: "POST",
+        ...jsonBody({ orderedIds: next.map((x) => x.id) }),
+      });
+    } catch (e) {
+      setExercises(prev);
+      reportApiError(e, "Could not reorder exercises");
+    }
   }
 
   return (

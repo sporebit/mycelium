@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { apiWrite, jsonBody, reportApiError } from "@/lib/data/apiWrite";
 import { Mono } from "@/components/dashboard/Mono";
 
 type Inspiration = {
@@ -307,18 +308,23 @@ function InspirationModal({
         .filter(Boolean),
     };
 
-    if (existing) {
-      await fetch(`/api/ventures/inspiration/${existing.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } else {
-      await fetch("/api/ventures/inspiration", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+    try {
+      if (existing) {
+        await apiWrite(`/api/ventures/inspiration/${existing.id}`, {
+          method: "PATCH",
+          ...jsonBody(payload),
+        });
+      } else {
+        await apiWrite("/api/ventures/inspiration", {
+          method: "POST",
+          ...jsonBody(payload),
+        });
+      }
+    } catch (e) {
+      // Previously the modal closed via onSaved() even when the write was
+      // refused, so a lost edit looked exactly like a saved one.
+      reportApiError(e, "Could not save inspiration");
+      return;
     }
     onSaved();
   }

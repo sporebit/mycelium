@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { apiWrite, jsonBody, reportApiError } from "@/lib/data/apiWrite";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -223,18 +224,17 @@ export function TodayView({
           }
         : prev
     );
+    const prevData = data;
     try {
-      await fetch("/api/fitness/sessions/reorder-in-slot", {
+      await apiWrite("/api/fitness/sessions/reorder-in-slot", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          date: data.date,
-          slot,
-          session_ids: ids,
-        }),
+        ...jsonBody({ date: data.date, slot, session_ids: ids }),
       });
-    } catch {
-      /* parent re-fetch will reconcile */
+    } catch (e) {
+      // A refused reorder used to stick on screen until the next full load:
+      // fetch resolves on a 4xx/5xx, so this catch never fired for them.
+      setData(prevData);
+      reportApiError(e, "Could not reorder sessions");
     }
   }
 
@@ -254,6 +254,7 @@ export function TodayView({
       return;
     }
 
+    const prevData = data;
     setData((prev) => {
       if (!prev) return prev;
       const updated = { ...prev.slots };
@@ -268,10 +269,13 @@ export function TodayView({
 
     if (entry.logged_session_id) {
       try {
-        await fetch(`/api/fitness/sessions/${entry.logged_session_id}`, {
+        await apiWrite(`/api/fitness/sessions/${entry.logged_session_id}`, {
           method: "DELETE",
         });
-      } catch { /* optimistic — already removed from UI */ }
+      } catch (e) {
+        setData(prevData);
+        reportApiError(e, "Could not remove session");
+      }
     }
   }
 
