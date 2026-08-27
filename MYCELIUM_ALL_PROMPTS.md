@@ -374,11 +374,26 @@ status enum values used for "active" filtering.
 ## P4 — ORGANISATION / COMPOST 🔶 GROUNDWORK DONE — PARTS 2, 4, 5 PENDING
 
 **Landed tonight (mechanical, low-risk):**
-- ✅ **Part 1** (`27a49f4`) — split TasksClient inline components → `TaskDetailPaneWrap`, `TaskMainView`, `TaskListSkeleton`, `ProjectFilterDropdown`. Build-verified only; behavioural sweep of all seven views + every keyboard shortcut + bulk + detail pane + drawer needs a real browser session before P4 Part 2.
+- ✅ **Part 1** (`27a49f4`) — split TasksClient inline components → `TaskDetailPaneWrap`, `TaskMainView`, `TaskListSkeleton`, `ProjectFilterDropdown`. Build-verified, then **browser-verified 2026-08-28** (headless Playwright): all seven views render clean, detail pane opens, no console or page errors, bulk select + bulk urgency change confirmed against throwaway tasks. Part 1 is behaviourally sound.
 - ✅ **Part 3** (`179527a`) — `miles-crm-view`, `mycelium:showCompleted`, `mycelium:showProjectTasks` migrated to `ui_prefs.compost_view` / `compost_show_completed` / `compost_show_project`. Legacy keys stay as inert fallback. URL param sync untouched.
 
 **Fresh-session, rested-read next unit:**
 - ⬜ **Part 2** — useApi + optimistic mutations for tasks/captures/people/projects/purchases/decisions. Kanban drag, bulk actions, detail-pane edits all become instant. `triggerFieldPulse()` on task completion.
+
+  **Answered ahead of Part 2 (2026-08-28):** the bulk-action contract question is
+  settled. `/api/tasks/bulk` already exists, whitelists exactly
+  status/urgency/due_date/project_id, applies them in one statement
+  (all-or-nothing) and logs activity. The bulk bar was fanning out N per-item
+  PATCHes instead; `6e45078` switched it to the bulk endpoint. Two defects were
+  fixed at the same time: `Promise.all` over `fetch` never rejects on a 4xx/5xx,
+  so a server-rejected bulk update reported success, and the non-delete branch
+  captured no rollback snapshot at all. Both branches now check `res.ok` and
+  restore `prev`. Verified by sabotaging the endpoint to 500 — toast reads
+  "Bulk update failed", the UI reverts, the server is unchanged.
+
+  Also fixed (`0dcb122`): Part 3's ui_prefs hydration clobbered an explicit
+  `?view=` URL param, breaking deep links — contradicting Part 3's own
+  "URL param sync stays untouched" constraint. The URL param now wins.
 - ⬜ **Part 4** — v2 primitives across all seven views + Sheet-based detail pane/drawer + density-driven table row height.
 - ⬜ **Part 5** — mobile swipe (right = done, left = reschedule sheet, long-press = bulk).
 
@@ -1312,7 +1327,7 @@ after a day of real usage.
 | P1.5 | ✅ Done | (nav follow-up commit) | Assistant added, shortcut-setup routed via Settings |
 | P2 | 🔶 Fired, unverified by use | 4 commits expected | **VERIFY BY USE before P4** |
 | P3 | ✅ Done | c527a49, bff473f, d053c67, 0ff48e7 | Follow-ups: (a) inspiration board restyle deferred (own commit); (b) Founder agent verification not run — verify tool calls reflect in new UI next time it's open |
-| P4 | 🔶 Groundwork done | 27a49f4 (split), 179527a (prefs) | Parts 2/4/5 pending — fresh session; run browser behavioural sweep (7 views + shortcuts + bulk + detail + drawer) before Part 2 |
+| P4 | 🔶 Groundwork done + verified | 27a49f4 (split), 179527a (prefs), 6e45078 (bulk fix), 0dcb122 (view param) | Browser sweep DONE 2026-08-28, all seven views clean. Parts 2/4/5 pending. Bulk contract question answered in the P4 section |
 | P5 | 🔶 Part 1 done | 0b9a10e | Parts 2/3/4 pending — Part 2 set-logging is highest-stakes mutation, fresh session only |
 | P6 | 🔶 Parts 1+2 done | 119f795 (blood-tests split), 7be7063 (recipes split) | Parts 3/4/5 pending. Both splits were zero-behaviour-change and are **unverified by use** — exercise blood-test parsing + weekly planner + Vision multi-page merge before Part 3. Part 3 must also fix the supplements cache key: daily-checklist page needs the SAME `/api/supplements/daily?date=${today}` key as the P0 dashboard card and P2 TimelineRail |
 | P7–P11 | ⬜ Not started | — | — |
