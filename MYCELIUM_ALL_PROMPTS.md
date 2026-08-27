@@ -378,7 +378,9 @@ status enum values used for "active" filtering.
 - ✅ **Part 3** (`179527a`) — `miles-crm-view`, `mycelium:showCompleted`, `mycelium:showProjectTasks` migrated to `ui_prefs.compost_view` / `compost_show_completed` / `compost_show_project`. Legacy keys stay as inert fallback. URL param sync untouched.
 
 **Fresh-session, rested-read next unit:**
-- ⬜ **Part 2** — useApi + optimistic mutations for tasks/captures/people/projects/purchases/decisions. Kanban drag, bulk actions, detail-pane edits all become instant. `triggerFieldPulse()` on task completion.
+- 🔶 **Part 2 — mostly done (2026-08-28)**, `f5d2a08` + `b5704d5`. All six clients now fetch through `useApi`, so Compost shares cache entries with the dashboard and NowBlock instead of holding private copies. Captures/People/Projects/Purchases/Decisions also mutate through `mutateApi`/`apiWrite` (optimistic, rollback, ApiErrorToast). TasksClient's list and projects fetches moved to `useApi` behind a `setTasks` shim, so all 17 existing optimistic call sites are unchanged — its hand-rolled optimism already had rollback, so the win there is the shared cache, not latency.
+
+  **Still outstanding in Part 2:** TasksClient's detail-pane fetch (`/api/tasks/{id}`) is still a local `useEffect` + `detailState`, and its mutations still write that state directly rather than a `useApi` cache entry. `triggerFieldPulse()` on task completion is NOT done. Comments/subtasks (`addComment`, `deleteComment`, `addSubtask`) are untouched.
 
   **Answered ahead of Part 2 (2026-08-28):** the bulk-action contract question is
   settled. `/api/tasks/bulk` already exists, whitelists exactly
@@ -1327,7 +1329,7 @@ after a day of real usage.
 | P1.5 | ✅ Done | (nav follow-up commit) | Assistant added, shortcut-setup routed via Settings |
 | P2 | 🔶 Fired, unverified by use | 4 commits expected | **VERIFY BY USE before P4** |
 | P3 | ✅ Done | c527a49, bff473f, d053c67, 0ff48e7 | Follow-ups: (a) inspiration board restyle deferred (own commit); (b) Founder agent verification not run — verify tool calls reflect in new UI next time it's open |
-| P4 | 🔶 Groundwork done + verified | 27a49f4 (split), 179527a (prefs), 6e45078 (bulk fix), 0dcb122 (view param) | Browser sweep DONE 2026-08-28, all seven views clean. Parts 2/4/5 pending. Bulk contract question answered in the P4 section |
+| P4 | 🔶 Parts 1-3 done, Part 2 mostly | 27a49f4, 179527a, 6e45078, 0dcb122, f5d2a08, b5704d5, 7c41289 | Browser-verified 2026-08-28: seven views, bulk (one POST to /api/tasks/bulk), sabotaged-500 rollback all confirmed. Part 2 remainder: detail-pane cache, triggerFieldPulse, comments/subtasks. Parts 4/5 pending |
 | P5 | 🔶 Part 1 done | 0b9a10e | Parts 2/3/4 pending — Part 2 set-logging is highest-stakes mutation, fresh session only |
 | P6 | 🔶 Parts 1+2 done | 119f795 (blood-tests split), 7be7063 (recipes split) | Parts 3/4/5 pending. Both splits were zero-behaviour-change and are **unverified by use** — exercise blood-test parsing + weekly planner + Vision multi-page merge before Part 3. Part 3 must also fix the supplements cache key: daily-checklist page needs the SAME `/api/supplements/daily?date=${today}` key as the P0 dashboard card and P2 TimelineRail |
 | P7–P11 | ⬜ Not started | — | — |
