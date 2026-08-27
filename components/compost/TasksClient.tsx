@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useApi } from "@/lib/data/useApi";
 import type {
   Task,
   TaskComment,
@@ -84,8 +85,6 @@ export function TasksClient() {
   const [showProjectTasks, setShowProjectTasks] = useState<boolean>(() =>
     readShowProjectTasks(),
   );
-  const [tasks, setTasks] = useState<Task[] | null>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
   const [projectFilter, setProjectFilter] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState<Toast>(null);
@@ -171,29 +170,46 @@ export function TasksClient() {
     void writeUiPrefs({ compost_show_project: showProjectTasks });
   }, [showProjectTasks, uiPrefs.compost_show_project, writeUiPrefs]);
 
-  useEffect(() => {
-    let mounted = true;
-    const url = showCompleted
-      ? "/api/tasks?status=open&include_completed=true"
-      : "/api/tasks?status=open";
-    fetch(url)
-      .then((r) => r.json())
-      .then((j: { tasks?: Task[] }) => {
-        if (!mounted) return;
-        setTasks(Array.isArray(j?.tasks) ? j.tasks : []);
-      })
-      .catch(() => mounted && setTasks([]));
-    fetch("/api/projects?status=active")
-      .then((r) => r.json())
-      .then((j: { projects?: Project[] }) => {
-        if (!mounted) return;
-        setProjects(Array.isArray(j?.projects) ? j.projects : []);
-      })
-      .catch(() => {});
-    return () => {
-      mounted = false;
-    };
-  }, [showCompleted]);
+  // The SWR key is the raw path, so this list is the same cache entry the
+  // dashboard and NowBlock read — a task completed here updates them without
+  // a round trip, which local component state could never do.
+  const tasksKey = showCompleted
+    ? "/api/tasks?status=open&include_completed=true"
+    : "/api/tasks?status=open";
+  const { data: tasksData, error: tasksError, mutate: mutateTasks } = useApi<{
+    tasks?: Task[];
+  }>(tasksKey);
+  const tasks = useMemo<Task[] | null>(() => {
+    if (tasksError) return [];
+    if (!tasksData) return null;
+    return Array.isArray(tasksData.tasks) ? tasksData.tasks : [];
+  }, [tasksData, tasksError]);
+
+  // Writes the SWR cache with the same signature the old useState setter had,
+  // so every existing optimistic call site is untouched by this migration.
+  const setTasks = useCallback(
+    (updater: Task[] | ((cur: Task[] | null) => Task[])) => {
+      void mutateTasks(
+        (cur) => ({
+          ...cur,
+          tasks:
+            typeof updater === "function"
+              ? updater(cur?.tasks ?? [])
+              : updater,
+        }),
+        { revalidate: false },
+      );
+    },
+    [mutateTasks],
+  );
+
+  const { data: projectsData } = useApi<{ projects?: Project[] }>(
+    "/api/projects?status=active",
+  );
+  const projects = useMemo<Project[]>(
+    () => (Array.isArray(projectsData?.projects) ? projectsData.projects : []),
+    [projectsData],
+  );
 
   // Fetch detail when focusId changes (and it's not 'new'). The loading
   // flag is flipped via queueMicrotask so we don't trip the
@@ -381,7 +397,7 @@ export function TasksClient() {
         return null;
       }
     },
-    [tasks],
+    [tasks, setTasks],
   );
 
   async function createTask(payload: Partial<Task>): Promise<Task | null> {
@@ -425,7 +441,7 @@ export function TasksClient() {
         return false;
       }
     },
-    [tasks, focusId, setUrl],
+    [tasks, focusId, setUrl, setTasks],
   );
 
   function handleMove(
