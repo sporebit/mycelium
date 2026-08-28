@@ -108,7 +108,7 @@ export function NowBlock() {
         </Surface>
       ) : (
         <ul className="flex flex-col divide-y divide-hairline">
-          {top.map(({ task, score }) => {
+          {top.map(({ task }) => {
             const fading = fadingOut.has(task.id);
             return (
               <li

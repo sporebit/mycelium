@@ -242,6 +242,11 @@ export function VoiceChatOverlay({
         audioCtxRef.current = null;
       }
     };
+    // startListening is intentionally omitted. It is redeclared on every
+    // render, so listing it would re-run this mount effect continuously and
+    // tear down / re-create the audio pipeline each time. Reaching it via
+    // activeRef inside the callbacks is what keeps this a mount-only effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Waveform animation

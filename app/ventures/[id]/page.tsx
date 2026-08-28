@@ -33,9 +33,11 @@ export default function VentureDetailPage() {
   const { data: adsData } = useApi<{ ads: Ad[] }>(adsKey);
 
   const venture = ventureData?.venture ?? null;
-  const allVentures = allData?.ventures ?? [];
-  const steps = stepsData?.steps ?? [];
-  const ads = adsData?.ads ?? [];
+  // Stable identities: `?? []` allocates a new array on every render, so any
+  // useMemo depending on these recomputed every time.
+  const allVentures = useMemo(() => allData?.ventures ?? [], [allData]);
+  const steps = useMemo(() => stepsData?.steps ?? [], [stepsData]);
+  const ads = useMemo(() => adsData?.ads ?? [], [adsData]);
 
   const [tab, setTab] = useState<VentureTab>("overview");
   const [showAdModal, setShowAdModal] = useState(false);
