@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { MODEL_VISION } from "@/lib/config/models";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -8,10 +9,7 @@ export const maxDuration = 30;
 // rejected by the Anthropic API. Prefer the project's configured
 // ANTHROPIC_MODEL (currently claude-sonnet-4-5) when no vision-
 // specific override is set.
-const VISION_MODEL =
-  process.env.ANTHROPIC_VISION_MODEL ??
-  process.env.ANTHROPIC_MODEL ??
-  "claude-sonnet-4-5";
+const VISION_MODEL = MODEL_VISION;
 
 type Extracted = {
   product_name: string;

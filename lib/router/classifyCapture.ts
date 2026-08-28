@@ -1,3 +1,4 @@
+import { MODEL_FAST } from "@/lib/config/models";
 export type CaptureKind =
   | "task"
   | "note"
@@ -516,8 +517,9 @@ async function classifyAnthropic(
   systemPrompt: string,
 ): Promise<Classification | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  const model = process.env.ANTHROPIC_MODEL;
-  if (!apiKey || !model) return null;
+  // Classification is a fixed-shape JSON task — the fast model is enough.
+  const model = MODEL_FAST;
+  if (!apiKey) return null;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",

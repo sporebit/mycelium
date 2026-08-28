@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { MODEL_VISION } from "@/lib/config/models";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const PARSE_MODEL =
-  process.env.ANTHROPIC_VISION_MODEL ??
-  process.env.ANTHROPIC_MODEL ??
-  "claude-sonnet-4-5";
+const PARSE_MODEL = MODEL_VISION;
 
 const KNOWN_MARKERS = [
   "hba1c", "crp_hs", "creatinine", "egfr", "cholesterol", "triglycerides",

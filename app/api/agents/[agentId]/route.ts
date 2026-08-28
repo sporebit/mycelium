@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { MODEL_CHAT } from "@/lib/config/models";
 import { createServerClient } from "@/lib/supabase/server";
 import { AGENT_SYSTEM_PROMPTS, buildDaBoiPrompt } from "@/lib/agents/prompts";
 import { toolsForAgent } from "@/lib/agents/tools";
@@ -25,7 +26,7 @@ async function callClaude(
   maxTokens = 1024,
 ): Promise<ApiResponse | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514";
+  const model = MODEL_CHAT;
   if (!apiKey) return null;
 
   // Prompt caching. The cache prefix renders tools -> system -> messages, so a

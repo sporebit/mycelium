@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { MODEL_VISION } from "@/lib/config/models";
 
 export const runtime = "nodejs";
 
@@ -65,7 +66,7 @@ ${PARSE_PROMPT}`
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5",
+        model: MODEL_VISION,
         max_tokens: 2048,
         messages: [
           {

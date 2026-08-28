@@ -1,4 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server";
+import { MODEL_FAST } from "@/lib/config/models";
 import { TAXONOMY, type Category, isValidCategory } from "./taxonomy";
 
 export { TAXONOMY, type Category, isValidCategory };
@@ -87,7 +88,7 @@ async function aiCategorise(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: MODEL_FAST,
         max_tokens: 4096,
         system: systemPrompt,
         messages: [{ role: "user", content: JSON.stringify(items) }],

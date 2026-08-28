@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { MODEL_CHAT } from "@/lib/config/models";
 import { createServerClient } from "@/lib/supabase/server";
 import { MEMORY_UPDATE_PROMPT } from "@/lib/agents/prompts";
 
@@ -13,7 +14,7 @@ async function callClaude(
   messages: { role: string; content: string }[],
 ): Promise<string | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514";
+  const model = MODEL_CHAT;
   if (!apiKey) return null;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {

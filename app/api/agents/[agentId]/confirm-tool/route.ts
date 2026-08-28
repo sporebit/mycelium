@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { MODEL_CHAT } from "@/lib/config/models";
 import { createServerClient } from "@/lib/supabase/server";
 import { AGENT_SYSTEM_PROMPTS, buildDaBoiPrompt } from "@/lib/agents/prompts";
 import { executeTool, toolsForAgent } from "@/lib/agents/tools";
@@ -15,7 +16,7 @@ async function callClaude(
   tools?: Record<string, unknown>[],
 ): Promise<string | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514";
+  const model = MODEL_CHAT;
   if (!apiKey) return null;
 
   // Same prefix the main agent route writes (tools -> system), so this call

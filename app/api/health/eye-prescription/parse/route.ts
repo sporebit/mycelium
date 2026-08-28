@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { MODEL_VISION } from "@/lib/config/models";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5",
+        model: MODEL_VISION,
         max_tokens: 1024,
         messages: [
           {
