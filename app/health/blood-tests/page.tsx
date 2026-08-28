@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { useApi } from "@/lib/data/useApi";
 
 const BLOOD_KEY = "/api/health/blood-tests";
@@ -14,7 +15,11 @@ import {
   getTrendArrow,
 } from "@/lib/health/blood-markers";
 import { ResultRow } from "@/components/health/blood-tests/ResultRow";
-import { HistoryTab } from "@/components/health/blood-tests/HistoryTab";
+// Chart-only tab: recharts loads when the tab is opened, not on first paint.
+const HistoryTab = dynamic(
+  () => import("@/components/health/blood-tests/HistoryTab").then((m) => m.HistoryTab),
+  { ssr: false },
+);
 import { AddResultsModal } from "@/components/health/blood-tests/AddResultsModal";
 
 export default function BloodTestsPage() {

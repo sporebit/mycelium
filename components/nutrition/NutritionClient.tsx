@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { useApi } from "@/lib/data/useApi";
 
 const MEAL_GROUPS_KEY = "/api/nutrition/meal-groups";
@@ -16,7 +17,12 @@ import { MacroBar } from "./MacroBar";
 import { MealGroupSection } from "./MealGroupSection";
 import { FoodSearch } from "./FoodSearch";
 import { NutrientDetailPanel } from "./NutrientDetailPanel";
-import { NutritionHistory } from "./NutritionHistory";
+// recharts is ~100kB and only the History tab needs it, so it loads on demand
+// rather than sitting in this route s first-load bundle.
+const NutritionHistory = dynamic(
+  () => import("./NutritionHistory").then((m) => m.NutritionHistory),
+  { ssr: false },
+);
 import { FoodLibrary } from "./FoodLibrary";
 import {
   QuickBarcodeLog,
