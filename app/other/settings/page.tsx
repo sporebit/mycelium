@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Sheet } from "@/components/ui/Sheet";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { SECTIONS } from "@/lib/nav/sections";
@@ -77,7 +78,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-3xl">
+    <div className="flex flex-col gap-6 max-w-5xl">
       <header className="flex flex-col gap-1">
         <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
           Settings
@@ -87,19 +88,93 @@ export default function SettingsPage() {
         </p>
       </header>
 
-      <ProfileSection settings={settings} onPatch={patch} />
-      <AppearanceSection settings={settings} onPatch={patch} />
-      <SectionsSection />
-      <NotificationsSection settings={settings} onPatch={patch} />
-      <IntegrationsSection settings={settings} onPatch={patch} />
-      <FeatureFlagsSection settings={settings} onPatch={patch} />
-      <CaptureSourcesSection settings={settings} onPatch={patch} />
-      <AIConfigSection settings={settings} onPatch={patch} />
-      <DataSection stats={stats} />
-      <DangerZoneSection />
+      <SettingsBody settings={settings} stats={stats} patch={patch} />
 
       <Toast visible={toast} />
     </div>
+  );
+}
+
+/**
+ * Section navigation. This page carries a lot of content, so rather than one
+ * long scroll it is split: a left-anchored list on desktop, and on touch a
+ * list of rows that each open their section as a full Sheet.
+ *
+ * Note this is NOT the same concept as ui_prefs.hidden_sections — that is app
+ * navigation. These are the panels within this page.
+ */
+function SettingsBody({
+  settings,
+  stats,
+  patch,
+}: {
+  settings: Settings;
+  stats: Stats | null;
+  patch: (f: Record<string, unknown>) => void;
+}) {
+  const PANELS: { key: string; label: string; render: () => React.ReactNode }[] = [
+    { key: "profile", label: "Profile", render: () => <ProfileSection settings={settings} onPatch={patch} /> },
+    { key: "appearance", label: "Appearance", render: () => <AppearanceSection settings={settings} onPatch={patch} /> },
+    { key: "sections", label: "Sections", render: () => <SectionsSection /> },
+    { key: "notifications", label: "Notifications", render: () => <NotificationsSection settings={settings} onPatch={patch} /> },
+    { key: "integrations", label: "Integrations", render: () => <IntegrationsSection settings={settings} onPatch={patch} /> },
+    { key: "features", label: "Features", render: () => <FeatureFlagsSection settings={settings} onPatch={patch} /> },
+    { key: "capture", label: "Capture", render: () => <CaptureSourcesSection settings={settings} onPatch={patch} /> },
+    { key: "ai", label: "AI", render: () => <AIConfigSection settings={settings} onPatch={patch} /> },
+    { key: "data", label: "Data", render: () => <DataSection stats={stats} /> },
+    { key: "danger", label: "Danger zone", render: () => <DangerZoneSection /> },
+  ];
+
+  const [active, setActive] = useState("profile");
+  const [sheetKey, setSheetKey] = useState<string | null>(null);
+  const activePanel = PANELS.find((x) => x.key === active) ?? PANELS[0];
+  const sheetPanel = PANELS.find((x) => x.key === sheetKey) ?? null;
+
+  return (
+    <>
+      {/* Desktop: left-anchored list + content pane */}
+      <div className="hidden md:grid md:grid-cols-[180px_1fr] md:gap-6 md:items-start">
+        <nav className="flex flex-col gap-0.5 sticky top-4" aria-label="Settings sections">
+          {PANELS.map((panel) => (
+            <button
+              key={panel.key}
+              type="button"
+              onClick={() => setActive(panel.key)}
+              aria-current={panel.key === active ? "true" : undefined}
+              className={`text-left px-3 py-2 rounded-v2-md text-sm transition-colors ${
+                panel.key === active
+                  ? "bg-surface-2 text-text-hi"
+                  : "text-ink-3 hover:text-ink-4 hover:bg-surface-1"
+              }`}
+            >
+              {panel.label}
+            </button>
+          ))}
+        </nav>
+        <div className="min-w-0">{activePanel.render()}</div>
+      </div>
+
+      {/* Touch: rows that open the section as a Sheet */}
+      <div className="md:hidden flex flex-col rounded-v2-lg border border-hairline overflow-hidden">
+        {PANELS.map((panel) => (
+          <button
+            key={panel.key}
+            type="button"
+            onClick={() => setSheetKey(panel.key)}
+            className="flex items-center justify-between px-4 py-3 text-left text-sm text-ink-4 bg-surface-1 border-b border-hairline last:border-b-0 active:bg-surface-2 transition-colors"
+          >
+            {panel.label}
+            <span aria-hidden className="text-ink-3">›</span>
+          </button>
+        ))}
+      </div>
+
+      {sheetPanel && (
+        <Sheet open onClose={() => setSheetKey(null)} title={sheetPanel.label} side="auto">
+          <div className="pt-2">{sheetPanel.render()}</div>
+        </Sheet>
+      )}
+    </>
   );
 }
 
