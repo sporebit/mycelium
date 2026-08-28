@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
+
+const BLOOD_KEY = "/api/health/blood-tests";
 import {
   ACCENT,
   PANEL_ORDER,
@@ -15,34 +18,30 @@ import { HistoryTab } from "@/components/health/blood-tests/HistoryTab";
 import { AddResultsModal } from "@/components/health/blood-tests/AddResultsModal";
 
 export default function BloodTestsPage() {
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading: loading, mutate: mutateSessions } = useApi<{
+    sessions?: Session[];
+  }>(BLOOD_KEY);
+  const sessions = useMemo<Session[]>(
+    () => (Array.isArray(data?.sessions) ? data.sessions : []),
+    [data],
+  );
   const [tab, setTab] = useState<"latest" | "history">("latest");
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+  const [pickedSessionId, setSelectedSessionId] = useState<string | null>(
     null
   );
+  // Explicit pick wins; otherwise the newest session. Deriving this avoids
+  // the setState-from-inside-a-fetch the old effect did, and means a reload
+  // that drops the picked session falls back on its own.
+  const selectedSessionId =
+    pickedSessionId && sessions.some((x) => x.id === pickedSessionId)
+      ? pickedSessionId
+      : (sessions[0]?.id ?? null);
   const [collapsedPanels, setCollapsedPanels] = useState<Set<string>>(
     new Set()
   );
   const [historyMarker, setHistoryMarker] = useState("egfr");
   const [showAddModal, setShowAddModal] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/health/blood-tests")
-      .then((r) => r.json())
-      .then((j: { sessions?: Session[] }) => {
-        if (cancelled) return;
-        const s = j.sessions ?? [];
-        setSessions(s);
-        if (s.length > 0) setSelectedSessionId(s[0].id);
-      })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const selected = useMemo(
     () => sessions.find((s) => s.id === selectedSessionId) ?? sessions[0],
@@ -86,15 +85,10 @@ export default function BloodTestsPage() {
     });
   }, [selected]);
 
-  const reloadSessions = useCallback(async () => {
-    const r = await fetch("/api/health/blood-tests");
-    const j = (await r.json()) as { sessions?: Session[] };
-    const s = j.sessions ?? [];
-    setSessions(s);
-    if (s.length > 0 && !s.find((x) => x.id === selectedSessionId)) {
-      setSelectedSessionId(s[0].id);
-    }
-  }, [selectedSessionId]);
+  const reloadSessions = useCallback(
+    () => mutateSessions(),
+    [mutateSessions],
+  );
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">

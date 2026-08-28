@@ -1,6 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
+import { mutateApi } from "@/lib/data/mutateApi";
+import { apiWrite, jsonBody, reportApiError } from "@/lib/data/apiWrite";
+
+const LISTS_KEY = "/api/health/shopping-lists";
 
 type ShoppingItemNew = {
   id: string;
@@ -32,8 +37,13 @@ function isNewItem(item: ShoppingItemNew | ShoppingItemLegacy): item is Shopping
 }
 
 export default function ShoppingListsPage() {
-  const [lists, setLists] = useState<ShoppingList[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading: loading, mutate: mutateLists } = useApi<{
+    lists?: ShoppingList[];
+  }>(LISTS_KEY);
+  const lists = useMemo<ShoppingList[]>(
+    () => (Array.isArray(data?.lists) ? data.lists : []),
+    [data],
+  );
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -41,17 +51,23 @@ export default function ShoppingListsPage() {
   const [createDefault, setCreateDefault] = useState(false);
   const [newItemText, setNewItemText] = useState<Record<string, string>>({});
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/health/shopping-lists");
-      const data = await res.json();
-      setLists(data.lists ?? []);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const load = useCallback(() => void mutateLists(), [mutateLists]);
 
-  useEffect(() => { load(); }, [load]);
+  // Apply an optimistic change to one list, roll back if the server refuses.
+  const patchLists = useCallback(
+    (
+      apply: (lists: ShoppingList[]) => ShoppingList[],
+      write: () => Promise<unknown>,
+      failure: string,
+    ) =>
+      mutateApi<{ lists?: ShoppingList[] }>(
+        LISTS_KEY,
+        (cur) => ({ ...cur, lists: apply(cur?.lists ?? []) }),
+        write,
+        { onError: (e) => reportApiError(e, failure) },
+      ),
+    [],
+  );
 
   function toggle(id: string) {
     setExpanded((prev) => {
@@ -62,80 +78,113 @@ export default function ShoppingListsPage() {
   }
 
   async function createList() {
-    const res = await fetch("/api/health/shopping-lists", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: createTitle || "Shopping List", default_list: createDefault }),
-    });
-    if (res.ok) {
+    try {
+      await apiWrite("/api/health/shopping-lists", {
+        method: "POST",
+        ...jsonBody({ title: createTitle || "Shopping List", default_list: createDefault }),
+      });
       setShowCreate(false);
       setCreateTitle("Shopping List");
       setCreateDefault(false);
       load();
+    } catch (e) {
+      reportApiError(e, "Could not create list");
     }
   }
 
   async function deleteList(id: string) {
-    await fetch(`/api/health/shopping-lists/${id}`, { method: "DELETE" });
-    setLists((prev) => prev.filter((l) => l.id !== id));
+    await patchLists(
+      (ls) => ls.filter((l) => l.id !== id),
+      () => apiWrite(`/api/health/shopping-lists/${id}`, { method: "DELETE" }),
+      "Could not delete list",
+    );
   }
 
   async function addItem(listId: string) {
     const name = (newItemText[listId] || "").trim();
     if (!name) return;
-    const res = await fetch(`/api/health/shopping-lists/${listId}/items`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
-    });
-    if (res.ok) {
+    try {
+      await apiWrite(`/api/health/shopping-lists/${listId}/items`, {
+        method: "POST",
+        ...jsonBody({ name }),
+      });
       setNewItemText((prev) => ({ ...prev, [listId]: "" }));
       load();
+    } catch (e) {
+      reportApiError(e, "Could not add item");
     }
   }
 
   async function toggleItem(listId: string, itemId: string, checked: boolean) {
-    await fetch(`/api/health/shopping-lists/${listId}/items/${itemId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ checked }),
-    });
-    setLists((prev) =>
-      prev.map((l) => {
-        if (l.id !== listId) return l;
-        return {
-          ...l,
-          items: l.items.map((item) =>
-            isNewItem(item) && item.id === itemId ? { ...item, checked } : item,
-          ),
-        };
-      }),
+    // Was: fire the PATCH, ignore its status, then tick the box regardless —
+    // a refused check-off stayed ticked until the next load.
+    await patchLists(
+      (ls) =>
+        ls.map((l) =>
+          l.id !== listId
+            ? l
+            : {
+                ...l,
+                items: l.items.map((item) =>
+                  isNewItem(item) && item.id === itemId
+                    ? { ...item, checked }
+                    : item,
+                ),
+              },
+        ),
+      () =>
+        apiWrite(`/api/health/shopping-lists/${listId}/items/${itemId}`, {
+          method: "PATCH",
+          ...jsonBody({ checked }),
+        }),
+      "Could not update item",
     );
   }
 
   async function deleteItem(listId: string, itemId: string) {
-    await fetch(`/api/health/shopping-lists/${listId}/items/${itemId}`, { method: "DELETE" });
-    setLists((prev) =>
-      prev.map((l) => {
-        if (l.id !== listId) return l;
-        return {
-          ...l,
-          items: l.items.filter((item) => !isNewItem(item) || item.id !== itemId),
-        };
-      }),
+    await patchLists(
+      (ls) =>
+        ls.map((l) =>
+          l.id !== listId
+            ? l
+            : {
+                ...l,
+                items: l.items.filter(
+                  (item) => !isNewItem(item) || item.id !== itemId,
+                ),
+              },
+        ),
+      () =>
+        apiWrite(`/api/health/shopping-lists/${listId}/items/${itemId}`, {
+          method: "DELETE",
+        }),
+      "Could not delete item",
     );
   }
 
   async function sendTelegram(id: string) {
     setSending(id);
     try {
-      const res = await fetch(`/api/health/shopping-lists/${id}/send-telegram`, { method: "POST" });
-      if (res.ok) {
-        setLists((prev) =>
-          prev.map((l) =>
-            l.id === id ? { ...l, sent_to_telegram: true, sent_at: new Date().toISOString() } : l,
-          ),
+      // Not optimistic on purpose: the list is only marked sent once
+      // Telegram has actually accepted it.
+      const sentAt = new Date().toISOString();
+      try {
+        await apiWrite(`/api/health/shopping-lists/${id}/send-telegram`, {
+          method: "POST",
+        });
+        await mutateLists(
+          (cur) => ({
+            ...cur,
+            lists: (cur?.lists ?? []).map((l) =>
+              l.id === id
+                ? { ...l, sent_to_telegram: true, sent_at: sentAt }
+                : l,
+            ),
+          }),
+          { revalidate: false },
         );
+      } catch (e) {
+        reportApiError(e, "Could not send to Telegram");
       }
     } finally {
       setSending(null);

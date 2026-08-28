@@ -1,6 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
+import { mutateApi } from "@/lib/data/mutateApi";
+import { apiWrite, jsonBody, reportApiError } from "@/lib/data/apiWrite";
+
+const RECIPES_KEY = "/api/health/recipes";
 import { dateStr, getMonday } from "@/lib/health/meal-planner-dates";
 import type { MealEntry, Recipe } from "@/lib/health/recipes";
 import { RecipeGrid } from "@/components/health/recipes/RecipeGrid";
@@ -11,8 +16,12 @@ import { ShoppingListModal } from "@/components/health/recipes/ShoppingListModal
 
 export default function RecipesPage() {
   const [tab, setTab] = useState<"recipes" | "planner">("recipes");
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: recipesData, isLoading: loading, mutate: mutateRecipes } =
+    useApi<{ recipes?: Recipe[] }>(RECIPES_KEY);
+  const recipes = useMemo<Recipe[]>(
+    () => (Array.isArray(recipesData?.recipes) ? recipesData.recipes : []),
+    [recipesData],
+  );
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState("all");
 
@@ -20,8 +29,16 @@ export default function RecipesPage() {
 
   // Meal planner
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()));
-  const [mealEntries, setMealEntries] = useState<MealEntry[]>([]);
-  const [loadingMeals, setLoadingMeals] = useState(false);
+  // Null key until the planner tab is open, so the week is only fetched when
+  // it is actually shown. Each week is its own cache entry.
+  const mealKey =
+    tab === "planner" ? `/api/health/meal-plan?week=${dateStr(weekStart)}` : null;
+  const { data: mealData, isLoading: loadingMeals, mutate: mutateMeals } =
+    useApi<{ entries?: MealEntry[] }>(mealKey);
+  const mealEntries = useMemo<MealEntry[]>(
+    () => (Array.isArray(mealData?.entries) ? mealData.entries : []),
+    [mealData],
+  );
   const [showMealPicker, setShowMealPicker] = useState<{ date: string; meal: string } | null>(null);
 
   // Shopping list
@@ -29,64 +46,40 @@ export default function RecipesPage() {
   const [shoppingItems, setShoppingItems] = useState<{ amount: string; unit: string | null; name: string }[]>([]);
   const [shoppingListId, setShoppingListId] = useState<string | null>(null);
 
-  const loadRecipes = useCallback(async () => {
-    try {
-      const res = await fetch("/api/health/recipes");
-      const data = await res.json();
-      setRecipes(data.recipes ?? []);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const loadRecipes = useCallback(() => void mutateRecipes(), [mutateRecipes]);
 
-  useEffect(() => { loadRecipes(); }, [loadRecipes]);
-
-  const loadMealPlan = useCallback(async () => {
-    setLoadingMeals(true);
-    try {
-      const res = await fetch(`/api/health/meal-plan?week=${dateStr(weekStart)}`);
-      const data = await res.json();
-      setMealEntries(data.entries ?? []);
-    } finally {
-      setLoadingMeals(false);
-    }
-  }, [weekStart]);
-
-  useEffect(() => {
-    if (tab !== "planner") return;
-    let cancelled = false;
-    (async () => {
-      setLoadingMeals(true);
-      try {
-        const res = await fetch(`/api/health/meal-plan?week=${dateStr(weekStart)}`);
-        const data = await res.json();
-        if (!cancelled) setMealEntries(data.entries ?? []);
-      } finally {
-        if (!cancelled) setLoadingMeals(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [tab, weekStart]);
+  const loadMealPlan = useCallback(() => void mutateMeals(), [mutateMeals]);
 
   async function addMealEntry(recipeId: string | null, custom: string | null) {
     if (!showMealPicker) return;
-    await fetch("/api/health/meal-plan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        planned_date: showMealPicker.date,
-        meal_type: showMealPicker.meal,
-        recipe_id: recipeId,
-        custom_meal: custom,
-      }),
-    });
-    setShowMealPicker(null);
-    loadMealPlan();
+    try {
+      await apiWrite("/api/health/meal-plan", {
+        method: "POST",
+        ...jsonBody({
+          planned_date: showMealPicker.date,
+          meal_type: showMealPicker.meal,
+          recipe_id: recipeId,
+          custom_meal: custom,
+        }),
+      });
+      setShowMealPicker(null);
+      loadMealPlan();
+    } catch (e) {
+      reportApiError(e, "Could not add to the meal plan");
+    }
   }
 
   async function deleteMealEntry(id: string) {
-    await fetch(`/api/health/meal-plan/${id}`, { method: "DELETE" });
-    setMealEntries((prev) => prev.filter((e) => e.id !== id));
+    if (!mealKey) return;
+    await mutateApi<{ entries?: MealEntry[] }>(
+      mealKey,
+      (cur) => ({
+        ...cur,
+        entries: (cur?.entries ?? []).filter((e) => e.id !== id),
+      }),
+      () => apiWrite(`/api/health/meal-plan/${id}`, { method: "DELETE" }),
+      { onError: (e) => reportApiError(e, "Could not remove that meal") },
+    );
   }
 
   async function generateShoppingList() {

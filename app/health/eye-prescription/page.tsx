@@ -1,6 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
+import { apiWrite, jsonBody, reportApiError } from "@/lib/data/apiWrite";
+
+const EYE_KEY = "/api/health/eye-prescription";
 
 type Prescription = {
   id: string;
@@ -127,8 +131,13 @@ function EyeCard({ label, p }: { label: string; p: Prescription | null }) {
 }
 
 export default function VisionPage() {
-  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading: loading, mutate: mutatePrescriptions } = useApi<{
+    prescriptions?: Prescription[];
+  }>(EYE_KEY);
+  const prescriptions = useMemo<Prescription[]>(
+    () => (Array.isArray(data?.prescriptions) ? data.prescriptions : []),
+    [data],
+  );
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -159,17 +168,10 @@ export default function VisionPage() {
   const [rightBrand, setRightBrand] = useState("");
   const [formNotes, setFormNotes] = useState("");
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/health/eye-prescription");
-      const data = await res.json();
-      setPrescriptions(data.prescriptions ?? []);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const load = useCallback(
+    () => void mutatePrescriptions(),
+    [mutatePrescriptions],
+  );
 
   const pairs = useMemo(() => groupPairs(prescriptions), [prescriptions]);
   const glassesPairs = pairs.filter((p) => !p.is_contact_lens);
@@ -283,17 +285,20 @@ export default function VisionPage() {
         },
       ];
 
-      const res = await fetch("/api/health/eye-prescription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eyes }),
-      });
-      if (res.ok) {
+      try {
+        await apiWrite("/api/health/eye-prescription", {
+          method: "POST",
+          ...jsonBody({ eyes }),
+        });
         resetForm();
         setScanned(false);
         setScanError(null);
         setShowModal(false);
         load();
+      } catch (e) {
+        // A refused save used to leave the modal open with no explanation.
+        setScanError(e instanceof Error ? e.message : "Could not save");
+        reportApiError(e, "Could not save prescription");
       }
     } finally {
       setSaving(false);

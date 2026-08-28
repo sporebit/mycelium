@@ -1,6 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
+import { mutateApi } from "@/lib/data/mutateApi";
+import { apiWrite, jsonBody, reportApiError } from "@/lib/data/apiWrite";
+
+const GUT_KEY = "/api/health/gut-health";
 
 type GutEntry = {
   id: string;
@@ -75,8 +80,13 @@ function dateKey(iso: string): string {
 }
 
 export default function GutHealthPage() {
-  const [entries, setEntries] = useState<GutEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading: loading, mutate: mutateEntries } = useApi<{
+    entries?: GutEntry[];
+  }>(GUT_KEY);
+  const entries = useMemo<GutEntry[]>(
+    () => (Array.isArray(data?.entries) ? data.entries : []),
+    [data],
+  );
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -96,17 +106,7 @@ export default function GutHealthPage() {
     try { return localStorage.getItem("gut_bristol_chart_open") === "true"; } catch { return false; }
   });
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/health/gut-health");
-      const data = await res.json();
-      setEntries(data.entries ?? []);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const load = useCallback(() => void mutateEntries(), [mutateEntries]);
 
   function resetForm() {
     setBristolType(4);
@@ -157,14 +157,14 @@ export default function GutHealthPage() {
         : "/api/health/gut-health";
       const method = editingId ? "PATCH" : "POST";
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
+      try {
+        await apiWrite(url, { method, ...jsonBody(payload) });
         closeModal();
         load();
+      } catch (e) {
+        // Previously a refused save closed nothing and said nothing, so the
+        // entry just silently failed to appear.
+        reportApiError(e, "Could not save entry");
       }
     } finally {
       setSaving(false);
@@ -172,8 +172,15 @@ export default function GutHealthPage() {
   }
 
   async function handleDelete(id: string) {
-    await fetch(`/api/health/gut-health/${id}`, { method: "DELETE" });
-    setEntries((prev) => prev.filter((e) => e.id !== id));
+    await mutateApi<{ entries?: GutEntry[] }>(
+      GUT_KEY,
+      (cur) => ({
+        ...cur,
+        entries: (cur?.entries ?? []).filter((e) => e.id !== id),
+      }),
+      () => apiWrite(`/api/health/gut-health/${id}`, { method: "DELETE" }),
+      { onError: (e) => reportApiError(e, "Could not delete entry") },
+    );
   }
 
   function requestDelete(id: string) {
