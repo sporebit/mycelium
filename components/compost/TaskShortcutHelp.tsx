@@ -18,7 +18,7 @@ const SHORTCUTS: { keys: string[]; description: string; section: string }[] = [
 
 export function ShortcutHintBar({ onOpenHelp }: { onOpenHelp: () => void }) {
   return (
-    <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] flex items-center justify-center gap-3 py-2 select-none">
+    <div className="hidden md:flex text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] items-center justify-center gap-3 py-2 select-none">
       <Kbd>C</Kbd> new
       <span className="text-ink-2">·</span>
       <Kbd>J</Kbd>/<Kbd>K</Kbd> navigate
