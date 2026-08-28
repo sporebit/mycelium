@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useApi } from "@/lib/data/useApi";
+import { apiWrite, jsonBody } from "@/lib/data/apiWrite";
 import type {
   Task,
   TaskComment,
@@ -24,6 +25,7 @@ import { localDateKey } from "@/lib/util/date";
 import { useCurrentContext } from "@/lib/hooks/useCurrentContext";
 import { useCurrentDevice } from "@/lib/hooks/useCurrentDevice";
 import { scoreTaskForContext } from "@/lib/compost/now-filter";
+import { triggerFieldPulse } from "@/lib/motion";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 
 const VIEW_STORAGE_KEY = "miles-crm-view";
@@ -89,14 +91,43 @@ export function TasksClient() {
   const [currentCtx] = useCurrentContext();
   const detectedDevice = useCurrentDevice();
 
-  // Detail data: re-fetched whenever focusId changes. Stored under the
-  // task id so we can render-derive the visible detail and skip flashes.
-  const [detailState, setDetailState] = useState<TaskDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
+  // Detail data keyed by task id, so opening a task that is already cached
+  // paints instantly and a second surface reading the same task shares it.
+  // "new" has nothing to fetch, and a null key is how useApi says "not yet".
+  const detailKey =
+    focusId && focusId !== "new" ? `/api/tasks/${focusId}` : null;
+  const {
+    data: detailData,
+    isLoading: detailLoading,
+    mutate: mutateDetail,
+  } = useApi<TaskDetail>(detailKey);
   const detail =
-    detailState && focusId && detailState.task.id === focusId
-      ? detailState
+    detailData && "task" in detailData && detailData.task.id === focusId
+      ? detailData
       : null;
+
+  // Same signature the old useState setter had, so every optimistic detail
+  // update below carries over unchanged.
+  const setDetailState = useCallback(
+    (
+      updater:
+        | TaskDetail
+        | null
+        | ((cur: TaskDetail | null) => TaskDetail | null),
+    ) => {
+      void mutateDetail(
+        (cur) => {
+          const next =
+            typeof updater === "function"
+              ? updater(cur ?? null)
+              : updater;
+          return next ?? cur;
+        },
+        { revalidate: false },
+      );
+    },
+    [mutateDetail],
+  );
 
   // ui_prefs is now source of truth for view / show-completed / show-project.
   // Legacy localStorage keys (VIEW_STORAGE_KEY etc.) are read once for the
@@ -203,30 +234,6 @@ export function TasksClient() {
     [projectsData],
   );
 
-  // Fetch detail when focusId changes (and it's not 'new'). The loading
-  // flag is flipped via queueMicrotask so we don't trip the
-  // "synchronous setState in effect" rule — it amounts to the same
-  // visible behaviour but defers the state write past the effect body.
-  useEffect(() => {
-    if (!focusId || focusId === "new") return;
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) setDetailLoading(true);
-    });
-    fetch(`/api/tasks/${focusId}`)
-      .then((r) => r.json())
-      .then((j: TaskDetail | { error: string }) => {
-        if (cancelled) return;
-        if ("task" in j) setDetailState(j);
-      })
-      .catch(() => undefined)
-      .finally(() => {
-        if (!cancelled) setDetailLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [focusId]);
 
   useEffect(() => {
     if (!toast) return;
@@ -382,6 +389,11 @@ export function TasksClient() {
         setDetailState((cur) =>
           cur && cur.task.id === id ? { ...cur, task: j.task! } : cur,
         );
+        // Completing a task ripples the field, matching NowBlock. Fired only
+        // after the server confirms, so a refused write never pulses.
+        if (patch.status === "completed") {
+          triggerFieldPulse(window.innerWidth / 2, window.innerHeight - 40);
+        }
         return j.task;
       } catch (err) {
         setTasks(prevList);
@@ -389,7 +401,7 @@ export function TasksClient() {
         return null;
       }
     },
-    [tasks, setTasks],
+    [tasks, setTasks, setDetailState],
   );
 
   async function createTask(payload: Partial<Task>): Promise<Task | null> {
@@ -595,21 +607,17 @@ export function TasksClient() {
     if (!detail) return;
     const taskId = detail.task.id;
     try {
-      const res = await fetch(`/api/tasks/${taskId}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body }),
-      });
-      const j = (await res.json().catch(() => ({}))) as {
-        comment?: TaskComment;
-        error?: string;
-      };
-      if (!res.ok || !j.comment) {
-        showToast(j.error ?? "Comment failed");
+      const j = await apiWrite<{ comment?: TaskComment }>(
+        `/api/tasks/${taskId}/comments`,
+        { method: "POST", ...jsonBody({ body }) },
+      );
+      if (!j.comment) {
+        showToast("Comment failed");
         return;
       }
+      const comment = j.comment;
       setDetailState((cur) =>
-        cur ? { ...cur, comments: [...cur.comments, j.comment!] } : cur,
+        cur ? { ...cur, comments: [...cur.comments, comment] } : cur,
       );
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Comment failed");
@@ -624,11 +632,9 @@ export function TasksClient() {
       cur ? { ...cur, comments: cur.comments.filter((c) => c.id !== commentId) } : cur,
     );
     try {
-      const res = await fetch(
-        `/api/tasks/${taskId}/comments/${commentId}`,
-        { method: "DELETE" },
-      );
-      if (!res.ok) throw new Error("delete failed");
+      await apiWrite(`/api/tasks/${taskId}/comments/${commentId}`, {
+        method: "DELETE",
+      });
     } catch {
       setDetailState((cur) => (cur ? { ...cur, comments: prev } : cur));
       showToast("Delete failed");
