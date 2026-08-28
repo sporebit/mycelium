@@ -7,6 +7,8 @@ import { isOverdue, isDueToday } from "@/lib/types/task";
 import { Mono } from "@/components/dashboard/Mono";
 import { StatusDropdown } from "./StatusDropdown";
 import { UrgencyPill, pillToneFor } from "./UrgencyPill";
+import { useRowGestures } from "@/lib/compost/useRowGestures";
+import { useRowGestureActions } from "@/lib/compost/RowGestureContext";
 
 /** Map a context value to an icon when one of the seeded defaults
  *  matches. Custom user options just render as a dot — the title
@@ -59,6 +61,12 @@ export type TaskRowProps = {
   onDelete: (t: Task) => void;
   onContext?: (t: Task, action: ContextAction) => void;
   isFocused?: boolean;
+  /** Touch: swipe right marks done. */
+  onSwipeComplete?: (t: Task) => void;
+  /** Touch: swipe left opens the reschedule sheet. */
+  onSwipeReschedule?: (t: Task) => void;
+  /** Touch: long press enters bulk-select. */
+  onLongPress?: (t: Task) => void;
 };
 
 function formatDue(date: string, task: Task): { label: string; tone: string } {
@@ -100,7 +108,19 @@ export function TaskRowList({
   onDuplicate,
   onDelete,
   isFocused,
+  onSwipeComplete,
+  onSwipeReschedule,
+  onLongPress,
 }: TaskRowProps) {
+  const gestureCtx = useRowGestureActions();
+  const swipeComplete = onSwipeComplete ?? gestureCtx.onSwipeComplete;
+  const swipeReschedule = onSwipeReschedule ?? gestureCtx.onSwipeReschedule;
+  const longPress = onLongPress ?? gestureCtx.onLongPress;
+  const { dx, didConsume, handlers } = useRowGestures({
+    onSwipeRight: swipeComplete ? () => swipeComplete(task) : undefined,
+    onSwipeLeft: swipeReschedule ? () => swipeReschedule(task) : undefined,
+    onLongPress: longPress ? () => longPress(task) : undefined,
+  });
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(task.title);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
@@ -148,7 +168,15 @@ export function TaskRowList({
   return (
     <li
       onContextMenu={openContextMenu}
+      {...handlers}
+      style={
+        dx !== 0
+          ? { transform: `translateX(${Math.max(-96, Math.min(96, dx))}px)` }
+          : undefined
+      }
       onClick={() => {
+        // A swipe or long-press already handled this interaction.
+        if (didConsume()) return;
         if (!editingTitle) onOpen(task);
       }}
       className={`group relative flex items-center gap-3 bg-surface-1 hover:bg-surface-2 border border-hairline rounded-v2-md px-3 py-2 cursor-pointer transition-colors duration-[var(--dur-fast)] [transition-timing-function:var(--ease-out)] ${

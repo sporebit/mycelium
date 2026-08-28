@@ -29,7 +29,7 @@ export function TaskBulkBar({
 }) {
   if (count === 0) return null;
   return (
-    <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[80] bg-ink-1 border border-ink-2 rounded-lg shadow-2xl px-4 py-2 flex items-center gap-3 text-sm growth-in">
+    <div className="fixed z-[80] growth-in flex items-center gap-3 text-sm bg-surface-3 border border-hairline shadow-2xl px-4 py-2 bottom-[calc(4rem+env(safe-area-inset-bottom))] left-2 right-2 rounded-v2-lg justify-center flex-wrap md:bottom-12 md:left-1/2 md:right-auto md:-translate-x-1/2 md:rounded-v2-lg md:flex-nowrap md:justify-start">
       <span className="text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-4">
         {count} task{count === 1 ? "" : "s"} selected
       </span>

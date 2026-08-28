@@ -19,6 +19,8 @@ import { TaskDrawer, type DrawerMode } from "./TaskDrawer";
 import { TaskDetailPaneWrap } from "./TaskDetailPaneWrap";
 import { TaskMainView } from "./TaskMainView";
 import { TaskListSkeleton } from "./TaskListSkeleton";
+import { Sheet } from "@/components/ui/Sheet";
+import { RowGestureProvider } from "@/lib/compost/RowGestureContext";
 import { ProjectFilterDropdown } from "./ProjectFilterDropdown";
 import { isBlocker } from "@/lib/blockers";
 import { localDateKey } from "@/lib/util/date";
@@ -33,6 +35,46 @@ const SHOW_COMPLETED_STORAGE_KEY = "mycelium:showCompleted";
 const SHOW_PROJECT_TASKS_KEY = "mycelium:showProjectTasks";
 
 type Toast = { kind: "success" | "error"; text: string } | null;
+
+/**
+ * localDateKey() only ever formats "now" (its argument is a timezone), so
+ * offset dates need their own formatter. Same zone and format as it uses.
+ */
+function dateKeyFrom(d: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/London",
+  }).format(d);
+}
+
+/** Quick reschedule targets offered by the swipe-left sheet. */
+const RESCHEDULE_OPTIONS: { label: string; value: () => string | null }[] = [
+  { label: "Today", value: () => dateKeyFrom(new Date()) },
+  {
+    label: "Tomorrow",
+    value: () => {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      return dateKeyFrom(d);
+    },
+  },
+  {
+    label: "This weekend",
+    value: () => {
+      const d = new Date();
+      d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7));
+      return dateKeyFrom(d);
+    },
+  },
+  {
+    label: "Next week",
+    value: () => {
+      const d = new Date();
+      d.setDate(d.getDate() + 7);
+      return dateKeyFrom(d);
+    },
+  },
+  { label: "Clear due date", value: () => null },
+];
 
 function readView(): CrmView {
   if (typeof window === "undefined") return "list";
@@ -85,6 +127,8 @@ export function TasksClient() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  // Touch: swipe-left target awaiting a new due date.
+  const [rescheduleTask, setRescheduleTask] = useState<Task | null>(null);
   const [nowActive, setNowActive] = useState(
     () => searchParams.get("filter") === "now",
   );
@@ -486,14 +530,16 @@ export function TasksClient() {
   }
 
   // -------- Selection --------
-  function toggleSelect(id: string) {
+  // Memoised: the touch-gesture actions depend on it, and an unstable
+  // identity would rebuild them on every render.
+  const toggleSelect = useCallback((id: string) => {
     setSelected((cur) => {
       const next = new Set(cur);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  }
+  }, []);
   function clearSelection() {
     setSelected(new Set());
   }
@@ -683,6 +729,21 @@ export function TasksClient() {
       ? focusedId
       : (topLevelFiltered[0]?.id ?? null);
 
+  // -------- Touch gestures (P4 Part 5) --------
+  // Swipe right completes through the same patchTask path the checkbox and
+  // the detail pane use, so it inherits the optimistic update, the rollback
+  // and the completion field-pulse for free.
+  const gestureActions = useMemo(
+    () => ({
+      onSwipeComplete: (t: Task) => {
+        void patchTask(t.id, { status: "completed" as TaskStatus });
+      },
+      onSwipeReschedule: (t: Task) => setRescheduleTask(t),
+      onLongPress: (t: Task) => toggleSelect(t.id),
+    }),
+    [patchTask, toggleSelect],
+  );
+
   // -------- Keyboard shortcuts --------
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -764,8 +825,11 @@ export function TasksClient() {
   const childrenForDrawer: Task[] = [];
   const parentForDrawer: Task | null = null;
 
-  // Render the active main view
+  // Render the active main view. The provider makes swipe/long-press
+  // available to every row component below without prop-drilling through
+  // TaskMainView and each view.
   const mainView = (
+    <RowGestureProvider value={gestureActions}>
     <TaskMainView
       view={view}
       tasks={nowFiltered}
@@ -791,6 +855,7 @@ export function TasksClient() {
         void d;
       }}
     />
+    </RowGestureProvider>
   );
 
   return (
@@ -1033,6 +1098,48 @@ export function TasksClient() {
         onApply={(a) => void applyBulk(a)}
         onClear={clearSelection}
       />
+
+      {rescheduleTask && (
+        <Sheet
+          open
+          onClose={() => setRescheduleTask(null)}
+          title="Reschedule"
+          side="auto"
+        >
+          <div className="flex flex-col gap-2 pt-2">
+            {RESCHEDULE_OPTIONS.map((opt) => (
+              <button
+                key={opt.label}
+                type="button"
+                onClick={() => {
+                  const t = rescheduleTask;
+                  setRescheduleTask(null);
+                  void patchTask(t.id, { due_date: opt.value() });
+                }}
+                className="text-left px-3 py-3 rounded-v2-md bg-surface-1 hover:bg-surface-2 border border-hairline text-sm text-text-hi transition-colors"
+              >
+                {opt.label}
+              </button>
+            ))}
+            <label className="flex flex-col gap-1.5 pt-2">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                Pick a date
+              </span>
+              <input
+                type="date"
+                className="bg-surface-1 border border-hairline rounded-v2-md px-3 py-2.5 text-sm text-text-hi outline-none"
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (!v) return;
+                  const t = rescheduleTask;
+                  setRescheduleTask(null);
+                  void patchTask(t.id, { due_date: v });
+                }}
+              />
+            </label>
+          </div>
+        </Sheet>
+      )}
 
       {helpOpen && <ShortcutHelpModal onClose={() => setHelpOpen(false)} />}
 

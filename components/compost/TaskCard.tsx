@@ -4,6 +4,8 @@ import type { Task, TaskStatus } from "@/lib/types/task";
 import { Mono } from "@/components/dashboard/Mono";
 import { UrgencyPill, pillToneFor } from "./UrgencyPill";
 import { StatusDropdown } from "./StatusDropdown";
+import { useRowGestures } from "@/lib/compost/useRowGestures";
+import { useRowGestureActions } from "@/lib/compost/RowGestureContext";
 
 function dueLabel(dueDate: string | null): string | null {
   if (!dueDate) return null;
@@ -48,6 +50,9 @@ export function TaskCard({
   onClick,
   dragging = false,
   pulse = false,
+  onSwipeComplete,
+  onSwipeReschedule,
+  onLongPress,
   compact = false,
   muted = false,
   subStats,
@@ -58,6 +63,12 @@ export function TaskCard({
   dragging?: boolean;
   /** One-shot glow after this card is dropped. */
   pulse?: boolean;
+  /** Touch: swipe right marks done. */
+  onSwipeComplete?: () => void;
+  /** Touch: swipe left opens the reschedule sheet. */
+  onSwipeReschedule?: () => void;
+  /** Touch: long press enters bulk-select. */
+  onLongPress?: () => void;
   compact?: boolean;
   muted?: boolean;
   subStats?: { done: number; total: number } | null;
@@ -83,9 +94,30 @@ export function TaskCard({
     : "bg-surface-2 hover:bg-surface-3";
 
   const isSubtask = !!task.parent_task_id;
+  const gestureCtx = useRowGestureActions();
+  const swipeComplete = onSwipeComplete ?? (gestureCtx.onSwipeComplete ? () => gestureCtx.onSwipeComplete!(task) : undefined);
+  const swipeReschedule = onSwipeReschedule ?? (gestureCtx.onSwipeReschedule ? () => gestureCtx.onSwipeReschedule!(task) : undefined);
+  const longPressFn = onLongPress ?? (gestureCtx.onLongPress ? () => gestureCtx.onLongPress!(task) : undefined);
+  const { dx, didConsume, handlers } = useRowGestures({
+    onSwipeRight: swipeComplete,
+    onSwipeLeft: swipeReschedule,
+    onLongPress: longPressFn,
+    // Dragging a card and swiping it are the same finger motion; while
+    // dnd-kit owns the pointer, gestures stay out of the way.
+    enabled: !dragging,
+  });
   return (
     <div
-      onClick={onClick}
+      {...handlers}
+      style={
+        dx !== 0
+          ? { transform: `translateX(${Math.max(-96, Math.min(96, dx))}px)` }
+          : undefined
+      }
+      onClick={() => {
+        if (didConsume()) return;
+        onClick?.();
+      }}
       className={`group growth-in rounded-v2-md px-4 py-3 flex flex-col gap-2 cursor-pointer transition-[background-color,box-shadow,transform] duration-[var(--dur-base)] [transition-timing-function:var(--ease-out)] ${
         dragging
           ? "bg-surface-3 shadow-2xl shadow-glow-3/30 ring-1 ring-glow-2/60 motion-safe:scale-[1.02]"
