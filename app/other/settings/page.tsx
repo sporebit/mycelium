@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { useUiPrefs } from "@/lib/settings/useUiPrefs";
+import { SECTIONS } from "@/lib/nav/sections";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
 
@@ -10,7 +13,7 @@ type Stats = Record<string, { label: string; count: number }>;
 function Toast({ visible }: { visible: boolean }) {
   return (
     <div
-      className={`fixed bottom-6 right-6 z-50 px-4 py-2 rounded-md bg-ok/20 text-ok text-xs font-[family-name:var(--font-mono)] tracking-[0.1em] transition-all duration-300 ${
+      className={`fixed bottom-6 right-6 z-50 px-4 py-2 rounded-v2-md bg-ok/20 text-ok text-xs font-[family-name:var(--font-mono)] tracking-[0.1em] transition-all duration-300 ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
       }`}
     >
@@ -86,6 +89,7 @@ export default function SettingsPage() {
 
       <ProfileSection settings={settings} onPatch={patch} />
       <AppearanceSection settings={settings} onPatch={patch} />
+      <SectionsSection />
       <NotificationsSection settings={settings} onPatch={patch} />
       <IntegrationsSection settings={settings} onPatch={patch} />
       <FeatureFlagsSection settings={settings} onPatch={patch} />
@@ -101,7 +105,7 @@ export default function SettingsPage() {
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-md bg-ink-1 p-5">
+    <div className="rounded-v2-md bg-surface-1 p-5">
       <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-4">{title}</Mono>
       <div className="flex flex-col gap-4">{children}</div>
     </div>
@@ -134,7 +138,7 @@ function TextSetting({
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={() => { if (draft !== value) onSave(draft); }}
-        className="flex-1 bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+        className="flex-1 bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
       />
     </div>
   );
@@ -157,7 +161,7 @@ function SelectSetting({
       <select
         value={value}
         onChange={(e) => onSave(e.target.value)}
-        className="flex-1 bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+        className="flex-1 bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
@@ -266,14 +270,118 @@ function ProfileSection({ settings, onPatch }: { settings: Settings; onPatch: (f
 }
 
 function AppearanceSection({ settings, onPatch }: { settings: Settings; onPatch: (f: Record<string, unknown>) => void }) {
+  // These three live in ui_prefs, not user_settings — different table, so they
+  // write through useUiPrefs rather than the page's onPatch.
+  const { prefs, setPrefs } = useUiPrefs();
   return (
     <SectionCard title="APPEARANCE">
+      <div className="flex items-center justify-between gap-4 py-2 flex-wrap">
+        <div className="min-w-0">
+          <div className="text-sm text-ink-4">Density</div>
+          <div className="text-[11px] text-ink-3">
+            Compact tightens table rows from 40px to 32px
+          </div>
+        </div>
+        <SegmentedControl
+          size="sm"
+          ariaLabel="Density"
+          value={prefs.density}
+          onChange={(v) => void setPrefs({ density: v as "comfortable" | "compact" })}
+          options={[
+            { value: "comfortable", label: "Comfortable" },
+            { value: "compact", label: "Compact" },
+          ]}
+        />
+      </div>
+
+      <div className="flex items-center justify-between gap-4 py-2 flex-wrap">
+        <div className="min-w-0">
+          <div className="text-sm text-ink-4">Motion</div>
+          <div className="text-[11px] text-ink-3">
+            Reduced shortens transitions; off disables them entirely
+          </div>
+        </div>
+        <SegmentedControl
+          size="sm"
+          ariaLabel="Motion"
+          value={prefs.motion}
+          onChange={(v) => void setPrefs({ motion: v as "full" | "reduced" | "off" })}
+          options={[
+            { value: "full", label: "Full" },
+            { value: "reduced", label: "Reduced" },
+            { value: "off", label: "Off" },
+          ]}
+        />
+      </div>
+
       <ToggleSetting
         label="Dashboard layout locked"
         description="Prevents accidental card moves on the dashboard"
         value={!!settings.dashboard_layout_locked}
         onToggle={(v) => onPatch({ dashboard_layout_locked: v })}
       />
+
+      <div className="flex items-center justify-between gap-4 py-2 flex-wrap">
+        <div className="min-w-0">
+          <div className="text-sm text-ink-4">Reset dashboard layout</div>
+          <div className="text-[11px] text-ink-3">
+            Restores the default card order and sizes
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm("Reset the dashboard layout to defaults?")) {
+              void setPrefs({ dashboard_layout: {} });
+            }
+          }}
+          className="text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:bg-surface-2 transition-colors"
+        >
+          Reset
+        </button>
+      </div>
+    </SectionCard>
+  );
+}
+
+/**
+ * hidden_sections is the whole feature-flag system — hiding a section here
+ * removes it from the Sidebar, the TabBar and the command palette. Direct
+ * URLs still resolve, so nothing becomes unreachable.
+ */
+function SectionsSection() {
+  const { prefs, setPrefs } = useUiPrefs();
+  const hidden = new Set(prefs.hidden_sections);
+  return (
+    <SectionCard title="SECTIONS">
+      <p className="text-[11px] text-ink-3 pb-1">
+        Hidden sections disappear from the sidebar, tab bar and ⌘K search.
+        Their pages still open if you navigate straight to them.
+      </p>
+      <div className="flex flex-col">
+        {SECTIONS.map((sec) => {
+          const isHidden = hidden.has(sec.key);
+          return (
+            <label
+              key={sec.key}
+              className="flex items-center justify-between gap-3 py-2 cursor-pointer"
+            >
+              <span className="text-sm text-ink-4">{sec.label}</span>
+              <input
+                type="checkbox"
+                checked={!isHidden}
+                onChange={() => {
+                  const next = new Set(hidden);
+                  if (isHidden) next.delete(sec.key);
+                  else next.add(sec.key);
+                  void setPrefs({ hidden_sections: [...next] });
+                }}
+                className="accent-[var(--color-accent)] shrink-0"
+              />
+            </label>
+          );
+        })}
+      </div>
     </SectionCard>
   );
 }
@@ -324,7 +432,7 @@ function NotificationsSection({ settings, onPatch }: { settings: Settings; onPat
                 reminder_notification_minutes_before: parseInt(e.target.value) || 10,
               })
             }
-            className="w-20 bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+            className="w-20 bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
           />
           <span className="text-xs text-ink-3">minutes before</span>
         </div>
@@ -553,7 +661,7 @@ function CaptureSourcesSection({ settings, onPatch }: { settings: Settings; onPa
               value={source.icon}
               onChange={(e) => setDrafts((d) => ({ ...d, [key]: { ...d[key], icon: e.target.value } }))}
               onBlur={() => save(key, "icon", drafts[key].icon)}
-              className="w-10 bg-ink-0 border border-ink-2 rounded-md text-sm text-center text-text-0 py-1.5 outline-none focus:border-accent"
+              className="w-10 bg-ink-0 border border-hairline rounded-v2-md text-sm text-center text-text-0 py-1.5 outline-none focus:border-accent"
               title="Icon"
             />
             <input
@@ -561,7 +669,7 @@ function CaptureSourcesSection({ settings, onPatch }: { settings: Settings; onPa
               value={source.label}
               onChange={(e) => setDrafts((d) => ({ ...d, [key]: { ...d[key], label: e.target.value } }))}
               onBlur={() => save(key, "label", drafts[key].label)}
-              className="flex-1 bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+              className="flex-1 bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
               title="Label"
             />
             <Mono className="text-[9px] text-ink-3 w-16 text-right shrink-0">{key}</Mono>
@@ -625,7 +733,7 @@ function DataSection({ stats }: { stats: Stats | null }) {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
           {Object.values(stats).map((s) => (
-            <div key={s.label} className="rounded-md bg-ink-0 px-3 py-2">
+            <div key={s.label} className="rounded-v2-md bg-ink-0 px-3 py-2">
               <div className="text-sm text-text-0 font-[family-name:var(--font-display)]">
                 {s.count.toLocaleString()}
               </div>
@@ -701,10 +809,10 @@ function DangerButton({
     <button
       type="button"
       onClick={onClick}
-      className={`text-left px-3 py-2 rounded-md border text-xs font-[family-name:var(--font-mono)] tracking-[0.08em] transition-colors ${
+      className={`text-left px-3 py-2 rounded-v2-md border text-xs font-[family-name:var(--font-mono)] tracking-[0.08em] transition-colors ${
         confirming
           ? "border-danger bg-danger/10 text-danger"
-          : "border-ink-2 text-ink-3 hover:text-danger hover:border-danger/40"
+          : "border-hairline text-ink-3 hover:text-danger hover:border-danger/40"
       }`}
     >
       {confirming ? "Click again to confirm" : label}

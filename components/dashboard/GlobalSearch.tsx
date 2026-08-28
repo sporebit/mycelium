@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { SearchMatch } from "@/lib/memory/types";
 import { SourceCard } from "@/components/stroma/SourceCard";
 import { SECTIONS } from "@/lib/nav/sections";
+import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 
 export function GlobalSearch() {
   const router = useRouter();
@@ -111,6 +112,12 @@ export function GlobalSearch() {
   // Navigation results derived from the sections registry. Empty query
   // shows nothing (memory prompt handles that); non-empty query matches
   // section labels + subpage labels case-insensitively.
+  const { prefs } = useUiPrefs();
+  const hiddenSet = useMemo(
+    () => new Set(prefs.hidden_sections),
+    [prefs.hidden_sections],
+  );
+
   const navResults = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [] as { label: string; href: string }[];
@@ -119,6 +126,10 @@ export function GlobalSearch() {
       out.push({ label: "Dashboard", href: "/" });
     }
     for (const s of SECTIONS) {
+      // hidden_sections is the single feature-flag system: a section hidden
+      // in Settings disappears from the Sidebar, the TabBar and here too.
+      // Direct URLs still resolve — hiding is about noise, not access.
+      if (hiddenSet.has(s.key)) continue;
       if (s.label.toLowerCase().includes(q)) {
         out.push({ label: s.label, href: s.baseRoute });
       }
@@ -129,7 +140,7 @@ export function GlobalSearch() {
       }
     }
     return out.slice(0, 8);
-  }, [query]);
+  }, [query, hiddenSet]);
 
   if (!open) return null;
 
