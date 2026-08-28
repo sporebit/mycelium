@@ -410,7 +410,7 @@ export function SpendingClient() {
           type="button"
           onClick={handleCategorise}
           disabled={categorising}
-          className="shrink-0 px-4 py-3 rounded-md border border-accent/30 bg-accent/10 hover:border-accent/50 text-sm text-accent hover:text-accent/80 disabled:text-ink-3 disabled:border-ink-2 disabled:bg-ink-1/50 transition-colors font-[family-name:var(--font-mono)]"
+          className="shrink-0 px-4 py-3 rounded-v2-md border border-accent/30 bg-accent/10 hover:border-accent/50 text-sm text-accent hover:text-accent/80 disabled:text-ink-3 disabled:border-hairline disabled:bg-surface-1/50 transition-colors font-[family-name:var(--font-mono)]"
         >
           {categorising ? "Categorising…" : "Categorise"}
         </button>
@@ -418,7 +418,7 @@ export function SpendingClient() {
           type="button"
           onClick={handleSync}
           disabled={syncing}
-          className="shrink-0 px-4 py-3 rounded-md border border-ink-2 bg-ink-1/50 hover:border-ink-3 text-sm text-text-1 hover:text-text-0 disabled:text-ink-3 transition-colors font-[family-name:var(--font-mono)]"
+          className="shrink-0 px-4 py-3 rounded-v2-md border border-hairline bg-surface-1/50 hover:border-ink-3 text-sm text-text-1 hover:text-text-0 disabled:text-ink-3 transition-colors font-[family-name:var(--font-mono)]"
         >
           {syncing ? "Syncing…" : "Sync PayPal"}
         </button>
@@ -448,7 +448,7 @@ export function SpendingClient() {
 
       {/* Summary strip */}
       {summary && transactions !== null && transactions.length > 0 && (
-        <div className="flex items-center gap-4 flex-wrap rounded-md bg-ink-1 px-4 py-3">
+        <div className="flex items-center gap-4 flex-wrap rounded-v2-md bg-surface-1 px-4 py-3">
           <div className="flex flex-col">
             <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
               IN
@@ -484,7 +484,7 @@ export function SpendingClient() {
 
       {/* Overview panel */}
       {overviewData && overviewData.length > 0 && (
-        <div className="rounded-md bg-ink-1 border border-ink-2 overflow-hidden">
+        <div className="rounded-v2-md bg-surface-1 border border-hairline overflow-hidden">
           <button
             type="button"
             onClick={() => setOverviewOpen((o) => !o)}
@@ -570,13 +570,13 @@ export function SpendingClient() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="search description…"
-            className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 placeholder:text-ink-3 outline-none focus:border-ink-3 transition-colors w-56"
+            className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-0 text-sm text-ink-4 placeholder:text-ink-3 outline-none focus:border-ink-3 transition-colors w-56"
           />
           {accounts.length > 0 && (
             <select
               value={accountFilter}
               onChange={(e) => setAccountFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
+              className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-0 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
             >
               <option value="all">All accounts</option>
               {accounts.map((a) => (
@@ -607,7 +607,7 @@ export function SpendingClient() {
               setDateFrom(e.target.value);
               setActivePreset(null);
             }}
-            className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
+            className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-0 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
             placeholder="from"
           />
           <input
@@ -617,7 +617,7 @@ export function SpendingClient() {
               setDateTo(e.target.value);
               setActivePreset(null);
             }}
-            className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
+            className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-0 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
             placeholder="to"
           />
           {(search || dateFrom || dateTo || accountFilter !== "all" || typeFilter.length > 0 || categoryFilter.length > 0) && (
@@ -650,10 +650,10 @@ export function SpendingClient() {
                   setDateTo(p.to);
                   setActivePreset(p.label);
                 }}
-                className={`shrink-0 px-2.5 py-1 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] transition-colors ${
+                className={`shrink-0 px-2.5 py-1 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] transition-colors ${
                   activePreset === p.label
                     ? "bg-accent/15 text-accent border border-accent/30"
-                    : "bg-ink-1/60 text-ink-3 border border-ink-2 hover:text-ink-4 hover:border-ink-3"
+                    : "bg-surface-1 text-ink-3 border border-hairline hover:text-ink-4 hover:border-ink-3"
                 }`}
               >
                 {p.label}
@@ -673,7 +673,7 @@ export function SpendingClient() {
           Loading transactions…
         </div>
       ) : transactions.length === 0 ? (
-        <div className="rounded-md bg-ink-1 p-8 text-center">
+        <div className="rounded-v2-md bg-surface-1 p-8 text-center">
           <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
             No transactions yet. Import a bank CSV above to get started.
           </p>
@@ -689,7 +689,7 @@ export function SpendingClient() {
       {toast && (
         <div
           role="status"
-          className={`growth-in fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
+          className={`growth-in fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] px-4 py-2 rounded-v2-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
             toast.kind === "ok"
               ? "bg-ok/20 text-ok border border-ok/40"
               : "bg-danger/20 text-danger border border-danger/40"
@@ -732,10 +732,10 @@ function ImportDropzone({
       }}
       onDragLeave={() => setDragOver(false)}
       onDrop={handleDrop}
-      className={`rounded-md border-2 border-dashed p-6 text-center transition-colors cursor-pointer ${
+      className={`rounded-v2-md border-2 border-dashed p-6 text-center transition-colors cursor-pointer ${
         dragOver
           ? "border-accent bg-accent/5"
-          : "border-ink-2 bg-ink-1/50 hover:border-ink-3"
+          : "border-hairline bg-surface-1/50 hover:border-ink-3"
       }`}
       onClick={() => inputRef.current?.click()}
     >
@@ -780,7 +780,7 @@ function ImportResultsBanner({
   onDismiss: () => void;
 }) {
   return (
-    <div className="rounded-md bg-ink-1 border border-ink-2 p-4 flex flex-col gap-2">
+    <div className="rounded-v2-md bg-surface-1 border border-hairline p-4 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
           Import Results
@@ -852,10 +852,10 @@ function TransactionsTable({
   onPatchCategory: (id: string, category: string) => void;
 }) {
   return (
-    <div className="rounded-md bg-ink-1 border border-ink-2 overflow-x-auto">
+    <div className="rounded-v2-md bg-surface-1 border border-hairline overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-ink-2">
+          <tr className="border-b border-hairline">
             <Th>Date</Th>
             <Th>Description</Th>
             <Th>Type</Th>
@@ -907,7 +907,7 @@ function TransactionRow({
   const amountColor = txn.amount >= 0 ? "text-ok" : "text-danger";
 
   return (
-    <tr className="border-b border-ink-2/40 hover:bg-ink-2/30 transition-colors">
+    <tr className="border-b border-hairline hover:bg-surface-2 transition-colors">
       <td className="px-3 py-1.5 whitespace-nowrap">
         <Mono className="text-text-1 text-[13px]">{fmtDate(txn.txn_date)}</Mono>
       </td>
@@ -948,7 +948,7 @@ function TransactionRow({
         <select
           value={txn.category ?? ""}
           onChange={(e) => onPatchCategory(txn.id, e.target.value)}
-          className={`w-full bg-transparent rounded-sm text-sm px-1 py-0.5 -mx-1 outline-none hover:bg-ink-2/40 focus:ring-1 focus:ring-glow-2/60 transition-colors cursor-pointer ${
+          className={`w-full bg-transparent rounded-sm text-sm px-1 py-0.5 -mx-1 outline-none hover:bg-surface-2 focus:ring-1 focus:ring-glow-2/60 transition-colors cursor-pointer ${
             txn.category ? "text-text-0" : "text-ink-3"
           }`}
         >
@@ -1009,20 +1009,20 @@ function MultiSelect({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`px-3 py-1.5 rounded-md border text-sm outline-none transition-colors ${
+        className={`px-3 py-1.5 rounded-v2-md border text-sm outline-none transition-colors ${
           selected.length > 0
             ? "border-accent/30 bg-accent/10 text-accent"
-            : "border-ink-2 bg-ink-0/40 text-ink-4 hover:border-ink-3"
+            : "border-hairline bg-surface-0 text-ink-4 hover:border-ink-3"
         }`}
       >
         {display}
       </button>
       {open && (
-        <div className="absolute z-50 mt-1 bg-ink-1 border border-ink-2 rounded-md shadow-lg max-h-60 overflow-y-auto min-w-[200px]">
+        <div className="absolute z-50 mt-1 bg-surface-1 border border-hairline rounded-v2-md shadow-lg max-h-60 overflow-y-auto min-w-[200px]">
           {options.map((opt) => (
             <label
               key={opt}
-              className="flex items-center gap-2 px-3 py-1.5 hover:bg-ink-2/40 cursor-pointer text-sm text-text-1"
+              className="flex items-center gap-2 px-3 py-1.5 hover:bg-surface-2 cursor-pointer text-sm text-text-1"
             >
               <input
                 type="checkbox"
@@ -1061,7 +1061,7 @@ function PayPalMatchPanel({
   onResolve: (paymentId: string, transactionId: string) => void;
 }) {
   return (
-    <div className="rounded-md bg-ink-1 border border-ink-2 p-4 flex flex-col gap-3">
+    <div className="rounded-v2-md bg-surface-1 border border-hairline p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
           PayPal Matching
@@ -1105,7 +1105,7 @@ function PayPalMatchPanel({
           {ambiguous.map((p) => (
             <div
               key={p.id}
-              className="rounded bg-ink-0/40 border border-ink-2 p-3 flex flex-col gap-2"
+              className="rounded bg-surface-0 border border-hairline p-3 flex flex-col gap-2"
             >
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-sm text-text-0 font-medium">
@@ -1124,7 +1124,7 @@ function PayPalMatchPanel({
                 )}
               </div>
               {p.candidates.length > 0 ? (
-                <div className="flex flex-col gap-1.5 pl-2 border-l border-ink-2 ml-1">
+                <div className="flex flex-col gap-1.5 pl-2 border-l border-hairline ml-1">
                   {p.candidates.map((c) => (
                     <div key={c.id} className="flex items-center gap-2 flex-wrap">
                       <button

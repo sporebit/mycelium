@@ -94,3 +94,22 @@ export function Money({
 
   return <>{fmt(value, format, currency, decimals)}</>;
 }
+
+/**
+ * String-returning GBP formatter for the places a <Money/> element cannot go —
+ * recharts `tickFormatter` and `formatter` callbacks, which must return a
+ * string. `hidden` mirrors the privacy state so chart axes redact along with
+ * everything else instead of quietly leaking amounts.
+ */
+export function formatGBP(
+  value: number,
+  opts?: { decimals?: number; hidden?: boolean },
+): string {
+  if (opts?.hidden) return "•••";
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "GBP",
+    minimumFractionDigits: opts?.decimals ?? 0,
+    maximumFractionDigits: opts?.decimals ?? 0,
+  }).format(value);
+}

@@ -29,7 +29,7 @@ function EyeToggle() {
       title={label}
       aria-label={label}
       aria-pressed={financeHidden}
-      className={`inline-flex items-center justify-center h-8 w-8 rounded-md transition-colors ${
+      className={`inline-flex items-center justify-center h-8 w-8 rounded-v2-md transition-colors ${
         financeHidden
           ? "text-accent hover:text-accent/80"
           : "text-ink-3 hover:text-ink-4"
@@ -63,7 +63,7 @@ function KpiBox({
 }) {
   const isPlaceholder = value === "—";
   return (
-    <div className="rounded-xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl p-4">
+    <div className="rounded-xl border border-hairline bg-surface-1 backdrop-blur-xl p-4">
       <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
         {label}
       </div>
@@ -317,7 +317,7 @@ export function FinancePageClient() {
             type="button"
             onClick={refresh}
             disabled={refreshing}
-            className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors shrink-0"
+            className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors shrink-0"
           >
             {refreshing ? "REFRESHING…" : "↻ REFRESH"}
           </button>
@@ -325,7 +325,7 @@ export function FinancePageClient() {
       </div>
 
       {error && (
-        <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
+        <div className="rounded-v2-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
           ⚠ {error}
         </div>
       )}
@@ -381,7 +381,7 @@ export function FinancePageClient() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-ink-2">
+                <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-hairline">
                   <th className="text-left py-2 pr-3">Period</th>
                   <th className="text-right py-2 px-3">Net Worth</th>
                   <th className="text-right py-2 px-3">Liquid</th>
@@ -394,7 +394,7 @@ export function FinancePageClient() {
                 {monthly.map((r) => {
                   const currency = snapshot?.currency ?? "GBP";
                   return (
-                    <tr key={r.period} className="border-b border-ink-2">
+                    <tr key={r.period} className="border-b border-hairline">
                       <td className="py-2 pr-3 text-ink-4">{fmtMonth(r.period)}</td>
                       <td className="text-right py-2 px-3">
                         <Mono className="text-ink-4">

@@ -97,7 +97,7 @@ function CardShell({ children }: { children: React.ReactNode }) {
     <li>
       <Link
         href="/finance/investments"
-        className="block rounded-md bg-ink-1 border border-ink-2 hover:border-ink-3 px-4 py-3 transition-colors"
+        className="block rounded-v2-md bg-surface-1 border border-hairline hover:border-ink-3 px-4 py-3 transition-colors"
       >
         {children}
       </Link>

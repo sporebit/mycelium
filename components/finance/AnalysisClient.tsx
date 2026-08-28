@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { formatGBP } from "@/components/finance/Money";
+import { usePrivacy } from "@/lib/context/PrivacyContext";
 import {
   BarChart,
   Bar,
@@ -59,6 +61,7 @@ function shortMonth(iso: string): string {
 }
 
 export function AnalysisClient() {
+  const { financeHidden } = usePrivacy();
   const presets = useMemo(() => getPresets(), []);
   const [activePreset, setActivePreset] = useState(presets[0].label);
   const [dateFrom, setDateFrom] = useState(presets[0].from);
@@ -154,10 +157,10 @@ export function AnalysisClient() {
               setDateTo(p.to);
               setActivePreset(p.label);
             }}
-            className={`shrink-0 px-2.5 py-1 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] transition-colors ${
+            className={`shrink-0 px-2.5 py-1 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] transition-colors ${
               activePreset === p.label
                 ? "bg-accent/15 text-accent border border-accent/30"
-                : "bg-ink-1/60 text-ink-3 border border-ink-2 hover:text-ink-4 hover:border-ink-3"
+                : "bg-surface-1 text-ink-3 border border-hairline hover:text-ink-4 hover:border-ink-3"
             }`}
           >
             {p.label}
@@ -190,7 +193,7 @@ export function AnalysisClient() {
       </div>
 
       {/* Category breakdown — horizontal bars */}
-      <section className="rounded-md bg-ink-1 border border-ink-2 p-3">
+      <section className="rounded-v2-md bg-surface-1 border border-hairline p-3">
         <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
           By category
         </h3>
@@ -211,7 +214,7 @@ export function AnalysisClient() {
                   tick={{ fill: "var(--ink-3)", fontSize: 10 }}
                   axisLine={{ stroke: "var(--ink-2)" }}
                   tickLine={false}
-                  tickFormatter={(v: number) => `£${v.toLocaleString()}`}
+                  tickFormatter={(v: number) => formatGBP(v, { hidden: financeHidden })}
                 />
                 <YAxis
                   type="category"
@@ -227,7 +230,7 @@ export function AnalysisClient() {
                     border: "1px solid var(--ink-2)",
                     fontSize: 11,
                   }}
-                  formatter={(v) => [`£${Number(v).toFixed(2)}`, "Total"]}
+                  formatter={(v) => [formatGBP(Number(v), { decimals: 2, hidden: financeHidden }), "Total"]}
                 />
                 <Bar dataKey="total" radius={[0, 3, 3, 0]}>
                   {catData.map((row) => (
@@ -244,7 +247,7 @@ export function AnalysisClient() {
       </section>
 
       {/* Monthly trend — stacked bars */}
-      <section className="rounded-md bg-ink-1 border border-ink-2 p-3">
+      <section className="rounded-v2-md bg-surface-1 border border-hairline p-3">
         <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
           Monthly trend (last 6 months)
         </h3>
@@ -270,7 +273,7 @@ export function AnalysisClient() {
                   tick={{ fill: "var(--ink-3)", fontSize: 10 }}
                   axisLine={{ stroke: "var(--ink-2)" }}
                   tickLine={false}
-                  tickFormatter={(v: number) => `£${v.toLocaleString()}`}
+                  tickFormatter={(v: number) => formatGBP(v, { hidden: financeHidden })}
                 />
                 <Tooltip
                   contentStyle={{
@@ -278,7 +281,7 @@ export function AnalysisClient() {
                     border: "1px solid var(--ink-2)",
                     fontSize: 11,
                   }}
-                  formatter={(v) => `£${Number(v).toFixed(2)}`}
+                  formatter={(v) => formatGBP(Number(v), { decimals: 2, hidden: financeHidden })}
                 />
                 <Legend wrapperStyle={{ fontSize: 10 }} />
                 {allCategories.map((cat) => (
@@ -298,7 +301,7 @@ export function AnalysisClient() {
 
       {/* Category table */}
       {catData && catData.length > 0 && (
-        <section className="rounded-md bg-ink-1 border border-ink-2 p-3">
+        <section className="rounded-v2-md bg-surface-1 border border-hairline p-3">
           <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
             Breakdown
           </h3>
@@ -351,7 +354,7 @@ function SummaryCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-md bg-ink-1 border border-ink-2 px-4 py-3 flex flex-col gap-1">
+    <div className="rounded-v2-md bg-surface-1 border border-hairline px-4 py-3 flex flex-col gap-1">
       <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
         {label}
       </span>
