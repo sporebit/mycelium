@@ -18,7 +18,16 @@ async function callClaude(
   const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514";
   if (!apiKey) return null;
 
-  const body: Record<string, unknown> = { model, max_tokens: 1024, system, messages };
+  // Same prefix the main agent route writes (tools -> system), so this call
+  // reads that cache rather than paying full price for it again.
+  const body: Record<string, unknown> = {
+    model,
+    max_tokens: 1024,
+    system: [
+      { type: "text", text: system, cache_control: { type: "ephemeral" } },
+    ],
+    messages,
+  };
   if (tools && tools.length > 0) {
     body.tools = tools;
   }

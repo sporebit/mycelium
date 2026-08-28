@@ -28,7 +28,24 @@ async function callClaude(
   const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-20250514";
   if (!apiKey) return null;
 
-  const body: Record<string, unknown> = { model, max_tokens: maxTokens, system, messages };
+  // Prompt caching. The cache prefix renders tools -> system -> messages, so a
+  // breakpoint on the system block covers the tool definitions too. Within a
+  // conversation the agent memory summary is fixed (it is only rewritten at
+  // end-session), so tools + system are byte-stable across turns and every
+  // turn after the first reads the prefix from cache.
+  //
+  // Sonnet 4.5 needs a 1024-token prefix or the marker is silently ignored.
+  // Measured: tools + persona + TOOL_CAPABILITY_SUFFIX (~680 tokens) clears
+  // that for every agent except "fitness", which ships a single tool and
+  // lands around 950 — it simply won't cache, which costs nothing.
+  const body: Record<string, unknown> = {
+    model,
+    max_tokens: maxTokens,
+    system: [
+      { type: "text", text: system, cache_control: { type: "ephemeral" } },
+    ],
+    messages,
+  };
   if (tools && tools.length > 0) {
     body.tools = tools;
     body.tool_choice = { type: "auto" };
@@ -48,7 +65,19 @@ async function callClaude(
     console.error("[agents/callClaude] API error", res.status, await res.text());
     return null;
   }
-  return (await res.json()) as ApiResponse;
+  const json = (await res.json()) as ApiResponse;
+  // If cache_read stays 0 across turns of one conversation, something in the
+  // prefix is varying — see lib/agents/prompts.ts before blaming the API.
+  const u = (json as { usage?: Record<string, number> }).usage;
+  if (u) {
+    console.log(
+      "[agents/callClaude] cache write=%d read=%d uncached=%d",
+      u.cache_creation_input_tokens ?? 0,
+      u.cache_read_input_tokens ?? 0,
+      u.input_tokens ?? 0,
+    );
+  }
+  return json;
 }
 
 export async function GET(
