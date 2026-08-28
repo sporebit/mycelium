@@ -380,7 +380,7 @@ status enum values used for "active" filtering.
 **Fresh-session, rested-read next unit:**
 - 🔶 **Part 2 — mostly done (2026-08-28)**, `f5d2a08` + `b5704d5`. All six clients now fetch through `useApi`, so Compost shares cache entries with the dashboard and NowBlock instead of holding private copies. Captures/People/Projects/Purchases/Decisions also mutate through `mutateApi`/`apiWrite` (optimistic, rollback, ApiErrorToast). TasksClient's list and projects fetches moved to `useApi` behind a `setTasks` shim, so all 17 existing optimistic call sites are unchanged — its hand-rolled optimism already had rollback, so the win there is the shared cache, not latency.
 
-  **Still outstanding in Part 2:** TasksClient's detail-pane fetch (`/api/tasks/{id}`) is still a local `useEffect` + `detailState`, and its mutations still write that state directly rather than a `useApi` cache entry. `triggerFieldPulse()` on task completion is NOT done. Comments/subtasks (`addComment`, `deleteComment`, `addSubtask`) are untouched.
+  **Part 2 completed** in `0c154a8`: the detail pane is now keyed on `/api/tasks/{id}` through `useApi` behind a `setDetailState` shim (all six optimistic call sites unchanged), `triggerFieldPulse()` fires on confirmed completion matching NowBlock, and the comment handlers went through `apiWrite`. `addSubtask` already routed via `createTask`, which checks its response, so it needed nothing. Browser-verified: deep-linking `?task=<id>` loads the pane with a single keyed GET, a comment persists and renders, seven views and bulk unchanged.
 
   **Answered ahead of Part 2 (2026-08-28):** the bulk-action contract question is
   settled. `/api/tasks/bulk` already exists, whitelists exactly
@@ -1329,9 +1329,9 @@ after a day of real usage.
 | P1.5 | ✅ Done | (nav follow-up commit) | Assistant added, shortcut-setup routed via Settings |
 | P2 | 🔶 Fired, unverified by use | 4 commits expected | **VERIFY BY USE before P4** |
 | P3 | ✅ Done | c527a49, bff473f, d053c67, 0ff48e7 | Follow-ups: (a) inspiration board restyle deferred (own commit); (b) Founder agent verification not run — verify tool calls reflect in new UI next time it's open |
-| P4 | 🔶 Parts 1-3 done, Part 2 mostly | 27a49f4, 179527a, 6e45078, 0dcb122, f5d2a08, b5704d5, 7c41289 | Browser-verified 2026-08-28: seven views, bulk (one POST to /api/tasks/bulk), sabotaged-500 rollback all confirmed. Part 2 remainder: detail-pane cache, triggerFieldPulse, comments/subtasks. Parts 4/5 pending |
+| P4 | ✅ Parts 1-3 done | 27a49f4, 179527a, 6e45078, 0dcb122, f5d2a08, b5704d5, 7c41289, 0c154a8 | Browser-verified 2026-08-28: seven views, bulk (one POST to /api/tasks/bulk), sabotaged-500 rollback, detail pane + comments. Parts 4 (restyle) and 5 (mobile swipe) pending — both need visual judgement, leave for a session with eyes on it |
 | P5 | 🔶 Part 1 done | 0b9a10e | Parts 2/3/4 pending — Part 2 set-logging is highest-stakes mutation, fresh session only |
-| P6 | 🔶 Parts 1+2 done | 119f795 (blood-tests split), 7be7063 (recipes split) | Parts 3/4/5 pending. Both splits were zero-behaviour-change and are **unverified by use** — exercise blood-test parsing + weekly planner + Vision multi-page merge before Part 3. Part 3 must also fix the supplements cache key: daily-checklist page needs the SAME `/api/supplements/daily?date=${today}` key as the P0 dashboard card and P2 TimelineRail |
+| P6 | 🔶 Parts 1+2 done | 119f795 (blood-tests split), 7be7063 (recipes split) | Parts 3/4/5 pending. Both splits were zero-behaviour-change and are **unverified by use** — exercise blood-test parsing + weekly planner + Vision multi-page merge before Part 3. Supplements cache key FIXED 2026-08-28 (`94f5a41`) ahead of Part 3 — DailyChecklist now uses the same `/api/supplements/daily?date=${today}` key as the dashboard card, GlanceRow and TimelineRail, and toggles through mutateApi. Verified: health page requests the identical key string, toggle round-trips 0→1→0 |
 | P7–P11 | ⬜ Not started | — | — |
 
 **Before P4 (Compost) starts, in any session: manually complete a task,
