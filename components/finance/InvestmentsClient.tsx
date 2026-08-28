@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
+
+const INVESTMENTS_KEY = "/api/finance/investments";
 import { formatGBP } from "@/components/finance/Money";
 import { usePrivacy } from "@/lib/context/PrivacyContext";
 import { Mono } from "@/components/dashboard/Mono";
@@ -112,8 +115,30 @@ function timeAgo(dateStr: string): string {
 
 export function InvestmentsClient() {
   const { financeHidden } = usePrivacy();
-  const [investments, setInvestments] = useState<Investment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading: loading, mutate: mutateInvestments } = useApi<{
+    investments?: Investment[];
+  }>(INVESTMENTS_KEY);
+  const investments = useMemo<Investment[]>(
+    () => (Array.isArray(data?.investments) ? data.investments : []),
+    [data],
+  );
+  // Same signature the useState setter had — the optimistic handlers below
+  // are untouched by this migration.
+  const setInvestments = useCallback(
+    (updater: Investment[] | ((cur: Investment[]) => Investment[])) => {
+      void mutateInvestments(
+        (cur) => ({
+          ...cur,
+          investments:
+            typeof updater === "function"
+              ? updater(cur?.investments ?? [])
+              : updater,
+        }),
+        { revalidate: false },
+      );
+    },
+    [mutateInvestments],
+  );
   const [toast, setToast] = useState<Toast>(null);
   const [catFilter, setCatFilter] = useState<CategoryFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
@@ -125,17 +150,7 @@ export function InvestmentsClient() {
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const load = useCallback(() => {
-    fetch("/api/finance/investments", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((j: { investments?: Investment[] }) => {
-        setInvestments(Array.isArray(j?.investments) ? j.investments : []);
-        setLoading(false);
-      })
-      .catch(() => { setInvestments([]); setLoading(false); });
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  const load = useCallback(() => void mutateInvestments(), [mutateInvestments]);
 
   useEffect(() => {
     if (!toast) return;

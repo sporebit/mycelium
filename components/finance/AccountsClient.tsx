@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
+
+const SERVICE_ACCOUNTS_KEY = "/api/finance/service-accounts";
 import Link from "next/link";
 import Image from "next/image";
 import { Mono } from "@/components/dashboard/Mono";
@@ -106,8 +109,30 @@ const EMPTY_ACCOUNT: Omit<Account, "id" | "created_at" | "updated_at"> = {
 };
 
 export function AccountsClient() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading: loading, mutate: mutateAccounts } = useApi<{
+    accounts?: Account[];
+  }>(SERVICE_ACCOUNTS_KEY);
+  const accounts = useMemo<Account[]>(
+    () => (Array.isArray(data?.accounts) ? data.accounts : []),
+    [data],
+  );
+  // Same signature the useState setter had — the optimistic handlers below
+  // are untouched by this migration.
+  const setAccounts = useCallback(
+    (updater: Account[] | ((cur: Account[]) => Account[])) => {
+      void mutateAccounts(
+        (cur) => ({
+          ...cur,
+          accounts:
+            typeof updater === "function"
+              ? updater(cur?.accounts ?? [])
+              : updater,
+        }),
+        { revalidate: false },
+      );
+    },
+    [mutateAccounts],
+  );
   const [toast, setToast] = useState<Toast>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -116,20 +141,6 @@ export function AccountsClient() {
   const [draft, setDraft] = useState(EMPTY_ACCOUNT);
   const [saving, setSaving] = useState(false);
 
-  const load = useCallback(() => {
-    fetch("/api/finance/service-accounts", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((j: { accounts?: Account[] }) => {
-        setAccounts(Array.isArray(j?.accounts) ? j.accounts : []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setAccounts([]);
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
     if (!toast) return;
