@@ -5,6 +5,8 @@ import type { Task, TaskUrgency } from "@/lib/types/task";
 import type { Project } from "@/lib/types/project";
 import { isOverdue, isDueToday } from "@/lib/types/task";
 import { StatusDropdown } from "./StatusDropdown";
+import { Surface } from "@/components/ui/Surface";
+import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { URGENCIES, URGENCY_LABEL } from "@/lib/types/task";
 
 type ColumnId =
@@ -92,6 +94,7 @@ export function TaskTableView({
   onToggleSelect: (id: string, e?: React.MouseEvent) => void;
   onPatch: (id: string, patch: Partial<Task>) => void;
 }) {
+  const { prefs } = useUiPrefs();
   const persisted = useMemo(() => loadPersisted(), []);
   const [order, setOrder] = useState<ColumnId[]>(
     () =>
@@ -183,9 +186,13 @@ export function TaskTableView({
     return widths[id] ?? COLUMNS.find((c) => c.id === id)?.defaultWidth ?? 120;
   }
 
+  // First real consumer of ui_prefs.density: 40px comfortable, 32px compact.
+  // Must sit above the early return below — hooks run unconditionally.
+  const rowHeight = prefs.density === "compact" ? 32 : 40;
+
   if (sortedTasks.length === 0) {
     return (
-      <div className="rounded-md bg-ink-1 p-12 text-center">
+      <div className="rounded-v2-lg bg-surface-1 border border-hairline p-12 text-center">
         <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
           No tasks match your filters.
         </p>
@@ -197,10 +204,10 @@ export function TaskTableView({
     sortedTasks.length > 0 && sortedTasks.every((t) => selected.has(t.id));
 
   return (
-    <div className="rounded-md bg-ink-1 border border-ink-2 overflow-x-auto">
+    <Surface level={1} radius="lg" className="overflow-x-auto">
       <table className="w-full table-fixed text-sm" style={{ minWidth: 800 }}>
         <thead>
-          <tr className="border-b border-ink-2">
+          <tr className="border-b border-hairline">
             {orderedCols.map((col) => (
               <th
                 key={col.id}
@@ -262,7 +269,8 @@ export function TaskTableView({
           {sortedTasks.map((t) => (
             <tr
               key={t.id}
-              className={`group border-b border-ink-2/40 hover:bg-ink-2/30 transition-colors ${
+              style={{ height: rowHeight }}
+              className={`group border-b border-hairline hover:bg-surface-2 transition-colors ${
                 selected.has(t.id) ? "bg-accent/5" : ""
               } ${t.completed_at ? "opacity-60" : ""}`}
             >
@@ -270,7 +278,7 @@ export function TaskTableView({
                 <td
                   key={col.id}
                   style={{ width: colWidth(col.id) }}
-                  className="px-2 py-1.5 align-middle"
+                  className="px-2 align-middle"
                 >
                   <Cell
                     col={col.id}
@@ -290,7 +298,7 @@ export function TaskTableView({
           ))}
         </tbody>
       </table>
-    </div>
+    </Surface>
   );
 }
 

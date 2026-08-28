@@ -47,6 +47,7 @@ export function TaskCard({
   task,
   onClick,
   dragging = false,
+  pulse = false,
   compact = false,
   muted = false,
   subStats,
@@ -55,6 +56,8 @@ export function TaskCard({
   task: Task;
   onClick?: () => void;
   dragging?: boolean;
+  /** One-shot glow after this card is dropped. */
+  pulse?: boolean;
   compact?: boolean;
   muted?: boolean;
   subStats?: { done: number; total: number } | null;
@@ -74,21 +77,22 @@ export function TaskCard({
   // tint so dnd-kit's ghost stays readable. Completed cards dim further
   // (opacity-60) so they sit visually under the open ones in the same
   // column when the SHOW COMPLETED toggle is on.
+  // Surface level 2 cards sitting in the level 1 column well.
   const cardClass = muted
-    ? "bg-ink-1/60 hover:bg-ink-2"
-    : "bg-ink-1 hover:bg-ink-2";
+    ? "bg-surface-2/60 hover:bg-surface-3"
+    : "bg-surface-2 hover:bg-surface-3";
 
   const isSubtask = !!task.parent_task_id;
   return (
     <div
       onClick={onClick}
-      className={`group growth-in rounded-md px-4 py-3 flex flex-col gap-2 cursor-pointer transition-colors ${
+      className={`group growth-in rounded-v2-md px-4 py-3 flex flex-col gap-2 cursor-pointer transition-[background-color,box-shadow,transform] duration-[var(--dur-base)] [transition-timing-function:var(--ease-out)] ${
         dragging
-          ? "bg-ink-2 shadow-2xl shadow-glow-3/30 ring-1 ring-glow-2/60"
+          ? "bg-surface-3 shadow-2xl shadow-glow-3/30 ring-1 ring-glow-2/60 motion-safe:scale-[1.02]"
           : cardClass
-      } ${compact ? "py-2" : ""} ${isSubtask ? "is-subtask" : ""} ${
-        isCompleted ? "opacity-60" : ""
-      }`}
+      } ${pulse ? "glow-pulse" : ""} ${compact ? "py-2" : ""} ${
+        isSubtask ? "is-subtask" : ""
+      } ${isCompleted ? "opacity-60" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className={`text-sm leading-snug min-w-0 break-words ${titleClass}`}>

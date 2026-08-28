@@ -151,7 +151,7 @@ export function TaskRowList({
       onClick={() => {
         if (!editingTitle) onOpen(task);
       }}
-      className={`group relative flex items-center gap-3 bg-ink-1 hover:bg-ink-2/60 rounded-md px-3 py-2 cursor-pointer transition-colors ${
+      className={`group relative flex items-center gap-3 bg-surface-1 hover:bg-surface-2 border border-hairline rounded-v2-md px-3 py-2 cursor-pointer transition-colors duration-[var(--dur-fast)] [transition-timing-function:var(--ease-out)] ${
         isFocused ? "ring-1 ring-glow-2/60" : ""
       } ${selected ? "ring-1 ring-accent/60 bg-accent/5" : ""} ${
         isCompleted ? "opacity-60" : ""
@@ -368,7 +368,7 @@ function ContextMenu({
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.preventDefault()}
       style={style}
-      className="fixed z-[200] min-w-[220px] rounded-md bg-ink-1 border border-ink-2 shadow-2xl p-1 flex flex-col gap-0.5 text-sm"
+      className="fixed z-[200] min-w-[220px] rounded-v2-md bg-surface-3 border border-hairline shadow-2xl p-1 flex flex-col gap-0.5 text-sm"
     >
       {open === "status" ? (
         <StatusSubmenu

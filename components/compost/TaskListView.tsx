@@ -46,7 +46,7 @@ export function TaskListView({
 
   if (topLevel.length === 0) {
     return (
-      <div className="rounded-md bg-ink-1 p-12 text-center">
+      <div className="rounded-v2-lg bg-surface-1 border border-hairline p-12 text-center">
         <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
           No tasks yet. Press <kbd className="px-1.5 py-0.5 rounded-sm bg-ink-2 text-ink-4 font-[family-name:var(--font-mono)] text-[10px]">C</kbd> to create one.
         </p>

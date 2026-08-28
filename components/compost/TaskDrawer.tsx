@@ -6,6 +6,7 @@ import type { Project } from "@/lib/types/project";
 import { URGENCIES, URGENCY_LABEL } from "@/lib/types/task";
 import { EntityPicker } from "./EntityPicker";
 import { triggerGlowPulse } from "@/lib/motion";
+import { Sheet } from "@/components/ui/Sheet";
 
 function formatCreatedAt(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -123,14 +124,6 @@ export function TaskDrawer({
 
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const descInputRef = useRef<HTMLTextAreaElement | null>(null);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && !editingTitle && !editingDesc) onClose();
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose, editingTitle, editingDesc]);
 
   useEffect(() => {
     if (editingTitle) titleInputRef.current?.focus();
@@ -263,16 +256,15 @@ export function TaskDrawer({
 
   const createdLabel = formatCreatedAt(task?.created_at);
   return (
-    <div className="fixed inset-0 z-50">
-      <div
-        onClick={onClose}
-        className="absolute inset-0 bg-ink-0/60 backdrop-blur-sm"
-      />
-      <aside
-        className="drawer-slide-in absolute top-0 right-0 h-full w-full max-w-[440px] bg-ink-1 shadow-2xl flex flex-col rounded-l-lg"
-        role="dialog"
-        aria-label={isCreate ? "Create task" : "Edit task"}
-      >
+    <Sheet
+      open
+      onClose={onClose}
+      side="auto"
+      title={isCreate ? "Create task" : "Edit task"}
+    >
+      {/* Sheet applies its own px-6/pb-6; cancel it so the drawer's existing
+          section padding keeps the content layout exactly as it was. */}
+      <div className="-mx-6 -mb-6 flex flex-col min-h-0">
         {/* Top close-row — no border, just the × in the corner */}
         <div className="flex items-center justify-end px-6 pt-5">
           <button
@@ -329,6 +321,9 @@ export function TaskDrawer({
                     saveTitle();
                   } else if (e.key === "Escape") {
                     e.preventDefault();
+                    // Sheet closes on Escape from a window listener; stop the
+                    // event here so cancelling an edit does not also close.
+                    e.stopPropagation();
                     setEditTitle(task?.title ?? "");
                     setEditingTitle(false);
                   }
@@ -365,6 +360,7 @@ export function TaskDrawer({
                 onKeyDown={(e) => {
                   if (e.key === "Escape") {
                     e.preventDefault();
+                    e.stopPropagation();
                     setEditDesc(task?.description ?? "");
                     setEditingDesc(false);
                   }
@@ -717,8 +713,8 @@ export function TaskDrawer({
             </>
           )}
         </footer>
-      </aside>
-    </div>
+      </div>
+    </Sheet>
   );
 }
 

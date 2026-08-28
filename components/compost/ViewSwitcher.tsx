@@ -1,5 +1,7 @@
 "use client";
 
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
+
 export type CrmView =
   | "list"
   | "smart"
@@ -19,6 +21,15 @@ const VIEWS: { id: CrmView; label: string }[] = [
   { id: "calendar", label: "CALENDAR" },
 ];
 
+const OPTIONS = VIEWS.map((v) => ({ value: v.id, label: v.label }));
+
+/**
+ * Seven segments need roughly 630px, so they sit comfortably on desktop but
+ * cannot fit a 390px phone. Rather than shrink the labels to illegibility,
+ * the SegmentedControl keeps its natural width inside a horizontally
+ * scrollable wrapper. The sliding pill measures against the control itself,
+ * not the wrapper, so scrolling does not disturb it.
+ */
 export function ViewSwitcher({
   value,
   onChange,
@@ -27,21 +38,14 @@ export function ViewSwitcher({
   onChange: (v: CrmView) => void;
 }) {
   return (
-    <div className="inline-flex rounded-lg border border-ink-2 bg-ink-0/40 p-0.5 overflow-x-auto max-w-full">
-      {VIEWS.map((v) => (
-        <button
-          key={v.id}
-          type="button"
-          onClick={() => onChange(v.id)}
-          className={`px-3 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] rounded-md transition-colors whitespace-nowrap ${
-            value === v.id
-              ? "bg-ink-2 text-ink-4"
-              : "text-ink-3 hover:text-ink-4"
-          }`}
-        >
-          {v.label}
-        </button>
-      ))}
+    <div className="overflow-x-auto max-w-full -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <SegmentedControl
+        options={OPTIONS}
+        value={value}
+        onChange={(v) => onChange(v as CrmView)}
+        size="sm"
+        ariaLabel="Task view"
+      />
     </div>
   );
 }

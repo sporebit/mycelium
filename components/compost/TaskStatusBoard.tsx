@@ -61,7 +61,12 @@ function SortableStatusCard({
   onStatusChange: (next: TaskStatus) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: task.id });
+    useSortable({
+      id: task.id,
+      // Match the app's motion tokens rather than dnd-kit's defaults:
+      // --dur-base (200ms) and --ease-out. No physics library.
+      transition: { duration: 200, easing: "cubic-bezier(0.2, 0, 0, 1)" },
+    });
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,

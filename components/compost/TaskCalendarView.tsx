@@ -343,8 +343,8 @@ function DayCell({
       }}
       className={`min-h-[80px] rounded-md border p-1.5 flex flex-col gap-1 transition-colors ${
         inMonth
-          ? "bg-ink-1 border-ink-2 cursor-pointer hover:bg-ink-2/40"
-          : "bg-ink-0/40 border-ink-2/40 opacity-50"
+          ? "bg-surface-1 border-hairline cursor-pointer hover:bg-surface-2"
+          : "bg-surface-0 border-hairline opacity-50"
       } ${isToday ? "ring-1 ring-glow-2/60" : ""} ${
         isOver ? "ring-2 ring-glow-2 bg-glow-2/10" : ""
       }`}
@@ -502,7 +502,7 @@ function DraggablePill({
       {...listeners}
       onClick={handleClick}
       title={task.title}
-      className={`relative w-full text-left rounded-md px-2 py-1.5 bg-ink-1 hover:bg-ink-2/40 transition-colors flex items-start gap-2 ${
+      className={`relative w-full text-left rounded-v2-sm px-2 py-1.5 bg-surface-2 hover:bg-surface-3 transition-colors duration-[var(--dur-fast)] [transition-timing-function:var(--ease-out)] flex items-start gap-2 ${
         task.completed_at ? "opacity-60" : ""
       } ${isSelected ? "ring-2 ring-accent bg-accent/5" : ""} cursor-grab active:cursor-grabbing`}
     >

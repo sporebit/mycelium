@@ -97,15 +97,22 @@ function SortableTaskCard({
   isSubTask,
   subStats,
   onStatusChange,
+  pulse = false,
 }: {
   task: Task;
   onClick: (t: Task) => void;
   isSubTask: boolean;
   subStats: { done: number; total: number } | null;
   onStatusChange: (next: import("@/lib/types/task").TaskStatus) => void;
+  pulse?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: task.id });
+    useSortable({
+      id: task.id,
+      // Match the app's motion tokens rather than dnd-kit's defaults:
+      // --dur-base (200ms) and --ease-out. No physics library.
+      transition: { duration: 200, easing: "cubic-bezier(0.2, 0, 0, 1)" },
+    });
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -134,18 +141,21 @@ function SortableTaskCard({
         muted={isSubTask}
         subStats={subStats}
         onStatusChange={onStatusChange}
+        pulse={pulse}
       />
     </div>
   );
 }
 
 function Column({
+  pulseId,
   urgency,
   tasks,
   onCardClick,
   subStatsById,
   onStatusChange,
 }: {
+  pulseId: string | null;
   urgency: TaskUrgency;
   tasks: Task[];
   onCardClick: (t: Task) => void;
@@ -171,18 +181,19 @@ function Column({
       </div>
       <div
         ref={setNodeRef}
-        className={`flex-1 min-h-[120px] rounded-md p-2 transition-colors ${
+        className={`flex-1 min-h-[120px] rounded-v2-lg p-2 transition-colors duration-[var(--dur-base)] [transition-timing-function:var(--ease-out)] ${
           isOver
             ? "bg-glow-3/40 ring-1 ring-glow-2/50"
             : isEmpty
-              ? "border border-dashed border-ink-2 bg-transparent"
-              : "bg-transparent"
+              ? "border border-dashed border-hairline bg-surface-1/40"
+              : "bg-surface-1"
         }`}
       >
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
           <div className="flex flex-col gap-2">
             {tasks.map((t) => (
               <SortableTaskCard
+                pulse={pulseId === t.id}
                 key={t.id}
                 task={t}
                 onClick={onCardClick}
@@ -257,6 +268,9 @@ export function TaskBoard({
   );
   const [dragOverride, setDragOverride] = useState<Columns | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  // One-shot glow on the card that was just dropped; cleared after
+  // --dur-base so the animation can re-trigger on the next drop.
+  const [pulseId, setPulseId] = useState<string | null>(null);
   const columns = dragOverride ?? baseColumns;
 
   const sensors = useSensors(
@@ -307,6 +321,12 @@ export function TaskBoard({
   function handleDragEnd(e: DragEndEvent) {
     const { active, over } = e;
     setDraggingId(null);
+    const droppedId = String(active.id);
+    setPulseId(droppedId);
+    window.setTimeout(
+      () => setPulseId((cur) => (cur === droppedId ? null : cur)),
+      200,
+    );
     if (!over) {
       setDragOverride(null);
       return;
@@ -430,6 +450,7 @@ export function TaskBoard({
               onCardClick={onCardClick}
               subStatsById={subStatsById}
               onStatusChange={onStatusChange}
+              pulseId={pulseId}
             />
           ))}
         </div>
