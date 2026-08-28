@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DA_BOI_DOMAINS, type DaBoiDomain } from "@/lib/agents/relevance";
 import { MODEL_CHAT } from "@/lib/config/models";
 import { createServerClient } from "@/lib/supabase/server";
 import { AGENT_SYSTEM_PROMPTS, buildDaBoiPrompt } from "@/lib/agents/prompts";
@@ -130,18 +131,13 @@ export async function POST(
       for (const m of (allMemories ?? []) as { agent_id: string; summary: string }[]) {
         memMap.set(m.agent_id, m.summary);
       }
-      systemPrompt = buildDaBoiPrompt({
-        fitness_memory: memMap.get("fitness") || "none",
-        finance_memory: memMap.get("finance") || "none",
-        tasks_memory: memMap.get("tasks") || "none",
-        nutrition_memory: memMap.get("nutrition") || "none",
-        founder_memory: memMap.get("founder") || "none",
-        engineer_memory: memMap.get("engineer") || "none",
-        recent_workouts: "see conversation",
-        monthly_spend: "see conversation",
-        open_task_count: 0,
-        avg_calories: "see conversation",
-      });
+      // A tool confirmation continues an existing conversation, so there is
+      // no fresh message to scope domains against — keep all six summaries.
+      // Live data is omitted rather than stubbed with "see conversation":
+      // the transcript already carries whatever was loaded originally.
+      const memories: Partial<Record<DaBoiDomain, string>> = {};
+      for (const d of DA_BOI_DOMAINS) memories[d] = memMap.get(d) || "none";
+      systemPrompt = buildDaBoiPrompt({ memories, live: {} });
     } else {
       const { data: memory } = await supabase
         .from("agent_memory")

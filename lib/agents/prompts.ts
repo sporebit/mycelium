@@ -1,3 +1,5 @@
+import { DA_BOI_DOMAINS, type DaBoiDomain } from "./relevance";
+
 export const AGENT_SYSTEM_PROMPTS: Record<string, (memory: string) => string> = {
   fitness: (memory) =>
     `You are an expert personal trainer, mobility coach, and functional movement specialist. You have deep knowledge of strength training, rehabilitation, injury prevention, programming, and nutrition as it relates to performance. You are direct, practical, and evidence-based. You do not give generic advice — you ask clarifying questions and tailor everything to the user. You are talking to Phil (male, born 1994). Here is what you know about Phil from previous conversations: ${memory}. Relevant context: Phil tracks his workouts in Myphelium2 including sessions, exercises, sets, and pain logs. You can create fitness-related tasks in Myphelium2 directly using your tools.`,
@@ -43,34 +45,63 @@ Here is what you know about Phil from previous conversations: ${memory}
 You can create tasks in Myphelium2 using your tools.`,
 };
 
-export function buildDaBoiPrompt(ctx: {
-  fitness_memory: string;
-  finance_memory: string;
-  tasks_memory: string;
-  nutrition_memory: string;
-  founder_memory: string;
-  engineer_memory: string;
-  recent_workouts: string;
-  monthly_spend: string;
-  open_task_count: number;
-  avg_calories: string;
-}) {
-  return `You are Da Boi — Phil's master AI. You have full context across his fitness, finance, tasks, nutrition, ventures, and personal life. You are straight-talking, smart, and genuinely useful. You do not bullshit. You know Phil better than any individual agent because you see everything.
+export type DaBoiContext = {
+  /** Agent memory summaries, keyed by domain — only the relevant ones. */
+  memories: Partial<Record<DaBoiDomain, string>>;
+  /** Live lookups, only those whose domain was judged relevant. */
+  live: {
+    recent_workouts?: string;
+    monthly_spend?: string;
+    open_task_count?: number;
+    avg_calories?: string;
+  };
+};
 
-Fitness context: ${ctx.fitness_memory}
-Finance context: ${ctx.finance_memory}
-Tasks context: ${ctx.tasks_memory}
-Nutrition context: ${ctx.nutrition_memory}
-Ventures context: ${ctx.founder_memory}
-Hardware/PC context: ${ctx.engineer_memory}
+const MEMORY_LABEL: Record<DaBoiDomain, string> = {
+  fitness: "Fitness context",
+  finance: "Finance context",
+  tasks: "Tasks context",
+  nutrition: "Nutrition context",
+  founder: "Ventures context",
+  engineer: "Hardware/PC context",
+};
 
-Live data:
-- Recent workouts: ${ctx.recent_workouts}
-- This month's spend: ${ctx.monthly_spend}
-- Open tasks: ${ctx.open_task_count}
-- 7-day avg calories: ${ctx.avg_calories}
+/**
+ * Builds Da Boi's system prompt from only the blocks that matter to the
+ * current message. Previously every one of the six memory summaries and all
+ * four live-data lookups went in on every turn.
+ *
+ * Note the interaction with prompt caching: which blocks are present is part
+ * of the cached prefix, so switching topic mid-conversation writes a new
+ * cache entry. Within a conversation the domain set is usually stable, so
+ * the cache still pays for itself.
+ */
+export function buildDaBoiPrompt(ctx: DaBoiContext): string {
+  const parts: string[] = [
+    `You are Da Boi — Phil's master AI. You have full context across his fitness, finance, tasks, nutrition, ventures, and personal life. You are straight-talking, smart, and genuinely useful. You do not bullshit. You know Phil better than any individual agent because you see everything.`,
+  ];
 
-Answer whatever Phil asks. If you need more detail on a specific area, say so and point him to the relevant agent (fitness, finance, tasks, nutrition, founder, or engineer). You can create tasks, subtasks, and manage the accounts register in Myphelium2 directly using your tools.`;
+  const memoryLines = DA_BOI_DOMAINS.filter((d) => ctx.memories[d]).map(
+    (d) => `${MEMORY_LABEL[d]}: ${ctx.memories[d]}`,
+  );
+  if (memoryLines.length > 0) parts.push(memoryLines.join("\n"));
+
+  const liveLines: string[] = [];
+  if (ctx.live.recent_workouts !== undefined)
+    liveLines.push(`- Recent workouts: ${ctx.live.recent_workouts}`);
+  if (ctx.live.monthly_spend !== undefined)
+    liveLines.push(`- This month's spend: ${ctx.live.monthly_spend}`);
+  if (ctx.live.open_task_count !== undefined)
+    liveLines.push(`- Open tasks: ${ctx.live.open_task_count}`);
+  if (ctx.live.avg_calories !== undefined)
+    liveLines.push(`- 7-day avg calories: ${ctx.live.avg_calories}`);
+  if (liveLines.length > 0) parts.push(`Live data:\n${liveLines.join("\n")}`);
+
+  parts.push(
+    `Answer whatever Phil asks. If a question needs an area you do not have loaded here, say so and point him to the relevant agent (fitness, finance, tasks, nutrition, founder, or engineer). You can create tasks, subtasks, and manage the accounts register in Myphelium2 directly using your tools.`,
+  );
+
+  return parts.join("\n\n");
 }
 
 export const MEMORY_UPDATE_PROMPT =

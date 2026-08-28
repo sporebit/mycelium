@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { MODEL_CHAT } from "@/lib/config/models";
 import { createServerClient } from "@/lib/supabase/server";
 import { AGENT_SYSTEM_PROMPTS, buildDaBoiPrompt } from "@/lib/agents/prompts";
+import { relevantDomains, type DaBoiDomain } from "@/lib/agents/relevance";
 import { toolsForAgent } from "@/lib/agents/tools";
 
 export const runtime = "nodejs";
@@ -138,7 +139,10 @@ export async function GET(
   }
 }
 
-async function getDaBoiContext(supabase: ReturnType<typeof createServerClient>) {
+async function getDaBoiContext(
+  supabase: ReturnType<typeof createServerClient>,
+  domains: Set<DaBoiDomain>,
+) {
   const uid = process.env.USER_ID!;
 
   const { data: allMemories } = await supabase
@@ -149,18 +153,22 @@ async function getDaBoiContext(supabase: ReturnType<typeof createServerClient>) 
     memMap.set(m.agent_id, m.summary);
   }
 
+  let recentWorkouts: string | undefined;
+  if (domains.has("fitness")) {
   const { data: workouts } = await supabase
     .from("workout_sessions")
     .select("date, name, slot, kind, status")
     .eq("user_id", uid)
     .order("date", { ascending: false })
     .limit(5);
-  const recentWorkouts = (workouts ?? [])
+  recentWorkouts = (workouts ?? [])
     .map((w: Record<string, unknown>) => `${w.date}: ${w.name} (${w.kind}, ${w.status})`)
     .join("; ") || "none";
+  }
 
-  let monthlySpend = "unknown";
-  try {
+  let monthlySpend: string | undefined;
+  if (domains.has("finance")) try {
+    monthlySpend = "unknown";
     const { data: spendData } = await supabase.rpc("txn_agg", {
       p_user_id: uid,
       p_from: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10),
@@ -171,8 +179,9 @@ async function getDaBoiContext(supabase: ReturnType<typeof createServerClient>) 
     }
   } catch { /* RPC may not exist */ }
 
-  let openTaskCount = 0;
-  try {
+  let openTaskCount: number | undefined;
+  if (domains.has("tasks")) try {
+    openTaskCount = 0;
     const { count } = await supabase
       .from("tasks")
       .select("id", { count: "exact", head: true })
@@ -181,8 +190,9 @@ async function getDaBoiContext(supabase: ReturnType<typeof createServerClient>) 
     openTaskCount = count ?? 0;
   } catch { /* table may differ */ }
 
-  let avgCalories = "unknown";
-  try {
+  let avgCalories: string | undefined;
+  if (domains.has("nutrition")) try {
+    avgCalories = "unknown";
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const { data: nutritionData } = await supabase
@@ -196,17 +206,17 @@ async function getDaBoiContext(supabase: ReturnType<typeof createServerClient>) 
     }
   } catch { /* table may differ */ }
 
+  const memories: Partial<Record<DaBoiDomain, string>> = {};
+  for (const d of domains) memories[d] = memMap.get(d) || "none";
+
   return buildDaBoiPrompt({
-    fitness_memory: memMap.get("fitness") || "none",
-    finance_memory: memMap.get("finance") || "none",
-    tasks_memory: memMap.get("tasks") || "none",
-    nutrition_memory: memMap.get("nutrition") || "none",
-    founder_memory: memMap.get("founder") || "none",
-    engineer_memory: memMap.get("engineer") || "none",
-    recent_workouts: recentWorkouts,
-    monthly_spend: monthlySpend,
-    open_task_count: openTaskCount,
-    avg_calories: avgCalories,
+    memories,
+    live: {
+      recent_workouts: recentWorkouts,
+      monthly_spend: monthlySpend,
+      open_task_count: openTaskCount,
+      avg_calories: avgCalories,
+    },
   });
 }
 
@@ -280,7 +290,8 @@ export async function POST(
 
     let systemPrompt: string;
     if (agentId === "da_boi") {
-      systemPrompt = await getDaBoiContext(supabase);
+      // Only load the domains this message actually touches.
+      systemPrompt = await getDaBoiContext(supabase, relevantDomains(userMessage));
     } else {
       const { data: memory } = await supabase
         .from("agent_memory")
