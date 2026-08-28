@@ -224,14 +224,14 @@ export default function ApiUsagePage() {
           type="button"
           onClick={handleRefresh}
           disabled={loading}
-          className="px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors disabled:opacity-40"
+          className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors disabled:opacity-40"
         >
           {loading ? "REFRESHING…" : "REFRESH"}
         </button>
       </header>
 
       {/* SECTION 5 — Cost summary (top, prominent) */}
-      <div className="rounded-md bg-accent/10 border border-accent/30 p-5">
+      <div className="rounded-v2-md bg-accent/10 border border-accent/30 p-5">
         <Mono className="text-[11px] text-accent tracking-[0.18em] mb-3 block">
           MONTHLY COST ESTIMATE
         </Mono>
@@ -258,7 +258,7 @@ export default function ApiUsagePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* SECTION 1 — Anthropic */}
-        <div className="rounded-md bg-ink-1 p-5 flex flex-col gap-4">
+        <div className="rounded-v2-md bg-surface-1 p-5 flex flex-col gap-4">
           <Mono className="text-[11px] text-ink-3 tracking-[0.18em]">
             ANTHROPIC
           </Mono>
@@ -389,7 +389,7 @@ export default function ApiUsagePage() {
                       {(data.anthropic.models ?? []).map((m) => (
                         <tr
                           key={m.model}
-                          className="text-text-1 border-t border-ink-2"
+                          className="text-text-1 border-t border-hairline"
                         >
                           <td className="py-1">{shortModel(m.model)}</td>
                           <td className="py-1 text-right">
@@ -421,7 +421,7 @@ export default function ApiUsagePage() {
         </div>
 
         {/* SECTION 2 — OpenAI */}
-        <div className="rounded-md bg-ink-1 p-5 flex flex-col gap-4">
+        <div className="rounded-v2-md bg-surface-1 p-5 flex flex-col gap-4">
           <Mono className="text-[11px] text-ink-3 tracking-[0.18em]">
             OPENAI
           </Mono>
@@ -448,7 +448,7 @@ export default function ApiUsagePage() {
                       {(data.openai.models ?? []).map((m) => (
                         <tr
                           key={m.model}
-                          className="text-text-1 border-t border-ink-2"
+                          className="text-text-1 border-t border-hairline"
                         >
                           <td className="py-1">{shortModel(m.model)}</td>
                           <td className="py-1 text-right">
@@ -488,7 +488,7 @@ export default function ApiUsagePage() {
         </div>
 
         {/* SECTION 3 — RapidAPI */}
-        <div className="rounded-md bg-ink-1 p-5 flex flex-col gap-4">
+        <div className="rounded-v2-md bg-surface-1 p-5 flex flex-col gap-4">
           <Mono className="text-[11px] text-ink-3 tracking-[0.18em]">
             RAPIDAPI — STREAMING AVAILABILITY
           </Mono>
@@ -526,7 +526,7 @@ export default function ApiUsagePage() {
         </div>
 
         {/* SECTION 4 — Internal Myphelium2 API calls */}
-        <div className="rounded-md bg-ink-1 p-5 flex flex-col gap-4">
+        <div className="rounded-v2-md bg-surface-1 p-5 flex flex-col gap-4">
           <Mono className="text-[11px] text-ink-3 tracking-[0.18em]">
             INTERNAL MYPHELIUM2 USAGE
           </Mono>
@@ -546,7 +546,7 @@ export default function ApiUsagePage() {
               {internalRows.map((r) => (
                 <tr
                   key={r.feature}
-                  className="text-text-1 border-t border-ink-2"
+                  className="text-text-1 border-t border-hairline"
                 >
                   <td className="py-1">{r.feature}</td>
                   <td className="py-1 text-right">{r.calls}</td>
@@ -646,7 +646,7 @@ function UnavailableCard({
   href: string;
 }) {
   return (
-    <div className="rounded-md bg-ink-0 border border-ink-2 p-4 flex flex-col gap-2">
+    <div className="rounded-v2-md bg-ink-0 border border-hairline p-4 flex flex-col gap-2">
       <div className="text-xs text-text-1 italic font-[family-name:var(--font-display)]">
         {message}
       </div>

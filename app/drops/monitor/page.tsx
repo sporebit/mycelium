@@ -149,14 +149,14 @@ export default function MonitorPage() {
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors"
+          className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors"
         >
           ADD MONITOR
         </button>
       </header>
 
       {/* Warning banner */}
-      <div className="rounded-md bg-[#f5b56d]/10 border border-[#f5b56d]/30 p-4">
+      <div className="rounded-v2-md bg-[#f5b56d]/10 border border-[#f5b56d]/30 p-4">
         <div className="text-xs text-[#f5b56d] italic font-[family-name:var(--font-display)]">
           Monitors run via Vercel cron — checks every 5 minutes. Enable in
           Settings to activate.
@@ -176,7 +176,7 @@ export default function MonitorPage() {
           {monitors.map((m) => (
             <div
               key={m.id}
-              className={`rounded-md bg-ink-1 border p-4 ${
+              className={`rounded-v2-md bg-surface-1 border p-4 ${
                 m.in_stock
                   ? "border-[#84f5b8]/40"
                   : "border-transparent"
@@ -233,7 +233,7 @@ export default function MonitorPage() {
                   type="button"
                   onClick={() => checkNow(m.id)}
                   disabled={checkingId === m.id}
-                  className="px-2 py-1 rounded-md text-[9px] font-[family-name:var(--font-mono)] tracking-[0.1em] border border-ink-2 text-ink-3 hover:text-text-0 hover:border-ink-3 transition-colors disabled:opacity-40"
+                  className="px-2 py-1 rounded-v2-md text-[9px] font-[family-name:var(--font-mono)] tracking-[0.1em] border border-hairline text-ink-3 hover:text-text-0 hover:border-ink-3 transition-colors disabled:opacity-40"
                 >
                   {checkingId === m.id ? "CHECKING…" : "CHECK NOW"}
                 </button>
@@ -273,7 +273,7 @@ export default function MonitorPage() {
       {/* Add Monitor modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-ink-0 border border-ink-2 rounded-lg w-full max-w-lg p-6">
+          <div className="bg-ink-0 border border-hairline rounded-lg w-full max-w-lg p-6">
             <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-0 mb-4">
               Add Monitor
             </h2>
@@ -289,7 +289,7 @@ export default function MonitorPage() {
                     setForm((f) => ({ ...f, name: e.target.value }))
                   }
                   placeholder='e.g. "Palace Tri-Ferg Tee Black M"'
-                  className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                 />
               </div>
               <div>
@@ -303,7 +303,7 @@ export default function MonitorPage() {
                     setForm((f) => ({ ...f, url: e.target.value }))
                   }
                   placeholder="Product page URL"
-                  className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                 />
               </div>
               <div>
@@ -318,7 +318,7 @@ export default function MonitorPage() {
                       check_interval_minutes: e.target.value,
                     }))
                   }
-                  className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                 >
                   {["5", "10", "30", "60"].map((v) => (
                     <option key={v} value={v}>
@@ -338,7 +338,7 @@ export default function MonitorPage() {
                     setForm((f) => ({ ...f, keywords: e.target.value }))
                   }
                   placeholder='e.g. "Add to Bag, Add to Cart"'
-                  className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                 />
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -366,7 +366,7 @@ export default function MonitorPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, notes: e.target.value }))
                   }
-                  className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent resize-none h-16"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent resize-none h-16"
                 />
               </div>
             </div>
@@ -377,7 +377,7 @@ export default function MonitorPage() {
                   setShowModal(false);
                   setForm(EMPTY_MODAL);
                 }}
-                className="px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
+                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
               >
                 CANCEL
               </button>
@@ -387,7 +387,7 @@ export default function MonitorPage() {
                 disabled={
                   saving || !form.name.trim() || !form.url.trim()
                 }
-                className="px-4 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors disabled:opacity-40"
+                className="px-4 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors disabled:opacity-40"
               >
                 {saving ? "SAVING…" : "ADD MONITOR"}
               </button>

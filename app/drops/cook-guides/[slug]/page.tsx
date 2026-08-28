@@ -124,7 +124,7 @@ export default function CookGuideDetailPage() {
         <select
           value={guide.difficulty ?? ""}
           onChange={(e) => saveField("difficulty", e.target.value || null)}
-          className="bg-ink-1 border border-ink-2 rounded-md text-[10px] font-[family-name:var(--font-mono)] text-text-0 px-2 py-1 outline-none focus:border-accent"
+          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-text-0 px-2 py-1 outline-none focus:border-accent"
         >
           <option value="">No difficulty set</option>
           {Object.entries(DIFF_LABELS).map(([k, v]) => (
@@ -136,7 +136,7 @@ export default function CookGuideDetailPage() {
         <select
           value={guide.region}
           onChange={(e) => saveField("region", e.target.value)}
-          className="bg-ink-1 border border-ink-2 rounded-md text-[10px] font-[family-name:var(--font-mono)] text-text-0 px-2 py-1 outline-none focus:border-accent"
+          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-text-0 px-2 py-1 outline-none focus:border-accent"
         >
           {["UK", "EU", "US", "Global"].map((r) => (
             <option key={r} value={r}>
@@ -245,7 +245,7 @@ function TextSection({
   const Component = multiline ? "textarea" : "input";
 
   return (
-    <div className="rounded-md bg-ink-1 p-4">
+    <div className="rounded-v2-md bg-surface-1 p-4">
       <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-2 block">
         {label.toUpperCase()}
       </Mono>
@@ -256,7 +256,7 @@ function TextSection({
           if (draft !== value) onSave(draft);
         }}
         placeholder={placeholder}
-        className={`w-full bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent ${
+        className={`w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent ${
           multiline ? "resize-none min-h-[80px]" : ""
         }`}
       />

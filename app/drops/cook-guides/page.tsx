@@ -127,7 +127,7 @@ export default function CookGuidesPage() {
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors"
+          className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors"
         >
           ADD RETAILER
         </button>
@@ -140,10 +140,10 @@ export default function CookGuidesPage() {
             key={d}
             type="button"
             onClick={() => setFilterDiff(d)}
-            className={`px-2.5 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
+            className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
               filterDiff === d
                 ? "border-accent/50 bg-accent/15 text-accent"
-                : "border-ink-2 text-ink-3 hover:text-ink-4"
+                : "border-hairline text-ink-3 hover:text-ink-4"
             }`}
           >
             {d === "all" ? "All" : DIFF_LABELS[d] ?? d}
@@ -152,7 +152,7 @@ export default function CookGuidesPage() {
         <select
           value={filterRegion}
           onChange={(e) => setFilterRegion(e.target.value)}
-          className="bg-ink-1 border border-ink-2 rounded-md text-[10px] font-[family-name:var(--font-mono)] text-ink-3 px-2 py-1 outline-none"
+          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-ink-3 px-2 py-1 outline-none"
         >
           <option value="all">All regions</option>
           {regions.map((r) => (
@@ -180,7 +180,7 @@ export default function CookGuidesPage() {
             return (
               <div
                 key={g.id}
-                className="rounded-md bg-ink-1 border border-transparent p-4 flex flex-col gap-2"
+                className="rounded-v2-md bg-surface-1 border border-transparent p-4 flex flex-col gap-2"
               >
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-text-0">
@@ -259,7 +259,7 @@ export default function CookGuidesPage() {
       {/* Add Retailer modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-ink-0 border border-ink-2 rounded-lg w-full max-w-md p-6">
+          <div className="bg-ink-0 border border-hairline rounded-lg w-full max-w-md p-6">
             <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-0 mb-4">
               Add Retailer
             </h2>
@@ -274,7 +274,7 @@ export default function CookGuidesPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, retailer: e.target.value }))
                   }
-                  className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                 />
               </div>
               <div>
@@ -287,7 +287,7 @@ export default function CookGuidesPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, retailer_url: e.target.value }))
                   }
-                  className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -300,7 +300,7 @@ export default function CookGuidesPage() {
                     onChange={(e) =>
                       setForm((f) => ({ ...f, region: e.target.value }))
                     }
-                    className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                   >
                     {["UK", "EU", "US", "Global"].map((r) => (
                       <option key={r} value={r}>
@@ -318,7 +318,7 @@ export default function CookGuidesPage() {
                     onChange={(e) =>
                       setForm((f) => ({ ...f, difficulty: e.target.value }))
                     }
-                    className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                   >
                     <option value="">—</option>
                     {DIFFICULTIES.map((d) => (
@@ -337,7 +337,7 @@ export default function CookGuidesPage() {
                   setShowModal(false);
                   setForm(EMPTY_MODAL);
                 }}
-                className="px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
+                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
               >
                 CANCEL
               </button>
@@ -345,7 +345,7 @@ export default function CookGuidesPage() {
                 type="button"
                 onClick={handleCreate}
                 disabled={saving || !form.retailer.trim()}
-                className="px-4 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors disabled:opacity-40"
+                className="px-4 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors disabled:opacity-40"
               >
                 {saving ? "SAVING…" : "ADD"}
               </button>

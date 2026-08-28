@@ -192,7 +192,7 @@ export default function WishlistPage() {
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors"
+          className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors"
         >
           ADD ITEM
         </button>
@@ -222,10 +222,10 @@ export default function WishlistPage() {
             key={s}
             type="button"
             onClick={() => setFilterStatus(s)}
-            className={`px-2.5 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
+            className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
               filterStatus === s
                 ? "border-accent/50 bg-accent/15 text-accent"
-                : "border-ink-2 text-ink-3 hover:text-ink-4"
+                : "border-hairline text-ink-3 hover:text-ink-4"
             }`}
           >
             {s === "all" ? "All" : STATUS_LABELS[s] ?? s}
@@ -234,7 +234,7 @@ export default function WishlistPage() {
         <select
           value={filterBrand}
           onChange={(e) => setFilterBrand(e.target.value)}
-          className="bg-ink-1 border border-ink-2 rounded-md text-[10px] font-[family-name:var(--font-mono)] text-ink-3 px-2 py-1 outline-none"
+          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-ink-3 px-2 py-1 outline-none"
         >
           <option value="all">All brands</option>
           {brands.map((b) => (
@@ -264,9 +264,9 @@ export default function WishlistPage() {
             return (
               <div
                 key={item.id}
-                className={`rounded-md bg-ink-1 border overflow-hidden ${
+                className={`rounded-v2-md bg-surface-1 border overflow-hidden ${
                   item.status === "passed"
-                    ? "border-ink-2 opacity-50"
+                    ? "border-hairline opacity-50"
                     : "border-transparent"
                 }`}
               >
@@ -389,7 +389,7 @@ export default function WishlistPage() {
                   </div>
 
                   {/* Quick actions */}
-                  <div className="flex gap-2 mt-3 border-t border-ink-2 pt-3">
+                  <div className="flex gap-2 mt-3 border-t border-hairline pt-3">
                     {item.status !== "got_it" && (
                       <button
                         type="button"
@@ -428,7 +428,7 @@ export default function WishlistPage() {
       {/* Add Item modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-ink-0 border border-ink-2 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+          <div className="bg-ink-0 border border-hairline rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
             <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-0 mb-4">
               Add Wishlist Item
             </h2>
@@ -471,7 +471,7 @@ export default function WishlistPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, status: e.target.value }))
                   }
-                  className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                 >
                   {STATUSES.map((s) => (
                     <option key={s} value={s}>
@@ -514,7 +514,7 @@ export default function WishlistPage() {
                     onChange={(e) =>
                       setForm((f) => ({ ...f, drop_id: e.target.value }))
                     }
-                    className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                   >
                     <option value="">None</option>
                     {drops.map((d) => (
@@ -534,7 +534,7 @@ export default function WishlistPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, notes: e.target.value }))
                   }
-                  className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent resize-none h-20"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent resize-none h-20"
                 />
               </div>
             </div>
@@ -545,7 +545,7 @@ export default function WishlistPage() {
                   setShowModal(false);
                   setForm(EMPTY_MODAL);
                 }}
-                className="px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
+                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
               >
                 CANCEL
               </button>
@@ -553,7 +553,7 @@ export default function WishlistPage() {
                 type="button"
                 onClick={handleCreate}
                 disabled={saving || !form.name.trim() || !form.brand.trim()}
-                className="px-4 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors disabled:opacity-40"
+                className="px-4 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors disabled:opacity-40"
               >
                 {saving ? "SAVING…" : "ADD ITEM"}
               </button>
@@ -588,7 +588,7 @@ function ModalField({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+        className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
       />
     </div>
   );

@@ -170,11 +170,11 @@ function dbToPlayItems(plays: PlayRecord[]): PlayItem[] {
 }
 
 const CHIP =
-  "px-2 py-1 rounded-md transition-colors text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em]";
+  "px-2 py-1 rounded-v2-md transition-colors text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em]";
 const CHIP_ON = "bg-[#1DB954]/15 text-[#1DB954]";
 const CHIP_OFF = "text-ink-3 hover:text-ink-4";
 const INPUT =
-  "bg-ink-0 border border-ink-2 rounded-md text-[11px] text-text-0 placeholder:text-ink-3 px-2 py-1 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]";
+  "bg-ink-0 border border-hairline rounded-v2-md text-[11px] text-text-0 placeholder:text-ink-3 px-2 py-1 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]";
 
 export function SpotifyClient() {
   const [connected, setConnected] = useState<boolean | null>(null);
@@ -508,7 +508,7 @@ export function SpotifyClient() {
 
       {/* Now Playing */}
       {nowPlaying?.item && (
-        <div className="bg-ink-1 rounded-md p-4 flex items-center gap-4 border border-[#1DB954]/30">
+        <div className="bg-surface-1 rounded-v2-md p-4 flex items-center gap-4 border border-[#1DB954]/30">
           <div className="relative shrink-0">
             {nowPlaying.item.album.images.length > 0 && (
               <Image
@@ -517,7 +517,7 @@ export function SpotifyClient() {
                 width={48}
                 height={48}
                 unoptimized
-                className="w-12 h-12 rounded-md"
+                className="w-12 h-12 rounded-v2-md"
               />
             )}
             {nowPlaying.is_playing && (
@@ -592,7 +592,7 @@ export function SpotifyClient() {
                     href={track.external_urls.spotify}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-2 rounded-md hover:bg-ink-1 transition-colors group"
+                    className="flex items-center gap-3 p-2 rounded-v2-md hover:bg-surface-1 transition-colors group"
                   >
                     <Mono className="text-[10px] text-ink-3 w-5 text-right shrink-0">{i + 1}</Mono>
                     {track.album.images.length > 0 && (
@@ -660,7 +660,7 @@ export function SpotifyClient() {
                     href={artist.external_urls.spotify}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-ink-1 rounded-md p-3 hover:bg-ink-2/60 transition-colors group flex flex-col items-center gap-2"
+                    className="bg-surface-1 rounded-v2-md p-3 hover:bg-surface-2 transition-colors group flex flex-col items-center gap-2"
                   >
                     {artist.images.length > 0 ? (
                       <Image
@@ -733,7 +733,7 @@ export function SpotifyClient() {
                         href={`https://open.spotify.com/track/${tc.track_id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-2 rounded-md hover:bg-ink-1 transition-colors group"
+                        className="flex items-center gap-3 p-2 rounded-v2-md hover:bg-surface-1 transition-colors group"
                       >
                         <Mono className="text-[10px] text-ink-3 w-5 text-right shrink-0">{i + 1}</Mono>
                         {tc.album_art_url && (
@@ -766,7 +766,7 @@ export function SpotifyClient() {
                       {artistCounts.slice(0, 20).map((ac, i) => (
                         <div
                           key={ac.name}
-                          className="bg-ink-1 rounded-md p-3 flex flex-col items-center gap-1"
+                          className="bg-surface-1 rounded-v2-md p-3 flex flex-col items-center gap-1"
                         >
                           <div className="w-12 h-12 rounded-full bg-ink-2 flex items-center justify-center text-lg text-ink-3">
                             {ac.name.charAt(0)}
@@ -867,7 +867,7 @@ export function SpotifyClient() {
                       href={item.spotifyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-2 rounded-md hover:bg-ink-1 transition-colors group"
+                      className="flex items-center gap-3 p-2 rounded-v2-md hover:bg-surface-1 transition-colors group"
                     >
                       {item.albumArt && (
                         <Image src={item.albumArt} alt="" width={40} height={40} unoptimized className="w-10 h-10 rounded shrink-0" />
@@ -907,7 +907,7 @@ export function SpotifyClient() {
 
           {/* ─── LISTENING PATTERNS ─────────────────────────── */}
           {patternSource.length > 0 && (
-            <div className="bg-ink-1 rounded-md p-4 flex flex-col gap-3 mt-2">
+            <div className="bg-surface-1 rounded-v2-md p-4 flex flex-col gap-3 mt-2">
               <div className="flex items-center justify-between">
                 <Mono className="text-[10px] text-ink-3">
                   LISTENING PATTERNS ({patternSource.length} PLAYS)

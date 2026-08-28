@@ -299,7 +299,7 @@ export function AgentChat({
   return (
     <div className="flex flex-col h-[calc(100vh-120px)] max-w-3xl mx-auto">
       {/* Header */}
-      <header className="flex items-center justify-between gap-3 pb-3 border-b border-ink-2/40 mb-2">
+      <header className="flex items-center justify-between gap-3 pb-3 border-b border-hairline mb-2">
         <div className="flex items-center gap-3 min-w-0">
           <div
             className="shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-sm font-[family-name:var(--font-mono)]"
@@ -329,7 +329,7 @@ export function AgentChat({
           type="button"
           onClick={endSession}
           disabled={sending || messages.length === 0}
-          className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-30 disabled:cursor-not-allowed text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase transition-colors"
+          className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-30 disabled:cursor-not-allowed text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase transition-colors"
         >
           END SESSION
         </button>
@@ -351,7 +351,7 @@ export function AgentChat({
               className={`max-w-[85%] rounded-xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
                 m.role === "user"
                   ? "bg-ink-2 text-ink-4"
-                  : "bg-ink-1 text-ink-4 border border-ink-2 font-[family-name:var(--font-mono)]"
+                  : "bg-surface-1 text-ink-4 border border-hairline font-[family-name:var(--font-mono)]"
               }`}
             >
               {m.content}
@@ -388,7 +388,7 @@ export function AgentChat({
                   type="button"
                   onClick={() => handleToolConfirm(true)}
                   disabled={confirming}
-                  className="px-3 py-1.5 rounded-md bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+                  className="px-3 py-1.5 rounded-v2-md bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
                 >
                   {confirming ? "…" : "✓ CONFIRM"}
                 </button>
@@ -396,7 +396,7 @@ export function AgentChat({
                   type="button"
                   onClick={() => handleToolConfirm(false)}
                   disabled={confirming}
-                  className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-40 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+                  className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-40 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
                 >
                   ✕ CANCEL
                 </button>
@@ -407,7 +407,7 @@ export function AgentChat({
 
         {sending && (
           <div className="flex justify-start">
-            <div className="bg-ink-1 border border-ink-2 rounded-xl px-4 py-3 text-sm text-ink-3 italic">
+            <div className="bg-surface-1 border border-hairline rounded-xl px-4 py-3 text-sm text-ink-3 italic">
               Thinking…
             </div>
           </div>
@@ -415,7 +415,7 @@ export function AgentChat({
       </div>
 
       {/* Input */}
-      <div className="border-t border-ink-2/40 pt-3 flex gap-2">
+      <div className="border-t border-hairline pt-3 flex gap-2">
         <textarea
           ref={inputRef}
           value={input}
@@ -424,19 +424,19 @@ export function AgentChat({
           placeholder={`Message ${agent?.display_name ?? "agent"}…`}
           rows={1}
           disabled={sending || !!pendingTool || transcribing}
-          className="flex-1 bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2.5 outline-none focus:border-ink-3 placeholder:text-ink-3 resize-none"
+          className="flex-1 bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2.5 outline-none focus:border-ink-3 placeholder:text-ink-3 resize-none"
         />
         <button
           type="button"
           onClick={recording ? stopRecording : startRecording}
           disabled={sending || !!pendingTool || transcribing}
           aria-label={recording ? "Stop recording" : "Record voice"}
-          className={`px-3 py-2 rounded-md border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+          className={`px-3 py-2 rounded-v2-md border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
             recording
               ? "bg-danger/15 border-danger/40 text-danger animate-pulse"
               : transcribing
-                ? "bg-ink-1 border-ink-2 text-ink-3"
-                : "bg-ink-1 border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                ? "bg-surface-1 border-hairline text-ink-3"
+                : "bg-surface-1 border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
           }`}
         >
           {transcribing ? (
@@ -460,7 +460,7 @@ export function AgentChat({
           onClick={() => setVoiceChatOpen(true)}
           disabled={sending || !!pendingTool || recording || transcribing}
           aria-label="Voice chat"
-          className="px-3 py-2 rounded-md border border-ink-2 bg-ink-1 text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="px-3 py-2 rounded-v2-md border border-hairline bg-surface-1 text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M2 10v3" />
@@ -475,7 +475,7 @@ export function AgentChat({
           type="button"
           onClick={() => sendMessage(input)}
           disabled={sending || !input.trim() || !!pendingTool}
-          className="px-4 py-2 rounded-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          className="px-4 py-2 rounded-v2-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
         >
           SEND
         </button>
@@ -485,7 +485,7 @@ export function AgentChat({
       {toast && (
         <div
           role="status"
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-v2-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
             toast.kind === "success"
               ? "bg-ok/20 text-ok border border-ok/40"
               : "bg-danger/20 text-danger border border-danger/40"

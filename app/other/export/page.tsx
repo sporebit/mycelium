@@ -161,7 +161,7 @@ export default function ExportPage() {
         {/* Left: config */}
         <div className="flex flex-col gap-5">
           {/* Sections */}
-          <div className="rounded-md bg-ink-1 p-5">
+          <div className="rounded-v2-md bg-surface-1 p-5">
             <div className="flex items-center justify-between mb-3">
               <Mono className="text-[11px] text-ink-3 tracking-[0.18em]">
                 SECTIONS
@@ -205,7 +205,7 @@ export default function ExportPage() {
           </div>
 
           {/* Format */}
-          <div className="rounded-md bg-ink-1 p-5">
+          <div className="rounded-v2-md bg-surface-1 p-5">
             <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-3">
               FORMAT
             </Mono>
@@ -215,10 +215,10 @@ export default function ExportPage() {
                   key={f}
                   type="button"
                   onClick={() => setFormat(f)}
-                  className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
+                  className={`px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
                     format === f
                       ? "border-accent/50 bg-accent/15 text-accent"
-                      : "border-ink-2 text-ink-3 hover:text-ink-4"
+                      : "border-hairline text-ink-3 hover:text-ink-4"
                   }`}
                 >
                   {f}
@@ -233,7 +233,7 @@ export default function ExportPage() {
           </div>
 
           {/* Date range */}
-          <div className="rounded-md bg-ink-1 p-5">
+          <div className="rounded-v2-md bg-surface-1 p-5">
             <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-3">
               DATE RANGE
             </Mono>
@@ -251,10 +251,10 @@ export default function ExportPage() {
                   key={d.id}
                   type="button"
                   onClick={() => setDateRange(d.id)}
-                  className={`px-2.5 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border transition-colors ${
+                  className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border transition-colors ${
                     dateRange === d.id
                       ? "border-accent/50 bg-accent/15 text-accent"
-                      : "border-ink-2 text-ink-3 hover:text-ink-4"
+                      : "border-hairline text-ink-3 hover:text-ink-4"
                   }`}
                 >
                   {d.label}
@@ -267,20 +267,20 @@ export default function ExportPage() {
                   type="date"
                   value={customFrom}
                   onChange={(e) => setCustomFrom(e.target.value)}
-                  className="bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                 />
                 <input
                   type="date"
                   value={customTo}
                   onChange={(e) => setCustomTo(e.target.value)}
-                  className="bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                 />
               </div>
             )}
           </div>
 
           {/* Options */}
-          <div className="rounded-md bg-ink-1 p-5">
+          <div className="rounded-v2-md bg-surface-1 p-5">
             <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-3">
               OPTIONS
             </Mono>
@@ -313,7 +313,7 @@ export default function ExportPage() {
 
         {/* Right: preview */}
         <div className="flex flex-col gap-4">
-          <div className="rounded-md bg-ink-1 p-5 sticky top-20">
+          <div className="rounded-v2-md bg-surface-1 p-5 sticky top-20">
             <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-3">
               SUMMARY
             </Mono>
@@ -339,7 +339,7 @@ export default function ExportPage() {
                     ))}
                   </div>
                 ))}
-                <div className="border-t border-ink-2 pt-2 mt-1 flex justify-between text-xs text-text-0">
+                <div className="border-t border-hairline pt-2 mt-1 flex justify-between text-xs text-text-0">
                   <span>Total rows</span>
                   <span>{totalRows.toLocaleString()}</span>
                 </div>
@@ -357,7 +357,7 @@ export default function ExportPage() {
               type="button"
               onClick={doExport}
               disabled={selected.size === 0 || exporting || format === "pdf"}
-              className="w-full mt-4 px-4 py-2.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] disabled:opacity-40 hover:bg-accent/25 transition-colors"
+              className="w-full mt-4 px-4 py-2.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] disabled:opacity-40 hover:bg-accent/25 transition-colors"
             >
               {exporting ? "EXPORTING…" : "EXPORT NOW"}
             </button>

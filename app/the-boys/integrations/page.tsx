@@ -30,12 +30,12 @@ function statePill(state: IntegrationState): { label: string; tone: string } {
     case "missing":
       return {
         label: "○ NOT CONNECTED",
-        tone: "border-ink-3 text-ink-3 bg-ink-0/40",
+        tone: "border-ink-3 text-ink-3 bg-surface-0",
       };
     case "future":
       return {
         label: "○ COMING SOON",
-        tone: "border-ink-3 text-ink-3 bg-ink-0/40 opacity-70",
+        tone: "border-ink-3 text-ink-3 bg-surface-0 opacity-70",
       };
   }
 }
@@ -188,7 +188,7 @@ export default async function IntegrationsPage() {
                   <div className="flex items-start gap-4">
                     <span
                       aria-hidden
-                      className="shrink-0 h-10 w-10 rounded-md border border-ink-2 bg-ink-0/40 flex items-center justify-center text-base text-text-0"
+                      className="shrink-0 h-10 w-10 rounded-v2-md border border-hairline bg-surface-0 flex items-center justify-center text-base text-text-0"
                     >
                       {i.icon}
                     </span>
@@ -196,7 +196,7 @@ export default async function IntegrationsPage() {
                       <div className="flex items-center justify-between gap-3 flex-wrap">
                         <h2 className="text-base text-text-0">{i.name}</h2>
                         <span
-                          className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-2 py-0.5 rounded-md border ${pill.tone}`}
+                          className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-2 py-0.5 rounded-v2-md border ${pill.tone}`}
                         >
                           {pill.label}
                         </span>

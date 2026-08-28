@@ -93,7 +93,7 @@ export default function TheBoysPage() {
               </Mono>
             </div>
             <div
-              className="shrink-0 px-4 py-2 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase border transition-colors group-hover:bg-opacity-25"
+              className="shrink-0 px-4 py-2 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase border transition-colors group-hover:bg-opacity-25"
               style={{
                 color: "#5de8e0",
                 borderColor: "rgba(93, 232, 224, 0.4)",
@@ -134,7 +134,7 @@ export default function TheBoysPage() {
                     Memory updated {fmtTime(info?.memoryUpdatedAt ?? null)}
                   </Mono>
                   <div
-                    className="self-start mt-1 px-3 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase border transition-colors"
+                    className="self-start mt-1 px-3 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase border transition-colors"
                     style={{
                       color: colour,
                       borderColor: `${colour}66`,
@@ -157,12 +157,12 @@ export default function TheBoysPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Ask anything across all of Myphelium2…"
-          className="flex-1 bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2.5 outline-none focus:border-ink-3 placeholder:text-ink-3"
+          className="flex-1 bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2.5 outline-none focus:border-ink-3 placeholder:text-ink-3"
         />
         <button
           type="submit"
           disabled={!query.trim()}
-          className="px-4 py-2 rounded-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          className="px-4 py-2 rounded-v2-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
         >
           ASK
         </button>

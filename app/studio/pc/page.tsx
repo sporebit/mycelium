@@ -191,7 +191,7 @@ export default function PCDashboardPage() {
         <>
           {/* Row 1: Current snapshot */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="rounded-md bg-ink-1 p-4 flex flex-col items-center relative">
+            <div className="rounded-v2-md bg-surface-1 p-4 flex flex-col items-center relative">
               <GaugeRing
                 value={current.cpu_usage !== null ? Number(current.cpu_usage) : null}
                 label="CPU"
@@ -205,7 +205,7 @@ export default function PCDashboardPage() {
               )}
             </div>
 
-            <div className="rounded-md bg-ink-1 p-4 flex flex-col items-center relative">
+            <div className="rounded-v2-md bg-surface-1 p-4 flex flex-col items-center relative">
               <GaugeRing
                 value={current.gpu_usage !== null ? Number(current.gpu_usage) : null}
                 label="GPU"
@@ -219,7 +219,7 @@ export default function PCDashboardPage() {
               )}
             </div>
 
-            <div className="rounded-md bg-ink-1 p-4 flex flex-col items-center justify-center gap-2">
+            <div className="rounded-v2-md bg-surface-1 p-4 flex flex-col items-center justify-center gap-2">
               <Mono className="text-[10px] text-ink-3">RAM</Mono>
               <div className="text-xl font-[family-name:var(--font-display)] text-text-0">
                 {current.ram_used_gb !== null
@@ -247,7 +247,7 @@ export default function PCDashboardPage() {
               )}
             </div>
 
-            <div className="rounded-md bg-ink-1 p-4 flex flex-col items-center justify-center gap-2">
+            <div className="rounded-v2-md bg-surface-1 p-4 flex flex-col items-center justify-center gap-2">
               <Mono className="text-[10px] text-ink-3">NETWORK</Mono>
               <div className="flex items-center gap-3 text-sm font-[family-name:var(--font-display)]">
                 <span className="text-ok">
@@ -269,7 +269,7 @@ export default function PCDashboardPage() {
                 { key: "gpu" as const, label: "GPU USAGE", colour: "#6db8f5" },
                 { key: "ram" as const, label: "RAM USAGE", colour: "#f5b56d" },
               ].map(({ key, label, colour }) => (
-                <div key={key} className="rounded-md bg-ink-1 p-3">
+                <div key={key} className="rounded-v2-md bg-surface-1 p-3">
                   <Mono className="text-[10px] text-ink-3 mb-2">{label}</Mono>
                   <ResponsiveContainer width="100%" height={60}>
                     <AreaChart data={chartData}>
@@ -303,7 +303,7 @@ export default function PCDashboardPage() {
                 {(current.drives as Drive[]).map((drive) => (
                   <div
                     key={drive.letter}
-                    className="rounded-md bg-ink-1 p-3 flex flex-col gap-1.5"
+                    className="rounded-v2-md bg-surface-1 p-3 flex flex-col gap-1.5"
                   >
                     <div className="flex items-center justify-between">
                       <Mono className="text-xs text-text-0">{drive.letter}</Mono>
@@ -329,14 +329,14 @@ export default function PCDashboardPage() {
           {/* Row 4: System info */}
           <div className="flex flex-wrap gap-4">
             {current.uptime_seconds != null && (
-              <div className="rounded-md bg-ink-1 px-4 py-3">
+              <div className="rounded-v2-md bg-surface-1 px-4 py-3">
                 <Mono className="text-[10px] text-ink-3 mb-1">UPTIME</Mono>
                 <div className="text-sm text-text-0 font-[family-name:var(--font-display)]">
                   {formatUptime(Number(current.uptime_seconds))}
                 </div>
               </div>
             )}
-            <div className="rounded-md bg-ink-1 px-4 py-3">
+            <div className="rounded-v2-md bg-surface-1 px-4 py-3">
               <Mono className="text-[10px] text-ink-3 mb-1">LAST UPDATED</Mono>
               <div className="text-sm text-text-0 font-[family-name:var(--font-display)]">
                 {secondsAgo < 5
@@ -347,7 +347,7 @@ export default function PCDashboardPage() {
               </div>
             </div>
             {current.gpu_vram_used_mb != null && current.gpu_vram_total_mb != null && (
-              <div className="rounded-md bg-ink-1 px-4 py-3">
+              <div className="rounded-v2-md bg-surface-1 px-4 py-3">
                 <Mono className="text-[10px] text-ink-3 mb-1">GPU VRAM</Mono>
                 <div className="text-sm text-text-0 font-[family-name:var(--font-display)]">
                   {(Number(current.gpu_vram_used_mb) / 1024).toFixed(1)}/
@@ -356,7 +356,7 @@ export default function PCDashboardPage() {
               </div>
             )}
             {current.cpu_clock_mhz != null && (
-              <div className="rounded-md bg-ink-1 px-4 py-3">
+              <div className="rounded-v2-md bg-surface-1 px-4 py-3">
                 <Mono className="text-[10px] text-ink-3 mb-1">CPU CLOCK</Mono>
                 <div className="text-sm text-text-0 font-[family-name:var(--font-display)]">
                   {(Number(current.cpu_clock_mhz) / 1000).toFixed(2)} GHz

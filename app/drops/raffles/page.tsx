@@ -213,7 +213,7 @@ export default function RafflesPage() {
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors"
+          className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors"
         >
           LOG ENTRY
         </button>
@@ -243,10 +243,10 @@ export default function RafflesPage() {
             key={r}
             type="button"
             onClick={() => setFilterResult(r)}
-            className={`px-2.5 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
+            className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
               filterResult === r
                 ? "border-accent/50 bg-accent/15 text-accent"
-                : "border-ink-2 text-ink-3 hover:text-ink-4"
+                : "border-hairline text-ink-3 hover:text-ink-4"
             }`}
           >
             {r === "all" ? "All" : RESULT_LABELS[r] ?? r}
@@ -290,7 +290,7 @@ export default function RafflesPage() {
       {/* Log Entry modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-ink-0 border border-ink-2 rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+          <div className="bg-ink-0 border border-hairline rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
             <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-0 mb-4">
               Log Raffle Entry
             </h2>
@@ -362,7 +362,7 @@ export default function RafflesPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, result: e.target.value }))
                   }
-                  className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                 >
                   {Object.entries(RESULT_LABELS).map(([k, v]) => (
                     <option key={k} value={k}>
@@ -381,7 +381,7 @@ export default function RafflesPage() {
                     onChange={(e) =>
                       setForm((f) => ({ ...f, drop_id: e.target.value }))
                     }
-                    className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                   >
                     <option value="">None</option>
                     {drops.map((d) => (
@@ -405,7 +405,7 @@ export default function RafflesPage() {
                         wishlist_item_id: e.target.value,
                       }))
                     }
-                    className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
                   >
                     <option value="">None</option>
                     {wishItems.map((w) => (
@@ -425,7 +425,7 @@ export default function RafflesPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, notes: e.target.value }))
                   }
-                  className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent resize-none h-20"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent resize-none h-20"
                 />
               </div>
             </div>
@@ -436,7 +436,7 @@ export default function RafflesPage() {
                   setShowModal(false);
                   setForm(EMPTY_MODAL);
                 }}
-                className="px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
+                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
               >
                 CANCEL
               </button>
@@ -449,7 +449,7 @@ export default function RafflesPage() {
                   !form.brand.trim() ||
                   !form.retailer.trim()
                 }
-                className="px-4 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors disabled:opacity-40"
+                className="px-4 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 transition-colors disabled:opacity-40"
               >
                 {saving ? "SAVING…" : "LOG ENTRY"}
               </button>
@@ -476,7 +476,7 @@ function RaffleRow({
 }) {
   return (
     <div
-      className={`rounded-md bg-ink-1 border p-4 transition-all ${
+      className={`rounded-v2-md bg-surface-1 border p-4 transition-all ${
         highlight
           ? "border-[#84f5b8]/40"
           : "border-transparent"
@@ -590,7 +590,7 @@ function RaffleField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         list={list}
-        className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+        className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
       />
     </div>
   );
