@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
 import { useSearchParams } from "next/navigation";
 import { Mono } from "@/components/dashboard/Mono";
 import { Money, PrivateText } from "@/components/finance/Money";
@@ -89,15 +90,7 @@ function getDatePresets(): DatePreset[] {
 
 export function SpendingClient() {
   const sp = useSearchParams();
-  const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
-  const [availableTypes, setAvailableTypes] = useState<string[]>([]);
-  const [total, setTotal] = useState(0);
-  const [summary, setSummary] = useState<{
-    total_in: number;
-    total_out: number;
-    net: number;
-  } | null>(null);
 
   const [accountFilter, setAccountFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState<string[]>([]);
@@ -157,8 +150,11 @@ export function SpendingClient() {
     fetchMatches();
   }, [fetchMatches]);
 
-  // Fetch transactions whenever filters change.
-  const fetchTransactions = useCallback(() => {
+  // One cache entry per filter combination: the key IS the request URL, so
+  // switching filters selects a different entry instead of racing writes into
+  // a shared one. transactions/total/summary/types all come from that single
+  // payload rather than four separate useStates kept in sync by hand.
+  const txKey = useMemo(() => {
     const params = new URLSearchParams();
     if (accountFilter !== "all") params.set("account_id", accountFilter);
     if (search.trim()) params.set("q", search.trim());
@@ -166,34 +162,46 @@ export function SpendingClient() {
     if (dateTo) params.set("to", dateTo);
     if (typeFilter.length > 0) params.set("type", typeFilter.join(","));
     if (categoryFilter.length > 0) params.set("category", categoryFilter.join(","));
-
-    let cancelled = false;
-    fetch(`/api/finance/transactions?${params}`)
-      .then((r) => r.json())
-      .then(
-        (j: {
-          transactions?: Transaction[];
-          total?: number;
-          types?: string[];
-          summary?: { total_in: number; total_out: number; net: number };
-        }) => {
-          if (cancelled) return;
-          const txns = Array.isArray(j?.transactions) ? j.transactions : [];
-          setTransactions(txns);
-          setTotal(j?.total ?? txns.length);
-          setSummary(j?.summary ?? null);
-          if (j?.types) setAvailableTypes(j.types);
-        },
-      )
-      .catch(() => setTransactions([]));
-    return () => {
-      cancelled = true;
-    };
+    return `/api/finance/transactions?${params}`;
   }, [accountFilter, search, dateFrom, dateTo, typeFilter, categoryFilter]);
 
-  useEffect(() => {
-    return fetchTransactions();
-  }, [fetchTransactions]);
+  const { data: txData, error: txError, mutate: mutateTx } = useApi<{
+    transactions?: Transaction[];
+    total?: number;
+    types?: string[];
+    summary?: { total_in: number; total_out: number; net: number };
+  }>(txKey);
+
+  const transactions = useMemo<Transaction[] | null>(() => {
+    if (txError) return [];
+    if (!txData) return null;
+    return Array.isArray(txData.transactions) ? txData.transactions : [];
+  }, [txData, txError]);
+  const total = txData?.total ?? transactions?.length ?? 0;
+  const summary = txData?.summary ?? null;
+  const availableTypes = useMemo<string[]>(
+    () => (Array.isArray(txData?.types) ? txData.types : []),
+    [txData],
+  );
+
+  // Same signature the useState setter had, so the optimistic categorisation
+  // below is untouched.
+  const setTransactions = useCallback(
+    (updater: Transaction[] | ((cur: Transaction[] | null) => Transaction[])) => {
+      void mutateTx(
+        (cur) => ({
+          ...cur,
+          transactions:
+            typeof updater === "function"
+              ? updater(cur?.transactions ?? [])
+              : updater,
+        }),
+        { revalidate: false },
+      );
+    },
+    [mutateTx],
+  );
+  const fetchTransactions = useCallback(() => void mutateTx(), [mutateTx]);
 
   useEffect(() => {
     if (!dateFrom || !dateTo) return;
