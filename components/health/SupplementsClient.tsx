@@ -158,10 +158,10 @@ export function SupplementsClient() {
   }
 
   const tabCls = (t: Tab) =>
-    `px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors border ${
+    `px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors border ${
       tab === t
         ? "bg-accent/20 text-accent border-accent/40"
-        : "text-ink-3 border-ink-2 hover:text-ink-4"
+        : "text-ink-3 border-hairline hover:text-ink-4"
     }`;
 
   return (
@@ -186,7 +186,7 @@ export function SupplementsClient() {
             <button
               type="button"
               onClick={() => setShowAdd((v) => !v)}
-              className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ml-1"
+              className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ml-1"
             >
               {showAdd ? "CANCEL" : "+ ADD"}
             </button>
@@ -195,7 +195,7 @@ export function SupplementsClient() {
       </header>
 
       {error && (
-        <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
+        <div className="rounded-v2-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
           ⚠ {error}
         </div>
       )}
@@ -211,7 +211,7 @@ export function SupplementsClient() {
               Loading…
             </div>
           ) : supplements.length === 0 ? (
-            <div className="rounded-md bg-ink-1 p-6 text-center text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+            <div className="rounded-v2-md bg-surface-1 p-6 text-center text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
               No active supplements. Tap + ADD to get started.
             </div>
           ) : (
@@ -250,7 +250,7 @@ function SupplementRow({
   const takenCount = s.today_logs.length;
 
   return (
-    <li className="rounded-md bg-ink-1 border border-ink-2 p-3 flex flex-col gap-2">
+    <li className="rounded-v2-md bg-surface-1 border border-hairline p-3 flex flex-col gap-2">
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -284,7 +284,7 @@ function SupplementRow({
             type="button"
             onClick={onMarkTaken}
             disabled={isLogging}
-            className="px-3 py-1.5 rounded-md bg-ok/15 border border-ok/40 text-ok hover:bg-ok/25 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-[family-name:var(--font-mono)] tracking-[0.12em] transition-colors"
+            className="px-3 py-1.5 rounded-v2-md bg-ok/15 border border-ok/40 text-ok hover:bg-ok/25 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-[family-name:var(--font-mono)] tracking-[0.12em] transition-colors"
           >
             {isLogging ? "…" : "TAKEN"}
           </button>
@@ -292,7 +292,7 @@ function SupplementRow({
             type="button"
             onClick={onDeactivate}
             title="Deactivate supplement"
-            className="p-1.5 rounded-md text-ink-3 hover:text-danger hover:bg-danger/10 transition-colors"
+            className="p-1.5 rounded-v2-md text-ink-3 hover:text-danger hover:bg-danger/10 transition-colors"
           >
             <svg
               width="14"
@@ -322,7 +322,7 @@ function SupplementRow({
               type="button"
               onClick={() => onUndoLog(log.id)}
               title="Undo this dose"
-              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-ink-2/60 text-[10px] text-ink-3 hover:text-danger hover:bg-danger/10 font-[family-name:var(--font-mono)] transition-colors"
+              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-surface-2 text-[10px] text-ink-3 hover:text-danger hover:bg-danger/10 font-[family-name:var(--font-mono)] transition-colors"
             >
               {relativeTime(log.taken_at)}
               <span className="text-[9px]">✕</span>
@@ -358,14 +358,14 @@ function AddForm({
   }
 
   const inputClass =
-    "w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
+    "w-full rounded-v2-md bg-ink-0 border border-hairline px-3 py-2 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
   const labelClass =
     "text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1 block";
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-md bg-ink-1 border border-ink-2 p-4 flex flex-col gap-3"
+      className="rounded-v2-md bg-surface-1 border border-hairline p-4 flex flex-col gap-3"
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
@@ -428,7 +428,7 @@ function AddForm({
       <button
         type="submit"
         disabled={!name.trim() || !dose.trim()}
-        className="self-start px-4 py-2 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+        className="self-start px-4 py-2 rounded-v2-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
       >
         ADD SUPPLEMENT
       </button>

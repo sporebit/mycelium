@@ -107,7 +107,7 @@ export default function BloodTestsPage() {
             <select
               value={selectedSessionId ?? ""}
               onChange={(e) => setSelectedSessionId(e.target.value)}
-              className="bg-ink-0 border border-ink-2 rounded-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
+              className="bg-ink-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
             >
               {sessions.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -119,7 +119,7 @@ export default function BloodTestsPage() {
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="shrink-0 px-3 py-1.5 rounded-md border border-ink-2 text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 font-[family-name:var(--font-mono)] transition-colors"
+            className="shrink-0 px-3 py-1.5 rounded-v2-md border border-hairline text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 font-[family-name:var(--font-mono)] transition-colors"
           >
             Add results
           </button>
@@ -127,7 +127,7 @@ export default function BloodTestsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-0 border-b border-ink-2">
+      <div className="flex gap-0 border-b border-hairline">
         {(["latest", "history"] as const).map((t) => (
           <button
             key={t}
@@ -178,7 +178,7 @@ export default function BloodTestsPage() {
                   </span>
                 </button>
                 {!collapsed && (
-                  <div className="rounded-md border border-ink-2 overflow-hidden">
+                  <div className="rounded-v2-md border border-hairline overflow-hidden">
                     {results.map((r) => {
                       const status = getStatus(r);
                       const prevResult = prevSession?.results.find(

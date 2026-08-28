@@ -52,7 +52,7 @@ export function RecipeGrid({
           <button
             onClick={() => setTagFilter("all")}
             className={`px-2 py-1 rounded-full text-[10px] font-[family-name:var(--font-mono)] border transition-colors ${
-              tagFilter === "all" ? "border-accent bg-accent/10 text-accent" : "border-ink-2 text-ink-3"
+              tagFilter === "all" ? "border-accent bg-accent/10 text-accent" : "border-hairline text-ink-3"
             }`}
           >
             All
@@ -62,7 +62,7 @@ export function RecipeGrid({
               key={t}
               onClick={() => setTagFilter(tagFilter === t ? "all" : t)}
               className={`px-2 py-1 rounded-full text-[10px] font-[family-name:var(--font-mono)] border transition-colors ${
-                tagFilter === t ? "border-[#5de8e0] bg-[#5de8e0]/10 text-[#5de8e0]" : "border-ink-2 text-ink-3"
+                tagFilter === t ? "border-[#5de8e0] bg-[#5de8e0]/10 text-[#5de8e0]" : "border-hairline text-ink-3"
               }`}
             >
               {t}
@@ -81,7 +81,7 @@ export function RecipeGrid({
             <Link
               key={r.id}
               href={`/health/recipes/${r.id}`}
-              className="group rounded-xl border border-ink-2 overflow-hidden hover:border-ink-3 transition-colors"
+              className="group rounded-xl border border-hairline overflow-hidden hover:border-ink-3 transition-colors"
             >
               <div
                 className="h-36 w-full bg-cover bg-center"

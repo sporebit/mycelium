@@ -73,7 +73,7 @@ export function MealPlannerGrid({
               </thead>
               <tbody>
                 {MEAL_TYPES.map((meal) => (
-                  <tr key={meal} className="border-t border-ink-2">
+                  <tr key={meal} className="border-t border-hairline">
                     <td className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em] p-2">
                       {MEAL_LABELS[meal]}
                     </td>
@@ -99,7 +99,7 @@ export function MealPlannerGrid({
                           ) : (
                             <button
                               onClick={() => onCellClick(d, meal)}
-                              className="w-full py-1.5 rounded border border-dashed border-ink-2 text-ink-3 hover:border-ink-3 hover:text-ink-4 text-[10px] font-[family-name:var(--font-mono)] transition-colors"
+                              className="w-full py-1.5 rounded border border-dashed border-hairline text-ink-3 hover:border-ink-3 hover:text-ink-4 text-[10px] font-[family-name:var(--font-mono)] transition-colors"
                             >
                               +
                             </button>
@@ -117,7 +117,7 @@ export function MealPlannerGrid({
           <button
             onClick={onGenerateShoppingList}
             disabled={mealEntries.filter((e) => e.recipe_id).length === 0}
-            className="px-4 py-2 rounded-md bg-[#5de8e0]/15 border border-[#5de8e0]/40 text-[#5de8e0] text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-[#5de8e0]/25 disabled:opacity-30 transition-colors"
+            className="px-4 py-2 rounded-v2-md bg-[#5de8e0]/15 border border-[#5de8e0]/40 text-[#5de8e0] text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-[#5de8e0]/25 disabled:opacity-30 transition-colors"
           >
             GENERATE SHOPPING LIST
           </button>

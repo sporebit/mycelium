@@ -238,14 +238,14 @@ export default function GutHealthPage() {
         </h1>
         <button
           onClick={() => setShowModal(true)}
-          className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
+          className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
         >
           LOG ENTRY
         </button>
       </div>
 
       {/* 30-day overview strip */}
-      <div className="mb-6 p-4 rounded-xl border border-ink-2 bg-ink-1">
+      <div className="mb-6 p-4 rounded-xl border border-hairline bg-surface-1">
         <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-3">
           30-DAY OVERVIEW
         </p>
@@ -288,7 +288,7 @@ export default function GutHealthPage() {
                   return (
                     <div
                       key={e.id}
-                      className="p-3 rounded-xl border border-ink-2 bg-ink-1 group"
+                      className="p-3 rounded-xl border border-hairline bg-surface-1 group"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-3">
@@ -370,7 +370,7 @@ export default function GutHealthPage() {
       {/* Log entry modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-ink-0 border border-ink-2 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+          <div className="bg-ink-0 border border-hairline rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
             <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
               {editingId ? "Edit Entry" : "Log Entry"}
             </h2>
@@ -387,7 +387,7 @@ export default function GutHealthPage() {
                   className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-colors ${
                     bristolType === b.type
                       ? "border-accent bg-accent/10"
-                      : "border-ink-2 hover:border-ink-3"
+                      : "border-hairline hover:border-ink-3"
                   }`}
                 >
                   <span className="text-lg" style={{ color: b.color }}>{b.icon}</span>
@@ -411,7 +411,7 @@ export default function GutHealthPage() {
               {bristolOpen ? "▾" : "▸"} What do these mean?
             </button>
             {bristolOpen && (
-              <div className="mb-4 rounded-lg border border-ink-2 bg-ink-1/50 p-3">
+              <div className="mb-4 rounded-lg border border-hairline bg-surface-1/50 p-3">
                 {BRISTOL.map((b) => (
                   <div key={b.type} className="flex items-center gap-3 py-1">
                     <span className="text-base shrink-0 w-8 text-center" style={{ color: b.color }}>{b.icon}</span>
@@ -433,10 +433,10 @@ export default function GutHealthPage() {
                 <button
                   key={val}
                   onClick={() => setTimeOfDay(val)}
-                  className={`px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
+                  className={`px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
                     timeOfDay === val
                       ? "border-accent bg-accent/10 text-accent"
-                      : "border-ink-2 text-ink-3 hover:border-ink-3"
+                      : "border-hairline text-ink-3 hover:border-ink-3"
                   }`}
                 >
                   {label}
@@ -457,10 +457,10 @@ export default function GutHealthPage() {
                 <button
                   key={label}
                   onClick={() => setFeltFinished(val)}
-                  className={`px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
+                  className={`px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
                     feltFinished === val
                       ? "border-accent bg-accent/10 text-accent"
-                      : "border-ink-2 text-ink-3 hover:border-ink-3"
+                      : "border-hairline text-ink-3 hover:border-ink-3"
                   }`}
                 >
                   {label}
@@ -477,10 +477,10 @@ export default function GutHealthPage() {
                 <button
                   key={val}
                   onClick={() => setWipeType(wipeType === val ? "" : val)}
-                  className={`px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
+                  className={`px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
                     wipeType === val
                       ? "border-accent bg-accent/10 text-accent"
-                      : "border-ink-2 text-ink-3 hover:border-ink-3"
+                      : "border-hairline text-ink-3 hover:border-ink-3"
                   }`}
                 >
                   {label}
@@ -531,7 +531,7 @@ export default function GutHealthPage() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3 resize-y mb-4"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3 resize-y mb-4"
               placeholder="Anything else to note…"
             />
 
@@ -539,14 +539,14 @@ export default function GutHealthPage() {
             <div className="flex items-center gap-2 justify-end">
               <button
                 onClick={closeModal}
-                className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+                className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
               >
                 CANCEL
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-4 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 disabled:opacity-40 transition-colors"
+                className="px-4 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 disabled:opacity-40 transition-colors"
               >
                 {saving ? "SAVING…" : "SAVE"}
               </button>

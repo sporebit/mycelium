@@ -176,7 +176,7 @@ export function AddRecipeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-ink-0 border border-ink-2 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+      <div className="bg-ink-0 border border-hairline rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
         <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
           Add Recipe
         </h2>
@@ -368,14 +368,14 @@ export function AddRecipeModal({
         <div className="flex items-center gap-2 justify-end">
           <button
             onClick={() => { resetForm(); onClose(); }}
-            className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+            className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
           >
             CANCEL
           </button>
           <button
             onClick={handleSaveRecipe}
             disabled={saving || !formTitle.trim()}
-            className="px-4 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 disabled:opacity-40 transition-colors"
+            className="px-4 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 disabled:opacity-40 transition-colors"
           >
             {saving ? "SAVING…" : "SAVE"}
           </button>

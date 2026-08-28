@@ -120,7 +120,7 @@ export default function RecipesPage() {
         {tab === "recipes" && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
+            className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
           >
             ADD RECIPE
           </button>
@@ -128,7 +128,7 @@ export default function RecipesPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 border-b border-ink-2">
+      <div className="flex gap-1 mb-4 border-b border-hairline">
         {(["recipes", "planner"] as const).map((t) => (
           <button
             key={t}

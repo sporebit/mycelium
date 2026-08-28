@@ -115,13 +115,13 @@ function PainList({
   }
   if (logs.length === 0) {
     return (
-      <div className="rounded-md bg-ink-1 p-6 text-center text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+      <div className="rounded-v2-md bg-surface-1 p-6 text-center text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
         {emptyText}
       </div>
     );
   }
   return (
-    <ul className="flex flex-col divide-y divide-ink-2/60 rounded-md bg-ink-1 border border-ink-2">
+    <ul className="flex flex-col divide-y divide-ink-2/60 rounded-v2-md bg-surface-1 border border-hairline">
       {logs.map((l) => {
         const tone = l.feel_rating ? FEEL_TONE[l.feel_rating] : "text-ink-3";
         const regions = (l.pain_regions ?? []).join(", ");

@@ -73,7 +73,7 @@ function groupPairs(prescriptions: Prescription[]): PrescriptionPair[] {
 function EyeCard({ label, p }: { label: string; p: Prescription | null }) {
   if (!p) {
     return (
-      <div className="flex-1 p-4 rounded-xl border border-ink-2 bg-ink-1 opacity-40">
+      <div className="flex-1 p-4 rounded-xl border border-hairline bg-surface-1 opacity-40">
         <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
           {label}
         </p>
@@ -82,7 +82,7 @@ function EyeCard({ label, p }: { label: string; p: Prescription | null }) {
     );
   }
   return (
-    <div className="flex-1 p-4 rounded-xl border border-ink-2 bg-ink-1">
+    <div className="flex-1 p-4 rounded-xl border border-hairline bg-surface-1">
       <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-3">
         {label}
       </p>
@@ -314,7 +314,7 @@ export default function VisionPage() {
     });
   }
 
-  const numInput = "w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3";
+  const numInput = "w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3";
 
   if (loading) {
     return (
@@ -337,10 +337,10 @@ export default function VisionPage() {
             const key = `${pair.prescribed_at}_${pair.is_contact_lens}`;
             const expanded = expandedHistory.has(key);
             return (
-              <div key={key} className="border border-ink-2 rounded-xl overflow-hidden">
+              <div key={key} className="border border-hairline rounded-xl overflow-hidden">
                 <button
                   onClick={() => toggleHistory(key)}
-                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-ink-1/50 transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-surface-1/50 transition-colors"
                 >
                   <span className="text-sm text-ink-4 font-[family-name:var(--font-display)]">
                     {formatDate(pair.prescribed_at)}
@@ -384,13 +384,13 @@ export default function VisionPage() {
           <button
             onClick={() => fileRef.current?.click()}
             disabled={scanning}
-            className="px-3 py-1.5 rounded-md bg-ok/15 border border-ok/40 text-ok text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-ok/25 disabled:opacity-40 transition-colors"
+            className="px-3 py-1.5 rounded-v2-md bg-ok/15 border border-ok/40 text-ok text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-ok/25 disabled:opacity-40 transition-colors"
           >
             {scanning ? "READING…" : "SCAN PRESCRIPTION"}
           </button>
           <button
             onClick={() => { resetForm(); setScanned(false); setScanError(null); setShowModal(true); }}
-            className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
+            className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
           >
             ADD PRESCRIPTION
           </button>
@@ -462,7 +462,7 @@ export default function VisionPage() {
       {/* Add prescription modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-ink-0 border border-ink-2 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+          <div className="bg-ink-0 border border-hairline rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic">
                 Add Prescription
@@ -474,7 +474,7 @@ export default function VisionPage() {
               )}
             </div>
             {scanError && (
-              <div className="rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-[11px] text-warn font-[family-name:var(--font-mono)] mb-4">
+              <div className="rounded-v2-md border border-warn/40 bg-warn/10 px-3 py-2 text-[11px] text-warn font-[family-name:var(--font-mono)] mb-4">
                 {scanError}
               </div>
             )}
@@ -496,16 +496,16 @@ export default function VisionPage() {
             <div className="flex gap-1 mb-4">
               <button
                 onClick={() => setIsContactLens(false)}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
-                  !isContactLens ? "border-accent bg-accent/10 text-accent" : "border-ink-2 text-ink-3 hover:border-ink-3"
+                className={`px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
+                  !isContactLens ? "border-accent bg-accent/10 text-accent" : "border-hairline text-ink-3 hover:border-ink-3"
                 }`}
               >
                 Glasses
               </button>
               <button
                 onClick={() => setIsContactLens(true)}
-                className={`px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
-                  isContactLens ? "border-accent bg-accent/10 text-accent" : "border-ink-2 text-ink-3 hover:border-ink-3"
+                className={`px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
+                  isContactLens ? "border-accent bg-accent/10 text-accent" : "border-hairline text-ink-3 hover:border-ink-3"
                 }`}
               >
                 Contact Lenses
@@ -607,7 +607,7 @@ export default function VisionPage() {
               value={formNotes}
               onChange={(e) => setFormNotes(e.target.value)}
               rows={2}
-              className="w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3 resize-y mb-4"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3 resize-y mb-4"
               placeholder="Any additional notes…"
             />
 
@@ -615,14 +615,14 @@ export default function VisionPage() {
             <div className="flex items-center gap-2 justify-end">
               <button
                 onClick={() => { resetForm(); setScanned(false); setScanError(null); setShowModal(false); }}
-                className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+                className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
               >
                 CANCEL
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || !prescribedAt}
-                className="px-4 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 disabled:opacity-40 transition-colors"
+                className="px-4 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 disabled:opacity-40 transition-colors"
               >
                 {saving ? "SAVING…" : "SAVE"}
               </button>

@@ -191,7 +191,7 @@ export default function ShoppingListsPage() {
     }
   }
 
-  const inputCls = "w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3";
+  const inputCls = "w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3";
 
   if (loading) {
     return (
@@ -209,7 +209,7 @@ export default function ShoppingListsPage() {
         </h1>
         <button
           onClick={() => setShowCreate(true)}
-          className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
+          className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
         >
           NEW LIST
         </button>
@@ -226,10 +226,10 @@ export default function ShoppingListsPage() {
               isNewItem(item) ? !item.checked : true,
             ).length;
             return (
-              <div key={list.id} className="border border-ink-2 rounded-xl overflow-hidden">
+              <div key={list.id} className="border border-hairline rounded-xl overflow-hidden">
                 <button
                   onClick={() => toggle(list.id)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-ink-1/50 transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-1/50 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-ink-4 font-[family-name:var(--font-display)]">
@@ -317,7 +317,7 @@ export default function ShoppingListsPage() {
                       <button
                         onClick={() => addItem(list.id)}
                         disabled={!(newItemText[list.id] || "").trim()}
-                        className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 disabled:opacity-40 transition-colors"
+                        className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 disabled:opacity-40 transition-colors"
                       >
                         ADD
                       </button>
@@ -327,7 +327,7 @@ export default function ShoppingListsPage() {
                       <button
                         onClick={() => sendTelegram(list.id)}
                         disabled={sending === list.id}
-                        className="px-3 py-1.5 rounded-md bg-[#5de8e0]/15 border border-[#5de8e0]/40 text-[#5de8e0] text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-[#5de8e0]/25 disabled:opacity-40 transition-colors"
+                        className="px-3 py-1.5 rounded-v2-md bg-[#5de8e0]/15 border border-[#5de8e0]/40 text-[#5de8e0] text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-[#5de8e0]/25 disabled:opacity-40 transition-colors"
                       >
                         {sending === list.id
                           ? "SENDING…"
@@ -337,7 +337,7 @@ export default function ShoppingListsPage() {
                       </button>
                       <button
                         onClick={() => deleteList(list.id)}
-                        className="px-3 py-1.5 rounded-md border border-danger/40 text-danger text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-danger/10 transition-colors"
+                        className="px-3 py-1.5 rounded-v2-md border border-danger/40 text-danger text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-danger/10 transition-colors"
                       >
                         DELETE LIST
                       </button>
@@ -353,7 +353,7 @@ export default function ShoppingListsPage() {
       {/* Create list modal */}
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-ink-0 border border-ink-2 rounded-2xl w-full max-w-sm p-6">
+          <div className="bg-ink-0 border border-hairline rounded-2xl w-full max-w-sm p-6">
             <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
               New Shopping List
             </h2>
@@ -385,13 +385,13 @@ export default function ShoppingListsPage() {
                   setCreateTitle("Shopping List");
                   setCreateDefault(false);
                 }}
-                className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+                className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
               >
                 CANCEL
               </button>
               <button
                 onClick={createList}
-                className="px-4 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
+                className="px-4 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
               >
                 CREATE
               </button>

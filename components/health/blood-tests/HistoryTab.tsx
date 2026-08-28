@@ -85,7 +85,7 @@ export function HistoryTab({
         <select
           value={historyMarker}
           onChange={(e) => onMarkerChange(e.target.value)}
-          className="bg-ink-0 border border-ink-2 rounded-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
+          className="bg-ink-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
         >
           {PANEL_ORDER.map((panel) => (
             <optgroup key={panel} label={panel}>
@@ -104,7 +104,7 @@ export function HistoryTab({
           No data for {markerInfo?.name ?? historyMarker}.
         </p>
       ) : (
-        <div className="rounded-md border border-ink-2 p-4 bg-ink-0/40">
+        <div className="rounded-v2-md border border-hairline p-4 bg-surface-0">
           <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
             {markerInfo?.name ?? historyMarker} ({unit})
           </div>

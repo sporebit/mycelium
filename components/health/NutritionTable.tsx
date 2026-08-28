@@ -93,7 +93,7 @@ export function NutritionTable() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-ink-2">
+              <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-hairline">
                 <th className="text-left py-2 pr-3">Date</th>
                 <th className="text-right py-2 px-3">Kcal</th>
                 <th className="text-right py-2 px-3">P</th>
@@ -104,7 +104,7 @@ export function NutritionTable() {
             </thead>
             <tbody>
               {avg && (
-                <tr className="border-b border-ink-2 bg-ink-2/20">
+                <tr className="border-b border-hairline bg-ink-2/20">
                   <td className="py-2 pr-3 text-[10px] uppercase tracking-[0.18em] text-accent font-[family-name:var(--font-mono)]">
                     Avg ({nonEmpty.length}d)
                   </td>
@@ -163,7 +163,7 @@ function RowFragment({
     <>
       <tr
         onClick={onToggle}
-        className={`border-b border-ink-2 cursor-pointer hover:bg-ink-2/20 transition-colors ${
+        className={`border-b border-hairline cursor-pointer hover:bg-ink-2/20 transition-colors ${
           row.empty ? "opacity-50" : ""
         } ${isToday ? "bg-accent/5" : ""}`}
       >
@@ -202,7 +202,7 @@ function RowFragment({
         </td>
       </tr>
       {isOpen && row.meals.length > 0 && (
-        <tr className="border-b border-ink-2 bg-ink-0/40">
+        <tr className="border-b border-hairline bg-surface-0">
           <td colSpan={6} className="px-3 py-2">
             <ul className="flex flex-col gap-1">
               {row.meals.map((m) => (

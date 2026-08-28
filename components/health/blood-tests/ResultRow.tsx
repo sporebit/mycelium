@@ -13,7 +13,7 @@ export function ResultRow({
   trend: { arrow: string; colour: string } | null;
 }) {
   return (
-    <div className="grid grid-cols-[1fr_100px_120px_32px_24px] sm:grid-cols-[1fr_100px_140px_32px_24px] items-center px-4 py-2.5 border-b border-ink-2/40 last:border-b-0 gap-2">
+    <div className="grid grid-cols-[1fr_100px_120px_32px_24px] sm:grid-cols-[1fr_100px_140px_32px_24px] items-center px-4 py-2.5 border-b border-hairline last:border-b-0 gap-2">
       {/* Name */}
       <div className="text-sm text-ink-4 truncate">{r.display_name}</div>
       {/* Value + unit */}

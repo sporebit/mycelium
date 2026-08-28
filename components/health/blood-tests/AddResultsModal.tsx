@@ -146,9 +146,9 @@ export function AddResultsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-[10vh] overflow-y-auto">
-      <div className="bg-ink-1 border border-ink-2 rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+      <div className="bg-surface-1 border border-hairline rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
         {/* Modal header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-ink-2">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-hairline">
           <h2 className="text-lg font-[family-name:var(--font-display)] italic text-ink-4">
             Add Results
           </h2>
@@ -162,7 +162,7 @@ export function AddResultsModal({
         </div>
 
         {/* Mode tabs */}
-        <div className="flex gap-0 border-b border-ink-2 px-5">
+        <div className="flex gap-0 border-b border-hairline px-5">
           {(["pdf", "manual"] as const).map((m) => (
             <button
               key={m}
@@ -183,7 +183,7 @@ export function AddResultsModal({
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {error && (
-            <div className="mb-3 text-sm text-warn font-[family-name:var(--font-mono)] bg-warn/10 border border-warn/30 rounded-md px-3 py-2">
+            <div className="mb-3 text-sm text-warn font-[family-name:var(--font-mono)] bg-warn/10 border border-warn/30 rounded-v2-md px-3 py-2">
               {error}
             </div>
           )}
@@ -200,7 +200,7 @@ export function AddResultsModal({
                     Upload a blood test results PDF to extract markers
                     automatically.
                   </p>
-                  <label className="cursor-pointer px-4 py-2 rounded-md border border-ink-2 text-sm text-ink-4 hover:border-ink-3 transition-colors font-[family-name:var(--font-mono)]">
+                  <label className="cursor-pointer px-4 py-2 rounded-v2-md border border-hairline text-sm text-ink-4 hover:border-ink-3 transition-colors font-[family-name:var(--font-mono)]">
                     Choose PDF
                     <input
                       type="file"
@@ -228,7 +228,7 @@ export function AddResultsModal({
                     type="date"
                     value={parsedDate}
                     onChange={(e) => setParsedDate(e.target.value)}
-                    className="mt-1 w-full bg-ink-0 border border-ink-2 rounded-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
+                    className="mt-1 w-full bg-ink-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
                   />
                 </div>
                 <div>
@@ -239,15 +239,15 @@ export function AddResultsModal({
                     type="text"
                     value={parsedProvider}
                     onChange={(e) => setParsedProvider(e.target.value)}
-                    className="mt-1 w-full bg-ink-0 border border-ink-2 rounded-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
+                    className="mt-1 w-full bg-ink-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
                   />
                 </div>
               </div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-2">
                 {parsedResults.length} markers extracted — review before saving
               </div>
-              <div className="rounded-md border border-ink-2 overflow-hidden max-h-[40vh] overflow-y-auto">
-                <div className="grid grid-cols-[1fr_80px_80px] gap-0 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] bg-ink-0/40 px-3 py-2 border-b border-ink-2 sticky top-0">
+              <div className="rounded-v2-md border border-hairline overflow-hidden max-h-[40vh] overflow-y-auto">
+                <div className="grid grid-cols-[1fr_80px_80px] gap-0 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] bg-surface-0 px-3 py-2 border-b border-hairline sticky top-0">
                   <span>Marker</span>
                   <span className="text-right">Value</span>
                   <span className="text-right">Unit</span>
@@ -255,7 +255,7 @@ export function AddResultsModal({
                 {parsedResults.map((r, i) => (
                   <div
                     key={i}
-                    className="grid grid-cols-[1fr_80px_80px] gap-0 items-center px-3 py-2 border-b border-ink-2/40 last:border-b-0"
+                    className="grid grid-cols-[1fr_80px_80px] gap-0 items-center px-3 py-2 border-b border-hairline last:border-b-0"
                   >
                     <span className="text-sm text-ink-4 truncate">
                       {r.display_name}
@@ -280,7 +280,7 @@ export function AddResultsModal({
                         next[i].value_prefix = prefix;
                         setParsedResults(next);
                       }}
-                      className="bg-ink-0 border border-ink-2 rounded px-1.5 py-1 text-sm text-ink-4 font-[family-name:var(--font-mono)] tabular-nums text-right"
+                      className="bg-ink-0 border border-hairline rounded px-1.5 py-1 text-sm text-ink-4 font-[family-name:var(--font-mono)] tabular-nums text-right"
                     />
                     <span className="text-xs text-ink-3 text-right font-[family-name:var(--font-mono)]">
                       {r.unit}
@@ -302,7 +302,7 @@ export function AddResultsModal({
                     type="date"
                     value={manualDate}
                     onChange={(e) => setManualDate(e.target.value)}
-                    className="mt-1 w-full bg-ink-0 border border-ink-2 rounded-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
+                    className="mt-1 w-full bg-ink-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
                   />
                 </div>
                 <div>
@@ -313,23 +313,23 @@ export function AddResultsModal({
                     type="text"
                     value={manualProvider}
                     onChange={(e) => setManualProvider(e.target.value)}
-                    className="mt-1 w-full bg-ink-0 border border-ink-2 rounded-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
+                    className="mt-1 w-full bg-ink-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
                   />
                 </div>
               </div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-2">
                 Enter values — leave blank to skip
               </div>
-              <div className="rounded-md border border-ink-2 overflow-hidden max-h-[40vh] overflow-y-auto">
+              <div className="rounded-v2-md border border-hairline overflow-hidden max-h-[40vh] overflow-y-auto">
                 {PANEL_ORDER.map((panel) => (
                   <div key={panel}>
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3/60 font-[family-name:var(--font-mono)] bg-ink-0/40 px-3 py-1.5 border-b border-ink-2 sticky top-0">
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3/60 font-[family-name:var(--font-mono)] bg-surface-0 px-3 py-1.5 border-b border-hairline sticky top-0">
                       {panel}
                     </div>
                     {ALL_MARKERS.filter((m) => m.panel === panel).map((m) => (
                       <div
                         key={m.key}
-                        className="grid grid-cols-[1fr_100px] gap-2 items-center px-3 py-1.5 border-b border-ink-2/40 last:border-b-0"
+                        className="grid grid-cols-[1fr_100px] gap-2 items-center px-3 py-1.5 border-b border-hairline last:border-b-0"
                       >
                         <span className="text-sm text-ink-4">{m.name}</span>
                         <input
@@ -343,7 +343,7 @@ export function AddResultsModal({
                               [m.key]: e.target.value,
                             }))
                           }
-                          className="bg-ink-0 border border-ink-2 rounded px-1.5 py-1 text-sm text-ink-4 font-[family-name:var(--font-mono)] tabular-nums text-right"
+                          className="bg-ink-0 border border-hairline rounded px-1.5 py-1 text-sm text-ink-4 font-[family-name:var(--font-mono)] tabular-nums text-right"
                         />
                       </div>
                     ))}
@@ -355,11 +355,11 @@ export function AddResultsModal({
         </div>
 
         {/* Modal footer */}
-        <div className="flex justify-end gap-3 px-5 py-4 border-t border-ink-2">
+        <div className="flex justify-end gap-3 px-5 py-4 border-t border-hairline">
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 rounded-md border border-ink-2 text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] transition-colors"
+            className="px-3 py-1.5 rounded-v2-md border border-hairline text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] transition-colors"
           >
             Cancel
           </button>
@@ -383,7 +383,7 @@ export function AddResultsModal({
                   }))
                 );
               }}
-              className="px-4 py-1.5 rounded-md text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors disabled:opacity-50"
+              className="px-4 py-1.5 rounded-v2-md text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors disabled:opacity-50"
               style={{ backgroundColor: ACCENT, color: "#000" }}
             >
               {saving ? "Saving…" : "Save results"}
@@ -394,7 +394,7 @@ export function AddResultsModal({
               type="button"
               disabled={saving}
               onClick={handleManualSave}
-              className="px-4 py-1.5 rounded-md text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors disabled:opacity-50"
+              className="px-4 py-1.5 rounded-v2-md text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors disabled:opacity-50"
               style={{ backgroundColor: ACCENT, color: "#000" }}
             >
               {saving ? "Saving…" : "Save results"}

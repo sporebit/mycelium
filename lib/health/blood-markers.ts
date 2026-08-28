@@ -99,9 +99,11 @@ export function getStatus(
 export function statusColour(
   s: "normal" | "abnormal" | "unquantified",
 ): string {
-  if (s === "normal") return "var(--color-ok, #4ade80)";
-  if (s === "abnormal") return "var(--color-warn, #f59e0b)";
-  return "var(--color-ink-3, #888)";
+  // v2 palette: muted, resolved token names rather than the old saturated
+  // ok/warn pair. Abnormal reads as a warning, not an alarm.
+  if (s === "normal") return "var(--glow-dim, #4fae7f)";
+  if (s === "abnormal") return "var(--v2-warn, #f5b56d)";
+  return "var(--v2-info, #95b4d6)";
 }
 
 export function fmtDate(iso: string): string {

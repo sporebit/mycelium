@@ -147,7 +147,7 @@ export function DailyChecklist() {
         <button
           type="button"
           onClick={() => changeDate(shiftDate(date, -1))}
-          className="p-1.5 rounded-md text-ink-3 hover:text-ink-4 hover:bg-ink-1 transition-colors"
+          className="p-1.5 rounded-v2-md text-ink-3 hover:text-ink-4 hover:bg-surface-1 transition-colors"
         >
           <svg
             width="16"
@@ -168,7 +168,7 @@ export function DailyChecklist() {
         <button
           type="button"
           onClick={() => changeDate(shiftDate(date, 1))}
-          className="p-1.5 rounded-md text-ink-3 hover:text-ink-4 hover:bg-ink-1 transition-colors"
+          className="p-1.5 rounded-v2-md text-ink-3 hover:text-ink-4 hover:bg-surface-1 transition-colors"
         >
           <svg
             width="16"
@@ -204,7 +204,7 @@ export function DailyChecklist() {
       {/* Progress bar */}
       {data && data.progress.total > 0 && (
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-2 rounded-full bg-ink-1 border border-ink-2 overflow-hidden">
+          <div className="flex-1 h-2 rounded-full bg-surface-1 border border-hairline overflow-hidden">
             <div
               className="h-full rounded-full bg-ok/60 transition-all duration-300"
               style={{ width: `${pct}%` }}
@@ -218,7 +218,7 @@ export function DailyChecklist() {
 
       {/* Empty state */}
       {data && data.slots.length === 0 && (
-        <div className="rounded-md bg-ink-1 p-6 text-center text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="rounded-v2-md bg-surface-1 p-6 text-center text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
           No active supplements configured.
         </div>
       )}
@@ -253,7 +253,7 @@ export function DailyChecklist() {
             </div>
 
             {/* Items */}
-            <div className="flex flex-col gap-px rounded-md overflow-hidden border border-ink-2">
+            <div className="flex flex-col gap-px rounded-v2-md overflow-hidden border border-hairline">
               {slot.items.map((item) => {
                 const taken = !!item.log;
                 const busy = toggling.has(item.id);
@@ -267,7 +267,7 @@ export function DailyChecklist() {
                     className={`flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
                       taken
                         ? "bg-ok/[0.06] hover:bg-ok/[0.10]"
-                        : "bg-ink-1 hover:bg-ink-2/60"
+                        : "bg-surface-1 hover:bg-surface-2"
                     } disabled:opacity-50`}
                   >
                     {/* Checkbox */}
