@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { apiWrite, jsonBody, reportApiError } from "@/lib/data/apiWrite";
+import { useApi } from "@/lib/data/useApi";
+import { mutateApi } from "@/lib/data/mutateApi";
+
+const INSPIRATION_KEY = "/api/ventures/inspiration";
 import { Mono } from "@/components/dashboard/Mono";
 
 type Inspiration = {
@@ -42,39 +46,20 @@ function categoryLabel(cat: string): string {
 }
 
 export default function InspirationPage() {
-  const [items, setItems] = useState<Inspiration[] | null>(null);
+  const { data, error, mutate } = useApi<{ items?: Inspiration[] }>(
+    INSPIRATION_KEY,
+  );
+  const items = useMemo<Inspiration[] | null>(() => {
+    if (error) return [];
+    if (!data) return null;
+    return Array.isArray(data.items) ? data.items : [];
+  }, [data, error]);
+  const load = () => void mutate();
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [tagSearch, setTagSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Inspiration | null>(null);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
-
-  const load = async () => {
-    try {
-      const r = await fetch("/api/ventures/inspiration", { cache: "no-store" });
-      if (!r.ok) return;
-      const j = await r.json();
-      setItems(j.items ?? []);
-    } catch {
-      setItems([]);
-    }
-  };
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const r = await fetch("/api/ventures/inspiration", { cache: "no-store" });
-        if (cancelled) return;
-        if (!r.ok) { setItems([]); return; }
-        const j = await r.json();
-        if (!cancelled) setItems(j.items ?? []);
-      } catch {
-        if (!cancelled) setItems([]);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
 
   const filtered = useMemo(() => {
     let list = items ?? [];
@@ -94,8 +79,15 @@ export default function InspirationPage() {
   }, [items, categoryFilter, tagSearch]);
 
   async function deleteItem(id: string) {
-    await fetch(`/api/ventures/inspiration/${id}`, { method: "DELETE" });
-    void load();
+    await mutateApi<{ items?: Inspiration[] }>(
+      INSPIRATION_KEY,
+      (cur) => ({
+        ...cur,
+        items: (cur?.items ?? []).filter((i) => i.id !== id),
+      }),
+      () => apiWrite(`/api/ventures/inspiration/${id}`, { method: "DELETE" }),
+      { onError: (e) => reportApiError(e, "Could not delete that inspiration") },
+    );
   }
 
   return (
@@ -127,10 +119,10 @@ export default function InspirationPage() {
             key={c}
             type="button"
             onClick={() => setCategoryFilter(c)}
-            className={`px-2.5 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
+            className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
               categoryFilter === c
                 ? "border-accent/50 bg-accent/15 text-accent"
-                : "border-ink-2 text-ink-3 hover:text-ink-4"
+                : "border-hairline text-ink-3 hover:text-ink-4"
             }`}
           >
             {c === "all" ? "ALL" : categoryLabel(c)}
@@ -143,7 +135,7 @@ export default function InspirationPage() {
         value={tagSearch}
         onChange={(e) => setTagSearch(e.target.value)}
         placeholder="Search by tag, company, or content…"
-        className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3 max-w-sm"
+        className="bg-ink-0/40 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3 max-w-sm"
       />
 
       {items === null ? (
@@ -161,7 +153,7 @@ export default function InspirationPage() {
           {filtered.map((item) => (
             <div
               key={item.id}
-              className="break-inside-avoid rounded-md bg-ink-1 p-4 group"
+              className="break-inside-avoid rounded-v2-md bg-surface-1 p-4 group"
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="min-w-0">
@@ -202,7 +194,7 @@ export default function InspirationPage() {
                   <img
                     src={item.image_url}
                     alt={item.company_name}
-                    className="w-full rounded-md object-cover max-h-48 hover:opacity-80 transition-opacity"
+                    className="w-full rounded-v2-md object-cover max-h-48 hover:opacity-80 transition-opacity"
                   />
                 </button>
               )}
@@ -212,7 +204,7 @@ export default function InspirationPage() {
                   {item.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="px-1.5 py-0.5 rounded-sm bg-ink-2 text-[9px] text-ink-3 font-[family-name:var(--font-mono)]"
+                      className="px-1.5 py-0.5 rounded-sm bg-surface-2 text-[9px] text-ink-3 font-[family-name:var(--font-mono)]"
                     >
                       {tag}
                     </span>
@@ -330,11 +322,11 @@ function InspirationModal({
   }
 
   const inputCls =
-    "w-full bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent";
+    "w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-0/60 backdrop-blur-sm overflow-y-auto py-8">
-      <div className="bg-ink-1 border border-ink-2 rounded-lg p-6 w-full max-w-lg">
+      <div className="bg-surface-1 border border-hairline rounded-lg p-6 w-full max-w-lg">
         <div className="text-base text-text-0 font-[family-name:var(--font-display)] mb-4">
           {existing ? "Edit Inspiration" : "Add Inspiration"}
         </div>
@@ -414,7 +406,7 @@ function InspirationModal({
             type="button"
             onClick={save}
             disabled={!form.company_name.trim() || !form.what_i_like.trim()}
-            className="px-4 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.12em] disabled:opacity-40"
+            className="px-4 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.12em] disabled:opacity-40"
           >
             {existing ? "UPDATE" : "ADD"}
           </button>
