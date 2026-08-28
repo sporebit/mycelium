@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useApi } from "@/lib/data/useApi";
+import { mutateApi } from "@/lib/data/mutateApi";
+import { apiWrite, jsonBody } from "@/lib/data/apiWrite";
 import { Mono } from "@/components/dashboard/Mono";
 
 type DailyLog = { id: string; taken_at: string };
@@ -59,82 +62,77 @@ function shiftDate(dateStr: string, days: number): string {
 
 export function DailyChecklist() {
   const [date, setDate] = useState(todayKey);
-  const [data, setData] = useState<DailyData | null>(null);
   const [toggling, setToggling] = useState<Set<string>>(new Set());
+
+  // Same key shape the dashboard Supplements card, GlanceRow and
+  // TimelineRail use, so on today's date all four surfaces are one cache
+  // entry: ticking a supplement here updates them with no round trip.
+  const key = `/api/supplements/daily?date=${date}`;
+  const { data } = useApi<DailyData>(key);
 
   const isToday = date === todayKey();
 
   function changeDate(d: string) {
+    // No need to blank the data: a different date is a different key, so
+    // SWR swaps cache entries rather than showing the previous day's rows.
     setDate(d);
-    setData(null);
   }
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/supplements/daily?date=${date}`)
-      .then((r) => r.json())
-      .then((j: DailyData) => {
-        if (!cancelled) setData(j);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [date]);
 
   async function toggle(item: DailyItem, slot: string) {
     if (toggling.has(item.id)) return;
     setToggling((s) => new Set(s).add(item.id));
 
-    try {
-      if (item.log) {
-        const res = await fetch(
-          `/api/supplements/${item.id}/log/${item.log.id}`,
-          { method: "DELETE" }
-        );
-        if (!res.ok) return;
-        setData((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            progress: { ...prev.progress, taken: prev.progress.taken - 1 },
-            slots: prev.slots.map((s) => ({
-              ...s,
-              items: s.items.map((i) =>
-                i.id === item.id ? { ...i, log: null } : i
-              ),
-            })),
-          };
-        });
-      } else {
-        const res = await fetch(`/api/supplements/${item.id}/log`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ date, timing_slot: slot }),
-        });
-        if (!res.ok) return;
-        const { log } = (await res.json()) as { log: DailyLog };
-        setData((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            progress: { ...prev.progress, taken: prev.progress.taken + 1 },
-            slots: prev.slots.map((s) => ({
-              ...s,
-              items: s.items.map((i) =>
-                i.id === item.id ? { ...i, log } : i
-              ),
-            })),
-          };
-        });
-      }
-    } finally {
-      setToggling((s) => {
-        const next = new Set(s);
-        next.delete(item.id);
-        return next;
-      });
-    }
+    const currentlyLogged = !!item.log;
+    // Captured outside the optimistic updater: SWR calls that updater during
+    // render, and React 19 forbids Date.now() there.
+    const nowIso = new Date().toISOString();
+
+    await mutateApi<DailyData>(
+      key,
+      (current) => {
+        if (!current) {
+          return { date, slots: [], progress: { taken: 0, total: 0 } };
+        }
+        return {
+          ...current,
+          progress: {
+            ...current.progress,
+            taken: current.progress.taken + (currentlyLogged ? -1 : 1),
+          },
+          slots: current.slots.map((s) => ({
+            ...s,
+            items: s.items.map((i) =>
+              i.id === item.id
+                ? {
+                    ...i,
+                    log: currentlyLogged
+                      ? null
+                      : { id: "optimistic", taken_at: nowIso },
+                  }
+                : i,
+            ),
+          })),
+        };
+      },
+      async () => {
+        if (currentlyLogged && item.log) {
+          await apiWrite(`/api/supplements/${item.id}/log/${item.log.id}`, {
+            method: "DELETE",
+          });
+        } else {
+          await apiWrite(`/api/supplements/${item.id}/log`, {
+            method: "POST",
+            ...jsonBody({ date, timing_slot: slot }),
+          });
+        }
+      },
+    );
+
+    setToggling((s) => {
+      const next = new Set(s);
+      next.delete(item.id);
+      return next;
+    });
   }
 
   const pct =
