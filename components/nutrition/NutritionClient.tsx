@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useApi } from "@/lib/data/useApi";
+
+const MEAL_GROUPS_KEY = "/api/nutrition/meal-groups";
 import { Mono } from "@/components/dashboard/Mono";
 import type {
   MealGroup,
@@ -45,9 +48,59 @@ function formatDate(dateKey: string): string {
 export function NutritionClient() {
   const [tab, setTab] = useState<Tab>("today");
   const [date, setDate] = useState(() => localDateKey());
-  const [logs, setLogs] = useState<NutritionLog[] | null>(null);
-  const [mealGroups, setMealGroups] = useState<MealGroup[]>([]);
-  const [burned, setBurned] = useState<number>(0);
+  // Keys are the raw paths, so each date is its own cache entry and any other
+  // surface reading the same endpoint shares it.
+  const logsKey = `/api/nutrition/logs?date=${encodeURIComponent(date)}`;
+  const burnedKey = `/api/nutrition/burned?date=${encodeURIComponent(date)}`;
+  const { data: logsData, error: logsError, mutate: mutateLogs } = useApi<{
+    logs?: NutritionLog[];
+  }>(logsKey);
+  const logs = useMemo<NutritionLog[] | null>(() => {
+    if (logsError) return [];
+    if (!logsData) return null;
+    return Array.isArray(logsData.logs) ? logsData.logs : [];
+  }, [logsData, logsError]);
+
+  const { data: burnedData } = useApi<{ burned?: number }>(burnedKey);
+  const burned = typeof burnedData?.burned === "number" ? burnedData.burned : 0;
+
+  const { data: groupsData, mutate: mutateGroups } = useApi<{
+    meal_groups?: MealGroup[];
+  }>(MEAL_GROUPS_KEY);
+  const mealGroups = useMemo<MealGroup[]>(
+    () => (Array.isArray(groupsData?.meal_groups) ? groupsData.meal_groups : []),
+    [groupsData],
+  );
+
+  // Same signatures the useState setters had, so every optimistic handler
+  // below is untouched by this migration.
+  const setLogs = useCallback(
+    (updater: NutritionLog[] | ((cur: NutritionLog[] | null) => NutritionLog[])) => {
+      void mutateLogs(
+        (cur) => ({
+          ...cur,
+          logs: typeof updater === "function" ? updater(cur?.logs ?? []) : updater,
+        }),
+        { revalidate: false },
+      );
+    },
+    [mutateLogs],
+  );
+  const setMealGroups = useCallback(
+    (updater: MealGroup[] | ((cur: MealGroup[]) => MealGroup[])) => {
+      void mutateGroups(
+        (cur) => ({
+          ...cur,
+          meal_groups:
+            typeof updater === "function"
+              ? updater(cur?.meal_groups ?? [])
+              : updater,
+        }),
+        { revalidate: false },
+      );
+    },
+    [mutateGroups],
+  );
   const [searchOpen, setSearchOpen] = useState(false);
   const [pendingGroupId, setPendingGroupId] = useState<string | null>(null);
   const [newGroupName, setNewGroupName] = useState("");
@@ -67,46 +120,7 @@ export function NutritionClient() {
     return () => clearTimeout(id);
   }, [toast]);
 
-  // Meal groups load once
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/nutrition/meal-groups")
-      .then((r) => r.json())
-      .then((j: { meal_groups?: MealGroup[] }) => {
-        if (cancelled) return;
-        setMealGroups(Array.isArray(j.meal_groups) ? j.meal_groups : []);
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
-  // Logs + burned re-fetch on date change
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) setLogs(null);
-    });
-    Promise.all([
-      fetch(`/api/nutrition/logs?date=${encodeURIComponent(date)}`).then((r) => r.json()),
-      fetch(`/api/nutrition/burned?date=${encodeURIComponent(date)}`).then((r) => r.json()),
-    ])
-      .then(
-        ([logsRes, burnedRes]: [
-          { logs?: NutritionLog[] },
-          { burned?: number },
-        ]) => {
-          if (cancelled) return;
-          setLogs(Array.isArray(logsRes.logs) ? logsRes.logs : []);
-          setBurned(typeof burnedRes.burned === "number" ? burnedRes.burned : 0);
-        },
-      )
-      .catch(() => !cancelled && setLogs([]));
-    return () => {
-      cancelled = true;
-    };
-  }, [date]);
 
   const totals = useMemo(() => {
     const out = { kcal: 0, protein: 0, carbs: 0, fat: 0 };

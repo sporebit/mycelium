@@ -30,8 +30,8 @@ export function MealGroupSection({
   const groupId = group?.id ?? null;
 
   return (
-    <section className="rounded-md bg-ink-1 border border-ink-2 overflow-hidden">
-      <header className="flex items-center justify-between px-3 py-2 bg-ink-2/40 border-b border-ink-2">
+    <section className="rounded-v2-lg bg-surface-1 border border-hairline overflow-hidden">
+      <header className="flex items-center justify-between px-3 py-2 bg-surface-2 border-b border-hairline">
         <button
           type="button"
           onClick={() => setCollapsed((v) => !v)}
@@ -122,7 +122,7 @@ export function MealGroupSection({
           <button
             type="button"
             onClick={() => onAdd(groupId)}
-            className="px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-accent hover:bg-accent/10 text-left font-[family-name:var(--font-mono)] border-t border-ink-2/60"
+            className="px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-accent hover:bg-accent/10 text-left font-[family-name:var(--font-mono)] border-t border-hairline"
           >
             + Add food
           </button>

@@ -1,6 +1,5 @@
 "use client";
 
-import { Mono } from "@/components/dashboard/Mono";
 
 export function MacroBar({
   label,
@@ -30,14 +29,17 @@ export function MacroBar({
         <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
           {label}
         </span>
-        <Mono className="text-[11px] text-ink-4 tabular-nums">
+        {/* Matches <Num/>s tabular treatment deliberately WITHOUT using it:
+            Num masks every plain value when financeHidden is set, which would
+            blank out calories and macros whenever finance is hidden. */}
+        <span className="text-[11px] text-ink-4 font-[family-name:var(--font-jetbrains-mono)] tabular-nums">
           {Math.round(value)}/{target}
           {unit}
-        </Mono>
+        </span>
       </div>
       <div className="mt-1 h-1.5 rounded-full bg-ink-2 overflow-hidden">
         <div
-          className={`h-full transition-[width] duration-300 ${colour}`}
+          className={`h-full motion-safe:transition-[width] motion-safe:duration-[var(--dur-base)] motion-safe:[transition-timing-function:var(--ease-out)] ${colour}`}
           style={{ width: `${pct}%` }}
         />
       </div>
