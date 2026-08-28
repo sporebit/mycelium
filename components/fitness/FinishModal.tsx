@@ -81,10 +81,10 @@ export function FinishModal({
       onClick={onClose}
     >
       <div
-        className="growth-in w-full sm:max-w-md bg-ink-1 border border-ink-2 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
+        className="growth-in w-full sm:max-w-md bg-surface-1 border border-hairline rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-ink-2">
+        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
           <h2 className="text-lg italic font-[family-name:var(--font-display)] text-ink-4">
             Finish session
           </h2>
@@ -99,7 +99,7 @@ export function FinishModal({
         <div className="px-5 py-4 overflow-y-auto flex flex-col gap-4">
           <dl className="grid grid-cols-3 gap-2 text-center">
             <Stat label="Sets" value={String(totalSets)} />
-            <div className="flex flex-col gap-0.5 p-2 rounded-md border border-ink-2 bg-ink-0/40">
+            <div className="flex flex-col gap-0.5 p-2 rounded-v2-md border border-hairline bg-surface-0">
               <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
                 Time
               </span>
@@ -124,7 +124,7 @@ export function FinishModal({
           </dl>
 
           {saveToTemplate.length > 0 && (
-            <label className="flex items-start gap-3 cursor-pointer p-3 rounded-md border border-accent/40 bg-accent/10">
+            <label className="flex items-start gap-3 cursor-pointer p-3 rounded-v2-md border border-accent/40 bg-accent/10">
               <input
                 type="checkbox"
                 checked={applyTpl}
@@ -147,7 +147,7 @@ export function FinishModal({
           )}
 
           {isBlankSession && hasExercises && (
-            <div className="flex flex-col gap-2 p-3 rounded-md border border-ink-2 bg-ink-0/40">
+            <div className="flex flex-col gap-2 p-3 rounded-v2-md border border-hairline bg-surface-0">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -162,7 +162,7 @@ export function FinishModal({
                   value={workoutName}
                   onChange={(e) => setWorkoutName(e.target.value)}
                   placeholder="Workout name"
-                  className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
+                  className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
                 />
               )}
             </div>
@@ -177,7 +177,7 @@ export function FinishModal({
               value={calories}
               onChange={(e) => setCalories(e.target.value.replace(/[^0-9]/g, ""))}
               placeholder="—"
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
             />
           </label>
 
@@ -190,15 +190,15 @@ export function FinishModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Optional notes…"
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 resize-none"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 resize-none"
             />
           </label>
         </div>
-        <footer className="px-5 py-4 border-t border-ink-2 flex gap-2">
+        <footer className="px-5 py-4 border-t border-hairline flex gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-12 rounded-md border border-ink-2 text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] hover:text-ink-4"
+            className="flex-1 h-12 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] hover:text-ink-4"
           >
             CANCEL
           </button>
@@ -209,7 +209,7 @@ export function FinishModal({
               triggerGlowPulse(e.currentTarget);
               void submit();
             }}
-            className="flex-[2] h-12 rounded-md bg-ok/15 border border-ok/40 text-ok text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-ok/25 disabled:opacity-50"
+            className="flex-[2] h-12 rounded-v2-md bg-ok/15 border border-ok/40 text-ok text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-ok/25 disabled:opacity-50"
           >
             {busy ? "SAVING…" : "SAVE & FINISH"}
           </button>
@@ -221,7 +221,7 @@ export function FinishModal({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-0.5 p-2 rounded-md border border-ink-2 bg-ink-0/40">
+    <div className="flex flex-col gap-0.5 p-2 rounded-v2-md border border-hairline bg-surface-0">
       <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
         {label}
       </span>

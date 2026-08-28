@@ -64,7 +64,7 @@ export function CalendarDayView({ date, pills, todayKey, programmeSessions }: Pr
           <Link
             href={backHrefForDate(date)}
             aria-label="Back to month"
-            className="h-9 w-9 inline-flex items-center justify-center rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
           >
             ←
           </Link>
@@ -75,21 +75,21 @@ export function CalendarDayView({ date, pills, todayKey, programmeSessions }: Pr
         <button
           type="button"
           onClick={() => setAddOpen("morning")}
-          className="px-3 h-9 inline-flex items-center rounded-md border border-ink-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-accent hover:text-text-0 hover:border-accent/60 transition-colors"
+          className="px-3 h-9 inline-flex items-center rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-accent hover:text-text-0 hover:border-accent/60 transition-colors"
         >
           + ADD SESSION
         </button>
       </header>
 
       {pills.length === 0 ? (
-        <div className="rounded-md bg-ink-1 p-6 text-center">
+        <div className="rounded-v2-md bg-surface-1 p-6 text-center">
           <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
             No sessions on this day.
           </p>
           <button
             type="button"
             onClick={() => setAddOpen("morning")}
-            className="mt-3 inline-flex items-center px-3 py-2 rounded-md border border-ink-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-accent hover:text-text-0 hover:border-accent/60 transition-colors"
+            className="mt-3 inline-flex items-center px-3 py-2 rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-accent hover:text-text-0 hover:border-accent/60 transition-colors"
           >
             + ADD SESSION
           </button>
@@ -109,8 +109,8 @@ export function CalendarDayView({ date, pills, todayKey, programmeSessions }: Pr
 
             const inner = (
               <article
-                className={`bg-ink-1 rounded-md p-4 flex items-center gap-3 transition-colors ${
-                  href ? "hover:bg-ink-2/30 cursor-pointer" : ""
+                className={`bg-surface-1 rounded-v2-md p-4 flex items-center gap-3 transition-colors ${
+                  href ? "hover:bg-surface-2 cursor-pointer" : ""
                 } ${p.state === "planned-past-missed" ? "opacity-50" : ""}`}
               >
                 <span aria-hidden className="text-2xl shrink-0">

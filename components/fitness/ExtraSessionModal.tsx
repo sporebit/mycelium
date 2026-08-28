@@ -159,10 +159,10 @@ export function ExtraSessionModal({
       onClick={onClose}
     >
       <div
-        className="growth-in w-full sm:max-w-md bg-ink-1 border border-ink-2 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh]"
+        className="growth-in w-full sm:max-w-md bg-surface-1 border border-hairline rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-ink-2">
+        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
           <h2 className="text-lg italic font-[family-name:var(--font-display)] text-ink-4">
             Add extra session
           </h2>
@@ -188,10 +188,10 @@ export function ExtraSessionModal({
                     key={t.id}
                     type="button"
                     onClick={() => pickType(t.type_key)}
-                    className={`px-2.5 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
+                    className={`px-2.5 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
                       active
                         ? "border-accent/50 bg-accent/15 text-accent"
-                        : "border-ink-2 text-ink-4 hover:border-ink-3"
+                        : "border-hairline text-ink-4 hover:border-ink-3"
                     }`}
                   >
                     {t.label}
@@ -201,10 +201,10 @@ export function ExtraSessionModal({
               <button
                 type="button"
                 onClick={() => pickType("__custom__")}
-                className={`px-2.5 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
+                className={`px-2.5 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
                   customMode
                     ? "border-accent/50 bg-accent/15 text-accent"
-                    : "border-ink-2 text-ink-3 hover:border-ink-3"
+                    : "border-hairline text-ink-3 hover:border-ink-3"
                 }`}
               >
                 + Other
@@ -222,7 +222,7 @@ export function ExtraSessionModal({
                 value={customLabel}
                 onChange={(e) => setCustomLabel(e.target.value.slice(0, 30))}
                 placeholder="e.g. Yoga, Climbing, Swimming"
-                className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent"
+                className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent"
               />
             </label>
           )}
@@ -242,7 +242,7 @@ export function ExtraSessionModal({
                   ? `e.g. ${selected.label} — Snowdon`
                   : "What did you do?"
               }
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent"
             />
           </label>
 
@@ -255,7 +255,7 @@ export function ExtraSessionModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="2 hours, hurt my knees on descent…"
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-accent resize-none"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-accent resize-none"
             />
           </label>
 
@@ -270,7 +270,7 @@ export function ExtraSessionModal({
                 setCalories(e.target.value.replace(/[^0-9]/g, ""))
               }
               placeholder="—"
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
             />
           </label>
 
@@ -281,11 +281,11 @@ export function ExtraSessionModal({
           )}
         </div>
 
-        <footer className="px-5 py-4 border-t border-ink-2 flex gap-2">
+        <footer className="px-5 py-4 border-t border-hairline flex gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-12 rounded-md border border-ink-2 text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
+            className="flex-1 h-12 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
           >
             CANCEL
           </button>
@@ -296,7 +296,7 @@ export function ExtraSessionModal({
               triggerGlowPulse(e.currentTarget);
               void submit();
             }}
-            className="flex-[2] h-12 rounded-md bg-accent/20 border border-accent/50 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
+            className="flex-[2] h-12 rounded-v2-md bg-accent/20 border border-accent/50 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
           >
             {busy ? "SAVING…" : "CREATE SESSION"}
           </button>

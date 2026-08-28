@@ -214,7 +214,7 @@ export function WorkoutNowClient() {
           triggerGlowPulse(e.currentTarget);
           void createSession({});
         }}
-        className="w-full flex items-center gap-3 bg-ink-1 rounded-xl border border-dashed border-ink-3 px-4 min-h-[56px] hover:bg-ink-2/40 transition-colors"
+        className="w-full flex items-center gap-3 bg-surface-1 rounded-xl border border-dashed border-ink-3 px-4 min-h-[56px] hover:bg-surface-2 transition-colors"
       >
         <span className="text-lg text-ink-3">+</span>
         <div className="flex-1 text-left">
@@ -245,7 +245,7 @@ export function WorkoutNowClient() {
                       triggerGlowPulse(e.currentTarget);
                       void createSession({ programme_session_id: t.id });
                     }}
-                    className="w-full flex items-center gap-3 bg-ink-1 rounded-xl border border-ink-2 px-4 min-h-[56px] hover:bg-ink-2/40 transition-colors text-left"
+                    className="w-full flex items-center gap-3 bg-surface-1 rounded-xl border border-hairline px-4 min-h-[56px] hover:bg-surface-2 transition-colors text-left"
                   >
                     <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] w-8">
                       {t.dayLabel}
@@ -272,7 +272,7 @@ export function WorkoutNowClient() {
                       triggerGlowPulse(e.currentTarget);
                       void createSession({ workout_id: t.id });
                     }}
-                    className="w-full flex items-center gap-3 bg-ink-1 rounded-xl border border-ink-2 px-4 min-h-[56px] hover:bg-ink-2/40 transition-colors text-left"
+                    className="w-full flex items-center gap-3 bg-surface-1 rounded-xl border border-hairline px-4 min-h-[56px] hover:bg-surface-2 transition-colors text-left"
                   >
                     <span className="flex-1 text-sm text-text-0 truncate">{t.name}</span>
                     <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] uppercase tracking-[0.12em]">

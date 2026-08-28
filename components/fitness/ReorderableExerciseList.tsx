@@ -153,7 +153,7 @@ function SortableRow({
     <li
       ref={setNodeRef}
       style={style}
-      className={`relative border-b border-ink-2 last:border-b-0 ${
+      className={`relative border-b border-hairline last:border-b-0 ${
         isDragging ? "z-10 bg-accent/5 shadow-lg scale-[1.01]" : ""
       } ${isActive && !isDragging ? "bg-accent/5" : ""} ${
         ex.skipped ? "opacity-50" : ""
@@ -235,7 +235,7 @@ function SortableRow({
 
       {menuOpen && !readOnly && (
         <div
-          className="absolute right-2 top-12 z-20 bg-ink-1 border border-ink-2 rounded-md shadow-2xl flex"
+          className="absolute right-2 top-12 z-20 bg-surface-1 border border-hairline rounded-v2-md shadow-2xl flex"
           onMouseLeave={() => setMenuOpen(false)}
         >
           <button
@@ -244,7 +244,7 @@ function SortableRow({
               setMenuOpen(false);
               onSkip();
             }}
-            className="px-3 py-2 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] text-warn hover:bg-ink-2/30"
+            className="px-3 py-2 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] text-warn hover:bg-surface-2"
           >
             SKIP
           </button>
@@ -254,7 +254,7 @@ function SortableRow({
               setMenuOpen(false);
               onRemove();
             }}
-            className="px-3 py-2 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] text-danger hover:bg-ink-2/30"
+            className="px-3 py-2 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] text-danger hover:bg-surface-2"
           >
             REMOVE
           </button>

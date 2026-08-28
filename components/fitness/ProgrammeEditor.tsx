@@ -242,7 +242,7 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
 
   if (error) {
     return (
-      <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)] flex items-center justify-between gap-2">
+      <div className="rounded-v2-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)] flex items-center justify-between gap-2">
         <span>⚠ {error}</span>
         <button
           type="button"
@@ -281,7 +281,7 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
           const v = e.target.value.trim();
           if (v && v !== detail.name) void patchProgramme({ name: v });
         }}
-        className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4 bg-transparent border-b border-ink-2 focus:border-accent outline-none pb-1"
+        className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4 bg-transparent border-b border-hairline focus:border-accent outline-none pb-1"
       />
 
       <textarea
@@ -294,7 +294,7 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
         }}
         rows={2}
         placeholder="Programme description…"
-        className="bg-ink-2/40 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+        className="bg-surface-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
       />
 
       <DndContext
@@ -307,7 +307,7 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
           {DAY_SHORT.map((dayLabel, dow) => (
             <div
               key={dow}
-              className="rounded-md bg-ink-1 border border-ink-2 p-3 flex flex-col gap-2"
+              className="rounded-v2-md bg-surface-1 border border-hairline p-3 flex flex-col gap-2"
             >
               <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
                 {dayLabel}
@@ -399,15 +399,15 @@ function DroppableSlot({
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-md transition-all min-h-[40px] flex flex-col gap-1.5 ${
+      className={`rounded-v2-md transition-all min-h-[40px] flex flex-col gap-1.5 ${
         isOver ? "ring-2 ring-[#84f5b8] bg-[#84f5b8]/5" : ""
-      } ${isEmpty && !isOver ? "border border-dashed border-ink-2 hover:border-ink-3" : ""}`}
+      } ${isEmpty && !isOver ? "border border-dashed border-hairline hover:border-ink-3" : ""}`}
     >
       {children}
       <button
         type="button"
         onClick={onAdd}
-        className={`text-left rounded-md text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] transition-colors ${
+        className={`text-left rounded-v2-md text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] transition-colors ${
           isEmpty ? "px-3 py-2" : "px-3 py-1 text-[10px]"
         }`}
       >
@@ -479,8 +479,8 @@ function SessionCardContent({
 
   return (
     <div
-      className={`rounded-md bg-ink-2/40 px-3 py-2 flex flex-col gap-1.5 ${
-        isOverlay ? "shadow-lg border border-[#84f5b8]/40 bg-ink-1" : ""
+      className={`rounded-v2-md bg-surface-2 px-3 py-2 flex flex-col gap-1.5 ${
+        isOverlay ? "shadow-lg border border-[#84f5b8]/40 bg-surface-1" : ""
       }`}
     >
       <div className="flex items-center justify-between gap-2">
@@ -585,10 +585,10 @@ function WorkoutPickerModal({
       onClick={onClose}
     >
       <div
-        className="growth-in w-full sm:max-w-lg bg-ink-1 border border-ink-2 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[80vh]"
+        className="growth-in w-full sm:max-w-lg bg-surface-1 border border-hairline rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[80vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-ink-2">
+        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
           <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-0">
             Pick workout · {DAY_SHORT[day]} {SLOT_LABEL[slot]}
           </h2>
@@ -601,7 +601,7 @@ function WorkoutPickerModal({
             ×
           </button>
         </header>
-        <div className="px-5 py-3 border-b border-ink-2">
+        <div className="px-5 py-3 border-b border-hairline">
           <input
             autoFocus
             type="search"
@@ -624,7 +624,7 @@ function WorkoutPickerModal({
                 <button
                   type="button"
                   onClick={() => onPick(w)}
-                  className="w-full text-left px-5 py-3 hover:bg-ink-2/40 flex items-center gap-3"
+                  className="w-full text-left px-5 py-3 hover:bg-surface-2 flex items-center gap-3"
                 >
                   <span aria-hidden className="text-lg">
                     {w.default_kind ? KIND_ICON[w.default_kind] : "·"}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Panel } from "@/components/dashboard/Panel";
 import { Mono } from "@/components/dashboard/Mono";
 import { localDateKey } from "@/lib/util/date";
@@ -184,7 +185,7 @@ export function BodyMetricsView() {
   }, [entries]);
 
   const inputCls =
-    "bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)] tabular-nums";
+    "bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)] tabular-nums";
   const labelCls =
     "text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]";
 
@@ -205,7 +206,7 @@ export function BodyMetricsView() {
                 className={`px-2 py-1 rounded text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] uppercase transition-colors border ${
                   range === r
                     ? "bg-accent/20 text-accent border-accent/40"
-                    : "text-ink-3 border-ink-2 hover:text-ink-4"
+                    : "text-ink-3 border-hairline hover:text-ink-4"
                 }`}
               >
                 {r}
@@ -214,20 +215,13 @@ export function BodyMetricsView() {
           </div>
           <div className="flex items-center gap-1.5">
             <span className={labelCls}>Unit</span>
-            {UNITS.map((u) => (
-              <button
-                key={u}
-                type="button"
-                onClick={() => changeDisplayUnit(u)}
-                className={`px-2 py-1 rounded text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] uppercase transition-colors border ${
-                  displayUnit === u
-                    ? "bg-accent/20 text-accent border-accent/40"
-                    : "text-ink-3 border-ink-2 hover:text-ink-4"
-                }`}
-              >
-                {UNIT_LABEL[u]}
-              </button>
-            ))}
+            <SegmentedControl
+              size="sm"
+              ariaLabel="Weight unit"
+              value={displayUnit}
+              onChange={(v) => changeDisplayUnit(v as WeightUnit)}
+              options={UNITS.map((u) => ({ value: u, label: UNIT_LABEL[u] }))}
+            />
           </div>
         </div>
       </div>
@@ -240,7 +234,7 @@ export function BodyMetricsView() {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
             />
           </label>
           <label className="flex flex-col gap-1">
@@ -259,7 +253,7 @@ export function BodyMetricsView() {
             <select
               value={unit}
               onChange={(e) => setUnit(e.target.value as WeightUnit)}
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
             >
               {UNITS.map((u) => (
                 <option key={u} value={u}>
@@ -341,14 +335,14 @@ export function BodyMetricsView() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="optional"
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
             />
           </label>
           <div className="col-span-2 sm:col-span-4 flex justify-end">
             <button
               type="submit"
               disabled={saving}
-              className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+              className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
             >
               {saving ? "SAVING…" : "SAVE"}
             </button>
@@ -361,7 +355,7 @@ export function BodyMetricsView() {
           title={`Weight (${range === "All" ? "all time" : `last ${range.toLowerCase()}`})`}
           topRight={<Mono>{UNIT_LABEL[displayUnit].toUpperCase()}</Mono>}
         >
-          <div className="relative h-12 rounded-lg border border-ink-2 bg-ink-0/40 overflow-hidden">
+          <div className="relative h-12 rounded-lg border border-hairline bg-surface-0 overflow-hidden">
             <svg
               viewBox="0 0 200 48"
               preserveAspectRatio="none"
@@ -370,7 +364,7 @@ export function BodyMetricsView() {
               <path
                 d={weightSpark.path}
                 fill="none"
-                stroke="var(--glow-0)"
+                stroke="var(--glow)"
                 strokeWidth="1.2"
               />
             </svg>
@@ -395,7 +389,7 @@ export function BodyMetricsView() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-ink-2">
+                <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-hairline">
                   <th className="text-left py-2 pr-3">Date</th>
                   <th className="text-right py-2 px-3">Weight</th>
                   <th className="text-center py-2 px-2">Unit</th>
@@ -409,7 +403,7 @@ export function BodyMetricsView() {
               </thead>
               <tbody>
                 {entries.map((e) => (
-                  <tr key={e.id} className="border-b border-ink-2">
+                  <tr key={e.id} className="border-b border-hairline">
                     <td className="py-2 pr-3 text-ink-4">{e.date}</td>
                     <td className="text-right py-2 px-3">
                       <Mono className="text-ink-4">
@@ -464,7 +458,7 @@ export function BodyMetricsView() {
       {toast && (
         <div
           role="status"
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-v2-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
             toast.kind === "success"
               ? "bg-ok/20 text-ok border border-ok/40"
               : "bg-danger/20 text-danger border border-danger/40"

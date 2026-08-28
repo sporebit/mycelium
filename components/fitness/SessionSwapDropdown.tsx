@@ -118,7 +118,7 @@ export function SessionSwapDropdown({
           SWAP <span aria-hidden>▾</span>
         </button>
         {open && (
-          <div className="absolute right-0 top-7 z-40 w-72 max-h-80 overflow-y-auto bg-ink-1 border border-ink-2 rounded-md shadow-2xl py-2">
+          <div className="absolute right-0 top-7 z-40 w-72 max-h-80 overflow-y-auto bg-surface-1 border border-hairline rounded-v2-md shadow-2xl py-2">
             {grouped.today.length > 0 && (
               <Group title="Today's planned">
                 {grouped.today.map((s) => (
@@ -153,10 +153,10 @@ export function SessionSwapDropdown({
           onClick={() => setConfirmFor(null)}
         >
           <div
-            className="w-full sm:max-w-sm bg-ink-1 border border-ink-2 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col"
+            className="w-full sm:max-w-sm bg-surface-1 border border-hairline rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-5 py-4 border-b border-ink-2">
+            <div className="px-5 py-4 border-b border-hairline">
               <h2 className="text-base text-ink-4">Swap session?</h2>
             </div>
             <div className="px-5 py-4 text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
@@ -165,11 +165,11 @@ export function SessionSwapDropdown({
               Your logged sets will be kept; empty planned exercises will be
               replaced with the new session&apos;s exercises.
             </div>
-            <div className="px-5 py-4 border-t border-ink-2 flex gap-2">
+            <div className="px-5 py-4 border-t border-hairline flex gap-2">
               <button
                 type="button"
                 onClick={() => setConfirmFor(null)}
-                className="flex-1 h-11 rounded-md border border-ink-2 text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
+                className="flex-1 h-11 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
               >
                 CANCEL
               </button>
@@ -177,7 +177,7 @@ export function SessionSwapDropdown({
                 type="button"
                 disabled={busy}
                 onClick={() => void doSwap(confirmFor)}
-                className="flex-[2] h-11 rounded-md bg-accent/20 border border-accent/50 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
+                className="flex-[2] h-11 rounded-v2-md bg-accent/20 border border-accent/50 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
               >
                 {busy ? "SWAPPING…" : "SWAP"}
               </button>
@@ -219,7 +219,7 @@ function Item({
     <button
       type="button"
       onClick={onClick}
-      className={`text-left px-3 py-2 text-xs font-[family-name:var(--font-mono)] tracking-[0.08em] rounded-sm flex items-center gap-2 hover:bg-ink-2/30 ${
+      className={`text-left px-3 py-2 text-xs font-[family-name:var(--font-mono)] tracking-[0.08em] rounded-sm flex items-center gap-2 hover:bg-surface-2 ${
         current ? "text-accent" : "text-ink-4"
       }`}
     >

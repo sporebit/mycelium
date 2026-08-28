@@ -84,7 +84,7 @@ export function DateSelector({
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-ink-2 text-sm text-text-0 hover:border-ink-3 transition-colors font-[family-name:var(--font-display)] italic"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-v2-md border border-hairline text-sm text-text-0 hover:border-ink-3 transition-colors font-[family-name:var(--font-display)] italic"
         >
           {fmtLongDate(currentDate)}
           {!isToday && (
@@ -116,13 +116,13 @@ export function DateSelector({
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-40 cursor-default"
           />
-          <div className="absolute z-50 left-0 mt-2 w-[min(420px,calc(100vw-2rem))] rounded-md bg-ink-1 border border-ink-2 shadow-2xl p-3">
+          <div className="absolute z-50 left-0 mt-2 w-[min(420px,calc(100vw-2rem))] rounded-v2-md bg-surface-1 border border-hairline shadow-2xl p-3">
             <header className="flex items-center justify-between mb-2">
               <button
                 type="button"
                 onClick={() => shiftWeek(-1)}
                 aria-label="Previous week"
-                className="h-8 w-8 inline-flex items-center justify-center rounded-md text-ink-3 hover:text-ink-4 hover:bg-ink-2/50"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-v2-md text-ink-3 hover:text-ink-4 hover:bg-ink-2/50"
               >
                 ←
               </button>
@@ -133,7 +133,7 @@ export function DateSelector({
                 type="button"
                 onClick={() => shiftWeek(1)}
                 aria-label="Next week"
-                className="h-8 w-8 inline-flex items-center justify-center rounded-md text-ink-3 hover:text-ink-4 hover:bg-ink-2/50"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-v2-md text-ink-3 hover:text-ink-4 hover:bg-ink-2/50"
               >
                 →
               </button>
@@ -145,7 +145,7 @@ export function DateSelector({
                     return (
                       <div
                         key={`ph-${i}`}
-                        className="h-16 rounded-md bg-ink-2/30 animate-pulse"
+                        className="h-16 rounded-v2-md bg-surface-2 animate-pulse"
                       />
                     );
                   }
@@ -155,12 +155,12 @@ export function DateSelector({
                       key={d.date}
                       type="button"
                       onClick={() => navigateTo(d.date)}
-                      className={`flex flex-col items-center gap-1 py-2 rounded-md border transition-colors ${
+                      className={`flex flex-col items-center gap-1 py-2 rounded-v2-md border transition-colors ${
                         isSelected
                           ? "border-accent/60 bg-accent/15 text-accent"
                           : d.is_today
-                            ? "border-accent/30 text-text-0 hover:bg-ink-2/40"
-                            : "border-ink-2 text-text-1 hover:text-text-0 hover:bg-ink-2/40"
+                            ? "border-accent/30 text-text-0 hover:bg-surface-2"
+                            : "border-hairline text-text-1 hover:text-text-0 hover:bg-surface-2"
                       }`}
                       aria-current={isSelected ? "date" : undefined}
                     >

@@ -36,7 +36,7 @@ function MiniSparkline({ values }: { values: number[] }) {
     .join(" ");
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="w-20 h-8 shrink-0" preserveAspectRatio="none">
-      <path d={path} fill="none" stroke="var(--glow-0)" strokeWidth="1.5" />
+      <path d={path} fill="none" stroke="var(--glow)" strokeWidth="1.5" />
     </svg>
   );
 }
@@ -101,24 +101,24 @@ export function WorkoutsListClient() {
           <button
             type="button"
             onClick={() => setShowArchived((v) => !v)}
-            className={`px-3 py-1.5 rounded-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
+            className={`px-3 py-1.5 rounded-v2-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
               showArchived
                 ? "border-accent/40 bg-accent/15 text-accent"
-                : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
             }`}
           >
             {showArchived ? "HIDE ARCHIVED" : "SHOW ARCHIVED"}
           </button>
           <Link
             href="/fitness/workouts/new"
-            className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+            className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
           >
             + NEW WORKOUT
           </Link>
         </div>
       </header>
 
-      <div className="flex items-center gap-1 rounded-md border border-ink-2 overflow-hidden self-start flex-wrap">
+      <div className="flex items-center gap-1 rounded-v2-md border border-hairline overflow-hidden self-start flex-wrap">
         {FILTERS.map((f) => {
           const active = filter === f.value;
           return (
@@ -129,7 +129,7 @@ export function WorkoutsListClient() {
               className={`px-3 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
                 active
                   ? "bg-accent/15 text-accent"
-                  : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/40"
+                  : "text-ink-3 hover:text-ink-4 hover:bg-surface-2"
               }`}
             >
               {f.label}
@@ -143,7 +143,7 @@ export function WorkoutsListClient() {
           Loading…
         </div>
       ) : visible.length === 0 ? (
-        <div className="rounded-md bg-ink-1 p-12 text-center">
+        <div className="rounded-v2-md bg-surface-1 p-12 text-center">
           <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
             {workouts.length === 0
               ? "No workouts yet. Tap + NEW WORKOUT to build your first template."
@@ -157,7 +157,7 @@ export function WorkoutsListClient() {
             return (
               <li key={w.id}>
                 <div
-                  className={`bg-ink-1 border border-ink-2 hover:border-ink-3 rounded-md p-4 flex flex-col gap-2 transition-colors group relative ${
+                  className={`bg-surface-1 border border-hairline hover:border-ink-3 rounded-v2-md p-4 flex flex-col gap-2 transition-colors group relative ${
                     isArchived ? "opacity-50" : ""
                   }`}
                 >

@@ -239,14 +239,14 @@ function ChartTooltipContent({
   const e = p.entry;
   if (!e) {
     return (
-      <div className="rounded-md border border-ink-2 bg-ink-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-ink-4">
+      <div className="rounded-v2-md border border-hairline bg-surface-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-ink-4">
         {p.xLabel}: <span className="text-accent">{fmtNumber(p.y, 1)}</span>{" "}
         {yMode === "volume" ? "kg" : fmtUnitLabel(unit)}
       </div>
     );
   }
   return (
-    <div className="rounded-md border border-ink-2 bg-ink-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-ink-4 max-w-xs">
+    <div className="rounded-v2-md border border-hairline bg-surface-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-ink-4 max-w-xs">
       <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 mb-1">
         {fmtDate(e.date)} · {SLOT_LABEL[e.slot] ?? ""}
       </div>
@@ -428,7 +428,7 @@ function PainTooltipContent({ active, payload }: PainTooltipArgs) {
       : null;
   const emoji = l.feel_rating ? FEEL_EMOJI[l.feel_rating] : "·";
   return (
-    <div className="rounded-md border border-ink-2 bg-ink-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-ink-4 max-w-xs">
+    <div className="rounded-v2-md border border-hairline bg-surface-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-ink-4 max-w-xs">
       <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 mb-1">
         {fmtDate(l.date)}
       </div>
@@ -603,6 +603,14 @@ export function ExerciseHistoryClient({
     [data, xMode, yMode, unit, painBySessionId]
   );
 
+  // A PR anywhere in the visible range pulses the chart once on mount. The
+  // key change restarts the one-shot animation when the range flips.
+  const hasPRInRange = useMemo(
+    () => points.some((p) => p.isPR),
+    [points],
+  );
+
+
   // Session_id → 1-based display index, mirrors the weight chart's "Session #"
   // X-axis so the pain chart aligns when both are set to that mode.
   const sessionIndex = useMemo(() => {
@@ -624,7 +632,7 @@ export function ExerciseHistoryClient({
 
   if (error) {
     return (
-      <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
+      <div className="rounded-v2-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
         ⚠ {error}
       </div>
     );
@@ -674,7 +682,7 @@ export function ExerciseHistoryClient({
                 {aliases.map((a) => (
                   <span
                     key={a.id}
-                    className="text-[11px] bg-ink-1 border border-ink-2 rounded-md px-2 py-1 font-[family-name:var(--font-mono)] text-ink-4 inline-flex items-center gap-1"
+                    className="text-[11px] bg-surface-1 border border-hairline rounded-v2-md px-2 py-1 font-[family-name:var(--font-mono)] text-ink-4 inline-flex items-center gap-1"
                   >
                     {a.alias}
                     <button
@@ -697,12 +705,12 @@ export function ExerciseHistoryClient({
                   if (e.key === "Enter") addAlias();
                 }}
                 placeholder="Add alias..."
-                className="rounded-md bg-ink-0 border border-ink-2 px-2 py-1 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
+                className="rounded-v2-md bg-ink-0 border border-hairline px-2 py-1 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
               />
               <button
                 type="button"
                 onClick={addAlias}
-                className="bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase px-2 py-1 rounded-md"
+                className="bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase px-2 py-1 rounded-v2-md"
               >
                 Add
               </button>
@@ -792,7 +800,10 @@ export function ExerciseHistoryClient({
                 </p>
               )}
 
-              <div className="h-64 sm:h-72 w-full">
+              <div
+                key={hasPRInRange ? "pr" : "no-pr"}
+                className={`h-64 sm:h-72 w-full ${hasPRInRange ? "glow-pulse" : ""}`}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
                     data={points}
@@ -800,18 +811,18 @@ export function ExerciseHistoryClient({
                   >
                     <CartesianGrid
                       strokeDasharray="2 4"
-                      stroke="var(--ink-2)"
+                      stroke="var(--hairline-strong)"
                       vertical={false}
                     />
                     <XAxis
                       dataKey="xLabel"
-                      stroke="var(--text-2)"
+                      stroke="var(--hairline-strong)"
                       fontSize={11}
                       tickLine={false}
                       axisLine={{ stroke: "var(--ink-2)" }}
                     />
                     <YAxis
-                      stroke="var(--text-2)"
+                      stroke="var(--hairline-strong)"
                       fontSize={11}
                       tickLine={false}
                       axisLine={{ stroke: "var(--ink-2)" }}
@@ -842,7 +853,7 @@ export function ExerciseHistoryClient({
                     <Line
                       type="monotone"
                       dataKey="y"
-                      stroke="var(--glow-0)"
+                      stroke="var(--glow)"
                       strokeWidth={2}
                       dot={DotRenderer}
                       activeDot={{
@@ -880,19 +891,19 @@ export function ExerciseHistoryClient({
                   >
                     <CartesianGrid
                       strokeDasharray="2 4"
-                      stroke="var(--ink-2)"
+                      stroke="var(--hairline-strong)"
                       vertical={false}
                     />
                     <XAxis
                       dataKey="xLabel"
-                      stroke="var(--text-2)"
+                      stroke="var(--hairline-strong)"
                       fontSize={11}
                       tickLine={false}
                       axisLine={{ stroke: "var(--ink-2)" }}
                     />
                     <YAxis
                       domain={[0, 10]}
-                      stroke="var(--text-2)"
+                      stroke="var(--hairline-strong)"
                       fontSize={11}
                       tickLine={false}
                       axisLine={{ stroke: "var(--ink-2)" }}
@@ -911,7 +922,7 @@ export function ExerciseHistoryClient({
                     <Line
                       type="monotone"
                       dataKey="y"
-                      stroke="var(--text-2)"
+                      stroke="var(--hairline-strong)"
                       strokeWidth={1.5}
                       dot={PainDotRenderer}
                       isAnimationActive={false}
@@ -956,7 +967,7 @@ export function ExerciseHistoryClient({
                     return (
                     <tr
                       key={s.id}
-                      className="border-t border-ink-2 hover:bg-ink-2/20"
+                      className="border-t border-hairline hover:bg-ink-2/20"
                     >
                       <td className="py-2 pr-3">
                         <Link
@@ -1073,10 +1084,10 @@ function ToggleRow<T extends string>({
               key={o.value}
               type="button"
               onClick={() => onChange(o.value)}
-              className={`px-2.5 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
+              className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
                 active
                   ? "border-accent/50 bg-accent/15 text-accent"
-                  : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                  : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
               }`}
             >
               {o.label}
@@ -1102,7 +1113,7 @@ function PRBadge({
   href: string | null;
 }) {
   const inner = (
-    <div className="flex flex-col gap-1 p-4 rounded-2xl border border-ink-2 bg-ink-1/60 hover:border-ink-3 transition-colors">
+    <div className="flex flex-col gap-1 p-4 rounded-2xl border border-hairline bg-surface-1 hover:border-ink-3 transition-colors">
       <div className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)]">
         <span aria-hidden className="mr-1.5">
           {icon}

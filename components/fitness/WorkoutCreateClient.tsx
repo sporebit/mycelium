@@ -136,7 +136,7 @@ export function WorkoutCreateClient() {
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4"
+          className="px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4"
         >
           CANCEL
         </button>
@@ -144,7 +144,7 @@ export function WorkoutCreateClient() {
           type="button"
           onClick={create}
           disabled={creating || !name.trim()}
-          className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 disabled:opacity-40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 disabled:opacity-40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
         >
           {creating ? "CREATING…" : "CREATE"}
         </button>

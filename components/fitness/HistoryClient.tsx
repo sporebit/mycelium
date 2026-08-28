@@ -216,10 +216,10 @@ export function HistoryClient() {
               key={f.value}
               type="button"
               onClick={() => setFilter(f.value)}
-              className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] border transition-colors ${
+              className={`px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] border transition-colors ${
                 active
                   ? "border-accent/50 bg-accent/15 text-accent"
-                  : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                  : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
               }`}
             >
               {f.label}
@@ -234,10 +234,10 @@ export function HistoryClient() {
           <button
             type="button"
             onClick={() => setTypeFilter(null)}
-            className={`px-2.5 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
+            className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
               typeFilter == null
                 ? "border-accent/50 bg-accent/15 text-accent"
-                : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
             }`}
           >
             ALL TYPES
@@ -252,10 +252,10 @@ export function HistoryClient() {
                   key={key}
                   type="button"
                   onClick={() => setTypeFilter(active ? null : key)}
-                  className={`px-2.5 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
+                  className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
                     active
                       ? "border-accent/50 bg-accent/15 text-accent"
-                      : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                      : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
                   }`}
                 >
                   {lbl} <span className="opacity-60">({count})</span>
@@ -266,7 +266,7 @@ export function HistoryClient() {
       )}
 
       {error && (
-        <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
+        <div className="rounded-v2-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
           ⚠ {error}
         </div>
       )}
@@ -282,7 +282,7 @@ export function HistoryClient() {
           <Link
             key={s.id}
             href={`/fitness/log/${s.id}`}
-            className="growth-in block rounded-md bg-ink-1 hover:bg-ink-2 transition-colors p-6"
+            className="growth-in block rounded-v2-md bg-surface-1 hover:bg-ink-2 transition-colors p-6"
           >
             <div className="flex items-baseline gap-2 flex-wrap">
               <Mono className="text-[11px] text-ink-3 tracking-[0.15em]">
@@ -301,7 +301,7 @@ export function HistoryClient() {
               </span>
               {s.status === "attempted" && (
                 <span
-                  className="ml-auto text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-warn/40 bg-warn/15 text-warn"
+                  className="ml-auto text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-v2-md border border-warn/40 bg-warn/15 text-warn"
                   title="Started but never completed — sat idle for 48+ hours"
                 >
                   ATTEMPTED
@@ -324,7 +324,7 @@ export function HistoryClient() {
       <div ref={sentinelRef} />
       {loading && (
         <div className="flex items-center justify-center py-4">
-          <span className="inline-block h-4 w-4 rounded-full border-2 border-ink-2 border-t-accent animate-spin" />
+          <span className="inline-block h-4 w-4 rounded-full border-2 border-hairline border-t-accent animate-spin" />
         </div>
       )}
       {!hasMore && sessions.length > 0 && (

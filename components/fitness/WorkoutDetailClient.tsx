@@ -96,7 +96,7 @@ export function WorkoutDetailClient({ id }: { id: string }) {
 
   if (error) {
     return (
-      <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
+      <div className="rounded-v2-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
         ⚠ {error}
       </div>
     );
@@ -124,7 +124,7 @@ export function WorkoutDetailClient({ id }: { id: string }) {
         </h1>
         <div className="flex items-center gap-2 mt-1">
           {workout.default_kind && (
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] px-2 py-0.5 rounded border border-ink-2">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] px-2 py-0.5 rounded border border-hairline">
               {KIND_LABEL[workout.default_kind]}
             </span>
           )}
@@ -181,7 +181,7 @@ export function WorkoutDetailClient({ id }: { id: string }) {
                 data={chartData}
                 margin={{ top: 12, right: 12, bottom: 8, left: 0 }}
               >
-                <CartesianGrid stroke="var(--ink-2)" strokeDasharray="3 3" />
+                <CartesianGrid stroke="var(--hairline-strong)" strokeDasharray="3 3" />
                 <XAxis
                   dataKey="date"
                   tick={{ fontSize: 10, fill: "var(--ink-3)" }}
@@ -202,7 +202,7 @@ export function WorkoutDetailClient({ id }: { id: string }) {
                 <Line
                   type="monotone"
                   dataKey="volume"
-                  stroke="var(--glow-0)"
+                  stroke="var(--glow)"
                   strokeWidth={2}
                   dot={{ r: 3, fill: "var(--glow-0)" }}
                   isAnimationActive={false}
@@ -220,7 +220,7 @@ export function WorkoutDetailClient({ id }: { id: string }) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-ink-2">
+                <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-hairline">
                   <th className="text-left py-2 pr-3">Date</th>
                   <th className="text-right py-2 px-3">Sets</th>
                   <th className="text-right py-2 px-3">Volume</th>
@@ -229,7 +229,7 @@ export function WorkoutDetailClient({ id }: { id: string }) {
               </thead>
               <tbody>
                 {sessions.map((s) => (
-                  <tr key={s.session_id} className="border-b border-ink-2">
+                  <tr key={s.session_id} className="border-b border-hairline">
                     <td className="py-2 pr-3 text-ink-4">{s.date}</td>
                     <td className="text-right py-2 px-3">
                       <Mono className="text-ink-3">{s.set_count}</Mono>

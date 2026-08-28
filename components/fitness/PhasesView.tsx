@@ -146,7 +146,7 @@ export function PhasesView() {
               <select
                 value={draftProgramme}
                 onChange={(e) => setDraftProgramme(e.target.value)}
-                className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
+                className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
               >
                 {(programmes ?? []).map((p) => (
                   <option key={p.id} value={p.id}>
@@ -164,7 +164,7 @@ export function PhasesView() {
                 value={draftStart}
                 onChange={(e) => setDraftStart(e.target.value)}
                 placeholder={thisWeek}
-                className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
+                className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
               />
             </label>
             <label className="flex flex-col gap-1">
@@ -176,13 +176,13 @@ export function PhasesView() {
                 value={draftEnd}
                 onChange={(e) => setDraftEnd(e.target.value)}
                 placeholder="ongoing"
-                className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
+                className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
               />
             </label>
             <button
               type="submit"
               disabled={!draftProgramme || creating}
-              className="h-[34px] px-3 rounded-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+              className="h-[34px] px-3 rounded-v2-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
             >
               {creating ? "SAVING…" : "+ SCHEDULE"}
             </button>
@@ -220,7 +220,7 @@ export function PhasesView() {
                     </div>
                   </div>
                   {active && (
-                    <span className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-ok/40 bg-ok/15 text-ok">
+                    <span className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-v2-md border border-ok/40 bg-ok/15 text-ok">
                       ACTIVE
                     </span>
                   )}
@@ -241,7 +241,7 @@ export function PhasesView() {
       {toast && (
         <div
           role="status"
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-v2-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
             toast.kind === "success"
               ? "bg-ok/20 text-ok border border-ok/40"
               : "bg-danger/20 text-danger border border-danger/40"

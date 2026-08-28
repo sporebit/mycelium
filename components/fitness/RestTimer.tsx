@@ -169,7 +169,7 @@ export function RestTimer({
       <div
         role="timer"
         aria-label="Rest timer"
-        className={`fixed bottom-0 left-0 right-0 z-[80] flex items-center gap-3 px-4 py-2.5 bg-ink-1 border-t border-ink-2 transition-opacity duration-200 ${
+        className={`fixed bottom-0 left-0 right-0 z-[80] flex items-center gap-3 px-4 py-2.5 bg-surface-1 border-t border-hairline transition-opacity duration-200 ${
           done ? "opacity-0" : "opacity-100"
         }`}
       >
@@ -192,14 +192,14 @@ export function RestTimer({
         <button
           type="button"
           onClick={onSkip}
-          className="px-2.5 py-1 rounded-md text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] text-accent hover:bg-accent/15 transition-colors"
+          className="px-2.5 py-1 rounded-v2-md text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] text-accent hover:bg-accent/15 transition-colors"
         >
           SKIP
         </button>
         <button
           type="button"
           onClick={() => setIsMinimised(false)}
-          className="h-8 w-8 rounded-full flex items-center justify-center text-ink-3 hover:text-ink-4 hover:bg-ink-2/40 transition-colors shrink-0"
+          className="h-8 w-8 rounded-full flex items-center justify-center text-ink-3 hover:text-ink-4 hover:bg-surface-2 transition-colors shrink-0"
           aria-label="Expand timer"
         >
           <svg
@@ -280,7 +280,7 @@ export function RestTimer({
             type="button"
             onClick={() => onAdjust(-15)}
             disabled={done}
-            className="flex-1 h-14 rounded-md border border-ink-2 text-ink-4 text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:border-ink-3 disabled:opacity-40"
+            className="flex-1 h-14 rounded-v2-md border border-hairline text-ink-4 text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:border-ink-3 disabled:opacity-40"
           >
             −15s
           </button>
@@ -288,14 +288,14 @@ export function RestTimer({
             type="button"
             onClick={() => onAdjust(15)}
             disabled={done}
-            className="flex-1 h-14 rounded-md border border-ink-2 text-ink-4 text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:border-ink-3 disabled:opacity-40"
+            className="flex-1 h-14 rounded-v2-md border border-hairline text-ink-4 text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:border-ink-3 disabled:opacity-40"
           >
             +15s
           </button>
           <button
             type="button"
             onClick={onSkip}
-            className="flex-1 h-14 rounded-md bg-accent/15 border border-accent/40 text-accent text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:bg-accent/25"
+            className="flex-1 h-14 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:bg-accent/25"
           >
             SKIP
           </button>

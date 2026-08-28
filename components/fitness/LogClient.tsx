@@ -921,7 +921,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
     <div className="min-h-screen pb-32 sm:pb-24" data-readonly={readOnly}>
       <div className="max-w-[600px] mx-auto px-3 sm:px-4">
         {/* Sticky top bar */}
-        <header className="sticky top-0 z-30 -mx-3 sm:-mx-4 px-3 sm:px-4 py-2 bg-ink-0/95 backdrop-blur-xl border-b border-ink-2 flex items-center gap-3">
+        <header className="sticky top-0 z-30 -mx-3 sm:-mx-4 px-3 sm:px-4 py-2 bg-ink-0/95 backdrop-blur-xl border-b border-hairline flex items-center gap-3">
           <button
             type="button"
             onClick={() => router.push("/fitness")}
@@ -973,14 +973,14 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
               <button
                 type="button"
                 onClick={() => setShowMenu((v) => !v)}
-                className="h-10 w-10 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4"
+                className="h-10 w-10 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4"
                 aria-label="Menu"
               >
                 ⋮
               </button>
               {showMenu && (
                 <div
-                  className="absolute right-0 top-12 w-56 bg-ink-1 border border-ink-2 rounded-md shadow-2xl z-40 flex flex-col py-1"
+                  className="absolute right-0 top-12 w-56 bg-surface-1 border border-hairline rounded-v2-md shadow-2xl z-40 flex flex-col py-1"
                   onMouseLeave={() => setShowMenu(false)}
                 >
                   <button
@@ -989,7 +989,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
                       setShowMenu(false);
                       void abandonSession();
                     }}
-                    className="px-3 py-2 text-left text-sm text-danger hover:bg-ink-2/30"
+                    className="px-3 py-2 text-left text-sm text-danger hover:bg-surface-2"
                   >
                     Abandon session
                   </button>
@@ -1002,7 +1002,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
         {/* Attempted banner — only when the lifecycle status is
             attempted *and* the session isn't already finished. */}
         {isAttempted && !readOnly && (
-          <div className="my-3 rounded-md border border-warn/40 bg-warn/10 p-3 text-sm text-ink-4">
+          <div className="my-3 rounded-v2-md border border-warn/40 bg-warn/10 p-3 text-sm text-ink-4">
             <div className="font-[family-name:var(--font-display)] italic">
               This session was marked as attempted — it started 48+ hours ago
               and was never completed. You can still log sets or mark it
@@ -1013,7 +1013,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
 
         {/* Yesterday-banner */}
         {isStale && (
-          <div className="my-3 rounded-md border border-warn/40 bg-warn/10 p-3 text-sm text-ink-4">
+          <div className="my-3 rounded-v2-md border border-warn/40 bg-warn/10 p-3 text-sm text-ink-4">
             <div className="font-[family-name:var(--font-display)] italic mb-2">
               This session is from {session.date}. Mark complete or start fresh?
             </div>
@@ -1023,26 +1023,26 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
                 value={completeAtInput}
                 onChange={(e) => setCompleteAtInput(e.target.value)}
                 aria-label="Completed at"
-                className="bg-ink-0/40 border border-ink-2 rounded-md text-[11px] text-ink-4 px-2 py-1 font-[family-name:var(--font-mono)] tracking-[0.05em] outline-none focus:border-ink-3"
+                className="bg-surface-0 border border-hairline rounded-v2-md text-[11px] text-ink-4 px-2 py-1 font-[family-name:var(--font-mono)] tracking-[0.05em] outline-none focus:border-ink-3"
               />
               <button
                 type="button"
                 onClick={() => void markYesterdayComplete()}
-                className="px-2 py-1 rounded-md border border-ok/40 text-ok text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em]"
+                className="px-2 py-1 rounded-v2-md border border-ok/40 text-ok text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em]"
               >
                 MARK COMPLETE
               </button>
               <button
                 type="button"
                 onClick={() => setAgeBannerDismissed(true)}
-                className="px-2 py-1 rounded-md border border-ink-2 text-ink-3 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em]"
+                className="px-2 py-1 rounded-v2-md border border-hairline text-ink-3 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em]"
               >
                 CONTINUE
               </button>
               <button
                 type="button"
                 onClick={() => void abandonSession()}
-                className="px-2 py-1 rounded-md border border-danger/40 text-danger text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em]"
+                className="px-2 py-1 rounded-v2-md border border-danger/40 text-danger text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em]"
               >
                 DISCARD
               </button>
@@ -1084,8 +1084,8 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
         )}
 
         {/* REMAINING LIST */}
-        <div className="mt-4 rounded-2xl border border-ink-2 bg-ink-1/60">
-          <div className="px-3 py-2 border-b border-ink-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <div className="mt-4 rounded-2xl border border-hairline bg-surface-1">
+          <div className="px-3 py-2 border-b border-hairline text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
             All exercises ({exercises.length})
           </div>
           <ReorderableExerciseList
@@ -1105,11 +1105,11 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
             }
           />
           {!readOnly && (
-            <div className="px-3 py-3 border-t border-ink-2 flex gap-2">
+            <div className="px-3 py-3 border-t border-hairline flex gap-2">
               <button
                 type="button"
                 onClick={() => setShowAdd(true)}
-                className="flex-1 h-11 rounded-md border border-ink-2 text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4 hover:border-ink-3"
+                className="flex-1 h-11 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4 hover:border-ink-3"
               >
                 + ADD EXERCISE
               </button>
@@ -1117,7 +1117,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
                 type="button"
                 disabled
                 title="Coming in next round"
-                className="h-11 px-3 rounded-md border border-ink-2 text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] opacity-40 cursor-not-allowed"
+                className="h-11 px-3 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] opacity-40 cursor-not-allowed"
               >
                 🎤 VOICE
               </button>
@@ -1141,7 +1141,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
               type="button"
               onClick={() => setShowFinish(true)}
               disabled={!hasAnyLoggedSet}
-              className="w-full h-14 rounded-md bg-ok/15 border border-ok/40 text-ok text-sm font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-ok/25 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full h-14 rounded-v2-md bg-ok/15 border border-ok/40 text-ok text-sm font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-ok/25 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               FINISH SESSION
             </button>
@@ -1257,7 +1257,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
       {toast && (
         <div
           role="status"
-          className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-[70] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
+          className={`fixed bottom-24 left-1/2 -translate-x-1/2 z-[70] px-4 py-2 rounded-v2-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
             toast.kind === "ok"
               ? "bg-ok/20 text-ok border border-ok/40"
               : "bg-danger/20 text-danger border border-danger/40"
@@ -1427,15 +1427,15 @@ function CurrentExerciseCard({
                   ? "Bodyweight on — weight column logs added load."
                   : "Tap to mark this exercise as bodyweight."
               }
-              className={`px-2 py-1.5 rounded-md border text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] transition-colors ${
+              className={`px-2 py-1.5 rounded-v2-md border text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] transition-colors ${
                 isBodyweight(ex)
                   ? "bg-accent/20 border-accent/40 text-accent"
-                  : "bg-ink-0/40 border-ink-2 text-ink-3 hover:text-ink-4"
+                  : "bg-surface-0 border-hairline text-ink-3 hover:text-ink-4"
               }`}
             >
               BW
             </button>
-            <div className="flex rounded-md overflow-hidden border border-ink-2">
+            <div className="flex rounded-v2-md overflow-hidden border border-hairline">
               {UNITS.map((u) => (
                 <button
                   key={u}
@@ -1542,12 +1542,12 @@ function CurrentExerciseCard({
                   showWeight
                     ? "grid-cols-[2rem_1fr_1fr_4.5rem_2rem]"
                     : "grid-cols-[2rem_1fr_4.5rem_2rem]"
-                } gap-2 items-center rounded-md border px-1 py-1 transition-colors duration-500 ${
+                } gap-2 items-center rounded-v2-md border px-1 py-1 transition-colors duration-500 ${
                   flashing
                     ? "border-ok bg-ok/30 ring-2 ring-ok/40"
                     : isLogged
                     ? "border-ok/50 bg-ok/10"
-                    : "border-ink-2 bg-ink-0/30"
+                    : "border-hairline bg-ink-0/30"
                 }`}
               >
                 <span className="text-center text-sm font-[family-name:var(--font-mono)] text-ink-3">
@@ -1566,7 +1566,7 @@ function CurrentExerciseCard({
                       setDraft(n, "w", e.target.value.replace(/[^0-9.]/g, ""))
                     }
                     placeholder={weightFieldPlaceholder}
-                    className="bg-transparent border border-ink-2 rounded-md text-base text-ink-4 px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
+                    className="bg-transparent border border-hairline rounded-v2-md text-base text-ink-4 px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
                   />
                 )}
                 <input
@@ -1578,7 +1578,7 @@ function CurrentExerciseCard({
                     setDraft(n, "r", e.target.value.replace(/[^0-9]/g, ""))
                   }
                   placeholder={isHold ? holdPlaceholder : repsPlaceholder || "—"}
-                  className="bg-transparent border border-ink-2 rounded-md text-base text-ink-4 px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
+                  className="bg-transparent border border-hairline rounded-v2-md text-base text-ink-4 px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
                 />
                 <button
                   type="button"
@@ -1587,7 +1587,7 @@ function CurrentExerciseCard({
                     triggerGlowPulse(e.currentTarget);
                     void onToggleSet(ex, n);
                   }}
-                  className={`h-10 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] ${
+                  className={`h-10 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] ${
                     isLogged
                       ? "bg-ok/20 border border-ok/50 text-ok"
                       : "bg-accent/10 border border-accent/40 text-accent"
@@ -1600,7 +1600,7 @@ function CurrentExerciseCard({
                   disabled={readOnly}
                   onClick={() => onRemoveSet(n)}
                   aria-label={`Delete set ${displayed}`}
-                  className="h-10 rounded-md text-ink-3 hover:text-danger text-base disabled:opacity-40"
+                  className="h-10 rounded-v2-md text-ink-3 hover:text-danger text-base disabled:opacity-40"
                 >
                   🗑
                 </button>
@@ -1611,7 +1611,7 @@ function CurrentExerciseCard({
             <button
               type="button"
               onClick={onAddSet}
-              className="self-start mt-1 px-3 h-9 rounded-md border border-ink-2 text-ink-3 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4 hover:border-ink-3"
+              className="self-start mt-1 px-3 h-9 rounded-v2-md border border-hairline text-ink-3 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4 hover:border-ink-3"
             >
               + ADD SET
             </button>
@@ -1630,7 +1630,7 @@ function CurrentExerciseCard({
               value={duration}
               onChange={(e) => setDuration(e.target.value.replace(/[^0-9]/g, ""))}
               placeholder={String(ex.template?.default_duration_min ?? "—")}
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
             />
           </label>
           <label className="flex flex-col gap-1 col-span-1">
@@ -1650,7 +1650,7 @@ function CurrentExerciseCard({
                   ? String(ex.template.default_distance_km)
                   : "—"
               }
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
             />
           </label>
           <label className="flex flex-col gap-1 col-span-2">
@@ -1663,7 +1663,7 @@ function CurrentExerciseCard({
               value={intensity}
               onChange={(e) => setIntensity(e.target.value)}
               placeholder={ex.template?.default_intensity ?? "easy / moderate / hard"}
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-accent"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-accent"
             />
           </label>
         </div>
@@ -1676,14 +1676,14 @@ function CurrentExerciseCard({
         <button
           type="button"
           onClick={onOpenPainLog}
-          className={`mt-3 self-start inline-flex items-center gap-2 px-2 py-1 rounded-md border text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors ${
+          className={`mt-3 self-start inline-flex items-center gap-2 px-2 py-1 rounded-v2-md border text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors ${
             painLog
               ? painLog.severity >= 7
                 ? "bg-danger/15 border-danger/40 text-danger"
                 : painLog.severity >= 4
                   ? "bg-warn/15 border-warn/40 text-warn"
                   : "bg-accent/10 border-accent/40 text-accent"
-              : "bg-ink-0/40 border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+              : "bg-surface-0 border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
           }`}
           aria-expanded={false}
         >
@@ -1705,7 +1705,7 @@ function CurrentExerciseCard({
             onCommentChange(ex, e.target.value);
           }}
           placeholder="How did this feel?"
-          className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-accent resize-none"
+          className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-accent resize-none"
         />
         <label className="flex items-center gap-2 text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em]">
           <input
@@ -1724,7 +1724,7 @@ function CurrentExerciseCard({
             <button
               type="button"
               onClick={onStartRest}
-              className="h-12 px-3 rounded-md border border-ink-2 text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4"
+              className="h-12 px-3 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4"
             >
               START REST
             </button>
@@ -1740,7 +1740,7 @@ function CurrentExerciseCard({
                     intensity: intensity.trim() || null,
                   })
             }
-            className="flex-1 h-12 rounded-md bg-accent/20 border border-accent/50 text-accent text-sm font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/30"
+            className="flex-1 h-12 rounded-v2-md bg-accent/20 border border-accent/50 text-accent text-sm font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/30"
           >
             {ex.completed_at ? "✓ DONE" : "DONE — NEXT >"}
           </button>
@@ -1787,7 +1787,7 @@ function PainIndicator({
         type="button"
         disabled={disabled}
         onClick={onOpen}
-        className="mt-3 w-full flex items-center gap-2 rounded-md border border-ok/40 bg-ok/10 px-3 py-2 text-left hover:bg-ok/15 transition-colors disabled:opacity-60"
+        className="mt-3 w-full flex items-center gap-2 rounded-v2-md border border-ok/40 bg-ok/10 px-3 py-2 text-left hover:bg-ok/15 transition-colors disabled:opacity-60"
       >
         <span aria-hidden className="text-base shrink-0">
           {emoji}
@@ -1809,7 +1809,7 @@ function PainIndicator({
       type="button"
       disabled={disabled}
       onClick={onOpen}
-      className="mt-3 w-full flex items-center gap-2 rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-left hover:bg-warn/15 transition-colors disabled:opacity-60"
+      className="mt-3 w-full flex items-center gap-2 rounded-v2-md border border-warn/40 bg-warn/10 px-3 py-2 text-left hover:bg-warn/15 transition-colors disabled:opacity-60"
     >
       <span aria-hidden className="text-base shrink-0">
         ⚠
@@ -1955,10 +1955,10 @@ function TimeEditModal({
       onClick={onClose}
     >
       <div
-        className="growth-in w-full sm:max-w-sm bg-ink-1 border border-ink-2 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col"
+        className="growth-in w-full sm:max-w-sm bg-surface-1 border border-hairline rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-ink-2">
+        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
           <h2 className="text-lg italic font-[family-name:var(--font-display)] text-ink-4">
             Edit time
           </h2>
@@ -1980,7 +1980,7 @@ function TimeEditModal({
               type="datetime-local"
               value={startedInput}
               onChange={(e) => onStartedChange(e.target.value)}
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
             />
           </label>
           <label className="flex flex-col gap-1">
@@ -1991,7 +1991,7 @@ function TimeEditModal({
               type="datetime-local"
               value={endedInput}
               onChange={(e) => onEndedChange(e.target.value)}
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
             />
             {!session.completed_at ? (
               <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em]">
@@ -2013,7 +2013,7 @@ function TimeEditModal({
               value={durationInput}
               onChange={(e) => onDurationChange(e.target.value)}
               placeholder="45 or 1:15"
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
             />
           </label>
           {error && (
@@ -2022,11 +2022,11 @@ function TimeEditModal({
             </div>
           )}
         </div>
-        <footer className="px-5 py-4 border-t border-ink-2 flex gap-2">
+        <footer className="px-5 py-4 border-t border-hairline flex gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-12 rounded-md border border-ink-2 text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
+            className="flex-1 h-12 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
           >
             CANCEL
           </button>
@@ -2034,7 +2034,7 @@ function TimeEditModal({
             type="button"
             disabled={busy}
             onClick={() => void submit()}
-            className="flex-[2] h-12 rounded-md bg-accent/20 border border-accent/50 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
+            className="flex-[2] h-12 rounded-v2-md bg-accent/20 border border-accent/50 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
           >
             {busy ? "SAVING…" : "SAVE"}
           </button>
@@ -2086,10 +2086,10 @@ function AddExerciseModal({
       onClick={onClose}
     >
       <div
-        className="growth-in w-full sm:max-w-sm bg-ink-1 border border-ink-2 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col"
+        className="growth-in w-full sm:max-w-sm bg-surface-1 border border-hairline rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-ink-2">
+        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
           <h2 className="text-lg italic font-[family-name:var(--font-display)] text-ink-4">
             Add exercise
           </h2>
@@ -2112,7 +2112,7 @@ function AddExerciseModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Lat pulldown"
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent"
             />
           </label>
           <label className="flex flex-col gap-1">
@@ -2124,7 +2124,7 @@ function AddExerciseModal({
               type="text"
               value={rest}
               onChange={(e) => setRest(e.target.value.replace(/[^0-9]/g, ""))}
-              className="bg-ink-0/40 border border-ink-2 rounded-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
             />
           </label>
           <label className="flex items-center gap-2 text-sm text-ink-4">
@@ -2136,11 +2136,11 @@ function AddExerciseModal({
             Save to template
           </label>
         </div>
-        <footer className="px-5 py-4 border-t border-ink-2 flex gap-2">
+        <footer className="px-5 py-4 border-t border-hairline flex gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-12 rounded-md border border-ink-2 text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
+            className="flex-1 h-12 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
           >
             CANCEL
           </button>
@@ -2148,7 +2148,7 @@ function AddExerciseModal({
             type="button"
             disabled={!name.trim() || busy}
             onClick={() => void submit()}
-            className="flex-[2] h-12 rounded-md bg-accent/20 border border-accent/50 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
+            className="flex-[2] h-12 rounded-v2-md bg-accent/20 border border-accent/50 text-accent text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
           >
             {busy ? "SAVING…" : "ADD"}
           </button>
@@ -2178,8 +2178,8 @@ function SessionPainSection({
     return "bg-danger/15 text-danger border-danger/50";
   };
   return (
-    <section className="mt-6 rounded-2xl border border-ink-2 bg-ink-1/60">
-      <div className="px-3 py-2 border-b border-ink-2 flex items-center justify-between">
+    <section className="mt-6 rounded-2xl border border-hairline bg-surface-1">
+      <div className="px-3 py-2 border-b border-hairline flex items-center justify-between">
         <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
           Session pain notes
         </span>
@@ -2198,7 +2198,7 @@ function SessionPainSection({
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <span
-                className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border ${severityTone(
+                className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-v2-md border ${severityTone(
                   painLog.severity,
                 )}`}
               >

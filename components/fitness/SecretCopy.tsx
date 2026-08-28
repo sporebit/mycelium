@@ -27,7 +27,7 @@ export function SecretCopy({
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-md border border-ink-2 bg-ink-0/40 px-3 py-2">
+    <div className="flex items-center gap-2 rounded-v2-md border border-hairline bg-surface-0 px-3 py-2">
       <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] shrink-0">
         {label}
       </span>
@@ -37,7 +37,7 @@ export function SecretCopy({
       <button
         type="button"
         onClick={() => void copy()}
-        className="text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] px-2 py-1 rounded-md border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 shrink-0"
+        className="text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] px-2 py-1 rounded-v2-md border border-accent/40 bg-accent/15 text-accent hover:bg-accent/25 shrink-0"
       >
         {copied ? "✓ COPIED" : "COPY"}
       </button>

@@ -85,7 +85,7 @@ export function CalendarMonth({ year, month, todayKey, cells, days }: Props) {
           <Link
             href={`/fitness/calendar?month=${monthParam(prev.year, prev.month)}`}
             aria-label="Previous month"
-            className="h-9 w-9 inline-flex items-center justify-center rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
           >
             ←
           </Link>
@@ -95,14 +95,14 @@ export function CalendarMonth({ year, month, todayKey, cells, days }: Props) {
           <Link
             href={`/fitness/calendar?month=${monthParam(next.year, next.month)}`}
             aria-label="Next month"
-            className="h-9 w-9 inline-flex items-center justify-center rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
           >
             →
           </Link>
           {monthParam(year, month) !== todayMonth && (
             <Link
               href="/fitness/calendar"
-              className="ml-2 px-3 h-9 inline-flex items-center rounded-md border border-ink-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+              className="ml-2 px-3 h-9 inline-flex items-center rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
             >
               TODAY
             </Link>
@@ -112,7 +112,7 @@ export function CalendarMonth({ year, month, todayKey, cells, days }: Props) {
         <div
           role="tablist"
           aria-label="Calendar view"
-          className="flex rounded-md border border-ink-2 overflow-hidden text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          className="flex rounded-v2-md border border-hairline overflow-hidden text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
         >
           <span
             role="tab"
@@ -125,18 +125,18 @@ export function CalendarMonth({ year, month, todayKey, cells, days }: Props) {
             href="/fitness"
             role="tab"
             aria-selected="false"
-            className="px-3 py-2 text-ink-3 hover:text-ink-4 hover:bg-ink-2/40 transition-colors"
+            className="px-3 py-2 text-ink-3 hover:text-ink-4 hover:bg-surface-2 transition-colors"
           >
             WEEK
           </Link>
         </div>
       </header>
 
-      <div className="grid grid-cols-7 gap-px bg-ink-2 rounded-md overflow-hidden">
+      <div className="grid grid-cols-7 gap-px bg-ink-2 rounded-v2-md overflow-hidden">
         {DOW_LABELS.map((d) => (
           <div
             key={d}
-            className="bg-ink-1 px-2 py-1.5 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] text-center"
+            className="bg-surface-1 px-2 py-1.5 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] text-center"
           >
             {d}
           </div>
@@ -154,7 +154,7 @@ export function CalendarMonth({ year, month, todayKey, cells, days }: Props) {
               key={cell}
               href={`/fitness/calendar/${cell}`}
               prefetch={false}
-              className={`group bg-ink-1 min-h-[96px] sm:min-h-[112px] p-1.5 sm:p-2 flex flex-col gap-1 transition-colors hover:bg-ink-2/40 relative ${
+              className={`group bg-surface-1 min-h-[96px] sm:min-h-[112px] p-1.5 sm:p-2 flex flex-col gap-1 transition-colors hover:bg-surface-2 relative ${
                 isInMonth ? "" : "opacity-40"
               } ${isToday ? "ring-2 ring-glow-2 z-10" : ""}`}
             >

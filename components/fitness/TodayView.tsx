@@ -281,7 +281,7 @@ export function TodayView({
 
   if (error) {
     return (
-      <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
+      <div className="rounded-v2-md border border-danger/40 bg-danger/10 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
         ⚠ {error}
       </div>
     );
@@ -314,12 +314,12 @@ export function TodayView({
       </div>
 
       {isFuture && (
-        <div className="rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-text-1 italic font-[family-name:var(--font-display)]">
+        <div className="rounded-v2-md border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-text-1 italic font-[family-name:var(--font-display)]">
           Future plan — sessions become startable on the day.
         </div>
       )}
       {isPast && (
-        <div className="rounded-md border border-ink-2 bg-ink-0/30 px-3 py-2 text-sm text-text-1 italic font-[family-name:var(--font-display)]">
+        <div className="rounded-v2-md border border-hairline bg-ink-0/30 px-3 py-2 text-sm text-text-1 italic font-[family-name:var(--font-display)]">
           Past day — completed sessions remain editable; planned-only entries are marked missed.
         </div>
       )}
@@ -364,7 +364,7 @@ export function TodayView({
       {toast && (
         <div
           role="status"
-          className={`growth-in fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
+          className={`growth-in fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-v2-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
             toast.kind === "ok"
               ? "bg-ok/20 text-ok border border-ok/40"
               : "bg-danger/20 text-danger border border-danger/40"
@@ -474,7 +474,7 @@ function SlotSection({
       <button
         type="button"
         onClick={onAdd}
-        className="self-start px-3 py-1.5 rounded-md border border-ink-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+        className="self-start px-3 py-1.5 rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
       >
         + ADD SESSION
       </button>
@@ -545,7 +545,7 @@ function SortableSessionCard(props: {
     <article
       ref={setNodeRef}
       style={style}
-      className={`growth-in rounded-md bg-ink-1 p-5 flex flex-col gap-3 group/card ${
+      className={`growth-in rounded-v2-md bg-surface-1 p-5 flex flex-col gap-3 group/card ${
         isDragging ? "ring-1 ring-glow-2/60 shadow-2xl" : ""
       }`}
     >
@@ -563,7 +563,7 @@ function SortableSessionCard(props: {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span
-              className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border ${kindVisual.bgClass} ${kindVisual.textClass} ${kindVisual.borderClass}`}
+              className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-v2-md border ${kindVisual.bgClass} ${kindVisual.textClass} ${kindVisual.borderClass}`}
             >
               {kindVisual.icon} {kindVisual.label}
             </span>
@@ -579,7 +579,7 @@ function SortableSessionCard(props: {
             )}
             {isAttempted && (
               <span
-                className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-warn/40 bg-warn/15 text-warn"
+                className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-v2-md border border-warn/40 bg-warn/15 text-warn"
                 title="Marked as attempted — started over 48h ago, never finished"
               >
                 ATTEMPTED
@@ -668,7 +668,7 @@ function SortableSessionCard(props: {
         ) : isAttempted && entry.logged_session_id ? (
           <Link
             href={`/fitness/log/${entry.logged_session_id}`}
-            className="text-[10px] uppercase tracking-[0.18em] text-warn font-[family-name:var(--font-mono)] hover:text-text-0 px-2 py-1 rounded-md border border-warn/40 bg-warn/15"
+            className="text-[10px] uppercase tracking-[0.18em] text-warn font-[family-name:var(--font-mono)] hover:text-text-0 px-2 py-1 rounded-v2-md border border-warn/40 bg-warn/15"
           >
             {label}
           </Link>
@@ -685,7 +685,7 @@ function SortableSessionCard(props: {
             if (isMissed || isPlannedFuture) {
               return (
                 <span
-                  className={`text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-2 py-1 rounded-md border shrink-0 ${
+                  className={`text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-2 py-1 rounded-v2-md border shrink-0 ${
                     isMissed
                       ? "border-ink-3 text-ink-3 opacity-60"
                       : "border-warn/40 bg-warn/10 text-warn"

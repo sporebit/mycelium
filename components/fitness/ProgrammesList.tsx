@@ -121,10 +121,10 @@ export function ProgrammesList() {
           <button
             type="button"
             onClick={() => setShowArchived((v) => !v)}
-            className={`px-3 py-1.5 rounded-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
+            className={`px-3 py-1.5 rounded-v2-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
               showArchived
                 ? "border-accent/40 bg-accent/15 text-accent"
-                : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
             }`}
           >
             {showArchived ? "HIDE ARCHIVED" : "SHOW ARCHIVED"}
@@ -133,7 +133,7 @@ export function ProgrammesList() {
             type="button"
             onClick={runSeed}
             disabled={seeding}
-            className="px-3 py-1.5 rounded-md border border-ink-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1.5 rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             {seeding ? "SEEDING…" : "SEED"}
           </button>
@@ -152,12 +152,12 @@ export function ProgrammesList() {
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="New programme name…"
-          className="flex-1 max-w-md bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 placeholder:text-ink-3 px-3 py-1.5 outline-none focus:border-ink-3"
+          className="flex-1 max-w-md bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 placeholder:text-ink-3 px-3 py-1.5 outline-none focus:border-ink-3"
         />
         <button
           type="submit"
           disabled={!newName.trim() || creating}
-          className="px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
         >
           + NEW
         </button>
@@ -229,7 +229,7 @@ export function ProgrammesList() {
       {toast && (
         <div
           role="status"
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-v2-md text-sm shadow-2xl font-[family-name:var(--font-mono)] ${
             toast.kind === "success"
               ? "bg-ok/20 text-ok border border-ok/40"
               : "bg-danger/20 text-danger border border-danger/40"

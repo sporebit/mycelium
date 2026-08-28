@@ -46,7 +46,7 @@ function MiniSparkline({ values }: { values: number[] }) {
     .join(" ");
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="w-[60px] h-7 shrink-0" preserveAspectRatio="none">
-      <path d={path} fill="none" stroke="var(--glow-0)" strokeWidth="1.5" />
+      <path d={path} fill="none" stroke="var(--glow)" strokeWidth="1.5" />
     </svg>
   );
 }
@@ -141,18 +141,18 @@ export function ExercisesListClient() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search exercises…"
-          className="w-48 bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-1.5 outline-none focus:border-ink-3 placeholder:text-ink-3"
+          className="w-48 bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-1.5 outline-none focus:border-ink-3 placeholder:text-ink-3"
         />
       </header>
 
-      <div className="flex items-center gap-1 rounded-md border border-ink-2 overflow-x-auto self-start flex-nowrap">
+      <div className="flex items-center gap-1 rounded-v2-md border border-hairline overflow-x-auto self-start flex-nowrap">
         <button
           type="button"
           onClick={() => setFilter("all")}
           className={`shrink-0 px-3 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
             filter === "all"
               ? "bg-accent/15 text-accent"
-              : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/40"
+              : "text-ink-3 hover:text-ink-4 hover:bg-surface-2"
           }`}
         >
           ALL
@@ -165,7 +165,7 @@ export function ExercisesListClient() {
             className={`shrink-0 px-3 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
               filter === g
                 ? "bg-accent/15 text-accent"
-                : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/40"
+                : "text-ink-3 hover:text-ink-4 hover:bg-surface-2"
             }`}
           >
             {MUSCLE_GROUP_LABEL[g].toUpperCase()}
@@ -178,7 +178,7 @@ export function ExercisesListClient() {
           Loading…
         </div>
       ) : visible.length === 0 ? (
-        <div className="rounded-md bg-ink-1 p-12 text-center">
+        <div className="rounded-v2-md bg-surface-1 p-12 text-center">
           <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
             {exercises.length === 0
               ? "No exercises logged yet."
@@ -191,7 +191,7 @@ export function ExercisesListClient() {
             <li key={ex.slug}>
               <Link
                 href={`/fitness/exercises/${ex.slug}`}
-                className="group relative block bg-ink-1 border border-ink-2 hover:border-ink-3 rounded-md p-4 transition-colors"
+                className="group relative block bg-surface-1 border border-hairline hover:border-ink-3 rounded-v2-md p-4 transition-colors"
               >
                 <button
                   type="button"
@@ -210,13 +210,13 @@ export function ExercisesListClient() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="text-base text-ink-4 truncate">{ex.name}</div>
-                    <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5 inline-block px-1.5 py-0.5 rounded border border-ink-2">
+                    <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5 inline-block px-1.5 py-0.5 rounded border border-hairline">
                       {MUSCLE_GROUP_LABEL[ex.muscle_group as MuscleGroup] ?? ex.muscle_group}
                     </span>
                   </div>
                   <MiniSparkline values={ex.recent_weights} />
                 </div>
-                <div className="mt-3 rounded-lg bg-ink-0/40 border border-ink-2 h-[100px] flex items-center justify-center">
+                <div className="mt-3 rounded-lg bg-surface-0 border border-hairline h-[100px] flex items-center justify-center">
                   <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] uppercase">
                     Animation coming soon
                   </span>

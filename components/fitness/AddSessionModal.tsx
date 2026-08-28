@@ -158,10 +158,10 @@ export function AddSessionModal({
       onClick={onClose}
     >
       <div
-        className="growth-in w-full sm:max-w-lg bg-ink-1 border border-ink-2 rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh]"
+        className="growth-in w-full sm:max-w-lg bg-surface-1 border border-hairline rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-ink-2">
+        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
           <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-0">
             Add session to {SLOT_LABEL[slot]}
           </h2>
@@ -191,10 +191,10 @@ export function AddSessionModal({
                   key={s}
                   type="button"
                   onClick={() => setSource(s)}
-                  className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
+                  className={`px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
                     active
                       ? "border-accent/50 bg-accent/15 text-accent"
-                      : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                      : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
                   }`}
                 >
                   {label}
@@ -227,7 +227,7 @@ export function AddSessionModal({
                               className={`text-left rounded-sm px-3 py-2 flex items-center gap-2 transition-colors ${
                                 active
                                   ? "bg-accent/15 ring-1 ring-accent/40"
-                                  : "bg-ink-2/40 hover:bg-ink-2"
+                                  : "bg-surface-2 hover:bg-ink-2"
                               }`}
                             >
                               <span aria-hidden>{kv.icon}</span>
@@ -288,7 +288,7 @@ export function AddSessionModal({
                             className={`text-left rounded-sm px-3 py-2 flex items-center gap-2 transition-colors ${
                               active
                                 ? "bg-accent/15 ring-1 ring-accent/40"
-                                : "bg-ink-2/40 hover:bg-ink-2"
+                                : "bg-surface-2 hover:bg-ink-2"
                             }`}
                           >
                             <span aria-hidden>
@@ -319,10 +319,10 @@ export function AddSessionModal({
                       key={k}
                       type="button"
                       onClick={() => setKind(k)}
-                      className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors flex items-center gap-1.5 ${
+                      className={`px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors flex items-center gap-1.5 ${
                         active
                           ? `${kv.bgClass} ${kv.textClass} ${kv.borderClass}`
-                          : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                          : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
                       }`}
                     >
                       <span aria-hidden>{kv.icon}</span>
@@ -361,7 +361,7 @@ export function AddSessionModal({
           )}
         </div>
 
-        <footer className="px-5 py-4 border-t border-ink-2 flex gap-2">
+        <footer className="px-5 py-4 border-t border-hairline flex gap-2">
           <button
             type="button"
             onClick={onClose}

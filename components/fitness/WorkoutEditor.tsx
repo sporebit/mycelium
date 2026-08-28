@@ -147,7 +147,7 @@ export function WorkoutEditor({
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={saveHeader}
-          className="text-2xl text-ink-4 bg-transparent border-b border-ink-2 focus:border-accent outline-none pb-1 font-[family-name:var(--font-display)] italic"
+          className="text-2xl text-ink-4 bg-transparent border-b border-hairline focus:border-accent outline-none pb-1 font-[family-name:var(--font-display)] italic"
         />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <Field label="Default kind">
@@ -216,7 +216,7 @@ export function WorkoutEditor({
                 />
               ))}
               {exercises.length === 0 && (
-                <li className="rounded-md bg-ink-1 px-3 py-3 text-sm text-ink-3 italic font-[family-name:var(--font-display)] text-center">
+                <li className="rounded-v2-md bg-surface-1 px-3 py-3 text-sm text-ink-3 italic font-[family-name:var(--font-display)] text-center">
                   No exercises yet.
                 </li>
               )}
@@ -226,14 +226,14 @@ export function WorkoutEditor({
         <button
           type="button"
           onClick={addExercise}
-          className="mt-3 px-3 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+          className="mt-3 px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
         >
           + ADD EXERCISE
         </button>
       </section>
 
       {workout.used_in && workout.used_in.length > 0 && (
-        <section className="rounded-md bg-ink-1 border border-ink-2 p-3">
+        <section className="rounded-v2-md bg-surface-1 border border-hairline p-3">
           <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
             Used in {workout.used_in.length} programme
             {workout.used_in.length === 1 ? "" : "s"}
@@ -280,7 +280,7 @@ function ExerciseRow({
     <li
       ref={setNodeRef}
       style={style}
-      className="rounded-md bg-ink-1 border border-ink-2 px-3 py-2 flex items-start gap-2"
+      className="rounded-v2-md bg-surface-1 border border-hairline px-3 py-2 flex items-start gap-2"
     >
       <button
         type="button"
@@ -358,10 +358,10 @@ function ExerciseRow({
             onClick={() => onPatch({ is_bodyweight: !ex.is_bodyweight })}
             aria-pressed={ex.is_bodyweight}
             title="Bodyweight"
-            className={`shrink-0 px-1.5 py-1.5 rounded-md border text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] transition-colors ${
+            className={`shrink-0 px-1.5 py-1.5 rounded-v2-md border text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] transition-colors ${
               ex.is_bodyweight
                 ? "bg-accent/20 border-accent/40 text-accent"
-                : "bg-ink-0/40 border-ink-2 text-ink-3 hover:text-ink-4"
+                : "bg-surface-0 border-hairline text-ink-3 hover:text-ink-4"
             }`}
           >
             BW
