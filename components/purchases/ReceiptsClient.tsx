@@ -237,7 +237,7 @@ function ReceiptList({
               {fmtDate(r.purchased_at)}
             </Mono>
             <span className="flex-1 min-w-0 truncate text-sm text-loam-4">
-              {r.retailer ?? "Unknown retailer"}
+              {r.title ?? r.retailer ?? "Unknown retailer"}
             </span>
             <Amount value={r.total} currency={r.currency} className="text-sm" />
             <StatusBadge status={r.status} />
@@ -283,6 +283,25 @@ function ReceiptDetailView({
       reportApiError(e, "Reparse failed");
     } finally {
       setReparsing(false);
+    }
+  }
+
+  async function patchReceipt(patch: Partial<Receipt>) {
+    try {
+      const res = await fetch(`/api/receipts/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        reportApiError(new Error(j.error ?? "Could not update receipt"));
+        return;
+      }
+      await mutate();
+      onChanged();
+    } catch (e) {
+      reportApiError(e, "Could not update receipt");
     }
   }
 
@@ -344,7 +363,14 @@ function ReceiptDetailView({
       </div>
 
       <div className="flex items-baseline gap-3 flex-wrap">
-        <span className="text-lg text-loam-4">{receipt.retailer ?? "Unknown retailer"}</span>
+        <EditableTitle
+          key={receipt.id}
+          value={receipt.title}
+          onCommit={(title) => void patchReceipt({ title })}
+        />
+        <span className="text-sm text-loam-3">
+          {receipt.retailer ?? "Unknown retailer"}
+        </span>
         <Mono className="text-[11px] text-loam-3">{fmtDate(receipt.purchased_at)}</Mono>
       </div>
 
@@ -435,6 +461,50 @@ function ReceiptDetailView({
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * The receipt's hand-typed name, edited in place beside the parsed retailer.
+ *
+ * Rendered as a bare input rather than a click-to-edit toggle, matching the
+ * line cells below: the value is always where you would click to change it.
+ * Blank commits as null, which is what makes the list fall back on the
+ * retailer. Committing on blur and on Enter, and reverting on Escape, so the
+ * field behaves the way an inline edit is expected to.
+ */
+function EditableTitle({
+  value,
+  onCommit,
+}: {
+  value: string | null;
+  onCommit: (v: string | null) => void;
+}) {
+  const [draft, setDraft] = useState(value ?? "");
+
+  function commit() {
+    const next = draft.trim() || null;
+    if (next !== value) onCommit(next);
+  }
+
+  return (
+    <input
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          e.currentTarget.blur();
+        } else if (e.key === "Escape") {
+          setDraft(value ?? "");
+          e.currentTarget.blur();
+        }
+      }}
+      placeholder="Untitled receipt"
+      aria-label="Receipt title"
+      className="text-lg text-loam-4 bg-transparent outline-none rounded-v2-sm px-1 -mx-1 py-0.5 focus:bg-surface-2 placeholder:text-loam-3 placeholder:italic min-w-0 w-[22ch] max-w-full transition-colors"
+    />
   );
 }
 

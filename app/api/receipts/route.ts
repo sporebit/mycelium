@@ -5,6 +5,7 @@ import { parseReceipt } from "@/lib/receipts/parse";
 import {
   ACCEPTED_MEDIA_TYPES,
   MAX_RECEIPT_IMAGES,
+  RECEIPT_SELECT,
   RECEIPT_STATUSES,
   type ReceiptStatus,
 } from "@/lib/types/receipt";
@@ -12,9 +13,6 @@ import {
 export const runtime = "nodejs";
 // The POST parses inline, which is a multi-image vision call.
 export const maxDuration = 60;
-
-const RECEIPT_SELECT =
-  "id, user_id, retailer, purchased_at, currency, subtotal, vat_total, total, parsed_total, status, review_reason, raw_parse, created_at, updated_at";
 
 function userId(): string | null {
   return process.env.USER_ID ?? null;

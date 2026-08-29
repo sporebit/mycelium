@@ -28,9 +28,28 @@ export const MAX_RECEIPT_IMAGES = 8;
 /** Tolerance in currency units when reconciling parsed_total against total. */
 export const TOTAL_TOLERANCE = 0.05;
 
+/**
+ * Column lists for the receipt tables, shared by every route that returns one.
+ * Kept here rather than copied per route so a new column reaches all of them at
+ * once — `title` was added in 0093 and had to land in four places.
+ */
+export const RECEIPT_SELECT =
+  "id, user_id, title, retailer, purchased_at, currency, subtotal, vat_total, total, parsed_total, status, review_reason, raw_parse, created_at, updated_at";
+
+export const RECEIPT_LINE_SELECT =
+  "id, receipt_id, sort_order, item_code, description, quantity, unit_price, vat, line_total, vat_code, raw_text, created_at";
+
+export const RECEIPT_IMAGE_SELECT =
+  "id, receipt_id, storage_path, sort_order, media_type, created_at";
+
 export type Receipt = {
   id: string;
   user_id: string;
+  /**
+   * Hand-typed label. Independent of `retailer`, which the parser owns and
+   * overwrites on every reparse. Null until the user names the receipt.
+   */
+  title: string | null;
   retailer: string | null;
   purchased_at: string | null;
   currency: string;

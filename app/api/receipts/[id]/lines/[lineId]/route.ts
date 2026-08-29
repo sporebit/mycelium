@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { isReconcilable, money, reconcile } from "@/lib/receipts/reconcile";
-import type { ReceiptStatus } from "@/lib/types/receipt";
+import { RECEIPT_LINE_SELECT, type ReceiptStatus } from "@/lib/types/receipt";
 
 export const runtime = "nodejs";
-
-const LINE_SELECT =
-  "id, receipt_id, sort_order, item_code, description, quantity, unit_price, vat, line_total, vat_code, raw_text, created_at";
 
 const ALLOWED_FIELDS = new Set([
   "description",
@@ -69,7 +66,7 @@ export async function PATCH(
       .update(patch)
       .eq("id", lineId)
       .eq("receipt_id", id)
-      .select(LINE_SELECT)
+      .select(RECEIPT_LINE_SELECT)
       .maybeSingle();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

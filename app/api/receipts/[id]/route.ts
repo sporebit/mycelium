@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { getSignedUrl, removeReceiptImages } from "@/lib/storage/receipts";
-import type { ReceiptImage, ReceiptImageWithUrl } from "@/lib/types/receipt";
+import {
+  RECEIPT_IMAGE_SELECT,
+  RECEIPT_LINE_SELECT,
+  RECEIPT_SELECT,
+  type ReceiptImage,
+  type ReceiptImageWithUrl,
+} from "@/lib/types/receipt";
 
 export const runtime = "nodejs";
 
-const RECEIPT_SELECT =
-  "id, user_id, retailer, purchased_at, currency, subtotal, vat_total, total, parsed_total, status, review_reason, raw_parse, created_at, updated_at";
-
-const LINE_SELECT =
-  "id, receipt_id, sort_order, item_code, description, quantity, unit_price, vat, line_total, vat_code, raw_text, created_at";
-
-const ALLOWED_FIELDS = new Set(["retailer", "purchased_at", "total"]);
+const ALLOWED_FIELDS = new Set(["title", "retailer", "purchased_at", "total"]);
 
 function userId(): string | null {
   return process.env.USER_ID ?? null;
@@ -40,13 +40,13 @@ export async function GET(
 
     const { data: imageRows } = await supabase
       .from("receipt_images")
-      .select("id, receipt_id, storage_path, sort_order, media_type, created_at")
+      .select(RECEIPT_IMAGE_SELECT)
       .eq("receipt_id", id)
       .order("sort_order", { ascending: true });
 
     const { data: lines } = await supabase
       .from("receipt_lines")
-      .select(LINE_SELECT)
+      .select(RECEIPT_LINE_SELECT)
       .eq("receipt_id", id)
       .order("sort_order", { ascending: true });
 
@@ -81,7 +81,15 @@ export async function PATCH(
 
   const patch: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
-    if (ALLOWED_FIELDS.has(k)) patch[k] = v;
+    if (!ALLOWED_FIELDS.has(k)) continue;
+    // Clearing the title field in the UI sends "", which has to reach the
+    // column as NULL — otherwise the list would fall back on an empty string
+    // instead of on the retailer.
+    if (k === "title" && typeof v === "string") {
+      patch[k] = v.trim() || null;
+      continue;
+    }
+    patch[k] = v;
   }
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "no valid fields" }, { status: 400 });
