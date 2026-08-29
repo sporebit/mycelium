@@ -38,15 +38,18 @@ const STATUS_LABEL: Record<ReceiptStatus, string> = {
  * the same call Spending uses, so receipts redact identically to the rest of
  * finance rather than merely similarly.
  *
- * Note that "balance" renders its own "£" and ignores the receipt's currency
- * column — a USD or EUR receipt displays a pound sign. That is inherited from
- * Money, not decided here.
+ * format="amount" is for the reconciliation delta, which is signed and reads
+ * better as -£1.23 than as £-1.23.
  */
 function Amount({
   value,
+  currency = "GBP",
+  format = "balance",
   className = "",
 }: {
   value: number | null | undefined;
+  currency?: string;
+  format?: "balance" | "amount";
   className?: string;
 }) {
   if (value === null || value === undefined) {
@@ -54,7 +57,7 @@ function Amount({
   }
   return (
     <span className={className}>
-      <Money value={Number(value)} format="balance" />
+      <Money value={Number(value)} format={format} currency={currency} />
     </span>
   );
 }
@@ -236,7 +239,7 @@ function ReceiptList({
             <span className="flex-1 min-w-0 truncate text-sm text-loam-4">
               {r.retailer ?? "Unknown retailer"}
             </span>
-            <Amount value={r.total} className="text-sm" />
+            <Amount value={r.total} currency={r.currency} className="text-sm" />
             <StatusBadge status={r.status} />
           </button>
         </li>
@@ -379,16 +382,18 @@ function ReceiptDetailView({
       >
         <div className="flex flex-col">
           <Mono className="text-[9px] tracking-[0.18em] text-loam-3">RECEIPT TOTAL</Mono>
-          <Amount value={receipt.total} className="text-sm" />
+          <Amount value={receipt.total} currency={receipt.currency} className="text-sm" />
         </div>
         <div className="flex flex-col">
           <Mono className="text-[9px] tracking-[0.18em] text-loam-3">LINES ADD UP TO</Mono>
-          <Amount value={receipt.parsed_total} className="text-sm" />
+          <Amount value={receipt.parsed_total} currency={receipt.currency} className="text-sm" />
         </div>
         <div className="flex flex-col">
           <Mono className="text-[9px] tracking-[0.18em] text-loam-3">DIFFERENCE</Mono>
           <Amount
             value={delta}
+            currency={receipt.currency}
+            format="amount"
             className={`text-sm ${reconciled ? "text-glow" : "text-warn"}`}
           />
         </div>
@@ -477,7 +482,7 @@ function LineRow({
   ) =>
     financeHidden ? (
       <div className="text-right">
-        <Money value={stored ?? 0} format="balance" />
+        <Money value={stored ?? 0} format="balance" currency={currency} />
       </div>
     ) : (
       <input
