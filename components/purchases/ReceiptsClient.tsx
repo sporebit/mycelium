@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { useApi } from "@/lib/data/useApi";
 import { reportApiError } from "@/lib/data/apiWrite";
 import { Mono } from "@/components/dashboard/Mono";
@@ -81,8 +82,10 @@ function fmtDate(iso: string | null): string {
   });
 }
 
-export function ReceiptsClient() {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+export function ReceiptsClient({ focusId = null }: { focusId?: string | null }) {
+  // A receipt named in the URL opens straight away — this is what the balances
+  // breakdown links to, so a row there lands on the receipt it describes.
+  const [selectedId, setSelectedId] = useState<string | null>(focusId);
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -191,9 +194,17 @@ export function ReceiptsClient() {
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
-          Receipts
-        </h1>
+        <div className="flex items-baseline gap-3 flex-wrap">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+            Receipts
+          </h1>
+          <Link
+            href="/organisation/receipts/balances"
+            className="text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] text-loam-3 hover:text-loam-4 transition-colors"
+          >
+            Balances →
+          </Link>
+        </div>
         <p className="text-sm text-loam-3 italic font-[family-name:var(--font-display)]">
           Photograph a till receipt and it is read into lines.
         </p>
