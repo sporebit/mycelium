@@ -103,11 +103,86 @@ export type ReceiptLine = {
   created_at: string;
 };
 
+export const RECEIPT_PARTICIPANT_SELECT =
+  "id, receipt_id, person_id, default_share_pct, created_at";
+
+export const RECEIPT_LINE_SHARE_SELECT =
+  "id, receipt_line_id, person_id, share_pct, units, created_at";
+
+export const RECEIPT_SETTLEMENT_SELECT =
+  "id, user_id, person_id, amount, paid_at, transaction_id, note, created_at";
+
+/**
+ * Someone other than the owner who is on this receipt. The owner has no row —
+ * his portion of every line is the remainder. See 0094_receipt_splits.sql.
+ */
+export type ReceiptParticipant = {
+  id: string;
+  receipt_id: string;
+  person_id: string;
+  /** Null means "split evenly with whoever else is tagged on the line". */
+  default_share_pct: number | null;
+  created_at: string;
+};
+
+/** A participant with the person's name attached, for rendering chips. */
+export type ReceiptParticipantWithPerson = ReceiptParticipant & {
+  display_name: string;
+};
+
+/** One person's claim on one line. Exactly one of share_pct and units is set. */
+export type ReceiptLineShare = {
+  id: string;
+  receipt_line_id: string;
+  person_id: string;
+  share_pct: number | null;
+  units: number | null;
+  created_at: string;
+};
+
+/** A share priced against its line. */
+export type ReceiptLineShareWithAmount = ReceiptLineShare & {
+  amount: number;
+};
+
+export type ReceiptSettlement = {
+  id: string;
+  user_id: string;
+  person_id: string;
+  amount: number;
+  paid_at: string;
+  transaction_id: string | null;
+  note: string | null;
+  created_at: string;
+};
+
 /** Shape returned by GET /api/receipts/[id]. */
 export type ReceiptDetail = {
   receipt: Receipt;
   images: ReceiptImageWithUrl[];
   lines: ReceiptLine[];
+  participants: ReceiptParticipantWithPerson[];
+  shares: ReceiptLineShare[];
+};
+
+/** One receipt's contribution to a person's balance. */
+export type BalanceReceiptBreakdown = {
+  receipt_id: string;
+  title: string | null;
+  retailer: string | null;
+  purchased_at: string | null;
+  currency: string;
+  owed: number;
+};
+
+/** Per-person totals returned by GET /api/receipts/balances. */
+export type PersonBalance = {
+  person_id: string;
+  display_name: string;
+  owed: number;
+  paid: number;
+  outstanding: number;
+  receipts: BalanceReceiptBreakdown[];
 };
 
 /**
