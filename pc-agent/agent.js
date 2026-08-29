@@ -56,6 +56,14 @@ if (!secret || secret === SECRET_PLACEHOLDER) {
   process.exit(1);
 }
 
+/**
+ * Which machine these readings describe. Defaults to the desktop this agent
+ * was written for; a second reporter (the Raspberry Pi) overrides it in
+ * config.js. Sent on every POST so rows are attributable at write time —
+ * backfilling identity onto anonymous rows later would be guesswork.
+ */
+const machineId = String(config.MACHINE_ID || "desktop").trim() || "desktop";
+
 /** 60s unless config overrides. M5 will let the server drive this. */
 const DEFAULT_POLL_INTERVAL_MS = 60000;
 const pollIntervalMs =
@@ -135,6 +143,7 @@ async function collectAndSend() {
       }));
 
     const payload = {
+      machine_id: machineId,
       cpu_usage: cpu.currentLoad != null ? +cpu.currentLoad.toFixed(1) : null,
       cpu_temp: cpuTemp.main != null ? +cpuTemp.main.toFixed(1) : null,
       cpu_clock_mhz:
@@ -203,7 +212,8 @@ async function collectAndSend() {
 
 console.log(
   `Mycelium PC Agent started (interval ${pollIntervalMs / 1000}s, ` +
-    `secret from ${secretSource}, ${secret.length} chars)`,
+    `machine ${machineId}, secret from ${secretSource}, ` +
+    `${secret.length} chars)`,
 );
 collectAndSend();
 setInterval(collectAndSend, pollIntervalMs);
