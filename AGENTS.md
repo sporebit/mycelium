@@ -27,6 +27,8 @@ Run `npx next build` and wait for it to succeed. If it fails, fix the underlying
 
 Do not set `eslint.ignoreDuringBuilds` in `next.config.*` to sidestep this. The gate is the point.
 
+Run `rm -rf .next` before `npx next build`. A warm `.next` fails reproducibly (serwist); a failure without a clean cache is not evidence of a code problem.
+
 ## Database migrations
 
 This project uses the Supabase CLI. Migration files live in `supabase/migrations/`, numbered `NNNN_description.sql`.
