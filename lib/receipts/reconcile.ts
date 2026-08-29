@@ -38,8 +38,11 @@ export function reconcile(
 /**
  * Whether a receipt's status may be recomputed from its lines.
  *
- * Two states are terminal as far as a line edit is concerned:
+ * Three states are off limits as far as a line edit is concerned:
  *
+ * - 'parsing' — a reparse is mid-flight. It deletes and re-inserts the whole
+ *   line set, so a sum taken now may cover a partial set, and any status
+ *   written now is overwritten seconds later by the parse itself.
  * - 'failed' — the parse never produced a trustworthy line set, so the sum of
  *   whatever lines exist says nothing about the receipt. Re-running the rule
  *   on a failed receipt with a null total would silently relabel it
@@ -55,5 +58,7 @@ export function isReconcilable(
   status: ReceiptStatus,
   reviewReason: string | null,
 ): boolean {
-  return status !== "failed" && reviewReason !== "no_total";
+  return (
+    status !== "failed" && status !== "parsing" && reviewReason !== "no_total"
+  );
 }
