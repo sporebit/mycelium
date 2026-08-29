@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useApi } from "@/lib/data/useApi";
 import { reportApiError } from "@/lib/data/apiWrite";
 import { Mono } from "@/components/dashboard/Mono";
-import { Num } from "@/components/ui/Num";
+import { Money } from "@/components/finance/Money";
 import { usePrivacy } from "@/lib/context/PrivacyContext";
 import {
   ACCEPTED_MEDIA_TYPES,
@@ -33,26 +33,20 @@ const STATUS_LABEL: Record<ReceiptStatus, string> = {
   failed: "FAILED",
 };
 
-function symbolFor(currency: string): string {
-  return currency === "USD" ? "$" : currency === "EUR" ? "€" : "£";
-}
-
 /**
- * Every monetary value on this screen goes through <Num/>, so receipts redact
- * with the rest of finance when privacy is on.
+ * Every monetary value on this screen goes through <Money format="balance"/>,
+ * the same call Spending uses, so receipts redact identically to the rest of
+ * finance rather than merely similarly.
  *
- * format="plain" with decimals={2} rather than format="currency": Money's
- * currency branch hardcodes maximumFractionDigits: 0, which would render
- * £84.31 as "£84" and make penny-level reconciliation meaningless. The symbol
- * is rendered alongside, so a masked value still reads "£•••••".
+ * Note that "balance" renders its own "£" and ignores the receipt's currency
+ * column — a USD or EUR receipt displays a pound sign. That is inherited from
+ * Money, not decided here.
  */
 function Amount({
   value,
-  currency = "GBP",
   className = "",
 }: {
   value: number | null | undefined;
-  currency?: string;
   className?: string;
 }) {
   if (value === null || value === undefined) {
@@ -60,8 +54,7 @@ function Amount({
   }
   return (
     <span className={className}>
-      {symbolFor(currency)}
-      <Num value={Number(value)} decimals={2} />
+      <Money value={Number(value)} format="balance" />
     </span>
   );
 }
@@ -243,7 +236,7 @@ function ReceiptList({
             <span className="flex-1 min-w-0 truncate text-sm text-loam-4">
               {r.retailer ?? "Unknown retailer"}
             </span>
-            <Amount value={r.total} currency={r.currency} className="text-sm" />
+            <Amount value={r.total} className="text-sm" />
             <StatusBadge status={r.status} />
           </button>
         </li>
@@ -386,17 +379,16 @@ function ReceiptDetailView({
       >
         <div className="flex flex-col">
           <Mono className="text-[9px] tracking-[0.18em] text-loam-3">RECEIPT TOTAL</Mono>
-          <Amount value={receipt.total} currency={receipt.currency} className="text-sm" />
+          <Amount value={receipt.total} className="text-sm" />
         </div>
         <div className="flex flex-col">
           <Mono className="text-[9px] tracking-[0.18em] text-loam-3">LINES ADD UP TO</Mono>
-          <Amount value={receipt.parsed_total} currency={receipt.currency} className="text-sm" />
+          <Amount value={receipt.parsed_total} className="text-sm" />
         </div>
         <div className="flex flex-col">
           <Mono className="text-[9px] tracking-[0.18em] text-loam-3">DIFFERENCE</Mono>
           <Amount
             value={delta}
-            currency={receipt.currency}
             className={`text-sm ${reconciled ? "text-glow" : "text-warn"}`}
           />
         </div>
@@ -472,7 +464,7 @@ function LineRow({
 
   /**
    * Monetary cells are editable inputs normally, but render as a masked
-   * <Num/> while finance privacy is on — an input whose value is dots cannot
+   * <Money/> while finance privacy is on — an input whose value is dots cannot
    * be meaningfully edited, and leaving them editable would leak the figures
    * the masking is meant to hide.
    */
@@ -485,7 +477,7 @@ function LineRow({
   ) =>
     financeHidden ? (
       <div className="text-right">
-        <Num value={stored ?? 0} decimals={2} />
+        <Money value={stored ?? 0} format="balance" />
       </div>
     ) : (
       <input
