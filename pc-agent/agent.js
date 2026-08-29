@@ -1,7 +1,60 @@
 const si = require("systeminformation");
 const config = require("./config");
 
-const secret = process.env.PC_METRICS_SECRET || config.PC_METRICS_SECRET;
+/**
+ * Placeholder shipped in config.js. Treated as "not configured" — an agent
+ * running with this value authenticates as nobody and 401s forever.
+ */
+const SECRET_PLACEHOLDER = "REPLACE_WITH_YOUR_SECRET";
+
+const secretSource = process.env.PC_METRICS_SECRET ? "environment" : "config.js";
+const secret = (
+  process.env.PC_METRICS_SECRET ||
+  config.PC_METRICS_SECRET ||
+  ""
+).trim();
+
+/**
+ * Refuse to start without a real secret.
+ *
+ * Previously the agent would start happily with the placeholder, POST every
+ * cycle, take a 401, and log it as just another send failure — indistinguishable
+ * from the server being down. The service showed "Running" the whole time. Under
+ * node-windows there is no console to watch, so a misconfigured agent was
+ * completely invisible until someone noticed the dashboard had gone stale.
+ *
+ * Exit non-zero so the Windows SCM records a failed start instead of a service
+ * that is "up" and doing nothing.
+ */
+if (!secret || secret === SECRET_PLACEHOLDER) {
+  const reason = secret
+    ? "PC_METRICS_SECRET is still the template placeholder"
+    : "PC_METRICS_SECRET is not set";
+  console.error(
+    [
+      "",
+      "==============================================================",
+      ` FATAL: ${reason}.`,
+      "",
+      " The agent will NOT start. Running without a real secret means",
+      " every POST is rejected with 401 and no metrics are ever stored.",
+      "",
+      " Fix (elevated PowerShell):",
+      '   [System.Environment]::SetEnvironmentVariable(',
+      '     "PC_METRICS_SECRET", "<the secret>", "Machine")',
+      "",
+      " Then restart the service so it picks up the new variable:",
+      "   net stop MyceliumPCAgent && net start MyceliumPCAgent",
+      "",
+      " A Machine-scope variable is only visible to processes started",
+      " after it was set. An already-running shell or service will not",
+      " see it.",
+      "==============================================================",
+      "",
+    ].join("\n"),
+  );
+  process.exit(1);
+}
 
 /** 60s unless config overrides. M5 will let the server drive this. */
 const DEFAULT_POLL_INTERVAL_MS = 60000;
@@ -131,6 +184,14 @@ async function collectAndSend() {
 
     if (res.ok) {
       console.log(`✓ Metrics sent [${new Date().toISOString()}]`);
+    } else if (res.status === 401 || res.status === 403) {
+      // Distinct from a transport failure: the agent is running, the server is
+      // reachable, and it is rejecting us. Say so, or this reads as flakiness.
+      console.error(
+        `✗ Server rejected the agent secret (${res.status}). The value from ` +
+          `${secretSource} does not match PC_METRICS_SECRET on the server. ` +
+          `No metrics are being stored.`,
+      );
     } else {
       const text = await res.text();
       console.error(`✗ Failed to send metrics: ${res.status} ${text}`);
@@ -140,6 +201,9 @@ async function collectAndSend() {
   }
 }
 
-console.log(`Mycelium PC Agent started (interval ${pollIntervalMs / 1000}s)`);
+console.log(
+  `Mycelium PC Agent started (interval ${pollIntervalMs / 1000}s, ` +
+    `secret from ${secretSource}, ${secret.length} chars)`,
+);
 collectAndSend();
 setInterval(collectAndSend, pollIntervalMs);
