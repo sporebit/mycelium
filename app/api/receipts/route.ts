@@ -5,6 +5,8 @@ import { storeReceiptImages, validateReceiptFiles } from "@/lib/receipts/upload"
 import {
   RECEIPT_SELECT,
   RECEIPT_STATUSES,
+  type Receipt,
+  type ReceiptListItem,
   type ReceiptStatus,
 } from "@/lib/types/receipt";
 
@@ -44,7 +46,31 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ receipts: data ?? [] });
+
+    // Page counts come back in one extra round trip and are counted here,
+    // matching how /api/people attaches its alias and mention counts. The merge
+    // confirmation needs them to say how many images it is about to combine.
+    const receipts = (data ?? []) as Receipt[];
+    const countById = new Map<string, number>();
+    if (receipts.length > 0) {
+      const { data: imageRows } = await supabase
+        .from("receipt_images")
+        .select("receipt_id")
+        .in(
+          "receipt_id",
+          receipts.map((r) => r.id),
+        );
+      for (const row of (imageRows ?? []) as { receipt_id: string }[]) {
+        countById.set(row.receipt_id, (countById.get(row.receipt_id) ?? 0) + 1);
+      }
+    }
+
+    const withCounts: ReceiptListItem[] = receipts.map((r) => ({
+      ...r,
+      image_count: countById.get(r.id) ?? 0,
+    }));
+
+    return NextResponse.json({ receipts: withCounts });
   } catch (err) {
     console.error("[receipts GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });

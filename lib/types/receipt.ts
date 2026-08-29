@@ -65,6 +65,15 @@ export type Receipt = {
   updated_at: string;
 };
 
+/**
+ * A receipt as the list endpoint returns it. The page count is attached there
+ * rather than stored, and the merge confirmation reads it to say how many
+ * images it is about to combine.
+ */
+export type ReceiptListItem = Receipt & {
+  image_count: number;
+};
+
 export type ReceiptImage = {
   id: string;
   receipt_id: string;

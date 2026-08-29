@@ -12,6 +12,7 @@ import {
   type Receipt,
   type ReceiptDetail,
   type ReceiptLine,
+  type ReceiptListItem,
   type ReceiptStatus,
 } from "@/lib/types/receipt";
 
@@ -77,14 +78,71 @@ export function ReceiptsClient() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [merging, setMerging] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const { data: listData, isLoading, mutate: mutateList } =
-    useApi<{ receipts?: Receipt[] }>(LIST_KEY);
-  const receipts = useMemo<Receipt[]>(
+    useApi<{ receipts?: ReceiptListItem[] }>(LIST_KEY);
+  const receipts = useMemo<ReceiptListItem[]>(
     () => (Array.isArray(listData?.receipts) ? listData.receipts : []),
     [listData],
   );
+
+  const toggleChecked = useCallback((id: string) => {
+    setChecked((cur) => {
+      const next = new Set(cur);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  /**
+   * Merges the checked receipts into the earliest-created one. The confirmation
+   * states the page count because that is what makes the result predictable:
+   * the survivor ends up holding every page of every receipt named, and is
+   * re-read from all of them at once.
+   */
+  const merge = useCallback(async () => {
+    const ids = receipts.filter((r) => checked.has(r.id)).map((r) => r.id);
+    if (ids.length < 2) return;
+
+    const images = receipts
+      .filter((r) => checked.has(r.id))
+      .reduce((sum, r) => sum + (r.image_count ?? 0), 0);
+
+    const ok = window.confirm(
+      `Merge ${ids.length} receipts into one?\n\n` +
+        `${images} image${images === 1 ? "" : "s"} will be combined onto the earliest receipt and read again. ` +
+        `The other ${ids.length - 1} receipt${ids.length - 1 === 1 ? "" : "s"} will be deleted. This cannot be undone.`,
+    );
+    if (!ok) return;
+
+    setMerging(true);
+    try {
+      const res = await fetch("/api/receipts/merge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        receipt?: Receipt;
+        error?: string;
+      };
+      if (!res.ok) {
+        reportApiError(new Error(json.error ?? `Merge failed (${res.status})`));
+        return;
+      }
+      setChecked(new Set());
+      await mutateList();
+      if (json.receipt) setSelectedId(json.receipt.id);
+    } catch (e) {
+      reportApiError(e, "Merge failed");
+    } finally {
+      setMerging(false);
+    }
+  }, [checked, receipts, mutateList]);
 
   const upload = useCallback(
     async (files: FileList | File[]) => {
@@ -185,6 +243,11 @@ export function ReceiptsClient() {
           receipts={receipts}
           loading={isLoading}
           onOpen={(id) => setSelectedId(id)}
+          selected={checked}
+          onToggle={toggleChecked}
+          onClearSelection={() => setChecked(new Set())}
+          onMerge={() => void merge()}
+          merging={merging}
         />
       )}
     </div>
@@ -201,14 +264,29 @@ function StatusBadge({ status }: { status: ReceiptStatus }) {
   );
 }
 
+/** What the list calls a receipt: its title if it has one, else the retailer. */
+function receiptLabel(r: Receipt): string {
+  return r.title ?? r.retailer ?? "Unknown retailer";
+}
+
 function ReceiptList({
   receipts,
   loading,
   onOpen,
+  selected,
+  onToggle,
+  onClearSelection,
+  onMerge,
+  merging,
 }: {
-  receipts: Receipt[];
+  receipts: ReceiptListItem[];
   loading: boolean;
   onOpen: (id: string) => void;
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+  onClearSelection: () => void;
+  onMerge: () => void;
+  merging: boolean;
 }) {
   if (loading) {
     return (
@@ -225,26 +303,75 @@ function ReceiptList({
     );
   }
   return (
-    <ul className="flex flex-col rounded-v2-lg border border-hairline overflow-hidden">
-      {receipts.map((r) => (
-        <li key={r.id}>
+    <div className="flex flex-col gap-2">
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 flex-wrap px-1">
+          <Mono className="text-[11px] tracking-[0.18em] text-loam-3">
+            {selected.size} SELECTED
+          </Mono>
           <button
             type="button"
-            onClick={() => onOpen(r.id)}
-            className="w-full flex items-center gap-3 px-4 py-3 text-left bg-surface-1 hover:bg-surface-2 border-b border-hairline last:border-b-0 transition-colors"
+            onClick={onMerge}
+            disabled={selected.size < 2 || merging}
+            title={
+              selected.size < 2
+                ? "Select at least two receipts to merge"
+                : "Combine these into one receipt"
+            }
+            className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-2 text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] text-loam-4 hover:bg-surface-3 disabled:opacity-50 transition-colors"
           >
-            <Mono className="text-[11px] text-loam-3 w-24 shrink-0">
-              {fmtDate(r.purchased_at)}
-            </Mono>
-            <span className="flex-1 min-w-0 truncate text-sm text-loam-4">
-              {r.title ?? r.retailer ?? "Unknown retailer"}
-            </span>
-            <Amount value={r.total} currency={r.currency} className="text-sm" />
-            <StatusBadge status={r.status} />
+            {merging ? "Merging…" : "Merge"}
           </button>
-        </li>
-      ))}
-    </ul>
+          <button
+            type="button"
+            onClick={onClearSelection}
+            disabled={merging}
+            className="text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] text-loam-3 hover:text-loam-4 disabled:opacity-50 transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
+      <ul className="flex flex-col rounded-v2-lg border border-hairline overflow-hidden">
+        {receipts.map((r) => (
+          <li
+            key={r.id}
+            className="flex items-center bg-surface-1 hover:bg-surface-2 border-b border-hairline last:border-b-0 transition-colors"
+          >
+            {/*
+              The checkbox sits outside the row button rather than inside it —
+              interactive controls cannot nest, and a click to select must not
+              also open the receipt.
+            */}
+            <label className="flex items-center pl-4 pr-1 py-3 cursor-pointer shrink-0">
+              <input
+                type="checkbox"
+                checked={selected.has(r.id)}
+                onChange={() => onToggle(r.id)}
+                disabled={merging}
+                aria-label={`Select ${receiptLabel(r)}`}
+                className="h-3.5 w-3.5 accent-glow cursor-pointer"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => onOpen(r.id)}
+              className="flex-1 min-w-0 flex items-center gap-3 px-3 py-3 text-left"
+            >
+              <Mono className="text-[11px] text-loam-3 w-24 shrink-0">
+                {fmtDate(r.purchased_at)}
+              </Mono>
+              <span className="flex-1 min-w-0 truncate text-sm text-loam-4">
+                {receiptLabel(r)}
+              </span>
+              <Amount value={r.total} currency={r.currency} className="text-sm" />
+              <StatusBadge status={r.status} />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
