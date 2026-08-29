@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
+import { DEFAULT_INTERVAL_S, offlineThresholdS } from "@/lib/studio/pcMetrics";
 
 type Metric = {
   recorded_at: string;
@@ -50,7 +51,8 @@ export function PCOverviewCard() {
   }, [metric]);
   const isOnline =
     metric && now > 0 &&
-    now - new Date(metric.recorded_at).getTime() < 120_000;
+    now - new Date(metric.recorded_at).getTime() <
+      offlineThresholdS(DEFAULT_INTERVAL_S) * 1000;
 
   if (!loaded) {
     return (

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mono } from "@/components/dashboard/Mono";
+import { DEFAULT_INTERVAL_S, offlineThresholdS } from "@/lib/studio/pcMetrics";
 import {
   ResponsiveContainer,
   Area,
@@ -43,6 +44,33 @@ function formatUptime(seconds: number): string {
   if (h > 0) parts.push(`${h}h`);
   parts.push(`${m}m`);
   return parts.join(" ");
+}
+
+/**
+ * Same d/h/m/s shape as formatUptime, but carrying seconds, because "last
+ * updated" is usually seconds old and occasionally three weeks old. The old
+ * inline version topped out at minutes, so a fortnight offline read "31054m".
+ */
+function formatAgo(seconds: number): string {
+  if (seconds < 5) return "just now";
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const sec = Math.floor(seconds % 60);
+  const parts: string[] = [];
+  if (d > 0) parts.push(`${d}d`);
+  if (h > 0) parts.push(`${h}h`);
+  if (m > 0) parts.push(`${m}m`);
+  // Seconds only matter when nothing larger dominates the reading.
+  if (d === 0 && h === 0) parts.push(`${sec}s`);
+  return `${parts.join(" ")} ago`;
+}
+
+/** null stays null: a missing reading is a gap, never a zero. */
+function numOrNull(v: number | null | undefined): number | null {
+  if (v === null || v === undefined) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
 }
 
 function tempColour(temp: number | null): string {
@@ -152,13 +180,21 @@ export default function PCDashboardPage() {
     return () => clearInterval(tick);
   }, []);
 
-  const isOffline = !current || secondsAgo > 120;
+  const isOffline = !current || secondsAgo > offlineThresholdS(DEFAULT_INTERVAL_S);
 
-  const chartData = [...history].reverse().map((m) => ({
-    cpu: Number(m.cpu_usage) || 0,
-    gpu: Number(m.gpu_usage) || 0,
-    ram: m.ram_total_gb ? (Number(m.ram_used_gb) / Number(m.ram_total_gb)) * 100 : 0,
-  }));
+  // Number(x) || 0 turned every missing reading into a hard zero, so an agent
+  // that was down for an hour drew a confident 0% line instead of a gap — and
+  // a genuine 0% was indistinguishable from no data at all. Recharts renders
+  // null as a break in the line while connectNulls stays false.
+  const chartData = [...history].reverse().map((m) => {
+    const used = numOrNull(m.ram_used_gb);
+    const total = numOrNull(m.ram_total_gb);
+    return {
+      cpu: numOrNull(m.cpu_usage),
+      gpu: numOrNull(m.gpu_usage),
+      ram: used !== null && total !== null && total > 0 ? (used / total) * 100 : null,
+    };
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -229,7 +265,8 @@ export default function PCDashboardPage() {
                   /{current.ram_total_gb !== null ? `${Number(current.ram_total_gb).toFixed(0)}` : "—"} GB
                 </span>
               </div>
-              {current.ram_total_gb && current.ram_used_gb && (
+              {current.ram_total_gb != null && current.ram_used_gb != null &&
+                Number(current.ram_total_gb) > 0 && (
                 <div className="w-full h-1.5 bg-ink-2 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${
@@ -339,11 +376,7 @@ export default function PCDashboardPage() {
             <div className="rounded-v2-md bg-surface-1 px-4 py-3">
               <Mono className="text-[10px] text-ink-3 mb-1">LAST UPDATED</Mono>
               <div className="text-sm text-text-0 font-[family-name:var(--font-display)]">
-                {secondsAgo < 5
-                  ? "just now"
-                  : secondsAgo < 60
-                    ? `${secondsAgo}s ago`
-                    : `${Math.floor(secondsAgo / 60)}m ${secondsAgo % 60}s ago`}
+                {formatAgo(secondsAgo)}
               </div>
             </div>
             {current.gpu_vram_used_mb != null && current.gpu_vram_total_mb != null && (
