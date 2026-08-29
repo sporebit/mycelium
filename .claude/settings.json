@@ -1,4 +1,12 @@
 {
+  "worktree": {
+    "baseRef": "head"
+  },
+  "permissions": {
+    "deny": [
+      "Bash(supabase db reset:*)"
+    ]
+  },
   "hooks": {
     "Stop": [
       {
