@@ -75,45 +75,53 @@ it contradicts this.
 
 ---
 
-## M2 — MIGRATION: machine_id, RLS, GET auth ⬜
+## M2 — MIGRATION: machine_id, RLS, GET auth ✅
 
-1. ⬜ **Migration.** Add `machine_id text NOT NULL DEFAULT 'desktop'` to
+1. ✅ **Migration.** (`0094`) Add `machine_id text NOT NULL DEFAULT 'desktop'` to
    `pc_metrics`. Composite index on `(machine_id, recorded_at DESC)`. Enable
    RLS with deny-all + `service_role` grant, matching the neighbouring tables'
    pattern exactly — `0074` is currently the only table in the schema without
    RLS.
-2. ⬜ **Agent** sends `machine_id` from config, defaulting to `'desktop'`.
-3. ⬜ **GET auth.** `GET /api/studio/pc-metrics` requires *either* the site's
+2. ✅ **Agent** sends `machine_id` from config, defaulting to `'desktop'`.
+3. ✅ **GET auth.** `GET /api/studio/pc-metrics` requires *either* the site's
    session auth *or* `Authorization: Bearer PC_METRICS_SECRET`. No anonymous
    access — it is currently fully public via `PUBLIC_PREFIXES` and leaks the
    raw dump. The bearer path exists because a headless Raspberry Pi device will
    consume this endpoint later. Support a `?machine=` filter; the response
    includes the list of known `machine_id`s.
-4. ⬜ **Dashboard** machine selector, rendered only when more than one machine
+4. ✅ **Dashboard** machine selector, rendered only when more than one machine
    exists.
 
 ---
 
-## M3 — RETENTION & HISTORY ⬜
+## M3 — RETENTION & HISTORY ✅
 
-1. ⬜ Check whether `pg_cron` is available on this Supabase project.
-2. ⬜ Remove the delete-on-POST. Retention: raw rows kept 48h; a new
+1. ✅ `pg_cron` **is** available (1.6.4) and was not previously installed. **pg_cron was used** — no Vercel cron route was needed.
+2. ✅ (`0095`) Removed the delete-on-POST. Retention: raw rows kept 48h; a new
    `pc_metrics_hourly` rollup table (avg + max per metric, per machine) kept
    90d. Both maintained by `pg_cron` — or a Vercel cron route if `pg_cron` is
    unavailable. **Flag which was used.**
-3. ⬜ GET gains `?range=live|24h|7d`. `live` returns raw rows; `24h` and `7d`
+3. ✅ GET gains `?range=live|24h|7d`. `live` returns raw rows; `24h` and `7d`
    return bucketed series from the rollup.
-4. ⬜ Dashboard range toggle on the charts. Null gaps stay gaps — do not
+4. ✅ Dashboard range toggle on the charts. Missing hours are emitted as explicit null buckets, server-side, because the charts carry no time axis and would otherwise close a gap into a straight line. Null gaps stay gaps — do not
    interpolate across missing samples.
 
 ---
 
-## M4 — TEMPS, FANS, POWER ⬜
+## M4 — TEMPS, FANS, POWER 🚧 at checkpoint
 
-1. ⬜ Install LibreHardwareMonitor (winget if packaged, else the latest GitHub
-   release). Run elevated at startup, Remote Web Server bound to
-   `127.0.0.1:8085` only.
-2. ✋ **CHECKPOINT — STOP HERE.** Dump `data.json` and report which sensors
+1. ✅ Installed LibreHardwareMonitor 0.9.6 via winget (package
+   `LibreHardwareMonitor.LibreHardwareMonitor`; it pulled the PawnIO driver as
+   a dependency). Runs elevated at logon via the scheduled task
+   `LibreHardwareMonitor (Mycelium)` (RunLevel Highest).
+
+   **`listenerIp=127.0.0.1` is not honoured** — LHM binds `::` regardless, so
+   the web server listens on every interface. Loopback-only is therefore
+   enforced by an inbound block rule on TCP 8085,
+   `Block LibreHardwareMonitor web server (non-loopback)`. Block rules outrank
+   allow rules in Windows Firewall, and loopback traffic is never filtered, so
+   the agent still reads `data.json` locally while off-box access is denied.
+2. ✋ **CHECKPOINT — REACHED, awaiting review.** Dump `data.json` and report which sensors
    this ROG STRIX B550-F actually exposes (CPU temp, VRM, chipset, fan RPMs)
    before designing any UI.
 3. ⬜ *After the checkpoint:* agent reads `data.json` each cycle. Supplies
@@ -137,6 +145,23 @@ it contradicts this.
    dry IT-helpdesk error card (rotating messages are fine, e.g.
    `ERR_PC_UNREACHABLE: have you tried turning it on?`) with the real
    last-seen time underneath. **The joke never hides the timestamp.**
+
+---
+
+## Schema drift found and repaired
+
+Two things had reached the live database without passing through the repo:
+
+- **`0093_receipt_title`** existed in remote migration history with no local
+  file, which blocked `supabase db push` outright. Recovered verbatim from the
+  SQL that `supabase_migrations.schema_migrations` stores alongside each
+  version, and committed. The fix the CLI suggests,
+  `migration repair --status reverted 0093`, would have recorded a falsehood:
+  the column exists and nothing was reverted.
+- **RLS was already enabled on `pc_metrics`** with zero policies, contrary to
+  the premise that 0074 was the only table without it. Deny-by-default was
+  therefore already in force; `0094` adds the explicit restrictive policy the
+  neighbouring tables carry.
 
 ---
 
