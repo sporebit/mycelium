@@ -1,18 +1,25 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { useApi } from "@/lib/data/useApi";
 import { reportApiError } from "@/lib/data/apiWrite";
 import { Mono } from "@/components/dashboard/Mono";
 import { Money } from "@/components/finance/Money";
 import { usePrivacy } from "@/lib/context/PrivacyContext";
 import {
+  LineShareChips,
+  ParticipantsStrip,
+  SplitFooter,
+} from "@/components/purchases/ReceiptSplits";
+import {
   ACCEPTED_MEDIA_TYPES,
   MAX_RECEIPT_IMAGES,
   type Receipt,
   type ReceiptDetail,
   type ReceiptLine,
+  type ReceiptLineShare,
   type ReceiptListItem,
+  type ReceiptParticipantWithPerson,
   type ReceiptStatus,
 } from "@/lib/types/receipt";
 
@@ -388,6 +395,7 @@ function ReceiptDetailView({
   const { data, isLoading, mutate } = useApi<ReceiptDetail>(key);
   const [reparsing, setReparsing] = useState(false);
   const [addingPhotos, setAddingPhotos] = useState(false);
+  const [splitBusy, setSplitBusy] = useState(false);
   const addFileRef = useRef<HTMLInputElement | null>(null);
 
   const receipt = data?.receipt ?? null;
@@ -396,6 +404,54 @@ function ReceiptDetailView({
     [data],
   );
   const images = useMemo(() => (Array.isArray(data?.images) ? data.images : []), [data]);
+  const participants = useMemo<ReceiptParticipantWithPerson[]>(
+    () => (Array.isArray(data?.participants) ? data.participants : []),
+    [data],
+  );
+  const shares = useMemo<ReceiptLineShare[]>(
+    () => (Array.isArray(data?.shares) ? data.shares : []),
+    [data],
+  );
+  const sharesByLine = useMemo(() => {
+    const map = new Map<string, ReceiptLineShare[]>();
+    for (const s of shares) {
+      const list = map.get(s.receipt_line_id) ?? [];
+      list.push(s);
+      map.set(s.receipt_line_id, list);
+    }
+    return map;
+  }, [shares]);
+
+  /**
+   * Every split mutation refetches the whole receipt rather than patching local
+   * state: tagging one person re-divides everybody else on that line, so the
+   * server's answer is the only thing that reflects the change in full.
+   */
+  async function splitAction(
+    path: string,
+    method: "POST" | "PUT" | "DELETE",
+    body?: unknown,
+    failure = "Could not update the split",
+  ) {
+    setSplitBusy(true);
+    try {
+      const res = await fetch(path, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        reportApiError(new Error(j.error ?? failure));
+        return;
+      }
+      await mutate();
+    } catch (e) {
+      reportApiError(e, failure);
+    } finally {
+      setSplitBusy(false);
+    }
+  }
 
   async function reparse() {
     setReparsing(true);
@@ -611,6 +667,27 @@ function ReceiptDetailView({
         </div>
       </div>
 
+      <ParticipantsStrip
+        participants={participants}
+        busy={splitBusy}
+        onAdd={(personId) =>
+          void splitAction(
+            `/api/receipts/${id}/participants`,
+            "POST",
+            { person_id: personId },
+            "Could not add that person",
+          )
+        }
+        onRemove={(personId) =>
+          void splitAction(
+            `/api/receipts/${id}/participants?person_id=${encodeURIComponent(personId)}`,
+            "DELETE",
+            undefined,
+            "Could not remove that person",
+          )
+        }
+      />
+
       {/* Lines */}
       {lines.length === 0 ? (
         <p className="text-sm text-loam-3 italic font-[family-name:var(--font-display)] py-8 text-center">
@@ -640,12 +717,66 @@ function ReceiptDetailView({
                   line={l}
                   currency={receipt.currency}
                   onPatch={(patch) => void patchLine(l.id, patch)}
+                  splits={
+                    <LineShareChips
+                      line={l}
+                      participants={participants}
+                      shares={sharesByLine.get(l.id) ?? []}
+                      currency={receipt.currency}
+                      busy={splitBusy}
+                      onTag={(personId) =>
+                        void splitAction(
+                          `/api/receipts/${id}/lines/${l.id}/tag`,
+                          "POST",
+                          { person_id: personId },
+                          "Could not tag that person",
+                        )
+                      }
+                      onUntag={(personId) =>
+                        void splitAction(
+                          `/api/receipts/${id}/lines/${l.id}/tag`,
+                          "DELETE",
+                          { person_id: personId },
+                          "Could not untag that person",
+                        )
+                      }
+                      onSetShare={(personId, next) => {
+                        // The PUT replaces the line's whole set, so the other
+                        // shares have to be sent back alongside the new one.
+                        const existing = (sharesByLine.get(l.id) ?? []).filter(
+                          (s) => s.person_id !== personId,
+                        );
+                        void splitAction(
+                          `/api/receipts/${id}/lines/${l.id}/shares`,
+                          "PUT",
+                          {
+                            shares: [
+                              ...existing.map((s) => ({
+                                person_id: s.person_id,
+                                share_pct: s.share_pct,
+                                units: s.units,
+                              })),
+                              { person_id: personId, ...next },
+                            ],
+                          },
+                          "Could not set that share",
+                        );
+                      }}
+                    />
+                  }
                 />
               ))}
             </tbody>
           </table>
         </div>
       )}
+
+      <SplitFooter
+        lines={lines}
+        participants={participants}
+        shares={shares}
+        currency={receipt.currency}
+      />
     </div>
   );
 }
@@ -698,10 +829,13 @@ function LineRow({
   line,
   currency,
   onPatch,
+  splits,
 }: {
   line: ReceiptLine;
   currency: string;
   onPatch: (patch: Partial<ReceiptLine>) => void;
+  /** The chips for this line, rendered under the description. */
+  splits?: ReactNode;
 }) {
   const [description, setDescription] = useState(line.description);
   const [quantity, setQuantity] = useState(String(line.quantity ?? ""));
@@ -769,6 +903,7 @@ function LineRow({
         {line.item_code && (
           <Mono className="text-[9px] text-loam-3">{line.item_code}</Mono>
         )}
+        {splits}
       </td>
       <td className="px-3 py-1.5 w-16">
         <input
