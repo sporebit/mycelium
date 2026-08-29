@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { getSignedUrl, removeReceiptImages } from "@/lib/storage/receipts";
+import { namesFor } from "@/lib/receipts/participants";
 import {
   RECEIPT_IMAGE_SELECT,
   RECEIPT_LINE_SELECT,
+  RECEIPT_LINE_SHARE_SELECT,
+  RECEIPT_PARTICIPANT_SELECT,
   RECEIPT_SELECT,
   type ReceiptImage,
   type ReceiptImageWithUrl,
+  type ReceiptLineShare,
+  type ReceiptParticipant,
+  type ReceiptParticipantWithPerson,
 } from "@/lib/types/receipt";
 
 export const runtime = "nodejs";
@@ -57,7 +63,38 @@ export async function GET(
       })),
     );
 
-    return NextResponse.json({ receipt, images, lines: lines ?? [] });
+    // Participants and every line's shares travel with the detail response so
+    // the split UI renders in one round trip rather than one per line.
+    const { data: participantRows } = await supabase
+      .from("receipt_participants")
+      .select(RECEIPT_PARTICIPANT_SELECT)
+      .eq("receipt_id", id)
+      .order("created_at", { ascending: true });
+
+    const participantList = (participantRows ?? []) as ReceiptParticipant[];
+    const names = await namesFor(participantList.map((p) => p.person_id));
+    const participants: ReceiptParticipantWithPerson[] = participantList.map((p) => ({
+      ...p,
+      display_name: names.get(p.person_id) ?? "Unknown",
+    }));
+
+    const lineIds = ((lines ?? []) as { id: string }[]).map((l) => l.id);
+    let shares: ReceiptLineShare[] = [];
+    if (lineIds.length > 0) {
+      const { data: shareRows } = await supabase
+        .from("receipt_line_shares")
+        .select(RECEIPT_LINE_SHARE_SELECT)
+        .in("receipt_line_id", lineIds);
+      shares = (shareRows ?? []) as ReceiptLineShare[];
+    }
+
+    return NextResponse.json({
+      receipt,
+      images,
+      lines: lines ?? [],
+      participants,
+      shares,
+    });
   } catch (err) {
     console.error("[receipts/[id] GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });

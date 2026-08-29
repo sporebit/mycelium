@@ -169,17 +169,23 @@ export function validateShares(
  * tagging a third person re-divides the remainder rather than leaving the
  * first two over-claiming.
  *
+ * `reservedPct` is a slice of the line already spoken for by something this
+ * function does not otherwise see — in practice a unit share, which is fixed
+ * by the goods rather than by the split. Reserving it keeps the percentage
+ * people from dividing up a portion that is not theirs to divide.
+ *
  * Returns percentages, not amounts: this is what gets stored, and it stays
  * correct if the line total is later corrected.
  */
 export function evenSplitPcts(
   tagged: { person_id: string; default_share_pct: number | null }[],
+  reservedPct = 0,
 ): { person_id: string; share_pct: number }[] {
   const fixed = tagged.filter((t) => t.default_share_pct !== null);
   const floating = tagged.filter((t) => t.default_share_pct === null);
 
   const fixedTotal = fixed.reduce((sum, t) => sum + (t.default_share_pct ?? 0), 0);
-  const remaining = Math.max(0, 100 - fixedTotal);
+  const remaining = Math.max(0, 100 - fixedTotal - Math.max(0, reservedPct));
   const each = floating.length > 0 ? remaining / floating.length : 0;
 
   return [
