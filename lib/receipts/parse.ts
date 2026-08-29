@@ -1,8 +1,8 @@
 import { MODEL_VISION } from "@/lib/config/models";
 import { createServerClient } from "@/lib/supabase/server";
 import { downloadReceiptImage } from "@/lib/storage/receipts";
+import { money, reconcile } from "@/lib/receipts/reconcile";
 import {
-  TOTAL_TOLERANCE,
   type ParseOutcome,
   type ParsedReceipt,
   type ParsedReceiptLine,
@@ -112,11 +112,6 @@ export function normaliseParsed(raw: unknown): ParsedReceipt | null {
     total: num(r.total),
     lines,
   };
-}
-
-/** Rounds to 2dp without floating-point tails (0.1 + 0.2 style). */
-function money(n: number): number {
-  return Math.round(n * 100) / 100;
 }
 
 type ImageInput = { buffer: Buffer; mediaType: string };
@@ -257,17 +252,9 @@ export async function parseReceipt(receiptId: string): Promise<ParseOutcome> {
     parsed.lines.reduce((sum, l) => sum + (l.line_total ?? 0), 0),
   );
 
-  // Reconciliation. A receipt whose lines do not add up to its printed total
-  // is not trustworthy enough to file silently.
-  let status: ParseOutcome["status"] = "parsed";
-  let reviewReason: string | null = null;
-  if (parsed.total === null) {
-    status = "needs_review";
-    reviewReason = "no_total";
-  } else if (Math.abs(parsedTotal - parsed.total) > TOTAL_TOLERANCE) {
-    status = "needs_review";
-    reviewReason = "total_mismatch";
-  }
+  // Reconciliation. Shared with the line-edit route so an edited receipt is
+  // judged by exactly the same rule the parse applied.
+  const { status, review_reason: reviewReason } = reconcile(parsedTotal, parsed.total);
 
   await supabase
     .from("receipts")

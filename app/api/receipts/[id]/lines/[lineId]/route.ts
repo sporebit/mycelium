@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { isReconcilable, money, reconcile } from "@/lib/receipts/reconcile";
+import type { ReceiptStatus } from "@/lib/types/receipt";
 
 export const runtime = "nodejs";
 
@@ -46,13 +48,20 @@ export async function PATCH(
     const supabase = createServerClient();
 
     // receipt_lines has no user_id of its own, so ownership is checked on the
-    // parent receipt before anything is written.
+    // parent receipt before anything is written. The reconciliation columns are
+    // selected in the same round trip because the edit below has to re-judge
+    // the receipt against its printed total.
     const { data: parent } = await supabase
       .from("receipts")
-      .select("id")
+      .select("id, total, status, review_reason")
       .eq("id", id)
       .eq("user_id", uid)
-      .maybeSingle();
+      .maybeSingle<{
+        id: string;
+        total: number | null;
+        status: ReceiptStatus;
+        review_reason: string | null;
+      }>();
     if (!parent) return NextResponse.json({ error: "not found" }, { status: 404 });
 
     const { data, error } = await supabase
@@ -74,20 +83,44 @@ export async function PATCH(
       .select("line_total")
       .eq("receipt_id", id);
 
-    const parsedTotal =
-      Math.round(
-        ((allLines ?? []) as { line_total: number | null }[]).reduce(
-          (sum, l) => sum + (Number(l.line_total) || 0),
-          0,
-        ) * 100,
-      ) / 100;
+    const parsedTotal = money(
+      ((allLines ?? []) as { line_total: number | null }[]).reduce(
+        (sum, l) => sum + (Number(l.line_total) || 0),
+        0,
+      ),
+    );
 
-    await supabase
-      .from("receipts")
-      .update({ parsed_total: parsedTotal, updated_at: new Date().toISOString() })
-      .eq("id", id);
+    // A new parsed_total means the old status is a stale judgement, so the
+    // parser's own rule is re-run over the edited figures — an edit that brings
+    // the lines back within tolerance clears 'total_mismatch' by itself, and one
+    // that breaks them raises it. 'failed' and 'no_total' are left alone: see
+    // isReconcilable().
+    const update: Record<string, unknown> = {
+      parsed_total: parsedTotal,
+      updated_at: new Date().toISOString(),
+    };
+    let status: ReceiptStatus = parent.status;
+    let reviewReason: string | null = parent.review_reason;
 
-    return NextResponse.json({ line: data, parsed_total: parsedTotal });
+    if (isReconcilable(parent.status, parent.review_reason)) {
+      const outcome = reconcile(
+        parsedTotal,
+        parent.total === null ? null : Number(parent.total),
+      );
+      status = outcome.status;
+      reviewReason = outcome.review_reason;
+      update.status = status;
+      update.review_reason = reviewReason;
+    }
+
+    await supabase.from("receipts").update(update).eq("id", id);
+
+    return NextResponse.json({
+      line: data,
+      parsed_total: parsedTotal,
+      status,
+      review_reason: reviewReason,
+    });
   } catch (err) {
     console.error("[receipts/[id]/lines/[lineId] PATCH]", err);
     return NextResponse.json({ error: "update failed" }, { status: 500 });
