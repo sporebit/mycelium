@@ -260,6 +260,8 @@ function ReceiptDetailView({
   const key = `/api/receipts/${id}`;
   const { data, isLoading, mutate } = useApi<ReceiptDetail>(key);
   const [reparsing, setReparsing] = useState(false);
+  const [addingPhotos, setAddingPhotos] = useState(false);
+  const addFileRef = useRef<HTMLInputElement | null>(null);
 
   const receipt = data?.receipt ?? null;
   const lines = useMemo<ReceiptLine[]>(
@@ -283,6 +285,38 @@ function ReceiptDetailView({
       reportApiError(e, "Reparse failed");
     } finally {
       setReparsing(false);
+    }
+  }
+
+  /**
+   * Appends pages to this receipt. The endpoint reparses, so the whole line
+   * set is replaced — any hand edits made to the lines before this are lost,
+   * which is why the button says what it does before it does it.
+   */
+  async function addPhotos(files: FileList | File[]) {
+    const list = Array.from(files);
+    if (list.length === 0) return;
+
+    const form = new FormData();
+    for (const f of list) form.append("images", f);
+
+    setAddingPhotos(true);
+    try {
+      const res = await fetch(`/api/receipts/${id}/images`, {
+        method: "POST",
+        body: form,
+      });
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        reportApiError(new Error(json.error ?? `Could not add photos (${res.status})`));
+        return;
+      }
+      await mutate();
+      onChanged();
+    } catch (e) {
+      reportApiError(e, "Could not add photos");
+    } finally {
+      setAddingPhotos(false);
     }
   }
 
@@ -352,11 +386,36 @@ function ReceiptDetailView({
         {receipt.review_reason && (
           <Mono className="text-[10px] text-warn">{receipt.review_reason}</Mono>
         )}
+        <input
+          ref={addFileRef}
+          type="file"
+          multiple
+          accept={ACCEPTED_MEDIA_TYPES.join(",")}
+          capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files?.length) void addPhotos(e.target.files);
+            e.target.value = "";
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => addFileRef.current?.click()}
+          disabled={addingPhotos || reparsing || images.length >= MAX_RECEIPT_IMAGES}
+          title={
+            images.length >= MAX_RECEIPT_IMAGES
+              ? `This receipt already has the maximum of ${MAX_RECEIPT_IMAGES} pages`
+              : "Add more pages and read the receipt again"
+          }
+          className="ml-auto px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-2 text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] text-loam-4 hover:bg-surface-3 disabled:opacity-50 transition-colors"
+        >
+          {addingPhotos ? "Adding…" : "Add photos"}
+        </button>
         <button
           type="button"
           onClick={() => void reparse()}
-          disabled={reparsing}
-          className="ml-auto px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-2 text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] text-loam-4 hover:bg-surface-3 disabled:opacity-50 transition-colors"
+          disabled={reparsing || addingPhotos}
+          className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-2 text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] text-loam-4 hover:bg-surface-3 disabled:opacity-50 transition-colors"
         >
           {reparsing ? "Reparsing…" : "Reparse"}
         </button>
