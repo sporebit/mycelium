@@ -36,6 +36,10 @@ type Metric = {
   drives: Drive[] | null;
 };
 
+/** Live raw samples, or a bucketed series read back from the hourly rollup. */
+const RANGES = ["live", "24h", "7d"] as const;
+type Range = (typeof RANGES)[number];
+
 function formatUptime(seconds: number): string {
   const d = Math.floor(seconds / 86400);
   const h = Math.floor((seconds % 86400) / 3600);
@@ -152,14 +156,15 @@ export default function PCDashboardPage() {
   // null means "whatever reported most recently". Only pinned to a specific
   // machine once there is more than one to choose between.
   const [selected, setSelected] = useState<string | null>(null);
+  const [range, setRange] = useState<Range>("live");
   const [secondsAgo, setSecondsAgo] = useState(0);
   const lastUpdate = useRef<number>(0);
 
   const load = useCallback(async () => {
     try {
-      const url = selected
-        ? `/api/studio/pc-metrics?machine=${encodeURIComponent(selected)}`
-        : "/api/studio/pc-metrics";
+      const qs = new URLSearchParams({ range });
+      if (selected) qs.set("machine", selected);
+      const url = `/api/studio/pc-metrics?${qs.toString()}`;
       const r = await fetch(url, { cache: "no-store" });
       if (!r.ok) return;
       const j = await r.json();
@@ -173,7 +178,7 @@ export default function PCDashboardPage() {
       }
       if (j.current) lastUpdate.current = new Date(j.current.recorded_at).getTime();
     } catch { /* noop */ }
-  }, [selected]);
+  }, [selected, range]);
 
   useEffect(() => {
     let cancelled = false;
@@ -332,7 +337,24 @@ export default function PCDashboardPage() {
 
           {/* Row 2: Sparklines */}
           {chartData.length > 1 && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-1 self-end">
+                {RANGES.map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRange(r)}
+                    className={`rounded-v2-md px-2 py-1 transition-colors ${
+                      range === r
+                        ? "bg-surface-1 text-text-0"
+                        : "text-ink-3 hover:text-text-0"
+                    }`}
+                  >
+                    <Mono className="text-[10px]">{r.toUpperCase()}</Mono>
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 { key: "cpu" as const, label: "CPU USAGE", colour: "#84f5b8" },
                 { key: "gpu" as const, label: "GPU USAGE", colour: "#6db8f5" },
@@ -361,6 +383,7 @@ export default function PCDashboardPage() {
                   </ResponsiveContainer>
                 </div>
               ))}
+              </div>
             </div>
           )}
 
