@@ -5,14 +5,30 @@ import { usePrivacy } from "@/lib/context/PrivacyContext";
 
 type MoneyFormat = "currency" | "signed" | "percent" | "pence" | "amount" | "balance";
 
-const REDACTED: Record<MoneyFormat, string> = {
-  currency: "£•••••",
-  signed: "•£••••",
-  percent: "••.••%",
-  pence: "•••.•p",
-  amount: "•£•••.••",
-  balance: "£•••.••",
-};
+const SYMBOLS: Record<string, string> = { GBP: "£", EUR: "€", USD: "$" };
+
+/** Falls back to the code itself for a currency with no symbol mapped. */
+function symbolFor(currency: string): string {
+  return SYMBOLS[currency] ?? currency;
+}
+
+function redacted(format: MoneyFormat, currency: string): string {
+  const sym = symbolFor(currency);
+  switch (format) {
+    case "currency":
+      return `${sym}•••••`;
+    case "signed":
+      return `•${sym}••••`;
+    case "percent":
+      return "••.••%";
+    case "pence":
+      return "•••.•p";
+    case "amount":
+      return `•${sym}•••.••`;
+    case "balance":
+      return `${sym}•••.••`;
+  }
+}
 
 function fmt(value: number, format: MoneyFormat, currency: string, decimals: number): string {
   switch (format) {
@@ -34,11 +50,12 @@ function fmt(value: number, format: MoneyFormat, currency: string, decimals: num
     case "pence":
       return `${value.toFixed(1)}p`;
     case "amount": {
+      const sym = symbolFor(currency);
       const abs = Math.abs(value).toFixed(2);
-      return value >= 0 ? `+£${abs}` : `-£${abs}`;
+      return value >= 0 ? `+${sym}${abs}` : `-${sym}${abs}`;
     }
     case "balance":
-      return `£${Number(value).toFixed(2)}`;
+      return `${symbolFor(currency)}${Number(value).toFixed(2)}`;
   }
 }
 
@@ -87,7 +104,7 @@ export function Money({
         style={{ minWidth: "6ch" }}
         aria-label="Hidden value"
       >
-        {REDACTED[format]}
+        {redacted(format, currency)}
       </span>
     );
   }
