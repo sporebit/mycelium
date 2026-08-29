@@ -4,6 +4,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useApi } from "@/lib/data/useApi";
 import { reportApiError } from "@/lib/data/apiWrite";
 import { Mono } from "@/components/dashboard/Mono";
+import { Num } from "@/components/ui/Num";
+import { usePrivacy } from "@/lib/context/PrivacyContext";
 import {
   ACCEPTED_MEDIA_TYPES,
   MAX_RECEIPT_IMAGES,
@@ -14,10 +16,6 @@ import {
 } from "@/lib/types/receipt";
 
 const LIST_KEY = "/api/receipts";
-
-/** Amounts use --font-mono, which resolves to Berkeley Mono where installed. */
-const AMOUNT_CLS =
-  "font-[family-name:var(--font-mono)] tabular-nums text-loam-4";
 
 const STATUS_TONE: Record<ReceiptStatus, string> = {
   uploaded: "bg-loam-2 text-loam-3 border-hairline",
@@ -35,10 +33,37 @@ const STATUS_LABEL: Record<ReceiptStatus, string> = {
   failed: "FAILED",
 };
 
-function money(v: number | null | undefined, currency = "GBP"): string {
-  if (v === null || v === undefined) return "—";
-  const symbol = currency === "USD" ? "$" : currency === "EUR" ? "€" : "£";
-  return `${symbol}${Number(v).toFixed(2)}`;
+function symbolFor(currency: string): string {
+  return currency === "USD" ? "$" : currency === "EUR" ? "€" : "£";
+}
+
+/**
+ * Every monetary value on this screen goes through <Num/>, so receipts redact
+ * with the rest of finance when privacy is on.
+ *
+ * format="plain" with decimals={2} rather than format="currency": Money's
+ * currency branch hardcodes maximumFractionDigits: 0, which would render
+ * £84.31 as "£84" and make penny-level reconciliation meaningless. The symbol
+ * is rendered alongside, so a masked value still reads "£•••••".
+ */
+function Amount({
+  value,
+  currency = "GBP",
+  className = "",
+}: {
+  value: number | null | undefined;
+  currency?: string;
+  className?: string;
+}) {
+  if (value === null || value === undefined) {
+    return <span className={className}>—</span>;
+  }
+  return (
+    <span className={className}>
+      {symbolFor(currency)}
+      <Num value={Number(value)} decimals={2} />
+    </span>
+  );
 }
 
 function fmtDate(iso: string | null): string {
@@ -218,9 +243,7 @@ function ReceiptList({
             <span className="flex-1 min-w-0 truncate text-sm text-loam-4">
               {r.retailer ?? "Unknown retailer"}
             </span>
-            <span className={`${AMOUNT_CLS} text-sm`}>
-              {money(r.total, r.currency)}
-            </span>
+            <Amount value={r.total} currency={r.currency} className="text-sm" />
             <StatusBadge status={r.status} />
           </button>
         </li>
@@ -363,25 +386,19 @@ function ReceiptDetailView({
       >
         <div className="flex flex-col">
           <Mono className="text-[9px] tracking-[0.18em] text-loam-3">RECEIPT TOTAL</Mono>
-          <span className={`${AMOUNT_CLS} text-sm`}>
-            {money(receipt.total, receipt.currency)}
-          </span>
+          <Amount value={receipt.total} currency={receipt.currency} className="text-sm" />
         </div>
         <div className="flex flex-col">
           <Mono className="text-[9px] tracking-[0.18em] text-loam-3">LINES ADD UP TO</Mono>
-          <span className={`${AMOUNT_CLS} text-sm`}>
-            {money(receipt.parsed_total, receipt.currency)}
-          </span>
+          <Amount value={receipt.parsed_total} currency={receipt.currency} className="text-sm" />
         </div>
         <div className="flex flex-col">
           <Mono className="text-[9px] tracking-[0.18em] text-loam-3">DIFFERENCE</Mono>
-          <span
-            className={`font-[family-name:var(--font-mono)] tabular-nums text-sm ${
-              reconciled ? "text-glow" : "text-warn"
-            }`}
-          >
-            {delta === null ? "—" : money(delta, receipt.currency)}
-          </span>
+          <Amount
+            value={delta}
+            currency={receipt.currency}
+            className={`text-sm ${reconciled ? "text-glow" : "text-warn"}`}
+          />
         </div>
       </div>
 
@@ -441,6 +458,8 @@ function LineRow({
   const [vat, setVat] = useState(line.vat === null ? "" : String(line.vat));
   const [lineTotal, setLineTotal] = useState(String(line.line_total ?? ""));
 
+  const { financeHidden } = usePrivacy();
+
   const numOrNull = (s: string): number | null => {
     const t = s.trim();
     if (!t) return null;
@@ -450,6 +469,36 @@ function LineRow({
 
   const cell =
     "w-full bg-transparent outline-none text-right font-[family-name:var(--font-mono)] tabular-nums text-loam-4 focus:bg-surface-2 rounded-v2-sm px-1 py-0.5";
+
+  /**
+   * Monetary cells are editable inputs normally, but render as a masked
+   * <Num/> while finance privacy is on — an input whose value is dots cannot
+   * be meaningfully edited, and leaving them editable would leak the figures
+   * the masking is meant to hide.
+   */
+  const moneyCell = (
+    raw: string,
+    setRaw: (v: string) => void,
+    stored: number | null,
+    commit: (n: number | null) => void,
+    opts?: { title?: string },
+  ) =>
+    financeHidden ? (
+      <div className="text-right">
+        <Num value={stored ?? 0} decimals={2} />
+      </div>
+    ) : (
+      <input
+        value={raw}
+        onChange={(e) => setRaw(e.target.value)}
+        onBlur={() => {
+          const n = numOrNull(raw);
+          if (n !== stored) commit(n);
+        }}
+        className={cell}
+        title={opts?.title}
+      />
+    );
 
   return (
     <tr className="border-b border-hairline last:border-b-0 hover:bg-surface-2 transition-colors">
@@ -480,38 +529,23 @@ function LineRow({
         />
       </td>
       <td className="px-3 py-1.5 w-24">
-        <input
-          value={unitPrice}
-          onChange={(e) => setUnitPrice(e.target.value)}
-          onBlur={() => {
-            const n = numOrNull(unitPrice);
-            if (n !== line.unit_price) onPatch({ unit_price: n });
-          }}
-          className={cell}
-        />
+        {moneyCell(unitPrice, setUnitPrice, line.unit_price, (n) =>
+          onPatch({ unit_price: n }),
+        )}
       </td>
       <td className="px-3 py-1.5 w-20">
-        <input
-          value={vat}
-          onChange={(e) => setVat(e.target.value)}
-          onBlur={() => {
-            const n = numOrNull(vat);
-            if (n !== line.vat) onPatch({ vat: n });
-          }}
-          className={cell}
-        />
+        {moneyCell(vat, setVat, line.vat, (n) => onPatch({ vat: n }))}
       </td>
       <td className="px-3 py-1.5 w-24">
-        <input
-          value={lineTotal}
-          onChange={(e) => setLineTotal(e.target.value)}
-          onBlur={() => {
-            const n = numOrNull(lineTotal);
-            if (n !== null && n !== line.line_total) onPatch({ line_total: n });
-          }}
-          className={cell}
-          title={line.raw_text ?? undefined}
-        />
+        {moneyCell(
+          lineTotal,
+          setLineTotal,
+          line.line_total,
+          (n) => {
+            if (n !== null) onPatch({ line_total: n });
+          },
+          { title: line.raw_text ?? undefined },
+        )}
         <span className="sr-only">{currency}</span>
       </td>
     </tr>
