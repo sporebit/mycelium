@@ -9,7 +9,6 @@ const PUBLIC_PREFIXES = [
   "/api/telegram/webhook",
   "/api/cron/reminders",
   "/api/health-import",
-  "/api/studio/pc-metrics",
   "/api/cron/drops-monitor",
 ];
 
@@ -79,6 +78,21 @@ export async function middleware(req: NextRequest) {
     authHeader &&
     cronSecret &&
     timingSafeEqual(authHeader, `Bearer ${cronSecret}`)
+  ) {
+    return NextResponse.next();
+  }
+
+  // The PC metrics endpoint is reachable with its own shared secret, scoped
+  // to that path only. The agent POSTs with it, and a headless device (the
+  // Raspberry Pi) will GET with it — neither can hold a browser session.
+  // Previously the whole path sat in PUBLIC_PREFIXES, which authenticated the
+  // POST inside the route handler but left GET open to the world.
+  const pcMetricsSecret = process.env.PC_METRICS_SECRET;
+  if (
+    pathname.startsWith("/api/studio/pc-metrics") &&
+    authHeader &&
+    pcMetricsSecret &&
+    timingSafeEqual(authHeader, `Bearer ${pcMetricsSecret}`)
   ) {
     return NextResponse.next();
   }

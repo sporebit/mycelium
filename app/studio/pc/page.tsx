@@ -20,6 +20,7 @@ type Drive = {
 type Metric = {
   id: string;
   recorded_at: string;
+  machine_id: string;
   cpu_usage: number | null;
   cpu_temp: number | null;
   cpu_clock_mhz: number | null;
@@ -147,19 +148,32 @@ function GaugeRing({
 export default function PCDashboardPage() {
   const [current, setCurrent] = useState<Metric | null>(null);
   const [history, setHistory] = useState<Metric[]>([]);
+  const [machines, setMachines] = useState<string[]>([]);
+  // null means "whatever reported most recently". Only pinned to a specific
+  // machine once there is more than one to choose between.
+  const [selected, setSelected] = useState<string | null>(null);
   const [secondsAgo, setSecondsAgo] = useState(0);
   const lastUpdate = useRef<number>(0);
 
   const load = useCallback(async () => {
     try {
-      const r = await fetch("/api/studio/pc-metrics", { cache: "no-store" });
+      const url = selected
+        ? `/api/studio/pc-metrics?machine=${encodeURIComponent(selected)}`
+        : "/api/studio/pc-metrics";
+      const r = await fetch(url, { cache: "no-store" });
       if (!r.ok) return;
       const j = await r.json();
       setCurrent(j.current ?? null);
       setHistory(j.history ?? []);
+      setMachines(j.machines ?? []);
+      // Pin the selection only once a choice actually exists, so the single-
+      // machine case never pays for a second round trip.
+      if (!selected && (j.machines?.length ?? 0) > 1 && j.current?.machine_id) {
+        setSelected(j.current.machine_id);
+      }
       if (j.current) lastUpdate.current = new Date(j.current.recorded_at).getTime();
     } catch { /* noop */ }
-  }, []);
+  }, [selected]);
 
   useEffect(() => {
     let cancelled = false;
@@ -208,6 +222,24 @@ export default function PCDashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {machines.length > 1 && (
+            <div className="flex items-center gap-1 mr-1">
+              {machines.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setSelected(m)}
+                  className={`rounded-v2-md px-2 py-1 transition-colors ${
+                    selected === m
+                      ? "bg-surface-1 text-text-0"
+                      : "text-ink-3 hover:text-text-0"
+                  }`}
+                >
+                  <Mono className="text-[10px]">{m.toUpperCase()}</Mono>
+                </button>
+              ))}
+            </div>
+          )}
           <span
             className={`w-2 h-2 rounded-full ${isOffline ? "bg-danger" : "bg-ok"}`}
           />
@@ -219,7 +251,7 @@ export default function PCDashboardPage() {
 
       {isOffline && !current && (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
-          No metrics received yet. Start the Myphelium2 PC Agent on your machine.
+          No metrics received yet. Start the Mycelium PC Agent on your machine.
         </div>
       )}
 
