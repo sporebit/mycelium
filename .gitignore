@@ -63,3 +63,4 @@ graphify-out/
 
 # screenshots dumped by scripts/screenshot.mjs — never committed
 screenshots/
+.claude/worktrees/
