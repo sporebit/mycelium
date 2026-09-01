@@ -2,11 +2,16 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { safeNextPath } from "@/lib/auth/next-path";
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/";
-  const [error, setError] = useState("");
+  const next = safeNextPath(searchParams.get("next"));
+  // A failed native form post comes back as ?error=1 and never carries the
+  // submitted password, so the message is fixed here rather than echoed.
+  const [error, setError] = useState(
+    searchParams.get("error") ? "Invalid password" : ""
+  );
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -34,7 +39,17 @@ function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs">
+    // action/method matter even though handleSubmit calls preventDefault: a
+    // submit landing before hydration is handled by the browser alone, and an
+    // actionless form defaults to a GET of the current URL, which puts the
+    // password in the query string. The POST target keeps it in the body.
+    <form
+      action="/api/auth/login"
+      method="post"
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-4 w-full max-w-xs"
+    >
+      <input type="hidden" name="next" value={next} />
       <input
         name="password"
         type="password"
