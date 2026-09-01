@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch makes an in-flight run redundant.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Tests
+        run: npm test
+
+      # AGENTS.md requires this gate before every push, on a cold cache: the
+      # production build runs ESLint as well as tsc, and `tsc --noEmit` green
+      # with `next build` red is a recurring failure mode here. A warm .next
+      # fails reproducibly under serwist, and the checkout is cold anyway.
+      - name: Production build
+        run: npx next build
+        env:
+          # Build-time only. Several pages construct a Supabase client while
+          # prerendering (/health among them) and throw "supabaseUrl is
+          # required" without these, which is an environment failure rather
+          # than a defect in the diff. Placeholders are never used to reach a
+          # real service — no request is made during the build — so no repo
+          # secret is needed for the gate to be meaningful.
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key
+          AUTH_SECRET: placeholder-auth-secret
+          DASHBOARD_PASSWORD: placeholder-password
+          API_SECRET: placeholder-api-secret

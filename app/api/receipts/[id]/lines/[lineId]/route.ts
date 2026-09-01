@@ -61,6 +61,19 @@ export async function PATCH(
       }>();
     if (!parent) return NextResponse.json({ error: "not found" }, { status: 404 });
 
+    // A reparse deletes and re-inserts the whole line set, and the vision call
+    // it waits on runs for tens of seconds. An edit landing inside that window
+    // is written into a line set that is about to be discarded, and the sum
+    // taken below would cover whatever partial set happens to exist. Refusing
+    // is the honest outcome: the edit would not have survived, so say so rather
+    // than accept it and lose it.
+    if (parent.status === "parsing") {
+      return NextResponse.json(
+        { error: "receipt is being parsed, try again when it finishes" },
+        { status: 409 },
+      );
+    }
+
     const { data, error } = await supabase
       .from("receipt_lines")
       .update(patch)
@@ -96,27 +109,48 @@ export async function PATCH(
       parsed_total: parsedTotal,
       updated_at: new Date().toISOString(),
     };
-    let status: ReceiptStatus = parent.status;
-    let reviewReason: string | null = parent.review_reason;
-
     if (isReconcilable(parent.status, parent.review_reason)) {
       const outcome = reconcile(
         parsedTotal,
         parent.total === null ? null : Number(parent.total),
       );
-      status = outcome.status;
-      reviewReason = outcome.review_reason;
-      update.status = status;
-      update.review_reason = reviewReason;
+      update.status = outcome.status;
+      update.review_reason = outcome.review_reason;
     }
 
-    await supabase.from("receipts").update(update).eq("id", id);
+    // The guard above reads the status; a reparse can still begin between that
+    // read and this write, and would then have emptied the line set that fed
+    // parsedTotal. Re-asserting the condition as a filter closes that window at
+    // the database: if a reparse has since claimed the receipt, this write is
+    // skipped and the reparse's own figures stand.
+    const { data: written } = await supabase
+      .from("receipts")
+      .update(update)
+      .eq("id", id)
+      .neq("status", "parsing")
+      .select("parsed_total, status, review_reason")
+      .maybeSingle<{
+        parsed_total: number | null;
+        status: ReceiptStatus;
+        review_reason: string | null;
+      }>();
+
+    // No row came back, so the filter excluded it and a reparse owns the
+    // receipt. That reparse drops the line set this edit was made against, so
+    // the edit has not survived either — the same answer as the guard above,
+    // rather than a body reporting figures that were never stored.
+    if (!written) {
+      return NextResponse.json(
+        { error: "receipt is being parsed, try again when it finishes" },
+        { status: 409 },
+      );
+    }
 
     return NextResponse.json({
       line: data,
-      parsed_total: parsedTotal,
-      status,
-      review_reason: reviewReason,
+      parsed_total: written.parsed_total,
+      status: written.status,
+      review_reason: written.review_reason,
     });
   } catch (err) {
     console.error("[receipts/[id]/lines/[lineId] PATCH]", err);
