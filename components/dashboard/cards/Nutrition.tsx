@@ -4,29 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
-import { NUTRITION_TARGETS } from "@/lib/config/nutrition";
 import type { CardWidth } from "@/lib/dashboard/card-registry";
-import type {
-  MealGroup,
-  NutritionLog,
-  NutritionTargets,
-} from "@/lib/nutrition/types-v2";
+import type { MealGroup, NutritionLog } from "@/lib/nutrition/types-v2";
+import type { ResolvedNutritionTargets } from "@/lib/nutrition/targets";
+import { FALLBACK_TARGETS } from "@/lib/nutrition/targets";
 import { localDateKey } from "@/lib/util/date";
 import {
   QuickBarcodeLog,
   defaultGroupNameForTime,
 } from "@/components/nutrition/QuickBarcodeLog";
-
-const DEFAULT_TARGETS: NutritionTargets = {
-  kcal: NUTRITION_TARGETS.kcal,
-  protein: NUTRITION_TARGETS.protein,
-  carbs: NUTRITION_TARGETS.carbs,
-  fat: NUTRITION_TARGETS.fat,
-  fibre: 30,
-  sugar: 50,
-  saturated_fat: 20,
-  salt: 6,
-};
 
 function Macro({
   label,
@@ -62,7 +48,10 @@ export function Nutrition({ width = 1 }: { width?: CardWidth } = {}) {
   const [logs, setLogs] = useState<NutritionLog[] | null>(null);
   const [mealGroups, setMealGroups] = useState<MealGroup[]>([]);
   const [scanOpen, setScanOpen] = useState(false);
-  const targets = DEFAULT_TARGETS;
+  // Targets are versioned in the database; FALLBACK_TARGETS stands in only
+  // until the fetch resolves, and if none is configured.
+  const [targets, setTargets] =
+    useState<ResolvedNutritionTargets>(FALLBACK_TARGETS);
   const today = localDateKey();
 
   useEffect(() => {
@@ -70,15 +59,18 @@ export function Nutrition({ width = 1 }: { width?: CardWidth } = {}) {
     Promise.all([
       fetch(`/api/nutrition/logs?date=${today}`).then((r) => r.json()),
       fetch("/api/nutrition/meal-groups").then((r) => r.json()),
+      fetch(`/api/nutrition/targets?date=${today}`).then((r) => r.json()),
     ])
       .then(
-        ([logsRes, groupsRes]: [
+        ([logsRes, groupsRes, targetsRes]: [
           { logs?: NutritionLog[] },
           { meal_groups?: MealGroup[] },
+          { targets?: ResolvedNutritionTargets },
         ]) => {
           if (cancelled) return;
           setLogs(Array.isArray(logsRes.logs) ? logsRes.logs : []);
           setMealGroups(Array.isArray(groupsRes.meal_groups) ? groupsRes.meal_groups : []);
+          if (targetsRes.targets) setTargets(targetsRes.targets);
         },
       )
       .catch(() => !cancelled && setLogs([]));

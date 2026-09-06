@@ -11,7 +11,8 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { DEFAULT_NUTRITION_TARGETS } from "@/lib/nutrition/types-v2";
+import type { ResolvedNutritionTargets } from "@/lib/nutrition/targets";
+import { FALLBACK_TARGETS } from "@/lib/nutrition/targets";
 
 type HistoryDay = {
   date: string;
@@ -39,6 +40,23 @@ function shortDay(dateKey: string): string {
 export function NutritionHistory() {
   const [range, setRange] = useState<"7" | "30">("7");
   const [data, setData] = useState<HistoryPayload | null>(null);
+  // The chart is a rolling window across many days, so it shows the target
+  // in force today rather than one per bar.
+  const [targets, setTargets] =
+    useState<ResolvedNutritionTargets>(FALLBACK_TARGETS);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/nutrition/targets")
+      .then((r) => r.json())
+      .then((j: { targets?: ResolvedNutritionTargets }) => {
+        if (!cancelled && j.targets) setTargets(j.targets);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -139,7 +157,7 @@ export function NutritionHistory() {
               </ResponsiveContainer>
             </div>
             <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-1 text-right">
-              target {DEFAULT_NUTRITION_TARGETS.kcal} kcal
+              target {targets.kcal} kcal
             </div>
           </section>
 

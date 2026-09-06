@@ -9,9 +9,9 @@ import { Mono } from "@/components/dashboard/Mono";
 import type {
   MealGroup,
   NutritionLog,
-  NutritionTargets,
 } from "@/lib/nutrition/types-v2";
-import { DEFAULT_NUTRITION_TARGETS } from "@/lib/nutrition/types-v2";
+import type { ResolvedNutritionTargets } from "@/lib/nutrition/targets";
+import { FALLBACK_TARGETS } from "@/lib/nutrition/targets";
 import { localDateKey } from "@/lib/util/date";
 import { MacroBar } from "./MacroBar";
 import { MealGroupSection } from "./MealGroupSection";
@@ -114,7 +114,14 @@ export function NutritionClient() {
   const [quickScanOpen, setQuickScanOpen] = useState(false);
   const device = useCurrentDevice();
   const isMobile = device === "phone" || device === "tablet";
-  const targets: NutritionTargets = DEFAULT_NUTRITION_TARGETS;
+  // Targets are versioned by effective-from date, so they are fetched for
+  // the date being viewed rather than read from a constant. Falls back to
+  // FALLBACK_TARGETS until the request resolves and if none is configured.
+  const { data: targetsData } = useApi<{ targets?: ResolvedNutritionTargets }>(
+    `/api/nutrition/targets?date=${encodeURIComponent(date)}`,
+  );
+  const targets: ResolvedNutritionTargets =
+    targetsData?.targets ?? FALLBACK_TARGETS;
 
   const showToast = useCallback((kind: "ok" | "error", text: string) => {
     setToast({ kind, text });
