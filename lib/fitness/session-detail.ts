@@ -9,10 +9,13 @@ import type {
 
 const SESSION_FIELDS =
   "id, user_id, date, slot, kind, name, programme_session_id, calories, notes, free_form_text, started_at, completed_at, status, created_at, updated_at";
+// data_shape / with_weight were missing from both selects, so the log page
+// received them as undefined and every exercise fell back to the sets-reps
+// grid — the "hold" and "duration" shapes never rendered here.
 const SESSION_EX_FIELDS =
-  "id, session_id, position, name, notes, comment, rest_seconds, duration_min, distance_km, intensity, programme_exercise_id, save_to_template, skipped, completed_at, added_at, is_bodyweight";
+  "id, session_id, position, name, notes, comment, rest_seconds, duration_min, distance_km, intensity, programme_exercise_id, save_to_template, skipped, completed_at, added_at, is_bodyweight, data_shape, with_weight";
 const TEMPLATE_FIELDS =
-  "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity, is_bodyweight";
+  "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity, is_bodyweight, data_shape, with_weight, default_hold_seconds";
 
 export async function loadSessionDetail(
   supabase: SupabaseClient,
