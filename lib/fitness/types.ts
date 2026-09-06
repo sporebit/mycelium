@@ -228,6 +228,10 @@ export type SessionExercise = {
 
 export type SessionDetail = LoggedSession & {
   exercises: SessionExercise[];
+  /** Standing rules for the parent programme (workout_programmes.guardrails),
+   *  resolved via programme_session_id. Null for ad-hoc sessions and for
+   *  programmes that have not set any. */
+  guardrails: string | null;
 };
 
 export type LastSession = {

@@ -31,6 +31,30 @@ export async function loadSessionDetail(
   if (error || !sessionRow) return null;
   const session = sessionRow as LoggedSession;
 
+  // Standing rules for the programme this session belongs to. Rendered as a
+  // pinned banner at the top of the log so they are read during the workout
+  // rather than sitting on a page nobody opens mid-set.
+  let guardrails: string | null = null;
+  if (session.programme_session_id) {
+    const { data: tplSession } = await supabase
+      .from("workout_programme_sessions")
+      .select("programme_id")
+      .eq("id", session.programme_session_id)
+      .maybeSingle();
+    const programmeId = (tplSession as { programme_id?: string } | null)
+      ?.programme_id;
+    if (programmeId) {
+      const { data: programme } = await supabase
+        .from("workout_programmes")
+        .select("guardrails")
+        .eq("id", programmeId)
+        .eq("user_id", uid)
+        .maybeSingle();
+      guardrails =
+        (programme as { guardrails?: string | null } | null)?.guardrails ?? null;
+    }
+  }
+
   const { data: exRows } = await supabase
     .from("workout_session_exercises")
     .select(SESSION_EX_FIELDS)
@@ -39,7 +63,7 @@ export async function loadSessionDetail(
   const exercises = (exRows ?? []) as SessionExercise[];
 
   if (exercises.length === 0) {
-    return { ...session, exercises: [] };
+    return { ...session, guardrails, exercises: [] };
   }
 
   const exIds = exercises.map((e) => e.id);
@@ -83,6 +107,7 @@ export async function loadSessionDetail(
 
   return {
     ...session,
+    guardrails,
     exercises: exercises.map((ex) => ({
       ...ex,
       sets: setsByEx.get(ex.id) ?? [],

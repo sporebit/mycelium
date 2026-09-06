@@ -916,6 +916,17 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
   // logging stays enabled (readOnly is still gated by completed_at).
   const isAttempted = session.status === "attempted";
 
+  // Guardrails are stored as one newline-separated block of text; blank
+  // lines are dropped so trailing newlines do not render empty bullets.
+  const guardrailLines = useMemo(
+    () =>
+      (session.guardrails ?? "")
+        .split("\n")
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0),
+    [session.guardrails],
+  );
+
   // ---------------------------------------------------------------------------
   return (
     <div className="min-h-screen pb-32 sm:pb-24" data-readonly={readOnly}>
@@ -998,6 +1009,32 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
             </div>
           )}
         </header>
+
+        {/* GUARDRAILS — the programme's standing rules. Pinned directly
+            under the header so they are read during the workout rather
+            than living on a settings page. Rendered for any programme
+            that sets workout_programmes.guardrails; ad-hoc sessions and
+            programmes without rules render nothing. */}
+        {guardrailLines.length > 0 && (
+          <div className="my-3 rounded-v2-md border border-accent/40 bg-accent/5 p-3">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-accent font-[family-name:var(--font-mono)] mb-2">
+              Guardrails
+            </div>
+            <ul className="space-y-1">
+              {guardrailLines.map((line, i) => (
+                <li
+                  key={i}
+                  className="text-[13px] text-ink-4 leading-snug font-[family-name:var(--font-display)] flex gap-2"
+                >
+                  <span aria-hidden="true" className="text-accent shrink-0">
+                    ·
+                  </span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Attempted banner — only when the lifecycle status is
             attempted *and* the session isn't already finished. */}
