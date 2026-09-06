@@ -14,7 +14,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -c \"(New-Object Media.SoundPlayer 'P:\\Projects\\Mycelium\\.claude\\sounds\\done.wav').PlaySync()\""
+            "command": "powershell -c \"(New-Object Media.SoundPlayer 'A:\\Projects\\Mycelium\\.claude\\sounds\\done.wav').PlaySync()\""
           }
         ]
       }
