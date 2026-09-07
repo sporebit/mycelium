@@ -1,4 +1,4 @@
-# MYCELIUM REDESIGN — ALL PROMPTS (P0–P11)
+# MYCELIUM REDESIGN — ALL PROMPTS (P0–P12)
 ### Reference file. NOT a checklist to clear in one sitting.
 **Compiled 19 July 2026**
 
@@ -759,7 +759,7 @@ already existed.
 
 ---
 
-## P7 — FINANCE ⬜ NOT STARTED
+## P7 — FINANCE 🔶 PARTS 1–4 DONE
 
 ```
 TASK: v2 pass on Finance. Numbers are the product here — typography does
@@ -859,7 +859,7 @@ implementation.
 
 ---
 
-## P8 — DROPS · STUDIO · THE BOYS · OTHER (+ SETTINGS v2) ⬜ NOT STARTED
+## P8 — DROPS · STUDIO · THE BOYS · OTHER (+ SETTINGS v2) 🔶 PARTS 1–3 DONE, 4 MOSTLY
 
 ```
 TASK: v2 pass on the remaining sections, plus the real Settings v2 build —
@@ -993,7 +993,7 @@ hiding a section propagates to all three surfaces (sidebar/tabbar/search).
 
 ---
 
-## P9 — SPEED PASS ⬜ NOT STARTED
+## P9 — SPEED PASS 🔶 PARTS 1–2 PARTIAL, 3 N/A
 
 ```
 TASK: Performance sweep now that all surfaces are v2. This is where the
@@ -1090,7 +1090,7 @@ something was skipped for time).
 
 ---
 
-## P10 — MULTI-USER (auth, RLS, walls, metering) ⬜ NOT STARTED — BRANCH ONLY
+## P10 — MULTI-USER (auth, RLS, walls, metering) ⛔ SUPERSEDED BY P12 (2026-09-06) — do not fire
 
 ```
 TASK: Multi-user foundation — the SaaS unlock. Work on a branch —
@@ -1208,7 +1208,7 @@ Part 0.
 
 ---
 
-## P11 — TOKEN EFFICIENCY ⬜ NOT STARTED
+## P11 — TOKEN EFFICIENCY ✅ DONE
 
 ```
 TASK: Cut LLM spend without degrading quality. Measured, not assumed.
@@ -1319,6 +1319,488 @@ after a day of real usage.
 
 ---
 
+## P0-S — RLS EVERYWHERE (security hotfix, main branch) ✅ DONE
+
+**Landed (`e49f520`, 6 Sep 2026) — as migration `0101`, not `0097`:** 0097–0100
+were taken by the fitness/nutrition/PTP work between writing this prompt and
+firing it.
+
+**The premise below was wrong, and the work was re-scoped against the live
+database.** Part 1's enumeration found the opposite of what was expected:
+
+- 91 of 91 public tables already had `rowsecurity = true`. None were
+  unprotected.
+- `anon` held only REFERENCES/TRIGGER/TRUNCATE — no SELECT/INSERT/UPDATE/
+  DELETE. A live probe with the real anon key returned `42501 permission
+  denied` on every table tried, so there was no anon-key data exposure.
+- `authenticated` additionally held SELECT on all 92 relations — inert
+  today (no Supabase Auth users, RLS denies anyway) but a standing grant a
+  future auth rollout would light up.
+
+What `0101` actually fixed:
+
+1. 39 tables had RLS on with **no policy at all** — implicitly deny-all, but
+   one permissive policy added later would silently open the table. Each now
+   carries an explicit `restrictive ... using (false)`, which a later
+   permissive policy cannot override.
+2. Eight tables carried a permissive `current_setting('app.user_id')` policy
+   with no restrictive backstop (`exercise_aliases`, `health_metrics`,
+   `health_workouts`, `pc_components`, `places`, `reminders`, `supplements`,
+   `supplement_logs`). Left in place for P12 to replace, now inert behind the
+   deny-all.
+3. `anon`/`authenticated` held TRUNCATE on every table. Revoked.
+
+`FORCE ROW LEVEL SECURITY` was deliberately not set — the table owner is
+`postgres`, which also runs migrations, so forcing it would break seed
+migrations. PostgREST never connects as the owner. Migration `0101` is applied:
+`supabase migration list` shows Local and Remote both at 0101.
+
+**Prompt as fired, for the record:**
+
+```
+TASK: Close the anon-key exposure. Per the migration files, 32 tables have
+no RLS: everything created in 0051–0090 except media_items, plus
+user_settings (which holds Google OAuth token columns). Supabase grants
+anon and authenticated full CRUD on public tables by default, and the anon
+key ships in the browser bundle. One migration, one commit, on main.
+Independent of P12 — do not wait for it.
+
+════════════════════════════════════════════════════════════════════
+GLOBAL RULES
+════════════════════════════════════════════════════════════════════
+1. `rm -rf .next && npx next build` before push — per AGENTS.md.
+2. No secret value in any report or commit message. Env var NAMES only.
+3. Read-only diagnostics via the Supabase CLI; never destructive SQL
+   outside a migration file.
+
+════════════════════════════════════════════════════════════════════
+PART 1 — ENUMERATE
+commit: none
+════════════════════════════════════════════════════════════════════
+- Query pg_tables/pg_class for every table in schema public with
+  rowsecurity = false. Report the list. Expected (from migration files):
+  blood_test_markers, blood_test_sessions, blood_test_results, agents,
+  agent_conversations, agent_messages, agent_memory, accounts,
+  gut_health_logs, eye_prescriptions, recipes, shopping_lists, meal_plan,
+  media_episodes, events, investments, spotify_tokens, spotify_plays,
+  ventures, venture_steps, venture_ads, venture_inspiration, drops,
+  wishlist_items, raffle_entries, cook_guides, drop_monitors,
+  weather_cache, bin_schedule_config, bin_garden_seasons,
+  bin_google_events, user_settings.
+- Also report every table where anon or authenticated hold any privilege
+  (information_schema.role_table_grants).
+- If the live list differs from the expected list, use the LIVE list.
+
+════════════════════════════════════════════════════════════════════
+PART 2 — MIGRATION 0097 (landed as 0101)
+commit: fix(db): enable RLS on every table, revoke anon/authenticated
+════════════════════════════════════════════════════════════════════
+- supabase/migrations/0097_rls_everywhere.sql, following the 0092/0094
+  pattern for every table from Part 1:
+    alter table X enable row level security;
+    drop policy if exists "deny all" on X;
+    create policy "deny all" on X as restrictive using (false);
+    grant all on X to service_role;
+- Then, for the whole schema:
+    revoke all on all tables in schema public from anon, authenticated;
+    revoke all on all sequences in schema public from anon, authenticated;
+    alter default privileges in schema public revoke all on tables from
+      anon, authenticated;
+  The app reads through the service role only, so nothing user-facing
+  depends on anon/authenticated grants. If Part 1 shows a table the
+  browser client (lib/supabase/client.ts, anon key) genuinely reads,
+  STOP and report it before revoking.
+- Keep the reminders table's existing app.user_id policy as-is (it is
+  additive; P12 replaces it).
+- `supabase db push`, then `supabase migration list` — Local and Remote
+  both show 0097.
+
+VERIFY: (a) Supabase dashboard → Advisors → Security shows zero
+"RLS disabled in public" findings — report the count before and after.
+(b) For spotify_tokens, user_settings and three others from the list,
+`curl "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/<table>?select=*" -H "apikey:
+$NEXT_PUBLIC_SUPABASE_ANON_KEY"` returns an empty array or a 401/403 —
+report the HTTP status per table, never the body. (c) The live site still
+works: open Spotify dashboard, blood tests, investments, settings.
+(d) Build clean. Commit, push main.
+
+════════════════════════════════════════════════════════════════════
+FINAL REPORT
+════════════════════════════════════════════════════════════════════
+Live no-RLS list vs expected; grants found; commit hash; advisor counts
+before/after; per-table curl statuses; any table that needed anon access
+(expected: none).
+```
+
+---
+
+## P12 — MULTI-USER / TEAMS (supersedes P10) ⬜ NOT STARTED — BRANCH ONLY
+
+```
+TASK: Multi-user foundation — identity, spaces, teams, grants, audit,
+rundowns. Supersedes P10 entirely. Work on branch `multi-user` (EXCEPTION
+to auto-push-to-main). Migrations are authored on the branch and verified
+ONLY against a local Supabase stack until Part 7 (cutover). Phil merges.
+
+Decisions this prompt encodes (Phil, 2026-09-06 — do not relitigate):
+- ≤5 users; invite-only; non-Phil users get web + push only (no Google,
+  Spotify, Apple Health, Telegram or PC-agent integrations); agents (The
+  Boys, /fitness/coach, /finance/advisor) stay Phil-only.
+- Auth: Supabase Auth — magic link, password + TOTP, passkeys (beta,
+  experimental flag), Google. Apple sign-in DEFERRED. TOTP mandatory for
+  instance owner, team owners, team admins.
+- Old HMAC cookie survives only as a dormant break-glass path.
+- Every record belongs to a space: one personal space per user, one per
+  team. Grants attach to spaces at section + entity-group grain. Verbs:
+  view, edit, create_delete, share.
+- Roles per team: owner (exactly one), admin, member, viewer — plus
+  per-member section toggles that narrow, never widen.
+- Direct user→user grants are a separate table but resolve through the
+  SAME SQL function as team membership. One policy per table.
+- Finance is hard-excluded from sharing: owner-only policy shape and a
+  check constraint. No code path can grant it.
+- Instance owner (Phil) manages access, never reads others' content;
+  RLS has no instance-owner bypass anywhere.
+- Owner leaving → named successor (instance owner appoints if the owner
+  vanishes, audited). Member leaving → contributions stay with the team.
+- Audit includes cross-user reads, visible to the data owner.
+- Export + full delete are self-service.
+- Rundowns: per-team settings, per-recipient opt-out; rendered once PER
+  RECIPIENT under that recipient's identity; email + push + in-app;
+  Telegram for Phil only.
+- Cutover: all existing data → Phil's personal space; teams start empty.
+Defaults for the open items (edit these lines before firing if wrong):
+  A. AI-backed features (voice capture, AI categorisation, vision scan,
+     capture classification) default OFF for non-Phil users; instance
+     owner can enable per user.
+  B. workout_exercises is a SHARED read-only catalogue.
+  D. user_id text columns ARE converted to uuid.
+
+════════════════════════════════════════════════════════════════════
+GLOBAL RULES
+════════════════════════════════════════════════════════════════════
+1. Branch `multi-user`; push there only. `rm -rf .next && npx next build`
+   before every commit regardless. One commit per PART, messages below.
+2. NEVER `supabase db push` in this prompt. All migrations are verified on
+   `supabase start` (local stack). `supabase db reset` is allowed LOCALLY
+   only. The live DB is touched once, in Part 7, by Phil.
+3. This branch owns supabase/migrations/** for its lifetime. Number from
+   0098. If main gains migrations meanwhile, renumber before merge —
+   migrations replay number-ordered, not merge-ordered.
+4. No secret value in any report, doc or commit. Env var NAMES only.
+5. Service-role client (`createServerClient`) becomes importable ONLY from
+   lib/system/**. Enforce with ESLint no-restricted-imports. Every page
+   and /api route uses the user-scoped client. RLS is the wall; app code
+   is UX.
+6. Every table is in exactly one of: the entity registry (has space_id),
+   the shared-reference list, or Supabase-internal. A test enforces this.
+7. Reports contain findings, file paths, commit hashes, deviations. Never
+   reproduce code in a report. After the final push: `npx graphify update .`
+
+════════════════════════════════════════════════════════════════════
+PART 0 — PRE-FLIGHT
+commit: chore(multi-user): pre-flight — deps, registry, rollback runbook
+════════════════════════════════════════════════════════════════════
+- Create branch `multi-user` from main (main must already carry 0101).
+- Add deps: @supabase/ssr, resend. Confirm @supabase/supabase-js ≥ 2.105
+  (passkeys need it).
+- `supabase start`; replay 0001–0101 clean on the local stack. Report any
+  migration that fails locally — that is a pre-existing drift, fix it
+  first as its own commit.
+- Enumerate every table in public and classify against this registry.
+  Section: organisation | fitness | health | finance | studio | drops |
+  ventures | journal | places | reminders | media | platform.
+  Entity groups (table → group), e.g.:
+    fitness.programmes: workout_programmes, workout_programme_phases,
+      workout_programme_sessions, workout_programme_exercises, workouts
+    fitness.sessions: workout_sessions, workout_session_exercises,
+      workout_sets, workout_session_types, pending_workout_routes
+    fitness.body: body_metrics, health_metrics, health_workouts,
+      exercise_baselines, exercise_pain_logs, exercise_aliases
+    health.nutrition: foods, meal_groups, nutrition_logs, recipes,
+      shopping_lists, meal_plan
+    health.supplements: supplements, supplement_logs
+    health.clinical: blood_test_sessions, blood_test_results,
+      gut_health_logs, eye_prescriptions
+    organisation.tasks: tasks, task_comments, task_activity, projects
+    organisation.people: people, people_mentions, people_aliases, entities
+    organisation.captures: raw_captures, pending_entities, routing_rules,
+      entity_review_rules, context_options
+    organisation.purchases: purchases, receipts, receipt_images,
+      receipt_lines, receipt_participants, receipt_line_shares,
+      receipt_settlements
+    finance.*: bank_accounts, transactions, paypal_payments, investments,
+      accounts (finance groups are owner-only — see Part 3)
+    studio.pc: pc_components, pc_metrics, pc_metrics_hourly
+    studio.spotify: spotify_tokens, spotify_plays
+    drops.*: drops, wishlist_items, raffle_entries, drop_monitors
+    ventures.*: ventures, venture_steps, venture_ads, venture_inspiration
+    media.*: media_items, media_episodes
+    journal/places/reminders/events/daily_logs/memory_chunks: one group
+      each under their section
+    platform: user_settings, dashboard_layouts, push_subscriptions,
+      audit_log, agent_conversations, agent_messages, bin_schedule_config,
+      bin_garden_seasons, bin_google_events
+  Shared reference (NO space_id, read-only for authenticated): agents,
+  agent_memory (service-role only), workout_exercises, blood_test_markers,
+  cook_guides, weather_cache.
+  Write the registry as lib/access/registry.ts (single source) AND as the
+  seed for an entity_groups table in Part 2. Any table not in either list:
+  STOP and ask before Part 2 — do not guess.
+- Check whether the project's legacy HS256 JWT secret is available
+  (Supabase dashboard → JWT keys). Report yes/no; Part 3 depends on it.
+- Write docs/multi-user-rollback.md: exact command sequence to restore a
+  pg_dump into a fresh Supabase project and repoint Vercel env (names
+  only). Write docs/multi-user-phil-checklist.md: the things only Phil
+  can do — Resend account + RESEND_API_KEY; sporebit.com SPF/DKIM/DMARC;
+  Resend as custom SMTP in Supabase Auth; enable email + magic link +
+  TOTP MFA + Google provider; passkeys flag; add env vars
+  BREAK_GLASS_SECRET, BREAK_GLASS_ENABLED=false, RESEND_API_KEY,
+  SUPABASE_JWT_SECRET (if available).
+
+VERIFY 0: local stack replays clean; registry covers every table or a
+STOP was raised; both docs exist. Build clean. Commit, push branch.
+
+════════════════════════════════════════════════════════════════════
+PART 1 — IDENTITY
+commit: feat(auth): Supabase Auth, profiles, middleware, break-glass
+════════════════════════════════════════════════════════════════════
+- Migration 0098_profiles.sql: profiles(id uuid pk references auth.users
+  on delete cascade, display_name, is_instance_owner boolean not null
+  default false, personal_space_id uuid null, created_at). Partial unique
+  index: exactly one row with is_instance_owner = true. RLS: a user reads
+  own row; instance owner reads all rows (profiles only — this is the one
+  place the instance owner sees other users, and it is names, not
+  content).
+- lib/supabase/user.ts → createUserClient() via @supabase/ssr (cookies).
+  Move createServerClient to lib/system/serviceClient.ts. ESLint rule:
+  createServerClient importable only under lib/system/**.
+- New middleware.ts, in this order:
+  1. PUBLIC_PREFIXES unchanged (each route validates its own secret).
+  2. Path-scoped PC_METRICS_SECRET unchanged.
+  3. CRON_SECRET / API_SECRET → x-principal: system. API_SECRET acts as
+     Phil only; no acting-user header is honoured.
+  4. Supabase session refresh (@supabase/ssr pattern).
+  5. Break-glass: only if BREAK_GLASS_ENABLED === "true" AND the cookie
+     verifies against BREAK_GLASS_SECRET (new secret; AUTH_SECRET retired)
+     → acts as Phil, and every request writes an audit event (Part 5's
+     writer; stub it here with a TODO that Part 5 must resolve).
+  6. /admin/** and routes tagged sensitive require aal2 (MFA) and a
+     re-auth cookie younger than 10 minutes (Part 5 sets it; here, aal2
+     only).
+- /login restyled with v2 primitives: magic link, password, Google;
+  passkey register + sign-in behind `experimental: { passkey: true }`.
+  TOTP enrol/verify screens. /other/settings/security: auth methods,
+  TOTP, passkeys, sessions list (Part 5 adds remote sign-out).
+- Seed Phil: create his auth user locally, profile with
+  is_instance_owner = true. Record the mapping from USER_ID (text) to
+  his auth uid for Part 2's backfill — in code, not in a report.
+- Remove the AUTH_SECRET cookie path from lib/auth/cookie.ts (keep the
+  HMAC helper for break-glass, re-keyed).
+
+VERIFY 1: on the local stack + `next dev`, Phil signs in via magic link,
+password, and passkey (Google needs Phil's provider config — report
+untested if absent). /admin 403s without aal2. Break-glass refused with
+the flag off, accepted with it on. Build clean. Commit, push branch.
+
+════════════════════════════════════════════════════════════════════
+PART 2 — SPACES + OWNERSHIP MIGRATION
+commit: feat(db): spaces, space_id on every table, created_by uuid
+════════════════════════════════════════════════════════════════════
+- 0099_spaces.sql: spaces(id, kind personal|team, owner_user_id null,
+  team_id null, created_at); entity_groups(table_name pk, section,
+  entity_group) seeded from the registry; teams scaffold (Part 4 fills
+  it). Function app.personal_space() → the caller's personal space id.
+  Phil's personal space created and linked from profiles.
+- 0100–0105, one migration per domain group (platform, organisation,
+  fitness, health, finance, studio/drops/ventures/media/journal):
+  for every registered table —
+    add column space_id uuid; backfill (own user_id → Phil's personal
+    space; child tables from their parent); set not null; FK references
+    spaces(id) on delete cascade; index on space_id.
+    user_id text → created_by uuid null references auth.users on delete
+    set null (convert via the mapping from Part 1; any value that fails
+    the cast → STOP and report the table + count, do not coerce).
+    Drop the reminders app.user_id policy (Part 3 replaces it).
+  Shared-reference tables: no space_id; policy "read for authenticated".
+- A verification script scripts/verify-ownership.ts: per-table row count
+  before vs after, count(space_id is null) = 0, FK validity, and that
+  every registered table has space_id + created_by.
+
+VERIFY 2: replay the full chain twice on the local stack — once from
+empty, once from a pg_dump of live restored locally (Phil supplies the
+dump file path; never commit it). Script output pasted into the report.
+Build clean. Commit, push branch.
+
+════════════════════════════════════════════════════════════════════
+PART 3 — AUTHORISATION + CLIENT SWAP
+commit: refactor(data): user-scoped client, real RLS, system helpers
+════════════════════════════════════════════════════════════════════
+- 0106_access.sql: team_members(team_id, user_id, role, joined_at) with
+  partial unique index (team_id) where role = 'owner';
+  team_member_sections(team_id, user_id, section, can_view, can_edit,
+  can_create_delete, can_share); user_grants(id, grantor_id, grantee_id,
+  section, entity_groups text[], verbs text[], expires_at, revoked_at,
+  reason, created_at) with check (section <> 'finance').
+  app.accessible_spaces(entity_group text, verb text) returns setof uuid
+  — STABLE, SECURITY DEFINER — union of: the caller's personal space;
+  team spaces where membership role/toggles allow (group, verb); personal
+  spaces of grantors with an unexpired, unrevoked grant covering (group,
+  verb). Role defaults: owner = all; admin = view/edit/create_delete all
+  sections + share; member = view/edit/create_delete in enabled sections;
+  viewer = view in enabled sections. Toggles only narrow.
+- 0107_policies.sql: for every registered NON-finance table, drop the
+  deny-all restrictive policy and create four permissive policies for
+  authenticated:
+    select: space_id in (select app.accessible_spaces('<group>','view'))
+    insert with check: … 'create_delete'
+    update using/with check: … 'edit'
+    delete using: … 'create_delete'
+  For every FINANCE table: using (space_id = app.personal_space()) on all
+  four — the helper is never called. anon has nothing anywhere.
+  service_role keeps its grants (system code only).
+- Replace every createServerClient() outside lib/system/** with
+  createUserClient(). Cron, webhook, health-import, pc-metrics, Telegram
+  routes: lib/system/withUser(userId, fn) — mint a short-lived HS256 JWT
+  (role authenticated, sub = userId) with SUPABASE_JWT_SECRET and run
+  PostgREST calls as that user so RLS applies. If Part 0 found no legacy
+  secret: implement the fallback (a non-BYPASSRLS Postgres role over a
+  direct pg connection with `set local request.jwt.claims`) and say so.
+  Inbound secret routes resolve their user from config
+  (INTEGRATION_BINDINGS or user_settings), never from the request.
+- api_usage gains user_id; existing rows → Phil.
+- Feature flags: AI-backed features default off for new users (open item
+  A); an instance-owner-only endpoint toggles them per user.
+
+VERIFY 3 — the isolation test, the most important check in this prompt:
+create a second local test user with an empty personal space. Script
+scripts/isolation-test.ts enumerates every app/api/**/route.ts, calls
+each GET (and the list/read POSTs) as the test user, and asserts zero
+rows/ids belonging to Phil — report endpoint by endpoint, not a summary.
+Then a PostgREST probe per registered table with the test user's JWT
+expecting zero rows. Then the same suite as Phil expecting his data
+intact through every page. Policy unit tests (vitest against the local
+stack) for: personal, team-by-role, team-by-toggle, direct grant,
+finance — one positive and one negative each. Build clean. Commit, push.
+
+════════════════════════════════════════════════════════════════════
+PART 4 — TEAMS, ROLES, INVITES, DIRECT GRANTS
+commit: feat(teams): teams, roles, invites, direct grants, onboarding
+════════════════════════════════════════════════════════════════════
+- 0108_teams_invites.sql: teams(id, name, slug, space_id, owner_user_id,
+  successor_user_id null, created_at); invites(id, email, team_id null,
+  role, token_hash, expires_at, accepted_at, invited_by, created_at).
+  Invite tokens: random 32 bytes, stored as sha256 only, 7-day expiry,
+  single use.
+- APIs + UI (v2 primitives) under Settings → "People & teams": create
+  team; members with role + section toggles; name successor (owner
+  cannot leave without one); leave / remove (contributions stay,
+  created_by retained); "Share with a person" → user_grants (grantor's
+  personal space only; finance never listed; expiry optional); "Shared
+  with me".
+- Invite flow: owner/admin sends → Resend email → /invite/[token] →
+  Supabase Auth user created on acceptance only (inviteUserByEmail or
+  magic link), profile + personal space + membership created, onboarding
+  chooses auth method, TOTP enrolment forced for admin/owner roles.
+- New-user seeding: ui_prefs.hidden_sections hides everything except
+  Organisation, Fitness, Health; AI features off (item A).
+- Instance-owner-only: appoint successor for a team whose owner is
+  disabled/deleted.
+
+VERIFY 4: automated matrix — role × section × verb for team spaces;
+direct-grant matrix for personal spaces; finance absent from every grant
+UI and from user_grants by constraint; one-owner index holds; successor
+flow; invite expiry + single use; a new user's first screen. Build clean.
+Commit, push.
+
+════════════════════════════════════════════════════════════════════
+PART 5 — SECURITY OPERATIONS + ADMIN
+commit: feat(security): audit, access log, admin panel, limits, re-auth,
+export, delete
+════════════════════════════════════════════════════════════════════
+- 0109_audit.sql: audit_events(id, at, actor_id, principal
+  user|system|break_glass, action, section, entity_group, entity_id,
+  subject_user_id, space_id, team_id, ip, user_agent, meta jsonb).
+  Writer in lib/system/audit.ts. Events: sign-in/out, MFA changes,
+  invites, membership/role changes, grants created/revoked, successor
+  changes, exports, deletions, break-glass use (resolve Part 1's TODO),
+  and cross-user reads — one event per request whose resolved space
+  owner ≠ actor, written in the API layer, not per row.
+- Settings → Security → "Who has seen my data": the owner's cross-user
+  read events. Sessions list with remote sign-out (auth.sessions via
+  system client). Re-auth: sensitive routes require a fresh TOTP/passkey
+  verify that sets a signed 10-minute cookie.
+- Rate limiting: 0110_rate_limits.sql — Postgres token bucket + one
+  function; applied to login, magic-link request, invite creation, TOTP
+  verify; lockout after 10 failed second-factor attempts in 15 minutes.
+- /admin (instance owner only, aal2): users, teams, memberships, grants,
+  invites, audit — filterable by actor/subject/team/section/action/date;
+  disable user; appoint successor. NO content tables are read by any
+  admin endpoint — assert this in a test.
+- Export: extend /other/export to dump the caller's personal space by
+  entity group (JSON + CSV zip). Delete account: app.delete_user(uuid) —
+  personal space cascade, memberships, grants both directions, invites,
+  push subscriptions, then auth.admin.deleteUser; team contributions
+  remain with created_by = null; requires re-auth + typed confirmation.
+
+VERIFY 5: an audit row exists for each listed action; the admin test
+proves no entity-group table is touched by admin endpoints; rate limits
+trip and lock; export contains every group with data; delete leaves zero
+rows in the deleted user's personal space and keeps their team rows.
+Build clean. Commit, push.
+
+════════════════════════════════════════════════════════════════════
+PART 6 — WEEKLY RUNDOWNS
+commit: feat(rundowns): weekly team rundowns, per-recipient render
+════════════════════════════════════════════════════════════════════
+- 0111_rundowns.sql: rundown_settings(team_id pk, enabled, content jsonb
+  {changed, upcoming, stats, per_person}, sections text[], day, hour);
+  rundown_subscriptions(user_id, team_id, channels text[], opted_out,
+  day, hour); rundown_issues(id, team_id, user_id, week, rendered_html,
+  channel, sent_at).
+- /api/cron/rundowns (CRON_SECRET): for each enabled team, for each
+  subscribed recipient, render ONCE PER RECIPIENT under
+  withUser(recipient) so RLS filters that copy; store the issue; deliver
+  via Resend, web-push, and the in-app page /rundowns/[team]/[week];
+  Telegram only when recipient = Phil.
+- Team owner UI: enable, content blocks, sections, day/hour. Recipient
+  UI: channels, opt-out, day/hour override.
+
+VERIFY 6: two recipients on one team with different section toggles get
+different issues; a member without a section never sees its items; an
+opted-out user receives nothing; the in-app page 404s for non-members.
+Build clean. Commit, push branch. `npx graphify update .`
+
+════════════════════════════════════════════════════════════════════
+PART 7 — CUTOVER (separate session, Phil present, main branch)
+commit: merge multi-user → main
+════════════════════════════════════════════════════════════════════
+Preconditions: Parts 0–6 verified on a Vercel preview deploy of the
+branch; docs/multi-user-phil-checklist.md fully ticked; Phil has taken
+the pg_dump to the PC and reported its size against the dashboard.
+1. Renumber migrations if main moved. Merge. Vercel deploys with
+   BREAK_GLASS_ENABLED=false.
+2. `supabase db push`; `supabase migration list` shows every new number
+   Local + Remote.
+3. scripts/verify-ownership.ts against production. Phil signs in; runs
+   scripts/isolation-test.ts against production with the test user.
+4. Phil spot-checks every section on the live site.
+5. Delete USER_ID, DASHBOARD_PASSWORD, AUTH_SECRET from Vercel.
+6. Keep the dump until a week of normal use has passed.
+Rollback = docs/multi-user-rollback.md, not improvisation.
+
+════════════════════════════════════════════════════════════════════
+FINAL REPORT (after Part 6; Part 7 reports separately)
+════════════════════════════════════════════════════════════════════
+Seven commit hashes + build status; registry coverage (tables in
+registry / reference / neither); Part 2 script output; the isolation
+test endpoint-by-endpoint; policy test counts; the matrices; audit
+coverage; rundown leak test; the legacy-JWT decision and which withUser
+implementation shipped; every deviation from this prompt and why.
+```
+
+---
+
 ## SESSION LOG (update as prompts land)
 
 | Prompt | Status | Commits | Notes |
@@ -1335,7 +1817,9 @@ after a day of real usage.
 | P7 | 🔶 Parts 1+2+3+4 done | 916e9c4, 65865bc, 39bca11 | Numerals/hierarchy incl. a privacy fix: chart tickFormatters leaked amounts while finance was hidden, now via formatGBP({hidden}). Part 2: Spending, Accounts and Investments clients on useApi. AnalysisClient stays on raw fetch — its endpoints are POST-as-read, which useApi (GET-only) cannot key |
 | P8 | 🔶 Parts 1-3 done, 4 mostly | 1eb5d90, f3e09c8, (nav) | Drops/Studio/The Boys swept. Settings v2: section navigation (left-anchored desktop, Sheet on touch — verified 10 panels, bottom sheet at 390px), Appearance density + motion + layout reset, Sections multi-select, hidden_sections drives ⌘K. Verified: density really does drive table rows, 40px vs 32px. Checked the two-systems risk — FeatureFlagsSection toggles BEHAVIOURS (voice capture, AI categorisation, vision scan) while hidden_sections controls NAV VISIBILITY, so they are not duplicates and both stay. Remaining: Integrations/Capture/Data panels still on old inner styling |
 | P9 | 🔶 Parts 1-2 partial, 3 n/a | cc39364, 1c2fd0e | Part 1: 24 of ~126 client files on useApi; 102 still raw fetch (LogClient deliberately untouched — that is P5 Part 2). Part 2: chart-only tabs dynamic-imported, /health/blood-tests 229→116 kB and /health/nutrition 241→128 kB. Part 3: nothing to do, zero raw <img>. Gotcha: `ssr:false` is rejected in Server Components in this Next version, so chart-dominant SERVER pages need a client wrapper, not a direct dynamic() |
-| P10 | ⬜ Not started — BRANCH ONLY | — | Deliberately untouched: Part 0 is an explicit STOP-for-confirmation gate with a database backup |
+| P10 | ⛔ Superseded by P12 | — | Replaced 2026-09-06 after Phil's 29-answer discovery; decisions live in the project doc claude/multi-user-plan.md and are restated inside P12 |
+| P0-S | ✅ Done | e49f520 | Landed as migration `0101` (0097–0100 were taken by the PTP work). **The premise was wrong:** all 91 tables already had RLS on and the anon key returned 42501 everywhere. Re-scoped against the live DB — 39 tables had RLS with no policy (implicit deny), 8 had a permissive `app.user_id` policy with no restrictive backstop, anon/authenticated held TRUNCATE everywhere. Fix = catalogue-driven restrictive `using (false)` per table + revokes. FORCE RLS deliberately left off so seed migrations running as `postgres` still work |
+| P12 | ⬜ Not started — BRANCH ONLY | — | Parts 0–6 on branch `multi-user`, local stack only; Part 7 = cutover with Phil present. Free plan has no backups: the pg_dump in Part 7 is the only safety net |
 | P11 | ✅ Done | 0cff907, 6430eba, ee064c9 | Caching: measured first — Sonnet 4.5 needs a 1024-token prefix or the marker is silently ignored; personas are 116-265 tokens and only clear it because the tool defs and TOOL_CAPABILITY_SUFFIX (~680) render before them. `fitness` (1 tool, ~950 total) will not cache. Tiering: model ids centralised in lib/config/models.ts; resolveEntity makes no Anthropic call, so only 2 of the spec's 3 targets existed. Diet: keyword heuristic, over-inclusive by design, cross-domain case verified |
 
 **Before P4 (Compost) starts, in any session: manually complete a task,
