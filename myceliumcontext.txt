@@ -36,7 +36,7 @@
 
 **Installed Claude Code skills (in repo):**
 - `ui-ux-pro-max` — design-system generator; auto-fires on any UI/UX work. **Clashes with Loam and Glow** — accepted on trial; steer back toward Loam and Glow, scope down if it fights.
-- `hyperframes` (HeyGen) — HTML→MP4 video rendering; 15 skills, installed as symlinks between `.agents/skills/` and `.claude/skills/` (verify symlinks survive clean clone / Vercel build).
+- `hyperframes` (HeyGen) — HTML→MP4 video rendering; 15 skills, real files under `.claude/skills/`. The symlink layout was removed (7 Sep 2026): the links were absolute into `P:\Projects\Mycelium\.agents\skills\`, so moving the repo to `A:\` dangled all 15 and the skills silently stopped loading. `core.symlinks=false` here, so symlinks are not versioned — keep these as real files.
 - `graphify` — `/graphify` repo knowledge graph. Run `graphify update .` after code changes (no API cost). Current to HEAD `1c4c94d`.
 
 **MCP servers:**
