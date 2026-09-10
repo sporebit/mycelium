@@ -1,6 +1,6 @@
 # P12 multi-user — session handoff
 
-**Updated:** 10 September 2026, end of Part 4.
+**Updated:** 10 September 2026, end of Part 6.
 
 **Say "get started" and the next session should follow "First actions" at the
 bottom of this file.**
@@ -10,8 +10,9 @@ bottom of this file.**
 ## Where we are
 
 Branch `multi-user`, created from `b9892d1` on `main` (which carries
-migration `0101`). Parts 0–4 are complete and pushed. Part 2's second
-verification (replay against the live dump) waits on Phil.
+migration `0101`). Parts 0–6 are complete and pushed. What remains is
+Phil's: Part 2's replay against the live dump (checklist §4), the hosted
+configuration (§1–§3), a Vercel preview of the branch, and Part 7.
 
 | Part | State |
 |---|---|
@@ -20,8 +21,8 @@ verification (replay against the live dump) waits on Phil.
 | 2 — spaces + ownership | **Done**, migrations `0103`–`0109`. VERIFY 2 half 1 (from-empty replay + verifier): 0 failures. Half 2 (replay against the live `pg_dump`): **blocked on checklist §4** |
 | 3 — authorisation + client swap | **Done**, migrations `0110`–`0111`, 277 files swapped, shim deleted. VERIFY 3: isolation test 0 leaks over 138 endpoints × 2 users and 85 tables; 15 policy tests |
 | 4 — teams, invites, grants UI | **Done**, migration `0112`. VERIFY 4: 27 matrix/flow tests, 15 browser checks, isolation gate clean. Invite email needs Resend (checklist §2); locally the link is shown instead |
-| 5 — security operations + admin | Not started. Starts at migration **`0113_audit.sql`** |
-| 6 — rundowns | Not started |
+| 5 — security operations + admin | **Done**, migrations `0113`–`0114`. VERIFY 5: 9 database/static tests, 31 + 1 HTTP checks (incl. break-glass audit), isolation gate clean |
+| 6 — rundowns | **Done**, migration `0115`. VERIFY 6: 3 render tests, 11 HTTP checks |
 | 7 — cutover | Separate session, Phil present, live DB |
 
 ---
@@ -37,7 +38,8 @@ short-lived HS256 JWT (`role: authenticated`, `sub: <userId>`) with
 
 **Migration numbering.** `main` carries up to `0101`. This branch: Part 1 =
 `0102`, Part 2 = `0103`–`0109`, Part 3 = `0110`–`0111`, Part 4 = `0112`,
-Part 5 starts at `0113`. Renumber before merge if `main` moves.
+Part 5 = `0113`–`0114`, Part 6 = `0115`. Renumber before merge if `main`
+moves.
 
 **Phil's auth uid is fixed, not generated:** `f218ed69-6cbf-49ea-908a-8826f2f1178a`.
 Defined once in SQL (`app.legacy_user_uid('phil')`, migration 0102) and
@@ -54,7 +56,9 @@ breaks and both the function and the constant must be updated together.
 
 **Access-control tables carry no `space_id`.** `lib/access/registry.ts` has a
 fourth list, `ACCESS_TABLES` (now `profiles`, `spaces`, `entity_groups`,
-`teams`, `team_members`, `team_member_sections`, `user_grants`, `invites`;
+`teams`, `team_members`, `team_member_sections`, `user_grants`, `invites`,
+`audit_events`, `rate_limits`, `second_factor_failures`, `rundown_settings`,
+`rundown_subscriptions`, `rundown_issues`;
 `teams.space_id` is a reference to its own team space, which the verifier
 knows). Part 3 added `team_members`, `team_member_sections`,
 `user_grants`; Part 4 `invites`; Part 5 `audit_events` and rate limits;
@@ -78,6 +82,19 @@ Tests and seeds that need a user set `app.allow_uninvited = 'on'` in the
 same transaction. Every write to the access tables goes through a
 SECURITY DEFINER function in 0112 that checks the caller's role; the tables
 are read-only through PostgREST.
+
+**Sensitive routes need aal2 AND a fresh re-auth.** `/admin`, `/api/admin`,
+`/api/account`: the middleware checks the ten-minute `reauth` cookie
+(HMAC keyed on `SUPABASE_JWT_SECRET`) set by `POST /api/auth/reauth` after a
+TOTP verify. A prefix in `SENSITIVE_PREFIXES` matches itself and its
+children whether or not it is written with a trailing slash — the Part 5
+driver caught a first-factor session deleting an account through
+`/api/account/delete` before that was fixed.
+
+**Audit is trigger-first.** Sign-in/out, MFA, invites, membership, grants,
+successor and ownership changes are written by database triggers; the API
+layer adds break-glass requests, cross-user reads and exports through
+`lib/system/audit.ts`. `audit_events` is append-only.
 
 **Middleware principal headers.** Route handlers learn who is calling from
 `x-principal` (`system` | `user` | `break_glass`), `x-principal-user` (uid)
@@ -303,6 +320,69 @@ proves every API route as two users.
 
 ---
 
+## What Part 5 built
+
+| Area | Content |
+|---|---|
+| `0113_audit.sql` | `audit_events` (append-only; no FK on actor so history survives deletion); **triggers** on `auth.sessions` (sign_in/sign_out), `auth.mfa_factors` (mfa_enrol_started/enrolled/removed), `invites`, `team_members`, `team_member_sections`, `teams` (ownership_transferred, successor_changed), `user_grants`; `app.audit()` for functions; `profiles.disabled_at` with `app.personal_space()`/`accessible_spaces()` returning nothing for a disabled user; `end_session()` (remote sign-out); `app.delete_user()` + `delete_my_account()`; `admin_users/teams/memberships/grants/invites/audit()` (instance owner, access tables only), `admin_set_user_disabled()`, `admin_delete_user()`, `admin_get/set_feature_flags()` (the one sanctioned write to a content table, confined to three columns); `my_personal_space()` |
+| `0114_rate_limits.sql` | Postgres token bucket `rate_limit_take(key, capacity, refill/min, cost)` shared by every instance; `second_factor_failed/locked/succeeded()` — ten failures in fifteen minutes lock, success clears, lock audited |
+| Audit writer | `lib/system/audit.ts` (service role, fire-and-forget) for break-glass requests, cross-user reads, exports; `lib/system/readAudit.ts` `auditListRead(req, rows, section, group)` wired into the list routes of every shareable section (one event per foreign space per request, never per row) |
+| Break-glass | Part 1's TODO resolved: middleware passes `x-principal-path`; `createUserClient()` writes one `break_glass_request` row per request |
+| Re-auth | `lib/auth/reauth.ts` (HMAC over {sub, iat}, keyed on `SUPABASE_JWT_SECRET`, ten minutes); middleware demands aal2 **and** the cookie on `/admin`, `/api/admin`, `/api/account`; `POST /api/auth/reauth` sets it after a fresh TOTP verify; the security page prompts with `?reauth=1&next=` |
+| Rate-limited auth | `POST /api/auth/password` (per IP and per email), `/api/auth/magic-link` (per IP and per email, never creates a user), `/api/auth/mfa/verify` (lockout + per IP), invite creation (per user). The login page uses these; passkey stays client-side (WebAuthn) |
+| Sessions | `DELETE /api/auth/sessions/[id]` (remote sign-out, audited); the security page has a button per session |
+| Account | `GET /api/account/access-log` ("who has seen my data"), `POST /api/account/delete` (aal2 + re-auth + typed email; instance owner refused), `GET /api/export/space` (zip of the personal space by entity group, JSON + CSV per table, audited) with a button on `/other/export` |
+| Admin | `/admin` (users: disable/enable; teams with "owner gone" → appoint successor; grants; invites; audit with actor/subject/team/section/action/date filters) over `/api/admin/*`, all through the `admin_*` functions; `lib/access/admin.test.ts` proves no admin code path names a content table, statically and in the SQL sources |
+| Registry | `ACCESS_TABLES` gains `audit_events`, `rate_limits`, `second_factor_failures` |
+
+### VERIFY 5 results
+
+- **Database suite** (`lib/access/security.test.ts`): an audit row exists for team_created, invite_created, invite_accepted, member_added, role_changed, sections_changed, successor_changed, grant_created, grant_revoked, member_removed, sign_in (real GoTrue password grant), mfa_enrol_started, mfa_enrolled, mfa_removed, session_revoked, sign_out, second_factor_locked, user_disabled, account_deleted; the subject sees their rows, a third user does not; the bucket trips at capacity and refills by elapsed time; ten failures lock, the eleventh after fifteen minutes does not, success clears; a disabled member sees nothing and cannot write, enabling restores; deleting a user leaves **zero** rows in their personal space (all 85 tables), removes the space, profile, memberships and grants, and keeps their team row with `created_by = null`; the instance owner cannot delete themselves.
+- **Admin suite** (`lib/access/admin.test.ts`): no `.from("<content table>")` under `app/api/admin`, `app/admin`, `lib/system/admin.ts`; no `admin_*` SQL function names a registered table, except the feature-flag pair naming `user_settings` and only its three flag columns.
+- **HTTP driver** (dev server): see the run below.
+- `npm test` 156/156, isolation gate, build clean.
+
+### Decisions taken in Part 5
+
+- Sign-in, sign-out and MFA events come from **triggers on the auth tables**, not from the app: they fire for every code path (dashboard, GoTrue REST, browser), and the app cannot forget to log them.
+- The feature flags stay on `user_settings` (Part 3 put them there); the admin write goes through a SQL function confined to three columns rather than moving the columns, and the admin test names that as the single exception.
+- Re-auth uses TOTP only for now. Passkey re-auth needs a browser-side WebAuthn round-trip through a dedicated endpoint; noted as debt.
+- A CRON_SECRET bearer on a non-cron route still yields a userless principal (Part 3 note); unchanged.
+- Cross-user reads are audited from the list routes (the API layer), one row per foreign space per request; single-row GETs are not audited (the list that led there was).
+
+### Debt
+
+- Passkey re-auth; per-request enforcement of "TOTP mandatory" for owners/admins (today: login and invite entry points + re-auth on sensitive routes).
+- The admin audit table is unpaginated beyond the 1000-row cap.
+- `lib/system/readAudit.ts` caches personal spaces for five minutes per process; a user deleted in that window could still be attributed a read.
+
+---
+
+## What Part 6 built
+
+| Area | Content |
+|---|---|
+| `0115_rundowns.sql` | `rundown_settings` (per team: enabled, content blocks, sections, day/hour UTC), `rundown_subscriptions` (per member: channels, opt-out, slot override), `rundown_issues` (per team, recipient, ISO week, channel: rendered html/text, sent_at, error); `set_rundown_settings()` (owner), `set_rundown_subscription()` (member); recipients read only their own issues |
+| Renderer | `lib/rundowns/render.ts` — runs with the recipient's client, so RLS decides content: changed rows this week, upcoming in the next seven days, totals per table, who did what (names via teammate-visible profiles). Column probes keep it safe across tables |
+| Delivery | `lib/system/rundowns.ts` `runRundowns()` — service role reads only who gets one (settings, members, subscriptions, profiles), renders **once per recipient under `withUser(recipient)`**, stores an issue per channel, delivers by email (Resend), web push (the recipient's own subscriptions, read as them), in-app, and Telegram **only for Phil**; idempotent per (team, recipient, week, channel) |
+| Routes | `GET /api/cron/rundowns` (hourly, CRON_SECRET; instance owner may `?force=1&team=`), `GET/PATCH /api/rundowns` (settings for owners, subscription for members) |
+| UI | People & teams → team card → "Weekly rundown": owner switches on, picks blocks, sections and slot; every member picks channels, opt-out and their own slot. `/rundowns/[team]/[week]` shows the recipient's stored copy |
+| Registry | `ACCESS_TABLES` gains the three rundown tables |
+
+### VERIFY 6 results
+
+- `lib/rundowns/rundowns.test.ts`: a team with Tess (admin) and Vic (member, organisation toggled off) and Phil (opted out): Tess's issue contains the team task and the workout and names Phil as contributor; Vic's contains the workout only — no task, no organisation heading, no organisation totals; the opted-out owner gets no issue; a second run renders nothing and stores nothing new.
+- HTTP driver (dev server): cron refused without the secret; with CRON_SECRET renders one issue for the subscribed member and skips the opted-out one; the member opens `/rundowns/[team]/[week]` and sees the task; a non-member and the opted-out owner get 404; a non-owner cannot change team settings; a member can opt out and read their own settings/issues.
+- Email and push deliveries fail closed locally (no Resend key, no push subscriptions) and are recorded on the issue row with the error; in-app always succeeds.
+
+### Decisions taken in Part 6
+
+- Rendering is by the recipient's RLS, not by re-implementing toggles in the renderer. That is the whole point: the renderer cannot leak what the policies would not show.
+- The cron is hourly; each team has a UTC day and hour and each member may override theirs. Vercel's cron entry for `/api/cron/rundowns` still needs adding to `vercel.json` (hourly) — see the checklist.
+- Issues store the rendered HTML/text so the in-app page and any resend show exactly what was sent.
+
+---
+
 ## Environment facts
 
 - **Docker Desktop is not running after a reboot.** Launch
@@ -363,31 +443,26 @@ One-word answer needed before Part 2 adds `space_id` to it.
 
 ## First actions on "get started"
 
-1. `git checkout multi-user`; `git log -8` should show the Part 4 commit on
-   top of Part 3.
+Parts 0–6 are done. The next session is either Phil's Part 7 (see below)
+or maintenance on the branch. For either:
+
+1. `git checkout multi-user`; `git log -10` shows one commit per Part.
 2. Launch Docker Desktop if `docker info` fails, then `supabase start`.
-   `npm test` must pass (chain at `0112`; 144 tests, serial). Start
-   `next dev` with the env overrides above and run `npm run isolation-test`;
-   it must end with 0 leaks.
-3. The Part 2 replay against the live dump is still owed (checklist §4).
-4. Read Part 5 in `MYCELIUM_ALL_PROMPTS.md`. Start at `0113_audit.sql`:
-   `audit_events` (actor, principal user|system|break_glass, action,
-   section, entity_group, entity_id, subject_user_id, space_id, team_id,
-   ip, user_agent, meta), writer in `lib/system/audit.ts` (service client —
-   the audit table is append-only for everyone else), and resolve the
-   break-glass TODO in `middleware.ts` (the middleware cannot write; have
-   the route layer write one event per break-glass request via the
-   principal header). Cross-user reads: one event per request whose
-   resolved space owner ≠ actor, written in the API layer.
-5. Then `0114_rate_limits.sql` (token bucket + one function) on login,
-   magic-link request, invite creation, TOTP verify; lockout after 10
-   failed second-factor attempts in 15 minutes. Sessions remote sign-out
-   (same `my_sessions()` shape; delete from `auth.sessions` in a definer
-   function). Re-auth: a signed 10-minute cookie set after a fresh TOTP or
-   passkey verify; `SENSITIVE_PREFIXES` gains the routes that need it.
-6. `/admin` (instance owner, aal2): users, teams, memberships, grants,
-   invites, audit, filterable; disable user (add `profiles.disabled_at`
-   and make `appoint_team_successor` accept a disabled owner); NO content
-   tables read by any admin endpoint — assert it in a test. Export
-   (`/other/export` by entity group, JSON + CSV zip) and delete account
-   (`app.delete_user(uuid)`, re-auth + typed confirmation).
+   `npm test` must pass (chain at `0115`; 156 tests, serial). Start
+   `next dev` with the env overrides above (including
+   `SUPABASE_JWT_SECRET=$JWT_SECRET`) and run `npm run isolation-test`;
+   it must end with 0 leaks. That is the regression gate.
+3. Still owed to Phil, and only Phil can do them: checklist §1 (auth
+   providers, redirect URL, magic-link template), §2 (Resend + DNS), §3
+   (env vars: `SUPABASE_JWT_SECRET`, `BREAK_GLASS_SECRET`,
+   `BREAK_GLASS_ENABLED=false`, `RESEND_API_KEY`), §4 (the pg_dump and the
+   Part 2 replay against it), a Vercel preview deploy of the branch, and
+   the hourly cron entry for `/api/cron/rundowns` in `vercel.json` (added
+   on the branch; confirm Vercel's plan allows hourly).
+4. Part 7 (cutover) is a separate session with Phil present: renumber if
+   `main` moved; merge; insert Phil's live auth user with the fixed id and
+   his real email BEFORE `supabase db push`; push; `supabase migration
+   list`; run `scripts/verify-ownership.ts` and `scripts/isolation-test.ts`
+   against production; Phil spot-checks every section; delete `USER_ID`,
+   `DASHBOARD_PASSWORD`, `AUTH_SECRET` from Vercel; keep the dump a week.
+   Rollback is `docs/multi-user-rollback.md`.

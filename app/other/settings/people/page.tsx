@@ -325,6 +325,8 @@ function TeamCard({
         </div>
       )}
 
+      <RundownControls team={team} isOwner={isOwner} run={run} />
+
       <div>
         <Button
           size="sm"
@@ -340,6 +342,120 @@ function TeamCard({
         </Button>
       </div>
     </Card>
+  );
+}
+
+type RundownSettings = { team_id: string; enabled: boolean; content: Record<string, boolean>; sections: string[]; day: number; hour: number };
+type RundownSub = { team_id: string; channels: string[]; opted_out: boolean; day: number | null; hour: number | null };
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const BLOCKS: Array<[string, string]> = [["changed", "What changed"], ["upcoming", "Coming up"], ["stats", "Totals"], ["per_person", "Who did what"]];
+
+/**
+ * Weekly rundown (Part 6): the owner switches it on and chooses blocks,
+ * sections and the slot; every member chooses channels, can opt out, and
+ * may override the slot for their copy.
+ */
+function RundownControls({ team, isOwner, run }: { team: TeamDetail; isOwner: boolean; run: (fn: () => Promise<void>, ok?: string) => Promise<void> }) {
+  const [settings, setSettings] = useState<RundownSettings | null>(null);
+  const [sub, setSub] = useState<RundownSub | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  const load = useCallback(async () => {
+    const r = await api<{ settings: RundownSettings[]; subscriptions: RundownSub[] }>("/api/rundowns");
+    setSettings(r.settings.find((s) => s.team_id === team.id) ?? { team_id: team.id, enabled: false, content: { changed: true, upcoming: true, stats: true, per_person: false }, sections: [...SHAREABLE_SECTIONS], day: 1, hour: 8 });
+    setSub(r.subscriptions.find((s) => s.team_id === team.id) ?? { team_id: team.id, channels: ["email", "push", "in_app"], opted_out: false, day: null, hour: null });
+    setLoaded(true);
+  }, [team.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await load();
+      if (cancelled) return;
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [load]);
+
+  if (!loaded || !settings || !sub) return null;
+
+  const saveSettings = (next: RundownSettings) =>
+    run(async () => {
+      await api("/api/rundowns", { method: "PATCH", body: JSON.stringify({ team_id: team.id, settings: next }) });
+      await load();
+    }, "Rundown settings saved.");
+  const saveSub = (next: RundownSub) =>
+    run(async () => {
+      await api("/api/rundowns", { method: "PATCH", body: JSON.stringify({ team_id: team.id, subscription: next }) });
+      await load();
+    }, "Your rundown preferences are saved.");
+
+  return (
+    <div className="flex flex-col gap-3 border-t border-hairline pt-4">
+      <Label>Weekly rundown</Label>
+      {isOwner ? (
+        <div className="flex flex-col gap-2 text-sm">
+          <label className="flex items-center gap-2 text-text-hi">
+            <input type="checkbox" checked={settings.enabled} onChange={(e) => saveSettings({ ...settings, enabled: e.target.checked })} />
+            Send a weekly rundown to every member (each copy shows only what they can see)
+          </label>
+          <div className="flex flex-wrap gap-3 text-text-mid">
+            {BLOCKS.map(([k, label]) => (
+              <label key={k} className="flex items-center gap-1 text-xs">
+                <input type="checkbox" checked={settings.content[k] !== false} onChange={(e) => saveSettings({ ...settings, content: { ...settings.content, [k]: e.target.checked } })} />
+                {label}
+              </label>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2 text-text-mid">
+            {SHAREABLE_SECTIONS.map((sct) => (
+              <label key={sct} className="flex items-center gap-1 text-xs">
+                <input type="checkbox" checked={settings.sections.includes(sct)} onChange={(e) => saveSettings({ ...settings, sections: e.target.checked ? [...settings.sections, sct] : settings.sections.filter((x) => x !== sct) })} />
+                {sct}
+              </label>
+            ))}
+          </div>
+          <div className="flex gap-2 items-center text-xs text-text-mid">
+            Every
+            <select className={SELECT} value={settings.day} onChange={(e) => saveSettings({ ...settings, day: Number(e.target.value) })}>
+              {DAYS.map((d, i) => <option key={d} value={i}>{d}</option>)}
+            </select>
+            at
+            <select className={SELECT} value={settings.hour} onChange={(e) => saveSettings({ ...settings, hour: Number(e.target.value) })}>
+              {Array.from({ length: 24 }, (_, h) => <option key={h} value={h}>{String(h).padStart(2, "0")}:00 UTC</option>)}
+            </select>
+          </div>
+        </div>
+      ) : (
+        <Note>{settings.enabled ? `The owner sends a rundown every ${DAYS[settings.day]} at ${String(settings.hour).padStart(2, "0")}:00 UTC.` : "The owner has not switched the rundown on."}</Note>
+      )}
+      <div className="flex flex-col gap-2 text-sm">
+        <label className="flex items-center gap-2 text-text-hi">
+          <input type="checkbox" checked={!sub.opted_out} onChange={(e) => saveSub({ ...sub, opted_out: !e.target.checked })} />
+          Send me this team&apos;s rundown
+        </label>
+        <div className="flex flex-wrap gap-3 text-xs text-text-mid">
+          {["email", "push", "in_app"].map((c) => (
+            <label key={c} className="flex items-center gap-1">
+              <input type="checkbox" checked={sub.channels.includes(c)} onChange={(e) => saveSub({ ...sub, channels: e.target.checked ? [...sub.channels, c] : sub.channels.filter((x) => x !== c) })} />
+              {c.replace("_", "-")}
+            </label>
+          ))}
+          <label className="flex items-center gap-1">
+            my slot
+            <select className={SELECT} value={sub.day ?? ""} onChange={(e) => saveSub({ ...sub, day: e.target.value === "" ? null : Number(e.target.value) })}>
+              <option value="">team&apos;s day</option>
+              {DAYS.map((d, i) => <option key={d} value={i}>{d}</option>)}
+            </select>
+            <select className={SELECT} value={sub.hour ?? ""} onChange={(e) => saveSub({ ...sub, hour: e.target.value === "" ? null : Number(e.target.value) })}>
+              <option value="">team&apos;s hour</option>
+              {Array.from({ length: 24 }, (_, h) => <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>)}
+            </select>
+          </label>
+        </div>
+      </div>
+    </div>
   );
 }
 

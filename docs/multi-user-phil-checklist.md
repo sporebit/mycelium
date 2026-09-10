@@ -98,6 +98,15 @@ before.
       investigate rather than proceeding.
 - [ ] **Never commit the dump.** Keep it outside the repository.
 
+## 4b. Rundowns (Part 6)
+
+- [ ] `vercel.json` on the branch now schedules `/api/cron/rundowns` hourly.
+      Confirm the Vercel plan allows an hourly cron (Hobby allows daily
+      only; if so, change it to daily and set every team's hour to match).
+- [ ] Email delivery of rundowns needs §2 (Resend). Push needs the
+      recipient to have enabled push in the app. Telegram goes to
+      `TELEGRAM_USER_ID` and only for you.
+
 ## 5. Before Part 7 (cutover)
 
 - [ ] Parts 0–6 verified on a Vercel preview deploy of the `multi-user` branch.
