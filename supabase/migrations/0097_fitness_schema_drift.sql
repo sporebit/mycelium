@@ -25,20 +25,27 @@
 -- (app/api/fitness/seed-mobility/route.ts:67) so it still writes NULL;
 -- that is a separate bug, left alone here.
 
+-- REPLAY FIX (2026-09-08, multi-user Part 0): data_shape below was written
+-- NOT NULL, but on the hosted project the column already existed as NULLABLE,
+-- so the IF NOT EXISTS made this a no-op there and a from-empty replay came
+-- out stricter than production. Nullability now matches live. Section 6 at
+-- the end adds the remaining live-only fitness changes found by diffing a
+-- `supabase db dump --linked` against a from-empty replay.
+
 -- 1. Template sessions: ordering within a (day, slot).
 ALTER TABLE workout_programme_sessions
 	ADD COLUMN IF NOT EXISTS position integer NOT NULL DEFAULT 0;
 
 -- 2. Template exercises: logging shape + weight column visibility.
 ALTER TABLE workout_programme_exercises
-	ADD COLUMN IF NOT EXISTS data_shape text NOT NULL DEFAULT 'sets_reps',
+	ADD COLUMN IF NOT EXISTS data_shape text DEFAULT 'sets_reps',
 	ADD COLUMN IF NOT EXISTS with_weight boolean NOT NULL DEFAULT false,
 	ADD COLUMN IF NOT EXISTS default_hold_seconds integer;
 
 -- 3. Logged exercises: same two shape columns, plus the skip flag and
 --    per-exercise completion stamp the logger writes.
 ALTER TABLE workout_session_exercises
-	ADD COLUMN IF NOT EXISTS data_shape text NOT NULL DEFAULT 'sets_reps',
+	ADD COLUMN IF NOT EXISTS data_shape text DEFAULT 'sets_reps',
 	ADD COLUMN IF NOT EXISTS with_weight boolean NOT NULL DEFAULT false,
 	ADD COLUMN IF NOT EXISTS skipped boolean NOT NULL DEFAULT false,
 	ADD COLUMN IF NOT EXISTS completed_at timestamptz;
@@ -132,3 +139,60 @@ BEGIN
 		END LOOP;
 	END LOOP;
 END $$;
+
+-- 6. Remaining live-only drift (found 2026-09-08 by diffing the hosted schema
+--    against a from-empty replay). Every statement is guarded, so this block
+--    is a no-op on the hosted project and a builder on a fresh stack.
+
+-- 6a. Logged sessions: ordering within a (date, slot), and the kind/slot
+--     allow-lists were widened by hand on live to the same four kinds and
+--     four slots that 0033/0035 gave the template sessions.
+ALTER TABLE workout_sessions
+	ADD COLUMN IF NOT EXISTS position integer NOT NULL DEFAULT 0;
+
+DO $$
+DECLARE
+	def text;
+BEGIN
+	SELECT pg_get_constraintdef(oid) INTO def FROM pg_constraint
+	WHERE conrelid = 'workout_sessions'::regclass AND conname = 'workout_sessions_kind_check';
+	IF def IS NULL OR def NOT LIKE '%mobility%' THEN
+		ALTER TABLE workout_sessions DROP CONSTRAINT IF EXISTS workout_sessions_kind_check;
+		ALTER TABLE workout_sessions ADD CONSTRAINT workout_sessions_kind_check
+			CHECK (kind IN ('cardio', 'conditioning', 'resistance', 'mobility', 'other'));
+	END IF;
+
+	SELECT pg_get_constraintdef(oid) INTO def FROM pg_constraint
+	WHERE conrelid = 'workout_sessions'::regclass AND conname = 'workout_sessions_slot_check';
+	IF def IS NULL OR def NOT LIKE '%evening%' THEN
+		ALTER TABLE workout_sessions DROP CONSTRAINT IF EXISTS workout_sessions_slot_check;
+		ALTER TABLE workout_sessions ADD CONSTRAINT workout_sessions_slot_check
+			CHECK (slot IN ('morning', 'afternoon', 'evening', 'extra'));
+	END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS workout_sessions_order_idx
+	ON workout_sessions (user_id, date, slot, position);
+
+-- 6b. Logged sets: the hold / duration / distance shapes store their value
+--     on the set row (read by app/api/fitness/history/route.ts).
+ALTER TABLE workout_sets
+	ADD COLUMN IF NOT EXISTS hold_seconds integer,
+	ADD COLUMN IF NOT EXISTS duration_min integer,
+	ADD COLUMN IF NOT EXISTS distance_km numeric;
+
+CREATE INDEX IF NOT EXISTS workout_sets_session_ex_idx
+	ON workout_sets (session_exercise_id, set_number);
+
+-- 6c. Logged exercises: ordering index.
+CREATE INDEX IF NOT EXISTS workout_session_ex_session_idx
+	ON workout_session_exercises (session_id, position);
+
+-- 6d. Template sessions: 0005's UNIQUE (programme_id, day_of_week, slot) was
+--     dropped on live once `position` allowed several sessions per slot; the
+--     ordering index replaced it.
+ALTER TABLE workout_programme_sessions
+	DROP CONSTRAINT IF EXISTS workout_programme_sessions_programme_id_day_of_week_slot_key;
+
+CREATE INDEX IF NOT EXISTS workout_programme_sessions_order_idx
+	ON workout_programme_sessions (programme_id, day_of_week, slot, position);
