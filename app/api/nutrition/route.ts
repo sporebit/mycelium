@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { parseNotes } from "@/lib/dailyLog";
 import { localDateKey, previousDateKey } from "@/lib/util/date";
 import { sumMeals, type Meal } from "@/lib/types/nutrition";
@@ -22,12 +23,13 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("daily_logs")
-      .select("log_date, notes")
+      .select("log_date, notes, space_id")
       .gte("log_date", earliest)
       .lte("log_date", today)
       .order("log_date", { ascending: false });
 
     if (error) throw error;
+    auditListRead(req, data, "journal", "daily_logs");
 
     type Row = { log_date: string; notes: string | null };
     const byDate = new Map<string, Row>();

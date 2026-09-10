@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import {
   URGENCIES,
@@ -69,7 +70,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     let q = supabase
       .from("tasks")
-      .select(TASK_SELECT)
+      .select(`${TASK_SELECT}, space_id`)
       .is("deleted_at", null)
       .order("priority_score", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false });
@@ -89,6 +90,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "organisation", "tasks");
 
     const tasks: Task[] = (data ?? []).map((row) =>
       serializeTask(row as Parameters<typeof serializeTask>[0])

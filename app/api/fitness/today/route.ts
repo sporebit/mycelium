@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isoWeekString } from "@/lib/util/week";
 import { localDateKey } from "@/lib/util/date";
@@ -24,7 +25,7 @@ const TEMPLATE_SESSION_FIELDS =
 const EXERCISE_FIELDS =
   "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity, data_shape, with_weight";
 const LIVE_SESSION_FIELDS =
-  "id, slot, kind, name, programme_session_id, session_type, swapped_from_programme_session_id, started_at, completed_at, status, position";
+  "id, slot, kind, name, programme_session_id, session_type, swapped_from_programme_session_id, started_at, completed_at, status, position, space_id";
 
 function jsDayToProgrammeDow(jsDay: number): number {
   return (jsDay + 6) % 7;
@@ -71,6 +72,7 @@ export async function GET(req: NextRequest) {
       .select(LIVE_SESSION_FIELDS)
       .eq("date", dateKey)
       .order("position", { ascending: true });
+    auditListRead(req, liveRows, "fitness", "sessions");
     type LiveRow = {
       id: string;
       slot: Slot;

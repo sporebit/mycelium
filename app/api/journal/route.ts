@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { localDateKey, previousDateKey } from "@/lib/util/date";
 import {
   JOURNAL_SELECT,
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     let query = supabase
       .from("journal_entries")
-      .select(JOURNAL_SELECT)
+      .select(`${JOURNAL_SELECT}, space_id`)
       .is("deleted_at", null)
       .gte("entry_date", from)
       .lte("entry_date", to)
@@ -45,6 +46,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await query;
     if (error) throw error;
+    auditListRead(req, data, "journal", "journal");
 
     const entries = (data ?? []) as JournalEntry[];
 

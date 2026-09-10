@@ -80,16 +80,21 @@ function LoginForm() {
     window.location.assign(next);
   }
 
+  // Magic link and password go through the server so they can be rate
+  // limited (Part 5); the server sets the session cookies.
+  async function post(path: string, body: unknown) {
+    const res = await fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    const json = (await res.json().catch(() => ({}))) as { error?: string; mfaRequired?: boolean; enrolRequired?: boolean; locked?: boolean };
+    return { ok: res.ok, status: res.status, ...json };
+  }
+
   async function sendMagicLink(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: callbackUrl(), shouldCreateUser: false },
-    });
+    const r = await post("/api/auth/magic-link", { email, next });
     setBusy(false);
-    if (error) return setError(describe(error));
+    if (!r.ok) return setError(r.error ?? "Could not send the link");
     setStep("sent");
   }
 
@@ -97,12 +102,21 @@ function LoginForm() {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
+    const r = await post("/api/auth/password", { email, password });
+    if (!r.ok) {
       setBusy(false);
-      return setError(describe(error));
+      return setError(r.error ?? "Sign-in failed");
     }
-    await afterFirstFactor();
+    if (r.mfaRequired) {
+      setStep("mfa");
+      setBusy(false);
+      return;
+    }
+    if (r.enrolRequired) {
+      window.location.assign(`/other/settings/security?enrol=totp&next=${encodeURIComponent(next)}`);
+      return;
+    }
+    window.location.assign(next);
   }
 
   async function signInWithPasskey() {
@@ -133,21 +147,11 @@ function LoginForm() {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const { data: factors, error: listError } = await supabase.auth.mfa.listFactors();
-    const factor = factors?.totp.find((f) => f.status === "verified");
-    if (listError || !factor) {
+    // Verified on the server so failures count towards the lockout (Part 5).
+    const r = await post("/api/auth/mfa/verify", { code: code.trim() });
+    if (!r.ok) {
       setBusy(false);
-      return setError(
-        listError ? describe(listError) : "No authenticator is enrolled on this account.",
-      );
-    }
-    const { error } = await supabase.auth.mfa.challengeAndVerify({
-      factorId: factor.id,
-      code: code.trim(),
-    });
-    if (error) {
-      setBusy(false);
-      return setError(describe(error));
+      return setError(r.error ?? "That code was not accepted");
     }
     window.location.assign(next);
   }

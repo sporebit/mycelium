@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
@@ -18,7 +19,7 @@ function londonDayStart(): Date {
   return midnight;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
 
@@ -28,6 +29,7 @@ export async function GET() {
       .eq("active", true)
       .order("name");
     if (sErr) throw sErr;
+    auditListRead(req, supplements, "health", "supplements");
 
     const dayStartUtc = londonDayStart();
 

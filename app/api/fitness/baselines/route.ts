@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import type { ExerciseBaseline } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
 const BASELINE_FIELDS =
-  "id, exercise_name, has_known_issues, typical_severity_min, typical_severity_max, pain_regions, conditional_notes, created_at, updated_at";
+  "id, exercise_name, has_known_issues, typical_severity_min, typical_severity_max, pain_regions, conditional_notes, created_at, updated_at, space_id";
 
 export async function GET(req: NextRequest) {
   const onlyIssues = req.nextUrl.searchParams.get("has_known_issues") === "true";
@@ -21,6 +22,7 @@ export async function GET(req: NextRequest) {
       console.error("[/api/fitness/baselines GET]", error);
       return NextResponse.json({ error: "fetch failed" }, { status: 500 });
     }
+    auditListRead(req, data, "fitness", "body");
     return NextResponse.json({ baselines: (data ?? []) as ExerciseBaseline[] });
   } catch (err) {
     console.error("[/api/fitness/baselines GET]", err);

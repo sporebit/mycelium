@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { FOOD_SELECT } from "@/lib/nutrition/db";
 import { searchText } from "@/lib/nutrition/off";
 import { searchUsda } from "@/lib/nutrition/usda";
@@ -43,10 +44,11 @@ export async function GET(req: NextRequest) {
     // 1. user's library first — case-insensitive name match
     const { data: libRows } = await supabase
       .from("foods")
-      .select(FOOD_SELECT)
+      .select(`${FOOD_SELECT}, space_id`)
       .ilike("name", `%${q}%`)
       .order("use_count", { ascending: false })
       .limit(20);
+    auditListRead(req, libRows, "health", "nutrition");
     const lib = (libRows ?? []).map((r) => foodToResult(r as unknown as Food));
 
     // 2. OFF + USDA in parallel. OFF is good for branded products

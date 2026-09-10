@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { MEDIA_TYPES, MEDIA_STATUSES, type MediaType, type MediaStatus } from "@/lib/types/media";
 import { lookupStreaming } from "@/lib/media/streaming";
 
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "media", "media");
     return NextResponse.json({ items: data ?? [] });
   } catch (err) {
     console.error("[/api/media GET]", err);

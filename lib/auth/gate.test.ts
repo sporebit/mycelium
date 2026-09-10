@@ -36,6 +36,12 @@ describe("route classification", () => {
     expect(isSensitivePath("/api/admin/users")).toBe(true);
     expect(isSensitivePath("/administer")).toBe(false);
     expect(isSensitivePath("/other/settings/security")).toBe(false);
+    // Part 5: written with a trailing slash in the list; must still match
+    // its children (a first-factor session once deleted an account here).
+    expect(isSensitivePath("/api/account/delete")).toBe(true);
+    expect(isSensitivePath("/api/account/access-log")).toBe(true);
+    expect(isSensitivePath("/api/account")).toBe(true);
+    expect(isSensitivePath("/api/accounts")).toBe(false);
   });
 
   it("api paths are recognised", () => {

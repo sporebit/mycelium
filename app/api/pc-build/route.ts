@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
@@ -17,6 +18,7 @@ export async function GET(req: NextRequest) {
         .not("date_removed", "is", null)
         .order("date_removed", { ascending: false });
       if (error) throw error;
+      auditListRead(req, data, "studio", "pc");
       return NextResponse.json({ components: data ?? [] });
     }
 
@@ -28,6 +30,7 @@ export async function GET(req: NextRequest) {
       .order("category")
       .order("name");
     if (error) throw error;
+    auditListRead(req, data, "studio", "pc");
     return NextResponse.json({ components: data ?? [] });
   } catch (err) {
     console.error("[/api/pc-build GET]", err);

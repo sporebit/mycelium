@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { localDateKey, previousDateKey } from "@/lib/util/date";
 import type { BodyMetric, WeightUnit } from "@/lib/fitness/types";
 
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     let query = supabase
       .from("body_metrics")
-      .select(FIELDS)
+      .select(`${FIELDS}, space_id`)
       .lte("date", today)
       .order("date", { ascending: false });
 
@@ -31,7 +32,8 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await query;
     if (error) throw error;
-    return NextResponse.json({ entries: (data ?? []) as BodyMetric[] });
+    auditListRead(req, data, "fitness", "body");
+    return NextResponse.json({ entries: (data ?? []) as unknown as BodyMetric[] });
   } catch (err) {
     console.error("[/api/body-metrics GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });

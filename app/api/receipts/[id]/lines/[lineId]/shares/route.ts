@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { lineForShares } from "@/lib/receipts/participants";
 import { ownerRemainder, shareAmounts, validateShares } from "@/lib/receipts/shares";
 import {
@@ -17,7 +18,7 @@ function numOrNull(v: unknown): number | null {
 
 /** GET — the shares on one line, priced, with the owner's remainder. */
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string; lineId: string }> },
 ) {
   const { id, lineId } = await ctx.params;
@@ -29,8 +30,9 @@ export async function GET(
     const supabase = await createUserClient();
     const { data } = await supabase
       .from("receipt_line_shares")
-      .select(RECEIPT_LINE_SHARE_SELECT)
+      .select(`${RECEIPT_LINE_SHARE_SELECT}, space_id`)
       .eq("receipt_line_id", lineId);
+    auditListRead(req, data, "organisation", "purchases");
 
     const shares = (data ?? []) as ReceiptLineShare[];
     return NextResponse.json({

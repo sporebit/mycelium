@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { resolveExerciseNames } from "@/lib/fitness/resolve-aliases";
 import {
   exerciseHistorySummary,
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
     const { data: exRows, error: exErr } = await supabase
       .from("workout_session_exercises")
       .select(
-        "id, session_id, comment, notes, is_bodyweight, workout_sessions:session_id!inner(id, date, slot, completed_at)"
+        "id, session_id, comment, notes, is_bodyweight, space_id, workout_sessions:session_id!inner(id, date, slot, completed_at)"
       )
       .or(orFilter)
       .eq("skipped", false)
@@ -42,6 +43,7 @@ export async function GET(req: NextRequest) {
       console.error("[/api/fitness/exercise-history] ex fetch", exErr);
       return NextResponse.json({ error: "fetch failed" }, { status: 500 });
     }
+    auditListRead(req, exRows, "fitness", "sessions");
     type ExRow = {
       id: string;
       session_id: string;

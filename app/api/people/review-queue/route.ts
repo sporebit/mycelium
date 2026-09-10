@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import type {
   Person,
   PersonMention,
@@ -9,9 +10,9 @@ import type {
 export const runtime = "nodejs";
 
 const PERSON_FIELDS =
-  "id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at";
+  "id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at, space_id";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
 
   try {
     const supabase = await createUserClient();
@@ -20,7 +21,7 @@ export async function GET() {
     const { data: mentionRows } = await supabase
       .from("people_mentions")
       .select(
-        "id, person_id, source_type, source_id, raw_alias, confidence, candidate_person_ids, needs_review, resolved_at, created_at"
+        "id, person_id, source_type, source_id, raw_alias, confidence, candidate_person_ids, needs_review, resolved_at, created_at, space_id"
       )
       .eq("needs_review", true)
       .order("created_at", { ascending: false });
@@ -95,6 +96,7 @@ export async function GET() {
       .eq("needs_review", true)
       .order("created_at", { ascending: false });
     const people = (peopleRows ?? []) as Person[];
+    auditListRead(req, [...(mentionRows ?? []), ...(peopleRows ?? [])], "organisation", "people");
     // Mention counts per person — for the "Auto-created from capture on …" subtitle.
     const countByPerson = new Map<string, number>();
     const firstSeenByPerson = new Map<string, string>();

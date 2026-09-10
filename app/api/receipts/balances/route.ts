@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { money } from "@/lib/receipts/reconcile";
 import { shareAmount } from "@/lib/receipts/shares";
 import { namesFor } from "@/lib/receipts/participants";
@@ -32,14 +33,15 @@ type LineRow = {
  * a negative outstanding rather than being clamped — that is money owed back
  * to them, and hiding it would lose it.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
 
     const { data: receiptRows, error: rErr } = await supabase
       .from("receipts")
-      .select("id, title, retailer, purchased_at, currency");
+      .select("id, title, retailer, purchased_at, currency, space_id");
     if (rErr) return NextResponse.json({ error: rErr.message }, { status: 500 });
+    auditListRead(req, receiptRows, "organisation", "purchases");
 
     const receipts = (receiptRows ?? []) as Pick<
       Receipt,

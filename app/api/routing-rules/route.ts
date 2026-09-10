@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import {
   ROUTING_RULE_SELECT,
   invalidateRoutingRulesCache,
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     let q = supabase
       .from("routing_rules")
-      .select(ROUTING_RULE_SELECT)
+      .select(`${ROUTING_RULE_SELECT}, space_id`)
       .order("scope", { ascending: true })
       .order("priority", { ascending: false })
       .order("rule_key", { ascending: true });
@@ -39,6 +40,7 @@ export async function GET(req: NextRequest) {
     }
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "organisation", "captures");
     return NextResponse.json({ rules: (data ?? []) as RoutingRule[] });
   } catch (err) {
     console.error("[/api/routing-rules GET]", err);

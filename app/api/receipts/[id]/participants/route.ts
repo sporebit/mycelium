@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { namesFor, ownsReceipt } from "@/lib/receipts/participants";
 import { rebalanceLines } from "@/lib/receipts/tagging";
 import {
@@ -20,7 +21,7 @@ function pctOrNull(v: unknown): number | null | undefined {
 
 /** GET — who is on this receipt, besides the owner. */
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
   const { id } = await ctx.params;
@@ -33,11 +34,12 @@ export async function GET(
     const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("receipt_participants")
-      .select(RECEIPT_PARTICIPANT_SELECT)
+      .select(`${RECEIPT_PARTICIPANT_SELECT}, space_id`)
       .eq("receipt_id", id)
       .order("created_at", { ascending: true });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    auditListRead(req, data, "organisation", "purchases");
 
     const rows = (data ?? []) as ReceiptParticipant[];
     const names = await namesFor(rows.map((r) => r.person_id));

@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import type { ProgrammePhase } from "@/lib/fitness/types";
 import { parseIsoWeek } from "@/lib/util/week";
 
 export const runtime = "nodejs";
 
 const PHASE_FIELDS =
-  "id, programme_id, start_week_iso, end_week_iso, created_at";
+  "id, programme_id, start_week_iso, end_week_iso, created_at, space_id";
 
 function validIsoWeek(s: unknown): s is string {
   return typeof s === "string" && parseIsoWeek(s) !== null;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
     const { data, error } = await supabase
@@ -20,6 +21,7 @@ export async function GET() {
       .select(PHASE_FIELDS)
       .order("start_week_iso", { ascending: false });
     if (error) throw error;
+    auditListRead(req, data, "fitness", "programmes");
     return NextResponse.json({ phases: (data ?? []) as ProgrammePhase[] });
   } catch (err) {
     console.error("[/api/fitness/phases GET]", err);

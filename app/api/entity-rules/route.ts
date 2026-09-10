@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
 const SELECT =
-  "id, entity_type, review_new, review_low_confidence, auto_create_threshold, created_at";
+  "id, entity_type, review_new, review_low_confidence, auto_create_threshold, created_at, space_id";
 const TYPES = new Set(["person", "project", "workout", "food"]);
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
     const { data, error } = await supabase
@@ -15,6 +16,7 @@ export async function GET() {
       .select(SELECT)
       .order("entity_type", { ascending: true });
     if (error) throw error;
+    auditListRead(req, data, "organisation", "captures");
     return NextResponse.json({ rules: data ?? [] });
   } catch (err) {
     console.error("[/api/entity-rules GET]", err);

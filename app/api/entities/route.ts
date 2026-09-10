@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import type { Entity } from "@/lib/types/task";
 
 export const runtime = "nodejs";
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     let query = supabase
       .from("entities")
-      .select("id, name, kind")
+      .select("id, name, kind, space_id")
       .order("name", { ascending: true })
       .limit(SEARCH_LIMIT);
 
@@ -23,6 +24,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await query;
     if (error) throw error;
+    auditListRead(req, data, "organisation", "people");
     return NextResponse.json({ entities: (data ?? []) as Entity[] });
   } catch (err) {
     console.error("[/api/entities GET]", err);

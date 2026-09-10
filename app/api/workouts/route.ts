@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import {
   WORKOUT_SELECT,
   WORKOUT_KINDS,
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     let q = supabase
       .from("workouts")
-      .select(WORKOUT_SELECT)
+      .select(`${WORKOUT_SELECT}, space_id`)
       .order("updated_at", { ascending: false });
     if (!includeArchived) q = q.is("archived_at", null);
     if (kind && WORKOUT_KINDS.includes(kind as WorkoutKind)) {
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
     }
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "fitness", "programmes");
     const workouts = (data ?? []) as Workout[];
 
     if (workouts.length > 0) {

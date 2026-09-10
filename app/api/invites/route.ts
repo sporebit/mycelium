@@ -3,6 +3,7 @@ import { getOwnProfile, getSessionUser } from "@/lib/auth/session";
 import { createUserClient } from "@/lib/supabase/user";
 import { rpcMessage } from "@/lib/access/teams";
 import { sendInviteEmail } from "@/lib/system/email";
+import { LIMITS, takeToken } from "@/lib/system/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -27,6 +28,9 @@ export async function POST(req: NextRequest) {
   }
 
   const db = await createUserClient();
+  if (!(await takeToken(db, `invite:user:${me.id}`, LIMITS.inviteUser))) {
+    return NextResponse.json({ error: "Too many invites in a short time. Try again later." }, { status: 429 });
+  }
   const { data: token, error } = await db.rpc("create_invite", { p_email: email, p_team: teamId, p_role: role });
   if (error || typeof token !== "string") {
     return NextResponse.json({ error: rpcMessage(error) }, { status: 403 });

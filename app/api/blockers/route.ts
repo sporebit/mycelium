@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import { localDateKey } from "@/lib/util/date";
 import { isBlocker, sortBlockers, toBlockerRow } from "@/lib/blockers";
@@ -8,7 +9,7 @@ export const runtime = "nodejs";
 
 const TOP_N = 5;
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const tz = process.env.USER_TIMEZONE ?? "Europe/London";
     const todayKey = localDateKey(tz);
@@ -16,11 +17,12 @@ export async function GET() {
     const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("tasks")
-      .select(TASK_SELECT)
+      .select(`${TASK_SELECT}, space_id`)
       .is("deleted_at", null)
       .is("completed_at", null);
 
     if (error) throw error;
+    auditListRead(req, data, "organisation", "tasks");
 
     const tasks = (data ?? []).map((row) =>
       serializeTask(row as Parameters<typeof serializeTask>[0])

@@ -295,6 +295,12 @@ export const ACCESS_TABLES: readonly string[] = [
   "team_member_sections",
   "user_grants",
   "invites",
+  "audit_events",
+  "rate_limits",
+  "second_factor_failures",
+  "rundown_settings",
+  "rundown_subscriptions",
+  "rundown_issues",
 ];
 
 /**

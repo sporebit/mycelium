@@ -4,6 +4,7 @@ import {
   PC_METRICS_PREFIX,
   PRINCIPAL_AAL_HEADER,
   PRINCIPAL_HEADER,
+  PRINCIPAL_PATH_HEADER,
   PRINCIPAL_USER_HEADER,
   isAal2,
   isApiPath,
@@ -21,6 +22,7 @@ import {
   verifyBreakGlassToken,
 } from "@/lib/auth/cookie";
 import { PHIL_AUTH_UID } from "@/lib/system/identity";
+import { REAUTH_COOKIE, verifyReauth } from "@/lib/auth/reauth";
 
 /**
  * The auth gate. Order matters and is fixed by P12 Part 1:
@@ -35,8 +37,9 @@ import { PHIL_AUTH_UID } from "@/lib/system/identity";
  *     request headers the client could not have set.
  *  5. Break-glass: only while BREAK_GLASS_ENABLED === "true", and only if the
  *     cookie verifies against BREAK_GLASS_SECRET. Acts as Phil.
- *  6. Sensitive routes (/admin and friends) require aal2. Part 5 adds the
- *     ten-minute re-auth cookie on top.
+ *  6. Sensitive routes (/admin, /api/admin, /api/account) require aal2 AND
+ *     a re-auth cookie younger than ten minutes (Part 5): the second factor
+ *     must have been presented recently, not just at sign-in.
  *
  * Downstream code learns who is calling from x-principal, x-principal-user
  * and x-principal-aal. Those headers are stripped from the incoming request
@@ -103,9 +106,15 @@ export async function middleware(req: NextRequest) {
 
   if (claims?.sub) {
     const aal: AssuranceLevel = isAal2(claims.aal) ? "aal2" : "aal1";
-    // 6. Sensitive routes need a second factor.
-    if (isSensitivePath(pathname) && !isAal2(aal)) {
-      return withRefreshedCookies(forbiddenMfa(pathname));
+    // 6. Sensitive routes need a second factor, presented recently.
+    if (isSensitivePath(pathname)) {
+      if (!isAal2(aal)) return withRefreshedCookies(forbiddenMfa(pathname));
+      const fresh = await verifyReauth(
+        req.cookies.get(REAUTH_COOKIE)?.value,
+        claims.sub,
+        process.env.SUPABASE_JWT_SECRET,
+      );
+      if (!fresh) return withRefreshedCookies(forbiddenReauth(pathname));
     }
     return withRefreshedCookies(passThrough(req, "user", claims.sub, aal));
   }
@@ -117,7 +126,10 @@ export async function middleware(req: NextRequest) {
       process.env.BREAK_GLASS_SECRET,
     );
     if (payload) {
-      recordBreakGlassUse(req);
+      // Every request under break-glass is audited by createUserClient()
+      // (lib/supabase/user.ts) using the path header set below — the
+      // middleware itself has no database client.
+      console.warn(`[break-glass] ${req.method} ${pathname}`);
       // No second factor exists on this path, so it can never reach a
       // sensitive route. Break-glass is for getting data out, not admin.
       if (isSensitivePath(pathname)) return forbiddenMfa(pathname);
@@ -147,9 +159,24 @@ function passThrough(
 ): NextResponse {
   const headers = stripPrincipalHeaders(new Headers(req.headers));
   headers.set(PRINCIPAL_HEADER, principal);
+  headers.set(PRINCIPAL_PATH_HEADER, req.nextUrl.pathname);
   if (userId) headers.set(PRINCIPAL_USER_HEADER, userId);
   if (aal) headers.set(PRINCIPAL_AAL_HEADER, aal);
   return NextResponse.next({ request: { headers } });
+}
+
+function forbiddenReauth(pathname: string): NextResponse {
+  if (isApiPath(pathname)) {
+    return NextResponse.json(
+      { error: "Forbidden", reason: "reauth_required" },
+      { status: 403 },
+    );
+  }
+  const url = `/other/settings/security?reauth=1&next=${encodeURIComponent(pathname)}`;
+  return new NextResponse(
+    `Forbidden: confirm your second factor again to open this page: ${url}`,
+    { status: 403, headers: { "content-type": "text/plain; charset=utf-8" } },
+  );
 }
 
 function forbiddenMfa(pathname: string): NextResponse {
@@ -162,18 +189,6 @@ function forbiddenMfa(pathname: string): NextResponse {
   return new NextResponse(
     "Forbidden: this page requires a second factor. Verify at /login?step=mfa or enrol one under Settings > Security.",
     { status: 403, headers: { "content-type": "text/plain; charset=utf-8" } },
-  );
-}
-
-/**
- * TODO(P12 Part 5): replace with the audit writer in lib/system/audit.ts —
- * one audit_events row per request with principal = break_glass, the path,
- * ip and user agent. Middleware cannot reach the database until then; the
- * console line keeps the use visible in Vercel logs in the meantime.
- */
-function recordBreakGlassUse(req: NextRequest): void {
-  console.warn(
-    `[break-glass] ${req.method} ${req.nextUrl.pathname} ip=${req.headers.get("x-forwarded-for") ?? "?"} ua=${req.headers.get("user-agent") ?? "?"}`,
   );
 }
 

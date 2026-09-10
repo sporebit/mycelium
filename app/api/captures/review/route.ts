@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
     let q = supabase
       .from("raw_captures")
       .select(
-        "id, source, raw_text, audio_url, classification, llm_source, routed_to, routed_id, reviewed_at, discarded_at, created_at",
+        "id, source, raw_text, audio_url, classification, llm_source, routed_to, routed_id, reviewed_at, discarded_at, created_at, space_id",
       )
       .is("deleted_at", null)
       .is("discarded_at", null)
@@ -63,6 +64,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "organisation", "captures");
 
     const rows = data ?? [];
     const hasMore = rows.length > limit;

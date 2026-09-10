@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
@@ -25,14 +26,14 @@ type SessionRow = {
   blood_test_results: ResultRow[];
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
 
     const { data, error } = await supabase
       .from("blood_test_sessions")
       .select(
-        `id, sampled_at, provider, notes, created_at,
+        `id, sampled_at, provider, notes, created_at, space_id,
          blood_test_results (
            id, marker_key, value_raw, value_numeric, value_prefix,
            ref_min, ref_max, ref_direction, unit,
@@ -46,6 +47,7 @@ export async function GET() {
       return NextResponse.json({ error: "fetch failed" }, { status: 500 });
     }
 
+    auditListRead(req, data, "health", "clinical");
     const sessions = (data as unknown as SessionRow[]).map((s) => ({
       id: s.id,
       sampled_at: s.sampled_at,

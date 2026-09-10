@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { estimateBurnedKcal } from "@/lib/nutrition/calc";
 
 export const runtime = "nodejs";
@@ -19,10 +20,11 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("workout_sessions")
-      .select("id, kind, name, calories, started_at, completed_at, status")
+      .select("id, kind, name, calories, started_at, completed_at, status, space_id")
       .eq("date", date)
       .eq("status", "completed");
     if (error) throw error;
+    auditListRead(req, data, "fitness", "sessions");
     const sessions = (data ?? []) as Array<{
       id: string;
       kind: string;

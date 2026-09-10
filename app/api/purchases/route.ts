@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import {
   PURCHASE_CATEGORIES,
   PURCHASE_LIST_TYPES,
@@ -15,7 +16,7 @@ import {
 export const runtime = "nodejs";
 
 const PURCHASE_SELECT =
-  "id, title, amount, currency, want_or_need, urgency, list_type, category, project_id, completed_at, raw_capture_id, created_at, updated_at, projects(name)";
+  "id, title, amount, currency, want_or_need, urgency, list_type, category, project_id, completed_at, raw_capture_id, created_at, updated_at, space_id, projects(name)";
 
 type PurchaseRow = Omit<Purchase, "project_name"> & {
   projects: { name: string } | { name: string }[] | null;
@@ -59,6 +60,7 @@ export async function GET(req: NextRequest) {
     }
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "organisation", "purchases");
     const purchases = ((data ?? []) as unknown as PurchaseRow[]).map(serialize);
     return NextResponse.json({ purchases });
   } catch (err) {

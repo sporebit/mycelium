@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import type { ExercisePainLog } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
 const LOG_FIELDS =
-  "id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at";
+  "id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at, space_id";
 
 /**
  * GET /api/fitness/sessions/[id]/pain-logs — all pain logs for a
@@ -17,7 +18,7 @@ const LOG_FIELDS =
  * URL.
  */
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
   const { id } = await ctx.params;
@@ -38,6 +39,7 @@ export async function GET(
       .eq("session_id", id)
       .is("deleted_at", null)
       .order("logged_at", { ascending: true });
+    auditListRead(req, logs, "fitness", "body");
     return NextResponse.json({
       pain_logs: (logs ?? []) as ExercisePainLog[],
     });

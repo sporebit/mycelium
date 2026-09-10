@@ -28,7 +28,7 @@ export const PC_METRICS_PREFIX = "/api/studio/pc-metrics";
  * Routes that require a second factor (aal2). Part 5 adds the re-auth cookie
  * check on top and extends this list with the routes it tags sensitive.
  */
-export const SENSITIVE_PREFIXES: readonly string[] = ["/admin", "/api/admin"];
+export const SENSITIVE_PREFIXES: readonly string[] = ["/admin", "/api/admin", "/api/account/"];
 
 /**
  * Request headers the middleware sets for downstream code. Anything a client
@@ -38,10 +38,13 @@ export const SENSITIVE_PREFIXES: readonly string[] = ["/admin", "/api/admin"];
 export const PRINCIPAL_HEADER = "x-principal";
 export const PRINCIPAL_USER_HEADER = "x-principal-user";
 export const PRINCIPAL_AAL_HEADER = "x-principal-aal";
+/** The request path, for audit rows written where the URL is not in scope. */
+export const PRINCIPAL_PATH_HEADER = "x-principal-path";
 export const PRINCIPAL_HEADERS = [
   PRINCIPAL_HEADER,
   PRINCIPAL_USER_HEADER,
   PRINCIPAL_AAL_HEADER,
+  PRINCIPAL_PATH_HEADER,
 ] as const;
 
 /**
@@ -60,9 +63,13 @@ export function isPublicPath(pathname: string): boolean {
 }
 
 export function isSensitivePath(pathname: string): boolean {
-  return SENSITIVE_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
-  );
+  return SENSITIVE_PREFIXES.some((prefix) => {
+    // A prefix may be written with or without a trailing slash; either way
+    // it matches itself and everything beneath it, never a sibling
+    // ("/administer" is not under "/admin").
+    const base = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
+    return pathname === base || pathname.startsWith(base + "/");
+  });
 }
 
 export function isApiPath(pathname: string): boolean {

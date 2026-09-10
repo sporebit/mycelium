@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import {
   PROJECT_STATUSES,
   type Project,
@@ -9,7 +10,7 @@ import {
 export const runtime = "nodejs";
 
 const PROJECT_SELECT =
-  "id, name, description, status, colour, created_at, updated_at";
+  "id, name, description, status, colour, created_at, updated_at, space_id";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
     }
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "organisation", "tasks");
     const projects = (data ?? []) as Project[];
 
     // Task counts per project (open tasks only)

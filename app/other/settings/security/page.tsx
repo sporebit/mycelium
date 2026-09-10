@@ -76,6 +76,7 @@ function Note({ children, tone = "mid" }: { children: React.ReactNode; tone?: "m
 export default function SecuritySettingsPage() {
   const params = useSearchParams();
   const mustEnrol = params.get("enrol") === "totp";
+  const reauthNext = params.get("reauth") === "1" ? (params.get("next") ?? "/admin") : null;
   const [supabase] = useState(() => createBrowserClient());
   const [email, setEmail] = useState<string | null>(null);
   const [aal, setAal] = useState<string>("aal1");
@@ -163,6 +164,8 @@ export default function SecuritySettingsPage() {
         </div>
       )}
 
+      {reauthNext && <ReauthCard next={reauthNext} />}
+
       <PasswordCard supabase={supabase} />
 
       <TotpCard supabase={supabase} factors={factors} onChange={load} />
@@ -180,31 +183,182 @@ export default function SecuritySettingsPage() {
         ) : (
           <ul className="flex flex-col divide-y divide-hairline">
             {sessions.map((s) => (
-              <li key={s.id} className="py-3 flex flex-col gap-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-text-hi truncate">
-                    {s.user_agent ?? "Unknown client"}
-                  </span>
-                  {s.is_current && (
-                    <span className="text-[10px] uppercase tracking-[0.08em] text-ok">
-                      this device
+              <li key={s.id} className="py-3 flex items-center gap-3">
+                <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-text-hi truncate">
+                      {s.user_agent ?? "Unknown client"}
                     </span>
-                  )}
+                    {s.is_current && (
+                      <span className="text-[10px] uppercase tracking-[0.08em] text-ok">
+                        this device
+                      </span>
+                    )}
+                  </div>
+                  <Mono className="text-[11px] text-ink-3">
+                    {s.ip ?? "?"} · {s.aal ?? "aal1"} · active {when(s.refreshed_at ?? s.created_at)}
+                  </Mono>
                 </div>
-                <Mono className="text-[11px] text-ink-3">
-                  {s.ip ?? "?"} · {s.aal ?? "aal1"} · active {when(s.refreshed_at ?? s.created_at)}
-                </Mono>
+                <Button
+                  size="sm"
+                  variant={s.is_current ? "ghost" : "danger"}
+                  onClick={async () => {
+                    const res = await fetch(`/api/auth/sessions/${s.id}`, { method: "DELETE" });
+                    if (res.ok && s.is_current) window.location.assign("/login");
+                    else await load();
+                  }}
+                >
+                  {s.is_current ? "Sign out" : "Sign out there"}
+                </Button>
               </li>
             ))}
           </ul>
         )}
-        <Note>Signing out other sessions from here arrives in Part 5.</Note>
       </Card>
+
+      <AccessLogCard />
+
+      <DeleteAccountCard email={email} />
     </div>
   );
 }
 
 type Client = ReturnType<typeof createBrowserClient>;
+
+/**
+ * Re-authentication for sensitive pages (Part 5): a fresh TOTP code sets a
+ * ten-minute cookie the middleware demands on /admin and /api/account.
+ */
+function ReauthCard({ next }: { next: string }) {
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setErr(null);
+    const res = await fetch("/api/auth/reauth", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ code: code.trim() }) });
+    const j = (await res.json().catch(() => ({}))) as { error?: string; reason?: string };
+    setBusy(false);
+    if (!res.ok) {
+      if (j.reason === "mfa_required") {
+        const back = `/other/settings/security?reauth=1&next=${encodeURIComponent(next)}`;
+        return window.location.assign(`/login?step=mfa&next=${encodeURIComponent(back)}`);
+      }
+      return setErr(j.error ?? "Not accepted");
+    }
+    window.location.assign(next);
+  }
+  return (
+    <Card title="CONFIRM IT IS YOU">
+      <Note>That page needs your authenticator code again. It stays confirmed for ten minutes.</Note>
+      <form onSubmit={submit} className="flex gap-2 items-end">
+        <input
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="[0-9]{6}"
+          placeholder="000000"
+          required
+          autoFocus
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          className={`${INPUT} max-w-[200px] tracking-[0.3em] text-center font-[family-name:var(--font-mono)]`}
+        />
+        <Button type="submit" size="sm" variant="primary" loading={busy}>Confirm</Button>
+      </form>
+      {err && <Note tone="error">{err}</Note>}
+    </Card>
+  );
+}
+
+type AccessEvent = { id: number; at: string; actor_id: string | null; actor_name: string | null; action: string; section: string | null; entity_group: string | null; team_id: string | null; meta: Record<string, unknown> };
+
+/** "Who has seen my data": events where this account is the subject. */
+function AccessLogCard() {
+  const [events, setEvents] = useState<AccessEvent[] | null>(null);
+  const [needsReauth, setNeedsReauth] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const res = await fetch("/api/account/access-log");
+      if (cancelled) return;
+      if (res.status === 403) {
+        setNeedsReauth(true);
+        setEvents([]);
+        return;
+      }
+      const j = (await res.json().catch(() => ({}))) as { events?: AccessEvent[] };
+      if (!cancelled) setEvents(j.events ?? []);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return (
+    <Card title="WHO HAS SEEN MY DATA">
+      {needsReauth ? (
+        <Note>
+          Confirm your authenticator to view this.{" "}
+          <a className="underline underline-offset-4" href="/other/settings/security?reauth=1&next=%2Fother%2Fsettings%2Fsecurity">Confirm</a>
+        </Note>
+      ) : events === null ? (
+        <Note>Loading…</Note>
+      ) : events.length === 0 ? (
+        <Note>Nobody has read your data through a team or a grant, and no emergency access has been used.</Note>
+      ) : (
+        <ul className="flex flex-col divide-y divide-hairline">
+          {events.map((e) => (
+            <li key={e.id} className="py-2 flex flex-col gap-0.5">
+              <span className="text-sm text-text-hi">
+                {e.actor_name ?? (e.actor_id ? e.actor_id.slice(0, 8) : "system")} · {e.action.replace(/_/g, " ")}
+                {e.section ? ` · ${e.section}${e.entity_group ? `.${e.entity_group}` : ""}` : ""}
+              </span>
+              <Mono className="text-[11px] text-ink-3">{when(e.at)}{typeof e.meta?.path === "string" ? ` · ${e.meta.path}` : ""}</Mono>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+/** Self-service deletion: re-auth (middleware) plus the typed email. */
+function DeleteAccountCard({ email }: { email: string | null }) {
+  const [typed, setTyped] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  async function del() {
+    setBusy(true);
+    setErr(null);
+    const res = await fetch("/api/account/delete", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ confirm: typed }) });
+    const j = (await res.json().catch(() => ({}))) as { error?: string; reason?: string };
+    setBusy(false);
+    if (res.status === 403 && j.reason === "reauth_required") {
+      return window.location.assign("/other/settings/security?reauth=1&next=%2Fother%2Fsettings%2Fsecurity");
+    }
+    if (!res.ok) return setErr(j.error ?? "Could not delete");
+    window.location.assign("/login");
+  }
+  return (
+    <Card title="DELETE ACCOUNT">
+      <Note>
+        Removes your personal space and everything in it, your memberships, grants and invites, and your sign-in.
+        Rows you created in a team stay with the team, without your name. This cannot be undone. Export first.
+      </Note>
+      <div className="flex flex-wrap gap-2 items-end">
+        <div className="flex flex-col gap-1">
+          <Label>Type your email to confirm</Label>
+          <input className={INPUT} value={typed} onChange={(e) => setTyped(e.target.value)} placeholder={email ?? ""} />
+        </div>
+        <Button size="sm" variant="danger" loading={busy} disabled={!email || typed.trim().toLowerCase() !== email.toLowerCase()} onClick={del}>
+          Delete my account
+        </Button>
+      </div>
+      {err && <Note tone="error">{err}</Note>}
+    </Card>
+  );
+}
+
 
 function PasswordCard({ supabase }: { supabase: Client }) {
   const [password, setPassword] = useState("");

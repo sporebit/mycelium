@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { toKg } from "@/lib/fitness/units";
 import type {
   HistoryResponse,
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
     let q = supabase
       .from("workout_sessions")
       .select(
-        "id, date, slot, kind, session_type, name, notes, started_at, completed_at, status, created_at"
+        "id, date, slot, kind, session_type, name, notes, started_at, completed_at, status, created_at, space_id"
       )
       // Attempted sessions belong in history alongside completed ones —
       // they're real workouts that just stalled past 48h, and we want
@@ -56,6 +57,7 @@ export async function GET(req: NextRequest) {
       console.error("[/api/fitness/history GET]", error);
       return NextResponse.json({ error: "fetch failed" }, { status: 500 });
     }
+    auditListRead(req, rows, "fitness", "sessions");
     type SessionRow = {
       id: string;
       date: string;

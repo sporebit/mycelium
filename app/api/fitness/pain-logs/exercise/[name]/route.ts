@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { resolveExerciseNames } from "@/lib/fitness/resolve-aliases";
 import type { ExercisePainLog } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
 const LOG_FIELDS =
-  "id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at";
+  "id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at, space_id";
 
 /**
  * Pain logs for a named exercise across every completed session.
@@ -18,7 +19,7 @@ const LOG_FIELDS =
  * workout_session_exercises required.
  */
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ name: string }> },
 ) {
   const { name: raw } = await ctx.params;
@@ -35,6 +36,7 @@ export async function GET(
       .is("deleted_at", null)
       .or(orFilter)
       .order("logged_at", { ascending: false });
+    auditListRead(req, logRows, "fitness", "body");
     const logs = (logRows ?? []) as ExercisePainLog[];
     if (logs.length === 0) return NextResponse.json({ logs: [] });
 

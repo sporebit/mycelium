@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
@@ -17,6 +18,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    auditListRead(req, data, "drops", "drops");
     return NextResponse.json({ entries: data ?? [] });
   } catch (err) {
     console.error("[drops/raffles GET]", err);

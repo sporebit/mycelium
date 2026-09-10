@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { pushEventToGoogle } from "@/lib/google/sync";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
     const { data, error } = await supabase
@@ -13,6 +14,7 @@ export async function GET() {
       .gte("start_at", new Date(Date.now() - 30 * 86400000).toISOString())
       .order("start_at", { ascending: true });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    auditListRead(req, data, "organisation", "events");
     return NextResponse.json({ events: data });
   } catch (err) {
     console.error("[events GET]", err);

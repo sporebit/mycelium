@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
     const { data, error } = await supabase
@@ -12,6 +13,7 @@ export async function GET() {
       .order("created_at", { ascending: false });
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
+    auditListRead(req, data, "ventures", "ventures");
     return NextResponse.json({ items: data });
   } catch (err) {
     console.error("[ventures/inspiration GET]", err);

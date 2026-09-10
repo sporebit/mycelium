@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { getExerciseMuscles } from "@/lib/fitness/muscle-map";
 
 export const runtime = "nodejs";
@@ -19,7 +20,7 @@ export type ExerciseSetRow = {
 };
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await ctx.params;
@@ -31,10 +32,11 @@ export async function GET(
     // Find all session exercises matching this name (case-insensitive)
     const { data: exRows, error } = await supabase
       .from("workout_session_exercises")
-      .select("id, name, session_id, notes, comment")
+      .select("id, name, session_id, notes, comment, space_id")
       .ilike("name", searchName)
       .eq("skipped", false);
     if (error) throw error;
+    auditListRead(req, exRows, "fitness", "sessions");
     if (!exRows || exRows.length === 0) {
       return NextResponse.json({ error: "exercise not found" }, { status: 404 });
     }

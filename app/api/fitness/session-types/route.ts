@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { slugifyTypeKey } from "@/lib/fitness/slugify-type";
 import type {
   SessionTypeLoggingMode,
@@ -9,9 +10,9 @@ import type {
 export const runtime = "nodejs";
 
 const FIELDS =
-  "id, type_key, label, is_builtin, typical_logging_mode, created_at";
+  "id, type_key, label, is_builtin, typical_logging_mode, created_at, space_id";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
     const { data, error } = await supabase
@@ -22,6 +23,7 @@ export async function GET() {
       console.error("[/api/fitness/session-types GET]", error);
       return NextResponse.json({ error: "fetch failed" }, { status: 500 });
     }
+    auditListRead(req, data, "fitness", "sessions");
     return NextResponse.json({ types: (data ?? []) as WorkoutSessionType[] });
   } catch (err) {
     console.error("[/api/fitness/session-types GET]", err);

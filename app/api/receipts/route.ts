@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { parseReceipt } from "@/lib/receipts/parse";
 import { storeReceiptImages, validateReceiptFiles } from "@/lib/receipts/upload";
 import {
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     let q = supabase
       .from("receipts")
-      .select(RECEIPT_SELECT)
+      .select(`${RECEIPT_SELECT}, space_id`)
       .order("purchased_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false });
 
@@ -38,6 +39,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    auditListRead(req, data, "organisation", "purchases");
 
     // Page counts come back in one extra round trip and are counted here,
     // matching how /api/people attaches its alias and mention counts. The merge

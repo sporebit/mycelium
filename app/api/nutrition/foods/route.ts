@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { FOOD_SELECT } from "@/lib/nutrition/db";
 import type { Food } from "@/lib/nutrition/types-v2";
 
@@ -13,13 +14,14 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     let q = supabase
       .from("foods")
-      .select(FOOD_SELECT)
+      .select(`${FOOD_SELECT}, space_id`)
       .order("use_count", { ascending: false })
       .order("name", { ascending: true })
       .limit(200);
     if (favouritesOnly) q = q.eq("is_favourite", true);
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "health", "nutrition");
     return NextResponse.json({ foods: (data ?? []) as unknown as Food[] });
   } catch (err) {
     console.error("[/api/nutrition/foods GET]", err);

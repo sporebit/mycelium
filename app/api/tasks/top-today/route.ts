@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
@@ -11,12 +12,12 @@ type TaskRow = {
   entities: { name: string } | { name: string }[] | null;
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("tasks")
-      .select("id, title, time_estimate_min, entity_id, entities(name)")
+      .select("id, title, time_estimate_min, entity_id, space_id, entities(name)")
       .is("deleted_at", null)
       .eq("urgency", "today")
       .eq("key", true)
@@ -25,6 +26,7 @@ export async function GET() {
       .limit(3);
 
     if (error) throw error;
+    auditListRead(req, data, "organisation", "tasks");
 
     const tasks = ((data as TaskRow[] | null) ?? []).map((r) => {
       const ent = Array.isArray(r.entities) ? r.entities[0] : r.entities;

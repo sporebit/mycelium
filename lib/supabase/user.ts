@@ -27,7 +27,8 @@
 import { createServerClient as createSsrServerClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
-import { PRINCIPAL_HEADER, PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
+import { PRINCIPAL_HEADER, PRINCIPAL_PATH_HEADER, PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
+import { auditBreakGlass } from "@/lib/system/audit";
 import { clientForUser } from "@/lib/system/withUser";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -38,6 +39,10 @@ export async function createUserClient(): Promise<SupabaseClient> {
   const principal = h.get(PRINCIPAL_HEADER);
   const principalUser = h.get(PRINCIPAL_USER_HEADER);
   if ((principal === "system" || principal === "break_glass") && principalUser) {
+    if (principal === "break_glass") {
+      // One audit row per break-glass request (P12 Part 5 resolves Part 1's TODO).
+      auditBreakGlass(principalUser, h.get(PRINCIPAL_PATH_HEADER) ?? "?", h);
+    }
     return clientForUser(principalUser);
   }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await query;
     if (error) throw error;
+    auditListRead(req, data, "places", "places");
     return NextResponse.json({ places: data ?? [] });
   } catch (err) {
     console.error("[/api/places GET]", err);

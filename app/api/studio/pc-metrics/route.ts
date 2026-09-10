@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { matchesBearer } from "@/lib/auth/gate";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { clientForUser, withUser } from "@/lib/system/withUser";
 import { boundUser } from "@/lib/system/bindings";
 
@@ -183,6 +184,7 @@ export async function GET(req: NextRequest) {
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
+      auditListRead(req, data, "studio", "pc");
       return NextResponse.json({
         current,
         history: data ?? [],
@@ -206,6 +208,7 @@ export async function GET(req: NextRequest) {
     if (bucketErr) {
       return NextResponse.json({ error: bucketErr.message }, { status: 500 });
     }
+    auditListRead(req, buckets, "studio", "pc");
 
     // An hour the agent never reported has no row at all. Emitting the full
     // series with explicit nulls is what keeps a gap looking like a gap: the

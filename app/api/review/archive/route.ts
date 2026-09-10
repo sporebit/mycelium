@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { parseNotes } from "@/lib/dailyLog";
 import { isoWeekOf } from "@/lib/util/week";
 
@@ -12,7 +13,7 @@ type ArchiveEntry = {
   sealed_at: string;
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
     // 400 days back covers > 1 year of weekly reviews
@@ -24,11 +25,12 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("daily_logs")
-      .select("log_date, notes")
+      .select("log_date, notes, space_id")
       .gte("log_date", earliestKey)
       .lte("log_date", todayKey)
       .order("log_date", { ascending: false });
     if (error) throw error;
+    auditListRead(req, data, "journal", "daily_logs");
 
     const entries: ArchiveEntry[] = [];
     for (const row of (data ?? []) as Array<{

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { money } from "@/lib/receipts/reconcile";
 import {
   RECEIPT_SETTLEMENT_SELECT,
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     let q = supabase
       .from("receipt_settlements")
-      .select(RECEIPT_SETTLEMENT_SELECT)
+      .select(`${RECEIPT_SETTLEMENT_SELECT}, space_id`)
       .order("paid_at", { ascending: false })
       .order("created_at", { ascending: false });
 
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    auditListRead(req, data, "organisation", "purchases");
     return NextResponse.json({ settlements: (data ?? []) as ReceiptSettlement[] });
   } catch (err) {
     console.error("[receipts/settlements GET]", err);

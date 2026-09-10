@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { normaliseAlias } from "@/lib/people/normalise";
 import type { Person, PersonAlias, PersonWithAliases } from "@/lib/people/types";
 
 export const runtime = "nodejs";
 
 const PERSON_FIELDS =
-  "id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at";
+  "id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at, space_id";
 
 /** GET — list people, optionally filtered to the review queue. */
 export async function GET(req: NextRequest) {
@@ -24,6 +25,7 @@ export async function GET(req: NextRequest) {
       console.error("[/api/people GET]", error);
       return NextResponse.json({ error: "fetch failed" }, { status: 500 });
     }
+    auditListRead(req, peopleRows, "organisation", "people");
     const people = (peopleRows ?? []) as Person[];
 
     // Attach aliases + mention counts in a couple of batched queries

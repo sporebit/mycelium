@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { localDateKey } from "@/lib/util/date";
 import { parseNotes } from "@/lib/dailyLog";
 import { HABITS as DEFAULT_HABITS, type Habit } from "@/lib/config/habits";
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
     const [logsRes, configRes] = await Promise.all([
       supabase
         .from("daily_logs")
-        .select("log_date, notes")
+        .select("log_date, notes, space_id")
         .gte("log_date", startStr)
         .lte("log_date", today)
         .order("log_date", { ascending: true }),
@@ -33,6 +34,7 @@ export async function GET(req: NextRequest) {
         .maybeSingle(),
     ]);
 
+    auditListRead(req, logsRes.data, "journal", "daily_logs");
     let habits: Habit[] = DEFAULT_HABITS;
     if (configRes.data?.notes) {
       const cfg = parseNotes(configRes.data.notes as string) as {

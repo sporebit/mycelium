@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import type { Programme } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
@@ -11,11 +12,12 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     let q = supabase
       .from("workout_programmes")
-      .select("id, name, description, created_at, updated_at, archived_at")
+      .select("id, name, description, created_at, updated_at, archived_at, space_id")
       .order("created_at", { ascending: false });
     if (!includeArchived) q = q.is("archived_at", null);
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "fitness", "programmes");
     return NextResponse.json({ programmes: (data ?? []) as Programme[] });
   } catch (err) {
     console.error("[/api/fitness/programmes GET]", err);

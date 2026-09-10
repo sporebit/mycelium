@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
@@ -10,7 +11,7 @@ export async function GET(req: NextRequest) {
   const supabase = await createUserClient();
   const { data, error } = await supabase
     .from("exercise_aliases")
-    .select("id, canonical_name, alias, created_at")
+    .select("id, canonical_name, alias, created_at, space_id")
     .ilike("canonical_name", name)
     .order("alias", { ascending: true });
 
@@ -18,6 +19,7 @@ export async function GET(req: NextRequest) {
     console.error("[/api/fitness/exercise-aliases GET]", error);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });
   }
+  auditListRead(req, data, "fitness", "body");
   return NextResponse.json({ aliases: data ?? [] });
 }
 

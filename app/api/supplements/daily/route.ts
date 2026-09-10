@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { localDateKey } from "@/lib/util/date";
 
 export const runtime = "nodejs";
@@ -34,7 +35,7 @@ export async function GET(req: NextRequest) {
         supabase
           .from("supplements")
           .select(
-            "id, name, dose, form, brand, timing_slot, fasted, with_food, timing_notes"
+            "id, name, dose, form, brand, timing_slot, fasted, with_food, timing_notes, space_id"
           )
           .eq("active", true)
           .order("name"),
@@ -47,6 +48,7 @@ export async function GET(req: NextRequest) {
 
     if (sErr) throw sErr;
     if (lErr) throw lErr;
+    auditListRead(req, supplements, "health", "supplements");
 
     const logMap = new Map<string, { id: string; taken_at: string }>();
     for (const l of logs ?? []) {

@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { getExerciseMuscleGroup } from "@/lib/fitness/muscle-map";
 
 export const runtime = "nodejs";
@@ -21,7 +22,7 @@ function slugify(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
 
   try {
     const supabase = await createUserClient();
@@ -29,10 +30,11 @@ export async function GET() {
     // Get all exercises with their session dates
     const { data: exRows, error } = await supabase
       .from("workout_session_exercises")
-      .select("id, name, session_id")
+      .select("id, name, session_id, space_id")
       .eq("skipped", false)
       .order("name");
     if (error) throw error;
+    auditListRead(req, exRows, "fitness", "sessions");
     if (!exRows || exRows.length === 0) {
       return NextResponse.json({ exercises: [] });
     }

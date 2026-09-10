@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { FOOD_SELECT, LOG_SELECT } from "@/lib/nutrition/db";
 import { logToInsertPayload } from "@/lib/nutrition/calc";
 import type { Food, NutritionLog } from "@/lib/nutrition/types-v2";
@@ -16,10 +17,11 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("nutrition_logs")
-      .select(LOG_SELECT)
+      .select(`${LOG_SELECT}, space_id`)
       .eq("date", date)
       .order("logged_at", { ascending: true });
     if (error) throw error;
+    auditListRead(req, data, "health", "nutrition");
     return NextResponse.json({ logs: (data ?? []) as unknown as NutritionLog[] });
   } catch (err) {
     console.error("[/api/nutrition/logs GET]", err);

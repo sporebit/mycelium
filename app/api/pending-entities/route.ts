@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
 const PENDING_SELECT =
-  "id, capture_id, entity_type, entity_name, additional_data, resolved_at, resolved_action, resolved_entity_id, created_at";
+  "id, capture_id, entity_type, entity_name, additional_data, resolved_at, resolved_action, resolved_entity_id, created_at, space_id";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -18,6 +19,7 @@ export async function GET(req: NextRequest) {
     if (!includeResolved) q = q.is("resolved_at", null);
     const { data: pending, error } = await q;
     if (error) throw error;
+    auditListRead(req, pending, "organisation", "captures");
 
     // Fetch source captures so the UI can show the original wording.
     const captureIds = Array.from(

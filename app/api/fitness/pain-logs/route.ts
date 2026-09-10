@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import type { ExercisePainLog, FeelRating } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
 const LOG_FIELDS =
-  "id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at";
+  "id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at, space_id";
 
 const VALID_RATINGS: FeelRating[] = [
   "great",
@@ -203,6 +204,7 @@ export async function GET(req: NextRequest) {
     if (exerciseName) q = q.eq("exercise_name", exerciseName);
     const { data: logs, error } = await q;
     if (error) throw error;
+    auditListRead(req, logs, "fitness", "body");
     return NextResponse.json({ pain_logs: (logs ?? []) as ExercisePainLog[] });
   } catch (err) {
     console.error("[/api/fitness/pain-logs GET]", err);

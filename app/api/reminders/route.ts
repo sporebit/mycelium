@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
     const { data, error } = await supabase
@@ -12,6 +13,7 @@ export async function GET() {
       .eq("cancelled", false)
       .order("due_at", { ascending: true });
     if (error) throw error;
+    auditListRead(req, data, "reminders", "reminders");
     return NextResponse.json({ reminders: data ?? [] });
   } catch (err) {
     console.error("[/api/reminders GET]", err);

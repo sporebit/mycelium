@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import {
   CONTEXT_FIELDS,
   type ContextField,
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     let q = supabase
       .from("context_options")
-      .select("id, field, value, label, icon, use_count, created_at")
+      .select("id, field, value, label, icon, use_count, created_at, space_id")
       .order("use_count", { ascending: false })
       .order("label", { ascending: true });
     if (field && CONTEXT_FIELDS.includes(field as ContextField)) {
@@ -24,6 +25,7 @@ export async function GET(req: NextRequest) {
     }
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "organisation", "captures");
     return NextResponse.json({ options: (data ?? []) as ContextOption[] });
   } catch (err) {
     console.error("[/api/context-options GET]", err);

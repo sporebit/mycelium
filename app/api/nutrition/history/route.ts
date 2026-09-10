@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { localDateKey, previousDateKey } from "@/lib/util/date";
 import type { NutritionLog } from "@/lib/nutrition/types-v2";
 
@@ -20,11 +21,12 @@ export async function GET(req: NextRequest) {
     const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("nutrition_logs")
-      .select("date, food_name, kcal, protein_g, carbs_g, fat_g")
+      .select("date, food_name, kcal, protein_g, carbs_g, fat_g, space_id")
       .gte("date", earliest)
       .lte("date", today)
       .order("date", { ascending: false });
     if (error) throw error;
+    auditListRead(req, data, "health", "nutrition");
     const rows = (data ?? []) as Pick<
       NutritionLog,
       "date" | "food_name" | "kcal" | "protein_g" | "carbs_g" | "fat_g"
