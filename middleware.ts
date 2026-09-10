@@ -1,117 +1,180 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createServerClient as createSsrServerClient } from "@supabase/ssr";
+import {
+  PC_METRICS_PREFIX,
+  PRINCIPAL_AAL_HEADER,
+  PRINCIPAL_HEADER,
+  PRINCIPAL_USER_HEADER,
+  isAal2,
+  isApiPath,
+  isPublicPath,
+  isSensitivePath,
+  matchesBearer,
+  matchesSecret,
+  stripPrincipalHeaders,
+  type AssuranceLevel,
+  type Principal,
+} from "@/lib/auth/gate";
+import {
+  BREAK_GLASS_COOKIE,
+  breakGlassEnabled,
+  verifyBreakGlassToken,
+} from "@/lib/auth/cookie";
+import { PHIL_AUTH_UID } from "@/lib/system/identity";
 
-const COOKIE_NAME = "auth-token";
-
-// Public routes that bypass the auth gate entirely
-const PUBLIC_PREFIXES = [
-  "/login",
-  "/api/auth/",
-  "/api/telegram/webhook",
-  "/api/cron/reminders",
-  "/api/health-import",
-  "/api/cron/drops-monitor",
-];
-
-function isPublic(pathname: string): boolean {
-  return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-}
-
-async function verifyHmac(token: string): Promise<boolean> {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret) return false;
-
-  const [payloadB64, sigHex] = token.split(".");
-  if (!payloadB64 || !sigHex) return false;
-
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["verify"]
-  );
-
-  const sigBytes = Uint8Array.from(
-    sigHex.match(/.{1,2}/g)!.map((b) => parseInt(b, 16))
-  );
-
-  return crypto.subtle.verify(
-    "HMAC",
-    keyMaterial,
-    sigBytes,
-    new TextEncoder().encode(payloadB64)
-  );
-}
-
-function timingSafeEqual(a: string, b: string): boolean {
-  const encoder = new TextEncoder();
-  const aBytes = encoder.encode(a);
-  const bBytes = encoder.encode(b);
-  if (aBytes.length !== bBytes.length) return false;
-  let diff = 0;
-  for (let i = 0; i < aBytes.length; i++) {
-    diff |= aBytes[i] ^ bBytes[i];
-  }
-  return diff === 0;
-}
-
+/**
+ * The auth gate. Order matters and is fixed by P12 Part 1:
+ *
+ *  1. PUBLIC_PREFIXES pass straight through; each route validates its own
+ *     secret.
+ *  2. PC_METRICS_SECRET admits its one path, as before.
+ *  3. CRON_SECRET and API_SECRET are the system principal. API_SECRET acts
+ *     as Phil; no acting-user header from the caller is ever honoured.
+ *  4. Supabase Auth session: refreshed on every request (the @supabase/ssr
+ *     pattern), verified with getClaims(), and its identity passed down in
+ *     request headers the client could not have set.
+ *  5. Break-glass: only while BREAK_GLASS_ENABLED === "true", and only if the
+ *     cookie verifies against BREAK_GLASS_SECRET. Acts as Phil.
+ *  6. Sensitive routes (/admin and friends) require aal2. Part 5 adds the
+ *     ten-minute re-auth cookie on top.
+ *
+ * Downstream code learns who is calling from x-principal, x-principal-user
+ * and x-principal-aal. Those headers are stripped from the incoming request
+ * before anything is decided, so they are trustworthy on the way in to a
+ * route handler and meaningless from a browser.
+ */
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  if (isPublic(pathname)) return NextResponse.next();
+  // 1. Public routes.
+  if (isPublicPath(pathname)) return NextResponse.next();
 
-  // API secret header — for CLI programmatic access
-  const apiSecret = req.headers.get("x-api-secret");
-  const expectedApiSecret = process.env.API_SECRET;
+  const authorization = req.headers.get("authorization");
+
+  // 2. PC metrics: path-scoped shared secret. The route handler re-checks it.
   if (
-    apiSecret &&
-    expectedApiSecret &&
-    timingSafeEqual(apiSecret, expectedApiSecret)
+    pathname.startsWith(PC_METRICS_PREFIX) &&
+    matchesBearer(authorization, process.env.PC_METRICS_SECRET)
   ) {
-    return NextResponse.next();
+    return passThrough(req, "system");
   }
 
-  // Authorization: Bearer ${CRON_SECRET} — used by Vercel scheduled functions
-  const authHeader = req.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-  if (
-    authHeader &&
-    cronSecret &&
-    timingSafeEqual(authHeader, `Bearer ${cronSecret}`)
-  ) {
-    return NextResponse.next();
+  // 3. System principals.
+  if (matchesBearer(authorization, process.env.CRON_SECRET)) {
+    return passThrough(req, "system");
+  }
+  if (matchesSecret(req.headers.get("x-api-secret"), process.env.API_SECRET)) {
+    return passThrough(req, "system", PHIL_AUTH_UID);
   }
 
-  // The PC metrics endpoint is reachable with its own shared secret, scoped
-  // to that path only. The agent POSTs with it, and a headless device (the
-  // Raspberry Pi) will GET with it — neither can hold a browser session.
-  // Previously the whole path sat in PUBLIC_PREFIXES, which authenticated the
-  // POST inside the route handler but left GET open to the world.
-  const pcMetricsSecret = process.env.PC_METRICS_SECRET;
-  if (
-    pathname.startsWith("/api/studio/pc-metrics") &&
-    authHeader &&
-    pcMetricsSecret &&
-    timingSafeEqual(authHeader, `Bearer ${pcMetricsSecret}`)
-  ) {
-    return NextResponse.next();
+  // 4. Supabase Auth session.
+  const cookiesToSet: Parameters<
+    NonNullable<Parameters<typeof createSsrServerClient>[2]["cookies"]["setAll"]>
+  >[0] = [];
+  const supabase = createSsrServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => req.cookies.getAll(),
+        setAll: (list) => {
+          for (const c of list) {
+            cookiesToSet.push(c);
+            // Downstream server code reads the request cookies; a refresh
+            // must be visible there too, not only on the response.
+            req.cookies.set(c.name, c.value);
+          }
+        },
+      },
+    },
+  );
+
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims as
+    | { sub?: string; aal?: string }
+    | undefined;
+
+  const withRefreshedCookies = (res: NextResponse) => {
+    for (const { name, value, options } of cookiesToSet) {
+      res.cookies.set(name, value, options);
+    }
+    return res;
+  };
+
+  if (claims?.sub) {
+    const aal: AssuranceLevel = isAal2(claims.aal) ? "aal2" : "aal1";
+    // 6. Sensitive routes need a second factor.
+    if (isSensitivePath(pathname) && !isAal2(aal)) {
+      return withRefreshedCookies(forbiddenMfa(pathname));
+    }
+    return withRefreshedCookies(passThrough(req, "user", claims.sub, aal));
   }
 
-  // Cookie-based auth for browser sessions
-  const token = req.cookies.get(COOKIE_NAME)?.value;
-  if (token && (await verifyHmac(token))) {
-    return NextResponse.next();
+  // 5. Break-glass. The cookie is not even inspected while the flag is off.
+  if (breakGlassEnabled()) {
+    const payload = await verifyBreakGlassToken(
+      req.cookies.get(BREAK_GLASS_COOKIE)?.value,
+      process.env.BREAK_GLASS_SECRET,
+    );
+    if (payload) {
+      recordBreakGlassUse(req);
+      // No second factor exists on this path, so it can never reach a
+      // sensitive route. Break-glass is for getting data out, not admin.
+      if (isSensitivePath(pathname)) return forbiddenMfa(pathname);
+      return passThrough(req, "break_glass", PHIL_AUTH_UID, "aal1");
+    }
   }
 
-  // API routes return 401; everything else redirects to /login
-  if (pathname.startsWith("/api/")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // No principal. APIs get 401; pages go to /login.
+  if (isApiPath(pathname)) {
+    return withRefreshedCookies(
+      NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    );
   }
-
   const loginUrl = req.nextUrl.clone();
   loginUrl.pathname = "/login";
+  loginUrl.search = "";
   loginUrl.searchParams.set("next", pathname);
-  return NextResponse.redirect(loginUrl);
+  return withRefreshedCookies(NextResponse.redirect(loginUrl));
+}
+
+/** Continue to the route with the principal headers set (and any client-sent ones removed). */
+function passThrough(
+  req: NextRequest,
+  principal: Principal,
+  userId?: string,
+  aal?: AssuranceLevel,
+): NextResponse {
+  const headers = stripPrincipalHeaders(new Headers(req.headers));
+  headers.set(PRINCIPAL_HEADER, principal);
+  if (userId) headers.set(PRINCIPAL_USER_HEADER, userId);
+  if (aal) headers.set(PRINCIPAL_AAL_HEADER, aal);
+  return NextResponse.next({ request: { headers } });
+}
+
+function forbiddenMfa(pathname: string): NextResponse {
+  if (isApiPath(pathname)) {
+    return NextResponse.json(
+      { error: "Forbidden", reason: "mfa_required" },
+      { status: 403 },
+    );
+  }
+  return new NextResponse(
+    "Forbidden: this page requires a second factor. Verify at /login?step=mfa or enrol one under Settings > Security.",
+    { status: 403, headers: { "content-type": "text/plain; charset=utf-8" } },
+  );
+}
+
+/**
+ * TODO(P12 Part 5): replace with the audit writer in lib/system/audit.ts —
+ * one audit_events row per request with principal = break_glass, the path,
+ * ip and user agent. Middleware cannot reach the database until then; the
+ * console line keeps the use visible in Vercel logs in the meantime.
+ */
+function recordBreakGlassUse(req: NextRequest): void {
+  console.warn(
+    `[break-glass] ${req.method} ${req.nextUrl.pathname} ip=${req.headers.get("x-forwarded-for") ?? "?"} ua=${req.headers.get("user-agent") ?? "?"}`,
+  );
 }
 
 export const config = {

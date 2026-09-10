@@ -1,6 +1,7 @@
 /**
  * Global Rule 6 (P12): every public table is in exactly one of the entity
- * registry, the shared-reference list, or Supabase-internal. This test
+ * registry, the shared-reference list, or Supabase-internal — plus, from
+ * Part 1, the access-control tables that carry no space_id by design. This test
  * proves it against the running LOCAL stack, so it fails when:
  *   - a migration adds a table nobody classified,
  *   - the registry names a table that no longer exists,
@@ -14,6 +15,7 @@
 import { describe, expect, it } from "vitest";
 import { listPublicRelations } from "./introspect";
 import {
+  ACCESS_TABLES,
   DERIVED_RELATIONS,
   ENTITY_GROUPS,
   FINANCE_SECTION,
@@ -38,6 +40,10 @@ describe("entity registry — internal consistency", () => {
     for (const s of SHARED_REFERENCE) {
       if (seen.has(s.table)) dupes.push(`${s.table} (${seen.get(s.table)} and shared)`);
       seen.set(s.table, "shared");
+    }
+    for (const a of ACCESS_TABLES) {
+      if (seen.has(a)) dupes.push(`${a} (${seen.get(a)} and access)`);
+      seen.set(a, "access");
     }
     for (const v of DERIVED_RELATIONS) {
       if (seen.has(v)) dupes.push(`${v} (${seen.get(v)} and derived)`);
@@ -81,12 +87,12 @@ describe("entity registry — coverage against the local database", () => {
     expect(tables.length).toBeGreaterThan(50);
   });
 
-  it("classifies every public base table as entity or shared — none unregistered", () => {
+  it("classifies every public base table as entity, shared or access — none unregistered", () => {
     const unregistered = tables.filter((t) => classifyTable(t).kind === "unregistered");
     expect(
       unregistered,
-      "Tables in public with no registry entry. Add each to ENTITY_GROUPS or SHARED_REFERENCE " +
-        "in lib/access/registry.ts — or STOP and ask if the group is not obvious.",
+      "Tables in public with no registry entry. Add each to ENTITY_GROUPS, SHARED_REFERENCE " +
+        "or ACCESS_TABLES in lib/access/registry.ts — or STOP and ask if the group is not obvious.",
     ).toEqual([]);
   });
 
@@ -100,6 +106,7 @@ describe("entity registry — coverage against the local database", () => {
     const stale = [
       ...registeredTables().filter((t) => !live.has(t)),
       ...SHARED_REFERENCE.map((s) => s.table).filter((t) => !live.has(t)),
+      ...ACCESS_TABLES.filter((t) => !live.has(t)),
     ];
     expect(stale, "Registry entries with no matching table in public").toEqual([]);
   });
@@ -109,7 +116,7 @@ describe("entity registry — coverage against the local database", () => {
   });
 
   it("covers exactly the live table count", () => {
-    const covered = registeredTables().length + SHARED_REFERENCE.length;
+    const covered = registeredTables().length + SHARED_REFERENCE.length + ACCESS_TABLES.length;
     expect(covered).toBe(tables.length);
   });
 });

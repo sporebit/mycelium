@@ -275,11 +275,25 @@ export const SHARED_REFERENCE: readonly SharedReferenceDef[] = [
  */
 export const DERIVED_RELATIONS: readonly string[] = ["pc_metrics_machines"];
 
+/**
+ * Tables that define identity and access itself: who a user is, which
+ * spaces exist, who may see what. They take no space_id — they are what a
+ * space_id points at — and each carries hand-written policies in the
+ * migration that creates it rather than the generated per-group policies of
+ * Part 3. Part 1 adds profiles; Part 2 spaces, entity_groups and the teams
+ * scaffold; Part 3 team_members, team_member_sections, user_grants; Part 4
+ * invites; Part 5 audit_events and rate limits; Part 6 the rundown tables.
+ * Listed so the coverage test proves nothing was missed without forcing a
+ * space_id onto them.
+ */
+export const ACCESS_TABLES: readonly string[] = ["profiles"];
+
 // -- Derived lookups ----------------------------------------------------------
 
 export type TableClassification =
   | { kind: "entity"; section: Section; group: string }
   | { kind: "shared"; readableBy: SharedReferenceDef["readableBy"] }
+  | { kind: "access" }
   | { kind: "derived" }
   | { kind: "unregistered" };
 
@@ -302,6 +316,7 @@ export function classifyTable(table: string): TableClassification {
   if (g) return { kind: "entity", section: g.section, group: g.group };
   const s = SHARED_BY_TABLE.get(table);
   if (s) return { kind: "shared", readableBy: s.readableBy };
+  if (ACCESS_TABLES.includes(table)) return { kind: "access" };
   if (DERIVED_RELATIONS.includes(table)) return { kind: "derived" };
   return { kind: "unregistered" };
 }

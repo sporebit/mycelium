@@ -23,6 +23,19 @@ Providers and Settings:
       Until this is done, Part 1's VERIFY reports Google sign-in as untested.
 - [ ] Turn on the **passkeys** experimental flag if it is available on the
       project. Apple sign-in is deferred by decision and needs nothing.
+- [ ] Authentication → URL Configuration: set **Site URL** to the production
+      origin and add `https://<production-host>/api/auth/callback` (and the
+      Vercel preview pattern `https://*-<team>.vercel.app/api/auth/callback`)
+      to **Redirect URLs**. Every email link and the Google redirect land on
+      that route.
+- [ ] Authentication → Email Templates: change the **Magic Link** template's
+      link to
+      `{{ .SiteURL }}/api/auth/callback?token_hash={{ .TokenHash }}&type=magiclink`
+      (and the Invite template to the same with `type=invite`, for Part 4).
+      The default `{{ .ConfirmationURL }}` relies on a PKCE verifier cookie
+      that only exists in the browser that requested the link, so a link
+      opened on another device fails. The token-hash form works anywhere.
+      Part 1 verified both shapes locally.
 
 ## 2. Resend — blocking for Part 4 (invites) and Part 6 (rundowns)
 
@@ -51,7 +64,10 @@ appropriate). Names only:
       path.
 - [ ] `BREAK_GLASS_ENABLED` — set to `false` everywhere. It is turned on only
       during an emergency, and every request made under it writes an audit
-      event naming it.
+      event naming it. To use it: set the flag to `true`, redeploy, then
+      `POST /api/auth/break-glass` with `{"secret": "<BREAK_GLASS_SECRET>"}`;
+      the cookie it sets lasts one hour, acts as you, and can never reach
+      `/admin`. Set the flag back to `false` afterwards.
 - [ ] `RESEND_API_KEY` — from step 2.
 
 **Do not delete anything yet.** `USER_ID`, `DASHBOARD_PASSWORD` and

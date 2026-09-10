@@ -1,6 +1,6 @@
 # P12 multi-user — session handoff
 
-**Updated:** 8 September 2026, end of Part 0.
+**Updated:** 10 September 2026, end of Part 1.
 
 **Say "get started" and the next session should follow "First actions" at the
 bottom of this file.**
@@ -10,136 +10,199 @@ bottom of this file.**
 ## Where we are
 
 Branch `multi-user`, created from `b9892d1` on `main` (which carries
-migration `0101`). **Part 0 is complete and verified.** No P12 feature code
-(Parts 1–6) exists yet.
+migration `0101`). Parts 0 and 1 are complete, verified and pushed.
 
 | Part | State |
 |---|---|
-| 0 — pre-flight | **Done.** Local stack runs, chain replays clean from empty, registry + coverage test in place, rollback runbook written |
-| 1–6 | Not started |
-| 7 — cutover | Out of scope for these sessions; separate session, Phil present, live DB |
+| 0 — pre-flight | **Done.** `80d02a0` (drift fix), `d08869a` (pre-flight) |
+| 1 — identity | **Done.** Supabase Auth, profiles, middleware, break-glass. VERIFY 1: 59 automated checks green; Google untested (needs Phil's provider config) |
+| 2 — spaces + ownership | Not started. Starts at migration **`0103_spaces.sql`** |
+| 3–6 | Not started |
+| 7 — cutover | Separate session, Phil present, live DB |
 
 ---
 
 ## Decisions locked (do not relitigate)
 
-**Rehearsal environment: Docker Desktop + `supabase start`.** Installed and
-working. `supabase/config.toml` is committed; `supabase/.temp` (the link to
-the hosted project) is gitignored by the CLI's own `.gitignore`.
+**Rehearsal environment: Docker Desktop + `supabase start`.** Full stack is
+needed from Part 1 on (GoTrue, Kong, Mailpit), not just the database.
 
-**JWT: the legacy HS256 secret exists.** Phil confirmed he has both the legacy
-JWT secret and signing keys. Part 3's `withUser()` therefore takes the
-short-lived HS256 JWT path — mint a token with `role: authenticated` and
-`sub: <userId>`, reuse the existing PostgREST client — and **not** the
-direct-Postgres fallback. `SUPABASE_JWT_SECRET` must be added to `.env.local`
-and to Vercel (checklist §3).
+**JWT: the legacy HS256 secret exists.** Part 3's `withUser()` mints a
+short-lived HS256 JWT (`role: authenticated`, `sub: <userId>`) with
+`SUPABASE_JWT_SECRET`. Not the direct-Postgres fallback.
 
-**Migration numbering.** The prompt says "number from 0098" but `main` already
-carries `0098`–`0101`. New migrations on this branch start at **`0102`**
-(Part 1 profiles = `0102`, and so on). Renumber before merge if `main` moves.
+**Migration numbering.** `main` carries up to `0101`. This branch: Part 1 =
+`0102`, Part 2 starts at `0103`. Renumber before merge if `main` moves.
+
+**Phil's auth uid is fixed, not generated:** `f218ed69-6cbf-49ea-908a-8826f2f1178a`.
+Defined once in SQL (`app.legacy_user_uid('phil')`, migration 0102) and
+mirrored in `lib/system/identity.ts`; `lib/system/identity.test.ts` proves
+the two agree. Part 2's backfill casts through the SQL function. Part 7 must
+create Phil's live auth user **with this id** (SQL insert into `auth.users`,
+same shape as `supabase/seed.sql`) before he first signs in, or the mapping
+breaks. If Phil signs up through the dashboard first, his uid will differ
+and both the function and the constant must be updated together.
+
+**Access-control tables carry no `space_id`.** `lib/access/registry.ts` has a
+fourth list, `ACCESS_TABLES` (currently `profiles`). Part 2 adds `spaces`,
+`entity_groups`, `teams`; Part 3 `team_members`, `team_member_sections`,
+`user_grants`; Part 4 `invites`; Part 5 `audit_events` and rate limits;
+Part 6 the rundown tables. Each carries hand-written policies in its own
+migration. The coverage test counts them and fails on anything unlisted.
+
+**Break-glass is entered with `BREAK_GLASS_SECRET` itself**, posted to
+`/api/auth/break-glass`, not with `DASHBOARD_PASSWORD` (which nothing reads
+any more). The route answers 404 while `BREAK_GLASS_ENABLED !== "true"`, the
+cookie lasts one hour, and it can never reach a sensitive route (`/admin`),
+because it has no second factor.
+
+**Middleware principal headers.** Route handlers learn who is calling from
+`x-principal` (`system` | `user` | `break_glass`), `x-principal-user` (uid)
+and `x-principal-aal`. The middleware strips any of these a client sends
+before deciding, so they cannot be spoofed. `API_SECRET` → system acting as
+Phil; `CRON_SECRET` → system with no user.
 
 ---
 
-## What Part 0 found: the chain did not replay
+## What Part 1 built
 
-101 migrations had never been replayed from empty. Doing so failed twice and,
-once it passed, a `supabase db dump --linked` of the hosted schema diffed
-against a dump of the local replay showed further silent drift. All of it is
-fixed in the migration files themselves, every fix guarded so it is a no-op
-on the hosted project (which already records those versions as applied):
+| Area | Files |
+|---|---|
+| Migration | `supabase/migrations/0102_profiles.sql` — `app` schema, `profiles` (+ single-owner partial index, RLS, column-level update grant), `app.legacy_user_uid(text)`, `app.is_instance_owner()`, `on_auth_user_created` trigger, `public.my_sessions()` |
+| Local seed | `supabase/seed.sql` — Phil's local auth user + identity, profile promoted to instance owner. Local-only; never pushed |
+| Clients | `lib/system/serviceClient.ts` (service role, fenced), `lib/supabase/server.ts` (deprecated shim for the 255 call sites Part 3 replaces), `lib/supabase/user.ts` (`createUserClient()`, cookies), `lib/supabase/client.ts` (browser, `@supabase/ssr`, passkey flag) |
+| Identity | `lib/system/identity.ts` + test |
+| Gate | `middleware.ts` (order per prompt), `lib/auth/gate.ts` (pure helpers + test), `lib/auth/cookie.ts` (break-glass HMAC + test), `lib/auth/session.ts` (`getSessionUser`, `getOwnProfile`) |
+| Routes | `app/api/auth/callback` (PKCE `code` and `token_hash` shapes), `app/api/auth/break-glass`, `app/api/auth/logout` (rewritten). `app/api/auth/login` **deleted** |
+| UI | `app/login/page.tsx` (magic link / password / passkey, Google button, TOTP step, `?step=mfa`), `app/other/settings/security/page.tsx` (password, TOTP enrol/remove, passkeys add/remove, sessions), link from Settings and nav, `app/admin/page.tsx` placeholder |
+| ESLint | `no-restricted-imports` fences `@/lib/system/serviceClient` to `lib/system/**` (+ the shim) |
+| Config | `supabase/config.toml`: `site_url` = `http://localhost:3000`, TOTP enrol/verify on, `[auth.passkey]` on, `[auth.webauthn]` rp_id `localhost` |
+| Registry | `ACCESS_TABLES` added; coverage test updated |
 
-| File | What was wrong | Fix |
-|---|---|---|
-| `0003_journal.sql` | Two diagnostic `SELECT`s, no DDL. `journal_entries` and `journal_daily_summaries` were created on live by hand, so the file crashed at statement 0 | Replaced with the base DDL reconstructed from the live dump minus what 0029/0030 add later |
-| `0055_luke_workouts_programme.sql` | Seed inserts `workout_programme_sessions.position`, a column that only reached the chain in 0097 | Guarded `ADD COLUMN IF NOT EXISTS` prepended |
-| `0001_init.sql` | `create extension vector` without a schema; live has it in `extensions` | `with schema extensions` |
-| `0097_fitness_schema_drift.sql` | `data_shape` declared NOT NULL but nullable on live; four columns, four indexes, two widened checks and one dropped unique constraint on live never reached the chain | Nullability aligned; new guarded section 6 |
+### VERIFY 1 results (local stack + `next dev`)
 
-After the fixes: 100 files apply, 91 tables + 1 view, and the schema diff
-against live contains only column order, a Supabase-platform event-trigger
-function (`rls_auto_enable`, installed by the dashboard, not app drift), and
-two redundant duplicate check constraints live carries next to 0097's.
+- **HTTP driver, flag off — 33/33.** Unauthenticated redirect and 401;
+  spoofed principal headers ignored; `API_SECRET` and `CRON_SECRET` pass;
+  password grant → aal1 cookie passes `/` and `/api/*`, `/admin` 403;
+  TOTP enrol + verify → aal2 cookie, `/admin` 200; `my_sessions()` returns
+  the caller's rows with `is_current`; profiles RLS (owner sees own row,
+  anon sees nothing); magic link requested → Mailpit → `token_hash`
+  callback 303 with session cookies; reused link bounces with
+  `error=link`; callback never redirects off-origin; break-glass issuer
+  404 and a valid cookie refused while disabled.
+- **Browser (Playwright + CDP virtual authenticator) — 18/18.** Password
+  sign-in through the UI; security page loads; TOTP enrol through the UI
+  (QR + secret, code accepted, session becomes aal2, `/admin` opens);
+  passkey registered, listed, used to sign in after sign-out, removed;
+  magic link request reaches the sent state; unknown address refused
+  ("Signups not allowed for otp" — invite-only holds); no page errors.
+- **HTTP driver, flag on — 8/8.** Wrong secret 401; correct secret issues
+  the cookie; cookie passes `/` and `/api/*`; `/admin` 403; expired and
+  foreign-key cookies refused; logout clears it; the middleware's
+  audit stub logged every use.
+- **Google: untested.** No provider configured locally (checklist §1).
+- Build clean, `npm test` 98/98, lint clean.
 
-**How to re-run this check** (the local stack must be up):
+### Deviations from the prompt, and why
 
-```
-supabase db dump --linked --schema public -f <scratch>/live_schema.sql
-supabase db dump --local  --schema public -f <scratch>/local_schema.sql
-```
+- Migration is `0102_profiles.sql`, not `0098` (numbering decision).
+- `createServerClient` was not simply moved: the fenced function is
+  `createServiceClient()` in `lib/system/serviceClient.ts`, and the old
+  module re-exports it under the old name as a deprecated shim so the
+  build stays green until Part 3 replaces every call site. The ESLint
+  fence exempts only `lib/system/**` and that shim.
+- The sessions list reads `auth.sessions` through `public.my_sessions()`
+  (SECURITY DEFINER, filtered on `auth.uid()`) because the `auth` schema
+  is not exposed to PostgREST and supabase-js has no user-facing sessions
+  API. Part 5's remote sign-out should follow the same shape.
+- Break-glass audit is a `console.warn` stub with a TODO; the middleware
+  runs on the edge runtime and has no database client until Part 5's
+  writer exists.
+- The registry gained `ACCESS_TABLES` (see decisions).
 
-then diff the two after stripping comments, `SET` lines and `OWNER TO`.
-Keep the dumps outside the repo.
+### Debt for later parts
+
+- **Part 3:** 255 imports of `@/lib/supabase/server` remain. `app/layout.tsx`
+  also still reads `USER_ID` for ui prefs; it should read the session user.
+- **Part 5:** replace `recordBreakGlassUse()`; add the re-auth cookie to the
+  aal2 rule; extend `SENSITIVE_PREFIXES`; remote sign-out.
+- The login page shows a 401 from `/api/settings/ui-prefs` in the console
+  (the shell fetches prefs on the login page too). Pre-existing, harmless,
+  worth fixing when the layout moves to the session user.
 
 ---
 
 ## Environment facts
 
-- **`supabase db reset` is denied** by `.claude/settings.json` (a guard from
-  the linked-only era). The from-empty equivalent is
-  `supabase stop --no-backup` then `supabase db start` (database only,
-  ~1 min) or `supabase start` (full stack, several minutes). Leave the rule.
-- **`supabase migration up --local`** applies only pending migrations to a
-  running local database. Fast loop when iterating on one migration.
-- **Schema introspection:** `lib/access/introspect.ts` shells into the
-  `supabase_db_Mycelium` container's `psql`. The registry test and Part 2's
-  verifier both use it. Container name derives from `project_id` in
-  `supabase/config.toml`; override with `MYCELIUM_DB_CONTAINER`.
-- `@supabase/ssr` and `resend` are installed. `@supabase/supabase-js` is
-  2.106.1 (≥ 2.105 required for passkeys). `vitest` 4.1.8 runs the tests;
-  `npm test` was 70/70 green before Part 0 and is 80/80 with the registry
-  test.
-- `gh` (GitHub CLI 2.100) is installed at
-  `C:\Program Files\GitHub CLI\gh.exe`; a new terminal is needed for it to be
-  on PATH.
-- No `psql` on the PC and no Postgres driver in the project. Docker is the
-  route to both.
-- The `events` table has **no `user_id` column**. Part 2's backfill must set
-  its `created_by` from the space owner, not from a cast. Other tables
-  without `user_id` are all child tables whose parent has one, or shared
-  reference. `lib/access/registry.ts` notes the exception.
-- There is **no `api_usage` table** in public. Part 3 says "api_usage gains
-  user_id"; the `/other/api-usage` page reads from elsewhere. Resolve what
-  Part 3 actually means before writing that migration.
+- **Docker Desktop is not running after a reboot.** Launch
+  `C:\Program Files\Docker\Docker\Docker Desktop.exe`, wait ~30 s, then
+  `supabase start`. Volumes persist; migrations and the seed survive.
+- **`supabase db reset` is denied** by `.claude/settings.json`. From-empty
+  equivalent: `supabase stop --no-backup` then `supabase start` (the CLI
+  applies migrations and `supabase/seed.sql`). Incremental:
+  `supabase migration up --local` then, if Phil's user is missing,
+  `docker exec -i supabase_db_Mycelium psql -U postgres < supabase/seed.sql`.
+- **Local credentials** (local stack only): `phil@mycelium.local` /
+  `mycelium-local`. Magic links land in Mailpit; `supabase status` prints
+  the URL. Its API: `GET /api/v1/messages`, `GET /api/v1/message/<ID>`.
+- **Running the app against the local stack:** do NOT edit `.env.local`
+  (it points at the hosted project). Export overrides in the shell from
+  `supabase status -o env` — `NEXT_PUBLIC_SUPABASE_URL=$API_URL`,
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY`, plus
+  `BREAK_GLASS_ENABLED` / `BREAK_GLASS_SECRET` as needed — then
+  `npx next dev`. Shell env wins over `.env.local`. `.env.local` still
+  lacks `BREAK_GLASS_*` and `SUPABASE_JWT_SECRET` (checklist §3).
+- **The ssr cookie name** for the local stack is `sb-127-auth-token`
+  (derived from the API host). A session can be turned into cookies in a
+  script with `@supabase/ssr`'s `createServerClient` over an in-memory jar
+  and `auth.setSession()`; the Part 1 verify driver did this.
+- **Playwright 1.61 with Chromium is installed** (`scripts/screenshot.mjs`
+  uses it). A CDP virtual authenticator (`WebAuthn.addVirtualAuthenticator`)
+  drives passkeys headlessly. The Part 1 drivers lived in the session
+  scratchpad; a reusable `scripts/verify-identity.mjs` would be worth
+  adding before Part 7 so the same checks run against a Vercel preview.
+- `graphify` is not on PATH; use `npx --no-install graphify update .`.
+- `next dev` and `next build` both write `.next`; stop dev before the
+  build gate. The clean build takes ~5 minutes.
+- `lib/access/introspect.ts` shells into the `supabase_db_Mycelium`
+  container's `psql`; the registry and identity tests need the stack up
+  and **fail, not skip**, without it.
+- The `events` table has **no `user_id` column**; Part 2 sets its
+  `created_by` from the space owner. There is **no `api_usage` table** in
+  public; resolve what Part 3 means before writing that migration.
 
 ---
 
 ## Registry — `lib/access/registry.ts`
 
-85 tables in 25 entity groups across 12 sections, 6 shared-reference tables,
-1 derived view. `lib/access/registry.test.ts` proves against the local stack
-that every public base table is in exactly one list and that every view is
-listed as derived; it **fails, not skips**, when the stack is down.
+85 entity tables in 25 groups across 12 sections, 6 shared-reference
+tables, 1 access table (`profiles`), 1 derived view. Placement notes from
+Part 0 still apply (`events` → organisation, `daily_logs` → journal,
+`memory_chunks` → platform.memory, `accounts` → finance.subscriptions).
 
-Placements the prompt left to judgement, and why:
+### Still open — needs Phil before Part 2's migration touches it
 
-- `events` → `organisation.events` (Calendar is an Organisation sub-page).
-- `daily_logs` → `journal.daily_logs` (it is a dated notes-and-mood log).
-- `memory_chunks` → `platform.memory` (embeddings of a user's own content).
-- `accounts` → `finance.subscriptions` (it is the recurring-cost ledger, not
-  bank accounts). Finance is three groups: `banking`, `investments`,
-  `subscriptions`; all owner-only by Part 3's policy shape.
-- `platform` is one group `core` plus `memory`.
-
-### Still open — needs Phil before Part 2
-
-**`nutrition_targets`** is placed in `health.nutrition` as recommended in
-the previous handoff, marked PENDING in the registry note. The prompt's STOP
-rule applies before Part 2 adds `space_id` to it, not before Part 1. One-word
-answer: is `health.nutrition` right?
+**`nutrition_targets`** is placed in `health.nutrition`, marked PENDING.
+One-word answer needed before Part 2 adds `space_id` to it.
 
 ---
 
 ## First actions on "get started"
 
-1. `git checkout multi-user`; `git log -3` should show the Part 0 commit on
-   top of the drift-fix commit.
-2. `docker info`, then `supabase start` (or `supabase db start` if only the
-   database is needed). `npx vitest run lib/access` must pass.
-3. Confirm the `nutrition_targets` answer if Phil has given it; if not, Part 1
-   can proceed regardless.
-4. Read the P12 prompt in full at `MYCELIUM_ALL_PROMPTS.md` (section
-   `## P12`). Part 1 starts at migration **`0102_profiles.sql`**.
-5. Part 1 needs, in `supabase/config.toml`: `[auth.mfa.totp]` enrol/verify
-   enabled, `[auth.passkey]` uncommented with a local relying party, and
-   Google left disabled locally (report untested). Check
-   `node_modules/@supabase/ssr` docs before writing `createUserClient()`.
+1. `git checkout multi-user`; `git log -5` should show the Part 1 commit on
+   top of the Part 0 pair.
+2. Launch Docker Desktop if `docker info` fails, then `supabase start`.
+   `npx vitest run lib/access lib/system` must pass (stack up, Phil
+   seeded). If `profiles` is empty, run the seed command above.
+3. Confirm the `nutrition_targets` answer if Phil has given it.
+4. Read Part 2 in `MYCELIUM_ALL_PROMPTS.md` (`## P12`). Start at
+   `0103_spaces.sql`: `spaces`, `entity_groups` seeded from
+   `entityGroupSeedRows()`, `teams` scaffold, `app.personal_space()`,
+   Phil's personal space linked from `profiles.personal_space_id` (add the
+   FK there). Then one migration per domain group (`0104`–`0109`), casting
+   `user_id text` through `app.legacy_user_uid()`; a null result for a
+   non-null value is a STOP, never a coercion. Add each new access table to
+   `ACCESS_TABLES`.
+5. VERIFY 2's from-empty replay can be done without Phil. The replay
+   against a restore of the live dump needs the file from checklist §4.
