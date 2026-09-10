@@ -81,7 +81,7 @@ appropriate). Names only:
       `POST /api/auth/break-glass` with `{"secret": "<BREAK_GLASS_SECRET>"}`;
       the cookie it sets lasts one hour, acts as you, and can never reach
       `/admin`. Set the flag back to `false` afterwards.
-- [ ] `RESEND_API_KEY` — from step 2.
+- [ ] `RESEND_API_KEY` — from step 2. Optionally `RESEND_FROM` (default `Mycelium <invites@sporebit.com>`).
 
 **Do not delete anything yet.** `USER_ID`, `DASHBOARD_PASSWORD` and
 `AUTH_SECRET` are removed in Part 7 step 5, after cutover is verified, not

@@ -14,6 +14,11 @@ export const PUBLIC_PREFIXES: readonly string[] = [
   "/api/cron/reminders",
   "/api/health-import",
   "/api/cron/drops-monitor",
+  // Part 4: the invite landing page and its preview are reachable before the
+  // invitee has an account; accepting still requires a session (the route
+  // checks). Cookies are still read by createUserClient() on public paths.
+  "/invite/",
+  "/api/invites/",
 ];
 
 /** Reachable with PC_METRICS_SECRET as a bearer token, this path only. */

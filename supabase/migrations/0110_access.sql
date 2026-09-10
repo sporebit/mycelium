@@ -216,20 +216,35 @@ alter table public.team_member_sections enable row level security;
 alter table public.user_grants          enable row level security;
 
 -- A member sees the membership of teams they belong to (Part 4's UI needs
--- the roster). Writes are Part 4's, through system helpers with checks.
+-- the roster). Writes are Part 4's, through the 0112 functions.
+--
+-- The check is a SECURITY DEFINER function rather than a subquery on
+-- team_members: a policy on a table that selects from the same table is
+-- rejected by Postgres as infinite recursion.
+create or replace function app.is_team_member(p_team uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+	select exists (
+		select 1 from public.team_members tm
+		where tm.team_id = p_team and tm.user_id = auth.uid())
+$$;
+
+revoke all on function app.is_team_member(uuid) from public;
+grant execute on function app.is_team_member(uuid) to authenticated, service_role;
+
 drop policy if exists team_members_select_member on public.team_members;
 create policy team_members_select_member
 	on public.team_members for select to authenticated
-	using (exists (
-		select 1 from public.team_members mine
-		where mine.team_id = team_members.team_id and mine.user_id = auth.uid()));
+	using (app.is_team_member(team_id));
 
 drop policy if exists team_member_sections_select_member on public.team_member_sections;
 create policy team_member_sections_select_member
 	on public.team_member_sections for select to authenticated
-	using (exists (
-		select 1 from public.team_members mine
-		where mine.team_id = team_member_sections.team_id and mine.user_id = auth.uid()));
+	using (app.is_team_member(team_id));
 
 -- A grant is visible to both ends of it.
 drop policy if exists user_grants_select_party on public.user_grants;
@@ -251,6 +266,4 @@ drop policy if exists teams_select_owner on public.teams;
 drop policy if exists teams_select_member on public.teams;
 create policy teams_select_member
 	on public.teams for select to authenticated
-	using (
-		owner_user_id = auth.uid()
-		or exists (select 1 from public.team_members tm where tm.team_id = teams.id and tm.user_id = auth.uid()));
+	using (owner_user_id = auth.uid() or app.is_team_member(id));

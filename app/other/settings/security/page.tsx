@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { Factor } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
@@ -73,6 +74,8 @@ function Note({ children, tone = "mid" }: { children: React.ReactNode; tone?: "m
  * "who has seen my data" log.
  */
 export default function SecuritySettingsPage() {
+  const params = useSearchParams();
+  const mustEnrol = params.get("enrol") === "totp";
   const [supabase] = useState(() => createBrowserClient());
   const [email, setEmail] = useState<string | null>(null);
   const [aal, setAal] = useState<string>("aal1");
@@ -153,6 +156,12 @@ export default function SecuritySettingsPage() {
           </Button>
         </div>
       </Card>
+
+      {mustEnrol && (
+        <div className="rounded-v2-md border border-glow/40 bg-surface-1 p-4 text-sm text-text-mid">
+          Your role requires an authenticator app. Enrol one below; sign-in will ask for its code from now on.
+        </div>
+      )}
 
       <PasswordCard supabase={supabase} />
 

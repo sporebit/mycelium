@@ -1,6 +1,6 @@
 # P12 multi-user — session handoff
 
-**Updated:** 10 September 2026, end of Part 3.
+**Updated:** 10 September 2026, end of Part 4.
 
 **Say "get started" and the next session should follow "First actions" at the
 bottom of this file.**
@@ -10,7 +10,7 @@ bottom of this file.**
 ## Where we are
 
 Branch `multi-user`, created from `b9892d1` on `main` (which carries
-migration `0101`). Parts 0–3 are complete and pushed. Part 2's second
+migration `0101`). Parts 0–4 are complete and pushed. Part 2's second
 verification (replay against the live dump) waits on Phil.
 
 | Part | State |
@@ -19,8 +19,9 @@ verification (replay against the live dump) waits on Phil.
 | 1 — identity | **Done.** Supabase Auth, profiles, middleware, break-glass. VERIFY 1: 59 automated checks green; Google untested (needs Phil's provider config) |
 | 2 — spaces + ownership | **Done**, migrations `0103`–`0109`. VERIFY 2 half 1 (from-empty replay + verifier): 0 failures. Half 2 (replay against the live `pg_dump`): **blocked on checklist §4** |
 | 3 — authorisation + client swap | **Done**, migrations `0110`–`0111`, 277 files swapped, shim deleted. VERIFY 3: isolation test 0 leaks over 138 endpoints × 2 users and 85 tables; 15 policy tests |
-| 4 — teams, invites, grants UI | Not started. Starts at migration **`0112_teams_invites.sql`**; needs Resend (checklist §2) for the invite email, everything else can be built and tested locally |
-| 5–6 | Not started |
+| 4 — teams, invites, grants UI | **Done**, migration `0112`. VERIFY 4: 27 matrix/flow tests, 15 browser checks, isolation gate clean. Invite email needs Resend (checklist §2); locally the link is shown instead |
+| 5 — security operations + admin | Not started. Starts at migration **`0113_audit.sql`** |
+| 6 — rundowns | Not started |
 | 7 — cutover | Separate session, Phil present, live DB |
 
 ---
@@ -35,8 +36,8 @@ short-lived HS256 JWT (`role: authenticated`, `sub: <userId>`) with
 `SUPABASE_JWT_SECRET`. Not the direct-Postgres fallback.
 
 **Migration numbering.** `main` carries up to `0101`. This branch: Part 1 =
-`0102`, Part 2 = `0103`–`0109`, Part 3 = `0110`–`0111`, Part 4 starts at
-`0112`. Renumber before merge if `main` moves.
+`0102`, Part 2 = `0103`–`0109`, Part 3 = `0110`–`0111`, Part 4 = `0112`,
+Part 5 starts at `0113`. Renumber before merge if `main` moves.
 
 **Phil's auth uid is fixed, not generated:** `f218ed69-6cbf-49ea-908a-8826f2f1178a`.
 Defined once in SQL (`app.legacy_user_uid('phil')`, migration 0102) and
@@ -53,7 +54,7 @@ breaks and both the function and the constant must be updated together.
 
 **Access-control tables carry no `space_id`.** `lib/access/registry.ts` has a
 fourth list, `ACCESS_TABLES` (now `profiles`, `spaces`, `entity_groups`,
-`teams`, `team_members`, `team_member_sections`, `user_grants`;
+`teams`, `team_members`, `team_member_sections`, `user_grants`, `invites`;
 `teams.space_id` is a reference to its own team space, which the verifier
 knows). Part 3 added `team_members`, `team_member_sections`,
 `user_grants`; Part 4 `invites`; Part 5 `audit_events` and rate limits;
@@ -70,6 +71,13 @@ because it has no second factor.
 registry; policies use `space_id = app.personal_space()` and never the
 helper; `user_grants` refuses both by check constraint. See Part 3's
 decisions for why platform joined finance.
+
+**Sign-up is invite-only at the database.** A BEFORE INSERT trigger on
+`auth.users` (0112) refuses any email without a live invite, Phil excepted.
+Tests and seeds that need a user set `app.allow_uninvited = 'on'` in the
+same transaction. Every write to the access tables goes through a
+SECURITY DEFINER function in 0112 that checks the caller's role; the tables
+are read-only through PostgREST.
 
 **Middleware principal headers.** Route handlers learn who is calling from
 `x-principal` (`system` | `user` | `break_glass`), `x-principal-user` (uid)
@@ -256,6 +264,45 @@ proves every API route as two users.
 
 ---
 
+## What Part 4 built
+
+| Area | Content |
+|---|---|
+| `0112_teams_invites.sql` | `invites` (email, team, role, sha256 token hash, 7-day expiry, single use); **invite-only sign-up** enforced by a BEFORE INSERT trigger on `auth.users` (only Phil, or an email with a live invite, or a session that set `app.allow_uninvited` — tests and seeds); SECURITY DEFINER functions for every operation: `create_team`, `rename_team`, `set_team_member_role`, `set_team_member_sections`, `remove_team_member`, `set_team_successor`, `transfer_team_ownership`, `appoint_team_successor` (instance owner, only when the owner is gone), `leave_team`, `create_user_grant`, `revoke_user_grant`, `find_user_by_email`, `create_invite`, `invite_preview` (anon), `accept_invite`, `requires_totp`; teammates and grant parties can read each other's profile names |
+| `0110` fix | The `team_members` select policy joined `team_members` (Postgres: infinite recursion the first time a user read it). Replaced with `app.is_team_member()`, a definer check. Found by the browser flow, not the SQL tests, because those read membership as superuser |
+| API | `/api/teams` (list, create), `/api/teams/[id]` (detail, rename, successor, transfer, appoint), `/api/teams/[id]/members/[userId]` (role, section toggles, remove), `/api/teams/[id]/leave`, `/api/invites` (create + email), `/api/invites/[token]` (public preview, accept), `/api/grants` (given/received, create), `/api/grants/[id]` (revoke/decline), `/api/users/lookup` (exact email only) |
+| UI | Settings → **People & teams** (`/other/settings/people`): teams, members with role select and a per-section verb grid, invites with the link shown when Resend is absent, successor, leave; "Share with a person" (grants; finance and platform absent); "Shared with me" (decline). `/invite/[token]`: public landing, magic link / password / Google, accept, welcome, TOTP hand-off for admins and owners |
+| Mandatory TOTP | `requires_totp()` is true for the instance owner and every team owner/admin. The login page sends such a user with no verified factor to Security with `?enrol=totp`; the invite welcome does the same for admin/owner roles |
+| Email | `lib/system/email.ts` (Resend; without `RESEND_API_KEY` the invite is logged and the link returned to the inviter's UI) |
+| Registry | `ACCESS_TABLES` gains `invites` |
+| Tests | `lib/access/teams.test.ts` (27); vitest now runs files serially — the access suites share fixtures on one database |
+
+### VERIFY 4 results
+
+- **Role × section × verb matrix** (team space, PostgREST as the second user): admin and member get view/edit/create on organisation, fitness and health; viewer gets view only; no membership gets nothing. **Toggles**: fitness edit off narrows a member to view; other sections unaffected; a viewer given every toggle still cannot edit; an admin cannot narrow another admin; nobody narrows the owner.
+- **Direct-grant matrix** (personal space): `view` → read only; `view,edit` → edit, no create; `view,create_delete` → create, no edit; a grant on another group hides the row; empty group list = whole section; the grantee can decline; a revoked grant is dead.
+- **Finance** absent from `SHAREABLE_SECTIONS` / `GROUPS_BY_SECTION` and refused by `user_grants` constraint; platform likewise.
+- **One-owner index** refuses a second owner; the access tables are read-only through PostgREST.
+- **Successor flow**: owner cannot leave without a member successor; a non-member cannot be successor; leaving transfers ownership, clears the successor, keeps the old owner's rows in the team space (contributions stay).
+- **Invites**: token is hex-64 and only its hash is stored; preview works anonymously; the wrong email cannot accept; accepting joins the team, seeds `ui_prefs.hidden_sections = [finance, studio, ventures, drops, the-boys]` with AI features off, and spends the token; a second accept and an expired invite are refused; an admin may invite member/viewer but not admin; a viewer cannot invite; **the database refuses an uninvited sign-up**.
+- **Browser flow** (Playwright, 15/15): the instance owner without an authenticator is sent to enrol and enrols; creates a team and an invite from the People page (link shown, Resend absent); a fresh browser opens the link, sees team and role anonymously, creates a password account for the invited address, accepts, sees a welcome, lands on a first screen with Organisation, Fitness and Health and without Finance, Studio, Ventures or Drops; the link is then single-use; the new member sees the team and none of Phil's personal tasks; Phil sees the new member.
+- `npm test` 144/144 (serial), isolation test re-run after Part 4 (below), build clean.
+
+### Decisions taken in Part 4
+
+- Invite-only is enforced **in the database**, not only in the UI: the trigger on `auth.users` means neither the dashboard, GoTrue sign-up, a magic link nor Google can create an account without a live invite for that exact email.
+- Invite links use the request origin in development and `PUBLIC_BASE_URL` in production. The email fallback (no Resend key) returns the link to the inviter; production must have the key.
+- Admin/owner TOTP is "forced" at the two entry points (login after first factor; invite welcome) plus `requires_totp()` for the UI. It is not yet enforced per request by the middleware — Part 5's re-auth rule is the place to make sensitive routes demand aal2 for those roles.
+- The instance-owner "appoint successor" only works when the owner's profile is gone (deleted user). Part 5's "disable user" should extend `appoint_team_successor` to disabled owners.
+
+### Debt
+
+- The People page does its own `fetch` wrapper; the settings page has a similar one — fine for now, consolidate when a third appears.
+- `find_user_by_email` requires the exact address; there is deliberately no search.
+- `app/api/settings` still seeds `display_name: "Phil"` when a user has no settings row; `accept_invite` now seeds the row first for invited users, so only Phil ever hits that path.
+
+---
+
 ## Environment facts
 
 - **Docker Desktop is not running after a reboot.** Launch
@@ -316,27 +363,31 @@ One-word answer needed before Part 2 adds `space_id` to it.
 
 ## First actions on "get started"
 
-1. `git checkout multi-user`; `git log -7` should show the Part 3 commit on
-   top of Part 2.
+1. `git checkout multi-user`; `git log -8` should show the Part 4 commit on
+   top of Part 3.
 2. Launch Docker Desktop if `docker info` fails, then `supabase start`.
-   `npm test` must pass (stack up, chain at `0111`, Phil seeded). Then start
+   `npm test` must pass (chain at `0112`; 144 tests, serial). Start
    `next dev` with the env overrides above and run `npm run isolation-test`;
-   it must end with 0 leaks. That is the regression gate for every later
-   Part.
-3. If Phil has supplied the live dump (checklist §4): the Part 2 replay
-   against it is still owed (handoff, Part 2 section).
-4. Read Part 4 in `MYCELIUM_ALL_PROMPTS.md`. Start at
-   `0112_teams_invites.sql`: `teams` already exists (Part 2 scaffold, Part
-   4's shape) — add what is missing; `invites` (token sha256 only, 7-day
-   expiry, single use). Add `invites` to `ACCESS_TABLES`. Membership writes
-   go through `lib/system` helpers that check the actor's role (the access
-   tables are read-only for `authenticated`). The team space is created
-   like the policies test does it: `spaces(kind='team', team_id)` then
-   `teams.space_id`.
-5. UI under Settings → "People & teams" with the v2 primitives; onboarding
-   at `/invite/[token]` (add the prefix to `PUBLIC_PREFIXES`); invite email
-   via Resend needs `RESEND_API_KEY` (checklist §2) — build it so the
-   local run logs the link instead when the key is absent. New users:
-   `ui_prefs.hidden_sections` seeded, AI features already default off.
-6. VERIFY 4's matrices can extend `lib/access/policies.test.ts` (it already
-   has the team, roles, toggles and grants fixtures).
+   it must end with 0 leaks.
+3. The Part 2 replay against the live dump is still owed (checklist §4).
+4. Read Part 5 in `MYCELIUM_ALL_PROMPTS.md`. Start at `0113_audit.sql`:
+   `audit_events` (actor, principal user|system|break_glass, action,
+   section, entity_group, entity_id, subject_user_id, space_id, team_id,
+   ip, user_agent, meta), writer in `lib/system/audit.ts` (service client —
+   the audit table is append-only for everyone else), and resolve the
+   break-glass TODO in `middleware.ts` (the middleware cannot write; have
+   the route layer write one event per break-glass request via the
+   principal header). Cross-user reads: one event per request whose
+   resolved space owner ≠ actor, written in the API layer.
+5. Then `0114_rate_limits.sql` (token bucket + one function) on login,
+   magic-link request, invite creation, TOTP verify; lockout after 10
+   failed second-factor attempts in 15 minutes. Sessions remote sign-out
+   (same `my_sessions()` shape; delete from `auth.sessions` in a definer
+   function). Re-auth: a signed 10-minute cookie set after a fresh TOTP or
+   passkey verify; `SENSITIVE_PREFIXES` gains the routes that need it.
+6. `/admin` (instance owner, aal2): users, teams, memberships, grants,
+   invites, audit, filterable; disable user (add `profiles.disabled_at`
+   and make `appoint_team_successor` accept a disabled owner); NO content
+   tables read by any admin endpoint — assert it in a test. Export
+   (`/other/export` by entity group, JSON + CSV zip) and delete account
+   (`app.delete_user(uuid)`, re-auth + typed confirmation).

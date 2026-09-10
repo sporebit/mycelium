@@ -49,7 +49,7 @@ const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
 
 function ensureTess() {
   localSql(
-    `insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+    `set local app.allow_uninvited = 'on'; insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
 	    raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
 	    confirmation_token, recovery_token, email_change_token_new, email_change,
 	    email_change_token_current, phone_change, phone_change_token, reauthentication_token,

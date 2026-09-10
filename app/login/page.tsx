@@ -68,6 +68,15 @@ function LoginForm() {
       setBusy(false);
       return;
     }
+    // No verified factor yet: roles that require one (instance owner, team
+    // owners and admins — Part 4) are sent to enrol before anything else.
+    if (data && data.nextLevel !== "aal2") {
+      const { data: required } = await supabase.rpc("requires_totp");
+      if (required === true) {
+        window.location.assign(`/other/settings/security?enrol=totp&next=${encodeURIComponent(next)}`);
+        return;
+      }
+    }
     window.location.assign(next);
   }
 

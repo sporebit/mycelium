@@ -294,6 +294,7 @@ export const ACCESS_TABLES: readonly string[] = [
   "team_members",
   "team_member_sections",
   "user_grants",
+  "invites",
 ];
 
 /**
