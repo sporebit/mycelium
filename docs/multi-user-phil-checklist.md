@@ -4,6 +4,19 @@ Everything here needs a login, a card, or a DNS record, so none of it can be
 automated from a session. Nothing in Parts 1–6 can be fully verified until the
 items marked **blocking** are done.
 
+**Deferred by Phil, 10 September 2026:** §1, §3 and §4 are parked so the
+build can continue. What each one blocks:
+
+- §1 (Supabase Auth config) — Google sign-in verification, and any sign-in
+  at all on the hosted project or a Vercel preview. Nothing local.
+- §3 (env vars) — hosted break-glass; Part 3's `withUser()` needs
+  `SUPABASE_JWT_SECRET` on the hosted side only. Locally the stack's own
+  secret is used.
+- §4 (pg_dump) — the second half of VERIFY 2 (replay against real data).
+  Part 2's from-empty replay and verifier run without it. **This is the
+  check that finds unmappable `user_id` values before cutover, so it must
+  happen before Part 7.**
+
 Environment variable **names** only appear below. Never paste a value into a
 report, a commit message, or a chat.
 
@@ -103,7 +116,5 @@ before.
 written, so the prompt's entity registry does not mention it. It needs an
 entity group before Part 2 can add `space_id` to it.
 
-- [ ] Confirm `nutrition_targets` belongs to **`health.nutrition`**
-      (recommended — it is per-user nutrition data, and separating it from
-      `nutrition_logs` would let someone hold nutrition access without the
-      targets those logs are measured against).
+- [x] Confirm `nutrition_targets` belongs to **`health.nutrition`** —
+      confirmed by Phil, 10 September 2026.

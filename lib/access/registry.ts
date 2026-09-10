@@ -142,7 +142,7 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
       "meal_plan",
       "nutrition_targets",
     ],
-    note: "nutrition_targets (migration 0098) post-dates the P12 prompt. Placed here per the handoff recommendation; PENDING Phil's confirmation before Part 2 adds space_id to it.",
+    note: "nutrition_targets (migration 0098) post-dates the P12 prompt. Placed here; confirmed by Phil on 10 September 2026 before Part 2 added space_id to it.",
   },
   {
     section: "health",
@@ -286,7 +286,12 @@ export const DERIVED_RELATIONS: readonly string[] = ["pc_metrics_machines"];
  * Listed so the coverage test proves nothing was missed without forcing a
  * space_id onto them.
  */
-export const ACCESS_TABLES: readonly string[] = ["profiles"];
+export const ACCESS_TABLES: readonly string[] = [
+  "profiles",
+  "spaces",
+  "entity_groups",
+  "teams",
+];
 
 // -- Derived lookups ----------------------------------------------------------
 
