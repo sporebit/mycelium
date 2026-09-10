@@ -18,7 +18,6 @@ export const WORKOUT_SLOTS: readonly WorkoutSlot[] = [
 
 export type Workout = {
   id: string;
-  user_id: string;
   name: string;
   default_kind: WorkoutKind | null;
   default_slot: WorkoutSlot | null;
@@ -76,7 +75,7 @@ export type WorkoutWithStats = Workout & {
 };
 
 export const WORKOUT_SELECT =
-  "id, user_id, name, default_kind, default_slot, notes, created_at, updated_at, archived_at";
+  "id, name, default_kind, default_slot, notes, created_at, updated_at, archived_at";
 export const WORKOUT_EX_SELECT =
   "id, workout_id, name, sets, reps_per_set, rest_seconds, weight_kg, is_bodyweight, position, notes, created_at";
 

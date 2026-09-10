@@ -1,29 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { normaliseAlias } from "@/lib/people/normalise";
 import type { Person, PersonAlias, PersonWithAliases } from "@/lib/people/types";
 
 export const runtime = "nodejs";
 
 const PERSON_FIELDS =
-  "id, user_id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
+  "id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at";
 
 /** GET — list people, optionally filtered to the review queue. */
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const needsReview = req.nextUrl.searchParams.get("needs_review") === "true";
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("people")
       .select(PERSON_FIELDS)
-      .eq("user_id", uid)
       .order("updated_at", { ascending: false });
     if (needsReview) q = q.eq("needs_review", true);
     const { data: peopleRows, error } = await q;
@@ -106,8 +99,6 @@ type CreateBody = {
 
 /** POST — create a person + at least one primary alias. */
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
 
   let body: CreateBody;
   try {
@@ -123,13 +114,12 @@ export async function POST(req: NextRequest) {
   const lastName = body.last_name?.trim() || null;
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // Refuse duplicates with the exact same first+last name
     const { data: dup } = await supabase
       .from("people")
       .select("id, display_name")
-      .eq("user_id", uid)
       .ilike("first_name", firstName)
       .is("last_name", lastName)
       .maybeSingle();
@@ -145,9 +135,7 @@ export async function POST(req: NextRequest) {
 
     const { data: created, error } = await supabase
       .from("people")
-      .insert({
-        user_id: uid,
-        first_name: firstName,
+      .insert({ first_name: firstName,
         last_name: lastName,
         display_name: displayName,
         relationship: body.relationship ?? null,

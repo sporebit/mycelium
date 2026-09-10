@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import type { LastSession, LoggedSet } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 /**
  * Most-recent prior session's sets for a given programme_exercise_id.
@@ -18,25 +14,23 @@ export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ programme_exercise_id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { programme_exercise_id } = await ctx.params;
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     // Find candidate session-exercise rows, join to workout_sessions for the date.
     const { data: rows } = await supabase
       .from("workout_session_exercises")
       .select(
-        "id, workout_sessions:session_id!inner(id, date, user_id, completed_at)"
+        "id, workout_sessions:session_id!inner(id, date, completed_at)"
       )
       .eq("programme_exercise_id", programme_exercise_id);
 
     type Row = {
       id: string;
       workout_sessions:
-        | { id: string; date: string; user_id: string; completed_at: string | null }
-        | { id: string; date: string; user_id: string; completed_at: string | null }[];
+        | { id: string; date: string; completed_at: string | null }
+        | { id: string; date: string; completed_at: string | null }[];
     };
     const candidates: Array<{ exId: string; date: string }> = [];
     for (const r of (rows ?? []) as Row[]) {
@@ -44,7 +38,6 @@ export async function GET(
         ? r.workout_sessions[0]
         : r.workout_sessions;
       if (!sess) continue;
-      if (sess.user_id !== uid) continue;
       candidates.push({ exId: r.id, date: sess.date });
     }
     if (candidates.length === 0) {

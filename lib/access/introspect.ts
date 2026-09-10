@@ -49,6 +49,51 @@ export function localSql(sql: string): string[][] {
     .map((line) => line.split("\t"));
 }
 
+export type LocalStackEnv = {
+  apiUrl: string;
+  anonKey: string;
+  serviceRoleKey: string;
+  jwtSecret: string;
+};
+
+let cachedEnv: LocalStackEnv | null = null;
+
+/**
+ * URL and keys of the running local stack, from `supabase status -o env`.
+ * Cached per process; the CLI call takes a second or two. Tests that talk
+ * to PostgREST or mint user JWTs use this so nothing is hard-coded and
+ * nothing from .env.local (the hosted project) is touched.
+ */
+export function localStackEnv(): LocalStackEnv {
+  if (cachedEnv) return cachedEnv;
+  let out: string;
+  try {
+    out = execFileSync(process.platform === "win32" ? "supabase.exe" : "supabase", ["status", "-o", "env"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`\`supabase status\` failed; is the local stack up? ${msg}`);
+  }
+  const vars: Record<string, string> = {};
+  for (const line of out.split(/\r?\n/)) {
+    const i = line.indexOf("=");
+    if (i > 0) vars[line.slice(0, i)] = line.slice(i + 1).replace(/^"|"$/g, "");
+  }
+  const need = ["API_URL", "ANON_KEY", "SERVICE_ROLE_KEY", "JWT_SECRET"];
+  for (const k of need) {
+    if (!vars[k]) throw new Error(`supabase status did not report ${k}`);
+  }
+  cachedEnv = {
+    apiUrl: vars.API_URL,
+    anonKey: vars.ANON_KEY,
+    serviceRoleKey: vars.SERVICE_ROLE_KEY,
+    jwtSecret: vars.JWT_SECRET,
+  };
+  return cachedEnv;
+}
+
 /** Every relation in the public schema, tables and views, sorted by name. */
 export function listPublicRelations(): PublicRelation[] {
   const rows = localSql(

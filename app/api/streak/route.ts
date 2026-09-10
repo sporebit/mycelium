@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { computeStreak } from "@/lib/streak/compute";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   try {
-    const supabase = createServerClient();
-    const days = await computeStreak(supabase, uid);
+    const supabase = await createUserClient();
+    const days = await computeStreak(supabase);
     return NextResponse.json({ days });
   } catch (err) {
     console.error("[streak GET]", err);

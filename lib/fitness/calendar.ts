@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { isoWeekString } from "@/lib/util/week";
 import type { SessionKind, Slot } from "./types";
 
@@ -101,7 +101,7 @@ type TemplateRow = {
 type SetCountByLive = Map<string, { sets: number; minutes: number | null }>;
 
 async function fetchSetCounts(
-  supabase: ReturnType<typeof createServerClient>,
+  supabase: Awaited<ReturnType<typeof createUserClient>>,
   liveRows: LiveRow[],
 ): Promise<SetCountByLive> {
   const out: SetCountByLive = new Map();
@@ -151,12 +151,11 @@ async function fetchSetCounts(
  *  - planned-future + planned-past-missed from active programme template
  */
 export async function fetchMonthCalendar(
-  userId: string,
   year: number,
   month: number,
   todayKey: string,
 ): Promise<Map<string, CalendarDay>> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { gridStart, gridEnd, cells } = monthGridRange(year, month);
 
   // 1. Pull every workout_session in the visible range
@@ -165,7 +164,6 @@ export async function fetchMonthCalendar(
     .select(
       "id, date, slot, kind, name, programme_session_id, started_at, completed_at, position",
     )
-    .eq("user_id", userId)
     .gte("date", gridStart)
     .lte("date", gridEnd)
     .order("position", { ascending: true });
@@ -187,7 +185,6 @@ export async function fetchMonthCalendar(
   const { data: phaseRowsRaw } = await supabase
     .from("workout_programme_phases")
     .select("id, programme_id, start_week_iso, end_week_iso")
-    .eq("user_id", userId)
     .lte("start_week_iso", gridEndWeek)
     .or(`end_week_iso.is.null,end_week_iso.gte.${gridStartWeek}`);
   const phases = (phaseRowsRaw ?? []) as PhaseRow[];
@@ -292,11 +289,10 @@ export async function fetchMonthCalendar(
 
 /** Day detail data — same shape as the month query, restricted to one day. */
 export async function fetchDayCalendar(
-  userId: string,
   dateKey: string,
   todayKey: string,
 ): Promise<CalendarDay> {
   const [y, m] = dateKey.split("-").map(Number);
-  const all = await fetchMonthCalendar(userId, y, m, todayKey);
+  const all = await fetchMonthCalendar(y, m, todayKey);
   return all.get(dateKey) ?? { date: dateKey, pills: [] };
 }

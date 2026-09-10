@@ -1,26 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 const PENDING_SELECT =
-  "id, user_id, capture_id, entity_type, entity_name, additional_data, resolved_at, resolved_action, resolved_entity_id, created_at";
+  "id, capture_id, entity_type, entity_name, additional_data, resolved_at, resolved_action, resolved_entity_id, created_at";
 
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const url = new URL(req.url);
   const includeResolved = url.searchParams.get("resolved") === "true";
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("pending_entities")
       .select(PENDING_SELECT)
-      .eq("user_id", uid)
       .order("created_at", { ascending: false });
     if (!includeResolved) q = q.is("resolved_at", null);
     const { data: pending, error } = await q;

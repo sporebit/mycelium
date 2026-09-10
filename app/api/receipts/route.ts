@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { parseReceipt } from "@/lib/receipts/parse";
 import { storeReceiptImages, validateReceiptFiles } from "@/lib/receipts/upload";
 import {
@@ -14,14 +14,7 @@ export const runtime = "nodejs";
 // The POST parses inline, which is a multi-image vision call.
 export const maxDuration = 60;
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   const url = new URL(req.url);
   const retailer = url.searchParams.get("retailer");
   const from = url.searchParams.get("from");
@@ -29,11 +22,10 @@ export async function GET(req: NextRequest) {
   const status = url.searchParams.get("status");
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("receipts")
       .select(RECEIPT_SELECT)
-      .eq("user_id", uid)
       .order("purchased_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false });
 
@@ -78,9 +70,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   let form: FormData;
   try {
     form = await req.formData();
@@ -97,11 +86,11 @@ export async function POST(req: NextRequest) {
   const retailer = (form.get("retailer") as string | null)?.trim() || null;
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: created, error: insertErr } = await supabase
       .from("receipts")
-      .insert({ user_id: uid, retailer, status: "uploaded" })
+      .insert({ retailer, status: "uploaded" })
       .select(RECEIPT_SELECT)
       .single();
 

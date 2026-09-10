@@ -1,8 +1,8 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { DraggableCardGrid, type DraggableCard } from "@/components/dashboard/DraggableCardGrid";
 
 async function fetchHealthSummary() {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
 
   const [weightRes, painRes, gutRes, listsRes] = await Promise.all([

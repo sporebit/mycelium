@@ -1,7 +1,7 @@
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { dedupHash } from "./csv-parser";
 
-type Supabase = ReturnType<typeof createServerClient>;
+type Supabase = SupabaseClient;
 
 export type MatchRunResult = {
   auto_matched: number;
@@ -98,11 +98,10 @@ function sortByAccountPreference(
   });
 }
 
-async function fetchPool(supabase: Supabase, uid: string): Promise<DbCandidate[]> {
+async function fetchPool(supabase: Supabase): Promise<DbCandidate[]> {
   const { data: claimed } = await supabase
     .from("paypal_payments")
     .select("matched_transaction_id")
-    .eq("user_id", uid)
     .eq("match_status", "matched")
     .not("matched_transaction_id", "is", null);
 
@@ -113,7 +112,6 @@ async function fetchPool(supabase: Supabase, uid: string): Promise<DbCandidate[]
   const { data } = await supabase
     .from("transactions")
     .select("id, amount, txn_date, description, bank_accounts(account_type, label)")
-    .eq("user_id", uid)
     .ilike("description", "%PAYPAL%")
     .is("enriched_merchant", null);
 
@@ -135,7 +133,6 @@ async function fetchPool(supabase: Supabase, uid: string): Promise<DbCandidate[]
 
 export async function runPayPalMatcher(
   supabase: Supabase,
-  uid: string,
 ): Promise<MatchRunResult> {
   const result: MatchRunResult = {
     auto_matched: 0,
@@ -148,7 +145,6 @@ export async function runPayPalMatcher(
   const { data: prevAmbiguous } = await supabase
     .from("paypal_payments")
     .select("matched_transaction_id")
-    .eq("user_id", uid)
     .eq("match_status", "ambiguous")
     .not("matched_transaction_id", "is", null);
 
@@ -163,7 +159,6 @@ export async function runPayPalMatcher(
   await supabase
     .from("paypal_payments")
     .update({ match_status: "pending", matched_transaction_id: null })
-    .eq("user_id", uid)
     .eq("match_status", "ambiguous");
 
   // ── Phase 1: funded payment matching ──
@@ -171,12 +166,11 @@ export async function runPayPalMatcher(
   const { data: pending } = await supabase
     .from("paypal_payments")
     .select("id, transaction_id, paypal_date, merchant_name, amount, currency, funding_type, funded")
-    .eq("user_id", uid)
     .eq("match_status", "pending")
     .order("paypal_date", { ascending: true });
 
   if (pending && pending.length > 0) {
-    const pool = await fetchPool(supabase, uid);
+    const pool = await fetchPool(supabase);
     const claimed = new Set<string>();
 
     // Pre-compute candidate sets for contention detection
@@ -270,12 +264,11 @@ export async function runPayPalMatcher(
   const { data: standalones } = await supabase
     .from("paypal_payments")
     .select("id, transaction_id, paypal_date, merchant_name, amount, currency")
-    .eq("user_id", uid)
     .eq("match_status", "standalone")
     .order("paypal_date", { ascending: true });
 
   if (standalones && standalones.length > 0) {
-    const pool = await fetchPool(supabase, uid);
+    const pool = await fetchPool(supabase);
     const claimed = new Set<string>();
 
     for (const p of standalones) {
@@ -291,7 +284,6 @@ export async function runPayPalMatcher(
         await supabase
           .from("transactions")
           .delete()
-          .eq("user_id", uid)
           .eq("dedup_hash", hash);
 
         await supabase
@@ -322,12 +314,10 @@ export async function runPayPalMatcher(
 
 export async function getMatchCounts(
   supabase: Supabase,
-  uid: string,
 ): Promise<MatchStatusCounts> {
   const { data } = await supabase
     .from("paypal_payments")
-    .select("match_status")
-    .eq("user_id", uid);
+    .select("match_status");
 
   const counts: MatchStatusCounts = { matched: 0, ambiguous: 0, pending: 0, standalone: 0 };
   for (const row of (data ?? []) as { match_status: string }[]) {
@@ -341,18 +331,16 @@ export async function getMatchCounts(
 
 export async function getAmbiguousPayments(
   supabase: Supabase,
-  uid: string,
 ): Promise<AmbiguousPayment[]> {
   const { data: payments } = await supabase
     .from("paypal_payments")
     .select("id, transaction_id, paypal_date, merchant_name, amount, currency, funding_type")
-    .eq("user_id", uid)
     .eq("match_status", "ambiguous")
     .order("paypal_date", { ascending: true });
 
   if (!payments || payments.length === 0) return [];
 
-  const pool = await fetchPool(supabase, uid);
+  const pool = await fetchPool(supabase);
 
   return (payments as Array<{
     id: string;
@@ -397,7 +385,6 @@ export async function getAmbiguousPayments(
 
 export async function resolvePayment(
   supabase: Supabase,
-  uid: string,
   paymentId: string,
   transactionId: string,
 ): Promise<{ ok: boolean; error?: string }> {
@@ -405,7 +392,6 @@ export async function resolvePayment(
     .from("paypal_payments")
     .select("id, merchant_name, match_status, funded, transaction_id")
     .eq("id", paymentId)
-    .eq("user_id", uid)
     .single();
 
   if (!payment) return { ok: false, error: "Payment not found" };
@@ -416,7 +402,6 @@ export async function resolvePayment(
     .from("transactions")
     .select("id")
     .eq("id", transactionId)
-    .eq("user_id", uid)
     .single();
 
   if (!txn) return { ok: false, error: "Transaction not found" };
@@ -427,7 +412,6 @@ export async function resolvePayment(
     await supabase
       .from("transactions")
       .delete()
-      .eq("user_id", uid)
       .eq("dedup_hash", hash);
   }
 

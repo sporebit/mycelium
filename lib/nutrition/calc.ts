@@ -76,12 +76,9 @@ export function logToInsertPayload(
   servingLabel: string | null,
   mealGroupId: string | null,
   date: string,
-  userId: string,
 ) {
   const { core, extended } = nutrientsFor(food, quantityG);
-  return {
-    user_id: userId,
-    food_id: food.id,
+  return { food_id: food.id,
     meal_group_id: mealGroupId,
     date,
     food_name: food.name,

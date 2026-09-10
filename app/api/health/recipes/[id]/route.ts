@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
@@ -9,12 +9,12 @@ export async function GET(
 ) {
   try {
     const { id } = await ctx.params;
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("recipes")
       .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     if (!data) return NextResponse.json({ error: "not found" }, { status: 404 });
     return NextResponse.json({ recipe: data });
@@ -31,7 +31,7 @@ export async function PATCH(
   try {
     const { id } = await ctx.params;
     const body = await req.json();
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
     const fields = [
       "title", "source_url", "source_name", "image_url",
@@ -61,7 +61,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await ctx.params;
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { error } = await supabase.from("recipes").delete().eq("id", id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });

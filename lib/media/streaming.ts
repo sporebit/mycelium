@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 const API_KEY = process.env.STREAMING_AVAILABILITY_API_KEY;
 const BASE = "https://streaming-availability.p.rapidapi.com/shows/search/title";
@@ -37,7 +37,7 @@ export function lookupStreaming(itemId: string, title: string) {
         searchTitle(title, "series"),
       ]);
       const services = [...new Set([...movie, ...series])];
-      const supabase = createServerClient();
+      const supabase = await createUserClient();
       await supabase
         .from("media_items")
         .update({

@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { callClaudeJSON } from "@/lib/ai/anthropic";
 import { buildFitnessRulesBlock } from "@/lib/router/rules";
 import { matchExerciseName } from "./match-exercise";
@@ -362,9 +363,9 @@ export async function parseWorkoutVoice(
   context: VoiceContext,
   /** Pass through so we can pull user-defined fitness routing rules
    *  and prepend them to the system prompt. Optional so legacy/test
-   *  call sites that don't have a user id keep working with the
+   *  call sites that don't have a client keep working with the
    *  baseline prompt. */
-  userId?: string,
+  rules?: { supabase: SupabaseClient; userId: string },
 ): Promise<ParsedWorkout> {
   const userPrompt = [
     `Date: ${context.today_date}`,
@@ -386,7 +387,9 @@ export async function parseWorkoutVoice(
     rawText.trim(),
   ].join("\n");
 
-  const rulesBlock = userId ? await buildFitnessRulesBlock(userId) : "";
+  const rulesBlock = rules
+    ? await buildFitnessRulesBlock(rules.supabase, rules.userId)
+    : "";
   const systemPrompt = rulesBlock
     ? `${rulesBlock}\n\n${BASE_SYSTEM_PROMPT}`
     : BASE_SYSTEM_PROMPT;

@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { id } = await ctx.params;
   let body: { body?: string };
   try {
@@ -27,17 +19,16 @@ export async function POST(
     return NextResponse.json({ error: "body required" }, { status: 400 });
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("task_comments")
-      .insert({ task_id: id, user_id: uid, body: text })
-      .select("id, task_id, user_id, body, created_at, updated_at")
+      .insert({ task_id: id, body: text })
+      .select("id, task_id, body, created_at, updated_at")
       .single();
     if (error || !data) throw error ?? new Error("insert failed");
 
     await supabase.from("task_activity").insert({
       task_id: id,
-      user_id: uid,
       action: "comment",
       field: null,
       from_value: null,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { getSignedUrl, removeReceiptImages } from "@/lib/storage/receipts";
 import { namesFor } from "@/lib/receipts/participants";
 import {
@@ -19,26 +19,19 @@ export const runtime = "nodejs";
 
 const ALLOWED_FIELDS = new Set(["title", "retailer", "purchased_at", "total"]);
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: receipt, error } = await supabase
       .from("receipts")
       .select(RECEIPT_SELECT)
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -105,8 +98,6 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
 
   let body: Record<string, unknown>;
@@ -134,12 +125,11 @@ export async function PATCH(
   patch.updated_at = new Date().toISOString();
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("receipts")
       .update(patch)
       .eq("id", id)
-      .eq("user_id", uid)
       .select(RECEIPT_SELECT)
       .maybeSingle();
 
@@ -156,12 +146,10 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // Collect storage paths before the cascade removes the rows that name them.
     const { data: imageRows } = await supabase
@@ -172,8 +160,7 @@ export async function DELETE(
     const { error } = await supabase
       .from("receipts")
       .delete()
-      .eq("id", id)
-      .eq("user_id", uid);
+      .eq("id", id);
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

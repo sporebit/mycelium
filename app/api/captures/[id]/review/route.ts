@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
+import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createUserClient } from "@/lib/supabase/user";
 import { resolveEntityId } from "@/lib/router/resolveEntity";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { localDateKey } from "@/lib/util/date";
 
 export const runtime = "nodejs";
-
-type Supabase = ReturnType<typeof createServerClient>;
 
 type ReviewAction = "approve" | "reroute" | "discard";
 
@@ -107,8 +108,7 @@ function mergeClassification(
 
 /** Remove whatever row this capture is currently routed to (if any). */
 async function deleteRoutedRow(
-  supabase: Supabase,
-  userId: string,
+  supabase: SupabaseClient,
   routedTo: string | null,
   routedId: string | null,
 ): Promise<void> {
@@ -120,8 +120,7 @@ async function deleteRoutedRow(
   const { error } = await supabase
     .from(table)
     .delete()
-    .eq("id", routedId)
-    .eq("user_id", userId);
+    .eq("id", routedId);
   if (error) {
     console.error(
       `[review reroute] delete from ${table} ${routedId} failed:`,
@@ -134,7 +133,7 @@ async function deleteRoutedRow(
  *  Returns the new (routed_to, routed_id) tuple — defaults to the raw
  *  capture itself when the kind is one we don't materialise. */
 async function createRoutedRow(
-  supabase: Supabase,
+  supabase: SupabaseClient,
   userId: string,
   rawCaptureId: string,
   rawText: string,
@@ -159,14 +158,12 @@ async function createRoutedRow(
     typeof classification.entity_name === "string"
       ? classification.entity_name
       : null;
-  const entityId = await resolveEntityId(supabase, userId, entityName);
+  const entityId = await resolveEntityId(supabase, entityName);
 
   if (kind === "task") {
     const { data, error } = await supabase
       .from("tasks")
-      .insert({
-        user_id: userId,
-        title,
+      .insert({ title,
         description: summary,
         urgency,
         key: keyFlag,
@@ -189,9 +186,7 @@ async function createRoutedRow(
       typeof classification.mood === "string" ? classification.mood : null;
     const { data, error } = await supabase
       .from("journal_entries")
-      .insert({
-        user_id: userId,
-        entry_date: localDateKey(),
+      .insert({ entry_date: localDateKey(),
         raw_text: rawText,
         audio_url: audioUrl,
         summary: summary ? summary.slice(0, 40) : null,
@@ -240,9 +235,7 @@ async function createRoutedRow(
         : inferPurchaseCategory(title);
     const { data, error } = await supabase
       .from("purchases")
-      .insert({
-        user_id: userId,
-        title,
+      .insert({ title,
         amount,
         currency,
         want_or_need: wantOrNeed,
@@ -273,9 +266,7 @@ async function createRoutedRow(
         : null;
     const { data, error } = await supabase
       .from("media_items")
-      .insert({
-        user_id: userId,
-        title,
+      .insert({ title,
         creator,
         media_type: mediaType,
         media_status: "backlog",
@@ -295,8 +286,7 @@ async function createRoutedRow(
 }
 
 async function recordMentions(
-  supabase: Supabase,
-  userId: string,
+  supabase: SupabaseClient,
   classification: Record<string, unknown>,
   sourceType: "capture" | "task" | "journal",
   sourceId: string,
@@ -310,8 +300,8 @@ async function recordMentions(
       "";
     if (!hint) continue;
     try {
-      const res = await resolveMention(supabase, userId, hint);
-      await recordMention(supabase, userId, res, {
+      const res = await resolveMention(supabase, hint);
+      await recordMention(supabase, res, {
         type: sourceType,
         id: sourceId,
       });
@@ -325,9 +315,9 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = process.env.USER_ID;
+  const uid = (await headers()).get(PRINCIPAL_USER_HEADER);
   if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await ctx.params;
 
@@ -343,15 +333,14 @@ export async function PATCH(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: existing, error: fetchErr } = await supabase
       .from("raw_captures")
       .select(
-        "id, user_id, source, raw_text, audio_url, classification, routed_to, routed_id, reviewed_at, discarded_at",
+        "id, source, raw_text, audio_url, classification, routed_to, routed_id, reviewed_at, discarded_at",
       )
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle();
     if (fetchErr || !existing) {
       return NextResponse.json(
@@ -371,7 +360,6 @@ export async function PATCH(
         .from("raw_captures")
         .update({ discarded_at: new Date().toISOString() })
         .eq("id", id)
-        .eq("user_id", uid)
         .select("id, discarded_at")
         .single();
       if (error || !data) {
@@ -396,7 +384,6 @@ export async function PATCH(
           reviewed_at: new Date().toISOString(),
         })
         .eq("id", id)
-        .eq("user_id", uid)
         .select(
           "id, classification, routed_to, routed_id, reviewed_at, discarded_at",
         )
@@ -422,7 +409,6 @@ export async function PATCH(
     if (kindChanged) {
       await deleteRoutedRow(
         supabase,
-        uid,
         existing.routed_to,
         existing.routed_id,
       );
@@ -453,7 +439,6 @@ export async function PATCH(
         mentionSource === "capture" ? id : routedId;
       await recordMentions(
         supabase,
-        uid,
         mergedClassification,
         mentionSource,
         mentionSourceId,
@@ -469,7 +454,6 @@ export async function PATCH(
         reviewed_at: new Date().toISOString(),
       })
       .eq("id", id)
-      .eq("user_id", uid)
       .select(
         "id, classification, routed_to, routed_id, reviewed_at, discarded_at",
       )

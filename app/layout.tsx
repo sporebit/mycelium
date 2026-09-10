@@ -6,8 +6,14 @@ import { TransitionProvider } from "@/lib/context/TransitionContext";
 import { TransitionOverlay } from "@/components/nav/TransitionOverlay";
 import { SoilGrain } from "@/components/dashboard/SoilGrain";
 import { MyceliumField } from "@/components/art/MyceliumField";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { UI_PREFS_DEFAULTS, getUiPrefs } from "@/lib/settings/uiPrefs";
+
+// Every page is behind a session and the layout reads the request's
+// principal to load the caller's ui prefs, so nothing here can be static.
+// Declared rather than discovered: otherwise the build logs a dynamic-usage
+// bailout for every route.
+export const dynamic = "force-dynamic";
 
 const interTight = Inter_Tight({
   variable: "--font-inter-tight",
@@ -45,16 +51,15 @@ export default async function RootLayout({
 }>) {
   // Server-render data-motion so [data-motion="off"] takes effect on the
   // very first paint — no client flash, no hydration mismatch.
-  const uid = process.env.USER_ID;
+  // The login page renders inside this layout with no session; the query
+  // then sees no rows under RLS and getUiPrefs returns the defaults.
   let motion = UI_PREFS_DEFAULTS.motion;
-  if (uid) {
-    try {
-      const supabase = createServerClient();
-      const prefs = await getUiPrefs(supabase, uid);
-      motion = prefs.motion;
-    } catch (err) {
-      console.error("[layout/uiPrefs]", err);
-    }
+  try {
+    const supabase = await createUserClient();
+    const prefs = await getUiPrefs(supabase);
+    motion = prefs.motion;
+  } catch (err) {
+    console.error("[layout/uiPrefs]", err);
   }
   return (
     <html

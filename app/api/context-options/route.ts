@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   CONTEXT_FIELDS,
   type ContextField,
@@ -8,22 +8,15 @@ import {
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const url = new URL(req.url);
   const field = url.searchParams.get("field");
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("context_options")
-      .select("id, user_id, field, value, label, icon, use_count, created_at")
-      .eq("user_id", uid)
+      .select("id, field, value, label, icon, use_count, created_at")
       .order("use_count", { ascending: false })
       .order("label", { ascending: true });
     if (field && CONTEXT_FIELDS.includes(field as ContextField)) {
@@ -39,8 +32,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   let body: { field?: string; value?: string; label?: string; icon?: string | null };
   try {
     body = await req.json();
@@ -62,20 +53,18 @@ export async function POST(req: NextRequest) {
     );
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("context_options")
       .upsert(
-        {
-          user_id: uid,
-          field,
+        { field,
           value,
           label,
           icon: body.icon ?? null,
         },
-        { onConflict: "user_id,field,value" },
+        { onConflict: "space_id,field,value" },
       )
-      .select("id, user_id, field, value, label, icon, use_count, created_at")
+      .select("id, field, value, label, icon, use_count, created_at")
       .single();
     if (error || !data) throw error ?? new Error("insert failed");
     return NextResponse.json({ option: data });

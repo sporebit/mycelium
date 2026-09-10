@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { normaliseAlias } from "@/lib/people/normalise";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type Body = { person_id?: string | null; create_alias?: boolean };
 
@@ -14,8 +10,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id: mentionId } = await ctx.params;
 
   let body: Body;
@@ -30,12 +24,11 @@ export async function POST(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: mention } = await supabase
       .from("people_mentions")
       .select("id, raw_alias, person_id")
       .eq("id", mentionId)
-      .eq("user_id", uid)
       .maybeSingle();
     if (!mention) {
       return NextResponse.json({ error: "not found" }, { status: 404 });

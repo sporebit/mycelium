@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useMemo, useState } from "react";
 
 type Reminder = {
   id: string;
-  user_id: string;
   message: string;
   due_at: string;
   recurrence: string | null;

@@ -37,7 +37,8 @@ values (
 	now(),
 	'', '', '', '', '', '', '', '', false, false
 )
-on conflict (id) do nothing;
+on conflict (id) do update
+	set encrypted_password = excluded.encrypted_password;
 
 insert into auth.identities (
 	id, user_id, provider_id, identity_data, provider,

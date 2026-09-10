@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 const API_BASE = "https://api.spotify.com/v1";
@@ -16,7 +16,7 @@ async function getStoredToken(): Promise<{
   refresh_token: string;
   expires_at: string;
 } | null> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data } = await supabase
     .from("spotify_tokens")
     .select("*")
@@ -42,7 +42,7 @@ async function refreshAccessToken(refreshToken: string): Promise<string> {
   if (!res.ok) throw new Error(`Token refresh failed: ${res.status}`);
   const json = await res.json();
 
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const expiresAt = new Date(Date.now() + json.expires_in * 1000).toISOString();
   const updates: Record<string, string> = {
     access_token: json.access_token,
@@ -128,7 +128,7 @@ export async function exchangeCode(code: string, redirectUri: string) {
   }
   const json = await res.json();
 
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const expiresAt = new Date(Date.now() + json.expires_in * 1000).toISOString();
 
   await supabase.from("spotify_tokens").insert({

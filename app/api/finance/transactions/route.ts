@@ -1,18 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   const url = new URL(req.url);
   const accountId = url.searchParams.get("account_id");
   const from = url.searchParams.get("from");
@@ -27,12 +18,11 @@ export async function GET(req: NextRequest) {
   const cats = categoryParam ? categoryParam.split(",").filter(Boolean) : [];
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     let pageQ = supabase
       .from("transactions")
-      .select("*, bank_accounts(account_number, label)", { count: "exact" })
-      .eq("user_id", uid);
+      .select("*, bank_accounts(account_number, label)", { count: "exact" });
 
     if (accountId && accountId !== "all") pageQ = pageQ.eq("account_id", accountId);
     if (from) pageQ = pageQ.gte("txn_date", from);
@@ -47,7 +37,6 @@ export async function GET(req: NextRequest) {
       .range(offset, offset + limit - 1);
 
     const aggQ = supabase.rpc("txn_agg", {
-      p_user_id: uid,
       p_account_id: accountId && accountId !== "all" ? accountId : null,
       p_from: from || null,
       p_to: to || null,

@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { localDateKey } from "@/lib/util/date";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 const SLOT_ORDER = [
   "wake",
@@ -27,15 +23,11 @@ const SLOT_LABELS: Record<string, string> = {
 };
 
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid)
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   const date =
     new URL(req.url).searchParams.get("date") ?? localDateKey();
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const [{ data: supplements, error: sErr }, { data: logs, error: lErr }] =
       await Promise.all([
@@ -44,13 +36,11 @@ export async function GET(req: NextRequest) {
           .select(
             "id, name, dose, form, brand, timing_slot, fasted, with_food, timing_notes"
           )
-          .eq("user_id", uid)
           .eq("active", true)
           .order("name"),
         supabase
           .from("supplement_logs")
           .select("id, supplement_id, timing_slot, taken_at")
-          .eq("user_id", uid)
           .eq("date", date)
           .order("taken_at", { ascending: false }),
       ]);

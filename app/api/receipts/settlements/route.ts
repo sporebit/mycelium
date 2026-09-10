@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { money } from "@/lib/receipts/reconcile";
 import {
   RECEIPT_SETTLEMENT_SELECT,
@@ -8,25 +8,17 @@ import {
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** GET — payments received, newest first, optionally for one person. */
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   const personId = new URL(req.url).searchParams.get("person_id");
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("receipt_settlements")
       .select(RECEIPT_SETTLEMENT_SELECT)
-      .eq("user_id", uid)
       .order("paid_at", { ascending: false })
       .order("created_at", { ascending: false });
 
@@ -53,9 +45,6 @@ export async function GET(req: NextRequest) {
  * as it does forever for cash.
  */
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   let body: {
     person_id?: unknown;
     amount?: unknown;
@@ -98,13 +87,12 @@ export async function POST(req: NextRequest) {
       : null;
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: person } = await supabase
       .from("people")
       .select("id")
       .eq("id", personId)
-      .eq("user_id", uid)
       .maybeSingle();
     if (!person) {
       return NextResponse.json({ error: "person not found" }, { status: 404 });
@@ -113,7 +101,6 @@ export async function POST(req: NextRequest) {
     const { data, error } = await supabase
       .from("receipt_settlements")
       .insert({
-        user_id: uid,
         person_id: personId,
         amount: money(amount),
         paid_at: paidAt,
@@ -133,9 +120,6 @@ export async function POST(req: NextRequest) {
 
 /** DELETE — undo a recorded payment. */
 export async function DELETE(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   const url = new URL(req.url);
   let id = url.searchParams.get("id");
   if (!id) {
@@ -149,12 +133,11 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("receipt_settlements")
       .delete()
       .eq("id", id)
-      .eq("user_id", uid)
       .select("id")
       .maybeSingle();
 

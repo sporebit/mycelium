@@ -1,23 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { categorise } from "@/lib/finance/categorise";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
-  const uid = process.env.USER_ID;
-  if (!uid)
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   const dryRun = req.nextUrl.searchParams.get("dryRun") === "true";
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: rows, error } = await supabase
       .from("transactions")
       .select("id, txn_type, description, enriched_merchant, amount")
-      .eq("user_id", uid)
       .is("category", null)
       .eq("category_locked", false);
 

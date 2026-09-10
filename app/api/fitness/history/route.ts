@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { toKg } from "@/lib/fitness/units";
 import type {
   HistoryResponse,
@@ -15,13 +15,7 @@ export const runtime = "nodejs";
 const LIMIT_DEFAULT = 20;
 const LIMIT_MAX = 50;
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
 
   const params = req.nextUrl.searchParams;
   const cursor = params.get("cursor");
@@ -31,13 +25,12 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(LIMIT_MAX, Math.max(1, Number.isFinite(limitParam) ? limitParam : LIMIT_DEFAULT));
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("workout_sessions")
       .select(
         "id, date, slot, kind, session_type, name, notes, started_at, completed_at, status, created_at"
       )
-      .eq("user_id", uid)
       // Attempted sessions belong in history alongside completed ones —
       // they're real workouts that just stalled past 48h, and we want
       // them visible with a distinct pill so the user can finish or
@@ -184,7 +177,6 @@ export async function GET(req: NextRequest) {
       const { data: allTypeRows } = await supabase
         .from("workout_sessions")
         .select("session_type")
-        .eq("user_id", uid)
         .not("completed_at", "is", null);
       typeCounts = {};
       for (const r of (allTypeRows ?? []) as Array<{ session_type: string | null }>) {

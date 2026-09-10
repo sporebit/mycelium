@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 type ToolDef = {
   name: string;
@@ -193,15 +193,12 @@ export async function executeTool(
   toolName: string,
   toolInput: Record<string, unknown>,
 ): Promise<{ ok: boolean; result: unknown; summary: string }> {
-  const supabase = createServerClient();
-  const uid = process.env.USER_ID;
+  const supabase = await createUserClient();
 
   if (toolName === "create_task") {
     const { data, error } = await supabase
       .from("tasks")
-      .insert({
-        user_id: uid,
-        title: toolInput.title as string,
+      .insert({ title: toolInput.title as string,
         description: (toolInput.notes as string) || null,
         urgency: (toolInput.urgency as string) || "someday",
         due_date: (toolInput.due_date as string) || null,
@@ -217,9 +214,7 @@ export async function executeTool(
   if (toolName === "create_subtasks") {
     const parentId = toolInput.parent_task_id as string;
     const subs = toolInput.subtasks as { title: string; notes?: string }[];
-    const rows = subs.map((s) => ({
-      user_id: uid,
-      title: s.title,
+    const rows = subs.map((s) => ({ title: s.title,
       description: s.notes || null,
       parent_task_id: parentId,
       status: "new",

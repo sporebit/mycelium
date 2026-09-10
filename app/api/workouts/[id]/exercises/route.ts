@@ -1,23 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { WORKOUT_EX_SELECT, type WorkoutExercise } from "@/lib/fitness/workouts";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 async function ensureOwned(
-  supabase: ReturnType<typeof createServerClient>,
-  workoutId: string,
-  uid: string,
+  supabase: SupabaseClient,
+  workoutId: string
 ): Promise<boolean> {
   const { data } = await supabase
     .from("workouts")
     .select("id")
     .eq("id", workoutId)
-    .eq("user_id", uid)
     .maybeSingle();
   return !!data?.id;
 }
@@ -26,12 +21,10 @@ export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
-    if (!(await ensureOwned(supabase, id, uid))) {
+    const supabase = await createUserClient();
+    if (!(await ensureOwned(supabase, id))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     const { data, error } = await supabase
@@ -53,8 +46,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   let body: CreateBody;
   try {
@@ -65,8 +56,8 @@ export async function POST(
   const name = body.name?.trim();
   if (!name) return NextResponse.json({ error: "name required" }, { status: 400 });
   try {
-    const supabase = createServerClient();
-    if (!(await ensureOwned(supabase, id, uid))) {
+    const supabase = await createUserClient();
+    if (!(await ensureOwned(supabase, id))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     // Append at end by default

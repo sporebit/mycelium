@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   WORKOUT_SELECT,
   WORKOUT_KINDS,
@@ -12,13 +12,7 @@ import {
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const url = new URL(req.url);
   const kind = url.searchParams.get("kind");
   const includeArchived =
@@ -26,11 +20,10 @@ export async function GET(req: NextRequest) {
     url.searchParams.get("archived") === "true";
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("workouts")
       .select(WORKOUT_SELECT)
-      .eq("user_id", uid)
       .order("updated_at", { ascending: false });
     if (!includeArchived) q = q.is("archived_at", null);
     if (kind && WORKOUT_KINDS.includes(kind as WorkoutKind)) {
@@ -139,8 +132,6 @@ type CreateBody = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   let body: CreateBody;
   try {
     body = (await req.json()) as CreateBody;
@@ -161,12 +152,10 @@ export async function POST(req: NextRequest) {
       : null;
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("workouts")
-      .insert({
-        user_id: uid,
-        name,
+      .insert({ name,
         default_kind,
         default_slot,
         notes: body.notes ?? null,

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
@@ -12,17 +12,11 @@ type TaskRow = {
 };
 
 export async function GET() {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("tasks")
       .select("id, title, time_estimate_min, entity_id, entities(name)")
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .eq("urgency", "today")
       .eq("key", true)

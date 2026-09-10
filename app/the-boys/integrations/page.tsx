@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Panel } from "@/components/dashboard/Panel";
 import { Mono } from "@/components/dashboard/Mono";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,45 +61,38 @@ async function loadIntegrations(): Promise<Integration[]> {
   const out: Integration[] = [];
 
   // Telegram — env presence + most recent raw_captures row from source=telegram
-  const telegramConfigured =
-    !!process.env.TELEGRAM_BOT_TOKEN && !!process.env.USER_ID;
+  const telegramConfigured = !!process.env.TELEGRAM_BOT_TOKEN;
   let telegramLastSync: string | null = null;
   let appleHealthLastSync: string | null = null;
   let shortcutLastSync: string | null = null;
   try {
-    const supabase = createServerClient();
-    const uid = process.env.USER_ID;
-    if (uid) {
-      const { data: tg } = await supabase
-        .from("raw_captures")
-        .select("created_at")
-        .eq("user_id", uid)
-        .eq("source", "telegram")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      telegramLastSync = (tg?.created_at as string | null) ?? null;
+    const supabase = await createUserClient();
+    const { data: tg } = await supabase
+      .from("raw_captures")
+      .select("created_at")
+      .eq("source", "telegram")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    telegramLastSync = (tg?.created_at as string | null) ?? null;
 
-      const { data: sc } = await supabase
-        .from("raw_captures")
-        .select("created_at")
-        .eq("user_id", uid)
-        .eq("source", "api")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      shortcutLastSync = (sc?.created_at as string | null) ?? null;
+    const { data: sc } = await supabase
+      .from("raw_captures")
+      .select("created_at")
+      .eq("source", "api")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    shortcutLastSync = (sc?.created_at as string | null) ?? null;
 
-      const { data: bm } = await supabase
-        .from("body_metrics")
-        .select("recorded_at, source")
-        .eq("user_id", uid)
-        .eq("source", "apple_health")
-        .order("recorded_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      appleHealthLastSync = (bm?.recorded_at as string | null) ?? null;
-    }
+    const { data: bm } = await supabase
+      .from("body_metrics")
+      .select("recorded_at, source")
+      .eq("source", "apple_health")
+      .order("recorded_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    appleHealthLastSync = (bm?.recorded_at as string | null) ?? null;
   } catch (err) {
     console.error("[/brain/integrations] supabase status fetch failed:", err);
   }

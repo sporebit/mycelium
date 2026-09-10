@@ -1,5 +1,5 @@
 import { MODEL_VISION } from "@/lib/config/models";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { downloadReceiptImage } from "@/lib/storage/receipts";
 import { money, reconcile } from "@/lib/receipts/reconcile";
 import {
@@ -174,7 +174,7 @@ async function callVision(images: ImageInput[]): Promise<{
  * in the list rather than looking stuck on 'uploaded'.
  */
 export async function parseReceipt(receiptId: string): Promise<ParseOutcome> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
 
   await supabase
     .from("receipts")

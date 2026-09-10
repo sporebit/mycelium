@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { getOrCreateDailyLog, parseNotes } from "@/lib/dailyLog";
 import {
   GOALS_SENTINEL_DATE,
@@ -9,10 +9,6 @@ import {
 } from "@/lib/types/goals";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type GoalsNotes = {
   goals_week_items?: unknown;
@@ -30,13 +26,9 @@ function readGoals(notes: GoalsNotes): { week: GoalItem[]; month: GoalItem[] } {
 }
 
 export async function GET() {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   try {
-    const supabase = createServerClient();
-    const row = await getOrCreateDailyLog(supabase, uid, GOALS_SENTINEL_DATE);
+    const supabase = await createUserClient();
+    const row = await getOrCreateDailyLog(supabase, GOALS_SENTINEL_DATE);
     return NextResponse.json(readGoals(parseNotes(row.notes) as GoalsNotes));
   } catch (err) {
     console.error("[/api/goals GET]", err);
@@ -45,11 +37,6 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   let body: { scope?: unknown; items?: unknown };
   try {
     body = (await req.json()) as { scope?: unknown; items?: unknown };
@@ -68,8 +55,8 @@ export async function POST(req: NextRequest) {
   const items: GoalItem[] = body.items.filter(isGoalItem);
 
   try {
-    const supabase = createServerClient();
-    const row = await getOrCreateDailyLog(supabase, uid, GOALS_SENTINEL_DATE);
+    const supabase = await createUserClient();
+    const row = await getOrCreateDailyLog(supabase, GOALS_SENTINEL_DATE);
     const current = parseNotes(row.notes) as Record<string, unknown>;
     const key = scope === "week" ? "goals_week_items" : "goals_month_items";
     const next = { ...current, [key]: items };

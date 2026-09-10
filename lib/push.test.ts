@@ -8,11 +8,6 @@ vi.mock("web-push", () => ({
   },
 }));
 
-// Mock supabase server client
-vi.mock("@/lib/supabase/server", () => ({
-  createServerClient: vi.fn(),
-}));
-
 import webpush from "web-push";
 import { upsertSubscription, sendToUser } from "./push";
 
@@ -34,7 +29,7 @@ function mockSupabase(overrides: Record<string, unknown> = {}) {
 describe("upsertSubscription", () => {
   it("upserts a subscription with the correct payload", async () => {
     const sb = mockSupabase();
-    const result = await upsertSubscription(sb as never, "user-1", {
+    const result = await upsertSubscription(sb as never, {
       endpoint: "https://push.example.com/1",
       p256dh: "key-p256dh",
       auth: "key-auth",
@@ -45,7 +40,6 @@ describe("upsertSubscription", () => {
     expect(sb.from).toHaveBeenCalledWith("push_subscriptions");
     expect(sb._chain.upsert).toHaveBeenCalledWith(
       {
-        user_id: "user-1",
         endpoint: "https://push.example.com/1",
         p256dh: "key-p256dh",
         auth: "key-auth",
@@ -59,7 +53,7 @@ describe("upsertSubscription", () => {
     const sb = mockSupabase({
       upsert: vi.fn().mockReturnValue({ error: { message: "DB error" } }),
     });
-    const result = await upsertSubscription(sb as never, "user-1", {
+    const result = await upsertSubscription(sb as never, {
       endpoint: "https://push.example.com/1",
       p256dh: "k1",
       auth: "k2",
@@ -81,8 +75,7 @@ describe("sendToUser", () => {
       { id: "s2", endpoint: "https://push.example.com/2", p256dh: "k2", auth: "a2" },
     ];
     const chainable = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnValue({ data: subs }),
+      select: vi.fn().mockReturnValue({ data: subs }),
       delete: vi.fn().mockReturnThis(),
       in: vi.fn().mockReturnThis(),
     };
@@ -90,7 +83,7 @@ describe("sendToUser", () => {
 
     vi.mocked(webpush.sendNotification).mockResolvedValue({} as never);
 
-    const result = await sendToUser(sb as never, "user-1", {
+    const result = await sendToUser(sb as never, {
       title: "Test",
       body: "Hello",
     });
@@ -107,8 +100,7 @@ describe("sendToUser", () => {
       { id: "s3", endpoint: "https://push.example.com/gone", p256dh: "k3", auth: "a3" },
     ];
     const chainable = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnValue({ data: subs }),
+      select: vi.fn().mockReturnValue({ data: subs }),
       delete: vi.fn().mockReturnThis(),
       in: vi.fn().mockReturnThis(),
     };
@@ -119,7 +111,7 @@ describe("sendToUser", () => {
       .mockRejectedValueOnce({ statusCode: 404 })
       .mockRejectedValueOnce({ statusCode: 410 });
 
-    const result = await sendToUser(sb as never, "user-1", {
+    const result = await sendToUser(sb as never, {
       title: "Test",
       body: "Hello",
     });
@@ -135,12 +127,11 @@ describe("sendToUser", () => {
 
   it("returns zeros when user has no subscriptions", async () => {
     const chainable = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnValue({ data: [] }),
+      select: vi.fn().mockReturnValue({ data: [] }),
     };
     const sb = { from: vi.fn(() => chainable) };
 
-    const result = await sendToUser(sb as never, "user-1", {
+    const result = await sendToUser(sb as never, {
       title: "Test",
       body: "Hello",
     });

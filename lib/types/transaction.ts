@@ -1,6 +1,5 @@
 export type BankAccount = {
   id: string;
-  user_id: string;
   bank: string;
   external_key: string;
   account_number: string | null;
@@ -12,7 +11,6 @@ export type BankAccount = {
 
 export type Transaction = {
   id: string;
-  user_id: string;
   account_id: string;
   txn_date: string;
   txn_type: string;

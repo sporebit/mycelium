@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { normaliseAlias } from "@/lib/people/normalise";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type ResolveBody = {
   action?: "create_new" | "link_existing" | "reject";
@@ -31,8 +27,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   let body: ResolveBody;
   try {
@@ -45,19 +39,17 @@ export async function POST(
     return NextResponse.json({ error: "invalid action" }, { status: 400 });
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: pending } = await supabase
       .from("pending_entities")
-      .select("id, user_id, capture_id, entity_type, entity_name, resolved_at")
+      .select("id, capture_id, entity_type, entity_name, resolved_at")
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle();
     if (!pending) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     const row = pending as {
       id: string;
-      user_id: string;
       capture_id: string | null;
       entity_type: string;
       entity_name: string;
@@ -73,9 +65,7 @@ export async function POST(
       if (row.entity_type === "person") {
         const { data: created } = await supabase
           .from("people")
-          .insert({
-            user_id: uid,
-            first_name: row.entity_name,
+          .insert({ first_name: row.entity_name,
             needs_review: false,
           })
           .select("id")
@@ -127,7 +117,6 @@ export async function POST(
           person_id: resolvedId,
           needs_review: false,
         })
-        .eq("user_id", uid)
         .eq("source_id", row.capture_id)
         .ilike("raw_alias", row.entity_name);
     }

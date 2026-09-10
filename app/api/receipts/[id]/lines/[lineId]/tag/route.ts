@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { lineForShares } from "@/lib/receipts/participants";
 import { tagPerson, untagPerson } from "@/lib/receipts/tagging";
 import { ownerRemainder, shareAmounts } from "@/lib/receipts/shares";
@@ -10,16 +10,12 @@ import {
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 async function currentShares(
   lineId: string,
   lineTotal: number,
   quantity: number,
 ) {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data } = await supabase
     .from("receipt_line_shares")
     .select(RECEIPT_LINE_SHARE_SELECT)
@@ -54,8 +50,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string; lineId: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id, lineId } = await ctx.params;
 
   const person = await personId(req);
@@ -64,10 +58,10 @@ export async function POST(
   }
 
   try {
-    const line = await lineForShares(id, lineId, uid);
+    const line = await lineForShares(id, lineId);
     if (!line) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: participant } = await supabase
       .from("receipt_participants")
       .select("person_id")
@@ -96,8 +90,6 @@ export async function DELETE(
   req: NextRequest,
   ctx: { params: Promise<{ id: string; lineId: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id, lineId } = await ctx.params;
 
   const person = await personId(req);
@@ -106,7 +98,7 @@ export async function DELETE(
   }
 
   try {
-    const line = await lineForShares(id, lineId, uid);
+    const line = await lineForShares(id, lineId);
     if (!line) return NextResponse.json({ error: "not found" }, { status: 404 });
 
     await untagPerson(id, lineId, person, line.quantity);

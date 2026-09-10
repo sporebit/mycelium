@@ -1,26 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
 
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { error } = await supabase
     .from("exercise_aliases")
     .delete()
-    .eq("id", id)
-    .eq("user_id", uid);
+    .eq("id", id);
 
   if (error) {
     console.error("[/api/fitness/exercise-aliases/:id DELETE]", error);

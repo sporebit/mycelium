@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   PROJECT_STATUSES,
   type Project,
@@ -9,7 +9,7 @@ import {
 export const runtime = "nodejs";
 
 const PROJECT_SELECT =
-  "id, user_id, name, description, status, colour, created_at, updated_at";
+  "id, name, description, status, colour, created_at, updated_at";
 
 const ALLOWED_FIELDS = new Set([
   "name",
@@ -18,26 +18,17 @@ const ALLOWED_FIELDS = new Set([
   "colour",
 ]);
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("projects")
       .select(PROJECT_SELECT)
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle();
     if (error) throw error;
     if (!data) {
@@ -47,7 +38,6 @@ export async function GET(
     const { count } = await supabase
       .from("tasks")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .eq("project_id", id)
       .is("completed_at", null);
@@ -61,7 +51,6 @@ export async function GET(
     const { data: purchaseRows } = await supabase
       .from("purchases")
       .select("amount, currency, completed_at")
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .eq("project_id", id);
     type PurchaseAggRow = {
@@ -109,10 +98,6 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { id } = await ctx.params;
 
   let body: Record<string, unknown>;
@@ -143,12 +128,11 @@ export async function PATCH(
   update.updated_at = new Date().toISOString();
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("projects")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
       .select(PROJECT_SELECT)
       .single();
     if (error || !data) {
@@ -168,22 +152,17 @@ export async function DELETE(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { id } = await ctx.params;
   const url = new URL(req.url);
   const hard = url.searchParams.get("hard") === "true";
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     if (hard) {
       const { error } = await supabase
         .from("projects")
         .delete()
-        .eq("id", id)
-        .eq("user_id", uid);
+        .eq("id", id);
       if (error) throw error;
       return NextResponse.json({ ok: true, mode: "hard" });
     }
@@ -192,7 +171,6 @@ export async function DELETE(
       .from("projects")
       .update({ status: "archived", updated_at: new Date().toISOString() })
       .eq("id", id)
-      .eq("user_id", uid)
       .select(PROJECT_SELECT)
       .single();
     if (error || !data) {

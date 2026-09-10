@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { isoWeekString } from "@/lib/util/week";
 import { localDateKey } from "@/lib/util/date";
 import { SLOT_ORDER } from "@/lib/fitness/kind";
@@ -25,20 +26,13 @@ const EXERCISE_FIELDS =
 const LIVE_SESSION_FIELDS =
   "id, slot, kind, name, programme_session_id, session_type, swapped_from_programme_session_id, started_at, completed_at, status, position";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 function jsDayToProgrammeDow(jsDay: number): number {
   return (jsDay + 6) % 7;
 }
 
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const tz = process.env.USER_TIMEZONE ?? "Europe/London";
     const realTodayKey = localDateKey(tz);
 
@@ -59,12 +53,11 @@ export async function GET(req: NextRequest) {
 
     // Piggyback: promote any of this user's active sessions older than
     // 48h to attempted before we read them back. Soft-fails on its own.
-    await markStaleSessionsAttempted(supabase, uid);
+    await markStaleSessionsAttempted(supabase);
 
     const { data: phaseRows } = await supabase
       .from("workout_programme_phases")
       .select("id, programme_id, start_week_iso, end_week_iso")
-      .eq("user_id", uid)
       .lte("start_week_iso", currentWeek)
       .or(`end_week_iso.is.null,end_week_iso.gte.${currentWeek}`)
       .order("start_week_iso", { ascending: false })
@@ -76,7 +69,6 @@ export async function GET(req: NextRequest) {
     const { data: liveRows } = await supabase
       .from("workout_sessions")
       .select(LIVE_SESSION_FIELDS)
-      .eq("user_id", uid)
       .eq("date", dateKey)
       .order("position", { ascending: true });
     type LiveRow = {
@@ -113,7 +105,6 @@ export async function GET(req: NextRequest) {
       .from("workout_programmes")
       .select("name")
       .eq("id", programmeId)
-      .eq("user_id", uid)
       .maybeSingle();
 
     // All programme template sessions (for swap dropdowns + today rendering)
@@ -181,7 +172,6 @@ export async function GET(req: NextRequest) {
     const { data: baselineRows } = await supabase
       .from("exercise_baselines")
       .select("exercise_name, has_known_issues")
-      .eq("user_id", uid)
       .eq("has_known_issues", true);
     const issueNames = new Set<string>();
     for (const b of (baselineRows ?? []) as Array<{
@@ -299,7 +289,7 @@ function cloneEmptySlots(): Record<Slot, TodaySlotEntry[]> {
 }
 
 async function populateLiveOnly(
-  _supabase: ReturnType<typeof createServerClient>,
+  _supabase: SupabaseClient,
   live: Array<{
     id: string;
     slot: Slot;

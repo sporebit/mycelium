@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   PHIL_PROGRAMME_NAME,
   PHIL_PROGRAMME_SEED,
@@ -9,19 +9,13 @@ import { isoWeekString } from "@/lib/util/week";
 export const runtime = "nodejs";
 
 export async function POST() {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // Idempotency: if a programme with this name already exists, skip.
     const { data: existing } = await supabase
       .from("workout_programmes")
       .select("id, name")
-      .eq("user_id", uid)
       .eq("name", PHIL_PROGRAMME_NAME)
       .maybeSingle();
     if (existing) {
@@ -35,9 +29,7 @@ export async function POST() {
     // 1. Insert programme
     const { data: programme, error: pErr } = await supabase
       .from("workout_programmes")
-      .insert({
-        user_id: uid,
-        name: PHIL_PROGRAMME_SEED.name,
+      .insert({ name: PHIL_PROGRAMME_SEED.name,
         description: PHIL_PROGRAMME_SEED.description,
       })
       .select("id")
@@ -98,9 +90,7 @@ export async function POST() {
     const startWeek = isoWeekString(new Date());
     const { data: phase, error: phErr } = await supabase
       .from("workout_programme_phases")
-      .insert({
-        user_id: uid,
-        programme_id: programmeId,
+      .insert({ programme_id: programmeId,
         start_week_iso: startWeek,
         end_week_iso: null,
       })

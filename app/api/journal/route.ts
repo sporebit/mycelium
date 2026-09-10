@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { localDateKey, previousDateKey } from "@/lib/util/date";
 import {
   JOURNAL_SELECT,
@@ -16,10 +16,6 @@ function defaultFrom(days: number): string {
 }
 
 export async function GET(req: NextRequest) {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const url = new URL(req.url);
   const from = url.searchParams.get("from") ?? defaultFrom(30);
   const to = url.searchParams.get("to") ?? localDateKey();
@@ -30,11 +26,10 @@ export async function GET(req: NextRequest) {
   );
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let query = supabase
       .from("journal_entries")
       .select(JOURNAL_SELECT)
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .gte("entry_date", from)
       .lte("entry_date", to)
@@ -57,7 +52,6 @@ export async function GET(req: NextRequest) {
     const { data: summaries } = await supabase
       .from("journal_daily_summaries")
       .select("entry_date, summary")
-      .eq("user_id", uid)
       .gte("entry_date", from)
       .lte("entry_date", to);
     const summaryByDate = new Map<string, string>();

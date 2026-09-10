@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { namesFor, ownsReceipt } from "@/lib/receipts/participants";
 import { rebalanceLines } from "@/lib/receipts/tagging";
 import {
@@ -9,10 +9,6 @@ import {
 } from "@/lib/types/receipt";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 function pctOrNull(v: unknown): number | null | undefined {
   if (v === null || v === undefined || v === "") return null;
@@ -27,16 +23,14 @@ export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
 
   try {
-    if (!(await ownsReceipt(id, uid))) {
+    if (!(await ownsReceipt(id))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("receipt_participants")
       .select(RECEIPT_PARTICIPANT_SELECT)
@@ -70,8 +64,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
 
   let body: { person_id?: unknown; default_share_pct?: unknown };
@@ -95,11 +87,11 @@ export async function POST(
   }
 
   try {
-    if (!(await ownsReceipt(id, uid))) {
+    if (!(await ownsReceipt(id))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // The person has to be one of this user's, or a receipt could name a row
     // belonging to someone else.
@@ -107,7 +99,6 @@ export async function POST(
       .from("people")
       .select("id")
       .eq("id", personId)
-      .eq("user_id", uid)
       .maybeSingle();
     if (!person) {
       return NextResponse.json({ error: "person not found" }, { status: 404 });
@@ -156,8 +147,6 @@ export async function DELETE(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
 
   const url = new URL(req.url);
@@ -175,11 +164,11 @@ export async function DELETE(
   }
 
   try {
-    if (!(await ownsReceipt(id, uid))) {
+    if (!(await ownsReceipt(id))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: lineRows } = await supabase
       .from("receipt_lines")

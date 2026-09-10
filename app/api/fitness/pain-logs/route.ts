@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import type { ExercisePainLog, FeelRating } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
 const LOG_FIELDS =
-  "id, user_id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at";
+  "id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at";
 
 const VALID_RATINGS: FeelRating[] = [
   "great",
@@ -16,10 +16,6 @@ const VALID_RATINGS: FeelRating[] = [
   "painful",
   "stopped",
 ];
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type Body = {
   session_id?: string;
@@ -40,9 +36,6 @@ type Body = {
  * are also treated as 1:1.
  */
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   let body: Body;
   try {
     body = (await req.json()) as Body;
@@ -72,17 +65,17 @@ export async function POST(req: NextRequest) {
     (sessionExerciseId ? null : "session"); // session-level default
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // Ownership check via the session row. Done in one query instead of
     // joining through workout_session_exercises so session-level logs
     // (no session_exercise_id) work identically.
     const { data: session } = await supabase
       .from("workout_sessions")
-      .select("id, user_id")
+      .select("id")
       .eq("id", body.session_id)
       .maybeSingle();
-    if (!session || session.user_id !== uid) {
+    if (!session) {
       return NextResponse.json({ error: "session not found" }, { status: 404 });
     }
 
@@ -158,9 +151,7 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabase
       .from("exercise_pain_logs")
-      .insert({
-        user_id: uid,
-        session_id: body.session_id,
+      .insert({ session_id: body.session_id,
         session_exercise_id: sessionExerciseId,
         exercise_name: resolvedExerciseName,
         severity: body.severity,
@@ -193,8 +184,6 @@ export async function POST(req: NextRequest) {
  *                      the pain-history chart on /fitness/history/exercise/[name])
  */
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const sessionId = req.nextUrl.searchParams.get("session_id");
   const exerciseName = req.nextUrl.searchParams.get("exercise_name");
   if (!sessionId && !exerciseName) {
@@ -204,11 +193,10 @@ export async function GET(req: NextRequest) {
     );
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("exercise_pain_logs")
       .select(LOG_FIELDS)
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .order("logged_at", { ascending: false });
     if (sessionId) q = q.eq("session_id", sessionId);

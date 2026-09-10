@@ -1,32 +1,31 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 /**
  * Ownership helpers for the split tables.
  *
- * receipt_participants and receipt_line_shares have no user_id of their own —
- * they hang off a receipt, and the receipt is what carries ownership. Every
- * write has to prove the chain up to a receipt belonging to the caller before
- * it touches anything, or an id guessed from elsewhere would be writable.
+ * receipt_participants and receipt_line_shares hang off a receipt, and the
+ * receipt is what carries ownership (RLS scopes what the caller can see).
+ * Every write still proves the chain up to a receipt the caller can reach
+ * before it touches anything, or an id guessed from elsewhere would be
+ * writable through the wrong receipt's URL.
  */
 
-/** Confirms a receipt belongs to this user. */
+/** Confirms the caller can reach this receipt. */
 export async function ownsReceipt(
   receiptId: string,
-  userId: string,
 ): Promise<boolean> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data } = await supabase
     .from("receipts")
     .select("id")
     .eq("id", receiptId)
-    .eq("user_id", userId)
     .maybeSingle();
   return Boolean(data);
 }
 
 /**
- * Confirms a line belongs to the named receipt and that the receipt belongs to
- * this user, returning what the share maths needs from the line.
+ * Confirms a line belongs to the named receipt and that the caller can reach
+ * the receipt, returning what the share maths needs from the line.
  *
  * Both halves matter: checking only the receipt would let a line from another
  * receipt be edited through this one's URL.
@@ -34,11 +33,10 @@ export async function ownsReceipt(
 export async function lineForShares(
   receiptId: string,
   lineId: string,
-  userId: string,
 ): Promise<{ id: string; line_total: number; quantity: number } | null> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
 
-  if (!(await ownsReceipt(receiptId, userId))) return null;
+  if (!(await ownsReceipt(receiptId))) return null;
 
   const { data } = await supabase
     .from("receipt_lines")
@@ -72,7 +70,7 @@ export async function namesFor(
   const names = new Map<string, string>();
   if (personIds.length === 0) return names;
 
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data } = await supabase
     .from("people")
     .select("id, first_name, last_name, display_name")

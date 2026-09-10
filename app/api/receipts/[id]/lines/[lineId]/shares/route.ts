@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { lineForShares } from "@/lib/receipts/participants";
 import { ownerRemainder, shareAmounts, validateShares } from "@/lib/receipts/shares";
 import {
@@ -8,10 +8,6 @@ import {
 } from "@/lib/types/receipt";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 function numOrNull(v: unknown): number | null {
   if (v === null || v === undefined || v === "") return null;
@@ -24,15 +20,13 @@ export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string; lineId: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id, lineId } = await ctx.params;
 
   try {
-    const line = await lineForShares(id, lineId, uid);
+    const line = await lineForShares(id, lineId);
     if (!line) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data } = await supabase
       .from("receipt_line_shares")
       .select(RECEIPT_LINE_SHARE_SELECT)
@@ -65,8 +59,6 @@ export async function PUT(
   req: NextRequest,
   ctx: { params: Promise<{ id: string; lineId: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id, lineId } = await ctx.params;
 
   let body: { shares?: unknown };
@@ -97,7 +89,7 @@ export async function PUT(
   }
 
   try {
-    const line = await lineForShares(id, lineId, uid);
+    const line = await lineForShares(id, lineId);
     if (!line) return NextResponse.json({ error: "not found" }, { status: 404 });
 
     const verdict = validateShares(incoming, line.quantity);
@@ -105,7 +97,7 @@ export async function PUT(
       return NextResponse.json({ error: verdict.error }, { status: 400 });
     }
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // Everyone named has to be a participant on this receipt. Without the
     // check, a share could be written for someone the receipt does not list,

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
@@ -51,7 +51,7 @@ async function lookupPrice(inv: Investment): Promise<number | null> {
 
 export async function POST() {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: investments, error } = await supabase
       .from("investments")
       .select("id, ticker, category")

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { sendMessage } from "@/lib/telegram/api";
 
 export const runtime = "nodejs";
@@ -10,7 +10,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function POST(_req: NextRequest, ctx: Ctx) {
   try {
     const { id } = await ctx.params;
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: monitor, error } = await supabase
       .from("drop_monitors")

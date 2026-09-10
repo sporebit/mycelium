@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createEvent, deleteEvent, getAccessToken } from "@/lib/google/calendar";
 import { isGoogleConnected } from "@/lib/google/sync";
 import { loadBinConfig, loadGardenSeasons } from "./config";
@@ -31,10 +31,11 @@ function toGoogleEvent(c: Collection) {
 // can self-heal after the user manually deletes an event on the Google side.
 // calendar.ts's updateEvent collapses every non-2xx to null.
 async function patchEventStatus(
+  supabase: SupabaseClient,
   eventId: string,
   body: object,
 ): Promise<"ok" | "gone" | "error"> {
-  const token = await getAccessToken();
+  const token = await getAccessToken(supabase);
   if (!token) return "error";
   const res = await fetch(
     `${CAL_BASE}/calendars/primary/events/${encodeURIComponent(eventId)}`,
@@ -73,6 +74,7 @@ export type BinSyncResult = {
  * silent permanent gap.
  */
 export async function syncBinCollectionsToGoogle(
+  supabase: SupabaseClient,
   now: Date = new Date(),
 ): Promise<BinSyncResult> {
   const result: BinSyncResult = {
@@ -83,22 +85,21 @@ export async function syncBinCollectionsToGoogle(
     skipped: false,
   };
 
-  if (!(await isGoogleConnected())) {
+  if (!(await isGoogleConnected(supabase))) {
     result.skipped = true;
     return result;
   }
 
-  const config = await loadBinConfig();
+  const config = await loadBinConfig(supabase);
   if (!config) {
     result.skipped = true;
     return result;
   }
 
-  const seasons = await loadGardenSeasons();
+  const seasons = await loadGardenSeasons(supabase);
   const upcoming = getUpcomingCollections(now, HORIZON_WEEKS, config, seasons);
   const upcomingByDate = new Map(upcoming.map((c) => [c.date, c]));
 
-  const supabase = createServerClient();
   const todayIso = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
   )
@@ -118,7 +119,7 @@ export async function syncBinCollectionsToGoogle(
   );
 
   async function createFresh(c: Collection, label: string): Promise<boolean> {
-    const created = await createEvent(toGoogleEvent(c));
+    const created = await createEvent(supabase, toGoogleEvent(c));
     if (!created?.id) return false;
     await supabase.from("bin_google_events").insert({
       collection_date: c.date,
@@ -132,7 +133,7 @@ export async function syncBinCollectionsToGoogle(
     const prior = existing.get(c.date);
     const label = collectionLabel(c);
     if (prior) {
-      const status = await patchEventStatus(prior.id, toGoogleEvent(c));
+      const status = await patchEventStatus(supabase, prior.id, toGoogleEvent(c));
       if (status === "gone") {
         await supabase
           .from("bin_google_events")
@@ -153,7 +154,7 @@ export async function syncBinCollectionsToGoogle(
 
   for (const [date, prior] of existing) {
     if (upcomingByDate.has(date)) continue;
-    await deleteEvent(prior.id);
+    await deleteEvent(supabase, prior.id);
     await supabase.from("bin_google_events").delete().eq("collection_date", date);
     result.removed++;
   }

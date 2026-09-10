@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
+import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   ROUTING_RULE_SELECT,
   invalidateRoutingRulesCache,
@@ -11,10 +13,6 @@ export const runtime = "nodejs";
 
 const SCOPES: RoutingRuleScope[] = ["fitness", "capture"];
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 function slugify(input: string): string {
   return input
     .toLowerCase()
@@ -25,19 +23,14 @@ function slugify(input: string): string {
 }
 
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const url = new URL(req.url);
   const scopeParam = url.searchParams.get("scope");
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("routing_rules")
       .select(ROUTING_RULE_SELECT)
-      .eq("user_id", uid)
       .order("scope", { ascending: true })
       .order("priority", { ascending: false })
       .order("rule_key", { ascending: true });
@@ -64,9 +57,9 @@ type CreateBody = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
+  const uid = (await headers()).get(PRINCIPAL_USER_HEADER);
   if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   let body: CreateBody;
   try {
@@ -103,12 +96,10 @@ export async function POST(req: NextRequest) {
     : null;
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("routing_rules")
-      .insert({
-        user_id: uid,
-        scope,
+      .insert({ scope,
         rule_key: ruleKey,
         display_name: displayName,
         description,
@@ -122,7 +113,7 @@ export async function POST(req: NextRequest) {
       .select(ROUTING_RULE_SELECT)
       .single();
     if (error || !data) {
-      // Unique-constraint violation on (user_id, scope, rule_key)
+      // Unique-constraint violation on (space_id, scope, rule_key)
       // surfaces as Postgres code 23505. Map to a friendly 409.
       if ((error as { code?: string })?.code === "23505") {
         return NextResponse.json(

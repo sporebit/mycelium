@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
@@ -10,7 +10,7 @@ export async function PATCH(
   try {
     const { id } = await ctx.params;
     const body = await req.json();
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const updates: Record<string, unknown> = {};
     if (body.title !== undefined) updates.title = body.title;
     if (body.items !== undefined) updates.items = body.items;
@@ -36,7 +36,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await ctx.params;
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { error } = await supabase
       .from("shopping_lists")
       .delete()

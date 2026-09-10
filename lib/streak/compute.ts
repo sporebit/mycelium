@@ -11,7 +11,6 @@ const MAX_LOOKBACK = 400;
  */
 export async function computeStreak(
   supabase: SupabaseClient,
-  userId: string,
   tz?: string
 ): Promise<number> {
   const today = localDateKey(tz);
@@ -22,7 +21,6 @@ export async function computeStreak(
   const { data: rows, error } = await supabase
     .from("daily_logs")
     .select("log_date, notes")
-    .eq("user_id", userId)
     .gte("log_date", earliest)
     .lte("log_date", today)
     .order("log_date", { ascending: false });

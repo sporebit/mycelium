@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import type { Slot } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type Body = {
   date?: string;
@@ -15,8 +11,6 @@ type Body = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
 
   let body: Body;
   try {
@@ -38,13 +32,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // Verify ownership AND that every id is in this slot for this date
     const { data: existing } = await supabase
       .from("workout_sessions")
       .select("id")
-      .eq("user_id", uid)
       .eq("date", date)
       .eq("slot", slot)
       .in("id", ids);

@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { localDateKey } from "@/lib/util/date";
 import { isoWeekString } from "@/lib/util/week";
 import { FEEL_EMOJI } from "@/lib/fitness/pain";
@@ -14,12 +14,11 @@ import type {
   WeightUnit,
 } from "./types";
 
-type Supabase = ReturnType<typeof createServerClient>;
+type Supabase = SupabaseClient;
 
 /** Build the context object passed into the LLM parser. */
 export async function buildVoiceContext(
-  supabase: Supabase,
-  userId: string
+  supabase: Supabase
 ): Promise<VoiceContext> {
   const today = localDateKey();
 
@@ -29,7 +28,6 @@ export async function buildVoiceContext(
     .select(
       "id, programme_session_id, slot, kind, name, started_at, completed_at"
     )
-    .eq("user_id", userId)
     .eq("date", today);
 
   type Live = {
@@ -56,7 +54,6 @@ export async function buildVoiceContext(
   const { data: phaseRows } = await supabase
     .from("workout_programme_phases")
     .select("programme_id, start_week_iso, end_week_iso")
-    .eq("user_id", userId)
     .lte("start_week_iso", currentWeek)
     .or(`end_week_iso.is.null,end_week_iso.gte.${currentWeek}`)
     .order("start_week_iso", { ascending: false })
@@ -127,8 +124,7 @@ export async function buildVoiceContext(
 
   const { data: baselineRows } = await supabase
     .from("exercise_baselines")
-    .select("exercise_name")
-    .eq("user_id", userId);
+    .select("exercise_name");
   const baselineNames = (baselineRows ?? []).map(
     (r) => (r as { exercise_name: string }).exercise_name
   );
@@ -154,31 +150,29 @@ async function fetchSessionExerciseNames(
 
 /** Main entry — parse if needed, then route. */
 export async function routeRawVoice(
+  supabase: Supabase,
   rawText: string,
   userId: string
 ): Promise<
   | { kind: "routed"; result: VoiceRouteResult }
   | { kind: "pending"; pending_route_id: string; parsed: ParsedWorkout }
 > {
-  const supabase = createServerClient();
-  const context = await buildVoiceContext(supabase, userId);
-  const parsed = await parseWorkoutVoice(rawText, context, userId);
-  return await applyDecisionTree(supabase, userId, rawText, parsed, context);
+  const context = await buildVoiceContext(supabase);
+  const parsed = await parseWorkoutVoice(rawText, context, { supabase, userId });
+  return await applyDecisionTree(supabase, rawText, parsed, context);
 }
 
 /** Re-resolve a pending route by user's explicit selection. */
 export async function resolvePendingRoute(
+  supabase: Supabase,
   pendingId: string,
-  userId: string,
   resolution: "active" | "planned" | "new_extra",
   sessionId?: string | null
 ): Promise<VoiceRouteResult | null> {
-  const supabase = createServerClient();
   const { data: pendingRow } = await supabase
     .from("pending_workout_routes")
-    .select("id, user_id, raw_text, parsed_payload, expires_at")
+    .select("id, raw_text, parsed_payload, expires_at")
     .eq("id", pendingId)
-    .eq("user_id", userId)
     .maybeSingle();
   if (!pendingRow) return null;
   const pending = pendingRow as PendingWorkoutRoute;
@@ -186,7 +180,7 @@ export async function resolvePendingRoute(
     return null;
   }
 
-  const context = await buildVoiceContext(supabase, userId);
+  const context = await buildVoiceContext(supabase);
   let intent: ParsedWorkout["session_intent"];
   if (resolution === "active") intent = "active";
   else if (resolution === "planned") intent = "planned";
@@ -204,7 +198,6 @@ export async function resolvePendingRoute(
     resolution === "active" && sessionId ? sessionId : undefined;
   const r = await applyDecisionTree(
     supabase,
-    userId,
     pending.raw_text,
     overridden,
     context,
@@ -223,7 +216,6 @@ type DecisionOpts = { force_session_id?: string };
 
 async function applyDecisionTree(
   supabase: Supabase,
-  userId: string,
   rawText: string,
   parsed: ParsedWorkout,
   context: VoiceContext,
@@ -237,7 +229,6 @@ async function applyDecisionTree(
       kind: "routed",
       result: await writeToSession(
         supabase,
-        userId,
         opts.force_session_id,
         parsed,
         rawText
@@ -264,11 +255,11 @@ async function applyDecisionTree(
       const sid = liveSessions[0].session_id!;
       return {
         kind: "routed",
-        result: await writeToSession(supabase, userId, sid, parsed, rawText),
+        result: await writeToSession(supabase, sid, parsed, rawText),
       };
     }
     // multiple active is rare — defer to ambiguous
-    return await stashPending(supabase, userId, rawText, parsed);
+    return await stashPending(supabase, rawText, parsed);
   }
 
   // Planned
@@ -285,47 +276,45 @@ async function applyDecisionTree(
       if (found) target = found;
     } else if (plannedSessions.length > 1 && parsed.candidate_session_ids.length === 0) {
       // Can't tell which one — ambiguous
-      return await stashPending(supabase, userId, rawText, parsed);
+      return await stashPending(supabase, rawText, parsed);
     }
     const sid = await startSessionFromTemplate(
       supabase,
-      userId,
       target.programme_session_id!,
       target.slot,
       target.kind,
       target.name ?? null
     );
     if (!sid) {
-      return await stashPending(supabase, userId, rawText, parsed);
+      return await stashPending(supabase, rawText, parsed);
     }
     return {
       kind: "routed",
-      result: await writeToSession(supabase, userId, sid, parsed, rawText),
+      result: await writeToSession(supabase, sid, parsed, rawText),
     };
   }
 
   // Ambiguous
   if (effective === "ambiguous") {
-    return await stashPending(supabase, userId, rawText, parsed);
+    return await stashPending(supabase, rawText, parsed);
   }
 
   // Create extra
-  const sid = await createExtraSession(supabase, userId, parsed, rawText);
+  const sid = await createExtraSession(supabase, parsed, rawText);
   return {
     kind: "routed",
-    result: await writeToSession(supabase, userId, sid, parsed, rawText),
+    result: await writeToSession(supabase, sid, parsed, rawText),
   };
 }
 
 async function stashPending(
   supabase: Supabase,
-  userId: string,
   rawText: string,
   parsed: ParsedWorkout
 ): Promise<{ kind: "pending"; pending_route_id: string; parsed: ParsedWorkout }> {
   // Build the button-snapshot from current context — so callback can route
   // even if state shifts between message and tap.
-  const context = await buildVoiceContext(supabase, userId);
+  const context = await buildVoiceContext(supabase);
   const buttonOptions: PendingButtonOption[] = [];
   for (const s of context.sessions) {
     if (s.state === "completed") continue; // don't offer completed sessions
@@ -350,9 +339,7 @@ async function stashPending(
 
   const { data } = await supabase
     .from("pending_workout_routes")
-    .insert({
-      user_id: userId,
-      raw_text: rawText,
+    .insert({ raw_text: rawText,
       parsed_payload: parsed,
       button_options: buttonOptions,
     })
@@ -371,16 +358,14 @@ async function stashPending(
  * and runs the writer.
  */
 export async function resolvePendingByIndex(
+  supabase: Supabase,
   pendingId: string,
-  userId: string,
   index: number
 ): Promise<VoiceRouteResult | null> {
-  const supabase = createServerClient();
   const { data: row } = await supabase
     .from("pending_workout_routes")
-    .select("id, user_id, raw_text, parsed_payload, button_options, expires_at")
+    .select("id, raw_text, parsed_payload, button_options, expires_at")
     .eq("id", pendingId)
-    .eq("user_id", userId)
     .maybeSingle();
   if (!row) return null;
   const pending = row as PendingWorkoutRoute;
@@ -389,36 +374,33 @@ export async function resolvePendingByIndex(
   if (!choice) return null;
 
   if (choice.state === "extra") {
-    return await resolvePendingRoute(pendingId, userId, "new_extra");
+    return await resolvePendingRoute(supabase, pendingId, "new_extra");
   }
   if (choice.state === "active") {
-    return await resolvePendingRoute(pendingId, userId, "active", choice.session_id);
+    return await resolvePendingRoute(supabase, pendingId, "active", choice.session_id);
   }
   // planned — but the session might have been started since stashing
   const today = localDateKey();
   const { data: live } = await supabase
     .from("workout_sessions")
     .select("id")
-    .eq("user_id", userId)
     .eq("date", today)
     .eq("programme_session_id", choice.session_id)
     .maybeSingle();
   if (live?.id) {
-    return await resolvePendingRoute(pendingId, userId, "active", live.id as string);
+    return await resolvePendingRoute(supabase, pendingId, "active", live.id as string);
   }
-  return await resolvePendingRoute(pendingId, userId, "planned", choice.session_id);
+  return await resolvePendingRoute(supabase, pendingId, "planned", choice.session_id);
 }
 
 /** Look up the pending row by 8-char prefix (used by Telegram callbacks). */
 export async function findPendingByPrefix(
-  userId: string,
+  supabase: Supabase,
   prefix: string
 ): Promise<PendingWorkoutRoute | null> {
-  const supabase = createServerClient();
   const { data } = await supabase
     .from("pending_workout_routes")
-    .select("id, short_id, user_id, raw_text, parsed_payload, button_options, expires_at, created_at")
-    .eq("user_id", userId)
+    .select("id, short_id, raw_text, parsed_payload, button_options, expires_at, created_at")
     .gt("expires_at", new Date().toISOString())
     .eq("short_id", prefix)
     .order("created_at", { ascending: false })
@@ -429,15 +411,13 @@ export async function findPendingByPrefix(
 
 /** Look up the pending row by full UUID. Use this when the full id is in hand. */
 export async function findPendingById(
-  userId: string,
+  supabase: Supabase,
   id: string
 ): Promise<PendingWorkoutRoute | null> {
-  const supabase = createServerClient();
   const { data } = await supabase
     .from("pending_workout_routes")
-    .select("id, short_id, user_id, raw_text, parsed_payload, button_options, expires_at, created_at")
+    .select("id, short_id, raw_text, parsed_payload, button_options, expires_at, created_at")
     .eq("id", id)
-    .eq("user_id", userId)
     .maybeSingle();
   if (!data) return null;
   return data as PendingWorkoutRoute;
@@ -445,7 +425,6 @@ export async function findPendingById(
 
 async function startSessionFromTemplate(
   supabase: Supabase,
-  userId: string,
   programmeSessionId: string,
   slot: string,
   kind: string,
@@ -456,7 +435,6 @@ async function startSessionFromTemplate(
   const { data: existing } = await supabase
     .from("workout_sessions")
     .select("id")
-    .eq("user_id", userId)
     .eq("date", today)
     .eq("programme_session_id", programmeSessionId)
     .maybeSingle();
@@ -473,9 +451,7 @@ async function startSessionFromTemplate(
 
   const { data: created } = await supabase
     .from("workout_sessions")
-    .insert({
-      user_id: userId,
-      date: today,
+    .insert({ date: today,
       slot: slot as Slot,
       kind: kind as SessionKind,
       name,
@@ -507,7 +483,6 @@ async function startSessionFromTemplate(
 
 async function createExtraSession(
   supabase: Supabase,
-  userId: string,
   parsed: ParsedWorkout,
   rawText: string
 ): Promise<string> {
@@ -530,9 +505,7 @@ async function createExtraSession(
 
   const { data: created } = await supabase
     .from("workout_sessions")
-    .insert({
-      user_id: userId,
-      date: today,
+    .insert({ date: today,
       slot: "extra" as Slot,
       kind,
       name,
@@ -620,7 +593,6 @@ async function ensureSessionExercise(
 
 async function writeToSession(
   supabase: Supabase,
-  userId: string,
   sessionId: string,
   parsed: ParsedWorkout,
   rawText: string
@@ -719,9 +691,7 @@ async function writeToSession(
       .select("id")
       .eq("session_exercise_id", resolved.id)
       .maybeSingle();
-    const payload = {
-      user_id: userId,
-      session_id: sessionId,
+    const payload = { session_id: sessionId,
       session_exercise_id: resolved.id,
       exercise_name: p.matched_exercise_name,
       severity: typeof p.severity === "number" ? p.severity : 0,

@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { localDateKey } from "@/lib/util/date";
 import { isoWeekString } from "@/lib/util/week";
 import type { Slot, SessionKind } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type Body = {
   slot?: Slot;
@@ -22,8 +18,6 @@ type Body = {
  * session swap endpoint instead (which preserves logged data).
  */
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
 
   let body: Body;
   try {
@@ -45,12 +39,11 @@ export async function POST(req: NextRequest) {
 
   const today = localDateKey();
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     // Block if any session already exists for today/slot
     const { data: existing } = await supabase
       .from("workout_sessions")
       .select("id")
-      .eq("user_id", uid)
       .eq("date", today)
       .eq("slot", slot)
       .maybeSingle();
@@ -80,7 +73,6 @@ export async function POST(req: NextRequest) {
     const { data: phaseRows } = await supabase
       .from("workout_programme_phases")
       .select("programme_id, start_week_iso, end_week_iso")
-      .eq("user_id", uid)
       .lte("start_week_iso", currentWeek)
       .or(`end_week_iso.is.null,end_week_iso.gte.${currentWeek}`)
       .order("start_week_iso", { ascending: false })
@@ -100,9 +92,7 @@ export async function POST(req: NextRequest) {
 
     const { data: created, error } = await supabase
       .from("workout_sessions")
-      .insert({
-        user_id: uid,
-        date: today,
+      .insert({ date: today,
         slot,
         kind: target.kind,
         name: target.name,

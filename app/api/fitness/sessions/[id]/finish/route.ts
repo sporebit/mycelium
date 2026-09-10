@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { toKg } from "@/lib/fitness/units";
 import type { WeightUnit } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type FinishBody = {
   calories?: number | null;
@@ -29,8 +25,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id: sessionId } = await ctx.params;
 
   let body: FinishBody;
@@ -41,12 +35,11 @@ export async function POST(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: sess } = await supabase
       .from("workout_sessions")
-      .select("id, user_id, programme_session_id, started_at")
+      .select("id, programme_session_id, started_at")
       .eq("id", sessionId)
-      .eq("user_id", uid)
       .maybeSingle();
     if (!sess?.id) return NextResponse.json({ error: "not found" }, { status: 404 });
 
@@ -190,7 +183,7 @@ export async function POST(
       if (allExs && allExs.length > 0) {
         const { data: wRow } = await supabase
           .from("workouts")
-          .insert({ user_id: uid, name: wName, default_kind: wKind })
+          .insert({ name: wName, default_kind: wKind })
           .select("id")
           .single();
         if (wRow?.id) {

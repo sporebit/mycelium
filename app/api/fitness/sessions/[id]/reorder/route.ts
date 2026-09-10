@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type Body = {
   exercise_ids?: string[];
@@ -15,8 +11,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id: sessionId } = await ctx.params;
 
   let body: Body;
@@ -31,13 +25,12 @@ export async function POST(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     // Verify ownership + that every id belongs to this session
     const { data: session } = await supabase
       .from("workout_sessions")
       .select("id")
       .eq("id", sessionId)
-      .eq("user_id", uid)
       .maybeSingle();
     if (!session) return NextResponse.json({ error: "not found" }, { status: 404 });
 

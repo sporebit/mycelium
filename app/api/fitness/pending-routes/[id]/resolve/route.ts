@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolvePendingRoute } from "@/lib/fitness/voice-route";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type Body = {
   resolution?: "active" | "planned" | "new_extra";
@@ -16,8 +13,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
 
   let body: Body;
@@ -33,8 +28,8 @@ export async function POST(
 
   try {
     const result = await resolvePendingRoute(
+      await createUserClient(),
       id,
-      uid,
       resolution,
       body.session_id ?? null
     );

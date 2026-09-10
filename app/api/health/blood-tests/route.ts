@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
@@ -27,7 +27,7 @@ type SessionRow = {
 
 export async function GET() {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data, error } = await supabase
       .from("blood_test_sessions")
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: session, error: sessErr } = await supabase
       .from("blood_test_sessions")

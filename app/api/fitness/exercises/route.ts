@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { getExerciseMuscleGroup } from "@/lib/fitness/muscle-map";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 export type ExerciseListItem = {
   name: string;
@@ -26,11 +22,9 @@ function slugify(name: string): string {
 }
 
 export async function GET() {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // Get all exercises with their session dates
     const { data: exRows, error } = await supabase
@@ -48,8 +42,7 @@ export async function GET() {
     const { data: sessRows } = await supabase
       .from("workout_sessions")
       .select("id, date")
-      .in("id", sessionIds)
-      .eq("user_id", uid);
+      .in("id", sessionIds);
     const userSessionDates = new Map<string, string>();
     for (const s of (sessRows ?? []) as { id: string; date: string }[]) {
       userSessionDates.set(s.id, s.date);

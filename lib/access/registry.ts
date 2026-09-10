@@ -291,7 +291,19 @@ export const ACCESS_TABLES: readonly string[] = [
   "spaces",
   "entity_groups",
   "teams",
+  "team_members",
+  "team_member_sections",
+  "user_grants",
 ];
+
+/**
+ * Sections that are never shared: their policies test
+ * `space_id = app.personal_space()` and never call app.accessible_spaces().
+ * finance by decision; platform because user_settings holds OAuth tokens and
+ * push subscriptions are per device (see 0110). user_grants refuses both by
+ * check constraint.
+ */
+export const OWNER_ONLY_SECTIONS: readonly Section[] = ["finance", "platform"];
 
 // -- Derived lookups ----------------------------------------------------------
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { parseReceipt } from "@/lib/receipts/parse";
 import {
   nextSortOrder,
@@ -12,10 +12,6 @@ export const runtime = "nodejs";
 // Reparses inline once the new pages are stored, which is a multi-image
 // vision call over the whole receipt.
 export const maxDuration = 60;
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 /**
  * POST — append pages to an existing receipt.
@@ -32,8 +28,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
 
   let form: FormData;
@@ -44,13 +38,12 @@ export async function POST(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: owned } = await supabase
       .from("receipts")
       .select("id")
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle();
     if (!owned) return NextResponse.json({ error: "not found" }, { status: 404 });
 

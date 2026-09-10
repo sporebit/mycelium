@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   PURCHASE_CATEGORIES,
   PURCHASE_LIST_TYPES,
@@ -11,7 +11,7 @@ import {
 export const runtime = "nodejs";
 
 const PURCHASE_SELECT =
-  "id, user_id, title, amount, currency, want_or_need, urgency, list_type, category, project_id, completed_at, raw_capture_id, created_at, updated_at, projects(name)";
+  "id, title, amount, currency, want_or_need, urgency, list_type, category, project_id, completed_at, raw_capture_id, created_at, updated_at, projects(name)";
 
 type PurchaseRow = Omit<Purchase, "project_name"> & {
   projects: { name: string } | { name: string }[] | null;
@@ -36,18 +36,10 @@ const ALLOWED_FIELDS = new Set([
   "completed_at",
 ]);
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { id } = await ctx.params;
 
   let body: Record<string, unknown>;
@@ -122,12 +114,11 @@ export async function PATCH(
   update.updated_at = new Date().toISOString();
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("purchases")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
       .select(PURCHASE_SELECT)
       .single();
     if (error || !data) {
@@ -149,18 +140,13 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { error } = await supabase
       .from("purchases")
       .delete()
-      .eq("id", id)
-      .eq("user_id", uid);
+      .eq("id", id);
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err) {

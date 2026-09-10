@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
     const week = req.nextUrl.searchParams.get("week");
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     let query = supabase
       .from("meal_plan")
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     if (!body.planned_date || !body.meal_type) {
       return NextResponse.json({ error: "planned_date and meal_type required" }, { status: 400 });
     }
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("meal_plan")
       .insert({

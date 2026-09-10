@@ -1,6 +1,5 @@
 export type JournalEntry = {
   id: string;
-  user_id: string;
   entry_date: string; // YYYY-MM-DD
   raw_text: string;
   audio_url: string | null;
@@ -19,4 +18,4 @@ export type JournalGroup = {
 };
 
 export const JOURNAL_SELECT =
-  "id, user_id, entry_date, raw_text, audio_url, summary, tags, mood, raw_capture_id, created_at, updated_at";
+  "id, entry_date, raw_text, audio_url, summary, tags, mood, raw_capture_id, created_at, updated_at";

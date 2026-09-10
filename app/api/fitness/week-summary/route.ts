@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { isoWeekString } from "@/lib/util/week";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 function jsDayToProgrammeDow(jsDay: number): number {
   return (jsDay + 6) % 7;
@@ -36,11 +32,9 @@ function ymd(d: Date): string {
  * Anchor defaults to today.
  */
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const tz = process.env.USER_TIMEZONE ?? "Europe/London";
     const anchorParam = req.nextUrl.searchParams.get("anchor");
     const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: tz })
@@ -62,7 +56,6 @@ export async function GET(req: NextRequest) {
     const { data: phaseRows } = await supabase
       .from("workout_programme_phases")
       .select("programme_id, start_week_iso, end_week_iso")
-      .eq("user_id", uid)
       .lte("start_week_iso", weekIso)
       .or(`end_week_iso.is.null,end_week_iso.gte.${weekIso}`)
       .order("start_week_iso", { ascending: false })
@@ -89,7 +82,6 @@ export async function GET(req: NextRequest) {
     const { data: liveRows } = await supabase
       .from("workout_sessions")
       .select("date")
-      .eq("user_id", uid)
       .gte("date", weekDays[0])
       .lte("date", weekDays[6]);
     const loggedByDate = new Map<string, number>();

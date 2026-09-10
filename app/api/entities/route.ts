@@ -1,28 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import type { Entity } from "@/lib/types/task";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 const SEARCH_LIMIT = 20;
 
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const q = new URL(req.url).searchParams.get("q")?.trim() ?? "";
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let query = supabase
       .from("entities")
-      .select("id, user_id, name, kind")
-      .eq("user_id", uid)
+      .select("id, name, kind")
       .order("name", { ascending: true })
       .limit(SEARCH_LIMIT);
 
@@ -40,11 +31,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   let body: { name?: unknown; kind?: unknown };
   try {
     body = (await req.json()) as { name?: unknown; kind?: unknown };
@@ -58,12 +44,11 @@ export async function POST(req: NextRequest) {
   const kind = typeof body.kind === "string" && body.kind.trim() ? body.kind.trim() : "person";
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     // Reuse existing entity if name matches (case-insensitive)
     const existing = await supabase
       .from("entities")
-      .select("id, user_id, name, kind")
-      .eq("user_id", uid)
+      .select("id, name, kind")
       .ilike("name", name)
       .limit(1)
       .maybeSingle();
@@ -73,8 +58,8 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabase
       .from("entities")
-      .insert({ user_id: uid, name, kind })
-      .select("id, user_id, name, kind")
+      .insert({ name, kind })
+      .select("id, name, kind")
       .single();
     if (error || !data) throw error ?? new Error("insert returned no row");
     return NextResponse.json({ entity: data as Entity });

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
+import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   CONVERTIBLE_KINDS,
   KIND_LABELS,
@@ -9,10 +11,6 @@ import {
 } from "@/lib/convert/kinds";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type ConvertBody = {
   from_kind?: ConvertibleKind;
@@ -105,9 +103,7 @@ function buildTargetPayload(
     "Untitled";
 
   if (toKind === "task") {
-    return {
-      user_id: userIdValue,
-      title: baseTitle,
+    return { title: baseTitle,
       description:
         (overrides.description as string | null | undefined) ??
         (source.description as string | null) ??
@@ -132,9 +128,7 @@ function buildTargetPayload(
     };
   }
   if (toKind === "purchase") {
-    return {
-      user_id: userIdValue,
-      title: baseTitle,
+    return { title: baseTitle,
       amount: (overrides.amount as number | null | undefined) ?? source.amount ?? null,
       currency: (overrides.currency as string | undefined) ?? source.currency ?? "GBP",
       want_or_need: (overrides.want_or_need as string | null | undefined) ?? source.want_or_need ?? "unclear",
@@ -149,9 +143,7 @@ function buildTargetPayload(
     };
   }
   if (toKind === "journal") {
-    return {
-      user_id: userIdValue,
-      entry_date:
+    return { entry_date:
         (overrides.entry_date as string | undefined) ??
         (source.entry_date as string | undefined) ??
         new Date().toISOString().slice(0, 10),
@@ -170,9 +162,7 @@ function buildTargetPayload(
     };
   }
   if (toKind === "pain_log") {
-    return {
-      user_id: userIdValue,
-      session_id: null,
+    return { session_id: null,
       session_exercise_id: null,
       exercise_name: "standalone",
       severity:
@@ -190,9 +180,7 @@ function buildTargetPayload(
     };
   }
   // decision / note / capture share raw_captures — encode kind in classification
-  return {
-    user_id: userIdValue,
-    source: "api",
+  return { source: "api",
     raw_text:
       (overrides.description as string | undefined) ??
       (source.description as string | undefined) ??
@@ -214,8 +202,8 @@ function buildTargetPayload(
 }
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+  const uid = (await headers()).get(PRINCIPAL_USER_HEADER);
+  if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   let body: ConvertBody;
   try {
     body = (await req.json()) as ConvertBody;
@@ -246,7 +234,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const sourceTable = kindTable(fromKind);
 
     // Load source row
@@ -254,7 +242,6 @@ export async function POST(req: NextRequest) {
       .from(sourceTable)
       .select("*")
       .eq("id", fromId)
-      .eq("user_id", uid)
       .maybeSingle();
     if (srcErr || !sourceRow) {
       return NextResponse.json(
@@ -316,8 +303,7 @@ export async function POST(req: NextRequest) {
     const { error: delErr } = await supabase
       .from(sourceTable)
       .update({ deleted_at: new Date().toISOString() })
-      .eq("id", fromId)
-      .eq("user_id", uid);
+      .eq("id", fromId);
     if (delErr) {
       console.error("[/api/convert soft-delete]", delErr);
     }

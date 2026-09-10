@@ -5,12 +5,11 @@ import type { FinanceData, FinanceSnapshot, FinanceHistoryPoint } from "./types"
 
 export async function persistSnapshot(
   supabase: SupabaseClient,
-  userId: string,
   snapshot: FinanceSnapshot,
   source: "manual" | "cron"
 ): Promise<FinanceData> {
   const dateKey = localDateKey();
-  const row = await getOrCreateDailyLog(supabase, userId, dateKey);
+  const row = await getOrCreateDailyLog(supabase, dateKey);
   const current = parseNotes(row.notes) as Record<string, unknown>;
 
   const finance: FinanceData = {
@@ -53,8 +52,7 @@ function extractFinance(notesStr: string | null | undefined): FinanceData | null
  * past 400 days has a finance snapshot.
  */
 export async function getLatestSnapshot(
-  supabase: SupabaseClient,
-  userId: string
+  supabase: SupabaseClient
 ): Promise<(FinanceData & { date: string }) | null> {
   const today = localDateKey();
   let earliest = today;
@@ -63,7 +61,6 @@ export async function getLatestSnapshot(
   const { data, error } = await supabase
     .from("daily_logs")
     .select("log_date, notes")
-    .eq("user_id", userId)
     .gte("log_date", earliest)
     .lte("log_date", today)
     .order("log_date", { ascending: false });
@@ -81,7 +78,6 @@ export async function getLatestSnapshot(
  */
 export async function getSnapshotHistory(
   supabase: SupabaseClient,
-  userId: string,
   months: number
 ): Promise<FinanceHistoryPoint[]> {
   const today = localDateKey();
@@ -91,7 +87,6 @@ export async function getSnapshotHistory(
   const { data, error } = await supabase
     .from("daily_logs")
     .select("log_date, notes")
-    .eq("user_id", userId)
     .gte("log_date", earliest)
     .lte("log_date", today)
     .order("log_date", { ascending: false });

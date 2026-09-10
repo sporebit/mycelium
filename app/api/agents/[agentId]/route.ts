@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { MODEL_CHAT } from "@/lib/config/models";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { AGENT_SYSTEM_PROMPTS, buildDaBoiPrompt } from "@/lib/agents/prompts";
 import { relevantDomains, type DaBoiDomain } from "@/lib/agents/relevance";
 import { toolsForAgent } from "@/lib/agents/tools";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type ContentBlock =
   | { type: "text"; text: string }
@@ -86,12 +83,10 @@ export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ agentId: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { agentId } = await ctx.params;
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: agent } = await supabase
       .from("agents")
@@ -140,11 +135,9 @@ export async function GET(
 }
 
 async function getDaBoiContext(
-  supabase: ReturnType<typeof createServerClient>,
+  supabase: SupabaseClient,
   domains: Set<DaBoiDomain>,
 ) {
-  const uid = process.env.USER_ID!;
-
   const { data: allMemories } = await supabase
     .from("agent_memory")
     .select("agent_id, summary");
@@ -158,7 +151,6 @@ async function getDaBoiContext(
   const { data: workouts } = await supabase
     .from("workout_sessions")
     .select("date, name, slot, kind, status")
-    .eq("user_id", uid)
     .order("date", { ascending: false })
     .limit(5);
   recentWorkouts = (workouts ?? [])
@@ -170,7 +162,6 @@ async function getDaBoiContext(
   if (domains.has("finance")) try {
     monthlySpend = "unknown";
     const { data: spendData } = await supabase.rpc("txn_agg", {
-      p_user_id: uid,
       p_from: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10),
       p_to: new Date().toISOString().slice(0, 10),
     });
@@ -185,7 +176,6 @@ async function getDaBoiContext(
     const { count } = await supabase
       .from("tasks")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", uid)
       .is("completed_at", null);
     openTaskCount = count ?? 0;
   } catch { /* table may differ */ }
@@ -198,7 +188,6 @@ async function getDaBoiContext(
     const { data: nutritionData } = await supabase
       .from("nutrition_logs")
       .select("calories")
-      .eq("user_id", uid)
       .gte("logged_at", sevenDaysAgo.toISOString());
     if (nutritionData && nutritionData.length > 0) {
       const total = (nutritionData as { calories: number }[]).reduce((s, n) => s + (n.calories || 0), 0);
@@ -227,8 +216,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ agentId: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { agentId } = await ctx.params;
 
   let body: { message?: string };
@@ -243,7 +230,7 @@ export async function POST(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: agent } = await supabase
       .from("agents")

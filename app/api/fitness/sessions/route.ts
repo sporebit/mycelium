@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { localDateKey } from "@/lib/util/date";
 import type { Slot, SessionKind, TemplateExercise } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type CreateBody = {
   programme_session_id?: string;
@@ -29,8 +25,6 @@ type CreateBody = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
 
   let body: CreateBody;
   try {
@@ -56,7 +50,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // Idempotency: client_uuid dedup for offline-first replay
     if (body.client_uuid) {
@@ -77,7 +71,6 @@ export async function POST(req: NextRequest) {
       const { data: existing } = await supabase
         .from("workout_sessions")
         .select("id")
-        .eq("user_id", uid)
         .eq("date", date)
         .eq("programme_session_id", programmeSessionId)
         .maybeSingle();
@@ -107,7 +100,6 @@ export async function POST(req: NextRequest) {
         .from("workouts")
         .select("name")
         .eq("id", body.workout_id)
-        .eq("user_id", uid)
         .maybeSingle();
       if (wRow?.name && !resolvedName) resolvedName = wRow.name as string;
       const { data: wExs } = await supabase
@@ -142,7 +134,6 @@ export async function POST(req: NextRequest) {
       const { data: posRow } = await supabase
         .from("workout_sessions")
         .select("position")
-        .eq("user_id", uid)
         .eq("date", date)
         .eq("slot", slot)
         .order("position", { ascending: false })
@@ -151,9 +142,7 @@ export async function POST(req: NextRequest) {
       nextPosition = ((posRow?.position as number | undefined) ?? -1) + 1;
     }
 
-    const insertRow: Record<string, unknown> = {
-      user_id: uid,
-      date,
+    const insertRow: Record<string, unknown> = { date,
       slot,
       kind,
       name: resolvedName,

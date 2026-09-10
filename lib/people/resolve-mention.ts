@@ -1,8 +1,8 @@
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { aliasKey, boundedLevenshtein, normaliseAlias } from "./normalise";
 import type { MentionResolution } from "./types";
 
-type Supabase = ReturnType<typeof createServerClient>;
+type Supabase = SupabaseClient;
 
 /**
  * Resolve a raw alias (e.g. "Luke", "my mum") to a person.
@@ -18,7 +18,6 @@ type Supabase = ReturnType<typeof createServerClient>;
  */
 export async function resolveMention(
   supabase: Supabase,
-  userId: string,
   rawAliasIn: string,
   /** When set, skip the no-match auto-create branch and return an
    *  unresolved result. Callers (voice/Telegram capture pipeline)
@@ -43,26 +42,16 @@ export async function resolveMention(
   // 1. Exact match
   const { data: exact } = await supabase
     .from("people_aliases")
-    .select("person_id, alias, people:person_id!inner(user_id)")
+    .select("person_id, alias")
     .ilike("alias", rawAlias);
   type Row = {
     person_id: string;
     alias: string;
-    people: { user_id: string } | { user_id: string }[];
   };
   const exactRows: Row[] = (exact ?? []) as Row[];
-  // Filter rows by the user (joined people)
-  const ownExact: { person_id: string; alias: string }[] = exactRows
-    .map((r) => {
-      const j = Array.isArray(r.people) ? r.people[0] : r.people;
-      return j?.user_id === userId
-        ? { person_id: r.person_id, alias: r.alias }
-        : null;
-    })
-    .filter((r): r is { person_id: string; alias: string } => r !== null);
 
   // Unique by person_id
-  const uniquePersonIds = Array.from(new Set(ownExact.map((r) => r.person_id)));
+  const uniquePersonIds = Array.from(new Set(exactRows.map((r) => r.person_id)));
   if (uniquePersonIds.length === 1) {
     return {
       raw_alias: rawAlias,
@@ -87,19 +76,11 @@ export async function resolveMention(
   // 2. Fuzzy. Pull all aliases for this user and Levenshtein them.
   const { data: allAliases } = await supabase
     .from("people_aliases")
-    .select("person_id, alias, people:person_id!inner(user_id)");
+    .select("person_id, alias");
   const allRows: Row[] = (allAliases ?? []) as Row[];
-  const ownAll: { person_id: string; alias: string }[] = allRows
-    .map((r) => {
-      const j = Array.isArray(r.people) ? r.people[0] : r.people;
-      return j?.user_id === userId
-        ? { person_id: r.person_id, alias: r.alias }
-        : null;
-    })
-    .filter((r): r is { person_id: string; alias: string } => r !== null);
 
   const fuzzyHits = new Map<string, number>(); // person_id → best distance
-  for (const r of ownAll) {
+  for (const r of allRows) {
     const d = boundedLevenshtein(key, aliasKey(r.alias), 2);
     if (d <= 2) {
       const prev = fuzzyHits.get(r.person_id);
@@ -142,9 +123,7 @@ export async function resolveMention(
   }
   const { data: created, error: createErr } = await supabase
     .from("people")
-    .insert({
-      user_id: userId,
-      first_name: rawAlias,
+    .insert({ first_name: rawAlias,
       needs_review: true,
     })
     .select("id")
@@ -177,14 +156,11 @@ export async function resolveMention(
 /** Insert a people_mentions row from a resolution + source identifiers. */
 export async function recordMention(
   supabase: Supabase,
-  userId: string,
   resolution: MentionResolution,
   source: { type: "capture" | "task" | "journal"; id: string }
 ): Promise<void> {
   try {
-    await supabase.from("people_mentions").insert({
-      user_id: userId,
-      person_id: resolution.person_id,
+    await supabase.from("people_mentions").insert({ person_id: resolution.person_id,
       source_type: source.type,
       source_id: source.id,
       raw_alias: resolution.raw_alias,

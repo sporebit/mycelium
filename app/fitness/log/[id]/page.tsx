@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { loadSessionDetail } from "@/lib/fitness/session-detail";
 import { LogClient } from "@/components/fitness/LogClient";
 
@@ -12,16 +12,8 @@ export default async function LogPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return (
-      <div className="p-6 text-danger font-[family-name:var(--font-mono)] text-sm">
-        USER_ID env var is missing.
-      </div>
-    );
-  }
-  const supabase = createServerClient();
-  const detail = await loadSessionDetail(supabase, id, uid);
+  const supabase = await createUserClient();
+  const detail = await loadSessionDetail(supabase, id);
   if (!detail) notFound();
   return <LogClient initial={detail} />;
 }

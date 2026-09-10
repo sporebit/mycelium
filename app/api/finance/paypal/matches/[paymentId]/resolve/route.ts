@@ -1,22 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { resolvePayment } from "@/lib/finance/paypal-match";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ paymentId: string }> },
 ) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   const { paymentId } = await ctx.params;
 
   let body: { transaction_id?: string };
@@ -31,8 +22,8 @@ export async function POST(
   }
 
   try {
-    const supabase = createServerClient();
-    const { ok, error } = await resolvePayment(supabase, uid, paymentId, body.transaction_id);
+    const supabase = await createUserClient();
+    const { ok, error } = await resolvePayment(supabase, paymentId, body.transaction_id);
     if (!ok) {
       return NextResponse.json({ error }, { status: 400 });
     }

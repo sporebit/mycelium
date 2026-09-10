@@ -71,7 +71,6 @@ function num(value: number | null, fallback: number): number {
  */
 export async function getNutritionTargets(
 	supabase: SupabaseClient,
-	userId: string,
 	onDate?: string,
 ): Promise<ResolvedNutritionTargets> {
 	const asOf = onDate ?? new Date().toISOString().slice(0, 10);
@@ -79,7 +78,6 @@ export async function getNutritionTargets(
 	const { data, error } = await supabase
 		.from("nutrition_targets")
 		.select(FIELDS)
-		.eq("user_id", userId)
 		.lte("effective_from", asOf)
 		.order("effective_from", { ascending: false })
 		.limit(1)

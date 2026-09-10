@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { estimateBurnedKcal } from "@/lib/nutrition/calc";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 /**
  * Estimate calories burned for a given date. Uses workout_sessions
@@ -14,19 +10,16 @@ function userId(): string | null {
  * otherwise we estimate from kind + duration (started_at → completed_at).
  */
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const url = new URL(req.url);
   const date = url.searchParams.get("date");
   if (!date) {
     return NextResponse.json({ error: "date required" }, { status: 400 });
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("workout_sessions")
       .select("id, kind, name, calories, started_at, completed_at, status")
-      .eq("user_id", uid)
       .eq("date", date)
       .eq("status", "completed");
     if (error) throw error;

@@ -41,7 +41,6 @@ type ContextRow = {
  */
 export async function suggestContext(
   supabase: SupabaseClient,
-  userId: string,
   title: string,
 ): Promise<{
   where: string | null;
@@ -61,7 +60,6 @@ export async function suggestContext(
     .select(
       "title, context_where, context_device, context_energy, context_tag",
     )
-    .eq("user_id", userId)
     .is("deleted_at", null)
     .or(
       "context_where.not.is.null,context_device.not.is.null,context_energy.not.is.null,context_tag.not.is.null",

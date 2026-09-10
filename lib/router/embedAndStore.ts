@@ -1,18 +1,19 @@
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateEmbedding } from "@/lib/openai/embeddings";
 
 export async function embedAndStore(opts: {
-  userId: string;
+  /** Client to write with: `await createUserClient()` on the request
+   *  path, or the client withUser() handed a caller with no session
+   *  (Telegram webhook, crons). */
+  supabase: SupabaseClient;
   sourceType: string;
   sourceId: string;
   text: string;
 }): Promise<void> {
   try {
     const embedding = await generateEmbedding(opts.text);
-    const supabase = createServerClient();
-    const { error } = await supabase.from("memory_chunks").insert({
-      user_id: opts.userId,
-      source_type: opts.sourceType,
+    const supabase = opts.supabase;
+    const { error } = await supabase.from("memory_chunks").insert({ source_type: opts.sourceType,
       source_id: opts.sourceId,
       text: opts.text,
       embedding,

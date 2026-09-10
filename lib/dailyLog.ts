@@ -26,14 +26,12 @@ export function parseNotes(text: string | null | undefined): DailyNotes {
 
 export async function getOrCreateDailyLog(
   supabase: SupabaseClient,
-  userId: string,
   dateKey: string
 ): Promise<DailyLogRow> {
   const fetchRow = async () =>
     supabase
       .from("daily_logs")
       .select("id, log_date, notes, mood")
-      .eq("user_id", userId)
       .eq("log_date", dateKey)
       .maybeSingle();
 
@@ -45,7 +43,7 @@ export async function getOrCreateDailyLog(
 
   const insert = await supabase
     .from("daily_logs")
-    .insert({ user_id: userId, log_date: dateKey, notes: "{}" })
+    .insert({ log_date: dateKey, notes: "{}" })
     .select("id, log_date, notes, mood")
     .single();
 

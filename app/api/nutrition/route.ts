@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { parseNotes } from "@/lib/dailyLog";
 import { localDateKey, previousDateKey } from "@/lib/util/date";
 import { sumMeals, type Meal } from "@/lib/types/nutrition";
@@ -7,10 +7,6 @@ import { sumMeals, type Meal } from "@/lib/types/nutrition";
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const url = new URL(req.url);
   const daysParam = url.searchParams.get("days");
   const days = Math.min(
@@ -23,11 +19,10 @@ export async function GET(req: NextRequest) {
     let earliest = today;
     for (let i = 0; i < days - 1; i++) earliest = previousDateKey(earliest);
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("daily_logs")
       .select("log_date, notes")
-      .eq("user_id", uid)
       .gte("log_date", earliest)
       .lte("log_date", today)
       .order("log_date", { ascending: false });

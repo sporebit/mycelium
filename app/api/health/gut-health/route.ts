@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("gut_health_logs")
       .select("*")
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     if (!body.bristol_type || body.bristol_type < 1 || body.bristol_type > 7) {
       return NextResponse.json({ error: "bristol_type (1-7) required" }, { status: 400 });
     }
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("gut_health_logs")
       .insert({

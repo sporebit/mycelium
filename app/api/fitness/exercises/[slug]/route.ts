@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { getExerciseMuscles } from "@/lib/fitness/muscle-map";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 function unslugify(slug: string): string {
   return slug.replace(/-/g, " ");
@@ -26,13 +22,11 @@ export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ slug: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { slug } = await ctx.params;
   const searchName = unslugify(slug);
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // Find all session exercises matching this name (case-insensitive)
     const { data: exRows, error } = await supabase
@@ -51,7 +45,6 @@ export async function GET(
       .from("workout_sessions")
       .select("id, date, name")
       .in("id", sessionIds)
-      .eq("user_id", uid)
       .order("date", { ascending: false });
     const sessionInfo = new Map<string, { date: string; name: string | null }>();
     for (const s of (sessRows ?? []) as { id: string; date: string; name: string | null }[]) {

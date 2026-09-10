@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   getAccessToken,
   createEvent,
@@ -8,15 +8,16 @@ import {
   type GoogleCalendarEvent,
 } from "./calendar";
 
-const UID = () => process.env.USER_ID ?? "default";
 const TZ = "Europe/London";
 
-export async function isGoogleConnected(): Promise<boolean> {
-  const supabase = createServerClient();
+// Every function here takes the caller's client: request routes pass their
+// user client, the google-sync cron passes one from withUser().
+export async function isGoogleConnected(
+  supabase: SupabaseClient,
+): Promise<boolean> {
   const { data } = await supabase
     .from("user_settings")
     .select("google_refresh_token")
-    .eq("user_id", UID())
     .maybeSingle();
   return !!data?.google_refresh_token;
 }
@@ -27,15 +28,18 @@ function oneHourLater(iso: string): string {
 
 // ─── PUSH: Myphelium2 → Google ──────────────────────────────────
 
-export async function pushTaskToGoogle(task: {
+export async function pushTaskToGoogle(
+  supabase: SupabaseClient,
+  task: {
   id: string;
   title: string;
   description?: string | null;
   scheduled_at: string;
   google_event_id?: string | null;
-}): Promise<void> {
+  },
+): Promise<void> {
   try {
-    if (!(await isGoogleConnected())) return;
+    if (!(await isGoogleConnected(supabase))) return;
 
     const event: GoogleCalendarEvent = {
       summary: task.title,
@@ -44,12 +48,10 @@ export async function pushTaskToGoogle(task: {
       end: { dateTime: oneHourLater(task.scheduled_at), timeZone: TZ },
     };
 
-    const supabase = createServerClient();
-
     if (task.google_event_id) {
-      await updateEvent(task.google_event_id, event);
+      await updateEvent(supabase, task.google_event_id, event);
     } else {
-      const created = await createEvent(event);
+      const created = await createEvent(supabase, event);
       if (created?.id) {
         await supabase
           .from("tasks")
@@ -62,7 +64,9 @@ export async function pushTaskToGoogle(task: {
   }
 }
 
-export async function pushEventToGoogle(evt: {
+export async function pushEventToGoogle(
+  supabase: SupabaseClient,
+  evt: {
   id: string;
   title: string;
   start_at: string;
@@ -71,9 +75,10 @@ export async function pushEventToGoogle(evt: {
   location?: string | null;
   notes?: string | null;
   google_event_id?: string | null;
-}): Promise<void> {
+  },
+): Promise<void> {
   try {
-    if (!(await isGoogleConnected())) return;
+    if (!(await isGoogleConnected(supabase))) return;
 
     const start = evt.all_day
       ? { date: evt.start_at.slice(0, 10), timeZone: TZ }
@@ -90,12 +95,10 @@ export async function pushEventToGoogle(evt: {
       location: evt.location ?? undefined,
     };
 
-    const supabase = createServerClient();
-
     if (evt.google_event_id) {
-      await updateEvent(evt.google_event_id, event);
+      await updateEvent(supabase, evt.google_event_id, event);
     } else {
-      const created = await createEvent(event);
+      const created = await createEvent(supabase, event);
       if (created?.id) {
         await supabase
           .from("events")
@@ -108,7 +111,9 @@ export async function pushEventToGoogle(evt: {
   }
 }
 
-export async function pushDropToGoogle(drop: {
+export async function pushDropToGoogle(
+  supabase: SupabaseClient,
+  drop: {
   id: string;
   name: string;
   brand: string;
@@ -118,9 +123,10 @@ export async function pushDropToGoogle(drop: {
   product_url?: string | null;
   notes?: string | null;
   google_event_id?: string | null;
-}): Promise<void> {
+  },
+): Promise<void> {
   try {
-    if (!(await isGoogleConnected())) return;
+    if (!(await isGoogleConnected(supabase))) return;
 
     const desc = [
       drop.retail_price ? `Retail: £${drop.retail_price}` : null,
@@ -137,12 +143,10 @@ export async function pushDropToGoogle(drop: {
       end: { dateTime: oneHourLater(drop.drop_date), timeZone: TZ },
     };
 
-    const supabase = createServerClient();
-
     if (drop.google_event_id) {
-      await updateEvent(drop.google_event_id, event);
+      await updateEvent(supabase, drop.google_event_id, event);
     } else {
-      const created = await createEvent(event);
+      const created = await createEvent(supabase, event);
       if (created?.id) {
         await supabase
           .from("drops")
@@ -156,13 +160,14 @@ export async function pushDropToGoogle(drop: {
 }
 
 export async function removeGoogleEvent(
+  supabase: SupabaseClient,
   table: "tasks" | "events" | "drops",
   googleEventId: string | null | undefined,
 ): Promise<void> {
   if (!googleEventId) return;
   try {
-    if (!(await isGoogleConnected())) return;
-    await deleteEvent(googleEventId);
+    if (!(await isGoogleConnected(supabase))) return;
+    await deleteEvent(supabase, googleEventId);
   } catch (err) {
     console.error(`[google/sync] removeGoogleEvent(${table}) failed:`, err);
   }
@@ -172,19 +177,20 @@ export async function removeGoogleEvent(
 
 export type SyncResult = { synced: number; updated: string[] };
 
-export async function pullFromGoogle(): Promise<SyncResult> {
+export async function pullFromGoogle(
+  supabase: SupabaseClient,
+): Promise<SyncResult> {
   const result: SyncResult = { synced: 0, updated: [] };
 
-  if (!(await isGoogleConnected())) return result;
+  if (!(await isGoogleConnected(supabase))) return result;
 
-  const token = await getAccessToken();
+  const token = await getAccessToken(supabase);
   if (!token) return result;
 
   const now = new Date().toISOString();
   const future = new Date(Date.now() + 30 * 86400_000).toISOString();
-  const gEvents = await listEvents("primary", now, future, 250);
+  const gEvents = await listEvents(supabase, "primary", now, future, 250);
 
-  const supabase = createServerClient();
   result.synced = gEvents.length;
 
   for (const ge of gEvents) {

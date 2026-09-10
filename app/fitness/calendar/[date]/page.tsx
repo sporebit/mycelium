@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { CalendarDayView } from "@/components/fitness/CalendarDayView";
 import { fetchDayCalendar } from "@/lib/fitness/calendar";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { isoWeekString } from "@/lib/util/week";
 import { localDateKey } from "@/lib/util/date";
 import type { TemplateKind, TemplateSlot, TodayResponse } from "@/lib/fitness/types";
@@ -10,17 +10,15 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function loadProgrammeSessions(
-  userId: string,
   dateKey: string,
 ): Promise<TodayResponse["programme_sessions"]> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const [y, m, d] = dateKey.split("-").map(Number);
   const cellWeek = isoWeekString(new Date(Date.UTC(y, m - 1, d)));
 
   const { data: phaseRows } = await supabase
     .from("workout_programme_phases")
     .select("id, programme_id, start_week_iso, end_week_iso")
-    .eq("user_id", userId)
     .lte("start_week_iso", cellWeek)
     .or(`end_week_iso.is.null,end_week_iso.gte.${cellWeek}`)
     .order("start_week_iso", { ascending: false })
@@ -59,19 +57,10 @@ export default async function FitnessCalendarDayPage({
   const { date } = await params;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) notFound();
 
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return (
-      <div className="p-6 text-danger font-[family-name:var(--font-mono)] text-sm">
-        USER_ID env var is missing.
-      </div>
-    );
-  }
-
   const tz = process.env.USER_TIMEZONE ?? "Europe/London";
   const todayKey = localDateKey(tz);
-  const day = await fetchDayCalendar(uid, date, todayKey);
-  const programmeSessions = await loadProgrammeSessions(uid, date);
+  const day = await fetchDayCalendar(date, todayKey);
+  const programmeSessions = await loadProgrammeSessions(date);
 
   return (
     <CalendarDayView

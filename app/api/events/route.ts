@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { pushEventToGoogle } from "@/lib/google/sync";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("events")
       .select("*")
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     if (!body.title || !body.start_at) {
       return NextResponse.json({ error: "title and start_at required" }, { status: 400 });
     }
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("events")
       .insert({
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     if (data) {
-      pushEventToGoogle(data as {
+      pushEventToGoogle(supabase, data as {
         id: string; title: string; start_at: string;
         end_at?: string | null; all_day?: boolean;
         location?: string | null; notes?: string | null;

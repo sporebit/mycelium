@@ -18,11 +18,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   // P12 Global Rule 5: the service-role client is fenced to lib/system/**.
-  // lib/supabase/server.ts is the transitional shim Part 3 deletes; it is
-  // the one importer outside lib/system allowed until then.
   {
     files: ["**/*.{js,jsx,mjs,ts,tsx}"],
-    ignores: ["lib/system/**", "lib/supabase/server.ts"],
+    ignores: ["lib/system/**"],
     rules: {
       "no-restricted-imports": [
         "error",

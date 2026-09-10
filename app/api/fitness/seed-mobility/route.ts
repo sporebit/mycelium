@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { MOBILITY_SEED } from "@/lib/fitness/seed-mobility";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 /**
  * Idempotent: for every programme the user owns, create an evening mobility
@@ -16,15 +12,12 @@ function userId(): string | null {
  * pain-tracking integration can hang off them later.
  */
 export async function POST() {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: programmeRows, error: progErr } = await supabase
       .from("workout_programmes")
-      .select("id")
-      .eq("user_id", uid);
+      .select("id");
     if (progErr) {
       console.error("[seed-mobility]", progErr);
       return NextResponse.json({ error: "fetch failed" }, { status: 500 });
@@ -98,13 +91,10 @@ export async function POST() {
       const { data: existing } = await supabase
         .from("exercise_baselines")
         .select("id")
-        .eq("user_id", uid)
         .ilike("exercise_name", m.name)
         .maybeSingle();
       if (existing?.id) continue;
-      const { error } = await supabase.from("exercise_baselines").insert({
-        user_id: uid,
-        exercise_name: m.name,
+      const { error } = await supabase.from("exercise_baselines").insert({ exercise_name: m.name,
         has_known_issues: false,
         typical_severity_min: null,
         typical_severity_max: null,

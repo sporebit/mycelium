@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { getOrCreateDailyLog, parseNotes } from "@/lib/dailyLog";
 import { GOALS_SENTINEL_DATE } from "@/lib/types/goals";
 import { HABITS as DEFAULT_HABITS, type Habit } from "@/lib/config/habits";
@@ -22,13 +22,9 @@ function isHabit(x: unknown): x is Habit {
 }
 
 export async function GET() {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   try {
-    const supabase = createServerClient();
-    const row = await getOrCreateDailyLog(supabase, uid, GOALS_SENTINEL_DATE);
+    const supabase = await createUserClient();
+    const row = await getOrCreateDailyLog(supabase, GOALS_SENTINEL_DATE);
     const notes = parseNotes(row.notes) as { habits_config?: unknown };
     const arr = Array.isArray(notes.habits_config)
       ? notes.habits_config.filter(isHabit)
@@ -43,11 +39,6 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   let body: { habits?: unknown };
   try {
     body = (await req.json()) as { habits?: unknown };
@@ -68,8 +59,8 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const supabase = createServerClient();
-    const row = await getOrCreateDailyLog(supabase, uid, GOALS_SENTINEL_DATE);
+    const supabase = await createUserClient();
+    const row = await getOrCreateDailyLog(supabase, GOALS_SENTINEL_DATE);
     const current = parseNotes(row.notes) as Record<string, unknown>;
     const next = { ...current, habits_config: deduped };
     const { error } = await supabase

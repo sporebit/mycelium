@@ -1,20 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { transcribeAudio } from "@/lib/openai/whisper";
 import { classifyCapture } from "@/lib/router/classifyCapture";
 import { writeCapture } from "@/lib/router/writeCapture";
 import { embedAndStore } from "@/lib/router/embedAndStore";
 import { routeRawVoice } from "@/lib/fitness/voice-route";
 import { parseWeight } from "@/lib/health/parse-weight";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { localDateKey } from "@/lib/util/date";
 
 export const runtime = "nodejs";
 // Audio uploads can be sizeable; keep this generous.
 export const maxDuration = 60;
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 /**
  * Multipart audio capture endpoint. Designed for the iOS Shortcut but also
@@ -28,8 +26,8 @@ function userId(): string | null {
  *   source: optional string — analytics tag (e.g. "ios_shortcut")
  */
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+  const uid = (await headers()).get(PRINCIPAL_USER_HEADER);
+  if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let form: FormData;
   try {
@@ -84,15 +82,13 @@ export async function POST(req: NextRequest) {
   const parsedWeight = parseWeight(trimmed);
   if (parsedWeight && !forcedKind) {
     try {
-      const supabase = createServerClient();
+      const supabase = await createUserClient();
       await supabase.from("body_metrics").upsert(
-        {
-          user_id: uid,
-          date: localDateKey(),
+        { date: localDateKey(),
           weight: parsedWeight.value_kg,
           weight_unit: "kg",
         },
-        { onConflict: "user_id,date" },
+        { onConflict: "space_id,date" },
       );
       const display =
         parsedWeight.original_unit === "kg"
@@ -117,14 +113,17 @@ export async function POST(req: NextRequest) {
   if (forcedKind) {
     kind = forcedKind;
   } else {
-    const { classification } = await classifyCapture(trimmed, uid);
+    const { classification } = await classifyCapture(trimmed, {
+      supabase: await createUserClient(),
+      userId: uid,
+    });
     kind = classification.kind;
   }
 
   // 3. Route
   if (kind === "workout") {
     try {
-      const r = await routeRawVoice(trimmed, uid);
+      const r = await routeRawVoice(await createUserClient(), trimmed, uid);
       if (r.kind === "routed") {
         return NextResponse.json({
           kind: "workout",
@@ -168,8 +167,12 @@ export async function POST(req: NextRequest) {
   // Non-workout: run the existing capture pipeline so we still write raw_captures,
   // tasks/notes/etc.
   try {
-    const { classification, llm_source } = await classifyCapture(trimmed, uid);
+    const { classification, llm_source } = await classifyCapture(trimmed, {
+      supabase: await createUserClient(),
+      userId: uid,
+    });
     const result = await writeCapture({
+      supabase: await createUserClient(),
       userId: uid,
       source: "api",
       rawText: trimmed,
@@ -177,7 +180,7 @@ export async function POST(req: NextRequest) {
       llmSource: llm_source,
     });
     void embedAndStore({
-      userId: uid,
+      supabase: await createUserClient(),
       sourceType: result.memorySourceType,
       sourceId: result.memorySourceId,
       text: trimmed,

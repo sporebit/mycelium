@@ -1,29 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { FOOD_SELECT, LOG_SELECT } from "@/lib/nutrition/db";
 import { logToInsertPayload } from "@/lib/nutrition/calc";
 import type { Food, NutritionLog } from "@/lib/nutrition/types-v2";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const url = new URL(req.url);
   const date = url.searchParams.get("date");
   if (!date) {
     return NextResponse.json({ error: "date required" }, { status: 400 });
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("nutrition_logs")
       .select(LOG_SELECT)
-      .eq("user_id", uid)
       .eq("date", date)
       .order("logged_at", { ascending: true });
     if (error) throw error;
@@ -52,8 +45,6 @@ type CreatePayload = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   let body: CreatePayload;
   try {
     body = (await req.json()) as CreatePayload;
@@ -66,7 +57,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "date + quantity_g required" }, { status: 400 });
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     let payload: Record<string, unknown>;
     if (body.food_id) {
@@ -74,7 +65,6 @@ export async function POST(req: NextRequest) {
         .from("foods")
         .select(FOOD_SELECT)
         .eq("id", body.food_id)
-        .eq("user_id", uid)
         .maybeSingle();
       if (foodErr || !food) {
         return NextResponse.json({ error: "food not found" }, { status: 400 });
@@ -85,7 +75,6 @@ export async function POST(req: NextRequest) {
         body.serving_label ?? null,
         body.meal_group_id ?? null,
         date,
-        uid,
       );
 
       // Bump use_count and auto-favourite at 3+ uses.
@@ -100,7 +89,6 @@ export async function POST(req: NextRequest) {
       // Ad-hoc entry — caller supplied raw nutrients.
       const m = body.manual_nutrients ?? {};
       payload = {
-        user_id: uid,
         food_id: null,
         meal_group_id: body.meal_group_id ?? null,
         date,

@@ -57,11 +57,39 @@
 -- 0. Preconditions
 -- ---------------------------------------------------------------------
 
+-- Phil's auth user must exist with the fixed id before his personal space
+-- can reference it. On the hosted project Part 7 inserts it with his real
+-- email BEFORE `supabase db push`, so this block finds it and does nothing.
+-- On a from-empty local replay the migrations run before supabase/seed.sql,
+-- so the user is created here with the local placeholder email and no
+-- password (the seed adds the password afterwards). If it ever runs on live
+-- without the pre-insert, the account exists with the placeholder email and
+-- Phil changes it from the dashboard; the mapping still holds.
 do $$
+declare
+	v_phil uuid := app.legacy_user_uid('phil');
 begin
-	if not exists (select 1 from auth.users where id = app.legacy_user_uid('phil')) then
-		raise exception using
-			message = 'Phil''s auth user (app.legacy_user_uid(''phil'')) does not exist. Create it with that id before applying 0103 — see supabase/seed.sql for the shape.';
+	if not exists (select 1 from auth.users where id = v_phil) then
+		insert into auth.users (
+			instance_id, id, aud, role, email, email_confirmed_at,
+			raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+			confirmation_token, recovery_token, email_change_token_new, email_change,
+			email_change_token_current, phone_change, phone_change_token,
+			reauthentication_token, is_sso_user, is_anonymous
+		) values (
+			'00000000-0000-0000-0000-000000000000', v_phil, 'authenticated', 'authenticated',
+			'phil@mycelium.local', now(),
+			'{"provider":"email","providers":["email"]}'::jsonb, '{"display_name":"Phil"}'::jsonb,
+			now(), now(), '', '', '', '', '', '', '', '', false, false
+		);
+		insert into auth.identities (
+			id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at
+		) values (
+			gen_random_uuid(), v_phil, v_phil::text,
+			jsonb_build_object('sub', v_phil::text, 'email', 'phil@mycelium.local', 'email_verified', true),
+			'email', now(), now(), now()
+		);
+		raise notice 'Created Phil''s auth user % with the placeholder email; set the real one before he signs in', v_phil;
 	end if;
 end
 $$;

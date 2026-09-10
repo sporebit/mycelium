@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { FOOD_SELECT, LOG_SELECT } from "@/lib/nutrition/db";
 import { nutrientsFor } from "@/lib/nutrition/calc";
 import type { Food } from "@/lib/nutrition/types-v2";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type PatchBody = {
   quantity_g?: number;
@@ -20,8 +16,6 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   let body: PatchBody;
   try {
@@ -30,7 +24,7 @@ export async function PATCH(
     return NextResponse.json({ error: "bad json" }, { status: 400 });
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const update: Record<string, unknown> = {};
     if (typeof body.meal_group_id !== "undefined") {
       update.meal_group_id = body.meal_group_id;
@@ -45,7 +39,6 @@ export async function PATCH(
         .from("nutrition_logs")
         .select("food_id")
         .eq("id", id)
-        .eq("user_id", uid)
         .maybeSingle();
       const foodId = (log as { food_id: string | null } | null)?.food_id;
       if (foodId) {
@@ -53,7 +46,6 @@ export async function PATCH(
           .from("foods")
           .select(FOOD_SELECT)
           .eq("id", foodId)
-          .eq("user_id", uid)
           .maybeSingle();
         if (food) {
           const { core, extended } = nutrientsFor(
@@ -76,7 +68,6 @@ export async function PATCH(
       .from("nutrition_logs")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
       .select(LOG_SELECT)
       .single();
     if (error || !data) {
@@ -93,16 +84,13 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { error } = await supabase
       .from("nutrition_logs")
       .delete()
-      .eq("id", id)
-      .eq("user_id", uid);
+      .eq("id", id);
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err) {

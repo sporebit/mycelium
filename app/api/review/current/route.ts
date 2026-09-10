@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { getOrCreateDailyLog, parseNotes } from "@/lib/dailyLog";
 import {
   REVIEW_FIELDS,
@@ -15,10 +15,6 @@ import {
 } from "@/lib/util/week";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 function thisWeekContext() {
   const now = new Date();
@@ -50,14 +46,10 @@ function readReview(notesStr: string | null | undefined): WeeklyReview {
 }
 
 export async function GET() {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   try {
     const ctx = thisWeekContext();
-    const supabase = createServerClient();
-    const row = await getOrCreateDailyLog(supabase, uid, ctx.dateKey);
+    const supabase = await createUserClient();
+    const row = await getOrCreateDailyLog(supabase, ctx.dateKey);
     const review = readReview(row.notes);
     return NextResponse.json({
       review,
@@ -73,10 +65,6 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   let body: Partial<WeeklyReview>;
   try {
     body = (await req.json()) as Partial<WeeklyReview>;
@@ -93,8 +81,8 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const ctx = thisWeekContext();
-    const supabase = createServerClient();
-    const row = await getOrCreateDailyLog(supabase, uid, ctx.dateKey);
+    const supabase = await createUserClient();
+    const row = await getOrCreateDailyLog(supabase, ctx.dateKey);
     const current = parseNotes(row.notes) as Record<string, unknown>;
     const existingReview = readReview(row.notes);
 

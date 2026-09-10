@@ -1,24 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createUserClient } from "@/lib/supabase/user";
 import { normaliseAlias } from "@/lib/people/normalise";
 import type { PersonAlias } from "@/lib/people/types";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 async function ensureOwned(
-  supabase: ReturnType<typeof createServerClient>,
-  personId: string,
-  uid: string
+  supabase: SupabaseClient,
+  personId: string
 ): Promise<boolean> {
   const { data } = await supabase
     .from("people")
     .select("id")
     .eq("id", personId)
-    .eq("user_id", uid)
     .maybeSingle();
   return !!data?.id;
 }
@@ -27,8 +22,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id: personId } = await ctx.params;
   let body: { alias?: string };
   try {
@@ -39,8 +32,8 @@ export async function POST(
   const alias = normaliseAlias(body.alias ?? "");
   if (!alias) return NextResponse.json({ error: "alias required" }, { status: 400 });
   try {
-    const supabase = createServerClient();
-    if (!(await ensureOwned(supabase, personId, uid))) {
+    const supabase = await createUserClient();
+    if (!(await ensureOwned(supabase, personId))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     const { data, error } = await supabase

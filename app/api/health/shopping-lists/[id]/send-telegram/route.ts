@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { sendMessage } from "@/lib/telegram/api";
 
 export const runtime = "nodejs";
@@ -17,7 +17,7 @@ export async function POST(
       return NextResponse.json({ error: "TELEGRAM_USER_ID missing" }, { status: 500 });
     }
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: list, error } = await supabase
       .from("shopping_lists")
       .select("*")

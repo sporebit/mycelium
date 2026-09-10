@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const difficulty = req.nextUrl.searchParams.get("difficulty");
     const region = req.nextUrl.searchParams.get("region");
 
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     if (!body.retailer) {
       return NextResponse.json({ error: "retailer required" }, { status: 400 });
     }
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("cook_guides")
       .insert({

@@ -1,24 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import type { Programme } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const url = new URL(req.url);
   const includeArchived = url.searchParams.get("include_archived") === "true";
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("workout_programmes")
-      .select("id, user_id, name, description, created_at, updated_at, archived_at")
-      .eq("user_id", uid)
+      .select("id, name, description, created_at, updated_at, archived_at")
       .order("created_at", { ascending: false });
     if (!includeArchived) q = q.is("archived_at", null);
     const { data, error } = await q;
@@ -31,8 +24,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   let body: { name?: string; description?: string };
   try {
     body = (await req.json()) as { name?: string; description?: string };
@@ -42,11 +33,11 @@ export async function POST(req: NextRequest) {
   const name = body.name?.trim();
   if (!name) return NextResponse.json({ error: "name required" }, { status: 400 });
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("workout_programmes")
-      .insert({ user_id: uid, name, description: body.description ?? null })
-      .select("id, user_id, name, description, created_at, updated_at")
+      .insert({ name, description: body.description ?? null })
+      .select("id, name, description, created_at, updated_at")
       .single();
     if (error || !data) throw error ?? new Error("insert failed");
     return NextResponse.json({ programme: data as Programme });

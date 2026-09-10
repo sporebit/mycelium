@@ -7,7 +7,6 @@ type Scope = "fitness" | "capture";
 
 type Rule = {
   id: string;
-  user_id: string;
   scope: Scope;
   rule_key: string;
   display_name: string;

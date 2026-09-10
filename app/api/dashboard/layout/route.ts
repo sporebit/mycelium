@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   CARD_REGISTRY,
   defaultLayout,
@@ -11,19 +11,12 @@ import {
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET() {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data } = await supabase
       .from("dashboard_layouts")
-      .select("card_key, col, position, width, hidden")
-      .eq("user_id", uid);
+      .select("card_key, col, position, width, hidden");
     const stored = (data ?? []) as CardLayoutRow[];
     const layout = stored.length === 0
       ? defaultLayout()
@@ -38,9 +31,6 @@ export async function GET() {
 type PostBody = { layout?: CardLayoutRow[] };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   let body: PostBody;
   try {
     body = (await req.json()) as PostBody;
@@ -107,10 +97,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
-    const rows = layout.map((r) => ({
-      user_id: uid,
-      card_key: r.card_key,
+    const supabase = await createUserClient();
+    const rows = layout.map((r) => ({ card_key: r.card_key,
       col: r.col,
       position: r.position,
       width: r.width,
@@ -119,7 +107,7 @@ export async function POST(req: NextRequest) {
     }));
     const { error } = await supabase
       .from("dashboard_layouts")
-      .upsert(rows, { onConflict: "user_id,card_key" });
+      .upsert(rows, { onConflict: "space_id,card_key" });
     if (error) {
       console.error("[/api/dashboard/layout POST]", error);
       return NextResponse.json({ error: "save failed" }, { status: 500 });

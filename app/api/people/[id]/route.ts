@@ -1,31 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { normaliseAlias } from "@/lib/people/normalise";
 import type { Person, PersonAlias, PersonWithAliases } from "@/lib/people/types";
 
 export const runtime = "nodejs";
 
 const PERSON_FIELDS =
-  "id, user_id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
+  "id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at";
 
 export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: person } = await supabase
       .from("people")
       .select(PERSON_FIELDS)
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle();
     if (!person) return NextResponse.json({ error: "not found" }, { status: 404 });
     const { data: aliases } = await supabase
@@ -89,8 +82,6 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   let body: PatchBody;
   try {
@@ -105,12 +96,11 @@ export async function PATCH(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: existing } = await supabase
       .from("people")
       .select("id, first_name, display_name")
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle();
     if (!existing) return NextResponse.json({ error: "not found" }, { status: 404 });
 
@@ -118,7 +108,6 @@ export async function PATCH(
       .from("people")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
       .select(PERSON_FIELDS)
       .single();
     if (error || !data) {
@@ -225,16 +214,13 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { error } = await supabase
       .from("people")
       .delete()
-      .eq("id", id)
-      .eq("user_id", uid);
+      .eq("id", id);
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err) {

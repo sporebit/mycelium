@@ -8,9 +8,8 @@
  * a browser session (cron, webhooks, imports) go through lib/system/withUser
  * from Part 3, which mints a short-lived user JWT rather than using this.
  *
- * `lib/supabase/server.ts` re-exports this under the old name for the 255
- * call sites Part 3 replaces; that shim is the one other permitted importer
- * and is deleted when the last call site moves.
+ * The only callers today are lib/system/admin.ts (instance-owner feature
+ * flags) and, from Part 5 on, the audit writer and remote sign-out.
  */
 import { createClient } from "@supabase/supabase-js";
 

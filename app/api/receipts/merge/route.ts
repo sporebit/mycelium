@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { parseReceipt } from "@/lib/receipts/parse";
 import { RECEIPT_SELECT } from "@/lib/types/receipt";
 
 export const runtime = "nodejs";
 // Reparses the combined receipt inline, which is a multi-image vision call.
 export const maxDuration = 60;
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type ImageRow = {
   id: string;
@@ -34,9 +30,6 @@ type ImageRow = {
  * them across unchanged would leave several rows claiming to be page one.
  */
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   let body: { ids?: unknown };
   try {
     body = (await req.json()) as { ids?: unknown };
@@ -55,15 +48,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
-    // Ownership is checked by filtering on user_id and requiring every id back:
-    // a merge that silently skipped a receipt belonging to someone else would
+    // RLS hides any receipt the caller cannot reach, so every id must come
+    // back: a merge that silently skipped a receipt it could not see would
     // delete the wrong set.
     const { data: owned, error: ownErr } = await supabase
       .from("receipts")
       .select("id, created_at")
-      .eq("user_id", uid)
       .in("id", ids)
       .order("created_at", { ascending: true });
 
@@ -118,7 +110,6 @@ export async function POST(req: NextRequest) {
     const { error: delErr } = await supabase
       .from("receipts")
       .delete()
-      .eq("user_id", uid)
       .in("id", dropIds);
 
     if (delErr) return NextResponse.json({ error: delErr.message }, { status: 500 });

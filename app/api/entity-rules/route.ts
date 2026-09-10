@@ -1,25 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 const SELECT =
-  "id, user_id, entity_type, review_new, review_low_confidence, auto_create_threshold, created_at";
+  "id, entity_type, review_new, review_low_confidence, auto_create_threshold, created_at";
 const TYPES = new Set(["person", "project", "workout", "food"]);
 
 export async function GET() {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("entity_review_rules")
       .select(SELECT)
-      .eq("user_id", uid)
       .order("entity_type", { ascending: true });
     if (error) throw error;
     return NextResponse.json({ rules: data ?? [] });
@@ -37,8 +30,6 @@ type PatchBody = {
 };
 
 export async function PATCH(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   let body: PatchBody;
   try {
     body = (await req.json()) as PatchBody;
@@ -63,17 +54,15 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "no fields" }, { status: 400 });
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     // Upsert to handle the case where the seed never ran for this user.
     const { data, error } = await supabase
       .from("entity_review_rules")
       .upsert(
-        {
-          user_id: uid,
-          entity_type: body.entity_type,
+        { entity_type: body.entity_type,
           ...update,
         },
-        { onConflict: "user_id,entity_type" },
+        { onConflict: "space_id,entity_type" },
       )
       .select(SELECT)
       .single();

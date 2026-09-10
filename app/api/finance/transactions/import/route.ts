@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   type CsvBankParser,
   type NormalizedTxn,
@@ -22,10 +22,6 @@ export const maxDuration = 60;
 const PARSERS: CsvBankParser[] = [halifaxParser, revolutParser, amexParser];
 
 const EXCEL_EXTENSIONS = new Set([".xlsx", ".xls"]);
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 function isExcel(name: string): boolean {
   const dot = name.lastIndexOf(".");
@@ -75,11 +71,6 @@ async function excelToCsv(buffer: ArrayBuffer): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   let form: FormData;
   try {
     form = await req.formData();
@@ -95,7 +86,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No files uploaded" }, { status: 400 });
   }
 
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const results: ImportResult[] = [];
 
   for (const entry of files) {
@@ -148,7 +139,7 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      const persisted = await persistPayPalImport(supabase, uid, pp);
+      const persisted = await persistPayPalImport(supabase, pp);
       results.push({
         file: fileName,
         imported: persisted.imported,
@@ -194,7 +185,7 @@ export async function POST(req: NextRequest) {
     const accountIdMap = new Map<string, string>();
 
     for (const [extKey, desc] of parsed.accounts) {
-      const id = await findOrCreateAccount(supabase, uid, desc);
+      const id = await findOrCreateAccount(supabase, desc);
       if (id) {
         accountIdMap.set(extKey, id);
       } else {
@@ -209,7 +200,6 @@ export async function POST(req: NextRequest) {
     const insertRows = parsed.txns
       .filter((t) => accountIdMap.has(t.account_key))
       .map((t: NormalizedTxn) => ({
-        user_id: uid,
         account_id: accountIdMap.get(t.account_key)!,
         txn_date: t.txn_date,
         txn_type: normaliseTxnType(t.txn_type, t.debit, t.credit),
@@ -260,7 +250,7 @@ export async function POST(req: NextRequest) {
   // Run PayPal matcher after all imports (resolves pending payments against new statements)
   let match_result: MatchRunResult | null = null;
   try {
-    match_result = await runPayPalMatcher(supabase, uid);
+    match_result = await runPayPalMatcher(supabase);
   } catch (err) {
     console.error("[import] PayPal matcher error:", err);
   }

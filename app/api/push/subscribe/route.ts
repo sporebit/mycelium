@@ -1,19 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { upsertSubscription } from "@/lib/push";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   let body: { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
   try {
     body = await req.json();
@@ -29,8 +20,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const supabase = createServerClient();
-  const result = await upsertSubscription(supabase, uid, {
+  const supabase = await createUserClient();
+  const result = await upsertSubscription(supabase, {
     endpoint,
     p256dh: keys.p256dh,
     auth: keys.auth,

@@ -1,28 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { MEDIA_TYPES, MEDIA_STATUSES, type MediaType, type MediaStatus } from "@/lib/types/media";
 import { lookupStreaming } from "@/lib/media/streaming";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   const url = new URL(req.url);
   const mediaType = url.searchParams.get("media_type") as MediaType | null;
   const status = url.searchParams.get("status") as MediaStatus | null;
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("media_items")
       .select("*")
-      .eq("user_id", uid)
       .order("created_at", { ascending: false });
 
     if (mediaType && MEDIA_TYPES.includes(mediaType)) {
@@ -52,9 +44,6 @@ type CreateBody = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   let body: CreateBody;
   try {
     body = (await req.json()) as CreateBody;
@@ -71,11 +60,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("media_items")
       .insert({
-        user_id: uid,
         title,
         creator: body.creator?.trim() || null,
         media_type: mediaType,

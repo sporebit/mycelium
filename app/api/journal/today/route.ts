@@ -1,22 +1,17 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { localDateKey } from "@/lib/util/date";
 import { JOURNAL_SELECT, type JournalEntry } from "@/lib/journal/types";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const today = localDateKey();
     const { data, error } = await supabase
       .from("journal_entries")
       .select(JOURNAL_SELECT)
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .eq("entry_date", today)
       .order("created_at", { ascending: true });

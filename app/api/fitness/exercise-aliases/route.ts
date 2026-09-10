@@ -1,24 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   const name = req.nextUrl.searchParams.get("name")?.trim();
   if (!name) return NextResponse.json({ aliases: [] });
 
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data, error } = await supabase
     .from("exercise_aliases")
     .select("id, canonical_name, alias, created_at")
-    .eq("user_id", uid)
     .ilike("canonical_name", name)
     .order("alias", { ascending: true });
 
@@ -30,9 +22,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   const body = await req.json();
   const canonical = (body.canonical_name as string)?.trim();
   const alias = (body.alias as string)?.trim();
@@ -40,10 +29,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "canonical_name and alias required" }, { status: 400 });
   }
 
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data, error } = await supabase
     .from("exercise_aliases")
-    .insert({ user_id: uid, canonical_name: canonical, alias })
+    .insert({ canonical_name: canonical, alias })
     .select("id, canonical_name, alias, created_at")
     .single();
 

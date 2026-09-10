@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import type { ExercisePainLog } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
 const LOG_FIELDS =
-  "id, user_id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
+  "id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at";
 
 /**
  * GET /api/fitness/sessions/[id]/pain-logs — all pain logs for a
@@ -24,20 +20,16 @@ export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     // Ownership check.
     const { data: session } = await supabase
       .from("workout_sessions")
-      .select("id, user_id")
+      .select("id")
       .eq("id", id)
       .maybeSingle();
-    if (!session || session.user_id !== uid) {
+    if (!session) {
       return NextResponse.json({ pain_logs: [] });
     }
     const { data: logs } = await supabase

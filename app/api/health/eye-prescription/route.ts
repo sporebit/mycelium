@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("eye_prescriptions")
       .select("*")
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "eyes array required" }, { status: 400 });
     }
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const inserts = rows.map((r) => ({
       prescribed_at: r.prescribed_at,
       optician: r.optician || null,

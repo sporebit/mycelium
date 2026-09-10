@@ -1,28 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid)
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   const url = new URL(req.url);
   const view = url.searchParams.get("view");
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     if (view === "history") {
       const { data, error } = await supabase
         .from("pc_components")
         .select("*")
-        .eq("user_id", uid)
         .not("date_removed", "is", null)
         .order("date_removed", { ascending: false });
       if (error) throw error;
@@ -33,7 +24,6 @@ export async function GET(req: NextRequest) {
     const { data, error } = await supabase
       .from("pc_components")
       .select("*")
-      .eq("user_id", uid)
       .is("date_removed", null)
       .order("category")
       .order("name");
@@ -57,10 +47,6 @@ type CreatePayload = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid)
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   let body: CreatePayload;
   try {
     body = (await req.json()) as CreatePayload;
@@ -76,11 +62,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("pc_components")
       .insert({
-        user_id: uid,
         category: body.category.trim(),
         name: body.name.trim(),
         brand: body.brand?.trim() || null,

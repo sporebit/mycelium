@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 /**
  * Private Supabase Storage bucket holding receipt source images.
@@ -32,7 +32,7 @@ export async function uploadReceiptImage(
   mediaType: string,
   sortOrder: number,
 ): Promise<string> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const suffix = Math.random().toString(36).slice(2, 10);
   const path = `${receiptId}/${sortOrder}-${suffix}.${extensionFor(mediaType)}`;
 
@@ -54,7 +54,7 @@ export async function getSignedUrl(
   path: string,
   expiresIn: number = SIGNED_URL_TTL,
 ): Promise<string | null> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data, error } = await supabase.storage
     .from(RECEIPTS_BUCKET)
     .createSignedUrl(path, expiresIn);
@@ -69,7 +69,7 @@ export async function getSignedUrl(
 /** Removes stored images. Called when a receipt is deleted. */
 export async function removeReceiptImages(paths: string[]): Promise<void> {
   if (paths.length === 0) return;
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { error } = await supabase.storage.from(RECEIPTS_BUCKET).remove(paths);
   if (error) {
     console.error("[storage/receipts] remove failed:", error.message);
@@ -78,7 +78,7 @@ export async function removeReceiptImages(paths: string[]): Promise<void> {
 
 /** Downloads a stored image back into a Buffer, for re-parsing. */
 export async function downloadReceiptImage(path: string): Promise<Buffer | null> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data, error } = await supabase.storage
     .from(RECEIPTS_BUCKET)
     .download(path);

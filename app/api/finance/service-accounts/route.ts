@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
@@ -15,16 +15,9 @@ const CATEGORIES = [
   "Other",
 ];
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET() {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("accounts")
       .select("*")
@@ -54,9 +47,6 @@ type CreateBody = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   let body: CreateBody;
   try {
     body = (await req.json()) as CreateBody;
@@ -72,7 +62,7 @@ export async function POST(req: NextRequest) {
   const cost_period = body.cost_period && PERIODS.includes(body.cost_period) ? body.cost_period : null;
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("accounts")
       .insert({

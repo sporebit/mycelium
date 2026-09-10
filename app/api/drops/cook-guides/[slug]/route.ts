@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
@@ -8,7 +8,7 @@ type Ctx = { params: Promise<{ slug: string }> };
 export async function GET(_req: NextRequest, ctx: Ctx) {
   try {
     const { slug } = await ctx.params;
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("cook_guides")
       .select("*")
@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   try {
     const { slug } = await ctx.params;
     const body = await req.json();
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("cook_guides")
       .update({
@@ -48,7 +48,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 export async function DELETE(_req: NextRequest, ctx: Ctx) {
   try {
     const { slug } = await ctx.params;
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { error } = await supabase.from("cook_guides").delete().eq("id", slug);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });

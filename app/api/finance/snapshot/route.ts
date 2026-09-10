@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createUserClient } from "@/lib/supabase/user";
+import { withUser } from "@/lib/system/withUser";
+import { getOwnProfile } from "@/lib/auth/session";
+import { boundUser } from "@/lib/system/bindings";
 import { fetchFinanceSheet, FinanceNotConfiguredError } from "@/lib/finance/fetchSheet";
 import { extractSnapshot } from "@/lib/finance/extractSnapshot";
 import {
@@ -12,10 +16,6 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const MANUAL_RATE_LIMIT_MS = 60_000;
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 function notConfigured() {
   return NextResponse.json(
@@ -30,18 +30,14 @@ function isCronRequest(req: NextRequest): boolean {
   return !!(auth && cronSecret && auth === `Bearer ${cronSecret}`);
 }
 
-async function runRefresh(source: "manual" | "cron") {
+async function runRefresh(
+  supabase: SupabaseClient,
+  source: "manual" | "cron",
+) {
   try {
-    const uid = userId();
-    if (!uid) {
-      return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-    }
-
-    const supabase = createServerClient();
-
     // Rate limit manual refreshes
     if (source === "manual") {
-      const latest = await getLatestSnapshot(supabase, uid);
+      const latest = await getLatestSnapshot(supabase);
       if (latest) {
         const age = Date.now() - new Date(latest.last_refreshed_at).getTime();
         if (age < MANUAL_RATE_LIMIT_MS) {
@@ -69,7 +65,7 @@ async function runRefresh(source: "manual" | "cron") {
       );
     }
 
-    const persisted = await persistSnapshot(supabase, uid, snapshot, source);
+    const persisted = await persistSnapshot(supabase, snapshot, source);
     return NextResponse.json(persisted);
   } catch (err) {
     if (err instanceof FinanceNotConfiguredError) return notConfigured();
@@ -83,17 +79,14 @@ export async function GET(req: NextRequest) {
 
   // Vercel cron sends GET with Bearer — trigger refresh on this path.
   if (isCronRequest(req)) {
-    return runRefresh("cron");
+    // CRON_SECRET names no user: act as the cron binding from configuration.
+    return withUser(boundUser("cron"), (db) => runRefresh(db, "cron"));
   }
 
   // Otherwise: pure read.
   try {
-    const uid = userId();
-    if (!uid) {
-      return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-    }
-    const supabase = createServerClient();
-    const latest = await getLatestSnapshot(supabase, uid);
+    const supabase = await createUserClient();
+    const latest = await getLatestSnapshot(supabase);
     if (!latest) {
       return NextResponse.json({
         snapshot: null,
@@ -123,5 +116,14 @@ export async function POST(req: NextRequest) {
   } catch {
     /* no body */
   }
-  return runRefresh(source);
+  if (isCronRequest(req)) {
+    return withUser(boundUser("cron"), (db) => runRefresh(db, source));
+  }
+  // The sheet is instance configuration (GOOGLE_SHEETS_FINANCE_ID — Phil's);
+  // only the instance owner may pull it into their space.
+  const profile = await getOwnProfile();
+  if (!profile?.is_instance_owner) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  return runRefresh(await createUserClient(), source);
 }

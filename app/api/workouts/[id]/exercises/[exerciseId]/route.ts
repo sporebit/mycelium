@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { WORKOUT_EX_SELECT } from "@/lib/fitness/workouts";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 const ALLOWED = new Set([
   "name",
@@ -20,15 +17,13 @@ const ALLOWED = new Set([
 ]);
 
 async function ensureOwned(
-  supabase: ReturnType<typeof createServerClient>,
-  workoutId: string,
-  uid: string,
+  supabase: SupabaseClient,
+  workoutId: string
 ): Promise<boolean> {
   const { data } = await supabase
     .from("workouts")
     .select("id")
     .eq("id", workoutId)
-    .eq("user_id", uid)
     .maybeSingle();
   return !!data?.id;
 }
@@ -37,8 +32,6 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string; exerciseId: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id, exerciseId } = await ctx.params;
   let body: Record<string, unknown>;
   try {
@@ -52,8 +45,8 @@ export async function PATCH(
     update[k] = v;
   }
   try {
-    const supabase = createServerClient();
-    if (!(await ensureOwned(supabase, id, uid))) {
+    const supabase = await createUserClient();
+    if (!(await ensureOwned(supabase, id))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     const { data, error } = await supabase
@@ -81,12 +74,10 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string; exerciseId: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id, exerciseId } = await ctx.params;
   try {
-    const supabase = createServerClient();
-    if (!(await ensureOwned(supabase, id, uid))) {
+    const supabase = await createUserClient();
+    if (!(await ensureOwned(supabase, id))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     const { error } = await supabase

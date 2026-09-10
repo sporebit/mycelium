@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import { localDateKey } from "@/lib/util/date";
 import { isBlocker, sortBlockers, toBlockerRow } from "@/lib/blockers";
@@ -9,20 +9,14 @@ export const runtime = "nodejs";
 const TOP_N = 5;
 
 export async function GET() {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   try {
     const tz = process.env.USER_TIMEZONE ?? "Europe/London";
     const todayKey = localDateKey(tz);
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("tasks")
       .select(TASK_SELECT)
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .is("completed_at", null);
 

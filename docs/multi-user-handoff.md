@@ -1,6 +1,6 @@
 # P12 multi-user — session handoff
 
-**Updated:** 10 September 2026, end of Part 2.
+**Updated:** 10 September 2026, end of Part 3.
 
 **Say "get started" and the next session should follow "First actions" at the
 bottom of this file.**
@@ -10,16 +10,17 @@ bottom of this file.**
 ## Where we are
 
 Branch `multi-user`, created from `b9892d1` on `main` (which carries
-migration `0101`). Parts 0, 1 and 2 are complete and pushed. Part 2's
-second verification (replay against the live dump) waits on Phil.
+migration `0101`). Parts 0–3 are complete and pushed. Part 2's second
+verification (replay against the live dump) waits on Phil.
 
 | Part | State |
 |---|---|
 | 0 — pre-flight | **Done.** `80d02a0` (drift fix), `d08869a` (pre-flight) |
 | 1 — identity | **Done.** Supabase Auth, profiles, middleware, break-glass. VERIFY 1: 59 automated checks green; Google untested (needs Phil's provider config) |
 | 2 — spaces + ownership | **Done**, migrations `0103`–`0109`. VERIFY 2 half 1 (from-empty replay + verifier): 0 failures. Half 2 (replay against the live `pg_dump`): **blocked on checklist §4** |
-| 3 — authorisation + client swap | Not started. Starts at migration **`0110_access.sql`** |
-| 4–6 | Not started |
+| 3 — authorisation + client swap | **Done**, migrations `0110`–`0111`, 277 files swapped, shim deleted. VERIFY 3: isolation test 0 leaks over 138 endpoints × 2 users and 85 tables; 15 policy tests |
+| 4 — teams, invites, grants UI | Not started. Starts at migration **`0112_teams_invites.sql`**; needs Resend (checklist §2) for the invite email, everything else can be built and tested locally |
+| 5–6 | Not started |
 | 7 — cutover | Separate session, Phil present, live DB |
 
 ---
@@ -34,22 +35,27 @@ short-lived HS256 JWT (`role: authenticated`, `sub: <userId>`) with
 `SUPABASE_JWT_SECRET`. Not the direct-Postgres fallback.
 
 **Migration numbering.** `main` carries up to `0101`. This branch: Part 1 =
-`0102`, Part 2 = `0103`–`0109`, Part 3 starts at `0110`. Renumber before
-merge if `main` moves.
+`0102`, Part 2 = `0103`–`0109`, Part 3 = `0110`–`0111`, Part 4 starts at
+`0112`. Renumber before merge if `main` moves.
 
 **Phil's auth uid is fixed, not generated:** `f218ed69-6cbf-49ea-908a-8826f2f1178a`.
 Defined once in SQL (`app.legacy_user_uid('phil')`, migration 0102) and
 mirrored in `lib/system/identity.ts`; `lib/system/identity.test.ts` proves
-the two agree. Part 2's backfill casts through the SQL function. Part 7 must
-create Phil's live auth user **with this id** (SQL insert into `auth.users`,
-same shape as `supabase/seed.sql`) before he first signs in, or the mapping
-breaks. If Phil signs up through the dashboard first, his uid will differ
-and both the function and the constant must be updated together.
+the two agree. Part 2's backfill casts through the SQL function. Part 7
+should insert Phil's live auth user **with this id and his real email**
+(SQL insert into `auth.users` + `auth.identities`, same shape as
+`supabase/seed.sql`) before `supabase db push`. If it is missing, `0103`
+creates it itself with the placeholder email `phil@mycelium.local` and no
+password (needed for the from-empty local replay, where migrations run
+before the seed); Phil then changes the email from the dashboard. If Phil
+signs up through the dashboard with a different uid first, the mapping
+breaks and both the function and the constant must be updated together.
 
 **Access-control tables carry no `space_id`.** `lib/access/registry.ts` has a
 fourth list, `ACCESS_TABLES` (now `profiles`, `spaces`, `entity_groups`,
-`teams`; `teams.space_id` is a reference to its own team space, which the
-verifier knows). Part 3 adds `team_members`, `team_member_sections`,
+`teams`, `team_members`, `team_member_sections`, `user_grants`;
+`teams.space_id` is a reference to its own team space, which the verifier
+knows). Part 3 added `team_members`, `team_member_sections`,
 `user_grants`; Part 4 `invites`; Part 5 `audit_events` and rate limits;
 Part 6 the rundown tables. Each carries hand-written policies in its own
 migration. The coverage test counts them and fails on anything unlisted.
@@ -59,6 +65,11 @@ migration. The coverage test counts them and fails on anything unlisted.
 any more). The route answers 404 while `BREAK_GLASS_ENABLED !== "true"`, the
 cookie lasts one hour, and it can never reach a sensitive route (`/admin`),
 because it has no second factor.
+
+**Owner-only sections: finance AND platform.** `OWNER_ONLY_SECTIONS` in the
+registry; policies use `space_id = app.personal_space()` and never the
+helper; `user_grants` refuses both by check constraint. See Part 3's
+decisions for why platform joined finance.
 
 **Middleware principal headers.** Route handlers learn who is calling from
 `x-principal` (`system` | `user` | `break_glass`), `x-principal-user` (uid)
@@ -198,14 +209,50 @@ future tables.
 - `teams` was created now, in Part 4's shape, because `spaces.team_id`
   needs something to reference.
 
-### The app is runtime-broken on this branch until Part 3 lands
+### (Historical) the app was runtime-broken between Parts 2 and 3
 
-Every `user_id` column is gone. The 255 call sites that still filter on
-`user_id` through the service-role shim will fail at runtime against the
-local stack. That is expected: Part 3 replaces them with the user-scoped
-client and RLS. Do not try to run the app against the local stack for
-feature checks between Parts 2 and 3; tests and migrations are the
-verification. `app/layout.tsx` (ui prefs by `USER_ID`) fails first.
+Every `user_id` column went in Part 2; Part 3 replaced all 255 call sites.
+The app runs against the local stack again — `npm run isolation-test`
+proves every API route as two users.
+
+---
+
+## What Part 3 built
+
+| Area | Content |
+|---|---|
+| `0110_access.sql` | `team_members` (one owner per team), `team_member_sections` (toggles that only narrow), `user_grants` (check: never finance, never platform), `app.role_allows()`, **`app.accessible_spaces(entity_group, verb)`** (STABLE, SECURITY DEFINER: own personal space ∪ team spaces by role and toggle ∪ grantors' personal spaces by active grant), `app.visible_spaces()`, policies on the access tables, `spaces`/`teams` select widened to visible spaces |
+| `0111_policies.sql` | Generated over `entity_groups`: drop deny-all, four permissive policies per table (`select`/`insert`/`update`/`delete` keyed on `accessible_spaces` with `view`/`create_delete`/`edit`/`create_delete`), owner-only shape `space_id = app.personal_space()` for **finance and platform**, `select/insert/update/delete` granted to `authenticated`, column defaults `space_id = app.personal_space()` and `created_by = auth.uid()`; the four SQL functions lose `p_user_id` and run as invoker; the Part 2 bridge is dropped; AI capture features default off for new users |
+| System helpers | `lib/system/jwt.ts` (HS256 mint, WebCrypto), `lib/system/withUser.ts` (`withUser(uid, fn)`, `clientForUser(uid)`), `lib/system/bindings.ts` (integration → user, all Phil today), `lib/system/admin.ts` (instance-owner feature flags via the fenced service client) |
+| Client | `createUserClient()` now honours the middleware principal: session cookies for `user`; a minted JWT for `system` + `x-principal-user` (API_SECRET) and `break_glass`. Routes need no per-route code for that. Public-prefix and cron routes use `withUser(boundUser(…))` explicitly |
+| The swap | 277 files rewritten by codemod, then finished by six agents: every `createServerClient()` gone, `lib/supabase/server.ts` **deleted**, ESLint fence has no exception left, every `user_id` filter/insert/select/`onConflict`/type/ownership-check removed. 0 references to `process.env.USER_ID` remain in app/lib |
+| Admin | `app/api/admin/users/[id]/features` GET/PATCH (instance owner, aal2 by middleware) |
+| Scripts | `scripts/isolation-test.ts` (`npm run isolation-test`), `lib/access/policies.test.ts`, `lib/system/jwt.test.ts` |
+
+### VERIFY 3 results
+
+- **Isolation test** (`next dev` + local stack, Phil vs a second user "Tess" with an empty space): **138 endpoints × 2 users. Leaks: 0 routes, 0 tables. Tess 5xx: 0. Phil 5xx: 0. Count mismatches: 0** over 85 registered tables (231 of Phil's rows visible to him through PostgREST = SQL count per table). Dynamic segments were filled with Phil's real ids; as Tess every such route answered 404 or an empty list. Three routes 500 for both users because their API keys are not set locally (`/api/google/auth`, `/api/spotify/authorize`, `/api/weather`) — classified ENV, not failures. GETs with side effects created rows in Tess's own space (`meal_groups` 4, `daily_logs` 3, `user_settings` 1); listed, not leaks.
+- **Policy unit tests** (`lib/access/policies.test.ts`, PostgREST with minted JWTs): 15 passing — personal (+/−), team by role (member edits, viewer read-only, no membership no access), team by toggle (view off hides, edit off is read-only, a toggle cannot widen a viewer, owner ignores toggles), direct grant (view exposes, missing verb denied, other group hidden, revoked/expired dead, empty group list = whole section), finance (own rows visible; team admin sees nothing; owner cannot write finance into a team space; a finance grant is refused by constraint).
+- Part 1 suites rerun on the swapped code: HTTP 33/33, browser 18/18.
+- `npm test` 117/117; `tsc` 0 errors; `eslint` clean; build clean. From-empty replay of `0001`–`0111` re-run at the end of the session.
+
+### Decisions taken in Part 3 that Phil should know about
+
+- **`platform` is owner-only like finance.** The prompt hard-excludes only finance. `user_settings` carries Google OAuth tokens and `push_subscriptions` are per device, so team or grant sharing of `platform.core` would have exposed credentials. `user_grants` refuses `platform` by constraint; policies use the personal-space shape. Widening it later is a one-line policy change.
+- **Column defaults instead of per-insert `space_id`.** `space_id default app.personal_space()` and `created_by default auth.uid()` on every registered table, so the hundreds of insert sites needed no change. Writing into a team space means setting `space_id` explicitly; nothing does yet (Part 4).
+- **`api_usage` does not exist.** `/api/other/api-usage` reads the Anthropic and OpenAI account usage APIs; there was nothing to add `user_id` to. The route is now instance-owner-only.
+- **Integrations with global credentials are instance-owner-only from a session**: `finance/paypal/sync` and `finance/snapshot` (Google Sheet). The isolation test found the PayPal sync importing Phil's payments into Tess's space before this fix. `health-import` GET now needs its secret like POST; `cron/drops-monitor` and `cron/google-sync` fail closed when `CRON_SECRET` is unset; `briefings/morning` accepts only the cron principal or the instance owner; the calendar cache is keyed per user.
+- Where a route still needs the caller's uid for something real (task `owner` default, the capture-rules cache key), it reads `x-principal-user` from the middleware, which works for sessions, API_SECRET and break-glass alike.
+- A CRON_SECRET bearer on a non-cron route now yields a principal with no user; such a route gets no rows (and `/api/settings` 500s on its auto-insert). Cron only ever calls cron routes, so this is left as is.
+
+### Debt for later parts
+
+- `foods` upserts target partial unique indexes (`WHERE off_id IS NOT NULL`) which PostgREST's `on_conflict` cannot name; the barcode path may fail at runtime. Pre-existing; check when nutrition is next touched.
+- `app/api/settings` GET seeds `display_name: "Phil"` for any new user; Part 4's onboarding should set the real name.
+- `app/api/agents/[agentId]` calls `txn_agg` with only two of six defaulted arguments; if PostgREST refuses, spend shows "unknown" (it is inside a try/catch).
+- `app/api/capture-audio` constructs the client five times per request; hoist.
+- `lib/router/rules.ts` still caches per user id supplied by the caller; fine, but the Telegram path supplies the bound uid.
+- **Part 4** adds `invites` to `ACCESS_TABLES`; **Part 5** replaces `recordBreakGlassUse`, adds re-auth, remote sign-out (same `my_sessions` shape), audit writer, and should audit the admin feature-flag endpoint.
 
 ---
 
@@ -226,7 +273,9 @@ verification. `app/layout.tsx` (ui prefs by `USER_ID`) fails first.
   (it points at the hosted project). Export overrides in the shell from
   `supabase status -o env` — `NEXT_PUBLIC_SUPABASE_URL=$API_URL`,
   `NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY`,
-  `SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY`, plus
+  `SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY`,
+  **`SUPABASE_JWT_SECRET=$JWT_SECRET`** (from Part 3 on: withUser and the
+  API_SECRET/break-glass principals mint tokens with it), plus
   `BREAK_GLASS_ENABLED` / `BREAK_GLASS_SECRET` as needed — then
   `npx next dev`. Shell env wins over `.env.local`. `.env.local` still
   lacks `BREAK_GLASS_*` and `SUPABASE_JWT_SECRET` (checklist §3).
@@ -267,30 +316,27 @@ One-word answer needed before Part 2 adds `space_id` to it.
 
 ## First actions on "get started"
 
-1. `git checkout multi-user`; `git log -6` should show the Part 2 commit on
-   top of Part 1.
+1. `git checkout multi-user`; `git log -7` should show the Part 3 commit on
+   top of Part 2.
 2. Launch Docker Desktop if `docker info` fails, then `supabase start`.
-   `npm test` must pass (stack up, chain at `0109`, Phil seeded with a
-   personal space). If the chain is behind, `supabase migration up --local`.
-3. If Phil has supplied the live dump (checklist §4): restore it into a
-   fresh local database at chain position `0101`, apply `0102`–`0109`
-   (`0103` needs Phil's auth user inserted first — `supabase/seed.sql`
-   shape), run `npm run verify:ownership -- snapshot` before and
-   `verify` after. Paste the output into the handoff. Any STOP is Phil's
-   call. Keep the dump outside the repo.
-4. Read Part 3 in `MYCELIUM_ALL_PROMPTS.md`. Start at `0110_access.sql`
-   (`team_members`, `team_member_sections`, `user_grants` with the finance
-   check, `app.accessible_spaces(group, verb)`), then `0111_policies.sql`
-   generated over `entity_groups` (four permissive policies per non-finance
-   table, `space_id = app.personal_space()` for finance, drop each
-   deny-all). Add the new tables to `ACCESS_TABLES`. Rewrite the four
-   bridged SQL functions to `auth.uid()`; drop `app.personal_space_for_legacy`.
-5. Then the client swap: every `createServerClient()` outside `lib/system`
-   → `createUserClient()`; system routes → `lib/system/withUser(userId, fn)`
-   minting an HS256 JWT with `SUPABASE_JWT_SECRET` (locally: the stack's
-   `JWT_SECRET` from `supabase status -o env`). Delete the shim and its
-   ESLint exception. Note there is **no `api_usage` table**; decide what
-   "api_usage gains user_id" means before writing it.
-6. VERIFY 3 (the isolation test) needs a second local user: create one
-   through GoTrue's admin API or a second seed row; its profile and
-   personal space come from the triggers.
+   `npm test` must pass (stack up, chain at `0111`, Phil seeded). Then start
+   `next dev` with the env overrides above and run `npm run isolation-test`;
+   it must end with 0 leaks. That is the regression gate for every later
+   Part.
+3. If Phil has supplied the live dump (checklist §4): the Part 2 replay
+   against it is still owed (handoff, Part 2 section).
+4. Read Part 4 in `MYCELIUM_ALL_PROMPTS.md`. Start at
+   `0112_teams_invites.sql`: `teams` already exists (Part 2 scaffold, Part
+   4's shape) — add what is missing; `invites` (token sha256 only, 7-day
+   expiry, single use). Add `invites` to `ACCESS_TABLES`. Membership writes
+   go through `lib/system` helpers that check the actor's role (the access
+   tables are read-only for `authenticated`). The team space is created
+   like the policies test does it: `spaces(kind='team', team_id)` then
+   `teams.space_id`.
+5. UI under Settings → "People & teams" with the v2 primitives; onboarding
+   at `/invite/[token]` (add the prefix to `PUBLIC_PREFIXES`); invite email
+   via Resend needs `RESEND_API_KEY` (checklist §2) — build it so the
+   local run logs the link instead when the key is absent. New users:
+   `ui_prefs.hidden_sections` seeded, AI features already default off.
+6. VERIFY 4's matrices can extend `lib/access/policies.test.ts` (it already
+   has the team, roles, toggles and grants fixtures).

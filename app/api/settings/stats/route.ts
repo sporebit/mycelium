@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
@@ -15,7 +15,7 @@ const TABLES = [
 
 export async function GET() {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const stats: Record<string, { label: string; count: number }> = {};
 
     await Promise.all(

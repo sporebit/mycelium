@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
@@ -14,7 +14,7 @@ export async function POST(
       return NextResponse.json({ error: "name required" }, { status: 400 });
     }
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: list, error: fetchErr } = await supabase
       .from("shopping_lists")
       .select("items")
