@@ -50,9 +50,10 @@ const PLACEHOLDER_ROWS: Record<string, string> = {
 
 /**
  * Access tables whose space_id is a reference, not ownership: a team points
- * at its own team space. Everything else in ACCESS_TABLES must have none.
+ * at its own team space; an audit event names the space it concerns (0113).
+ * Everything else in ACCESS_TABLES must have none.
  */
-const ACCESS_TABLES_WITH_SPACE_REF = new Set(["teams"]);
+const ACCESS_TABLES_WITH_SPACE_REF = new Set(["teams", "audit_events"]);
 
 function q(name: string): string {
   return `"${name.replace(/"/g, '""')}"`;
@@ -171,7 +172,11 @@ function verify(path: string): boolean {
     const cols = columnInfo(t);
     const problems: string[] = [];
     if (cols.has("space_id") && !ACCESS_TABLES_WITH_SPACE_REF.has(t)) problems.push("has space_id");
-    if (cols.has("user_id")) problems.push("has user_id");
+    // The legacy ownership column was text; a uuid user_id on an access table
+    // (memberships, MFA failures, rundown subscriptions) references auth.users
+    // by design and is not adoption debt.
+    const userId = cols.get("user_id");
+    if (userId && userId.type !== "uuid") problems.push(`has user_id (${userId.type})`);
     const b = before[t];
     const a = Number(scalar(`select count(*) from public.${q(t)}`));
     // profiles/spaces gain rows during adoption (Phil's space); others must not change.
