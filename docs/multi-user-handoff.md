@@ -18,7 +18,7 @@ configuration (§1–§3), a Vercel preview of the branch, and Part 7.
 |---|---|
 | 0 — pre-flight | **Done.** `80d02a0` (drift fix), `d08869a` (pre-flight) |
 | 1 — identity | **Done.** Supabase Auth, profiles, middleware, break-glass. VERIFY 1: 59 automated checks green; Google untested (needs Phil's provider config) |
-| 2 — spaces + ownership | **Done**, migrations `0103`–`0109`. VERIFY 2 half 1 (from-empty replay + verifier): 0 failures. Half 2 (replay against the live `pg_dump`): **blocked on checklist §4** |
+| 2 — spaces + ownership | **Done**, migrations `0103`–`0109`. VERIFY 2 half 1 (from-empty replay + verifier): 0 failures. Half 2 (replay against the live `pg_dump`): **done 2026-09-11**, 0 failures, no unmappable `user_id` |
 | 3 — authorisation + client swap | **Done**, migrations `0110`–`0111`, 277 files swapped, shim deleted. VERIFY 3: isolation test 0 leaks over 138 endpoints × 2 users and 85 tables; 15 policy tests |
 | 4 — teams, invites, grants UI | **Done**, migration `0112`. VERIFY 4: 27 matrix/flow tests, 15 browser checks, isolation gate clean. Invite email needs Resend (checklist §2); locally the link is shown instead |
 | 5 — security operations + admin | **Done**, migrations `0113`–`0114`. VERIFY 5: 9 database/static tests, 31 + 1 HTTP checks (incl. break-glass audit), isolation gate clean |
@@ -35,6 +35,14 @@ needed from Part 1 on (GoTrue, Kong, Mailpit), not just the database.
 **JWT: the legacy HS256 secret exists.** Part 3's `withUser()` mints a
 short-lived HS256 JWT (`role: authenticated`, `sub: <userId>`) with
 `SUPABASE_JWT_SECRET`. Not the direct-Postgres fallback.
+
+**Never rotate or migrate the legacy JWT secret.** Supabase's asymmetric
+signing keys expose no private key, so once the project is migrated to them
+nothing can mint the tokens `withUser()` depends on and every system route
+(cron, Telegram, health-import, pc-metrics) stops running as a user. Read
+it (Project Settings → JWT Keys → Legacy → Reveal), never Rotate, never
+Migrate. The Management API does not expose it either, so any new project
+(staging, a rollback target) needs one manual Reveal → Vercel paste.
 
 **Migration numbering.** `main` carries up to `0101`. This branch: Part 1 =
 `0102`, Part 2 = `0103`–`0109`, Part 3 = `0110`–`0111`, Part 4 = `0112`,
@@ -205,9 +213,26 @@ future tables.
   (deny-all until Part 3), `profiles` own row. As anon: everything denied.
 - `npm test` 100/100 (registry coverage with the new access tables,
   entity_groups = registry, identity mapping). Build clean.
-- **Replay against the live dump: NOT DONE.** Needs checklist §4. This is
-  the run that would surface real unmappable `user_id` values; the seed
-  data had only `phil` and one `default`.
+- **Replay against the live dump: DONE 2026-09-11** (Claude Code, local
+  stack). Dump `A:\Backups\mycelium\2026-09-11\` (91 tables, 4,970 rows,
+  row-for-row equal to live through PostgREST) restored into a fresh local
+  stack with the migration files held aside, history repaired to 0101,
+  Phil's auth user inserted with the fixed uid exactly as Part 7 step 4.3
+  will, 0102 applied, snapshot, 0103–0115 applied: exit 0, no STOP.
+  Verifier: **0 failures over 85 registered tables**, counts preserved
+  (tasks 87, raw_captures 185, workout_sessions 38), profile promoted to
+  instance owner with a personal space. Every `user_id` in the live data
+  is `phil` (3,913 rows); the one `default` row in `user_settings` was
+  the untouched placeholder and 0104 removed it. The verifier itself
+  needed a fix first: its access-table rule (Part 2) flagged the `uuid`
+  `user_id` columns Parts 4–6 added and `audit_events.space_id`; it now
+  keys on the column type and lists `audit_events` as a space reference.
+  Same-day regression gate on that restored data: `npm test` 156/156,
+  isolation test 0 leaks (152 endpoints × 2 users, 105 tables), 0 count
+  mismatches, 0 5xx as Tess; 4 5xx as Phil in `/api/google/sync` and the
+  three `/api/spotify/*` read routes, because the real data carries live
+  OAuth tokens and the local shell has no `GOOGLE_CLIENT_*` /
+  `SPOTIFY_CLIENT_*` (they exist on Vercel) — environment, not P12.
 
 ### Decisions taken in Part 2 that Phil should know about
 
@@ -416,6 +441,21 @@ proves every API route as two users.
   scratchpad; a reusable `scripts/verify-identity.mjs` would be worth
   adding before Part 7 so the same checks run against a Vercel preview.
 - `graphify` is not on PATH; use `npx --no-install graphify update .`.
+- **Port 54322 "forbidden by its access permissions" on `supabase start`**
+  (seen 2026-09-11 right after `supabase stop`): Windows had put
+  54233–54332 into a Hyper-V dynamic reservation. Fix, from an admin shell:
+  `net stop winnat`, `net start winnat`, then
+  `netsh int ipv4 add excludedportrange protocol=tcp startport=54321 numberofports=12`
+  so the stack's ports are reserved for it permanently (that entry is now
+  in place). The other project's stack (`PhirstMaxxing`, ports 553xx) is
+  unaffected.
+- **Vercel CLI** (`npm i -g vercel`, 59.x) is logged in on this PC as
+  `sporebit`; team slug `sporebit-s-projects`, project `mycelium`,
+  `.vercel/repo.json` links the repo. The team is on **Pro** (hourly cron
+  allowed). `vercel env ls` shows Production + Preview targets only — no
+  Development values exist.
+- `supabase storage cp -r` is unsupported in CLI 2.116; use the Storage
+  API (see the rollback doc §1.3).
 - `next dev` and `next build` both write `.next`; stop dev before the
   build gate. The clean build takes ~5 minutes.
 - `lib/access/introspect.ts` shells into the `supabase_db_Mycelium`
@@ -452,13 +492,15 @@ or maintenance on the branch. For either:
    `next dev` with the env overrides above (including
    `SUPABASE_JWT_SECRET=$JWT_SECRET`) and run `npm run isolation-test`;
    it must end with 0 leaks. That is the regression gate.
-3. Still owed to Phil, and only Phil can do them: checklist §1 (auth
-   providers, redirect URL, magic-link template), §2 (Resend + DNS), §3
-   (env vars: `SUPABASE_JWT_SECRET`, `BREAK_GLASS_SECRET`,
-   `BREAK_GLASS_ENABLED=false`, `RESEND_API_KEY`), §4 (the pg_dump and the
-   Part 2 replay against it), a Vercel preview deploy of the branch, and
-   the hourly cron entry for `/api/cron/rundowns` in `vercel.json` (added
-   on the branch; confirm Vercel's plan allows hourly).
+3. The cutover run-book (the "Mycelium Cutover" checklist page, v3) now
+   drives Part 7: Claude Code runs every step with an API or CLI once Phil
+   mints the tokens in its step 0.4. Done without tokens on 2026-09-11:
+   checklist §4 (dump + replay), §4b (plan is Pro), and the run-book's
+   4.2 gate on the restored data (tests, isolation, clean build,
+   `db push --dry-run` = exactly 0102–0115). Still needing tokens or
+   Phil: §1 (auth config — one Management API call), §2 (Resend + IONOS
+   DNS), §3 (env vars), the Google OAuth client, the staging rehearsal if
+   chosen, and the gate itself.
 4. Part 7 (cutover) is a separate session with Phil present: renumber if
    `main` moved; merge; insert Phil's live auth user with the fixed id and
    his real email BEFORE `supabase db push`; push; `supabase migration

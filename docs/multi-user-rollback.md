@@ -22,6 +22,13 @@ commit message, or a chat.
 The dump lives **outside the repository**. Suggested location:
 `A:\Backups\mycelium\<YYYY-MM-DD>\`. It is never committed.
 
+Sections 2–4 need no dashboard: with a Supabase personal access token they
+run through the Management API and the CLI (create project, enable
+extensions, query, link), which is exactly what the cutover run-book's
+step 3.2 does as a rehearsal. Everything below was exercised on 2026-09-11
+by restoring the live dump into the local stack; the notes marked
+**verified** come from that run.
+
 There is no `psql` on the PC. Every `psql` below runs inside the local
 stack's database container, which has network access to Supabase:
 
@@ -43,14 +50,39 @@ be running.
 ```
 supabase db dump --linked --role-only -f A:\Backups\mycelium\<date>\roles.sql
 supabase db dump --linked             -f A:\Backups\mycelium\<date>\schema.sql
-supabase db dump --linked --data-only -f A:\Backups\mycelium\<date>\data.sql
+supabase db dump --linked --data-only --use-copy -x "storage.buckets_vectors" -x "storage.vector_indexes" -f A:\Backups\mycelium\<date>\data.sql
 ```
+
+`--use-copy` and the two exclusions are from Supabase's own backup guide;
+without them the data file is INSERT statements and the restore is slow.
+
+**Verified 2026-09-11 — what the files do and do not carry:**
+
+- `schema.sql` holds the `public` schema only (91 tables, policies,
+  functions, extensions). It does **not** carry
+  `supabase_migrations.schema_migrations`, so step 4's `migration repair`
+  is always needed after a restore, not only "if Remote is empty".
+- `data.sql` carries COPY blocks for `auth.*` (empty before cutover) and
+  `storage.*` (the bucket rows) as well as `public`. Restored into a
+  project running a different GoTrue or storage-api version, one of those
+  blocks fails on a column that does not exist there and the single
+  transaction rolls back. Filter the file to the `public` blocks first
+  (keep each `COPY "public".…` block through its `\.` terminator, drop
+  the others) and load `storage` in its own transaction, tolerating
+  failure. Auth users are re-created from the seed anyway.
+- The `cron` schema is not dumped; the two jobs are re-scheduled in step 3.
+
 
 Then:
 
-1. Note the byte size of `data.sql` and compare it with Dashboard → Project
-   Settings → Database → *Database size*. A dump under half the reported
-   size is incomplete: stop and investigate before proceeding.
+1. Prove the dump is complete by **row counts**, not by size: count the rows
+   in each `COPY "public"…` block of `data.sql` and compare them with live
+   through PostgREST (`HEAD …/rest/v1/<table>?select=*` with
+   `Prefer: count=exact` and the service-role key). Every table must match.
+   The size rule ("data.sql at least half of Database size") is wrong for a
+   database this small — on 2026-09-11 a complete dump was 2.7 MB against a
+   reported 23 MB, because table data was 1.9 MB and the rest was catalogs,
+   indexes and free space.
 2. Confirm the table count matches: `grep -c "CREATE TABLE" schema.sql`
    should print **91** at the 0101 baseline (the live project has 91 tables
    and 1 view; the count rises by the tables Parts 1–6 add once they have
@@ -62,10 +94,14 @@ Then:
    supabase storage cp -r ss:///receipts A:\Backups\mycelium\<date>\storage\receipts --linked --experimental
    ```
 
-   If that command is unavailable in the installed CLI version, download
-   the bucket from Dashboard → Storage → receipts before cutover, or accept
-   that a rollback loses receipt images (the parsed lines survive in
-   `receipt_lines`).
+   **Verified 2026-09-11: CLI 2.116 refuses this** with
+   `LegacyStorageUnsupportedOperationError`. Pull the objects through the
+   Storage API instead: `POST /storage/v1/object/list/receipts` to list
+   (recursing into prefixes, which come back with `id: null`), then
+   `GET /storage/v1/object/receipts/<path>` per object, both with the
+   service-role key. Three objects on that date. Or download from
+   Dashboard → Storage → receipts, or accept that a rollback loses receipt
+   images (the parsed lines survive in `receipt_lines`).
 
 ---
 
@@ -92,14 +128,21 @@ Then:
 
 ## 3. Restore
 
-Get the new project's **direct** connection string (Dashboard → Connect →
-Direct, not the pooler; the pooler rejects some restore statements). Put it
-in a shell variable for the session only; never write it to a file in the
-repo.
+Use the new project's **Session pooler** connection string (Dashboard →
+Connect → Session pooler: user `postgres.<new-ref>`, host
+`aws-0-<region>.pooler.supabase.com`, port **5432** — never the transaction
+pooler on 6543). The direct host is IPv6-only and usually unreachable from
+Docker Desktop; the session pooler is what Supabase's own backup guide
+restores through. Put the string in a shell variable for the session only;
+never write it to a file in the repo.
 
 ```
-NEW_DB="postgresql://postgres:<password>@db.<new-ref>.supabase.co:5432/postgres"
+NEW_DB="postgresql://postgres.<new-ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres"
 ```
+
+**Run the restore from Git Bash, not PowerShell.** PowerShell has no `<`
+redirection and re-encodes piped text; the `docker exec -i … < file` lines
+below only work in a POSIX shell.
 
 Restore all three files in one transaction, with triggers disabled during
 the data load so foreign keys do not fire out of order. This is the
@@ -165,12 +208,21 @@ supabase link --project-ref <new-ref>
 supabase migration list
 ```
 
-`migration list` must show every migration through the last one that was
-applied on the **old** project as present on Remote; the schema restore
-carries `supabase_migrations.schema_migrations` with it. If Remote is empty,
-the dump was taken without that schema: run
-`supabase migration repair --status applied <version>` for each version up
-to the last one that was live.
+Remote will be **empty**: the schema dump does not carry
+`supabase_migrations.schema_migrations` (verified 2026-09-11). Repair the
+history from the migration files, which respects the gap at `0019` — never
+type the range by hand:
+
+```
+supabase migration repair --status applied $(ls supabase/migrations | cut -d_ -f1 | awk '$1 <= "0101"')
+supabase migration list
+```
+
+Replace `0101` with the last version that was live on the old project. The
+command needs the migration files present in `supabase/migrations`; it
+refuses with `LegacyMigrationFileNotFoundError` otherwise. Then
+`migration list` must show that range on Remote and nothing pending that
+was already applied on the old project.
 
 ---
 

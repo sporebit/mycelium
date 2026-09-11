@@ -24,8 +24,11 @@ report, a commit message, or a chat.
 
 ## 1. Supabase Auth configuration — blocking for Part 1
 
-In the Supabase dashboard for the **Mycelium** project, Authentication →
-Providers and Settings:
+Every setting in this section is a field on one Management API object —
+`PATCH https://api.supabase.com/v1/projects/vokfwbkwuccikordcnxz/config/auth`
+with a personal access token — so Claude Code sets and verifies them in one
+call each (cutover run-book step 1.3). The dashboard paths below are the
+by-hand fallback: Authentication → Providers and Settings.
 
 - [ ] Enable **Email** provider, with **magic link** turned on.
 - [ ] Enable **password** sign-in (needed alongside TOTP for the owner roles).
@@ -35,16 +38,28 @@ Providers and Settings:
       (authorised redirect URI `https://<project>.supabase.co/auth/v1/callback`).
       Until this is done, Part 1's VERIFY reports Google sign-in as untested.
 - [ ] Turn on the **passkeys** experimental flag if it is available on the
-      project. Apple sign-in is deferred by decision and needs nothing.
-- [ ] Authentication → URL Configuration: set **Site URL** to the production
-      origin and add `https://<production-host>/api/auth/callback` (and the
-      Vercel preview pattern `https://*-<team>.vercel.app/api/auth/callback`)
-      to **Redirect URLs**. Every email link and the Google redirect land on
-      that route.
-- [ ] Authentication → Email Templates: change the **Magic Link** template's
-      link to
-      `{{ .SiteURL }}/api/auth/callback?token_hash={{ .TokenHash }}&type=magiclink`
-      (and the Invite template to the same with `type=invite`, for Part 4).
+      project, with relying-party ID `mycelium.sporebit.com` and origin
+      `https://mycelium.sporebit.com` (`webauthn_rp_id`, `webauthn_rp_origins`).
+      Passkeys cannot work on a `*.vercel.app` preview. Apple sign-in is
+      deferred by decision and needs nothing.
+- [ ] Authentication → URL Configuration: set **Site URL** to
+      `https://mycelium.sporebit.com` and add exactly two **Redirect URLs**:
+      `https://mycelium.sporebit.com/**` and
+      `https://*-sporebit-s-projects.vercel.app/**`. The `/**` form is
+      required: the callback carries `?next=…`, a single `*` stops at `.`
+      and `/`, and a redirect that fails the allow-list is silently replaced
+      by the Site URL. Every email link and the Google redirect land on
+      `/api/auth/callback`.
+- [ ] Authentication → Email Templates: change the link in all **five**
+      templates to the token-hash form, one `type` each —
+      Magic Link `{{ .SiteURL }}/api/auth/callback?token_hash={{ .TokenHash }}&type=magiclink`,
+      Confirm signup `…&type=signup`, Invite user `…&type=invite`,
+      Reset password `…&type=recovery`, Change email address
+      `…&type=email_change` (`app/api/auth/callback` accepts every OTP type,
+      and the invite page sends new users through the Confirm-signup path).
+      The token-hash form ignores `emailRedirectTo`, so every email sign-in
+      lands on `/`; an invitee who confirms by email opens the invite link
+      again to accept — that goes in the onboarding how-to.
       The default `{{ .ConfirmationURL }}` relies on a PKCE verifier cookie
       that only exists in the browser that requested the link, so a link
       opened on another device fails. The token-hash form works anywhere.
@@ -89,20 +104,39 @@ before.
 
 ## 4. Before Part 2 can be verified
 
-- [ ] Take a `pg_dump` of the live database and note the local file path.
+- [x] Take a `pg_dump` of the live database and note the local file path.
+      **Done 2026-09-11 by Claude Code:** `A:\Backups\mycelium\2026-09-11\`
+      (`roles.sql`, `schema.sql`, `data.sql` with `--use-copy`, and
+      `storage\receipts\` — 3 objects, pulled through the Storage API because
+      `supabase storage cp -r` is unsupported in CLI 2.116).
       Part 2's VERIFY replays the whole migration chain twice: once from empty,
       and once against a restore of this dump, which is the only way to prove
       the ownership backfill works on real data rather than on an empty schema.
-- [ ] Report the dump's size against what the dashboard claims the database
+- [x] Report the dump's size against what the dashboard claims the database
       holds. A large discrepancy means the dump is incomplete — stop and
       investigate rather than proceeding.
+      **2026-09-11:** `data.sql` is 2.7 MB against a reported 23 MB — the
+      half-size rule fails on a database this small (table data is 1.9 MB;
+      the rest is catalogs, indexes and free space). Completeness was proved
+      by row-count parity instead: every one of the 91 public tables matches
+      live through PostgREST, 4,970 rows in total.
+- [x] **VERIFY 2 half 2, 2026-09-11:** the dump restored into the local stack
+      at 0101, migrations 0102–0115 applied on top with exit 0 and no STOP,
+      `scripts/verify-ownership.ts` 0 failures over 85 registered tables,
+      row counts preserved (tasks 87, raw_captures 185, workout_sessions 38).
+      Every `user_id` value in the live data is `phil`; the single
+      `default` row in `user_settings` was the untouched 0075 placeholder
+      and 0104 removed it, as designed.
 - [ ] **Never commit the dump.** Keep it outside the repository.
 
 ## 4b. Rundowns (Part 6)
 
-- [ ] `vercel.json` on the branch now schedules `/api/cron/rundowns` hourly.
+- [x] `vercel.json` on the branch now schedules `/api/cron/rundowns` hourly.
       Confirm the Vercel plan allows an hourly cron (Hobby allows daily
       only; if so, change it to daily and set every team's hour to match).
+      **Confirmed 2026-09-11:** the team `sporebit-s-projects` that owns the
+      `mycelium` project is on **Pro**; the hourly entry stays. (Hobby would
+      fail the production deployment outright, not merely the schedule.)
 - [ ] Email delivery of rundowns needs §2 (Resend). Push needs the
       recipient to have enabled push in the app. Telegram goes to
       `TELEGRAM_USER_ID` and only for you.
@@ -110,6 +144,12 @@ before.
 ## 5. Before Part 7 (cutover)
 
 - [ ] Parts 0–6 verified on a Vercel preview deploy of the `multi-user` branch.
+      Only achievable with a **staging database**: every Vercel deployment
+      shares the live Supabase project, whose schema stops at 0101, so a
+      preview of the branch cannot get past `/login`. The cutover run-book's
+      Phase 3 restores the dump into a second Free-plan project and points the
+      Preview environment at it; on the direct route this box is a build
+      check only.
 - [ ] Every box above ticked.
 - [ ] The `pg_dump` from step 4 taken to the PC and kept until a week of normal
       use has passed after cutover.
