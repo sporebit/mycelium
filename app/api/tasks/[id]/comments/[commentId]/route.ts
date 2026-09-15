@@ -11,10 +11,10 @@ export async function DELETE(
   try {
     const supabase = await createUserClient();
     const { error } = await supabase
-      .from("task_comments")
+      .from("ticket_comments")
       .delete()
       .eq("id", commentId)
-      .eq("task_id", id);
+      .eq("ticket_id", id);
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err) {

@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
     const supabase = await createUserClient();
     const { data, error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select(`${TASK_SELECT}, space_id`)
       .is("deleted_at", null)
       .is("completed_at", null);

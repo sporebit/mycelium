@@ -54,7 +54,7 @@ export async function pushTaskToGoogle(
       const created = await createEvent(supabase, event);
       if (created?.id) {
         await supabase
-          .from("tasks")
+          .from("tickets")
           .update({ google_event_id: created.id })
           .eq("id", task.id);
       }
@@ -200,7 +200,7 @@ export async function pullFromGoogle(
 
     // Check tasks
     const { data: task } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select("id, scheduled_at")
       .eq("google_event_id", ge.id)
       .maybeSingle();
@@ -212,7 +212,7 @@ export async function pullFromGoogle(
       const incoming = new Date(gStart).toISOString();
       if (current !== incoming) {
         await supabase
-          .from("tasks")
+          .from("tickets")
           .update({ scheduled_at: incoming, updated_at: new Date().toISOString() })
           .eq("id", task.id);
         result.updated.push(`task: ${ge.summary ?? ge.id}`);

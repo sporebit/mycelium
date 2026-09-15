@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createUserClient();
     const { data, error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select(TASK_SELECT)
       .is("deleted_at", null)
       .is("completed_at", null)

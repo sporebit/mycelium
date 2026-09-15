@@ -595,7 +595,7 @@ async function handleCallback(
     }
     if (routedTo === "tasks") {
       await supabase
-        .from("tasks")
+        .from("tickets")
         .update({ urgency, updated_at: new Date().toISOString() })
         .eq("id", rowId);
     } else {
@@ -615,7 +615,7 @@ async function handleCallback(
   } else if (action === "k") {
     if (routedTo === "tasks") {
       await supabase
-        .from("tasks")
+        .from("tickets")
         .update({ key: true, updated_at: new Date().toISOString() })
         .eq("id", rowId);
     } else {

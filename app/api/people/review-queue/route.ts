@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
     }
     if (taskIds.length > 0) {
       const { data } = await supabase
-        .from("tasks")
+        .from("tickets")
         .select("id, title")
         .in("id", taskIds);
       for (const r of (data ?? []) as Array<{ id: string; title: string }>) {

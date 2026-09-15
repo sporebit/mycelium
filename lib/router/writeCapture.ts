@@ -79,7 +79,7 @@ export async function writeCapture(
 
   if (classification.kind === "task") {
     const { data: task, error: taskErr } = await supabase
-      .from("tasks")
+      .from("tickets")
       .insert({ title: classification.title,
         description: classification.summary,
         urgency: classification.urgency,

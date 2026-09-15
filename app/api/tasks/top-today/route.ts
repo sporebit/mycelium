@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
     const { data, error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select("id, title, time_estimate_min, entity_id, space_id, entities(name)")
       .is("deleted_at", null)
       .eq("urgency", "today")

@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
 
     // Snapshot "before" so we can log activity rows for each changed task.
     const { data: beforeRows } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select(
         "id, status, urgency, due_date, project_id, tags, context_where, context_device, context_energy, context_tag",
       )
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { data, error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .update(patch)
       .is("deleted_at", null)
       .in("id", ids)

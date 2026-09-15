@@ -65,7 +65,7 @@ function todayEventsFromCal(
 
 async function fetchTopTasks(supabase: SupabaseClient): Promise<Task[]> {
   const { data, error } = await supabase
-    .from("tasks")
+    .from("tickets")
     .select(TASK_SELECT)
     .eq("urgency", "today")
     .eq("key", true)
@@ -86,7 +86,7 @@ async function fetchTopBlockers(
   dateKey: string
 ): Promise<BlockerRow[]> {
   const { data, error } = await supabase
-    .from("tasks")
+    .from("tickets")
     .select(TASK_SELECT)
     .is("completed_at", null);
   if (error) {

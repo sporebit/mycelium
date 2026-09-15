@@ -89,7 +89,7 @@ export async function migrateFromEntities(
   if (entityToPerson.size > 0) {
     const entityIds = Array.from(entityToPerson.keys());
     const { data: taskRows } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select("id, entity_id, entity_name")
       .in("entity_id", entityIds);
     type TaskRow = {

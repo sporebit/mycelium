@@ -162,7 +162,7 @@ async function createRoutedRow(
 
   if (kind === "task") {
     const { data, error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .insert({ title,
         description: summary,
         urgency,

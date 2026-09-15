@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     if (projects.length > 0) {
       const ids = projects.map((p) => p.id);
       const { data: taskRows } = await supabase
-        .from("tasks")
+        .from("tickets")
         .select("id, project_id")
         .is("deleted_at", null)
         .is("completed_at", null)

@@ -56,7 +56,7 @@ export async function suggestContext(
   // Pull recent tasks (cap to avoid scanning the whole history) with
   // any context set.
   const { data, error } = await supabase
-    .from("tasks")
+    .from("tickets")
     .select(
       "title, context_where, context_device, context_energy, context_tag",
     )

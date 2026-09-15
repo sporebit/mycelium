@@ -36,7 +36,7 @@ export async function GET(
     }
     const project = data as Project;
     const { count } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select("id", { count: "exact", head: true })
       .is("deleted_at", null)
       .eq("project_id", id)

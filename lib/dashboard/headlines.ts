@@ -144,7 +144,7 @@ export async function buildHeadlineContext(
     activePhase,
   ] = await Promise.all([
     supabase
-      .from("tasks")
+      .from("tickets")
       .select("id", { count: "exact", head: true })
       .eq("urgency", "today")
       .is("completed_at", null),

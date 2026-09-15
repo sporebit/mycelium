@@ -79,7 +79,7 @@ export async function GET(
   try {
     const supabase = await createUserClient();
     const { data: row, error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select(TASK_SELECT)
       .eq("id", id)
       .maybeSingle();
@@ -90,17 +90,17 @@ export async function GET(
 
     const [comments, activity, subRows, captures] = await Promise.all([
       supabase
-        .from("task_comments")
-        .select("id, task_id, body, created_at, updated_at")
-        .eq("task_id", id)
+        .from("ticket_comments")
+        .select("id, task_id:ticket_id, body, created_at, updated_at")
+        .eq("ticket_id", id)
         .order("created_at", { ascending: true }),
       supabase
-        .from("task_activity")
-        .select("id, task_id, action, field, from_value, to_value, created_at")
-        .eq("task_id", id)
+        .from("ticket_activity")
+        .select("id, task_id:ticket_id, action, field, from_value, to_value, created_at")
+        .eq("ticket_id", id)
         .order("created_at", { ascending: true }),
       supabase
-        .from("tasks")
+        .from("tickets")
         .select(TASK_SELECT)
         .is("deleted_at", null)
         .eq("parent_task_id", id)
@@ -187,7 +187,7 @@ export async function PATCH(
       }
       if (newParent !== null) {
         const { data: parent, error: parentErr } = await supabase
-          .from("tasks")
+          .from("tickets")
           .select("parent_task_id")
           .eq("id", newParent)
           .maybeSingle();
@@ -205,7 +205,7 @@ export async function PATCH(
         }
         // The task itself cannot be made a sub-task while it still has children.
         const { data: kids } = await supabase
-          .from("tasks")
+          .from("tickets")
           .select("id")
           .eq("parent_task_id", id)
           .limit(1);
@@ -223,7 +223,7 @@ export async function PATCH(
 
     // Capture "before" snapshot for activity logging.
     const { data: beforeRow } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select(
         "status, urgency, project_id, due_date, scheduled_at, time_estimate_min, key, owner, entity_id, title, description, parent_task_id, tags",
       )
@@ -231,7 +231,7 @@ export async function PATCH(
       .maybeSingle();
 
     const { data, error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .update(update)
       .eq("id", id)
       .select(TASK_SELECT)
@@ -303,14 +303,14 @@ export async function DELETE(
     const supabase = await createUserClient();
 
     const { data: existing } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select("google_event_id")
       .eq("id", id)
       .maybeSingle();
 
     // FK is ON DELETE CASCADE, so sub-tasks go with the parent automatically.
     const { error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .delete()
       .eq("id", id);
     if (error) throw error;

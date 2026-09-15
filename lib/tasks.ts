@@ -28,7 +28,7 @@ export async function fetchTaskById(
   taskId: string
 ): Promise<Task | null> {
   const { data, error } = await supabase
-    .from("tasks")
+    .from("tickets")
     .select(TASK_SELECT)
     .eq("id", taskId)
     .maybeSingle();
