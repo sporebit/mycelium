@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     }
     const { data, error } = await q;
     if (error) throw error;
-    auditListRead(req, data, "organisation", "tasks");
+    auditListRead(req, data, "organisation", "tickets");
     const projects = (data ?? []) as Project[];
 
     // Task counts per project (open tasks only)

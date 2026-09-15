@@ -12,7 +12,7 @@ const SECTION_DEFS: SectionDef[] = [
   {
     key: "organisation",
     tables: [
-      { table: "tasks", label: "Tasks", dateCol: "created_at" },
+      { table: "tickets", label: "Tickets", dateCol: "created_at" },
       { table: "compost_items", label: "Captures", dateCol: "created_at" },
       { table: "people", label: "People", dateCol: "created_at" },
     ],

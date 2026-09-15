@@ -7,7 +7,7 @@
 // "tasks", "raw_captures", "journal_entries". Notes / decisions / captures
 // all share the "raw_captures" route, so they share the 'r' code.
 export const ROUTE_CODE = {
-  tasks: "t",
+  tickets: "t",
   raw_captures: "r",
   journal_entries: "j",
 } as const;
@@ -15,7 +15,7 @@ export const ROUTE_CODE = {
 export type RoutedTo = keyof typeof ROUTE_CODE;
 
 export const ROUTE_FROM_CODE: Record<string, RoutedTo> = {
-  t: "tasks",
+  t: "tickets",
   r: "raw_captures",
   j: "journal_entries",
 };

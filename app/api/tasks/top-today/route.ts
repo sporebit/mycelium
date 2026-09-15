@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
       .limit(3);
 
     if (error) throw error;
-    auditListRead(req, data, "organisation", "tasks");
+    auditListRead(req, data, "organisation", "tickets");
 
     const tasks = ((data as TaskRow[] | null) ?? []).map((r) => {
       const ent = Array.isArray(r.entities) ? r.entities[0] : r.entities;

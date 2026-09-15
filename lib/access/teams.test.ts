@@ -78,7 +78,7 @@ function cleanup() {
   sql(`delete from public.invites where email in ('${TESS_EMAIL}', 'nobody@mycelium.local', 'uma@mycelium.local')`);
   const t = sql(`select id from public.teams where slug = '${SLUG}'`)[0]?.[0];
   if (t) {
-    sql(`delete from public.tasks where space_id = (select space_id from public.teams where id = '${t}')`);
+    sql(`delete from public.tickets where space_id = (select space_id from public.teams where id = '${t}')`);
     sql(`delete from public.workouts where space_id = (select space_id from public.teams where id = '${t}')`);
     sql(`delete from public.supplements where space_id = (select space_id from public.teams where id = '${t}')`);
     sql(`delete from public.team_members where team_id = '${t}'`);
@@ -86,7 +86,7 @@ function cleanup() {
     sql(`delete from public.spaces where team_id = '${t}'`);
     sql(`delete from public.teams where id = '${t}'`);
   }
-  sql(`delete from public.tasks where title like 'v4:%'`);
+  sql(`delete from public.tickets where title like 'v4:%'`);
   sql(`delete from public.workouts where name like 'v4:%'`);
   sql(`delete from public.supplements where name like 'v4:%'`);
   sql(`delete from public.user_settings where space_id = '${tessSpace()}'`);
@@ -215,7 +215,7 @@ describe("invites", () => {
 
 type Fixture = { table: string; section: string; make: (n: string) => Record<string, unknown>; patch: Record<string, unknown> };
 const FIXTURES: Fixture[] = [
-  { table: "tasks", section: "organisation", make: (n) => ({ title: n }), patch: { title: "v4: edited" } },
+  { table: "tickets", section: "organisation", make: (n) => ({ title: n }), patch: { title: "v4: edited" } },
   { table: "workouts", section: "fitness", make: (n) => ({ name: n }), patch: { name: "v4: edited" } },
   { table: "supplements", section: "health", make: (n) => ({ name: n, dose: "1" }), patch: { name: "v4: edited" } },
 ];
@@ -269,14 +269,14 @@ describe("role × section × verb matrix (team space)", () => {
     expect(ok(set), msg(set)).toBe(true);
     expect(await probe(TESS, FIXTURES[1], ids.workouts)).toEqual({ view: true, edit: false, create: false });
     // Other sections untouched.
-    expect(await probe(TESS, FIXTURES[0], ids.tasks)).toEqual({ view: true, edit: true, create: true });
+    expect(await probe(TESS, FIXTURES[0], ids.tickets)).toEqual({ view: true, edit: true, create: true });
 
     sql(`update public.team_members set role = 'viewer' where team_id = '${teamId}' and user_id = '${TESS}'`);
     await rpc(PHIL_AUTH_UID, "set_team_member_sections", {
       p_team: teamId, p_user: TESS, p_section: "organisation",
       p_can_view: true, p_can_edit: true, p_can_create_delete: true, p_can_share: true,
     });
-    expect(await probe(TESS, FIXTURES[0], ids.tasks)).toEqual({ view: true, edit: false, create: false });
+    expect(await probe(TESS, FIXTURES[0], ids.tickets)).toEqual({ view: true, edit: false, create: false });
     sql(`delete from public.team_member_sections where user_id = '${TESS}'`);
   });
 
@@ -294,11 +294,11 @@ describe("direct-grant matrix (personal space)", () => {
   let philTask = "";
   beforeAll(async () => {
     sql(`delete from public.team_members where team_id = '${teamId}' and user_id = '${TESS}'`);
-    const r = await rest(PHIL_AUTH_UID, "POST", "tasks", { title: "v4: phil personal" });
+    const r = await rest(PHIL_AUTH_UID, "POST", "tickets", { title: "v4: phil personal" });
     philTask = String(rows(r)[0].id);
   });
 
-  async function grant(verbs: string[], groups: string[] = ["tasks"], section = "organisation") {
+  async function grant(verbs: string[], groups: string[] = ["tickets"], section = "organisation") {
     sql(`delete from public.user_grants where grantor_id = '${PHIL_AUTH_UID}'`);
     const g = await rpc(PHIL_AUTH_UID, "create_user_grant", {
       p_grantee: TESS, p_section: section, p_entity_groups: groups, p_verbs: verbs,
@@ -308,9 +308,9 @@ describe("direct-grant matrix (personal space)", () => {
   }
 
   async function personalProbe() {
-    const view = rows(await rest(TESS, "GET", `tasks?select=id&id=eq.${philTask}`)).length === 1;
-    const edit = rows(await rest(TESS, "PATCH", `tasks?id=eq.${philTask}`, { title: "v4: phil personal" })).length === 1;
-    const create = (await rest(TESS, "POST", "tasks", { title: "v4: by grant", space_id: philSpace() })).status === 201;
+    const view = rows(await rest(TESS, "GET", `tickets?select=id&id=eq.${philTask}`)).length === 1;
+    const edit = rows(await rest(TESS, "PATCH", `tickets?id=eq.${philTask}`, { title: "v4: phil personal" })).length === 1;
+    const create = (await rest(TESS, "POST", "tickets", { title: "v4: by grant", space_id: philSpace() })).status === 201;
     return { view, edit, create };
   }
 
@@ -368,7 +368,7 @@ describe("successor flow", () => {
     expect(sql(`select role from public.team_members where team_id = '${teamId}' and user_id = '${TESS}'`)[0][0]).toBe("owner");
     expect(sql(`select count(*) from public.team_members where team_id = '${teamId}' and user_id = '${PHIL_AUTH_UID}'`)[0][0]).toBe("0");
     // Contributions stayed: Phil's team rows still exist in the team space.
-    expect(Number(sql(`select count(*) from public.tasks where space_id = '${teamSpace}' and created_by = '${PHIL_AUTH_UID}'`)[0][0])).toBeGreaterThan(0);
+    expect(Number(sql(`select count(*) from public.tickets where space_id = '${teamSpace}' and created_by = '${PHIL_AUTH_UID}'`)[0][0])).toBeGreaterThan(0);
   });
 
   it("the new owner (Tess) now requires TOTP; a plain member does not", async () => {

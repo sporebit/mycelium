@@ -37,7 +37,7 @@ export const KIND_LABELS: Record<ConvertibleKind, string> = {
 export function kindTable(kind: ConvertibleKind): string {
   switch (kind) {
     case "task":
-      return "tasks";
+      return "tickets";
     case "purchase":
       return "purchases";
     case "journal":

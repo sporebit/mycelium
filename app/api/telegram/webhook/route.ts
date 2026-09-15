@@ -579,7 +579,7 @@ async function handleCallback(
   const routedTo = decodeRoute(parts[1] ?? "");
   const rowId = parts[2];
 
-  if (!routedTo || !rowId || (routedTo !== "tasks" && routedTo !== "raw_captures")) {
+  if (!routedTo || !rowId || (routedTo !== "tickets" && routedTo !== "raw_captures")) {
     await answerCallbackQuery(cb.id, "Invalid action");
     return;
   }
@@ -593,7 +593,7 @@ async function handleCallback(
       await answerCallbackQuery(cb.id, "Invalid urgency");
       return;
     }
-    if (routedTo === "tasks") {
+    if (routedTo === "tickets") {
       await supabase
         .from("tickets")
         .update({ urgency, updated_at: new Date().toISOString() })
@@ -613,7 +613,7 @@ async function handleCallback(
     }
     updateMsg = `Urgency → ${urgency}`;
   } else if (action === "k") {
-    if (routedTo === "tasks") {
+    if (routedTo === "tickets") {
       await supabase
         .from("tickets")
         .update({ key: true, updated_at: new Date().toISOString() })
@@ -637,7 +637,7 @@ async function handleCallback(
   }
 
   await supabase.from("audit_log").insert({ action: "capture_override",
-    resource_type: routedTo === "tasks" ? "task" : "raw_capture",
+    resource_type: routedTo === "tickets" ? "task" : "raw_capture",
     resource_id: rowId,
     metadata: { action, data },
   });

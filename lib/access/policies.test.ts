@@ -12,7 +12,7 @@ import { PHIL_AUTH_UID } from "@/lib/system/identity";
  * tested. Fails, not skips, when the stack is down.
  *
  * Fixtures: a second user "Tess" (fixed uid), a team owned by Phil with its
- * team space, and rows in public.tasks (organisation.tasks) and
+ * team space, and rows in public.tickets (organisation.tickets) and
  * public.bank_accounts (finance.banking). Everything the tests create is
  * removed in afterAll; Tess's auth user stays (idempotent create).
  */
@@ -132,24 +132,24 @@ beforeAll(async () => {
   resetMembership();
 
   // Clean rows from a previous run.
-  sql(`delete from public.tasks where space_id in ('${TEAM_SPACE}', '${tessSpace()}') or title like 'policy-test:%'`);
+  sql(`delete from public.tickets where space_id in ('${TEAM_SPACE}', '${tessSpace()}') or title like 'policy-test:%'`);
   sql(`delete from public.bank_accounts where space_id = '${tessSpace()}' or external_key like 'policy-test%'`);
 
   // Phil's own task and a team task, as Phil, through PostgREST.
-  const own = await rest(PHIL_AUTH_UID, "POST", "tasks", { title: "policy-test: phil personal" });
+  const own = await rest(PHIL_AUTH_UID, "POST", "tickets", { title: "policy-test: phil personal" });
   expect(own.status, JSON.stringify(own.body)).toBe(201);
   philTaskId = String(rows(own)[0].id);
   expect(rows(own)[0].space_id).toBe(philSpace());
   expect(rows(own)[0].created_by).toBe(PHIL_AUTH_UID);
 
-  const team = await rest(PHIL_AUTH_UID, "POST", "tasks", { title: "policy-test: team task", space_id: TEAM_SPACE });
+  const team = await rest(PHIL_AUTH_UID, "POST", "tickets", { title: "policy-test: team task", space_id: TEAM_SPACE });
   expect(team.status, JSON.stringify(team.body)).toBe(201);
   teamTaskId = String(rows(team)[0].id);
 });
 
 afterAll(() => {
   resetMembership();
-  sql(`delete from public.tasks where title like 'policy-test:%'`);
+  sql(`delete from public.tickets where title like 'policy-test:%'`);
   sql(`delete from public.bank_accounts where external_key like 'policy-test%'`);
   sql(`delete from public.team_members where team_id = '${TEAM}'`);
   sql(`update public.teams set space_id = null where id = '${TEAM}'`);
@@ -159,24 +159,24 @@ afterAll(() => {
 
 describe("personal space", () => {
   it("a user's insert lands in their own space by default and only they see it", async () => {
-    const ins = await rest(TESS, "POST", "tasks", { title: "policy-test: tess personal" });
+    const ins = await rest(TESS, "POST", "tickets", { title: "policy-test: tess personal" });
     expect(ins.status, JSON.stringify(ins.body)).toBe(201);
     tessTaskId = String(rows(ins)[0].id);
     expect(rows(ins)[0].space_id).toBe(tessSpace());
     expect(rows(ins)[0].created_by).toBe(TESS);
 
-    const mine = await rest(TESS, "GET", `tasks?select=id&id=eq.${tessTaskId}`);
+    const mine = await rest(TESS, "GET", `tickets?select=id&id=eq.${tessTaskId}`);
     expect(rows(mine)).toHaveLength(1);
-    const phils = await rest(PHIL_AUTH_UID, "GET", `tasks?select=id&id=eq.${tessTaskId}`);
+    const phils = await rest(PHIL_AUTH_UID, "GET", `tickets?select=id&id=eq.${tessTaskId}`);
     expect(rows(phils)).toHaveLength(0);
   });
 
   it("negative: nobody else's personal rows are visible or editable", async () => {
-    const seen = await rest(TESS, "GET", `tasks?select=id&id=eq.${philTaskId}`);
+    const seen = await rest(TESS, "GET", `tickets?select=id&id=eq.${philTaskId}`);
     expect(rows(seen)).toHaveLength(0);
-    const upd = await rest(TESS, "PATCH", `tasks?id=eq.${philTaskId}`, { title: "policy-test: hijacked" });
+    const upd = await rest(TESS, "PATCH", `tickets?id=eq.${philTaskId}`, { title: "policy-test: hijacked" });
     expect(rows(upd)).toHaveLength(0);
-    const still = sql(`select title from public.tasks where id = '${philTaskId}'`)[0][0];
+    const still = sql(`select title from public.tickets where id = '${philTaskId}'`)[0][0];
     expect(still).toBe("policy-test: phil personal");
   });
 });
@@ -184,29 +184,29 @@ describe("personal space", () => {
 describe("team by role", () => {
   it("a member sees and edits team rows", async () => {
     setRole("member");
-    const seen = await rest(TESS, "GET", `tasks?select=id,space_id&id=eq.${teamTaskId}`);
+    const seen = await rest(TESS, "GET", `tickets?select=id,space_id&id=eq.${teamTaskId}`);
     expect(rows(seen)).toHaveLength(1);
-    const upd = await rest(TESS, "PATCH", `tasks?id=eq.${teamTaskId}`, { title: "policy-test: team task (edited)" });
+    const upd = await rest(TESS, "PATCH", `tickets?id=eq.${teamTaskId}`, { title: "policy-test: team task (edited)" });
     expect(upd.status, JSON.stringify(upd.body)).toBe(200);
     expect(rows(upd)).toHaveLength(1);
-    const ins = await rest(TESS, "POST", "tasks", { title: "policy-test: by member", space_id: TEAM_SPACE });
+    const ins = await rest(TESS, "POST", "tickets", { title: "policy-test: by member", space_id: TEAM_SPACE });
     expect(ins.status, JSON.stringify(ins.body)).toBe(201);
   });
 
   it("negative: a viewer sees but cannot edit or create", async () => {
     setRole("viewer");
-    const seen = await rest(TESS, "GET", `tasks?select=id&id=eq.${teamTaskId}`);
+    const seen = await rest(TESS, "GET", `tickets?select=id&id=eq.${teamTaskId}`);
     expect(rows(seen)).toHaveLength(1);
-    const upd = await rest(TESS, "PATCH", `tasks?id=eq.${teamTaskId}`, { title: "policy-test: viewer edit" });
+    const upd = await rest(TESS, "PATCH", `tickets?id=eq.${teamTaskId}`, { title: "policy-test: viewer edit" });
     expect(rows(upd)).toHaveLength(0);
-    const ins = await rest(TESS, "POST", "tasks", { title: "policy-test: by viewer", space_id: TEAM_SPACE });
+    const ins = await rest(TESS, "POST", "tickets", { title: "policy-test: by viewer", space_id: TEAM_SPACE });
     expect(ins.status).toBeGreaterThanOrEqual(400);
     expect(JSON.stringify(ins.body)).toContain("42501");
   });
 
   it("negative: no membership, no access", async () => {
     resetMembership();
-    const seen = await rest(TESS, "GET", `tasks?select=id&id=eq.${teamTaskId}`);
+    const seen = await rest(TESS, "GET", `tickets?select=id&id=eq.${teamTaskId}`);
     expect(rows(seen)).toHaveLength(0);
   });
 });
@@ -215,37 +215,37 @@ describe("team by section toggle", () => {
   it("a toggle narrows a member: view off hides the section", async () => {
     setRole("member");
     setToggle("organisation", { can_view: false });
-    const seen = await rest(TESS, "GET", `tasks?select=id&id=eq.${teamTaskId}`);
+    const seen = await rest(TESS, "GET", `tickets?select=id&id=eq.${teamTaskId}`);
     expect(rows(seen)).toHaveLength(0);
   });
 
   it("view on, edit off: visible but read-only", async () => {
     setRole("member");
     setToggle("organisation", { can_view: true, can_edit: false });
-    const seen = await rest(TESS, "GET", `tasks?select=id&id=eq.${teamTaskId}`);
+    const seen = await rest(TESS, "GET", `tickets?select=id&id=eq.${teamTaskId}`);
     expect(rows(seen)).toHaveLength(1);
-    const upd = await rest(TESS, "PATCH", `tasks?id=eq.${teamTaskId}`, { title: "policy-test: toggle edit" });
+    const upd = await rest(TESS, "PATCH", `tickets?id=eq.${teamTaskId}`, { title: "policy-test: toggle edit" });
     expect(rows(upd)).toHaveLength(0);
   });
 
   it("negative: a toggle can never widen a viewer into editing", async () => {
     setRole("viewer");
     setToggle("organisation", { can_view: true, can_edit: true, can_create_delete: true });
-    const upd = await rest(TESS, "PATCH", `tasks?id=eq.${teamTaskId}`, { title: "policy-test: widened?" });
+    const upd = await rest(TESS, "PATCH", `tickets?id=eq.${teamTaskId}`, { title: "policy-test: widened?" });
     expect(rows(upd)).toHaveLength(0);
   });
 
   it("the owner ignores toggles", async () => {
     // Phil is owner; a toggle row for him must not narrow anything.
     sql(`insert into public.team_member_sections (team_id, user_id, section, can_view) values ('${TEAM}', '${PHIL_AUTH_UID}', 'organisation', false) on conflict (team_id, user_id, section) do update set can_view = false`);
-    const seen = await rest(PHIL_AUTH_UID, "GET", `tasks?select=id&id=eq.${teamTaskId}`);
+    const seen = await rest(PHIL_AUTH_UID, "GET", `tickets?select=id&id=eq.${teamTaskId}`);
     expect(rows(seen)).toHaveLength(1);
     sql(`delete from public.team_member_sections where user_id = '${PHIL_AUTH_UID}'`);
   });
 });
 
 describe("direct grant", () => {
-  function grant(verbs: string[], groups: string[] = ["tasks"], extra = "") {
+  function grant(verbs: string[], groups: string[] = ["tickets"], extra = "") {
     sql(`delete from public.user_grants where grantor_id = '${PHIL_AUTH_UID}' and grantee_id = '${TESS}'`);
     sql(
       `insert into public.user_grants (grantor_id, grantee_id, section, entity_groups, verbs${extra ? ", " + extra.split("=")[0] : ""}) ` +
@@ -256,31 +256,31 @@ describe("direct grant", () => {
   it("a view grant exposes the grantor's personal rows for that group", async () => {
     resetMembership();
     grant(["view"]);
-    const seen = await rest(TESS, "GET", `tasks?select=id&id=eq.${philTaskId}`);
+    const seen = await rest(TESS, "GET", `tickets?select=id&id=eq.${philTaskId}`);
     expect(rows(seen)).toHaveLength(1);
   });
 
   it("negative: verbs not granted stay denied; other groups stay hidden", async () => {
     grant(["view"]);
-    const upd = await rest(TESS, "PATCH", `tasks?id=eq.${philTaskId}`, { title: "policy-test: grant edit" });
+    const upd = await rest(TESS, "PATCH", `tickets?id=eq.${philTaskId}`, { title: "policy-test: grant edit" });
     expect(rows(upd)).toHaveLength(0);
     grant(["view"], ["people"]);
-    const seen = await rest(TESS, "GET", `tasks?select=id&id=eq.${philTaskId}`);
+    const seen = await rest(TESS, "GET", `tickets?select=id&id=eq.${philTaskId}`);
     expect(rows(seen)).toHaveLength(0);
   });
 
   it("negative: revoked and expired grants are dead", async () => {
-    grant(["view"], ["tasks"], "revoked_at=now()");
-    expect(rows(await rest(TESS, "GET", `tasks?select=id&id=eq.${philTaskId}`))).toHaveLength(0);
-    grant(["view"], ["tasks"], "expires_at=now() - interval '1 minute'");
-    expect(rows(await rest(TESS, "GET", `tasks?select=id&id=eq.${philTaskId}`))).toHaveLength(0);
-    grant(["view"], ["tasks"], "expires_at=now() + interval '1 hour'");
-    expect(rows(await rest(TESS, "GET", `tasks?select=id&id=eq.${philTaskId}`))).toHaveLength(1);
+    grant(["view"], ["tickets"], "revoked_at=now()");
+    expect(rows(await rest(TESS, "GET", `tickets?select=id&id=eq.${philTaskId}`))).toHaveLength(0);
+    grant(["view"], ["tickets"], "expires_at=now() - interval '1 minute'");
+    expect(rows(await rest(TESS, "GET", `tickets?select=id&id=eq.${philTaskId}`))).toHaveLength(0);
+    grant(["view"], ["tickets"], "expires_at=now() + interval '1 hour'");
+    expect(rows(await rest(TESS, "GET", `tickets?select=id&id=eq.${philTaskId}`))).toHaveLength(1);
   });
 
   it("an empty group list means the whole section", async () => {
     grant(["view"], []);
-    expect(rows(await rest(TESS, "GET", `tasks?select=id&id=eq.${philTaskId}`))).toHaveLength(1);
+    expect(rows(await rest(TESS, "GET", `tickets?select=id&id=eq.${philTaskId}`))).toHaveLength(1);
   });
 });
 

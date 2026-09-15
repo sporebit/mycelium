@@ -4,7 +4,7 @@ import { createUserClient } from "@/lib/supabase/user";
 export const runtime = "nodejs";
 
 const TABLES = [
-  { key: "tasks", table: "tasks", label: "Tasks" },
+  { key: "tasks", table: "tickets", label: "Tasks" },
   { key: "workout_sessions", table: "workout_sessions", label: "Workout sessions" },
   { key: "nutrition_logs", table: "nutrition_logs", label: "Nutrition logs" },
   { key: "transactions", table: "bank_transactions", label: "Transactions" },

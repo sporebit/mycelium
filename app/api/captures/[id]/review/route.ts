@@ -176,9 +176,9 @@ async function createRoutedRow(
       .select("id")
       .single();
     if (error || !data) {
-      throw new Error(`tasks insert failed: ${error?.message ?? "no row"}`);
+      throw new Error(`tickets insert failed: ${error?.message ?? "no row"}`);
     }
-    return { routedTo: "tasks", routedId: data.id };
+    return { routedTo: "tickets", routedId: data.id };
   }
 
   if (kind === "journal") {

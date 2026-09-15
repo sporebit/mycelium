@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) throw error;
-    auditListRead(req, data, "organisation", "tasks");
+    auditListRead(req, data, "organisation", "tickets");
 
     const tasks: Task[] = (data ?? []).map((row) =>
       serializeTask(row as Parameters<typeof serializeTask>[0])

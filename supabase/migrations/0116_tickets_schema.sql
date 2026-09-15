@@ -388,3 +388,10 @@ drop trigger if exists tickets_assign_key on public.tickets;
 create trigger tickets_assign_key
 	before insert on public.tickets
 	for each row execute function public.tickets_assign_key();
+
+-- ---------------------------------------------------------------------
+-- 13. Persisted capture routing labels: raw_captures.routed_to held the
+--     table name 'tasks'; deleteRoutedRow uses it as a live table name, so
+--     it must track the rename.
+-- ---------------------------------------------------------------------
+update public.raw_captures set routed_to = 'tickets' where routed_to = 'tasks';

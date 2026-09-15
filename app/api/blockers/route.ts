@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
       .is("completed_at", null);
 
     if (error) throw error;
-    auditListRead(req, data, "organisation", "tasks");
+    auditListRead(req, data, "organisation", "tickets");
 
     const tasks = (data ?? []).map((row) =>
       serializeTask(row as Parameters<typeof serializeTask>[0])
