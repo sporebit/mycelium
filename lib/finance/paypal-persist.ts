@@ -1,12 +1,11 @@
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { normaliseTxnType, type NormalizedTxn, type ParseError } from "./csv-parser";
 import type { PayPalImportResult } from "./paypal-csv";
 
-type Supabase = ReturnType<typeof createServerClient>;
+type Supabase = SupabaseClient;
 
 export async function findOrCreateAccount(
   supabase: Supabase,
-  uid: string,
   desc: {
     bank: string;
     external_key: string;
@@ -19,7 +18,6 @@ export async function findOrCreateAccount(
   const { data: existing } = await supabase
     .from("bank_accounts")
     .select("id")
-    .eq("user_id", uid)
     .eq("bank", desc.bank)
     .eq("external_key", desc.external_key)
     .maybeSingle();
@@ -28,9 +26,7 @@ export async function findOrCreateAccount(
 
   const { data: created, error: createErr } = await supabase
     .from("bank_accounts")
-    .insert({
-      user_id: uid,
-      bank: desc.bank,
+    .insert({ bank: desc.bank,
       external_key: desc.external_key,
       label: desc.label,
       account_type: desc.account_type,
@@ -44,7 +40,6 @@ export async function findOrCreateAccount(
     const { data: retry } = await supabase
       .from("bank_accounts")
       .select("id")
-      .eq("user_id", uid)
       .eq("bank", desc.bank)
       .eq("external_key", desc.external_key)
       .single();
@@ -62,12 +57,11 @@ export type PersistResult = {
 
 export async function persistPayPalImport(
   supabase: Supabase,
-  uid: string,
   pp: PayPalImportResult,
 ): Promise<PersistResult> {
   const errors: ParseError[] = [...pp.errors];
 
-  const accountId = await findOrCreateAccount(supabase, uid, pp.account);
+  const accountId = await findOrCreateAccount(supabase, pp.account);
   if (!accountId) {
     return {
       imported: 0,
@@ -77,9 +71,7 @@ export async function persistPayPalImport(
   }
 
   // Upsert payment legs into paypal_payments
-  const paymentDbRows = pp.payments.map((p) => ({
-    user_id: uid,
-    transaction_id: p.transaction_id,
+  const paymentDbRows = pp.payments.map((p) => ({ transaction_id: p.transaction_id,
     ref_txn_id: p.ref_txn_id,
     paypal_date: p.paypal_date,
     merchant_name: p.merchant_name,
@@ -106,9 +98,7 @@ export async function persistPayPalImport(
   }
 
   // Insert balance-funded transactions
-  const txnRows = pp.balanceFundedTxns.map((t: NormalizedTxn) => ({
-    user_id: uid,
-    account_id: accountId,
+  const txnRows = pp.balanceFundedTxns.map((t: NormalizedTxn) => ({ account_id: accountId,
     txn_date: t.txn_date,
     txn_type: normaliseTxnType(t.txn_type, t.debit, t.credit),
     description: t.description,

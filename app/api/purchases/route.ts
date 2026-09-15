@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import {
   PURCHASE_CATEGORIES,
   PURCHASE_LIST_TYPES,
@@ -15,7 +16,7 @@ import {
 export const runtime = "nodejs";
 
 const PURCHASE_SELECT =
-  "id, user_id, title, amount, currency, want_or_need, urgency, list_type, category, project_id, completed_at, raw_capture_id, created_at, updated_at, projects(name)";
+  "id, title, amount, currency, want_or_need, urgency, list_type, category, project_id, completed_at, raw_capture_id, created_at, updated_at, space_id, projects(name)";
 
 type PurchaseRow = Omit<Purchase, "project_name"> & {
   projects: { name: string } | { name: string }[] | null;
@@ -28,26 +29,17 @@ function serialize(row: PurchaseRow): Purchase {
   return { ...rest, project_name: proj?.name ?? null };
 }
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const url = new URL(req.url);
   const completedParam = url.searchParams.get("completed");
   const projectParam = url.searchParams.get("project_id");
   const listTypeParam = url.searchParams.get("list_type");
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("purchases")
       .select(PURCHASE_SELECT)
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (completedParam === "true") {
@@ -68,6 +60,7 @@ export async function GET(req: NextRequest) {
     }
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "organisation", "purchases");
     const purchases = ((data ?? []) as unknown as PurchaseRow[]).map(serialize);
     return NextResponse.json({ purchases });
   } catch (err) {
@@ -88,11 +81,6 @@ type CreateBody = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   let body: CreateBody;
   try {
     body = (await req.json()) as CreateBody;
@@ -105,9 +93,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const insertPayload = {
-      user_id: uid,
       title,
       amount: typeof body.amount === "number" ? body.amount : null,
       currency:

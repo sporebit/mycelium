@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { resolveExerciseNames } from "@/lib/fitness/resolve-aliases";
 import {
   exerciseHistorySummary,
@@ -17,30 +18,23 @@ import type {
 export const runtime = "nodejs";
 const MAX_SESSIONS = 100;
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   const name = req.nextUrl.searchParams.get("name")?.trim();
   if (!name) {
     return NextResponse.json({ error: "name required" }, { status: 400 });
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
-    const names = await resolveExerciseNames(supabase, uid, name);
+    const names = await resolveExerciseNames(supabase, name);
     const canonical = names[0];
     const orFilter = names.map(n => `name.ilike.${n}`).join(",");
 
     const { data: exRows, error: exErr } = await supabase
       .from("workout_session_exercises")
       .select(
-        "id, session_id, comment, notes, is_bodyweight, workout_sessions:session_id!inner(id, date, slot, user_id, completed_at)"
+        "id, session_id, comment, notes, is_bodyweight, space_id, workout_sessions:session_id!inner(id, date, slot, completed_at)"
       )
       .or(orFilter)
       .eq("skipped", false)
@@ -49,6 +43,7 @@ export async function GET(req: NextRequest) {
       console.error("[/api/fitness/exercise-history] ex fetch", exErr);
       return NextResponse.json({ error: "fetch failed" }, { status: 500 });
     }
+    auditListRead(req, exRows, "fitness", "sessions");
     type ExRow = {
       id: string;
       session_id: string;
@@ -56,8 +51,8 @@ export async function GET(req: NextRequest) {
       notes: string | null;
       is_bodyweight?: boolean | null;
       workout_sessions:
-        | { id: string; date: string; slot: string; user_id: string; completed_at: string | null }
-        | { id: string; date: string; slot: string; user_id: string; completed_at: string | null }[];
+        | { id: string; date: string; slot: string; completed_at: string | null }
+        | { id: string; date: string; slot: string; completed_at: string | null }[];
     };
 
     const candidates: Array<{
@@ -74,7 +69,6 @@ export async function GET(req: NextRequest) {
         ? r.workout_sessions[0]
         : r.workout_sessions;
       if (!sess) continue;
-      if (sess.user_id !== uid) continue;
       if (!sess.completed_at) continue;
       candidates.push({
         ex_id: r.id,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createUserClient } from "@/lib/supabase/user";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import {
   URGENCIES,
@@ -16,11 +17,8 @@ import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { logTaskActivity } from "@/lib/task-activity";
 import { pushTaskToGoogle, removeGoogleEvent } from "@/lib/google/sync";
 
-type Supabase = ReturnType<typeof createServerClient>;
-
 async function rebuildTaskMentions(
-  supabase: Supabase,
-  userId: string,
+  supabase: SupabaseClient,
   taskId: string,
   title: string,
   description: string | null
@@ -38,8 +36,8 @@ async function rebuildTaskMentions(
     const extractions = extractNameMentions(text);
     for (const e of extractions) {
       try {
-        const res = await resolveMention(supabase, userId, e.name_hint);
-        await recordMention(supabase, userId, res, { type: "task", id: taskId });
+        const res = await resolveMention(supabase, e.name_hint);
+        await recordMention(supabase, res, { type: "task", id: taskId });
       } catch (err) {
         console.error("[tasks PATCH] mention soft-fail per-extraction:", err);
       }
@@ -73,25 +71,16 @@ const ALLOWED_FIELDS = new Set([
   "context_tag",
 ]);
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: row, error } = await supabase
       .from("tasks")
       .select(TASK_SELECT)
-      .eq("user_id", uid)
       .eq("id", id)
       .maybeSingle();
     if (error || !row) {
@@ -102,25 +91,23 @@ export async function GET(
     const [comments, activity, subRows, captures] = await Promise.all([
       supabase
         .from("task_comments")
-        .select("id, task_id, user_id, body, created_at, updated_at")
+        .select("id, task_id, body, created_at, updated_at")
         .eq("task_id", id)
         .order("created_at", { ascending: true }),
       supabase
         .from("task_activity")
-        .select("id, task_id, user_id, action, field, from_value, to_value, created_at")
+        .select("id, task_id, action, field, from_value, to_value, created_at")
         .eq("task_id", id)
         .order("created_at", { ascending: true }),
       supabase
         .from("tasks")
         .select(TASK_SELECT)
-        .eq("user_id", uid)
         .is("deleted_at", null)
         .eq("parent_task_id", id)
         .order("created_at", { ascending: true }),
       supabase
         .from("raw_captures")
         .select("id, source, raw_text, created_at")
-        .eq("user_id", uid)
         .is("deleted_at", null)
         .eq("routed_to", "task")
         .eq("routed_id", id)
@@ -148,10 +135,6 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { id } = await ctx.params;
 
   let body: Record<string, unknown>;
@@ -185,7 +168,7 @@ export async function PATCH(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // Sub-task validation if parent_task_id is being changed.
     if (Object.prototype.hasOwnProperty.call(update, "parent_task_id")) {
@@ -206,7 +189,6 @@ export async function PATCH(
         const { data: parent, error: parentErr } = await supabase
           .from("tasks")
           .select("parent_task_id")
-          .eq("user_id", uid)
           .eq("id", newParent)
           .maybeSingle();
         if (parentErr || !parent) {
@@ -225,7 +207,6 @@ export async function PATCH(
         const { data: kids } = await supabase
           .from("tasks")
           .select("id")
-          .eq("user_id", uid)
           .eq("parent_task_id", id)
           .limit(1);
         if (kids && kids.length > 0) {
@@ -247,14 +228,12 @@ export async function PATCH(
         "status, urgency, project_id, due_date, scheduled_at, time_estimate_min, key, owner, entity_id, title, description, parent_task_id, tags",
       )
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle();
 
     const { data, error } = await supabase
       .from("tasks")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
       .select(TASK_SELECT)
       .single();
     if (error || !data) {
@@ -267,7 +246,6 @@ export async function PATCH(
     if (beforeRow) {
       await logTaskActivity(
         supabase,
-        uid,
         id,
         beforeRow as Record<string, unknown>,
         update,
@@ -282,7 +260,6 @@ export async function PATCH(
       const row = data as { id: string; title: string; description: string | null };
       await rebuildTaskMentions(
         supabase,
-        uid,
         row.id,
         row.title,
         row.description
@@ -296,9 +273,9 @@ export async function PATCH(
       completed_at: string | null;
     };
     if (update.status === "completed" || update.completed_at) {
-      removeGoogleEvent("tasks", row.google_event_id).catch(() => {});
+      removeGoogleEvent(supabase, "tasks", row.google_event_id).catch(() => {});
     } else if (row.scheduled_at && ("scheduled_at" in update || "title" in update || "description" in update)) {
-      pushTaskToGoogle({
+      pushTaskToGoogle(supabase, {
         id: row.id,
         title: row.title,
         description: row.description,
@@ -320,32 +297,26 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { id } = await ctx.params;
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: existing } = await supabase
       .from("tasks")
       .select("google_event_id")
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle();
 
     // FK is ON DELETE CASCADE, so sub-tasks go with the parent automatically.
     const { error } = await supabase
       .from("tasks")
       .delete()
-      .eq("id", id)
-      .eq("user_id", uid);
+      .eq("id", id);
     if (error) throw error;
 
     if (existing?.google_event_id) {
-      removeGoogleEvent("tasks", existing.google_event_id).catch(() => {});
+      removeGoogleEvent(supabase, "tasks", existing.google_event_id).catch(() => {});
     }
 
     return NextResponse.json({ ok: true });

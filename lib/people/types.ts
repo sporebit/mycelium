@@ -9,7 +9,6 @@ export type MentionSourceType = "capture" | "task" | "journal";
 
 export type Person = {
   id: string;
-  user_id: string;
   first_name: string;
   last_name: string | null;
   display_name: string | null;
@@ -42,7 +41,6 @@ export type PersonWithAliases = Person & {
 
 export type PersonMention = {
   id: string;
-  user_id: string;
   person_id: string | null;
   source_type: MentionSourceType;
   source_id: string;

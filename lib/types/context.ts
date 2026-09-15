@@ -16,7 +16,6 @@ export const CONTEXT_FIELDS: readonly ContextField[] = [
 
 export type ContextOption = {
   id: string;
-  user_id: string;
   field: ContextField;
   value: string;
   label: string;

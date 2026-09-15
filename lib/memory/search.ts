@@ -16,14 +16,12 @@ export type RawRpcRow = {
 
 export async function searchChunks(
   supabase: SupabaseClient,
-  userId: string,
   embedding: number[],
   matchCount = 20,
   similarityThreshold = 0.3
 ): Promise<ChunkMeta[]> {
   const { data, error } = await supabase.rpc("search_memory_chunks", {
     query_embedding: embedding,
-    p_user_id: userId,
     match_count: matchCount,
     similarity_threshold: similarityThreshold,
   });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     const from = body.dateRange?.from as string | undefined;
     const to = body.dateRange?.to as string | undefined;
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const counts: Record<string, { label: string; count: number }[]> = {};
 
     for (const def of SECTION_DEFS) {

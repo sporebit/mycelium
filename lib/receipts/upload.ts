@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { uploadReceiptImage } from "@/lib/storage/receipts";
 import { ACCEPTED_MEDIA_TYPES, MAX_RECEIPT_IMAGES } from "@/lib/types/receipt";
 
@@ -91,7 +91,7 @@ export async function storeReceiptImages(
   files: File[],
   startSortOrder = 0,
 ): Promise<number> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   let stored = 0;
 
   for (let i = 0; i < files.length; i++) {
@@ -122,7 +122,7 @@ export async function storeReceiptImages(
  * Returns 0 for a receipt with no images.
  */
 export async function nextSortOrder(receiptId: string): Promise<number> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data } = await supabase
     .from("receipt_images")
     .select("sort_order")

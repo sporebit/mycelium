@@ -8,7 +8,7 @@ import type {
 } from "./types";
 
 const SESSION_FIELDS =
-  "id, user_id, date, slot, kind, name, programme_session_id, calories, notes, free_form_text, started_at, completed_at, status, created_at, updated_at";
+  "id, date, slot, kind, name, programme_session_id, calories, notes, free_form_text, started_at, completed_at, status, created_at, updated_at";
 // data_shape / with_weight were missing from both selects, so the log page
 // received them as undefined and every exercise fell back to the sets-reps
 // grid — the "hold" and "duration" shapes never rendered here.
@@ -19,14 +19,12 @@ const TEMPLATE_FIELDS =
 
 export async function loadSessionDetail(
   supabase: SupabaseClient,
-  sessionId: string,
-  uid: string
+  sessionId: string
 ): Promise<SessionDetail | null> {
   const { data: sessionRow, error } = await supabase
     .from("workout_sessions")
     .select(SESSION_FIELDS)
     .eq("id", sessionId)
-    .eq("user_id", uid)
     .maybeSingle();
   if (error || !sessionRow) return null;
   const session = sessionRow as LoggedSession;
@@ -48,7 +46,6 @@ export async function loadSessionDetail(
         .from("workout_programmes")
         .select("guardrails")
         .eq("id", programmeId)
-        .eq("user_id", uid)
         .maybeSingle();
       guardrails =
         (programme as { guardrails?: string | null } | null)?.guardrails ?? null;

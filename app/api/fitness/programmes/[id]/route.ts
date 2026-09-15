@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import type {
   Programme,
   ProgrammeDetail,
@@ -9,26 +9,20 @@ import type {
 
 export const runtime = "nodejs";
 
-const PROGRAMME_FIELDS = "id, user_id, name, description, created_at, updated_at";
+const PROGRAMME_FIELDS = "id, name, description, created_at, updated_at";
 const SESSION_FIELDS =
   "id, programme_id, day_of_week, slot, kind, name, notes, workout_id, kind_override";
 const EXERCISE_FIELDS =
   "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 async function loadDetail(
-  programmeId: string,
-  uid: string
+  programmeId: string
 ): Promise<ProgrammeDetail | null> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data: programme, error } = await supabase
     .from("workout_programmes")
     .select(PROGRAMME_FIELDS)
     .eq("id", programmeId)
-    .eq("user_id", uid)
     .maybeSingle();
   if (error || !programme) return null;
 
@@ -67,11 +61,9 @@ export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const detail = await loadDetail(id, uid);
+    const detail = await loadDetail(id);
     if (!detail) return NextResponse.json({ error: "not found" }, { status: 404 });
     return NextResponse.json({ programme: detail });
   } catch (err) {
@@ -84,8 +76,6 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   let body: { name?: string; description?: string };
   try {
@@ -97,12 +87,11 @@ export async function PATCH(
   if (typeof body.name === "string" && body.name.trim()) update.name = body.name.trim();
   if (body.description !== undefined) update.description = body.description ?? null;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("workout_programmes")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
       .select(PROGRAMME_FIELDS)
       .single();
     if (error || !data) return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -117,16 +106,13 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { error } = await supabase
       .from("workout_programmes")
       .delete()
-      .eq("id", id)
-      .eq("user_id", uid);
+      .eq("id", id);
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err) {

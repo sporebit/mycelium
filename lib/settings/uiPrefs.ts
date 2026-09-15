@@ -51,12 +51,11 @@ export const UI_PREFS_DEFAULTS: UiPrefs = {
  */
 export async function getUiPrefs(
   supabase: SupabaseClient,
-  userId: string,
 ): Promise<UiPrefs> {
   const { data } = await supabase
     .from("user_settings")
     .select("ui_prefs")
-    .eq("user_id", userId)
+    .limit(1)
     .maybeSingle();
   const stored = (data?.ui_prefs ?? {}) as Partial<UiPrefs>;
   return { ...UI_PREFS_DEFAULTS, ...stored };

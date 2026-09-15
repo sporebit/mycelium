@@ -1,5 +1,10 @@
--- Enable pgvector for semantic search on memory_chunks
-create extension if not exists vector;
+-- Enable pgvector for semantic search on memory_chunks.
+-- REPLAY FIX (2026-09-08, multi-user Part 0): the hosted project holds the
+-- extension in the `extensions` schema (Supabase convention), so
+-- memory_chunks.embedding and search_memory_chunks are typed
+-- extensions.vector there. Without `with schema extensions` a from-empty
+-- replay created public.vector instead. No-op on the hosted project.
+create extension if not exists vector with schema extensions;
 
 -- ---------------------------------------------------------------------------
 -- entities

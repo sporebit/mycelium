@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { previousDateKey } from "@/lib/util/date";
 import { parseNotes } from "@/lib/dailyLog";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
@@ -63,12 +63,10 @@ function todayEventsFromCal(
   return out;
 }
 
-async function fetchTopTasks(userId: string): Promise<Task[]> {
-  const supabase = createServerClient();
+async function fetchTopTasks(supabase: SupabaseClient): Promise<Task[]> {
   const { data, error } = await supabase
     .from("tasks")
     .select(TASK_SELECT)
-    .eq("user_id", userId)
     .eq("urgency", "today")
     .eq("key", true)
     .is("completed_at", null)
@@ -84,14 +82,12 @@ async function fetchTopTasks(userId: string): Promise<Task[]> {
 }
 
 async function fetchTopBlockers(
-  userId: string,
+  supabase: SupabaseClient,
   dateKey: string
 ): Promise<BlockerRow[]> {
-  const supabase = createServerClient();
   const { data, error } = await supabase
     .from("tasks")
     .select(TASK_SELECT)
-    .eq("user_id", userId)
     .is("completed_at", null);
   if (error) {
     console.error("[briefing] blockers fetch failed:", error);
@@ -108,23 +104,19 @@ async function fetchTopBlockers(
 }
 
 async function fetchYesterdayHabits(
-  userId: string,
+  supabase: SupabaseClient,
   yesterdayKey: string
 ): Promise<{ done: number; total: number }> {
-  const supabase = createServerClient();
-
   // Yesterday's row → done count
   const [yesterdayRow, sentinelRow] = await Promise.all([
     supabase
       .from("daily_logs")
       .select("notes")
-      .eq("user_id", userId)
       .eq("log_date", yesterdayKey)
       .maybeSingle(),
     supabase
       .from("daily_logs")
       .select("notes")
-      .eq("user_id", userId)
       .eq("log_date", "2000-01-01")
       .maybeSingle(),
   ]);
@@ -145,15 +137,14 @@ async function fetchYesterdayHabits(
 }
 
 async function fetchFinanceWithDelta(
-  userId: string,
+  supabase: SupabaseClient,
   dateKey: string
 ): Promise<BriefingData["finance"]> {
-  const supabase = createServerClient();
-  const latest = await getLatestSnapshot(supabase, userId);
+  const latest = await getLatestSnapshot(supabase);
   if (!latest) return null;
 
   // Pull a short history to find yesterday (or closest prior).
-  const history = await getSnapshotHistory(supabase, userId, 2);
+  const history = await getSnapshotHistory(supabase, 2);
   const yesterdayKey = previousDateKey(dateKey);
   const prior = history.find((p) => p.date <= yesterdayKey) ?? null;
 
@@ -178,7 +169,7 @@ async function fetchFinanceWithDelta(
 }
 
 export async function gatherBriefingData(
-  userId: string,
+  supabase: SupabaseClient,
   dateKey: string
 ): Promise<BriefingData> {
   const yesterdayKey = previousDateKey(dateKey);
@@ -193,14 +184,14 @@ export async function gatherBriefingData(
     weather,
     reviewCount,
   ] = await Promise.allSettled([
-    getCalendarData(),
-    fetchTopTasks(userId),
-    fetchTopBlockers(userId, dateKey),
-    fetchYesterdayHabits(userId, yesterdayKey),
-    computeStreak(createServerClient(), userId, "Europe/London"),
-    fetchFinanceWithDelta(userId, dateKey),
+    getCalendarData(supabase),
+    fetchTopTasks(supabase),
+    fetchTopBlockers(supabase, dateKey),
+    fetchYesterdayHabits(supabase, yesterdayKey),
+    computeStreak(supabase, "Europe/London"),
+    fetchFinanceWithDelta(supabase, dateKey),
     fetchWeather(),
-    fetchPendingReviewCount(createServerClient(), userId),
+    fetchPendingReviewCount(supabase),
   ]);
 
   const calendarEvents =

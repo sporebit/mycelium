@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { parseNotes } from "@/lib/dailyLog";
 import { isoWeekOf } from "@/lib/util/week";
 
@@ -12,13 +13,9 @@ type ArchiveEntry = {
   sealed_at: string;
 };
 
-export async function GET() {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
+export async function GET(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     // 400 days back covers > 1 year of weekly reviews
     const today = new Date();
     const earliest = new Date(today);
@@ -28,12 +25,12 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("daily_logs")
-      .select("log_date, notes")
-      .eq("user_id", uid)
+      .select("log_date, notes, space_id")
       .gte("log_date", earliestKey)
       .lte("log_date", todayKey)
       .order("log_date", { ascending: false });
     if (error) throw error;
+    auditListRead(req, data, "journal", "daily_logs");
 
     const entries: ArchiveEntry[] = [];
     for (const row of (data ?? []) as Array<{

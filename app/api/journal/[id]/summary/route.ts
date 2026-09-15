@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { JOURNAL_SELECT, type JournalEntry } from "@/lib/journal/types";
 
 export const runtime = "nodejs";
@@ -55,15 +55,11 @@ async function generateSummary(entries: JournalEntry[]): Promise<string | null> 
   }
 }
 
-async function loadEntry(
-  id: string,
-  uid: string
-): Promise<JournalEntry | null> {
-  const supabase = createServerClient();
+async function loadEntry(id: string): Promise<JournalEntry | null> {
+  const supabase = await createUserClient();
   const { data, error } = await supabase
     .from("journal_entries")
     .select(JOURNAL_SELECT)
-    .eq("user_id", uid)
     .eq("id", id)
     .maybeSingle();
   if (error || !data) return null;
@@ -74,19 +70,14 @@ export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { id } = await ctx.params;
-  const entry = await loadEntry(id, uid);
+  const entry = await loadEntry(id);
   if (!entry) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data, error } = await supabase
     .from("journal_daily_summaries")
     .select("summary, entry_ids, generated_at, entry_date")
-    .eq("user_id", uid)
     .eq("entry_date", entry.entry_date)
     .maybeSingle();
   if (error) {
@@ -100,20 +91,15 @@ export async function POST(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { id } = await ctx.params;
-  const entry = await loadEntry(id, uid);
+  const entry = await loadEntry(id);
   if (!entry) return NextResponse.json({ error: "not found" }, { status: 404 });
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: entries, error: fetchErr } = await supabase
       .from("journal_entries")
       .select(JOURNAL_SELECT)
-      .eq("user_id", uid)
       .eq("entry_date", entry.entry_date)
       .order("created_at", { ascending: true });
     if (fetchErr) throw fetchErr;
@@ -133,13 +119,12 @@ export async function POST(
       .from("journal_daily_summaries")
       .upsert(
         {
-          user_id: uid,
           entry_date: entry.entry_date,
           summary: summaryText,
           entry_ids: entryIds,
           generated_at: new Date().toISOString(),
         },
-        { onConflict: "user_id,entry_date" }
+        { onConflict: "space_id,entry_date" }
       );
     if (upsertErr) throw upsertErr;
 

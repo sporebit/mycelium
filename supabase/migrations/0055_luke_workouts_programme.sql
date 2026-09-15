@@ -8,6 +8,14 @@
 --   column exists — duration info goes in notes.
 --   No reps_min/reps_max columns — ranges go in reps_per_set as '8-12'.
 
+-- REPLAY FIX (2026-09-08, multi-user Part 0): workout_programme_sessions.position
+-- was added to the hosted database out of band before this seed ran, and only
+-- reached the migration chain in 0097. Replaying from empty therefore failed
+-- here with "column position ... does not exist". Guarded so it is a no-op on
+-- the hosted project and a builder on a fresh stack; 0097 keeps its own guard.
+ALTER TABLE workout_programme_sessions
+  ADD COLUMN IF NOT EXISTS position integer NOT NULL DEFAULT 0;
+
 DO $$
 DECLARE
   uid      text := 'phil';

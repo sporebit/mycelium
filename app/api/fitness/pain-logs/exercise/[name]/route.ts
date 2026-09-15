@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { resolveExerciseNames } from "@/lib/fitness/resolve-aliases";
 import type { ExercisePainLog } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
 const LOG_FIELDS =
-  "id, user_id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
+  "id, session_id, session_exercise_id, exercise_name, severity, feel_rating, pain_regions, notes, logged_at, created_at, updated_at, space_id";
 
 /**
  * Pain logs for a named exercise across every completed session.
@@ -22,26 +19,24 @@ function userId(): string | null {
  * workout_session_exercises required.
  */
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ name: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { name: raw } = await ctx.params;
   const name = decodeURIComponent(raw).trim();
   if (!name) return NextResponse.json({ logs: [] });
 
   try {
-    const supabase = createServerClient();
-    const names = await resolveExerciseNames(supabase, uid, name);
+    const supabase = await createUserClient();
+    const names = await resolveExerciseNames(supabase, name);
     const orFilter = names.map(n => `exercise_name.ilike.${n}`).join(",");
     const { data: logRows } = await supabase
       .from("exercise_pain_logs")
       .select(LOG_FIELDS)
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .or(orFilter)
       .order("logged_at", { ascending: false });
+    auditListRead(req, logRows, "fitness", "body");
     const logs = (logRows ?? []) as ExercisePainLog[];
     if (logs.length === 0) return NextResponse.json({ logs: [] });
 

@@ -1,8 +1,7 @@
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const CAL_BASE = "https://www.googleapis.com/calendar/v3";
-const UID = () => process.env.USER_ID ?? "default";
 
 function credentials() {
   const id = process.env.GOOGLE_CLIENT_ID;
@@ -12,14 +11,16 @@ function credentials() {
   return { id, secret };
 }
 
-export async function getAccessToken(): Promise<string | null> {
-  const supabase = createServerClient();
+// Every function here takes the caller's client: request routes pass their
+// user client, the google-sync cron passes one from withUser().
+export async function getAccessToken(
+  supabase: SupabaseClient,
+): Promise<string | null> {
   const { data } = await supabase
     .from("user_settings")
     .select(
       "google_access_token, google_refresh_token, google_token_expires_at",
     )
-    .eq("user_id", UID())
     .maybeSingle();
 
   if (!data?.google_refresh_token) return null;
@@ -63,17 +64,17 @@ export async function getAccessToken(): Promise<string | null> {
         ? { google_refresh_token: json.refresh_token }
         : {}),
       updated_at: new Date().toISOString(),
-    })
-    .eq("user_id", UID());
+    });
 
   return json.access_token;
 }
 
 async function calFetch<T = unknown>(
+  supabase: SupabaseClient,
   path: string,
   init?: RequestInit,
 ): Promise<T | null> {
-  const token = await getAccessToken();
+  const token = await getAccessToken(supabase);
   if (!token) return null;
 
   const res = await fetch(`${CAL_BASE}${path}`, {
@@ -104,6 +105,7 @@ export type GoogleCalendarEvent = {
 };
 
 export async function listEvents(
+  supabase: SupabaseClient,
   calendarId = "primary",
   timeMin?: string,
   timeMax?: string,
@@ -118,37 +120,43 @@ export async function listEvents(
   if (timeMax) params.set("timeMax", timeMax);
 
   const res = await calFetch<{ items?: GoogleCalendarEvent[] }>(
+    supabase,
     `/calendars/${encodeURIComponent(calendarId)}/events?${params.toString()}`,
   );
   return res?.items ?? [];
 }
 
 export async function createEvent(
+  supabase: SupabaseClient,
   event: GoogleCalendarEvent,
   calendarId = "primary",
 ): Promise<GoogleCalendarEvent | null> {
   return calFetch<GoogleCalendarEvent>(
+    supabase,
     `/calendars/${encodeURIComponent(calendarId)}/events`,
     { method: "POST", body: JSON.stringify(event) },
   );
 }
 
 export async function updateEvent(
+  supabase: SupabaseClient,
   eventId: string,
   event: Partial<GoogleCalendarEvent>,
   calendarId = "primary",
 ): Promise<GoogleCalendarEvent | null> {
   return calFetch<GoogleCalendarEvent>(
+    supabase,
     `/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
     { method: "PATCH", body: JSON.stringify(event) },
   );
 }
 
 export async function deleteEvent(
+  supabase: SupabaseClient,
   eventId: string,
   calendarId = "primary",
 ): Promise<boolean> {
-  const token = await getAccessToken();
+  const token = await getAccessToken(supabase);
   if (!token) return false;
 
   const res = await fetch(

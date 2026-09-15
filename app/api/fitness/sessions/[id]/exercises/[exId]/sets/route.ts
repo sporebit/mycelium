@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { WeightUnit } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type SetBody = {
   set_number?: number;
@@ -20,24 +17,17 @@ type SetBody = {
 };
 
 async function ensureOwned(
-  supabase: ReturnType<typeof createServerClient>,
+  supabase: SupabaseClient,
   sessionId: string,
-  exId: string,
-  uid: string
+  exId: string
 ): Promise<boolean> {
   const { data } = await supabase
     .from("workout_session_exercises")
-    .select("id, workout_sessions:session_id!inner(user_id, id)")
+    .select("id")
     .eq("id", exId)
     .eq("session_id", sessionId)
     .maybeSingle();
-  if (!data) return false;
-  // workout_sessions join may come back as object or array depending on the
-  // PostgREST shape — normalise.
-  const joined = (data as { workout_sessions?: { user_id?: string } | { user_id?: string }[] })
-    .workout_sessions;
-  const ownerId = Array.isArray(joined) ? joined[0]?.user_id : joined?.user_id;
-  return ownerId === uid;
+  return !!data;
 }
 
 /**
@@ -49,8 +39,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string; exId: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id: sessionId, exId } = await ctx.params;
 
   let body: SetBody;
@@ -65,8 +53,8 @@ export async function POST(
   }
 
   try {
-    const supabase = createServerClient();
-    if (!(await ensureOwned(supabase, sessionId, exId, uid))) {
+    const supabase = await createUserClient();
+    if (!(await ensureOwned(supabase, sessionId, exId))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     if (body.client_uuid) {

@@ -1,11 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createServerClient } from "@/lib/supabase/server";
 
 export type RoutingRuleScope = "fitness" | "capture";
 
 export type RoutingRule = {
   id: string;
-  user_id: string;
   scope: RoutingRuleScope;
   rule_key: string;
   display_name: string;
@@ -18,7 +16,7 @@ export type RoutingRule = {
 };
 
 export const ROUTING_RULE_SELECT =
-  "id, user_id, scope, rule_key, display_name, description, examples, enabled, priority, created_at, updated_at";
+  "id, scope, rule_key, display_name, description, examples, enabled, priority, created_at, updated_at";
 
 // ---------------------------------------------------------------------------
 // In-process cache. The fitness voice parser fires on every voice
@@ -49,13 +47,11 @@ export function invalidateRoutingRulesCache(userId?: string): void {
 
 async function fetchEnabledRules(
   supabase: SupabaseClient,
-  userId: string,
   scope: RoutingRuleScope,
 ): Promise<RoutingRule[]> {
   const { data, error } = await supabase
     .from("routing_rules")
     .select(ROUTING_RULE_SELECT)
-    .eq("user_id", userId)
     .eq("scope", scope)
     .eq("enabled", true)
     .order("priority", { ascending: false })
@@ -68,6 +64,7 @@ async function fetchEnabledRules(
 }
 
 async function getCachedRules(
+  supabase: SupabaseClient,
   userId: string,
   scope: RoutingRuleScope,
 ): Promise<RoutingRule[]> {
@@ -75,8 +72,7 @@ async function getCachedRules(
   const hit = cache.get(key);
   if (hit && Date.now() - hit.ts < TTL_MS) return hit.rules;
   try {
-    const supabase = createServerClient();
-    const rules = await fetchEnabledRules(supabase, userId, scope);
+    const rules = await fetchEnabledRules(supabase, scope);
     cache.set(key, { rules, ts: Date.now() });
     return rules;
   } catch (err) {
@@ -108,14 +104,21 @@ function formatRulesBlock(
 /** Renders the fitness rule slice as a system-prompt injection block.
  *  Returns the empty string when the user has no enabled fitness rules
  *  so the calling prompt is free to fall back to its hardcoded defaults
- *  without sprouting a stray heading. */
-export async function buildFitnessRulesBlock(userId: string): Promise<string> {
-  const rules = await getCachedRules(userId, "fitness");
+ *  without sprouting a stray heading. `supabase` is the caller's client
+ *  (what it can read is what it gets); `userId` only keys the cache. */
+export async function buildFitnessRulesBlock(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string> {
+  const rules = await getCachedRules(supabase, userId, "fitness");
   return formatRulesBlock("FITNESS", rules);
 }
 
 /** Same for the capture classifier scope. */
-export async function buildCaptureRulesBlock(userId: string): Promise<string> {
-  const rules = await getCachedRules(userId, "capture");
+export async function buildCaptureRulesBlock(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string> {
+  const rules = await getCachedRules(supabase, userId, "capture");
   return formatRulesBlock("CAPTURE", rules);
 }

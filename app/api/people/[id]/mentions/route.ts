@@ -1,19 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import type { MentionWithSnippet, PersonMention } from "@/lib/people/types";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 export async function GET(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id: personId } = await ctx.params;
   const limit = Math.min(
     100,
@@ -21,16 +16,16 @@ export async function GET(
   );
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: mentionRows } = await supabase
       .from("people_mentions")
       .select(
-        "id, user_id, person_id, source_type, source_id, raw_alias, confidence, candidate_person_ids, needs_review, resolved_at, created_at"
+        "id, person_id, source_type, source_id, raw_alias, confidence, candidate_person_ids, needs_review, resolved_at, created_at, space_id"
       )
-      .eq("user_id", uid)
       .eq("person_id", personId)
       .order("created_at", { ascending: false })
       .limit(limit);
+    auditListRead(req, mentionRows, "organisation", "people");
     const mentions = (mentionRows ?? []) as PersonMention[];
 
     // Resolve snippets per source — fetch raw_captures, tasks, journal_entries.

@@ -1,22 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 async function ensureOwned(
-  supabase: ReturnType<typeof createServerClient>,
-  personId: string,
-  uid: string
+  supabase: SupabaseClient,
+  personId: string
 ): Promise<boolean> {
   const { data } = await supabase
     .from("people")
     .select("id")
     .eq("id", personId)
-    .eq("user_id", uid)
     .maybeSingle();
   return !!data?.id;
 }
@@ -27,8 +22,6 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string; aliasId: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id: personId, aliasId } = await ctx.params;
   let body: PatchBody;
   try {
@@ -37,8 +30,8 @@ export async function PATCH(
     return NextResponse.json({ error: "bad json" }, { status: 400 });
   }
   try {
-    const supabase = createServerClient();
-    if (!(await ensureOwned(supabase, personId, uid))) {
+    const supabase = await createUserClient();
+    if (!(await ensureOwned(supabase, personId))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     if (body.is_primary === true) {
@@ -72,12 +65,10 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string; aliasId: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id: personId, aliasId } = await ctx.params;
   try {
-    const supabase = createServerClient();
-    if (!(await ensureOwned(supabase, personId, uid))) {
+    const supabase = await createUserClient();
+    if (!(await ensureOwned(supabase, personId))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     // Refuse if it's the only alias

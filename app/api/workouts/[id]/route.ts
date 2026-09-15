@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   WORKOUT_SELECT,
   WORKOUT_EX_SELECT,
@@ -15,10 +15,6 @@ import {
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 const ALLOWED_FIELDS = new Set([
   "name",
   "default_kind",
@@ -31,16 +27,13 @@ export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("workouts")
       .select(WORKOUT_SELECT)
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle();
     if (error || !data) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -157,8 +150,6 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   let body: Record<string, unknown>;
   try {
@@ -179,12 +170,11 @@ export async function PATCH(
   }
   update.updated_at = new Date().toISOString();
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("workouts")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
       .select(WORKOUT_SELECT)
       .single();
     if (error || !data) {
@@ -201,16 +191,13 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { error } = await supabase
       .from("workouts")
       .update({ archived_at: new Date().toISOString() })
-      .eq("id", id)
-      .eq("user_id", uid);
+      .eq("id", id);
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err) {

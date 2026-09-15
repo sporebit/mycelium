@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Server-side count of raw_captures that need review for `userId`.
+ * Server-side count of raw_captures that need review for the calling user.
  *
  * Definition mirrors GET /api/captures/review?tab=needs_review:
  *   classification->>'confidence' IN ('low', 'ambiguous')
@@ -19,14 +19,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  */
 export async function fetchPendingReviewCount(
   supabase: SupabaseClient,
-  userId: string,
 ): Promise<number> {
   try {
     const oneHourAgo = new Date(Date.now() - 60 * 60_000).toISOString();
     const { count, error } = await supabase
       .from("raw_captures")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
       .is("discarded_at", null)
       .or(
         [

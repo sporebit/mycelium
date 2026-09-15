@@ -1,5 +1,5 @@
 import webpush from "web-push";
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
 const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY ?? "";
@@ -23,15 +23,14 @@ type SubRow = {
   auth: string;
 };
 
+/** `supabase` must act as the subscribing user — a request client, or one
+ *  from withUser() when called without a session. */
 export async function upsertSubscription(
-  supabase: ReturnType<typeof createServerClient>,
-  uid: string,
+  supabase: SupabaseClient,
   sub: { endpoint: string; p256dh: string; auth: string; userAgent?: string },
 ) {
   const { error } = await supabase.from("push_subscriptions").upsert(
-    {
-      user_id: uid,
-      endpoint: sub.endpoint,
+    { endpoint: sub.endpoint,
       p256dh: sub.p256dh,
       auth: sub.auth,
       user_agent: sub.userAgent ?? null,
@@ -41,15 +40,15 @@ export async function upsertSubscription(
   return { ok: !error, error: error?.message };
 }
 
+/** Sends to every subscription the client can see — i.e. the user it acts
+ *  as. Crons pick the recipient by calling this under withUser(uid, …). */
 export async function sendToUser(
-  supabase: ReturnType<typeof createServerClient>,
-  uid: string,
+  supabase: SupabaseClient,
   payload: PushPayload,
 ): Promise<{ sent: number; pruned: number }> {
   const { data: subs } = await supabase
     .from("push_subscriptions")
-    .select("id, endpoint, p256dh, auth")
-    .eq("user_id", uid);
+    .select("id, endpoint, p256dh, auth");
 
   if (!subs || subs.length === 0) return { sent: 0, pruned: 0 };
 

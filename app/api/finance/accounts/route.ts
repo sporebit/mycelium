@@ -1,23 +1,14 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET() {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("bank_accounts")
       .select("id, bank, external_key, account_number, sort_code, label, account_type, created_at")
-      .eq("user_id", uid)
       .order("created_at", { ascending: true });
     if (error) throw error;
     return NextResponse.json({ accounts: data ?? [] });

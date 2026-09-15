@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { money } from "@/lib/receipts/reconcile";
 import { shareAmount } from "@/lib/receipts/shares";
 import { namesFor } from "@/lib/receipts/participants";
@@ -11,10 +12,6 @@ import type {
 } from "@/lib/types/receipt";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type LineRow = {
   id: string;
@@ -36,18 +33,15 @@ type LineRow = {
  * a negative outstanding rather than being clamped — that is money owed back
  * to them, and hiding it would lose it.
  */
-export async function GET() {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
+export async function GET(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: receiptRows, error: rErr } = await supabase
       .from("receipts")
-      .select("id, title, retailer, purchased_at, currency")
-      .eq("user_id", uid);
+      .select("id, title, retailer, purchased_at, currency, space_id");
     if (rErr) return NextResponse.json({ error: rErr.message }, { status: 500 });
+    auditListRead(req, receiptRows, "organisation", "purchases");
 
     const receipts = (receiptRows ?? []) as Pick<
       Receipt,
@@ -85,8 +79,7 @@ export async function GET() {
 
     const { data: settlementRows } = await supabase
       .from("receipt_settlements")
-      .select("person_id, amount")
-      .eq("user_id", uid);
+      .select("person_id, amount");
 
     // person -> receipt -> owed
     const owedByPerson = new Map<string, Map<string, number>>();

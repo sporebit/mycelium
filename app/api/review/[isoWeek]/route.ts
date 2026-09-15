@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { parseNotes } from "@/lib/dailyLog";
 import {
   REVIEW_FIELDS,
@@ -34,10 +34,6 @@ export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ isoWeek: string }> }
 ) {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const { isoWeek } = await ctx.params;
   const parsed = parseIsoWeek(isoWeek);
   if (!parsed) {
@@ -49,11 +45,10 @@ export async function GET(
   try {
     const sundayKey = sundayKeyOfIsoWeek(parsed.year, parsed.week);
     const mondayKey = mondayKeyOfIsoWeek(parsed.year, parsed.week);
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("daily_logs")
       .select("notes")
-      .eq("user_id", uid)
       .eq("log_date", sundayKey)
       .maybeSingle();
     if (error) throw error;

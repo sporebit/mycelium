@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import {
   URGENCIES,
@@ -29,10 +29,6 @@ type Body = {
   patch?: Record<string, unknown>;
 };
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 /**
  * Apply the same patch to many tasks at once. Used by drag-to-schedule
  * on the calendar view (bulk due_date update), the bulk action bar
@@ -40,11 +36,6 @@ function userId(): string | null {
  * one-shot update across a selection.
  */
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   let body: Body;
   try {
     body = (await req.json()) as Body;
@@ -92,7 +83,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // Snapshot "before" so we can log activity rows for each changed task.
     const { data: beforeRows } = await supabase
@@ -100,7 +91,6 @@ export async function POST(req: NextRequest) {
       .select(
         "id, status, urgency, due_date, project_id, tags, context_where, context_device, context_energy, context_tag",
       )
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .in("id", ids);
     const beforeById = new Map<string, Record<string, unknown>>();
@@ -111,7 +101,6 @@ export async function POST(req: NextRequest) {
     const { data, error } = await supabase
       .from("tasks")
       .update(patch)
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .in("id", ids)
       .select(TASK_SELECT);
@@ -127,7 +116,6 @@ export async function POST(req: NextRequest) {
       updated.map((t) =>
         logTaskActivity(
           supabase,
-          uid,
           t.id,
           beforeById.get(t.id) ?? {},
           patch,

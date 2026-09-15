@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { getOwnProfile } from "@/lib/auth/session";
 
 export const runtime = "nodejs";
 
@@ -87,7 +88,7 @@ async function fetchOpenAIUsage(): Promise<{
 }
 
 async function fetchInternalUsage() {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const now = new Date();
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
 
@@ -169,6 +170,15 @@ async function fetchInternalUsage() {
 }
 
 export async function GET() {
+  // Account-level provider usage (Anthropic, OpenAI) is instance
+  // infrastructure, not a user's data: instance owner only. There is no
+  // api_usage table to scope by space — P12 Part 3's "api_usage gains
+  // user_id" had nothing to attach to (see docs/multi-user-handoff.md).
+  const profile = await getOwnProfile();
+  if (!profile?.is_instance_owner) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     if (cache && Date.now() - cache.ts < CACHE_TTL) {
       return NextResponse.json(cache.data);

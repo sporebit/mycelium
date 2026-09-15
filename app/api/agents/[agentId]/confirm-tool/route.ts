@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DA_BOI_DOMAINS, type DaBoiDomain } from "@/lib/agents/relevance";
 import { MODEL_CHAT } from "@/lib/config/models";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { AGENT_SYSTEM_PROMPTS, buildDaBoiPrompt } from "@/lib/agents/prompts";
 import { executeTool, toolsForAgent } from "@/lib/agents/tools";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 async function callClaude(
   system: string,
@@ -62,8 +58,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ agentId: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { agentId } = await ctx.params;
 
   let body: ConfirmBody;
@@ -74,7 +68,7 @@ export async function POST(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: conv } = await supabase
       .from("agent_conversations")

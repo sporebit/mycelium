@@ -1,11 +1,16 @@
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Classification } from "@/lib/router/classifyCapture";
 import { resolveEntityId } from "@/lib/router/resolveEntity";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { localDateKey } from "@/lib/util/date";
 
 export type WriteCaptureInput = {
+  /** Auth uid of the capturing user — written as the task owner. */
   userId: string;
+  /** Client to write with: `await createUserClient()` on the request
+   *  path, or the client withUser() handed a caller with no session
+   *  (Telegram webhook, crons). */
+  supabase: SupabaseClient;
   source: "telegram" | "web" | "api";
   rawText: string;
   audioUrl?: string | null;
@@ -27,13 +32,12 @@ export type WriteCaptureResult = {
 export async function writeCapture(
   input: WriteCaptureInput
 ): Promise<WriteCaptureResult> {
-  const supabase = createServerClient();
+  const supabase = input.supabase;
   const { userId, source, rawText, audioUrl, classification, llmSource } =
     input;
 
   const entityId = await resolveEntityId(
     supabase,
-    userId,
     classification.entity_name
   );
 
@@ -46,9 +50,7 @@ export async function writeCapture(
   };
 
   // a. INSERT into raw_captures (always — audit / memory continuity)
-  const captureRow: Record<string, unknown> = {
-    user_id: userId,
-    source,
+  const captureRow: Record<string, unknown> = { source,
     raw_text: rawText,
     audio_url: audioUrl ?? null,
     classification: { ...classification, resolved_entity_id: entityId },
@@ -78,9 +80,7 @@ export async function writeCapture(
   if (classification.kind === "task") {
     const { data: task, error: taskErr } = await supabase
       .from("tasks")
-      .insert({
-        user_id: userId,
-        title: classification.title,
+      .insert({ title: classification.title,
         description: classification.summary,
         urgency: classification.urgency,
         key: classification.key,
@@ -111,9 +111,7 @@ export async function writeCapture(
     };
     const { data: row, error: purErr } = await supabase
       .from("purchases")
-      .insert({
-        user_id: userId,
-        title: classification.title,
+      .insert({ title: classification.title,
         amount: purchase.amount,
         currency: purchase.currency,
         want_or_need: purchase.want_or_need,
@@ -143,9 +141,7 @@ export async function writeCapture(
     };
     const { data: row, error: painErr } = await supabase
       .from("exercise_pain_logs")
-      .insert({
-        user_id: userId,
-        session_id: null,
+      .insert({ session_id: null,
         session_exercise_id: null,
         exercise_name: "standalone",
         severity: typeof pain.severity === "number" ? pain.severity : 0,
@@ -167,9 +163,7 @@ export async function writeCapture(
     const media = classification.media ?? { media_type: "watch" as const, creator: null };
     const { data: mediaRow, error: mediaErr } = await supabase
       .from("media_items")
-      .insert({
-        user_id: userId,
-        title: classification.title,
+      .insert({ title: classification.title,
         creator: media.creator,
         media_type: media.media_type,
         media_status: "backlog",
@@ -216,9 +210,7 @@ export async function writeCapture(
       : null;
     const { data: entry, error: journalErr } = await supabase
       .from("journal_entries")
-      .insert({
-        user_id: userId,
-        entry_date: localDateKey(),
+      .insert({ entry_date: localDateKey(),
         raw_text: rawText,
         audio_url: audioUrl ?? null,
         summary,
@@ -256,9 +248,7 @@ export async function writeCapture(
   }
 
   // d. INSERT into audit_log
-  const { error: auditErr } = await supabase.from("audit_log").insert({
-    user_id: userId,
-    action: "capture",
+  const { error: auditErr } = await supabase.from("audit_log").insert({ action: "capture",
     resource_type: "raw_capture",
     resource_id: rawCapture.id,
     metadata: {
@@ -302,7 +292,6 @@ export async function writeCapture(
       const { data: rule } = await supabase
         .from("entity_review_rules")
         .select("review_new")
-        .eq("user_id", userId)
         .eq("entity_type", "person")
         .maybeSingle();
       deferIfNew = rule?.review_new === true;
@@ -312,11 +301,10 @@ export async function writeCapture(
       try {
         const res = await resolveMention(
           supabase,
-          userId,
           m.name_hint || m.raw,
           { deferIfNew },
         );
-        await recordMention(supabase, userId, res, {
+        await recordMention(supabase, res, {
           type: mentionSourceType,
           id: mentionSourceId,
         });
@@ -329,9 +317,7 @@ export async function writeCapture(
           res.confidence === "unresolved" &&
           !res.auto_created
         ) {
-          await supabase.from("pending_entities").insert({
-            user_id: userId,
-            capture_id: rawCapture.id,
+          await supabase.from("pending_entities").insert({ capture_id: rawCapture.id,
             entity_type: "person",
             entity_name: res.raw_alias,
             additional_data: { source_kind: classification.kind },

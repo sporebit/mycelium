@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { normaliseAlias } from "@/lib/people/normalise";
 import type { ImportResult, PersonImport } from "@/lib/people/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 type Body = { people?: PersonImport[] };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
 
   let body: Body;
   try {
@@ -26,7 +20,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "people array required" }, { status: 400 });
   }
 
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const today = new Date().toISOString().slice(0, 10);
   const result: ImportResult = { created: 0, updated: 0, skipped: 0, errors: [] };
 
@@ -44,7 +38,6 @@ export async function POST(req: NextRequest) {
       let q = supabase
         .from("people")
         .select("id, last_name, phone, email, birthday, address, relationship, notes")
-        .eq("user_id", uid)
         .ilike("first_name", first);
       q = last ? q.ilike("last_name", last) : q.is("last_name", null);
       const { data: existing } = await q.maybeSingle();
@@ -82,9 +75,7 @@ export async function POST(req: NextRequest) {
       const importNote = `Imported via bulk on ${today}`;
       const { data: created, error: createErr } = await supabase
         .from("people")
-        .insert({
-          user_id: uid,
-          first_name: first,
+        .insert({ first_name: first,
           last_name: last,
           phone: p.phone ?? null,
           email: p.email ?? null,

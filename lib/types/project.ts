@@ -14,7 +14,6 @@ export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
 
 export type Project = {
   id: string;
-  user_id: string;
   name: string;
   description: string | null;
   status: ProjectStatus;

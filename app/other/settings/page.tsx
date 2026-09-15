@@ -114,6 +114,8 @@ function SettingsBody({
 }) {
   const PANELS: { key: string; label: string; render: () => React.ReactNode }[] = [
     { key: "profile", label: "Profile", render: () => <ProfileSection settings={settings} onPatch={patch} /> },
+    { key: "security", label: "Security", render: () => <SecurityLinkSection /> },
+    { key: "people", label: "People & teams", render: () => <PeopleLinkSection /> },
     { key: "appearance", label: "Appearance", render: () => <AppearanceSection settings={settings} onPatch={patch} /> },
     { key: "sections", label: "Sections", render: () => <SectionsSection /> },
     { key: "notifications", label: "Notifications", render: () => <NotificationsSection settings={settings} onPatch={patch} /> },
@@ -184,6 +186,45 @@ function SectionCard({ title, children }: { title: string; children: React.React
       <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-4">{title}</Mono>
       <div className="flex flex-col gap-4">{children}</div>
     </div>
+  );
+}
+
+/**
+ * Sign-in methods, TOTP, passkeys and sessions have their own page: they
+ * talk to Supabase Auth directly rather than to the settings store this
+ * page patches, so they do not belong in the same save loop.
+ */
+function PeopleLinkSection() {
+  return (
+    <SectionCard title="PEOPLE & TEAMS">
+      <p className="text-sm text-ink-3">
+        Teams you belong to, who can see which sections, invitations, and
+        what you have shared with a person. Finance is never shared.
+      </p>
+      <Link
+        href="/other/settings/people"
+        className="text-sm text-text-hi underline underline-offset-4 hover:text-glow transition-colors"
+      >
+        Open people &amp; teams ›
+      </Link>
+    </SectionCard>
+  );
+}
+
+function SecurityLinkSection() {
+  return (
+    <SectionCard title="SECURITY">
+      <p className="text-sm text-ink-3">
+        Password, authenticator app, passkeys and the sessions currently
+        signed in to this account.
+      </p>
+      <Link
+        href="/other/settings/security"
+        className="text-sm text-text-hi underline underline-offset-4 hover:text-glow transition-colors"
+      >
+        Open security settings ›
+      </Link>
+    </SectionCard>
   );
 }
 

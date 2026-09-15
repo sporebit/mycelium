@@ -227,13 +227,10 @@ export async function searchText(
 /** Convert an OFF lookup into our `foods` insert payload (sans id/user). */
 export function offToFoodInsert(
   result: FoodSearchResult,
-  userId: string,
   fullNutriments?: OffNutriments,
 ): Omit<Food, "id" | "created_at" | "updated_at"> {
   const n = fullNutriments ?? {};
-  return {
-    user_id: userId,
-    name: result.name,
+  return { name: result.name,
     brand: result.brand,
     barcode: result.barcode,
     source: "open_food_facts",

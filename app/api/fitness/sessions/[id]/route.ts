@@ -1,29 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { loadSessionDetail } from "@/lib/fitness/session-detail";
 import { SESSION_STATUSES, type SessionStatus } from "@/lib/fitness/types";
 import { markStaleSessionsAttempted } from "@/lib/fitness/mark-stale-attempted";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     // Piggyback the stale-session sweep so opening any session detail
     // page also reconciles older active rows. Cheap partial-indexed
     // update; soft-fails if it doesn't land.
-    await markStaleSessionsAttempted(supabase, uid);
-    const detail = await loadSessionDetail(supabase, id, uid);
+    await markStaleSessionsAttempted(supabase);
+    const detail = await loadSessionDetail(supabase, id);
     if (!detail) return NextResponse.json({ error: "not found" }, { status: 404 });
     return NextResponse.json({ session: detail });
   } catch (err) {
@@ -46,8 +40,6 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
 
   let body: PatchBody;
@@ -80,12 +72,11 @@ export async function PATCH(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("workout_sessions")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
       .select("id")
       .single();
     if (error || !data) return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -100,16 +91,13 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { error } = await supabase
       .from("workout_sessions")
       .delete()
-      .eq("id", id)
-      .eq("user_id", uid);
+      .eq("id", id);
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err) {

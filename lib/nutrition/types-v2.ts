@@ -4,7 +4,6 @@ export type Serving = { label: string; grams: number };
 
 export type Food = {
   id: string;
-  user_id: string;
   name: string;
   brand: string | null;
   barcode: string | null;
@@ -60,7 +59,6 @@ export type FoodSearchResult = {
 
 export type MealGroup = {
   id: string;
-  user_id: string;
   name: string;
   position: number;
   created_at: string;
@@ -68,7 +66,6 @@ export type MealGroup = {
 
 export type NutritionLog = {
   id: string;
-  user_id: string;
   food_id: string | null;
   meal_group_id: string | null;
   date: string;

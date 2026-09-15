@@ -20,14 +20,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  */
 export async function markStaleSessionsAttempted(
   supabase: SupabaseClient,
-  userId: string,
 ): Promise<void> {
   try {
     const cutoff = new Date(Date.now() - 48 * 60 * 60_000).toISOString();
     const { error } = await supabase
       .from("workout_sessions")
       .update({ status: "attempted", updated_at: new Date().toISOString() })
-      .eq("user_id", userId)
       .eq("status", "active")
       .is("completed_at", null)
       .not("started_at", "is", null)

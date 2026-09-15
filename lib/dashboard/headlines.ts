@@ -116,8 +116,7 @@ function jsDayToProgrammeDow(jsDay: number): number {
 }
 
 export async function buildHeadlineContext(
-  supabase: SupabaseClient,
-  userId: string
+  supabase: SupabaseClient
 ): Promise<HeadlineContext> {
   const tz = process.env.USER_TIMEZONE ?? "Europe/London";
   const today = localDateKey(tz);
@@ -147,45 +146,37 @@ export async function buildHeadlineContext(
     supabase
       .from("tasks")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
       .eq("urgency", "today")
       .is("completed_at", null),
     supabase
       .from("workout_sessions")
       .select("date")
-      .eq("user_id", userId)
       .gte("date", streakLookbackStart)
       .lte("date", today),
     supabase
       .from("workout_sessions")
       .select("id, completed_at")
-      .eq("user_id", userId)
       .eq("date", today),
     supabase
       .from("raw_captures")
       .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
       .gte("created_at", since24h),
     supabase
       .from("daily_logs")
       .select("notes")
-      .eq("user_id", userId)
       .eq("log_date", yesterday)
       .maybeSingle(),
     supabase
       .from("daily_logs")
       .select("notes")
-      .eq("user_id", userId)
       .eq("log_date", GOALS_SENTINEL_DATE)
       .maybeSingle(),
     supabase
       .from("raw_captures")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId),
+      .select("id", { count: "exact", head: true }),
     supabase
       .from("workout_programme_phases")
       .select("programme_id, start_week_iso, end_week_iso")
-      .eq("user_id", userId)
       .lte("start_week_iso", currentWeek)
       .or(`end_week_iso.is.null,end_week_iso.gte.${currentWeek}`)
       .order("start_week_iso", { ascending: false })

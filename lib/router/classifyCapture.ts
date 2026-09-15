@@ -1,4 +1,14 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { MODEL_FAST } from "@/lib/config/models";
+
+/** What the classifier needs to pull the user's own routing rules into
+ *  the prompt: a client to read them with, and the auth uid that keys
+ *  the in-process rules cache. */
+export type ClassifyRulesContext = {
+  supabase: SupabaseClient;
+  userId: string;
+};
+
 export type CaptureKind =
   | "task"
   | "note"
@@ -914,14 +924,14 @@ function extractContextFromText(text: string): {
  *  block first (if any), then the static base. Exported so the test
  *  endpoint can render the exact prompt for diagnostics. */
 export async function buildClassifierSystemPrompt(
-  userId?: string,
+  rules?: ClassifyRulesContext,
 ): Promise<string> {
-  if (!userId) return CLASSIFIER_SYSTEM_PROMPT;
+  if (!rules) return CLASSIFIER_SYSTEM_PROMPT;
   // Lazy import to avoid a hard dependency cycle with lib/router/rules
-  // (rules.ts pulls supabase server, which can pull this file via the
-  // writeCapture chain during test imports).
+  // (which can pull this file back in via the writeCapture chain during
+  // test imports).
   const { buildCaptureRulesBlock } = await import("./rules");
-  const rulesBlock = await buildCaptureRulesBlock(userId);
+  const rulesBlock = await buildCaptureRulesBlock(rules.supabase, rules.userId);
   return rulesBlock
     ? `${rulesBlock}\n\n${CLASSIFIER_SYSTEM_PROMPT}`
     : CLASSIFIER_SYSTEM_PROMPT;
@@ -942,11 +952,11 @@ export function detectShoppingListItem(text: string): string | null {
 export async function classifyCapture(
   text: string,
   /** Pulls user-defined capture rules into the system prompt.
-   *  Optional — without a user id the classifier falls back to the
-   *  base prompt, so legacy/test call sites keep working. */
-  userId?: string,
+   *  Optional — without a client and user id the classifier falls back
+   *  to the base prompt, so legacy/test call sites keep working. */
+  rules?: ClassifyRulesContext,
 ): Promise<ClassifyResult> {
-  const systemPrompt = await buildClassifierSystemPrompt(userId);
+  const systemPrompt = await buildClassifierSystemPrompt(rules);
 
   try {
     const anthropic = await classifyAnthropic(text, systemPrompt);

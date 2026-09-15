@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
+import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   classifyCapture,
   type Classification,
@@ -16,10 +18,6 @@ type Body = {
   text?: string;
   scope?: RoutingRuleScope;
 };
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 /** Lightweight "did this rule fire" probe: a rule matches if any of its
  *  examples appears as a substring of the text (case-insensitive), or
@@ -70,9 +68,9 @@ function ruleMatches(rule: RoutingRule, text: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
+  const uid = (await headers()).get(PRINCIPAL_USER_HEADER);
   if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   let body: Body;
   try {
@@ -91,7 +89,10 @@ export async function POST(req: NextRequest) {
     let classification: Classification | null = null;
     let llmSource: string | null = null;
     if (scope === "capture") {
-      const res = await classifyCapture(text, uid);
+      const res = await classifyCapture(text, {
+        supabase: await createUserClient(),
+        userId: uid,
+      });
       classification = res.classification;
       llmSource = res.llm_source;
     }
@@ -100,11 +101,10 @@ export async function POST(req: NextRequest) {
     // fitness rules below — the user can sanity-check vocab without
     // a live workout context.
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: ruleRows } = await supabase
       .from("routing_rules")
       .select(ROUTING_RULE_SELECT)
-      .eq("user_id", uid)
       .eq("scope", scope)
       .eq("enabled", true)
       .order("priority", { ascending: false });

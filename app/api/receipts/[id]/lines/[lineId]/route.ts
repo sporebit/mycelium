@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { isReconcilable, money, reconcile } from "@/lib/receipts/reconcile";
 import { RECEIPT_LINE_SELECT, type ReceiptStatus } from "@/lib/types/receipt";
 
@@ -14,16 +14,10 @@ const ALLOWED_FIELDS = new Set([
   "item_code",
 ]);
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string; lineId: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id, lineId } = await ctx.params;
 
   let body: Record<string, unknown>;
@@ -42,17 +36,16 @@ export async function PATCH(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
-    // receipt_lines has no user_id of its own, so ownership is checked on the
-    // parent receipt before anything is written. The reconciliation columns are
-    // selected in the same round trip because the edit below has to re-judge
-    // the receipt against its printed total.
+    // The parent receipt is read before anything is written: RLS returns it
+    // only when the caller can reach it, so no row means not found. The
+    // reconciliation columns are selected in the same round trip because the
+    // edit below has to re-judge the receipt against its printed total.
     const { data: parent } = await supabase
       .from("receipts")
       .select("id, total, status, review_reason")
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle<{
         id: string;
         total: number | null;

@@ -1,26 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
-export async function GET() {
-  const uid = userId();
-  if (!uid)
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
+export async function GET(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("reminders")
       .select("*")
-      .eq("user_id", uid)
       .eq("cancelled", false)
       .order("due_at", { ascending: true });
     if (error) throw error;
+    auditListRead(req, data, "reminders", "reminders");
     return NextResponse.json({ reminders: data ?? [] });
   } catch (err) {
     console.error("[/api/reminders GET]", err);
@@ -35,10 +28,6 @@ type CreatePayload = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid)
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   let body: CreatePayload;
   try {
     body = (await req.json()) as CreatePayload;
@@ -54,11 +43,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("reminders")
       .insert({
-        user_id: uid,
         message: body.message.trim(),
         due_at: body.due_at,
         recurrence: body.recurrence?.trim() || null,

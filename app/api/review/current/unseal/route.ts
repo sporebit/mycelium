@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { getOrCreateDailyLog, parseNotes } from "@/lib/dailyLog";
 import { emptyReview, mergeReview, type WeeklyReview } from "@/lib/types/review";
 import { dateKeyLocal, sundayOfWeek } from "@/lib/util/week";
@@ -7,14 +7,10 @@ import { dateKeyLocal, sundayOfWeek } from "@/lib/util/week";
 export const runtime = "nodejs";
 
 export async function POST() {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   try {
     const dateKey = dateKeyLocal(sundayOfWeek(new Date()));
-    const supabase = createServerClient();
-    const row = await getOrCreateDailyLog(supabase, uid, dateKey);
+    const supabase = await createUserClient();
+    const row = await getOrCreateDailyLog(supabase, dateKey);
     const current = parseNotes(row.notes) as Record<string, unknown>;
     const existing = current.weekly_review as Partial<WeeklyReview> | undefined;
     const base = mergeReview(emptyReview(), existing ?? {});

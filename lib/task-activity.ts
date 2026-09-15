@@ -23,14 +23,12 @@ function stringify(v: unknown): string | null {
 
 export async function logTaskActivity(
   supabase: SupabaseClient,
-  userId: string,
   taskId: string,
   before: Record<string, unknown>,
   after: Record<string, unknown>,
 ): Promise<void> {
   const rows: Array<{
     task_id: string;
-    user_id: string;
     action: string;
     field: string;
     from_value: string | null;
@@ -45,7 +43,6 @@ export async function logTaskActivity(
     if (fromStr === toStr) continue;
     rows.push({
       task_id: taskId,
-      user_id: userId,
       action: "update",
       field,
       from_value: fromStr,
@@ -62,13 +59,11 @@ export async function logTaskActivity(
 
 export async function logTaskCreated(
   supabase: SupabaseClient,
-  userId: string,
   taskId: string,
 ): Promise<void> {
   try {
     await supabase.from("task_activity").insert({
       task_id: taskId,
-      user_id: userId,
       action: "created",
       field: null,
       from_value: null,

@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import type { ProgrammePhase } from "@/lib/fitness/types";
 import { parseIsoWeek } from "@/lib/util/week";
 
 export const runtime = "nodejs";
 
 const PHASE_FIELDS =
-  "id, user_id, programme_id, start_week_iso, end_week_iso, created_at";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
+  "id, programme_id, start_week_iso, end_week_iso, created_at";
 
 function validIsoWeek(s: unknown): s is string {
   return typeof s === "string" && parseIsoWeek(s) !== null;
@@ -20,8 +16,6 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   let body: { start_week_iso?: string; end_week_iso?: string | null };
   try {
@@ -43,12 +37,11 @@ export async function PATCH(
     update.end_week_iso = body.end_week_iso;
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("workout_programme_phases")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
       .select(PHASE_FIELDS)
       .single();
     if (error || !data) return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -63,16 +56,13 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { error } = await supabase
       .from("workout_programme_phases")
       .delete()
-      .eq("id", id)
-      .eq("user_id", uid);
+      .eq("id", id);
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err) {

@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import type { SessionKind, TemplateExercise } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 type Body = {
   target_programme_session_id?: string;
@@ -22,8 +18,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id: sessionId } = await ctx.params;
 
   let body: Body;
@@ -41,14 +35,13 @@ export async function POST(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: session } = await supabase
       .from("workout_sessions")
       .select(
-        "id, user_id, programme_session_id, swapped_from_programme_session_id, kind, name"
+        "id, programme_session_id, swapped_from_programme_session_id, kind, name"
       )
       .eq("id", sessionId)
-      .eq("user_id", uid)
       .maybeSingle();
     if (!session) return NextResponse.json({ error: "not found" }, { status: 404 });
     const sess = session as {

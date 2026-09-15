@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { localDateKey, previousDateKey } from "@/lib/util/date";
 import type { NutritionLog } from "@/lib/nutrition/types-v2";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const url = new URL(req.url);
   const daysParam = url.searchParams.get("days");
   const days = Math.min(
@@ -23,15 +18,15 @@ export async function GET(req: NextRequest) {
     let earliest = today;
     for (let i = 0; i < days - 1; i++) earliest = previousDateKey(earliest);
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("nutrition_logs")
-      .select("date, food_name, kcal, protein_g, carbs_g, fat_g")
-      .eq("user_id", uid)
+      .select("date, food_name, kcal, protein_g, carbs_g, fat_g, space_id")
       .gte("date", earliest)
       .lte("date", today)
       .order("date", { ascending: false });
     if (error) throw error;
+    auditListRead(req, data, "health", "nutrition");
     const rows = (data ?? []) as Pick<
       NutritionLog,
       "date" | "food_name" | "kcal" | "protein_g" | "carbs_g" | "fat_g"

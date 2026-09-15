@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
-
-const UID = () => process.env.USER_ID ?? "default";
 
 export async function GET(req: NextRequest) {
   try {
@@ -57,7 +55,7 @@ export async function GET(req: NextRequest) {
       Date.now() + (tokens.expires_in ?? 3600) * 1000,
     ).toISOString();
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     await supabase
       .from("user_settings")
       .update({
@@ -65,8 +63,7 @@ export async function GET(req: NextRequest) {
         google_access_token: tokens.access_token,
         google_token_expires_at: expiresAt,
         updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", UID());
+      });
 
     return NextResponse.redirect(
       new URL("/other/settings?google=connected", req.nextUrl.origin),

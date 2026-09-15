@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 function londonDayStart(): Date {
   const now = new Date();
@@ -22,28 +19,23 @@ function londonDayStart(): Date {
   return midnight;
 }
 
-export async function GET() {
-  const uid = userId();
-  if (!uid)
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
+export async function GET(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: supplements, error: sErr } = await supabase
       .from("supplements")
       .select("*")
-      .eq("user_id", uid)
       .eq("active", true)
       .order("name");
     if (sErr) throw sErr;
+    auditListRead(req, supplements, "health", "supplements");
 
     const dayStartUtc = londonDayStart();
 
     const { data: logs, error: lErr } = await supabase
       .from("supplement_logs")
       .select("id, supplement_id, taken_at")
-      .eq("user_id", uid)
       .gte("taken_at", dayStartUtc.toISOString())
       .order("taken_at", { ascending: false });
     if (lErr) throw lErr;
@@ -77,10 +69,6 @@ type CreatePayload = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid)
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   let body: CreatePayload;
   try {
     body = (await req.json()) as CreatePayload;
@@ -96,11 +84,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("supplements")
       .insert({
-        user_id: uid,
         name: body.name.trim(),
         brand: body.brand?.trim() || null,
         dose: body.dose.trim(),

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
@@ -18,12 +19,12 @@ export async function GET(req: NextRequest) {
     const to = req.nextUrl.searchParams.get("to");
     const counts = req.nextUrl.searchParams.get("counts");
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     if (counts === "true") {
       let query = supabase
         .from("spotify_plays")
-        .select("track_id, track_name, artist_names, album_name, album_art_url, duration_ms")
+        .select("track_id, track_name, artist_names, album_name, album_art_url, duration_ms, space_id")
         .order("played_at", { ascending: false });
 
       if (from) query = query.gte("played_at", `${from}T00:00:00Z`);
@@ -33,6 +34,7 @@ export async function GET(req: NextRequest) {
       if (error)
         return NextResponse.json({ error: error.message }, { status: 500 });
 
+      auditListRead(req, data, "studio", "spotify");
       const rows = (data ?? []) as PlayRow[];
       const trackMap = new Map<string, PlayRow & { count: number }>();
       const artistMap = new Map<string, number>();
@@ -69,6 +71,7 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query.limit(1000);
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
+    auditListRead(req, data, "studio", "spotify");
     return NextResponse.json({ plays: data });
   } catch (err) {
     console.error("[spotify/plays GET]", err);

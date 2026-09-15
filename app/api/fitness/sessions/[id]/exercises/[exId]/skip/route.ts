@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 /** Toggle-able skip endpoint (POST with optional { skipped: false } to unskip). */
 export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string; exId: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id: sessionId, exId } = await ctx.params;
 
   let skipped = true;
@@ -25,11 +19,11 @@ export async function POST(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     // Ownership check via join
     const { data: ex } = await supabase
       .from("workout_session_exercises")
-      .select("id, session_id, workout_sessions:session_id(user_id)")
+      .select("id, session_id, workout_sessions:session_id(id)")
       .eq("id", exId)
       .eq("session_id", sessionId)
       .maybeSingle();

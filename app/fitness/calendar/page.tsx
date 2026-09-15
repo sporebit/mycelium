@@ -27,21 +27,12 @@ export default async function FitnessCalendarPage({
   searchParams: Promise<{ month?: string | string[] }>;
 }) {
   const sp = await searchParams;
-  const uid = process.env.USER_ID;
   const tz = process.env.USER_TIMEZONE ?? "Europe/London";
   const todayKey = localDateKey(tz);
   const { year, month } = parseMonth(sp.month, todayKey);
 
-  if (!uid) {
-    return (
-      <div className="p-6 text-danger font-[family-name:var(--font-mono)] text-sm">
-        USER_ID env var is missing.
-      </div>
-    );
-  }
-
   const { cells } = monthGridRange(year, month);
-  const days = await fetchMonthCalendar(uid, year, month, todayKey);
+  const days = await fetchMonthCalendar(year, month, todayKey);
   const daysRecord: Record<string, ReturnType<typeof days.get>> = {};
   for (const [k, v] of days.entries()) daysRecord[k] = v;
 

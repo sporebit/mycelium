@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 /**
  * Apple Health → Myphelium2 webhook for body metrics. Designed for the
@@ -34,10 +34,6 @@ type Body = {
 
 const ALLOWED_SOURCES = new Set(["apple_health", "manual", "scale_ble"]);
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 function dateKey(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) throw new Error("invalid recorded_at");
@@ -45,11 +41,6 @@ function dateKey(iso: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   let body: Body;
   try {
     body = (await req.json()) as Body;
@@ -88,12 +79,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("body_metrics")
       .upsert(
         {
-          user_id: uid,
           date,
           weight: body.weight_kg,
           weight_unit: "kg",
@@ -104,7 +94,7 @@ export async function POST(req: NextRequest) {
           source,
           recorded_at: body.recorded_at,
         },
-        { onConflict: "user_id,date" },
+        { onConflict: "space_id,date" },
       )
       .select("id, weight, body_fat_pct, source, recorded_at")
       .single();

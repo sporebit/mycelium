@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { slugifyTypeKey } from "@/lib/fitness/slugify-type";
 import type {
   SessionTypeLoggingMode,
@@ -9,26 +10,20 @@ import type {
 export const runtime = "nodejs";
 
 const FIELDS =
-  "id, user_id, type_key, label, is_builtin, typical_logging_mode, created_at";
+  "id, type_key, label, is_builtin, typical_logging_mode, created_at, space_id";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
-export async function GET() {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+export async function GET(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("workout_session_types")
       .select(FIELDS)
-      .eq("user_id", uid)
       .order("label", { ascending: true });
     if (error) {
       console.error("[/api/fitness/session-types GET]", error);
       return NextResponse.json({ error: "fetch failed" }, { status: 500 });
     }
+    auditListRead(req, data, "fitness", "sessions");
     return NextResponse.json({ types: (data ?? []) as WorkoutSessionType[] });
   } catch (err) {
     console.error("[/api/fitness/session-types GET]", err);
@@ -42,9 +37,6 @@ type CreateBody = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   let body: CreateBody;
   try {
     body = (await req.json()) as CreateBody;
@@ -66,13 +58,12 @@ export async function POST(req: NextRequest) {
     body.typical_logging_mode === "simple" ? "simple" : "full";
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     // Case-insensitive duplicate check on label, since the slug may collapse
     // distinct labels ("Hot Yoga" and "Hot-Yoga" both → hot_yoga).
     const { data: existing } = await supabase
       .from("workout_session_types")
       .select("id, label")
-      .eq("user_id", uid)
       .or(`type_key.eq.${typeKey},label.ilike.${label}`)
       .limit(1);
     if (existing && existing.length > 0) {
@@ -83,9 +74,7 @@ export async function POST(req: NextRequest) {
     }
     const { data, error } = await supabase
       .from("workout_session_types")
-      .insert({
-        user_id: uid,
-        type_key: typeKey,
+      .insert({ type_key: typeKey,
         label,
         is_builtin: false,
         typical_logging_mode: mode,

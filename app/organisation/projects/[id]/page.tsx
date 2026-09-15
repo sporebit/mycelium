@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { ProjectDetail } from "@/components/compost/ProjectDetail";
 import type { Project } from "@/lib/types/project";
 
@@ -12,23 +12,14 @@ export default async function ProjectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return (
-      <div className="p-6 text-danger font-[family-name:var(--font-mono)] text-sm">
-        USER_ID env var is missing.
-      </div>
-    );
-  }
 
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data } = await supabase
     .from("projects")
     .select(
-      "id, user_id, name, description, status, colour, created_at, updated_at",
+      "id, name, description, status, colour, created_at, updated_at",
     )
     .eq("id", id)
-    .eq("user_id", uid)
     .maybeSingle();
   if (!data) notFound();
 

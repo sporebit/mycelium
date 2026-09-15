@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { pushDropToGoogle, removeGoogleEvent } from "@/lib/google/sync";
 
 export const runtime = "nodejs";
@@ -9,7 +9,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function GET(_req: NextRequest, ctx: Ctx) {
   try {
     const { id } = await ctx.params;
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("drops")
       .select("*")
@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   try {
     const { id } = await ctx.params;
     const body = await req.json();
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("drops")
       .update({ ...body, updated_at: new Date().toISOString() })
@@ -44,9 +44,9 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
         status: string;
       };
       if (d.status === "ended" && d.google_event_id) {
-        removeGoogleEvent("drops", d.google_event_id).catch(() => {});
+        removeGoogleEvent(supabase, "drops", d.google_event_id).catch(() => {});
       } else if (d.drop_date && d.drop_date_confirmed) {
-        pushDropToGoogle({
+        pushDropToGoogle(supabase, {
           id: d.id,
           name: d.name,
           brand: d.brand,
@@ -70,7 +70,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 export async function DELETE(_req: NextRequest, ctx: Ctx) {
   try {
     const { id } = await ctx.params;
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     const { data: existing } = await supabase
       .from("drops")
@@ -82,7 +82,7 @@ export async function DELETE(_req: NextRequest, ctx: Ctx) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     if (existing?.google_event_id) {
-      removeGoogleEvent("drops", existing.google_event_id).catch(() => {});
+      removeGoogleEvent(supabase, "drops", existing.google_event_id).catch(() => {});
     }
 
     return NextResponse.json({ ok: true });

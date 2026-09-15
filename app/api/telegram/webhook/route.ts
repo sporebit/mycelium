@@ -12,7 +12,9 @@ import { transcribeAudio } from "@/lib/openai/whisper";
 import { classifyCapture, detectShoppingListItem, type ReminderDetails } from "@/lib/router/classifyCapture";
 import { writeCapture } from "@/lib/router/writeCapture";
 import { embedAndStore } from "@/lib/router/embedAndStore";
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { withUser } from "@/lib/system/withUser";
+import { boundUser } from "@/lib/system/bindings";
 import { decodeRoute, encodeRoute } from "@/lib/telegram/codes";
 import {
   findPendingById,
@@ -195,12 +197,10 @@ function buildPendingKeyboard(
   return keyboard;
 }
 
-async function handlePendingCommand(chatId: number, userId: string): Promise<void> {
-  const supabase = createServerClient();
+async function handlePendingCommand(supabase: SupabaseClient, chatId: number): Promise<void> {
   const { data: rows } = await supabase
     .from("pending_workout_routes")
     .select("id, raw_text, button_options, created_at")
-    .eq("user_id", userId)
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .limit(5);
@@ -238,10 +238,12 @@ function relativeAge(iso: string): string {
   return `${h}h ago`;
 }
 
-async function handleMessage(message: TgMessage): Promise<void> {
+async function handleMessage(
+  supabase: SupabaseClient,
+  userId: string,
+  message: TgMessage,
+): Promise<void> {
   const chatId = message.chat.id;
-  const userId = process.env.USER_ID;
-  if (!userId) throw new Error("USER_ID missing");
 
   let rawText: string | undefined;
   let audioUrl: string | null = null;
@@ -277,10 +279,7 @@ async function handleMessage(message: TgMessage): Promise<void> {
 
       // Persist the file_id so it can be retried later
       try {
-        const supabase = createServerClient();
-        await supabase.from("raw_captures").insert({
-          user_id: userId,
-          source: "telegram",
+        await supabase.from("raw_captures").insert({ source: "telegram",
           raw_text: null,
           audio_url: `tg-file:${fileId}`,
           classification: { kind: "failed_transcription", error: String(err) },
@@ -312,7 +311,7 @@ async function handleMessage(message: TgMessage): Promise<void> {
   // /pending command — bypass capture pipeline
   const lowered = rawText.trim().toLowerCase();
   if (lowered === "/pending" || lowered === "pending workouts") {
-    await handlePendingCommand(chatId, userId);
+    await handlePendingCommand(supabase, chatId);
     return;
   }
 
@@ -320,16 +319,13 @@ async function handleMessage(message: TgMessage): Promise<void> {
   const parsedWeight = parseWeight(rawText);
   if (parsedWeight) {
     try {
-      const supabase = createServerClient();
       const date = localDateKey();
       await supabase.from("body_metrics").upsert(
-        {
-          user_id: userId,
-          date,
+        { date,
           weight: parsedWeight.value_kg,
           weight_unit: "kg",
         },
-        { onConflict: "user_id,date" },
+        { onConflict: "space_id,date" },
       );
       const display =
         parsedWeight.original_unit === "kg"
@@ -347,7 +343,6 @@ async function handleMessage(message: TgMessage): Promise<void> {
   const shoppingItem = detectShoppingListItem(rawText);
   if (shoppingItem) {
     try {
-      const supabase = createServerClient();
       let { data: defaultList } = await supabase
         .from("shopping_lists")
         .select("id, items")
@@ -385,17 +380,21 @@ async function handleMessage(message: TgMessage): Promise<void> {
     return;
   }
 
-  const { classification, llm_source } = await classifyCapture(rawText, userId);
+  const { classification, llm_source } = await classifyCapture(rawText, {
+    supabase,
+    userId,
+  });
 
   // Workout routing — replaces the standard capture pipeline for this kind.
   if (classification.kind === "workout") {
     try {
-      const r = await routeRawVoice(rawText, userId);
+      const r = await routeRawVoice(supabase, rawText, userId);
       if (r.kind === "routed") {
         await sendMessage(chatId, r.result.summary);
         // Also write a raw_captures row for audit/memory continuity
         try {
           await writeCapture({
+            supabase,
             userId,
             source: "telegram",
             rawText,
@@ -409,7 +408,7 @@ async function handleMessage(message: TgMessage): Promise<void> {
         return;
       }
       // Pending: needs disambiguation
-      const pending = await findPendingById(userId, r.pending_route_id);
+      const pending = await findPendingById(supabase, r.pending_route_id);
       if (!pending) {
         await sendMessage(chatId, "⚠️ Couldn't stash pending workout — try again.");
         return;
@@ -429,10 +428,7 @@ async function handleMessage(message: TgMessage): Promise<void> {
   if (classification.kind === "reminder" && classification.reminder) {
     try {
       const dueAt = computeReminderDueAt(classification.reminder);
-      const supabase = createServerClient();
-      await supabase.from("reminders").insert({
-        user_id: userId,
-        message: classification.reminder.reminder_message || classification.title,
+      await supabase.from("reminders").insert({ message: classification.reminder.reminder_message || classification.title,
         due_at: dueAt.toISOString(),
         recurrence: classification.reminder.recurrence || null,
       });
@@ -461,6 +457,7 @@ async function handleMessage(message: TgMessage): Promise<void> {
   }
 
   const result = await writeCapture({
+    supabase,
     userId,
     source: "telegram",
     rawText,
@@ -471,7 +468,7 @@ async function handleMessage(message: TgMessage): Promise<void> {
 
   // Fire-and-forget embedding (don't block reply)
   void embedAndStore({
-    userId,
+    supabase,
     sourceType: result.memorySourceType,
     sourceId: result.memorySourceId,
     text: rawText,
@@ -532,10 +529,11 @@ function currencySymbol(code: string | null | undefined): string {
   return "£";
 }
 
-async function handleCallback(cb: TgCallbackQuery): Promise<void> {
+async function handleCallback(
+  supabase: SupabaseClient,
+  cb: TgCallbackQuery,
+): Promise<void> {
   const data = cb.data ?? "";
-  const userId = process.env.USER_ID;
-  if (!userId) throw new Error("USER_ID missing");
 
   // Pending-workout resolution: pw|<8 char prefix>|<index>
   if (data.startsWith("pw|")) {
@@ -546,13 +544,13 @@ async function handleCallback(cb: TgCallbackQuery): Promise<void> {
       await answerCallbackQuery(cb.id, "Invalid action");
       return;
     }
-    const pending = await findPendingByPrefix(userId, prefix);
+    const pending = await findPendingByPrefix(supabase, prefix);
     if (!pending) {
       await answerCallbackQuery(cb.id, "Pending expired or not found");
       return;
     }
     try {
-      const result = await resolvePendingByIndex(pending.id, userId, idx);
+      const result = await resolvePendingByIndex(supabase, pending.id, idx);
       if (!result) {
         await answerCallbackQuery(cb.id, "Could not resolve");
         return;
@@ -586,7 +584,6 @@ async function handleCallback(cb: TgCallbackQuery): Promise<void> {
     return;
   }
 
-  const supabase = createServerClient();
   let updateMsg = "Updated";
 
   if (action === "u") {
@@ -600,22 +597,19 @@ async function handleCallback(cb: TgCallbackQuery): Promise<void> {
       await supabase
         .from("tasks")
         .update({ urgency, updated_at: new Date().toISOString() })
-        .eq("id", rowId)
-        .eq("user_id", userId);
+        .eq("id", rowId);
     } else {
       // For non-task captures, store override inside classification jsonb
       const { data: row } = await supabase
         .from("raw_captures")
         .select("classification")
         .eq("id", rowId)
-        .eq("user_id", userId)
         .maybeSingle();
       const merged = { ...(row?.classification ?? {}), urgency };
       await supabase
         .from("raw_captures")
         .update({ classification: merged })
-        .eq("id", rowId)
-        .eq("user_id", userId);
+        .eq("id", rowId);
     }
     updateMsg = `Urgency → ${urgency}`;
   } else if (action === "k") {
@@ -623,21 +617,18 @@ async function handleCallback(cb: TgCallbackQuery): Promise<void> {
       await supabase
         .from("tasks")
         .update({ key: true, updated_at: new Date().toISOString() })
-        .eq("id", rowId)
-        .eq("user_id", userId);
+        .eq("id", rowId);
     } else {
       const { data: row } = await supabase
         .from("raw_captures")
         .select("classification")
         .eq("id", rowId)
-        .eq("user_id", userId)
         .maybeSingle();
       const merged = { ...(row?.classification ?? {}), key: true };
       await supabase
         .from("raw_captures")
         .update({ classification: merged })
-        .eq("id", rowId)
-        .eq("user_id", userId);
+        .eq("id", rowId);
     }
     updateMsg = "Marked key ★";
   } else {
@@ -645,9 +636,7 @@ async function handleCallback(cb: TgCallbackQuery): Promise<void> {
     return;
   }
 
-  await supabase.from("audit_log").insert({
-    user_id: userId,
-    action: "capture_override",
+  await supabase.from("audit_log").insert({ action: "capture_override",
     resource_type: routedTo === "tasks" ? "task" : "raw_capture",
     resource_id: rowId,
     metadata: { action, data },
@@ -694,11 +683,17 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    if (update.callback_query) {
-      await handleCallback(update.callback_query);
-    } else if (update.message) {
-      await handleMessage(update.message);
-    }
+    // No session here: the webhook is public and acts as the user bound to
+    // the Telegram integration in configuration, never one named by the
+    // request. One client serves the whole update.
+    const userId = boundUser("telegram");
+    await withUser(userId, async (db) => {
+      if (update.callback_query) {
+        await handleCallback(db, update.callback_query);
+      } else if (update.message) {
+        await handleMessage(db, userId, update.message);
+      }
+    });
   } catch (err) {
     console.error("[telegram webhook] handler error:", err);
     // Still 200 so Telegram doesn't retry endlessly

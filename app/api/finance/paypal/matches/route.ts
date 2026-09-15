@@ -1,24 +1,15 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { getMatchCounts, getAmbiguousPayments } from "@/lib/finance/paypal-match";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET() {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const [counts, ambiguous] = await Promise.all([
-      getMatchCounts(supabase, uid),
-      getAmbiguousPayments(supabase, uid),
+      getMatchCounts(supabase),
+      getAmbiguousPayments(supabase),
     ]);
     return NextResponse.json({ counts, ambiguous });
   } catch (err) {

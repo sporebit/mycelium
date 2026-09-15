@@ -36,7 +36,6 @@ export const MEDIA_SUB_TYPES: Record<MediaType, readonly string[]> = {
 
 export type MediaItem = {
   id: string;
-  user_id: string;
   title: string;
   creator: string | null;
   media_type: MediaType;

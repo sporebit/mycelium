@@ -1,31 +1,26 @@
-import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import type { PendingWorkoutRoute } from "@/lib/fitness/types";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 /** List unexpired pending workout routes for the current user. */
-export async function GET() {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+export async function GET(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const nowIso = new Date().toISOString();
     const { data, error } = await supabase
       .from("pending_workout_routes")
-      .select("id, user_id, raw_text, parsed_payload, expires_at, created_at")
-      .eq("user_id", uid)
+      .select("id, raw_text, parsed_payload, expires_at, created_at, space_id")
       .gt("expires_at", nowIso)
       .order("created_at", { ascending: false });
     if (error) {
       console.error("[/api/fitness/pending-routes GET]", error);
       return NextResponse.json({ error: "fetch failed" }, { status: 500 });
     }
-    return NextResponse.json({ pending: (data ?? []) as PendingWorkoutRoute[] });
+    auditListRead(req, data, "fitness", "sessions");
+    return NextResponse.json({ pending: (data ?? []) as unknown as PendingWorkoutRoute[] });
   } catch (err) {
     console.error("[/api/fitness/pending-routes GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });

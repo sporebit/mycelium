@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
+import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   ROUTING_RULE_SELECT,
   invalidateRoutingRulesCache,
@@ -16,17 +18,13 @@ const ALLOWED_FIELDS = new Set([
   "priority",
 ]);
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
+  const uid = (await headers()).get(PRINCIPAL_USER_HEADER);
   if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await ctx.params;
   let body: Record<string, unknown>;
@@ -71,12 +69,11 @@ export async function PATCH(
   update.updated_at = new Date().toISOString();
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("routing_rules")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
       .select(ROUTING_RULE_SELECT)
       .single();
     if (error || !data) {
@@ -97,18 +94,17 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
+  const uid = (await headers()).get(PRINCIPAL_USER_HEADER);
   if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { error } = await supabase
       .from("routing_rules")
       .delete()
-      .eq("id", id)
-      .eq("user_id", uid);
+      .eq("id", id);
     if (error) throw error;
     invalidateRoutingRulesCache(uid);
     return NextResponse.json({ ok: true });

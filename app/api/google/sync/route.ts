@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { pullFromGoogle } from "@/lib/google/sync";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const result = await pullFromGoogle();
+    const supabase = await createUserClient();
+    const result = await pullFromGoogle(supabase);
     return NextResponse.json(result);
   } catch (err) {
     console.error("[google/sync GET]", err);
@@ -15,7 +17,8 @@ export async function GET() {
 
 export async function POST() {
   try {
-    const result = await pullFromGoogle();
+    const supabase = await createUserClient();
+    const result = await pullFromGoogle(supabase);
     return NextResponse.json(result);
   } catch (err) {
     console.error("[google/sync POST]", err);

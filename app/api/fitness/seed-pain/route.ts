@@ -1,26 +1,18 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { PAIN_SEED_ROWS } from "@/lib/fitness/seed-pain";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 /**
  * Idempotent seed of exercise_baselines from the user's spreadsheet.
- * Uses upsert on (user_id, exercise_name) so re-running is safe.
+ * Uses upsert on (space_id, exercise_name) so re-running is safe.
  */
 export async function POST() {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
 
   try {
-    const supabase = createServerClient();
-    const rows = PAIN_SEED_ROWS.map((r) => ({
-      user_id: uid,
-      exercise_name: r.exercise_name,
+    const supabase = await createUserClient();
+    const rows = PAIN_SEED_ROWS.map((r) => ({ exercise_name: r.exercise_name,
       has_known_issues: r.has_known_issues,
       typical_severity_min: r.typical_severity_min,
       typical_severity_max: r.typical_severity_max,
@@ -31,7 +23,7 @@ export async function POST() {
 
     const { error } = await supabase
       .from("exercise_baselines")
-      .upsert(rows, { onConflict: "user_id,exercise_name" });
+      .upsert(rows, { onConflict: "space_id,exercise_name" });
     if (error) {
       console.error("[/api/fitness/seed-pain]", error);
       return NextResponse.json({ error: "seed failed" }, { status: 500 });

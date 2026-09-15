@@ -157,6 +157,21 @@ export default function ExportPage() {
         </p>
       </header>
 
+      <div className="rounded-v2-md bg-surface-1 p-5 flex flex-wrap items-center gap-4">
+        <div className="flex-1 min-w-[240px]">
+          <p className="text-sm text-text-hi">Everything in your personal space</p>
+          <p className="text-xs text-ink-3">
+            Every entity group as JSON and CSV in one zip. Team data and anything shared with you is not included.
+          </p>
+        </div>
+        <a
+          href="/api/export/space"
+          className="inline-flex items-center min-h-[40px] px-4 rounded-v2-md bg-glow text-surface-0 text-sm hover:brightness-95"
+        >
+          Download zip
+        </a>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
         {/* Left: config */}
         <div className="flex flex-col gap-5">

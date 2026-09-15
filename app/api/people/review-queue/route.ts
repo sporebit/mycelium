@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import type {
   Person,
   PersonMention,
@@ -9,26 +10,19 @@ import type {
 export const runtime = "nodejs";
 
 const PERSON_FIELDS =
-  "id, user_id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at";
+  "id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at, space_id";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
-export async function GET() {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+export async function GET(req: NextRequest) {
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // 1. Ambiguous / low-confidence mentions waiting for the user to pick a person.
     const { data: mentionRows } = await supabase
       .from("people_mentions")
       .select(
-        "id, user_id, person_id, source_type, source_id, raw_alias, confidence, candidate_person_ids, needs_review, resolved_at, created_at"
+        "id, person_id, source_type, source_id, raw_alias, confidence, candidate_person_ids, needs_review, resolved_at, created_at, space_id"
       )
-      .eq("user_id", uid)
       .eq("needs_review", true)
       .order("created_at", { ascending: false });
     const mentions = (mentionRows ?? []) as PersonMention[];
@@ -99,10 +93,10 @@ export async function GET() {
     const { data: peopleRows } = await supabase
       .from("people")
       .select(PERSON_FIELDS)
-      .eq("user_id", uid)
       .eq("needs_review", true)
       .order("created_at", { ascending: false });
     const people = (peopleRows ?? []) as Person[];
+    auditListRead(req, [...(mentionRows ?? []), ...(peopleRows ?? [])], "organisation", "people");
     // Mention counts per person — for the "Auto-created from capture on …" subtitle.
     const countByPerson = new Map<string, number>();
     const firstSeenByPerson = new Map<string, string>();

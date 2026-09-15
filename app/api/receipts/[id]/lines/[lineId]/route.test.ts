@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@/lib/supabase/server", () => ({ createServerClient: vi.fn() }));
+vi.mock("@/lib/supabase/user", () => ({ createUserClient: vi.fn() }));
 
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { PATCH } from "./route";
 
 type Result = { data?: unknown; error?: { message: string } | null };
@@ -57,7 +57,7 @@ const LINE = { id: "line-1", line_total: 10 };
 
 function call(script: Result[], body: Record<string, unknown> = { line_total: 12 }) {
   const sb = makeSupabase(script);
-  vi.mocked(createServerClient).mockReturnValue(sb.client as never);
+  vi.mocked(createUserClient).mockResolvedValue(sb.client as never);
   const req = { json: async () => body } as never;
   const res = PATCH(req, { params: Promise.resolve({ id: "r-1", lineId: "line-1" }) });
   return { res, calls: sb.calls };
@@ -65,7 +65,6 @@ function call(script: Result[], body: Record<string, unknown> = { line_total: 12
 
 beforeEach(() => {
   vi.clearAllMocks();
-  process.env.USER_ID = "user-1";
 });
 
 describe("PATCH receipt line — reparse window", () => {

@@ -21,7 +21,6 @@ export type ExerciseDataShape =
 
 export type Programme = {
   id: string;
-  user_id: string;
   name: string;
   description: string | null;
   created_at: string;
@@ -31,7 +30,6 @@ export type Programme = {
 
 export type ProgrammePhase = {
   id: string;
-  user_id: string;
   programme_id: string;
   start_week_iso: string; // YYYY-Www
   end_week_iso: string | null;
@@ -93,7 +91,6 @@ export const SESSION_STATUSES: readonly SessionStatus[] = [
 
 export type LoggedSession = {
   id: string;
-  user_id: string;
   date: string;
   slot: Slot;
   kind: SessionKind;
@@ -116,7 +113,6 @@ export type SessionTypeLoggingMode = "full" | "simple";
 
 export type WorkoutSessionType = {
   id: string;
-  user_id: string;
   type_key: string;
   label: string;
   is_builtin: boolean;
@@ -128,7 +124,6 @@ export type BodyMetricSource = "apple_health" | "manual" | "scale_ble";
 
 export type BodyMetric = {
   id: string;
-  user_id: string;
   date: string;
   weight: number | null;
   weight_unit: WeightUnit;
@@ -323,7 +318,6 @@ export type FeelRating =
 
 export type ExerciseBaseline = {
   id: string;
-  user_id: string;
   exercise_name: string;
   has_known_issues: boolean | null;
   typical_severity_min: number | null;
@@ -336,7 +330,6 @@ export type ExerciseBaseline = {
 
 export type ExercisePainLog = {
   id: string;
-  user_id: string;
   session_id: string;
   /** Null when the row is a session-level pain note rather than a
    *  log against a specific exercise. */
@@ -421,7 +414,6 @@ export type PendingButtonOption = {
 export type PendingWorkoutRoute = {
   id: string;
   short_id?: string;
-  user_id: string;
   raw_text: string;
   parsed_payload: ParsedWorkout;
   button_options: PendingButtonOption[];

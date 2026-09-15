@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { localDateKey } from "@/lib/util/date";
 import {
   getOrCreateDailyLog,
@@ -9,19 +9,11 @@ import {
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET() {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const dateKey = localDateKey();
   try {
-    const supabase = createServerClient();
-    const row = await getOrCreateDailyLog(supabase, uid, dateKey);
+    const supabase = await createUserClient();
+    const row = await getOrCreateDailyLog(supabase, dateKey);
     return NextResponse.json({
       date: row.log_date,
       mood: row.mood,
@@ -34,11 +26,6 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   let body: Partial<DailyNotes>;
   try {
     const parsed = (await req.json()) as unknown;
@@ -52,8 +39,8 @@ export async function PATCH(req: NextRequest) {
 
   const dateKey = localDateKey();
   try {
-    const supabase = createServerClient();
-    const row = await getOrCreateDailyLog(supabase, uid, dateKey);
+    const supabase = await createUserClient();
+    const row = await getOrCreateDailyLog(supabase, dateKey);
     const current = parseNotes(row.notes);
     const merged: DailyNotes = { ...current, ...body };
 

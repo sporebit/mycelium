@@ -1,27 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid)
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   const url = new URL(req.url);
   const status = url.searchParams.get("status");
   const category = url.searchParams.get("category");
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let query = supabase
       .from("places")
       .select("*")
-      .eq("user_id", uid)
       .order("created_at", { ascending: false });
 
     if (status) query = query.eq("status", status);
@@ -29,6 +21,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await query;
     if (error) throw error;
+    auditListRead(req, data, "places", "places");
     return NextResponse.json({ places: data ?? [] });
   } catch (err) {
     console.error("[/api/places GET]", err);
@@ -67,10 +60,6 @@ function extractCoordsFromGoogleMaps(
 }
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid)
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-
   let body: CreatePayload;
   try {
     body = (await req.json()) as CreatePayload;
@@ -94,11 +83,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("places")
       .insert({
-        user_id: uid,
         name: body.name.trim(),
         description: body.description?.trim() || null,
         category: body.category?.trim() || "place",

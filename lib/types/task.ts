@@ -54,7 +54,6 @@ export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
 
 export type Task = {
   id: string;
-  user_id: string;
   title: string;
   description: string | null;
   urgency: TaskUrgency | null;
@@ -96,7 +95,6 @@ export type Task = {
 
 export type Entity = {
   id: string;
-  user_id: string;
   name: string;
   kind: string | null;
 };
@@ -104,7 +102,6 @@ export type Entity = {
 export type TaskComment = {
   id: string;
   task_id: string;
-  user_id: string;
   body: string;
   created_at: string;
   updated_at: string;
@@ -113,7 +110,6 @@ export type TaskComment = {
 export type TaskActivity = {
   id: string;
   task_id: string;
-  user_id: string;
   action: string;
   field: string | null;
   from_value: string | null;

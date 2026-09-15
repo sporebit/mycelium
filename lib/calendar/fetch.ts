@@ -1,5 +1,5 @@
 import ICAL from "ical.js";
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 type Feed = { name: string; colour: string; url: string };
 
@@ -26,9 +26,10 @@ const WINDOW_BACK_DAYS = 45;
 const WINDOW_FORWARD_DAYS = 45;
 const RECUR_SAFETY_LIMIT = 500;
 
-let memoryCache:
-  | { data: CalendarData; expiresAt: number }
-  | null = null;
+// Per-user: the feeds are shared configuration, but the tasks/birthdays/
+// bills merged in are the caller's, so one user's calendar must never be
+// served to another from the cache.
+const memoryCache = new Map<string, { data: CalendarData; expiresAt: number }>();
 
 function readFeeds(): Feed[] {
   const raw = process.env.GOOGLE_CALENDAR_ICAL_URLS;
@@ -135,17 +136,14 @@ function parseFeed(
 }
 
 async function fetchBirthdays(
+  supabase: SupabaseClient,
   windowStart: Date,
   windowEnd: Date,
 ): Promise<CalendarEvent[]> {
-  const uid = process.env.USER_ID;
-  if (!uid) return [];
   try {
-    const supabase = createServerClient();
     const { data, error } = await supabase
       .from("people")
       .select("id, first_name, last_name, display_name, birthday")
-      .eq("user_id", uid)
       .not("birthday", "is", null);
     if (error || !data) return [];
 
@@ -183,11 +181,11 @@ async function fetchBirthdays(
 }
 
 async function fetchEvents(
+  supabase: SupabaseClient,
   windowStart: Date,
   windowEnd: Date,
 ): Promise<CalendarEvent[]> {
   try {
-    const supabase = createServerClient();
     const { data, error } = await supabase
       .from("events")
       .select("*")
@@ -222,17 +220,14 @@ async function fetchEvents(
 }
 
 async function fetchScheduledTasks(
+  supabase: SupabaseClient,
   windowStart: Date,
   windowEnd: Date,
 ): Promise<CalendarEvent[]> {
-  const uid = process.env.USER_ID;
-  if (!uid) return [];
   try {
-    const supabase = createServerClient();
     const { data, error } = await supabase
       .from("tasks")
       .select("id, title, scheduled_at, time_estimate_min")
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .is("completed_at", null)
       .not("scheduled_at", "is", null)
@@ -304,11 +299,11 @@ function generatePaydays(
 }
 
 async function fetchDirectDebits(
+  supabase: SupabaseClient,
   windowStart: Date,
   windowEnd: Date,
 ): Promise<CalendarEvent[]> {
   try {
-    const supabase = createServerClient();
     const { data, error } = await supabase
       .from("accounts")
       .select("id, name, cost_amount, cost_period, renewal_date, status")
@@ -391,9 +386,14 @@ async function fetchDirectDebits(
   }
 }
 
-export async function getCalendarData(): Promise<CalendarData> {
-  if (memoryCache && memoryCache.expiresAt > Date.now()) {
-    return memoryCache.data;
+export async function getCalendarData(
+  supabase: SupabaseClient,
+): Promise<CalendarData> {
+  const { data: who } = await supabase.auth.getUser();
+  const cacheKey = who.user?.id ?? "anon";
+  const cached = memoryCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.data;
   }
 
   const feeds = readFeeds();
@@ -419,10 +419,10 @@ export async function getCalendarData(): Promise<CalendarData> {
         }
       }),
     ),
-    fetchScheduledTasks(windowStart, windowEnd),
-    fetchBirthdays(windowStart, windowEnd),
-    fetchEvents(windowStart, windowEnd),
-    fetchDirectDebits(windowStart, windowEnd),
+    fetchScheduledTasks(supabase, windowStart, windowEnd),
+    fetchBirthdays(supabase, windowStart, windowEnd),
+    fetchEvents(supabase, windowStart, windowEnd),
+    fetchDirectDebits(supabase, windowStart, windowEnd),
   ]);
   all.push(...scheduledTasks);
   all.push(...birthdayEvents);
@@ -432,6 +432,6 @@ export async function getCalendarData(): Promise<CalendarData> {
 
   all.sort((a, b) => a.start.localeCompare(b.start));
   const data: CalendarData = { events: all, failedCalendars: failed };
-  memoryCache = { data, expiresAt: Date.now() + CACHE_TTL_MS };
+  memoryCache.set(cacheKey, { data, expiresAt: Date.now() + CACHE_TTL_MS });
   return data;
 }

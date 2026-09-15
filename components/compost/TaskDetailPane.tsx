@@ -435,7 +435,7 @@ export function TaskDetailPane({
                     className="rounded-md bg-ink-0/40 border border-ink-2 p-2.5 flex flex-col gap-1.5"
                   >
                     <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
-                      <span>{entry.data.user_id}</span>
+                      <span />
                       <div className="flex items-center gap-2">
                         <span>{formatDateTime(entry.data.created_at)}</span>
                         <button

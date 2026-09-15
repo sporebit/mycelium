@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const url = new URL(req.url);
   const source = url.searchParams.get("source");
   const kind = url.searchParams.get("kind");
@@ -17,13 +14,12 @@ export async function GET(req: NextRequest) {
   );
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("raw_captures")
       .select(
-        "id, source, raw_text, audio_url, classification, llm_source, routed_to, routed_id, created_at"
+        "id, source, raw_text, audio_url, classification, llm_source, routed_to, routed_id, created_at, space_id"
       )
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -33,6 +29,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "organisation", "captures");
     return NextResponse.json({ captures: data ?? [] });
   } catch (err) {
     console.error("[/api/captures GET]", err);

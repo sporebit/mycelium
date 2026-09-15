@@ -1,22 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 async function ensureOwned(
-  supabase: ReturnType<typeof createServerClient>,
-  sessionId: string,
-  uid: string
+  supabase: SupabaseClient,
+  sessionId: string
 ): Promise<boolean> {
   const { data } = await supabase
     .from("workout_sessions")
     .select("id")
     .eq("id", sessionId)
-    .eq("user_id", uid)
     .maybeSingle();
   return !!data?.id;
 }
@@ -36,8 +31,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id: sessionId } = await ctx.params;
 
   let body: AddBody;
@@ -50,8 +43,8 @@ export async function POST(
   if (!name) return NextResponse.json({ error: "name required" }, { status: 400 });
 
   try {
-    const supabase = createServerClient();
-    if (!(await ensureOwned(supabase, sessionId, uid))) {
+    const supabase = await createUserClient();
+    if (!(await ensureOwned(supabase, sessionId))) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 

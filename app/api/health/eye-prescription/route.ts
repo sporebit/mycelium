@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("eye_prescriptions")
       .select("*")
       .order("prescribed_at", { ascending: false })
       .order("eye", { ascending: true });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    auditListRead(req, data, "health", "clinical");
     return NextResponse.json({ prescriptions: data });
   } catch (err) {
     console.error("[eye-prescription GET]", err);
@@ -43,7 +45,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "eyes array required" }, { status: 400 });
     }
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const inserts = rows.map((r) => ({
       prescribed_at: r.prescribed_at,
       optician: r.optician || null,

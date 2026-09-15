@@ -25,8 +25,7 @@ export type MigrationStats = {
  * via the unique constraints and skipped.
  */
 export async function migrateFromEntities(
-  supabase: SupabaseClient,
-  userId: string
+  supabase: SupabaseClient
 ): Promise<MigrationStats> {
   const stats: MigrationStats = {
     entities_seen: 0,
@@ -38,8 +37,7 @@ export async function migrateFromEntities(
 
   const { data: entityRows } = await supabase
     .from("entities")
-    .select("id, name, kind")
-    .eq("user_id", userId);
+    .select("id, name, kind");
   type EntityRow = { id: string; name: string; kind: string };
   const entities = ((entityRows ?? []) as EntityRow[]).filter(
     (e) => e.kind?.toLowerCase() === "person"
@@ -58,16 +56,10 @@ export async function migrateFromEntities(
     // Existing match — find by primary alias = name OR by exact first/last
     const { data: aliasMatch } = await supabase
       .from("people_aliases")
-      .select("person_id, people:person_id!inner(user_id)")
+      .select("person_id")
       .ilike("alias", name);
-    type AliasRow = {
-      person_id: string;
-      people: { user_id: string } | { user_id: string }[];
-    };
-    const owned = ((aliasMatch ?? []) as AliasRow[]).find((r) => {
-      const j = Array.isArray(r.people) ? r.people[0] : r.people;
-      return j?.user_id === userId;
-    });
+    type AliasRow = { person_id: string };
+    const owned = ((aliasMatch ?? []) as AliasRow[])[0];
 
     let personId: string;
     if (owned) {
@@ -76,9 +68,7 @@ export async function migrateFromEntities(
     } else {
       const { data: created, error } = await supabase
         .from("people")
-        .insert({
-          user_id: userId,
-          first_name: first,
+        .insert({ first_name: first,
           last_name: last,
           notes: "Migrated from entities table",
         })
@@ -101,7 +91,6 @@ export async function migrateFromEntities(
     const { data: taskRows } = await supabase
       .from("tasks")
       .select("id, entity_id, entity_name")
-      .eq("user_id", userId)
       .in("entity_id", entityIds);
     type TaskRow = {
       id: string;
@@ -122,9 +111,7 @@ export async function migrateFromEntities(
         .maybeSingle();
       if (existing?.id) continue;
       const raw = t.entity_name ?? "";
-      const { error } = await supabase.from("people_mentions").insert({
-        user_id: userId,
-        person_id: personId,
+      const { error } = await supabase.from("people_mentions").insert({ person_id: personId,
         source_type: "task",
         source_id: t.id,
         raw_alias: raw || "(migrated)",

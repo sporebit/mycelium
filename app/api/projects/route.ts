@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import {
   PROJECT_STATUSES,
   type Project,
@@ -9,32 +10,24 @@ import {
 export const runtime = "nodejs";
 
 const PROJECT_SELECT =
-  "id, user_id, name, description, status, colour, created_at, updated_at";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
+  "id, name, description, status, colour, created_at, updated_at, space_id";
 
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const url = new URL(req.url);
   const status = url.searchParams.get("status");
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("projects")
       .select(PROJECT_SELECT)
-      .eq("user_id", uid)
       .order("created_at", { ascending: false });
     if (status && PROJECT_STATUSES.includes(status as ProjectStatus)) {
       q = q.eq("status", status);
     }
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "organisation", "tasks");
     const projects = (data ?? []) as Project[];
 
     // Task counts per project (open tasks only)
@@ -43,7 +36,6 @@ export async function GET(req: NextRequest) {
       const { data: taskRows } = await supabase
         .from("tasks")
         .select("id, project_id")
-        .eq("user_id", uid)
         .is("deleted_at", null)
         .is("completed_at", null)
         .in("project_id", ids);
@@ -69,11 +61,6 @@ type CreateBody = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   let body: CreateBody;
   try {
     body = (await req.json()) as CreateBody;
@@ -87,10 +74,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
-    const insertPayload = {
-      user_id: uid,
-      name,
+    const supabase = await createUserClient();
+    const insertPayload = { name,
       description: body.description ?? null,
       status:
         body.status && PROJECT_STATUSES.includes(body.status)

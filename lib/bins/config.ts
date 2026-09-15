@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BinType, GardenSeason } from "./schedule";
 
 export type BinConfig = {
@@ -7,8 +7,9 @@ export type BinConfig = {
   anchor_type: BinType;
 };
 
-export async function loadBinConfig(): Promise<BinConfig | null> {
-  const supabase = createServerClient();
+export async function loadBinConfig(
+  supabase: SupabaseClient,
+): Promise<BinConfig | null> {
   const { data } = await supabase
     .from("bin_schedule_config")
     .select("collection_day_of_week, anchor_date, anchor_type")
@@ -18,8 +19,9 @@ export async function loadBinConfig(): Promise<BinConfig | null> {
   return (data as BinConfig | null) ?? null;
 }
 
-export async function loadGardenSeasons(): Promise<GardenSeason[]> {
-  const supabase = createServerClient();
+export async function loadGardenSeasons(
+  supabase: SupabaseClient,
+): Promise<GardenSeason[]> {
   const { data } = await supabase
     .from("bin_garden_seasons")
     .select("season_start, season_end");

@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { pushEventToGoogle } from "@/lib/google/sync";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("events")
       .select("*")
       .gte("start_at", new Date(Date.now() - 30 * 86400000).toISOString())
       .order("start_at", { ascending: true });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    auditListRead(req, data, "organisation", "events");
     return NextResponse.json({ events: data });
   } catch (err) {
     console.error("[events GET]", err);
@@ -26,7 +28,7 @@ export async function POST(req: NextRequest) {
     if (!body.title || !body.start_at) {
       return NextResponse.json({ error: "title and start_at required" }, { status: 400 });
     }
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("events")
       .insert({
@@ -43,7 +45,7 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     if (data) {
-      pushEventToGoogle(data as {
+      pushEventToGoogle(supabase, data as {
         id: string; title: string; start_at: string;
         end_at?: string | null; all_day?: boolean;
         location?: string | null; notes?: string | null;

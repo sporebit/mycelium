@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
+import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import {
   URGENCIES,
@@ -12,16 +16,13 @@ import { extractNameMentions } from "@/lib/people/regex-extract";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { pushTaskToGoogle } from "@/lib/google/sync";
 
-type Supabase = ReturnType<typeof createServerClient>;
-
 /**
  * Soft-failure mention extraction for tasks created/edited outside the
  * capture pipeline. Mirrors the writeCapture behaviour — any error is
  * logged and the task POST/PATCH still succeeds.
  */
 async function extractTaskMentions(
-  supabase: Supabase,
-  userId: string,
+  supabase: SupabaseClient,
   taskId: string,
   title: string,
   description: string | null
@@ -32,8 +33,8 @@ async function extractTaskMentions(
     const extractions = extractNameMentions(text);
     for (const e of extractions) {
       try {
-        const res = await resolveMention(supabase, userId, e.name_hint);
-        await recordMention(supabase, userId, res, {
+        const res = await resolveMention(supabase, e.name_hint);
+        await recordMention(supabase, res, {
           type: "task",
           id: taskId,
         });
@@ -48,16 +49,7 @@ async function extractTaskMentions(
 
 export const runtime = "nodejs";
 
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
-
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   const url = new URL(req.url);
   const rawStatus = (url.searchParams.get("status") ?? "open") as
     | "open"
@@ -75,11 +67,10 @@ export async function GET(req: NextRequest) {
   const includeChildren = url.searchParams.get("include_children") === "true";
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("tasks")
-      .select(TASK_SELECT)
-      .eq("user_id", uid)
+      .select(`${TASK_SELECT}, space_id`)
       .is("deleted_at", null)
       .order("priority_score", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false });
@@ -99,6 +90,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "organisation", "tasks");
 
     const tasks: Task[] = (data ?? []).map((row) =>
       serializeTask(row as Parameters<typeof serializeTask>[0])
@@ -109,7 +101,6 @@ export async function GET(req: NextRequest) {
       const { data: childRows, error: childErr } = await supabase
         .from("tasks")
         .select(TASK_SELECT)
-        .eq("user_id", uid)
         .is("deleted_at", null)
         .in("parent_task_id", parentIds)
         .order("created_at", { ascending: true });
@@ -159,9 +150,9 @@ type CreateBody = {
 };
 
 export async function POST(req: NextRequest) {
-  const uid = userId();
+  const uid = (await headers()).get(PRINCIPAL_USER_HEADER);
   if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   let body: CreateBody;
@@ -177,7 +168,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
 
     // Sub-task validation + inheritance
     let parentTaskId: string | null = null;
@@ -189,7 +180,6 @@ export async function POST(req: NextRequest) {
       const { data: parent, error: parentErr } = await supabase
         .from("tasks")
         .select("id, urgency, entity_id, project_id, tags, parent_task_id")
-        .eq("user_id", uid)
         .eq("id", body.parent_task_id)
         .maybeSingle();
       if (parentErr || !parent) {
@@ -227,7 +217,7 @@ export async function POST(req: NextRequest) {
     ) {
       try {
         const { suggestContext } = await import("@/lib/compost/suggest-context");
-        const suggestion = await suggestContext(supabase, uid, title);
+        const suggestion = await suggestContext(supabase, title);
         suggestedWhere = suggestion.where;
         suggestedDevice = suggestion.device;
         suggestedEnergy = suggestion.energy;
@@ -237,9 +227,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const insertPayload = {
-      user_id: uid,
-      title,
+    const insertPayload = { title,
       description: body.description ?? null,
       urgency:
         body.urgency && URGENCIES.includes(body.urgency)
@@ -281,7 +269,6 @@ export async function POST(req: NextRequest) {
     // Mention extraction (soft-fail). Mirrors capture-pipeline behaviour.
     await extractTaskMentions(
       supabase,
-      uid,
       (data as { id: string }).id,
       title,
       body.description ?? null
@@ -289,7 +276,7 @@ export async function POST(req: NextRequest) {
 
     if (body.scheduled_at) {
       const row = data as { id: string; title: string; description: string | null; scheduled_at: string };
-      pushTaskToGoogle({
+      pushTaskToGoogle(supabase, {
         id: row.id,
         title: row.title,
         description: row.description,

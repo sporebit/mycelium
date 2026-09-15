@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import type {
   SessionTypeLoggingMode,
   WorkoutSessionType,
@@ -8,11 +8,7 @@ import type {
 export const runtime = "nodejs";
 
 const FIELDS =
-  "id, user_id, type_key, label, is_builtin, typical_logging_mode, created_at";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
+  "id, type_key, label, is_builtin, typical_logging_mode, created_at";
 
 type PatchBody = {
   label?: string;
@@ -23,8 +19,6 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
 
   let body: PatchBody;
@@ -49,12 +43,11 @@ export async function PATCH(
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("workout_session_types")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
       .select(FIELDS)
       .single();
     if (error || !data) return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -69,17 +62,14 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     // Block built-ins
     const { data: t } = await supabase
       .from("workout_session_types")
       .select("id, type_key, is_builtin")
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle();
     if (!t) return NextResponse.json({ error: "not found" }, { status: 404 });
     const row = t as { is_builtin: boolean; type_key: string };
@@ -90,7 +80,6 @@ export async function DELETE(
     const { data: refs } = await supabase
       .from("workout_sessions")
       .select("id")
-      .eq("user_id", uid)
       .eq("session_type", row.type_key)
       .limit(1);
     if (refs && refs.length > 0) {
@@ -102,8 +91,7 @@ export async function DELETE(
     const { error } = await supabase
       .from("workout_session_types")
       .delete()
-      .eq("id", id)
-      .eq("user_id", uid);
+      .eq("id", id);
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err) {

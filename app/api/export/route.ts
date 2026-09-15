@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
 
@@ -47,7 +47,7 @@ const SECTION_TABLES: Record<string, TableDef[]> = {
   ],
 };
 
-const META_COLS = ["id", "user_id", "created_at", "updated_at"];
+const META_COLS = ["id", "space_id", "created_by", "created_at", "updated_at"];
 
 function stripMeta(rows: Record<string, unknown>[]): Record<string, unknown>[] {
   return rows.map((r) => {
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "PDF export coming soon" }, { status: 501 });
     }
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const allData: Record<string, Record<string, unknown>[]> = {};
 
     for (const sectionKey of sections) {

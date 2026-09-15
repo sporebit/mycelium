@@ -2,7 +2,7 @@ import { Shell } from "@/components/dashboard/Shell";
 import { OperatorZone } from "@/components/dashboard/OperatorZone";
 import { TodayHeader } from "@/components/dashboard/today/TodayHeader";
 import { DashboardSwitcher } from "@/components/dashboard/today/DashboardSwitcher";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import {
   buildHeadlineContext,
   matchHeadlines,
@@ -10,16 +10,13 @@ import {
 } from "@/lib/dashboard/headlines";
 
 export default async function DashboardPage() {
-  const uid = process.env.USER_ID;
   let candidates: HeadlineCandidate[] = [];
-  if (uid) {
-    try {
-      const supabase = createServerClient();
-      const ctx = await buildHeadlineContext(supabase, uid);
-      candidates = matchHeadlines(ctx);
-    } catch (err) {
-      console.error("[dashboard/headlines]", err);
-    }
+  try {
+    const supabase = await createUserClient();
+    const ctx = await buildHeadlineContext(supabase);
+    candidates = matchHeadlines(ctx);
+  } catch (err) {
+    console.error("[dashboard/headlines]", err);
   }
 
   return (

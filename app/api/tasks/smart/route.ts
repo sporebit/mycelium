@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import type { Task } from "@/lib/types/task";
 
@@ -162,11 +162,6 @@ async function callClaude(
 }
 
 export async function POST(req: NextRequest) {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   let body: { query?: unknown };
   try {
     body = (await req.json()) as { query?: unknown };
@@ -179,11 +174,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("tasks")
       .select(TASK_SELECT)
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .is("completed_at", null)
       .order("updated_at", { ascending: false })

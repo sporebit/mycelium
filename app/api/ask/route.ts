@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { getQueryEmbedding } from "@/lib/memory/embedCache";
 import { searchChunks, enrichSources, buildMatches } from "@/lib/memory/search";
 import type { AskSource, SearchMatch } from "@/lib/memory/types";
@@ -160,11 +160,6 @@ async function streamFromAnthropic(
 }
 
 export async function POST(req: NextRequest) {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return Response.json({ error: "USER_ID missing" }, { status: 500 });
-  }
-
   let body: { question?: unknown };
   try {
     body = (await req.json()) as { question?: unknown };
@@ -179,8 +174,8 @@ export async function POST(req: NextRequest) {
   let sources: AskSource[] = [];
   try {
     const embedding = await getQueryEmbedding(question);
-    const supabase = createServerClient();
-    const chunks = await searchChunks(supabase, uid, embedding, TOP_K, 0.25);
+    const supabase = await createUserClient();
+    const chunks = await searchChunks(supabase, embedding, TOP_K, 0.25);
     const enrichedMap = await enrichSources(supabase, chunks);
     const matches = buildMatches(chunks, enrichedMap);
     sources = matches.map((m, i) => ({

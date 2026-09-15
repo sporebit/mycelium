@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { matchesBearer } from "@/lib/auth/gate";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
+import { clientForUser, withUser } from "@/lib/system/withUser";
+import { boundUser } from "@/lib/system/bindings";
 
 export const runtime = "nodejs";
 
@@ -29,28 +33,31 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const supabase = createServerClient();
 
-    const { error } = await supabase.from("pc_metrics").insert({
-      machine_id:
-        typeof body.machine_id === "string" && body.machine_id.trim()
-          ? body.machine_id.trim()
-          : DEFAULT_MACHINE_ID,
-      cpu_usage: body.cpu_usage ?? null,
-      cpu_temp: body.cpu_temp ?? null,
-      cpu_clock_mhz: body.cpu_clock_mhz ?? null,
-      gpu_usage: body.gpu_usage ?? null,
-      gpu_temp: body.gpu_temp ?? null,
-      gpu_vram_used_mb: body.gpu_vram_used_mb ?? null,
-      gpu_vram_total_mb: body.gpu_vram_total_mb ?? null,
-      ram_used_gb: body.ram_used_gb ?? null,
-      ram_total_gb: body.ram_total_gb ?? null,
-      network_upload_mbps: body.network_upload_mbps ?? null,
-      network_download_mbps: body.network_download_mbps ?? null,
-      uptime_seconds: body.uptime_seconds ?? null,
-      drives: body.drives ?? null,
-      raw: body.raw ?? null,
-    });
+    // The agent holds a shared secret, not a session: act as the user bound
+    // to the PC metrics integration in configuration.
+    const { error } = await withUser(boundUser("pc_metrics"), async (db) =>
+      db.from("pc_metrics").insert({
+        machine_id:
+          typeof body.machine_id === "string" && body.machine_id.trim()
+            ? body.machine_id.trim()
+            : DEFAULT_MACHINE_ID,
+        cpu_usage: body.cpu_usage ?? null,
+        cpu_temp: body.cpu_temp ?? null,
+        cpu_clock_mhz: body.cpu_clock_mhz ?? null,
+        gpu_usage: body.gpu_usage ?? null,
+        gpu_temp: body.gpu_temp ?? null,
+        gpu_vram_used_mb: body.gpu_vram_used_mb ?? null,
+        gpu_vram_total_mb: body.gpu_vram_total_mb ?? null,
+        ram_used_gb: body.ram_used_gb ?? null,
+        ram_total_gb: body.ram_total_gb ?? null,
+        network_upload_mbps: body.network_upload_mbps ?? null,
+        network_download_mbps: body.network_download_mbps ?? null,
+        uptime_seconds: body.uptime_seconds ?? null,
+        drives: body.drives ?? null,
+        raw: body.raw ?? null,
+      }),
+    );
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -114,7 +121,14 @@ function projectBucket(row: BucketRow, bucket: string) {
  */
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    // A headless caller presenting PC_METRICS_SECRET has no session, so it
+    // acts as the bound user; a browser session reads as itself.
+    const supabase = matchesBearer(
+      req.headers.get("authorization"),
+      process.env.PC_METRICS_SECRET,
+    )
+      ? await clientForUser(boundUser("pc_metrics"))
+      : await createUserClient();
     const params = req.nextUrl.searchParams;
     const machineParam = params.get("machine")?.trim() || null;
 
@@ -170,6 +184,7 @@ export async function GET(req: NextRequest) {
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
+      auditListRead(req, data, "studio", "pc");
       return NextResponse.json({
         current,
         history: data ?? [],
@@ -193,6 +208,7 @@ export async function GET(req: NextRequest) {
     if (bucketErr) {
       return NextResponse.json({ error: bucketErr.message }, { status: 500 });
     }
+    auditListRead(req, buckets, "studio", "pc");
 
     // An hour the agent never reported has no row at all. Emitting the full
     // series with explicit nulls is what keeps a gap looking like a gap: the

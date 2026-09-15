@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   let body: { label?: string; icon?: string | null };
   try {
@@ -31,13 +25,12 @@ export async function PATCH(
     return NextResponse.json({ error: "no fields" }, { status: 400 });
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("context_options")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
-      .select("id, user_id, field, value, label, icon, use_count, created_at")
+      .select("id, field, value, label, icon, use_count, created_at")
       .single();
     if (error || !data) {
       return NextResponse.json({ error: error?.message ?? "not found" }, { status: 404 });
@@ -53,16 +46,13 @@ export async function DELETE(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { error } = await supabase
       .from("context_options")
       .delete()
-      .eq("id", id)
-      .eq("user_id", uid);
+      .eq("id", id);
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err) {

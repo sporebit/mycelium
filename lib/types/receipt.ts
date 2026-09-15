@@ -34,7 +34,7 @@ export const TOTAL_TOLERANCE = 0.05;
  * once — `title` was added in 0093 and had to land in four places.
  */
 export const RECEIPT_SELECT =
-  "id, user_id, title, retailer, purchased_at, currency, subtotal, vat_total, total, parsed_total, status, review_reason, raw_parse, created_at, updated_at";
+  "id, title, retailer, purchased_at, currency, subtotal, vat_total, total, parsed_total, status, review_reason, raw_parse, created_at, updated_at";
 
 export const RECEIPT_LINE_SELECT =
   "id, receipt_id, sort_order, item_code, description, quantity, unit_price, vat, line_total, vat_code, raw_text, created_at";
@@ -44,7 +44,6 @@ export const RECEIPT_IMAGE_SELECT =
 
 export type Receipt = {
   id: string;
-  user_id: string;
   /**
    * Hand-typed label. Independent of `retailer`, which the parser owns and
    * overwrites on every reparse. Null until the user names the receipt.
@@ -110,7 +109,7 @@ export const RECEIPT_LINE_SHARE_SELECT =
   "id, receipt_line_id, person_id, share_pct, units, created_at";
 
 export const RECEIPT_SETTLEMENT_SELECT =
-  "id, user_id, person_id, amount, paid_at, transaction_id, note, created_at";
+  "id, person_id, amount, paid_at, transaction_id, note, created_at";
 
 /**
  * Someone other than the owner who is on this receipt. The owner has no row —
@@ -147,7 +146,6 @@ export type ReceiptLineShareWithAmount = ReceiptLineShare & {
 
 export type ReceiptSettlement = {
   id: string;
-  user_id: string;
   person_id: string;
   amount: number;
   paid_at: string;

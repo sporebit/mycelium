@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { isValidCategory } from "@/lib/finance/taxonomy";
 
 export const runtime = "nodejs";
@@ -8,9 +8,6 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = process.env.USER_ID;
-  if (!uid)
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
 
   let body: { category?: string };
@@ -30,12 +27,11 @@ export async function POST(
     : { category: null, category_source: null, category_locked: false, ai_confidence: null };
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("transactions")
       .update(update)
       .eq("id", id)
-      .eq("user_id", uid)
       .select("id, category, category_source, category_locked")
       .single();
 

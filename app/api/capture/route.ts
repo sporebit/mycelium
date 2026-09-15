@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
+import { createUserClient } from "@/lib/supabase/user";
 import { classifyCapture } from "@/lib/router/classifyCapture";
 import { writeCapture } from "@/lib/router/writeCapture";
 import { embedAndStore } from "@/lib/router/embedAndStore";
@@ -19,15 +22,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "text required" }, { status: 400 });
   }
 
-  const userId = process.env.USER_ID;
+  // The principal middleware established: a session user, or API_SECRET
+  // acting as Phil. Both name a user; CRON_SECRET does not and is not a
+  // capture path.
+  const userId = (await headers()).get(PRINCIPAL_USER_HEADER);
   if (!userId) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const supabase = await createUserClient();
 
   if (body.client_uuid) {
-    const { createServerClient: csc } = await import("@/lib/supabase/server");
-    const sb = csc();
-    const { data: dup } = await sb
+    const { data: dup } = await supabase
       .from("raw_captures")
       .select("id")
       .eq("client_uuid", body.client_uuid)
@@ -38,8 +43,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { classification, llm_source } = await classifyCapture(text, userId);
+    const { classification, llm_source } = await classifyCapture(text, {
+      supabase,
+      userId,
+    });
     const result = await writeCapture({
+      supabase,
       userId,
       source: "web",
       rawText: text,
@@ -49,7 +58,7 @@ export async function POST(req: NextRequest) {
     });
 
     void embedAndStore({
-      userId,
+      supabase,
       sourceType: result.memorySourceType,
       sourceId: result.memorySourceId,
       text,

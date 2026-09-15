@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { MODEL_FAST } from "@/lib/config/models";
 import { TAXONOMY, type Category, isValidCategory } from "./taxonomy";
 
@@ -141,7 +141,7 @@ export async function categorise(
   rows: TxnRow[],
   dryRun = false,
 ): Promise<CategoriseSummary> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const ruleResults: { id: string; category: Category }[] = [];
   const aiCandidates: TxnRow[] = [];
 

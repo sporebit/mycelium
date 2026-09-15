@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 import { evenSplitPcts } from "@/lib/receipts/shares";
 import { money } from "@/lib/receipts/reconcile";
 import type { ReceiptLineShare } from "@/lib/types/receipt";
@@ -22,7 +22,7 @@ type ShareRow = {
 };
 
 async function loadShares(lineId: string): Promise<ShareRow[]> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data } = await supabase
     .from("receipt_line_shares")
     .select("person_id, share_pct, units")
@@ -36,7 +36,7 @@ async function loadShares(lineId: string): Promise<ShareRow[]> {
 }
 
 async function defaultsFor(receiptId: string): Promise<Map<string, number | null>> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const { data } = await supabase
     .from("receipt_participants")
     .select("person_id, default_share_pct")
@@ -78,7 +78,7 @@ async function writeRecomputed(
   next: ShareRow[],
   quantity: number,
 ): Promise<void> {
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
   const defaults = await defaultsFor(receiptId);
 
   const unitRows = next.filter((s) => s.units !== null && s.units !== undefined);
@@ -190,7 +190,7 @@ export async function rebalanceLines(
   lineIds: string[],
 ): Promise<void> {
   if (lineIds.length === 0) return;
-  const supabase = createServerClient();
+  const supabase = await createUserClient();
 
   const { data } = await supabase
     .from("receipt_lines")

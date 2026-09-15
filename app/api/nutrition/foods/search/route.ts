@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { FOOD_SELECT } from "@/lib/nutrition/db";
 import { searchText } from "@/lib/nutrition/off";
 import { searchUsda } from "@/lib/nutrition/usda";
 import type { Food, FoodSearchResult } from "@/lib/nutrition/types-v2";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 function foodToResult(food: Food): FoodSearchResult {
   return {
@@ -31,8 +28,6 @@ function foodToResult(food: Food): FoodSearchResult {
 }
 
 export async function GET(req: NextRequest) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const url = new URL(req.url);
   const q = (url.searchParams.get("q") ?? "").trim();
   // Default to UK products with English language. Passing ?global=true
@@ -45,15 +40,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ results: [], uk_only: ukOnly });
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     // 1. user's library first — case-insensitive name match
     const { data: libRows } = await supabase
       .from("foods")
-      .select(FOOD_SELECT)
-      .eq("user_id", uid)
+      .select(`${FOOD_SELECT}, space_id`)
       .ilike("name", `%${q}%`)
       .order("use_count", { ascending: false })
       .limit(20);
+    auditListRead(req, libRows, "health", "nutrition");
     const lib = (libRows ?? []).map((r) => foodToResult(r as unknown as Food));
 
     // 2. OFF + USDA in parallel. OFF is good for branded products

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 import { pushDropToGoogle } from "@/lib/google/sync";
 
 export const runtime = "nodejs";
@@ -14,7 +15,7 @@ const DROP_TYPE_COLOURS: Record<string, string> = {
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const status = req.nextUrl.searchParams.get("status");
     const brand = req.nextUrl.searchParams.get("brand");
     const type = req.nextUrl.searchParams.get("type");
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    auditListRead(req, data, "drops", "drops");
 
     const brands = [...new Set((data ?? []).map((d) => d.brand))].sort();
     return NextResponse.json({ drops: data ?? [], brands });
@@ -46,7 +48,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "name and brand required" }, { status: 400 });
     }
 
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("drops")
       .insert({
@@ -89,7 +91,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (data && body.drop_date && body.drop_date_confirmed) {
-      pushDropToGoogle({
+      pushDropToGoogle(supabase, {
         id: (data as { id: string }).id,
         name: body.name,
         brand: body.brand,

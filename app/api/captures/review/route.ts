@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { auditListRead } from "@/lib/system/readAudit";
 
 export const runtime = "nodejs";
 
@@ -19,10 +20,6 @@ export const runtime = "nodejs";
  * "all" lists every non-discarded capture, newest first.
  */
 export async function GET(req: NextRequest) {
-  const uid = process.env.USER_ID;
-  if (!uid) {
-    return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
-  }
   const url = new URL(req.url);
   const tab = url.searchParams.get("tab") === "all" ? "all" : "needs_review";
   // ALL tab defaults to 20 per page (per the spec); NEEDS REVIEW also
@@ -35,13 +32,12 @@ export async function GET(req: NextRequest) {
   const before = url.searchParams.get("before");
 
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     let q = supabase
       .from("raw_captures")
       .select(
-        "id, source, raw_text, audio_url, classification, llm_source, routed_to, routed_id, reviewed_at, discarded_at, created_at",
+        "id, source, raw_text, audio_url, classification, llm_source, routed_to, routed_id, reviewed_at, discarded_at, created_at, space_id",
       )
-      .eq("user_id", uid)
       .is("deleted_at", null)
       .is("discarded_at", null)
       .order("created_at", { ascending: false })
@@ -68,6 +64,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) throw error;
+    auditListRead(req, data, "organisation", "captures");
 
     const rows = data ?? [];
     const hasMore = rows.length > limit;

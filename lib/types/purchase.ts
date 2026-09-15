@@ -57,7 +57,6 @@ export const PURCHASE_CATEGORIES: readonly PurchaseCategory[] = [
 
 export type Purchase = {
   id: string;
-  user_id: string;
   title: string;
   amount: number | null;
   currency: string;

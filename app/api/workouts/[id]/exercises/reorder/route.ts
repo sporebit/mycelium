@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
-
-function userId(): string | null {
-  return process.env.USER_ID ?? null;
-}
 
 export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const uid = userId();
-  if (!uid) return NextResponse.json({ error: "USER_ID missing" }, { status: 500 });
   const { id } = await ctx.params;
   let body: { orderedIds?: string[] };
   try {
@@ -25,12 +19,11 @@ export async function POST(
     return NextResponse.json({ error: "orderedIds required" }, { status: 400 });
   }
   try {
-    const supabase = createServerClient();
+    const supabase = await createUserClient();
     const { data: owned } = await supabase
       .from("workouts")
       .select("id")
       .eq("id", id)
-      .eq("user_id", uid)
       .maybeSingle();
     if (!owned) return NextResponse.json({ error: "not found" }, { status: 404 });
     // Apply positions in one batch. Each PATCH is independent so we
