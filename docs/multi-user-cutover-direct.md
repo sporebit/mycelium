@@ -229,6 +229,17 @@ today's `data.sql` (09-11 they were 87 / 185 / 38).
       → `200`. (Or wait for the next hourly run in Vercel → Logs.)
 - [ ] Sign out, sign back in with password + TOTP once more.
 
+> **JWT secret gotcha (hit live 2026-09-15).** This project migrated to
+> asymmetric JWT Signing Keys, so the current signing key is ECC and the
+> **Legacy JWT Secret** is kept only to *verify* (it still backs the
+> `anon`/`service_role` keys, which is why `withUser`'s HS256 tokens are
+> accepted at all). `SUPABASE_JWT_SECRET` in Vercel must be exactly that
+> Legacy JWT Secret (Settings -> JWT Keys -> Legacy JWT Secret -> Reveal),
+> not the new secret API key and not the ECC key. A wrong value shows as
+> `raw_captures insert failed: No suitable key or wrong key type` on the
+> Telegram webhook while sign-in still works. Never rotate or revoke the
+> legacy secret; `withUser` depends on it.
+
 ## 8. Retire the legacy auth (after 7 passes, 5 min)
 
 - [ ] Vercel → delete `USER_ID`, `DASHBOARD_PASSWORD`, `AUTH_SECRET`
