@@ -1,6 +1,6 @@
 # Mycelium — Context Snapshot
 
-*Rolling context document. Rebuilt weekly (Sunday evening) by the scheduled run; updated by sessions when state changes. Sessions read this + `claude/backlog.md` first. Last rebuilt: **2026-09-13 by the weekly scheduled run — docs-only**: the run is cloud-only (no device binding), so the PC/repo was unreachable. All repo state below is carried forward from the last successful repo read, **2026-09-11 (Claude Code on the PC)**, and is **STALE as of that date**. Anything committed since 09-11 is not reflected here.*
+*Rolling context document. Rebuilt weekly (Sunday evening) by the scheduled run; updated by sessions when state changes. Sessions read this + `claude/backlog.md` first. Last rebuilt: **2026-09-13 by the weekly scheduled run — docs-only**: the run is cloud-only (no device binding), so the PC/repo was unreachable. Repo state below is from the 09-11 PC read, **re-verified against `origin` on 2026-09-15 by a cloud Claude Code session** (see Since last run): `main` had not moved since 09-07; `multi-user` is as described.*
 
 ## Repo state — STALE, as of 2026-09-11 (PC unreachable by the 09-13 run)
 
@@ -62,6 +62,8 @@ Repo at `A:\Projects\Mycelium`. Branch **`multi-user`**, twelve commits ahead of
 16. Global-instructions prompt for checklists — after Phil has used the page end to end.
 
 ## Since last run
+
+**2026-09-15 (Claude Code, cloud session — live repo read):** Phil uploaded all 21 project docs; they are now committed in the repo at `claude/` (with a README on which copy is edited). Repo verified: `main` at `b9892d1` (7 Sept), chain 0101; `multi-user` at `184207e`, 12 ahead / 0 behind. `multi-user` merged into `main` cleanly and pushed as branch **`cutover`**; build green on the merged tree; unit tests that need the local stack could not run in the container. Decisions: cutover route **direct**; Phil does the DB/auth work himself; `main` is not touched until he runs 4.3 and the env vars, then `git push origin cutover:main` + `supabase db push`. Found: CI will go red on `main` after the merge (no stack for the P12 tests); `.env.example` lacks the P12 env names; `.claude/skills` on `main` are real directories; the 09-07 prompts-file correction is committed (`81d058e`); no `.graphify/` anywhere.
 
 **2026-09-13 (weekly scheduled run, cloud-only):** PC unreachable — the task still has no device binding (open item 7), so this was a docs-only rebuild; all repo facts above are stale as of 2026-09-11. No interactive sessions recorded in the docs since 09-11, so stream state is unchanged. Spec drift pass ran against doc-recorded repo facts only: **`claude/spec-index.md` corrected** — it still described pre-0101 reality ("~30 tables have no RLS, fix scheduled as `0097_rls_everywhere.sql`", "96 migrations", multi-user "not yet built"); now records RLS shipped as `0101`, PTP as 0097–0100, main/hosted at 0101, branch 0102–0115, Vercel Pro, and lists `claude/checklists-spec.md`. Per-domain spec docs NOT diffed (needs the repo). No backlog changes — no new repo evidence.
 

@@ -1,6 +1,6 @@
 # Mycelium — Backlog
 
-*Canonical backlog. Statuses: idea / committed / in-progress / blocked / done. `[claude]` = Claude-suggested. No fixed priority order. Done = builds + tests + Phil verified live. Last updated 2026-09-14 (Tickets designed — 35 decisions, spec at `claude/tickets-spec.md`; it absorbs Checklists, Reminders, Habits and venture_steps and takes the first slot after cutover; Day log / Journal v2 and Quotes designed earlier the same day).*
+*Canonical backlog. Statuses: idea / committed / in-progress / blocked / done. `[claude]` = Claude-suggested. No fixed priority order. Done = builds + tests + Phil verified live. Last updated 2026-09-15 (docs imported into the repo at `claude/`; `multi-user` merged to branch `cutover`, route = direct; repo-verified corrections marked 2026-09-15). Previous: 2026-09-14 (Tickets designed — 35 decisions, spec at `claude/tickets-spec.md`; it absorbs Checklists, Reminders, Habits and venture_steps and takes the first slot after cutover; Day log / Journal v2 and Quotes designed earlier the same day).*
 
 ## Tickets — backlog, GTD and life tasks (spec: `claude/tickets-spec.md`, written 2026-09-14 from 35 decisions)
 
@@ -20,7 +20,10 @@
 - **done (2026-09-11)** `[claude]` — corrected `docs/multi-user-rollback.md` (`184207e`): dump-completeness by **row-count parity**, not file-size ratio (a 2.7 MB data dump vs 23 MB `pg_database_size` is complete — catalog/extensions/bloat inflate the DB size); schema dump carries no `supabase_migrations` history (restore always needs the repair step); the `auth` and `storage` COPY blocks fail on a target running a different GoTrue version (restore public rows only; auth users are recreated by the fixed-uid insert / re-invite); Session-pooler + Git-Bash notes. The run-book page (v3.1) now matches the row-parity rule.
 - **RESOLVED decision — Vercel plan is Pro**: the hourly rundowns cron in `vercel.json` stays; step 1.8 needs no change.
 - **RESOLVED decision — `user_settings` placeholder (0.1)**: the replay proved the `'default'` row was empty and `0104` removed it cleanly, so "fine" carries no data risk. Phil to tick. **Still open — `platform` owner-only (0.2)**: a design call, no data behind it; recommend fine (OAuth tokens in `user_settings`).
-- **committed — decision needed** — cutover **route**: staging rehearsal (recommended) or straight to cutover. With Claude Code driving, Phil's share of the rehearsal is ~15 min. Toggle on the page.
+- **RESOLVED decision (2026-09-15) — cutover route is direct**: no staging rehearsal; Phil runs the DB and auth steps himself and sets up a test environment later.
+- **done (2026-09-15, Claude Code cloud session)** `[claude]` — `multi-user` (`184207e`) merged into `main` locally: clean, 409 files, no conflicts, chain ends at `0115`, `main` had not moved so no renumbering. Pushed as branch **`cutover`** (main + docs import + merge). `rm -rf .next && npx next build` green on the merged tree. `npm test`: 72/77 pass; the 5 failures and 8 errored files all need the local Supabase stack (`supabase status` ENOENT), which the cloud container cannot run — the 156/156 result stands from the 09-11 PC run. **Step 4.5 is now `git push origin cutover:main` (a fast-forward) followed immediately by `supabase db push`.** Not pushed to `main` deliberately: Vercel deploys `main`, and the merged middleware requires Supabase Auth config + the 4.3 auth user, so merging before those is an outage.
+- **committed** `[claude]` — after the merge, CI on `main` goes red: `ci.yml` runs `npm test` with no Supabase stack and eight P12 test files error rather than skip. Fix = start the stack in CI (`supabase/setup-cli` + `supabase start`), which is also the migration-replay CI item below.
+- **committed** `[claude]` — `.env.example` lists none of the P12 names (`SUPABASE_JWT_SECRET`, `BREAK_GLASS_SECRET`, `BREAK_GLASS_ENABLED`, `RESEND_API_KEY`, `RESEND_FROM`); add them.
 - **committed** — clear the two untracked files the rehearsal left (`docs/mycelium-cutover (1).html`, `Claude outputs/`) before Part 7 step 4.2 — its `git status` gate needs a clean tree. Move them out or gitignore; do **not** commit the standalone HTML into the repo.
 - **in-progress — Phil + Claude Code** — the run-book: **Mycelium Cutover** artifact v3.1 (2026-09-11), 34 steps, executed by Claude Code with tokens Phil mints in step 0.4 and revokes in 4.10; manual fallback folded under each prompt. Phil keeps: decisions, the Google OAuth client (console only), one Preview-only staging JWT value, the test-mailbox invite acceptance, phone TOTP + Google click, and the **GO gate at 4.4**. State + Phase-2 answers/ticks live in the artifact store `checklists/multi-user-cutover` (Cowork wrote them; Claude Code cannot reach the store). Captured values: team `sporebit-s-projects`, project `mycelium`, preview `https://mycelium-git-multi-user-sporebit-s-projects.vercel.app`, dump `A:\Backups\mycelium\2026-09-11`, counts 87/185/38, 91 tables.
 - **committed** — Part 7 cutover, Phil present at the gate: 4.2 gate (Claude Code) → 4.3 fixed-uid insert (no password) → **4.4 GO (Phil)** → 4.5 merge + `git push origin main` + `supabase db push` → 4.6 automated smoke test → 4.7 Phil: TOTP/Google/Telegram/invite → 4.8 verifiers as the viewer → 4.9 retire old secrets + restore Preview env + redeploy → 4.10 Phil revokes tokens. Rollback = `docs/multi-user-rollback.md` only.
@@ -69,8 +72,8 @@
 ## Repo hygiene — working tree
 
 - **committed** — clear the two untracked rehearsal files before 4.2 (see multi-user section).
-- **committed** — confirm the corrected `MYCELIUM_ALL_PROMPTS.md` (09-07, 7 edits) was committed — check `git log -- MYCELIUM_ALL_PROMPTS.md`.
-- **committed** — **decide `.claude/skills/`.** Symlinks pointing outside the repo replaced 15 tracked skill directories. Recommend `.gitignore`; counter-argument: a fresh clone/worktree loses them. Do not commit the symlinks.
+- **done (verified from the repo 2026-09-15)** — the corrected `MYCELIUM_ALL_PROMPTS.md` (09-07) is on `main` as `81d058e`.
+- **committed** — **decide `.claude/skills/`.** Symlinks pointing outside the repo replaced 15 tracked skill directories. Recommend `.gitignore`; counter-argument: a fresh clone/worktree loses them. Do not commit the symlinks. **2026-09-15 `[claude]`:** on `origin/main` (`b9892d1`, 7 Sept, "keep real files in .claude") the skill directories are real tracked trees, not symlinks — if the PC tree still shows symlinks that is uncommitted local drift, not repo state.
 
 ## App — Loam & Glow v2 (source of truth: `MYCELIUM_ALL_PROMPTS.md` session log in repo)
 
@@ -109,7 +112,7 @@ Shipped to main 2026-09-06, migrations 0097–0100.
 - **committed** `[claude]` — `.select()` strings opaque to TypeScript; two live bugs. Lint rule or shared field-list constants.
 - **idea** `[claude]` — `seed-mobility/route.ts` never writes `default_hold_seconds`; don't use migration pushes as a query channel.
 - **done** — stale worktree registration pruned; stop-hook sound path corrected.
-- **idea** — `graphify update` not on PATH; use `npx --no-install graphify update .`.
+- **idea** — `graphify update` not on PATH; use `npx --no-install graphify update .`. **2026-09-15:** no `.graphify/` exists on any branch, so the repo `CLAUDE.md` graphify rule is inert until one is generated.
 
 ## PC Monitoring (source of truth: `docs/pc-monitoring-plan.md` in repo)
 
