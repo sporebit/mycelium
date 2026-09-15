@@ -23,15 +23,50 @@ jobs:
 
       - run: npm ci
 
-      - name: Tests
-        run: npm test
+      # The test suite is not self-contained: the access, identity, teams,
+      # rundowns and security suites shell into the local Supabase stack
+      # (`docker exec supabase_db_Mycelium psql`, `supabase status`) and fail —
+      # not skip — without it. Booting the stack here also replays the whole
+      # migration chain from empty into a scratch database and loads seed.sql,
+      # so a migration that does not apply cleanly turns CI red on its own.
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase stack (db, auth, rest)
+        # Exclude services no test needs so the boot is faster and does not
+        # require third-party secrets (storage.vector wants OPENAI_API_KEY,
+        # auth.external.apple a secret, etc.). db/auth/rest are core.
+        run: |
+          supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime,storage,pooler,inbucket
+          supabase status
+
+      - name: Tests (against the local stack)
+        run: |
+          # Map the stack's own credentials into the names the suites read.
+          set -a
+          eval "$(supabase status -o env | sed 's/^/SB_/')"
+          set +a
+          export NEXT_PUBLIC_SUPABASE_URL="$SB_API_URL"
+          export NEXT_PUBLIC_SUPABASE_ANON_KEY="$SB_ANON_KEY"
+          export SUPABASE_SERVICE_ROLE_KEY="$SB_SERVICE_ROLE_KEY"
+          export SUPABASE_JWT_SECRET="$SB_JWT_SECRET"
+          npm test
+        env:
+          # Belt-and-braces stubs so `supabase start` never blocks on an unset
+          # env() reference in config.toml. None reach a real service.
+          OPENAI_API_KEY: sk-placeholder
+          SUPABASE_AUTH_EXTERNAL_APPLE_SECRET: placeholder
+          SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN: placeholder
 
       # AGENTS.md requires this gate before every push, on a cold cache: the
       # production build runs ESLint as well as tsc, and `tsc --noEmit` green
       # with `next build` red is a recurring failure mode here. A warm .next
       # fails reproducibly under serwist, and the checkout is cold anyway.
       - name: Production build
-        run: npx next build
+        run: |
+          rm -rf .next
+          npx next build
         env:
           # Build-time only. Several pages construct a Supabase client while
           # prerendering (/health among them) and throw "supabaseUrl is
@@ -45,3 +80,6 @@ jobs:
           AUTH_SECRET: placeholder-auth-secret
           DASHBOARD_PASSWORD: placeholder-password
           API_SECRET: placeholder-api-secret
+          SUPABASE_JWT_SECRET: placeholder-jwt-secret-placeholder-jwt
+          BREAK_GLASS_SECRET: placeholder-break-glass
+          BREAK_GLASS_ENABLED: "false"
