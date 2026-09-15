@@ -57,6 +57,19 @@ environment; they run in step 3 below.
   status→`completed_at` sync. None are needed for the rename to work.
 - All new `/api/tickets/*` routes and pages (Now, Inbox, board) — Part B.
 
+## CI now validates this migration (2026-09-15)
+
+CI boots a Supabase stack and replays the whole chain from empty on every
+push, so migration `0116` was proven to apply cleanly (run 6b13c21 on the
+`tickets` branch: full 0001–0116 replay + tests + build, green). Running
+CI on the branch also surfaced the long tail of the `tasks`→`tickets`
+rename that the build cannot see — dynamic table references in export,
+export-preview, settings/stats, the rundown renderer, `convert`, and the
+persisted `routed_to` label, plus four access-suite test fixtures — all now
+fixed. So the morning local run below is **confirmation, not discovery**;
+the risky unknowns are already closed. The one thing CI does not exercise
+is the per-route isolation script, so keep that step in your local run.
+
 ## Morning verification (local first, then promote)
 
 Run on the PC in Git Bash, repo root, with Docker running. This mirrors the
