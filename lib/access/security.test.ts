@@ -76,13 +76,13 @@ function cleanup() {
   sql(`delete from public.invites where email in ('${TESS_EMAIL}', '${VIC_EMAIL}')`);
   const t = sql(`select id from public.teams where slug = '${SLUG}'`)[0]?.[0];
   if (t) {
-    sql(`delete from public.tasks where space_id = (select space_id from public.teams where id = '${t}')`);
+    sql(`delete from public.tickets where space_id = (select space_id from public.teams where id = '${t}')`);
     sql(`delete from public.team_members where team_id = '${t}'`);
     sql(`update public.teams set space_id = null where id = '${t}'`);
     sql(`delete from public.spaces where team_id = '${t}'`);
     sql(`delete from public.teams where id = '${t}'`);
   }
-  sql(`delete from public.tasks where title like 'v5:%'`);
+  sql(`delete from public.tickets where title like 'v5:%'`);
   sql(`delete from public.second_factor_failures where user_id in ('${TESS}', '${VIC}')`);
   sql(`delete from public.rate_limits where key like 'v5:%'`);
   sql(`update public.profiles set disabled_at = null where id = '${TESS}'`);
@@ -127,7 +127,7 @@ describe("audit rows exist for each listed action", () => {
     expect(ok(await rpc(PHIL_AUTH_UID, "set_team_member_role", { p_team: teamId, p_user: TESS, p_role: "admin" }))).toBe(true);
     expect(ok(await rpc(PHIL_AUTH_UID, "set_team_member_sections", { p_team: teamId, p_user: TESS, p_section: "fitness", p_can_view: true, p_can_edit: false, p_can_create_delete: false, p_can_share: false }))).toBe(true);
     expect(ok(await rpc(PHIL_AUTH_UID, "set_team_successor", { p_team: teamId, p_user: TESS }))).toBe(true);
-    const g = await rpc(PHIL_AUTH_UID, "create_user_grant", { p_grantee: TESS, p_section: "organisation", p_entity_groups: ["tasks"], p_verbs: ["view"] });
+    const g = await rpc(PHIL_AUTH_UID, "create_user_grant", { p_grantee: TESS, p_section: "organisation", p_entity_groups: ["tickets"], p_verbs: ["view"] });
     expect(ok(g), msg(g)).toBe(true);
     expect(ok(await rpc(PHIL_AUTH_UID, "revoke_user_grant", { p_id: String(g.body) }))).toBe(true);
     expect(ok(await rpc(PHIL_AUTH_UID, "remove_team_member", { p_team: teamId, p_user: TESS }))).toBe(true);
@@ -218,23 +218,23 @@ describe("rate limits and second-factor lockout", () => {
 describe("disabled users", () => {
   it("a disabled member sees nothing and cannot write; enabling restores access", async () => {
     sql(`insert into public.team_members (team_id, user_id, role) values ('${teamId}', '${TESS}', 'member') on conflict do nothing`);
-    const seeded = await rest(PHIL_AUTH_UID, "POST", "tasks", { title: "v5: team task", space_id: teamSpace });
+    const seeded = await rest(PHIL_AUTH_UID, "POST", "tickets", { title: "v5: team task", space_id: teamSpace });
     expect(seeded.status, msg(seeded)).toBe(201);
-    const own = await rest(TESS, "POST", "tasks", { title: "v5: tess own" });
+    const own = await rest(TESS, "POST", "tickets", { title: "v5: tess own" });
     expect(own.status, msg(own)).toBe(201);
-    expect(rows(await rest(TESS, "GET", "tasks?select=id&title=like.v5:*")).length).toBe(2);
+    expect(rows(await rest(TESS, "GET", "tickets?select=id&title=like.v5:*")).length).toBe(2);
 
     const disable = await rpc(PHIL_AUTH_UID, "admin_set_user_disabled", { p_user: TESS, p_disabled: true });
     expect(ok(disable), msg(disable)).toBe(true);
-    expect(rows(await rest(TESS, "GET", "tasks?select=id&title=like.v5:*")).length).toBe(0);
-    const write = await rest(TESS, "POST", "tasks", { title: "v5: while disabled" });
+    expect(rows(await rest(TESS, "GET", "tickets?select=id&title=like.v5:*")).length).toBe(0);
+    const write = await rest(TESS, "POST", "tickets", { title: "v5: while disabled" });
     expect(write.status).toBeGreaterThanOrEqual(400);
     expect(auditCount("user_disabled", `and subject_user_id = '${TESS}'`)).toBeGreaterThanOrEqual(1);
     const notOwner = await rpc(TESS, "admin_set_user_disabled", { p_user: VIC, p_disabled: true });
     expect(notOwner.status).toBeGreaterThanOrEqual(400);
 
     expect(ok(await rpc(PHIL_AUTH_UID, "admin_set_user_disabled", { p_user: TESS, p_disabled: false }))).toBe(true);
-    expect(rows(await rest(TESS, "GET", "tasks?select=id&title=like.v5:*")).length).toBe(2);
+    expect(rows(await rest(TESS, "GET", "tickets?select=id&title=like.v5:*")).length).toBe(2);
   });
 });
 
@@ -242,8 +242,8 @@ describe("account deletion", () => {
   it("leaves zero rows in the personal space and keeps team rows with created_by null", { timeout: 30_000 }, async () => {
     sql(`insert into public.team_members (team_id, user_id, role) values ('${teamId}', '${VIC}', 'member') on conflict do nothing`);
     const vicSpace = sql(`select personal_space_id from public.profiles where id = '${VIC}'`)[0][0];
-    expect((await rest(VIC, "POST", "tasks", { title: "v5: vic personal" })).status).toBe(201);
-    const teamRow = await rest(VIC, "POST", "tasks", { title: "v5: vic in team", space_id: teamSpace });
+    expect((await rest(VIC, "POST", "tickets", { title: "v5: vic personal" })).status).toBe(201);
+    const teamRow = await rest(VIC, "POST", "tickets", { title: "v5: vic in team", space_id: teamSpace });
     expect(teamRow.status, msg(teamRow)).toBe(201);
     const teamTaskId = String(rows(teamRow)[0].id);
     expect(ok(await rpc(PHIL_AUTH_UID, "create_user_grant", { p_grantee: VIC, p_section: "organisation", p_entity_groups: [], p_verbs: ["view"] }))).toBe(true);
@@ -259,7 +259,7 @@ describe("account deletion", () => {
     expect(sql(`select count(*) from public.profiles where id = '${VIC}'`)[0][0]).toBe("0");
     expect(sql(`select count(*) from public.team_members where user_id = '${VIC}'`)[0][0]).toBe("0");
     expect(sql(`select count(*) from public.user_grants where grantee_id = '${VIC}'`)[0][0]).toBe("0");
-    const [[stillThere, creator]] = sql(`select title, coalesce(created_by::text, 'null') from public.tasks where id = '${teamTaskId}'`);
+    const [[stillThere, creator]] = sql(`select title, coalesce(created_by::text, 'null') from public.tickets where id = '${teamTaskId}'`);
     expect(stillThere).toBe("v5: vic in team");
     expect(creator).toBe("null");
     expect(auditCount("account_deleted", `and subject_user_id = '${VIC}'`)).toBeGreaterThanOrEqual(1);
