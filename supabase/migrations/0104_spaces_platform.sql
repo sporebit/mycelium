@@ -90,11 +90,11 @@ as $$
 		mc.source_type,
 		mc.source_id,
 		mc.text,
-		1 - (mc.embedding <=> query_embedding) as similarity,
+		1 - (mc.embedding OPERATOR(extensions.<=>) query_embedding) as similarity,
 		mc.created_at
 	from public.memory_chunks mc
 	where mc.space_id = app.personal_space_for_legacy(p_user_id)
-	  and 1 - (mc.embedding <=> query_embedding) > similarity_threshold
-	order by mc.embedding <=> query_embedding asc
+	  and 1 - (mc.embedding OPERATOR(extensions.<=>) query_embedding) > similarity_threshold
+	order by mc.embedding OPERATOR(extensions.<=>) query_embedding asc
 	limit match_count;
 $$;

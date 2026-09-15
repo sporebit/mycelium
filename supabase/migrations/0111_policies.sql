@@ -107,11 +107,11 @@ as $$
 		mc.source_type,
 		mc.source_id,
 		mc.text,
-		1 - (mc.embedding <=> query_embedding) as similarity,
+		1 - (mc.embedding OPERATOR(extensions.<=>) query_embedding) as similarity,
 		mc.created_at
 	from public.memory_chunks mc
-	where 1 - (mc.embedding <=> query_embedding) > similarity_threshold
-	order by mc.embedding <=> query_embedding asc
+	where 1 - (mc.embedding OPERATOR(extensions.<=>) query_embedding) > similarity_threshold
+	order by mc.embedding OPERATOR(extensions.<=>) query_embedding asc
 	limit match_count;
 $$;
 
