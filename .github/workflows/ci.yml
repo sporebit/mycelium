@@ -18,7 +18,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22+ is required: @supabase/realtime-js (pulled in by the service
+          # client the rundowns suite exercises) needs a native global
+          # WebSocket, absent on Node 20. Matches the local dev version.
+          node-version: 22
           cache: npm
 
       - run: npm ci
