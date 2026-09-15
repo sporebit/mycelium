@@ -177,23 +177,26 @@ psql "$LIVE_DB" …` works too.) Expect exactly one row back, your email,
 
 ## 6. Preflight, then GO (5 min, no pause between the last three commands)
 
-Preflight:
+Merge locally first (the dry run reads the files on disk, which only exist after the merge), then preflight:
 
 ```
-supabase migration list          # Remote ends at 0101; Local lists 0102–0115
-supabase db push --dry-run       # names exactly the 14 files 0102–0115, nothing else
+git merge --ff-only origin/cutover
+ls supabase/migrations | tail -14     # 0102_profiles.sql … 0115_rundowns.sql
+supabase migration list               # Remote ends at 0101; Local lists 0102–0115
+supabase db push --dry-run            # "Would push" exactly the 14 files 0102–0115
 ```
 
-If the dry run lists anything other than those 14, stop.
+If the dry run says "Remote database is up to date", the merge did not happen. If it lists anything other than those 14, stop. The merge is local and deploys nothing; only the push does.
 
 GO:
 
 ```
-git merge --ff-only origin/cutover
 git push origin main             # Vercel starts building main (~5 min)
 supabase db push                 # answer Y
 supabase migration list          # Local and Remote both end at 0115
 ```
+
+**If db push stops on a migration** it rolls that file back (each runs in its own transaction), so the remote stays at the last good number and no data is touched — do not re-run blindly. On 2026-09-15 the real run stopped on 0104 with `operator does not exist: extensions.vector <=> extensions.vector`: the bare pgvector `<=>` in `search_memory_chunks` is unresolved under the hosted push search_path. Fixed forward by qualifying it `OPERATOR(extensions.<=>)` in 0104 and 0111 (commit `839f43f`), then `git pull` and `supabase db push` again resumed at 0104.
 
 Immediately after, prove the data survived (read-only; pooler + psql as in
 step 5, or the SQL editor):
