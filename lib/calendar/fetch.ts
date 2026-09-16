@@ -226,7 +226,7 @@ async function fetchScheduledTasks(
 ): Promise<CalendarEvent[]> {
   try {
     const { data, error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select("id, title, scheduled_at, time_estimate_min")
       .is("deleted_at", null)
       .is("completed_at", null)

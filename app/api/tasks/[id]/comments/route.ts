@@ -21,14 +21,14 @@ export async function POST(
   try {
     const supabase = await createUserClient();
     const { data, error } = await supabase
-      .from("task_comments")
-      .insert({ task_id: id, body: text })
-      .select("id, task_id, body, created_at, updated_at")
+      .from("ticket_comments")
+      .insert({ ticket_id: id, body: text })
+      .select("id, task_id:ticket_id, body, created_at, updated_at")
       .single();
     if (error || !data) throw error ?? new Error("insert failed");
 
-    await supabase.from("task_activity").insert({
-      task_id: id,
+    await supabase.from("ticket_activity").insert({
+      ticket_id: id,
       action: "comment",
       field: null,
       from_value: null,

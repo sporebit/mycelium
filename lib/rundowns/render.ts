@@ -36,7 +36,7 @@ export type RundownIssue = { html: string; text: string; lines: number; sections
 
 /** Tables worth listing by title, with the column that names a row and the one that dates it. */
 const TITLED: Record<string, { title: string; due?: string; changed?: string }> = {
-  tasks: { title: "title", due: "due_date", changed: "updated_at" },
+  tickets: { title: "title", due: "due_date", changed: "updated_at" },
   events: { title: "title", due: "start_at", changed: "updated_at" },
   projects: { title: "name", changed: "updated_at" },
   people: { title: "name", changed: "updated_at" },

@@ -54,8 +54,20 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
   // -- organisation ---------------------------------------------------------
   {
     section: "organisation",
-    group: "tasks",
-    tables: ["tasks", "task_comments", "task_activity", "projects"],
+    group: "tickets",
+    tables: [
+      "tickets",
+      "ticket_comments",
+      "ticket_activity",
+      "projects",
+      "areas",
+      "ticket_workflows",
+      "ticket_statuses",
+      "ticket_links",
+      "ticket_completions",
+      "ticket_dependencies",
+      "ticket_templates",
+    ],
   },
   {
     section: "organisation",

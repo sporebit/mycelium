@@ -16,13 +16,13 @@ export async function GET(req: NextRequest) {
 
     const supabase = await createUserClient();
     const { data, error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select(`${TASK_SELECT}, space_id`)
       .is("deleted_at", null)
       .is("completed_at", null);
 
     if (error) throw error;
-    auditListRead(req, data, "organisation", "tasks");
+    auditListRead(req, data, "organisation", "tickets");
 
     const tasks = (data ?? []).map((row) =>
       serializeTask(row as Parameters<typeof serializeTask>[0])

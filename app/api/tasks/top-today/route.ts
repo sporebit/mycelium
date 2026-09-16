@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
     const { data, error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select("id, title, time_estimate_min, entity_id, space_id, entities(name)")
       .is("deleted_at", null)
       .eq("urgency", "today")
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
       .limit(3);
 
     if (error) throw error;
-    auditListRead(req, data, "organisation", "tasks");
+    auditListRead(req, data, "organisation", "tickets");
 
     const tasks = ((data as TaskRow[] | null) ?? []).map((r) => {
       const ent = Array.isArray(r.entities) ? r.entities[0] : r.entities;

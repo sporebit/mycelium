@@ -197,7 +197,7 @@ export async function executeTool(
 
   if (toolName === "create_task") {
     const { data, error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .insert({ title: toolInput.title as string,
         description: (toolInput.notes as string) || null,
         urgency: (toolInput.urgency as string) || "someday",
@@ -220,7 +220,7 @@ export async function executeTool(
       status: "new",
       urgency: "someday",
     }));
-    const { data, error } = await supabase.from("tasks").insert(rows).select("id, title");
+    const { data, error } = await supabase.from("tickets").insert(rows).select("id, title");
     if (error) return { ok: false, result: error.message, summary: "Subtask creation failed" };
     return {
       ok: true,

@@ -77,7 +77,7 @@ export async function enrichSources(
   const taskMap = new Map<string, TaskRow>();
   if (taskIds.length > 0) {
     const { data } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select("id, title, description, urgency, completed_at, created_at, entities(name)")
       .in("id", taskIds);
     for (const row of (data ?? []) as unknown as TaskRow[]) taskMap.set(row.id, row);

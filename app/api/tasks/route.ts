@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
     let q = supabase
-      .from("tasks")
+      .from("tickets")
       .select(`${TASK_SELECT}, space_id`)
       .is("deleted_at", null)
       .order("priority_score", { ascending: false, nullsFirst: false })
@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await q;
     if (error) throw error;
-    auditListRead(req, data, "organisation", "tasks");
+    auditListRead(req, data, "organisation", "tickets");
 
     const tasks: Task[] = (data ?? []).map((row) =>
       serializeTask(row as Parameters<typeof serializeTask>[0])
@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
     if (includeChildren && tasks.length > 0) {
       const parentIds = tasks.map((t) => t.id);
       const { data: childRows, error: childErr } = await supabase
-        .from("tasks")
+        .from("tickets")
         .select(TASK_SELECT)
         .is("deleted_at", null)
         .in("parent_task_id", parentIds)
@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
     let inheritedTags: string[] | null = null;
     if (body.parent_task_id) {
       const { data: parent, error: parentErr } = await supabase
-        .from("tasks")
+        .from("tickets")
         .select("id, urgency, entity_id, project_id, tags, parent_task_id")
         .eq("id", body.parent_task_id)
         .maybeSingle();
@@ -260,7 +260,7 @@ export async function POST(req: NextRequest) {
     };
 
     const { data, error } = await supabase
-      .from("tasks")
+      .from("tickets")
       .insert(insertPayload)
       .select(TASK_SELECT)
       .single();

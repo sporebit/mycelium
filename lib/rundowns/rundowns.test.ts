@@ -43,7 +43,7 @@ function cleanup() {
     sql(`delete from public.rundown_issues where team_id = '${t}'`);
     sql(`delete from public.rundown_subscriptions where team_id = '${t}'`);
     sql(`delete from public.rundown_settings where team_id = '${t}'`);
-    sql(`delete from public.tasks where space_id = (select space_id from public.teams where id = '${t}')`);
+    sql(`delete from public.tickets where space_id = (select space_id from public.teams where id = '${t}')`);
     sql(`delete from public.workouts where space_id = (select space_id from public.teams where id = '${t}')`);
     sql(`delete from public.team_member_sections where team_id = '${t}'`);
     sql(`delete from public.team_members where team_id = '${t}'`);
@@ -66,7 +66,7 @@ beforeAll(() => {
   sql(`insert into public.rundown_settings (team_id, enabled, content, sections) values ('${teamId}', true, '{"changed": true, "upcoming": true, "stats": true, "per_person": true}', array['organisation', 'fitness'])`);
   sql(`insert into public.rundown_subscriptions (user_id, team_id, channels, opted_out) values ('${VIC}', '${teamId}', array['in_app'], false), ('${TESS}', '${teamId}', array['in_app'], false), ('${PHIL_AUTH_UID}', '${teamId}', array['in_app'], true)`);
   // Content in the team space: a task (organisation) and a workout (fitness), both this week.
-  sql(`insert into public.tasks (title, space_id, created_by, updated_at) values ('v6: plan the retreat', '${teamSpace}', '${PHIL_AUTH_UID}', now())`);
+  sql(`insert into public.tickets (title, space_id, created_by, updated_at) values ('v6: plan the retreat', '${teamSpace}', '${PHIL_AUTH_UID}', now())`);
   sql(`insert into public.workouts (name, space_id, created_by, updated_at) values ('v6: hill sprints', '${teamSpace}', '${TESS}', now())`);
 });
 
@@ -110,6 +110,6 @@ describe("rundowns are rendered per recipient", () => {
 
   it("a rundown with a section the recipient cannot see does not leak its items through stats either", () => {
     const vic = sql(`select regexp_replace(rendered_text, E'[\n\r\t]+', ' ', 'g') from public.rundown_issues where team_id = '${teamId}' and user_id = '${VIC}'`)[0][0];
-    expect(vic).not.toMatch(/tasks/i);
+    expect(vic).not.toMatch(/tickets/i);
   });
 });

@@ -79,7 +79,7 @@ export async function writeCapture(
 
   if (classification.kind === "task") {
     const { data: task, error: taskErr } = await supabase
-      .from("tasks")
+      .from("tickets")
       .insert({ title: classification.title,
         description: classification.summary,
         urgency: classification.urgency,
@@ -94,9 +94,9 @@ export async function writeCapture(
       .single();
 
     if (taskErr || !task) {
-      throw new Error(`tasks insert failed: ${taskErr?.message ?? "unknown"}`);
+      throw new Error(`tickets insert failed: ${taskErr?.message ?? "unknown"}`);
     }
-    routedTo = "tasks";
+    routedTo = "tickets";
     routedId = task.id;
   } else if (classification.kind === "purchase") {
     // Purchase fields are populated by the classifier in the same pass —

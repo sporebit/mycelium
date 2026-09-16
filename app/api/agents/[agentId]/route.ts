@@ -174,7 +174,7 @@ async function getDaBoiContext(
   if (domains.has("tasks")) try {
     openTaskCount = 0;
     const { count } = await supabase
-      .from("tasks")
+      .from("tickets")
       .select("id", { count: "exact", head: true })
       .is("completed_at", null);
     openTaskCount = count ?? 0;

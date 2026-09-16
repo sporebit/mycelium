@@ -28,7 +28,7 @@ export async function logTaskActivity(
   after: Record<string, unknown>,
 ): Promise<void> {
   const rows: Array<{
-    task_id: string;
+    ticket_id: string;
     action: string;
     field: string;
     from_value: string | null;
@@ -42,7 +42,7 @@ export async function logTaskActivity(
     const toStr = stringify(toVal);
     if (fromStr === toStr) continue;
     rows.push({
-      task_id: taskId,
+      ticket_id: taskId,
       action: "update",
       field,
       from_value: fromStr,
@@ -51,7 +51,7 @@ export async function logTaskActivity(
   }
   if (rows.length === 0) return;
   try {
-    await supabase.from("task_activity").insert(rows);
+    await supabase.from("ticket_activity").insert(rows);
   } catch (err) {
     console.error("[task_activity] insert failed:", err);
   }
@@ -62,8 +62,8 @@ export async function logTaskCreated(
   taskId: string,
 ): Promise<void> {
   try {
-    await supabase.from("task_activity").insert({
-      task_id: taskId,
+    await supabase.from("ticket_activity").insert({
+      ticket_id: taskId,
       action: "created",
       field: null,
       from_value: null,

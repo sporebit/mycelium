@@ -52,7 +52,7 @@ export async function GET(
     }
     if (taskIds.length > 0) {
       const { data } = await supabase
-        .from("tasks")
+        .from("tickets")
         .select("id, title, created_at")
         .in("id", taskIds);
       for (const r of (data ?? []) as Array<{

@@ -27,14 +27,14 @@ export async function GET(req: NextRequest) {
     }
     const { data, error } = await q;
     if (error) throw error;
-    auditListRead(req, data, "organisation", "tasks");
+    auditListRead(req, data, "organisation", "tickets");
     const projects = (data ?? []) as Project[];
 
     // Task counts per project (open tasks only)
     if (projects.length > 0) {
       const ids = projects.map((p) => p.id);
       const { data: taskRows } = await supabase
-        .from("tasks")
+        .from("tickets")
         .select("id, project_id")
         .is("deleted_at", null)
         .is("completed_at", null)

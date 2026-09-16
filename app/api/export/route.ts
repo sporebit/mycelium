@@ -14,7 +14,7 @@ type TableDef = { table: string; label: string; dateCol?: string };
 
 const SECTION_TABLES: Record<string, TableDef[]> = {
   organisation: [
-    { table: "tasks", label: "tasks", dateCol: "created_at" },
+    { table: "tickets", label: "tickets", dateCol: "created_at" },
     { table: "compost_items", label: "captures", dateCol: "created_at" },
     { table: "people", label: "people", dateCol: "created_at" },
   ],
