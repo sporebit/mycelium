@@ -59,6 +59,11 @@ export type Task = {
   urgency: TaskUrgency | null;
   status: TaskStatus;
   key: boolean;
+  /** The stable per-space ticket identifier, e.g. "MYC-33" (0116). Null only
+   *  on rows created before the key trigger; every current row has one. */
+  ticket_key?: string | null;
+  /** The numeric part of ticket_key, for sorting (0116). */
+  seq?: number | null;
   priority_score: number | null;
   time_estimate_min: number | null;
   tags: string[] | null;

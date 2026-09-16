@@ -217,6 +217,20 @@ export function TaskRowList({
         />
       </div>
 
+      {/* Ticket key — visible in the default list view and links to the
+          key-addressed page (/organisation/tickets/MYC-33). stopPropagation
+          so the link navigates instead of opening the row's detail pane. */}
+      {task.ticket_key && (
+        <a
+          href={`/organisation/tickets/${task.ticket_key}`}
+          onClick={(e) => e.stopPropagation()}
+          title={`Open ${task.ticket_key}`}
+          className="shrink-0 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] text-glow-2 hover:underline"
+        >
+          {task.ticket_key}
+        </a>
+      )}
+
       {/* Title */}
       <div className="flex-1 min-w-0">
         {editingTitle ? (
