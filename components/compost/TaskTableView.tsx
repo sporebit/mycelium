@@ -11,6 +11,7 @@ import { URGENCIES, URGENCY_LABEL } from "@/lib/types/task";
 
 type ColumnId =
   | "select"
+  | "key"
   | "status"
   | "title"
   | "project"
@@ -25,6 +26,7 @@ type ColumnDef = { id: ColumnId; label: string; defaultWidth: number };
 
 const COLUMNS: ColumnDef[] = [
   { id: "select", label: "", defaultWidth: 36 },
+  { id: "key", label: "Key", defaultWidth: 90 },
   { id: "status", label: "Status", defaultWidth: 130 },
   { id: "title", label: "Title", defaultWidth: 280 },
   { id: "project", label: "Project", defaultWidth: 140 },
@@ -304,6 +306,8 @@ export function TaskTableView({
 
 function sortValue(t: Task, col: ColumnId): string | number | null {
   switch (col) {
+    case "key":
+      return t.seq ?? t.ticket_key ?? null;
     case "status":
       return t.status;
     case "title":
@@ -359,6 +363,20 @@ function Cell({
         className="accent-accent h-3.5 w-3.5"
         aria-label={selected ? "Deselect" : "Select"}
       />
+    );
+  }
+  if (col === "key") {
+    return task.ticket_key ? (
+      <a
+        href={`/organisation/tickets/${task.ticket_key}`}
+        onClick={(e) => e.stopPropagation()}
+        className="text-xs font-[family-name:var(--font-mono)] tracking-[0.08em] text-glow-2 hover:underline"
+        title={`Open ${task.ticket_key}`}
+      >
+        {task.ticket_key}
+      </a>
+    ) : (
+      <span className="text-ink-3">—</span>
     );
   }
   if (col === "status") {
