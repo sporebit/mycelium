@@ -23,6 +23,17 @@ export type UiPrefs = {
     hidden_exercises: string[];
     hidden_completed_sessions: string[];
   };
+  // Tickets (spec §5, §6, §8.2): the Now view's sticky Where, the
+  // non-technical status collapse, and the nudge times. Never localStorage.
+  tickets: {
+    now_where: "anywhere" | "home" | "out";
+    now_include_backlog: boolean;
+    /** Collapse the eight categories to Todo / Doing / Waiting / Done. */
+    simple_statuses: boolean;
+    checkin_time: string; // "HH:MM" Europe/London
+    review_day: number; // ISO day, 7 = Sunday
+    review_time: string;
+  };
 };
 
 export const UI_PREFS_DEFAULTS: UiPrefs = {
@@ -43,7 +54,20 @@ export const UI_PREFS_DEFAULTS: UiPrefs = {
     hidden_exercises: [],
     hidden_completed_sessions: [],
   },
+  tickets: {
+    now_where: "home",
+    now_include_backlog: false,
+    simple_statuses: false,
+    checkin_time: "18:00",
+    review_day: 7,
+    review_time: "18:00",
+  },
 };
+
+/** Defaults-merge one level deep for the nested tickets bag. */
+export function ticketPrefs(p: Partial<UiPrefs> | null | undefined): UiPrefs["tickets"] {
+  return { ...UI_PREFS_DEFAULTS.tickets, ...(p?.tickets ?? {}) };
+}
 
 /**
  * Reads ui_prefs from user_settings, defaults-merged so missing keys can

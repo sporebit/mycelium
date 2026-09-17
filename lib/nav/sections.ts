@@ -15,6 +15,7 @@ export const SECTIONS: SectionConfig[] = [
     colour: "#f5b56d",
     baseRoute: "/organisation",
     subPages: [
+      { label: "Tickets", href: "/organisation/tickets", primary: true },
       { label: "Tasks", href: "/organisation/tasks", primary: true },
       { label: "Captures", href: "/organisation/captures", primary: true },
       { label: "People", href: "/organisation/people", primary: true },

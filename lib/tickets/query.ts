@@ -204,3 +204,54 @@ export async function attachBlockers(
   }
   for (const t of tickets) t.blocked_by = byBlocked.get(t.id) ?? [];
 }
+
+export type TicketCounts = Record<Exclude<GtdList, "now">, number>;
+
+/**
+ * Tab badges for the GTD home: one light query over open top-level tickets
+ * plus a head count of the Logbook. Now is context-dependent and counted by
+ * the Now view itself. Next ignores blockers here (a badge, not the list).
+ */
+export async function ticketCounts(supabase: SupabaseClient): Promise<TicketCounts> {
+  const today = londonNow().date;
+  const [open, closed] = await Promise.all([
+    supabase
+      .from("tickets")
+      .select("id, someday, scheduled_on, deadline_on, ticket_status:ticket_statuses!inner(category)")
+      .in("ticket_status.category", [...OPEN_CATEGORIES])
+      .is("parent_task_id", null)
+      .limit(2000),
+    supabase
+      .from("tickets")
+      .select("id, ticket_status:ticket_statuses!inner(category)", { count: "exact", head: true })
+      .in("ticket_status.category", [...CLOSED_CATEGORIES])
+      .is("parent_task_id", null),
+  ]);
+  const counts: TicketCounts = {
+    inbox: 0,
+    today: 0,
+    upcoming: 0,
+    next: 0,
+    waiting: 0,
+    someday: 0,
+    logbook: closed.count ?? 0,
+  };
+  type Row = {
+    someday: boolean;
+    scheduled_on: string | null;
+    deadline_on: string | null;
+    ticket_status: { category: string } | { category: string }[] | null;
+  };
+  for (const r of (open.data ?? []) as unknown as Row[]) {
+    const st = Array.isArray(r.ticket_status) ? r.ticket_status[0] : r.ticket_status;
+    const cat = st?.category;
+    if (cat === "inbox") counts.inbox += 1;
+    if (cat === "waiting") counts.waiting += 1;
+    if (cat === "next" && !r.someday) counts.next += 1;
+    if (r.someday) counts.someday += 1;
+    const anchor = [r.scheduled_on, r.deadline_on].filter((d): d is string => !!d);
+    if (anchor.some((d) => d <= today)) counts.today += 1;
+    else if (anchor.some((d) => d > today)) counts.upcoming += 1;
+  }
+  return counts;
+}
