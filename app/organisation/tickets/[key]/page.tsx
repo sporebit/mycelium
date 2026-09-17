@@ -336,12 +336,28 @@ export default function TicketPage() {
         />
       </div>
 
-      {t.rundown_md && (
-        <div className="mt-6">
+      {/* Rundown (spec §9.1): Sonnet + web search for life tickets; code plans come from the skill */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between">
           <Label>Rundown</Label>
-          <pre className="mt-1 whitespace-pre-wrap rounded-sm bg-ink-2 px-3 py-2 text-sm text-ink-4">{t.rundown_md}</pre>
+          {!closed && (
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => run(() => ticketFetch(`${apiKey}/plan`, { method: "POST", body: {} }), { lists: false })}
+              className="text-[11px] text-glow-2 hover:underline disabled:opacity-40"
+              title="Plan this: a short rundown with opening hours, where to book, what to bring and sub-task ideas"
+            >
+              {t.rundown_md ? "Regenerate" : "Plan this"}
+            </button>
+          )}
         </div>
-      )}
+        {t.rundown_md ? (
+          <pre className="mt-1 whitespace-pre-wrap rounded-sm bg-ink-2 px-3 py-2 font-[family-name:var(--font-sans)] text-sm text-ink-4">{t.rundown_md}</pre>
+        ) : (
+          <p className="mt-1 text-[11px] text-ink-3">No rundown yet.</p>
+        )}
+      </div>
 
       {/* Steps: run-book page or plain checklist (spec §9.2) */}
       <div className="mt-8">

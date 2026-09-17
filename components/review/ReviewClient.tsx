@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mono } from "@/components/dashboard/Mono";
+import { ReviewBlock } from "@/components/tickets/ReviewBlock";
 import {
   REVIEW_FIELDS,
   emptyReview,
@@ -418,6 +419,11 @@ export function ReviewClient({
                 onBlur={() => onBlur(field)}
               />
             ))}
+          </div>
+
+          {/* Tickets weekly-review block (tickets spec §8.4, §12) */}
+          <div className="my-3">
+            <ReviewBlock locked={locked} />
           </div>
 
           <ReviewField
