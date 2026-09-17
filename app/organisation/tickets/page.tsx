@@ -204,6 +204,9 @@ export default function TicketsHomePage() {
           >
             {simple ? "Detailed statuses" : "Simple statuses"}
           </button>
+          <Link href="/organisation/tickets/templates" className="text-ink-3 hover:text-ink-4">
+            Templates
+          </Link>
           <Link href="/organisation/tasks" className="text-glow-2 hover:underline">
             Classic view →
           </Link>

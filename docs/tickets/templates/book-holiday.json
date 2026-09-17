@@ -1,0 +1,43 @@
+{
+  "slug": "book-holiday",
+  "name": "Book a holiday",
+  "kind": "task",
+  "version": 1,
+  "definition": {
+    "title": "Book holiday: {{destination}}",
+    "body_md": "Dates, budget and who is coming go here. Sub-tasks cover the usual sequence; drop any that do not apply.",
+    "kind": "task",
+    "where_ctx": "home",
+    "tools": ["pc", "phone"],
+    "time_window": "evenings",
+    "points": 5,
+    "deadline_in_days": 21,
+    "sub_tasks": [
+      { "title": "Agree dates and budget", "tools": ["phone"], "points": 1 },
+      { "title": "Check passports are in date (6 months left)", "tools": ["none"], "points": 1 },
+      { "title": "Shortlist flights and hotels", "tools": ["pc"], "points": 3 },
+      { "title": "Book flights", "tools": ["pc"], "points": 2 },
+      { "title": "Book accommodation", "tools": ["pc"], "points": 2 },
+      { "title": "Travel insurance", "tools": ["pc", "phone"], "points": 1 },
+      { "title": "Airport parking or transfers", "tools": ["pc"], "points": 1 },
+      { "title": "Add everything to the calendar and share with the group", "tools": ["phone"], "points": 1 }
+    ],
+    "steps_definition": {
+      "kind": "task",
+      "title": "Before you go",
+      "version": 1,
+      "phases": [
+        {
+          "id": "1",
+          "title": "Week before",
+          "steps": [
+            { "id": "1.1", "title": "Currency or travel card sorted" },
+            { "id": "1.2", "title": "Phone roaming checked" },
+            { "id": "1.3", "title": "Prescriptions and toiletries" },
+            { "id": "1.4", "title": "Someone has a key and the itinerary" }
+          ]
+        }
+      ]
+    }
+  }
+}

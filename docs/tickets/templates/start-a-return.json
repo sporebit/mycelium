@@ -1,0 +1,23 @@
+{
+  "slug": "start-a-return",
+  "name": "Start a return",
+  "kind": "task",
+  "version": 1,
+  "definition": {
+    "title": "Return: {{item}}",
+    "body_md": "Retailer, order number and the reason. Keep the return label and tracking as links on this ticket.",
+    "kind": "task",
+    "where_ctx": "home",
+    "tools": ["phone"],
+    "time_window": "anytime",
+    "points": 2,
+    "deadline_in_days": 14,
+    "sub_tasks": [
+      { "title": "Find the order and start the return online", "tools": ["phone", "pc"], "points": 1 },
+      { "title": "Print or save the return label", "tools": ["pc"], "points": 1 },
+      { "title": "Package it up", "where_ctx": "home", "tools": ["none"], "points": 1 },
+      { "title": "Drop it off", "where_ctx": "out", "tools": ["car"], "points": 1 },
+      { "title": "Check the refund landed", "tools": ["phone"], "time_window": "anytime", "points": 1 }
+    ]
+  }
+}

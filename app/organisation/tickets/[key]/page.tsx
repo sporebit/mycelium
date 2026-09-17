@@ -27,6 +27,7 @@ import {
 } from "@/lib/types/task";
 import { CategoryChip } from "@/components/tickets/CategoryChip";
 import { ContextEditor, Pill, contextOf, type ContextValue } from "@/components/tickets/ContextEditor";
+import { StepsSection } from "@/components/tickets/StepsSection";
 import { TicketListRow, fmtDay } from "@/components/tickets/TicketListRow";
 import { personLabel, ticketFetch, usePeople, useProjects } from "@/components/tickets/pickers";
 
@@ -341,6 +342,35 @@ export default function TicketPage() {
           <pre className="mt-1 whitespace-pre-wrap rounded-sm bg-ink-2 px-3 py-2 text-sm text-ink-4">{t.rundown_md}</pre>
         </div>
       )}
+
+      {/* Steps: run-book page or plain checklist (spec §9.2) */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between">
+          <Label>Steps</Label>
+          <button
+            type="button"
+            onClick={() => {
+              const name = prompt("Template name", t.title);
+              if (!name) return;
+              void run(
+                () =>
+                  ticketFetch("/api/tickets/templates", {
+                    method: "POST",
+                    body: { from_ticket: t.ticket_key ?? t.id, name },
+                  }),
+                { lists: false },
+              );
+            }}
+            className="text-[11px] text-ink-3 hover:text-ink-4"
+            title="Copy title, body, steps, contexts and sub-tasks into a reusable template"
+          >
+            Save as template
+          </button>
+        </div>
+        <div className="mt-2">
+          <StepsSection apiKey={apiKey} kind={t.kind ?? "task"} title={t.title} />
+        </div>
+      </div>
 
       {/* Sub-tasks */}
       {!t.parent_task_id && (

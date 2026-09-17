@@ -1,0 +1,171 @@
+{
+  "slug": "cutover-runbook",
+  "name": "Production cutover run-book",
+  "kind": "runbook",
+  "version": 1,
+  "definition": {
+    "title": "Cutover: {{change}}",
+    "body_md": "A gated production change in the house style: Claude Code executes the steps that have an API or CLI, you keep the decisions and the GO gate. Fill in the values first; every command and link substitutes them.",
+    "kind": "runbook",
+    "where_ctx": "home",
+    "tools": ["pc"],
+    "time_window": "anytime",
+    "points": 13,
+    "steps_definition": {
+      "slug": "cutover-runbook",
+      "kind": "runbook",
+      "title": "Production cutover",
+      "version": 1,
+      "toggles": {
+        "route": { "label": "Route", "options": { "staging": "Staging rehearsal first", "direct": "Straight to cutover" }, "default": "direct" },
+        "shell": { "label": "Shell", "options": { "ps": "PowerShell", "bash": "Git Bash" }, "default": "bash" }
+      },
+      "values": [
+        { "key": "branch", "label": "Branch being cut over", "placeholder": "tickets" },
+        { "key": "dump", "label": "Backup folder", "placeholder": "A:\\Backups\\mycelium\\YYYY-MM-DD" },
+        { "key": "team", "label": "Vercel team slug", "placeholder": "sporebit-s-projects" },
+        { "key": "project_ref", "label": "Supabase project ref", "placeholder": "vokfwbkwuccikordcnxz" }
+      ],
+      "intro": {
+        "verdict_html": "<p>One production change, four phases, one GO gate. Nothing in Phase 0–2 touches live data; Phase 3 is the only irreversible step and it has a rollback.</p>",
+        "prerequisites": [
+          "A clean working tree on <code>{{branch}}</code>",
+          "The Supabase and Vercel CLIs logged in",
+          "Someone available to press GO"
+        ],
+        "time": ["Phase 0–2: 20 min", "Phase 3: 5 min", "Phase 4: 15 min"],
+        "cost": ["None beyond the usual deploy"]
+      },
+      "phases": [
+        {
+          "id": "0",
+          "title": "Decide and prepare",
+          "lede_html": "<p>Everything here is reversible and can be done days ahead.</p>",
+          "steps": [
+            {
+              "id": "0.1",
+              "title": "Confirm the route",
+              "actor": "you",
+              "where": { "label": "This page", "kind": "decision" },
+              "body_html": "<p>Pick <strong>Staging rehearsal</strong> if the change touches auth or storage; otherwise <strong>Straight to cutover</strong> is fine for a schema-plus-code change with a rollback.</p>",
+              "fields": [{ "key": "decision_route", "label": "Why this route", "placeholder": "one line" }]
+            },
+            {
+              "id": "0.2",
+              "title": "Take the backup",
+              "actor": "claude-code",
+              "where": { "label": "Terminal", "kind": "terminal" },
+              "blocks": [
+                { "label": "dump", "shells": { "bash": "cd /a/Projects/Mycelium && supabase db dump --data-only -f {{dump}}/data.sql", "ps": "cd A:\\Projects\\Mycelium; supabase db dump --data-only -f {{dump}}\\data.sql" } }
+              ],
+              "fields": [{ "key": "dump_rows", "label": "Row count parity", "placeholder": "e.g. 92 tables / 5,012 rows" }],
+              "after_html": "Compare row counts to live table by table; file size proves nothing."
+            }
+          ],
+          "verify_html": ["<code>{{dump}}</code> exists and the row counts match live"],
+          "why_html": "The dump is the only restore point until nightly backups exist."
+        },
+        {
+          "id": "1",
+          "title": "Staging rehearsal",
+          "steps": [
+            {
+              "id": "1.1",
+              "title": "Restore the dump into the local stack and replay the migrations",
+              "actor": "claude-code",
+              "route": "staging",
+              "where": { "label": "Terminal", "kind": "terminal" },
+              "blocks": [{ "label": "replay", "text": "supabase start && supabase db reset && supabase migration up" }]
+            },
+            {
+              "id": "1.2",
+              "title": "Run the regression gate on the rehearsed data",
+              "actor": "claude-code",
+              "route": "staging",
+              "where": { "label": "Terminal", "kind": "terminal" },
+              "blocks": [{ "label": "gate", "text": "npm test && rm -rf .next && npx next build" }]
+            }
+          ],
+          "verify_html": ["Tests green, build green, migration list shows every file"]
+        },
+        {
+          "id": "2",
+          "title": "Pre-flight",
+          "steps": [
+            {
+              "id": "2.1",
+              "title": "Build gate on the exact tree being shipped",
+              "actor": "claude-code",
+              "where": { "label": "Terminal", "kind": "terminal" },
+              "blocks": [{ "label": "gate", "text": "git status --short && rm -rf .next && npx next build" }]
+            },
+            {
+              "id": "2.2",
+              "title": "Dry-run the migration push",
+              "actor": "claude-code",
+              "where": { "label": "Terminal", "kind": "terminal" },
+              "blocks": [{ "label": "dry run", "text": "supabase db push --dry-run" }],
+              "fields": [{ "key": "pending_migrations", "label": "Files the dry run lists", "placeholder": "0119_…" }]
+            }
+          ],
+          "verify_html": ["The dry run lists exactly the files you expect and nothing else"]
+        },
+        {
+          "id": "3",
+          "title": "Cutover",
+          "lede_html": "<p>The GO gate is the only step that changes live state.</p>",
+          "steps": [
+            {
+              "id": "3.1",
+              "title": "GO",
+              "actor": "gate",
+              "where": { "label": "You, here", "kind": "decision" },
+              "body_html": "<p>Tick this only when 2.1 and 2.2 are green and the backup exists.</p>",
+              "notes": [{ "kind": "warn", "html": "After GO the migration runs against production. Rollback is the restore procedure below." }]
+            },
+            {
+              "id": "3.2",
+              "title": "Push migrations, then code",
+              "actor": "claude-code",
+              "where": { "label": "Terminal", "kind": "terminal" },
+              "blocks": [{ "label": "ship", "text": "echo Y | supabase db push && git push origin {{branch}}:main" }],
+              "after_html": "Watch the Vercel deploy reach Ready before smoke testing."
+            }
+          ],
+          "verify_html": ["<code>supabase migration list</code> shows local = remote", "The Vercel production deployment is Ready"]
+        },
+        {
+          "id": "4",
+          "title": "Verify live",
+          "steps": [
+            {
+              "id": "4.1",
+              "title": "API smoke",
+              "actor": "claude-code",
+              "where": { "label": "Terminal", "kind": "terminal" },
+              "blocks": [{ "label": "health", "text": "curl -s https://mycelium.sporebit.com/api/health" }]
+            },
+            {
+              "id": "4.2",
+              "title": "Phil's live check",
+              "actor": "you",
+              "where": { "label": "The app on your phone", "kind": "browser" },
+              "fields": [{ "key": "live_check", "label": "What you checked", "placeholder": "sign-in, the changed pages, capture" }]
+            }
+          ],
+          "verify_html": ["Everything the change touched works on the phone"],
+          "why_html": "Automation sets Done with evidence; your live check is the separate <em>verified</em> signal."
+        }
+      ],
+      "rollback_html": "<p>Restore the public rows from <code>{{dump}}</code> into a fresh project, repair the migration history to the last good number, and re-point Vercel's env at it. Auth users are recreated by invite.</p>",
+      "troubleshooting": [
+        { "symptom": "db push stops on an operator error", "cause": "hosted search_path differs from local", "fix": "qualify the operator (<code>OPERATOR(extensions.&lt;=&gt;)</code>) and re-push" },
+        { "symptom": "Vercel build red after push", "cause": "a lint rule tsc does not enforce", "fix": "run <code>npx next build</code> locally; never disable the rule" }
+      ],
+      "links": [
+        { "label": "Supabase project", "url": "https://supabase.com/dashboard/project/{{project_ref}}", "note": "migrations, auth, storage" },
+        { "label": "Vercel project", "url": "https://vercel.com/{{team}}/mycelium", "note": "deployments and env" }
+      ]
+    }
+  }
+}

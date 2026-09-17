@@ -10,6 +10,7 @@ import {
   type TicketCategory,
 } from "@/lib/tickets/categories";
 import { listTickets, type NowContext } from "@/lib/tickets/query";
+import { TEMPLATE_SELECT, instantiateTemplate, type TemplateRow } from "@/lib/tickets/templates";
 import {
   isTicketCategory,
   moveTicket,
@@ -89,7 +90,8 @@ export async function POST(req: NextRequest) {
   if (!body) return NextResponse.json({ error: "bad json" }, { status: 400 });
 
   const fields = ticketFieldsFromBody(body);
-  if (typeof fields.title !== "string") {
+  const templateSlug = typeof body.template === "string" ? body.template.trim() : "";
+  if (typeof fields.title !== "string" && !templateSlug) {
     return NextResponse.json({ error: "title required" }, { status: 400 });
   }
 
@@ -97,6 +99,24 @@ export async function POST(req: NextRequest) {
     const supabase = await createUserClient();
     const limited = await ticketWriteGate(supabase, uid);
     if (limited) return limited;
+
+    // `template` (spec §11): fill the ticket and its sub-tasks from a template.
+    if (templateSlug) {
+      const { data: tplRow } = await supabase
+        .from("ticket_templates")
+        .select(TEMPLATE_SELECT)
+        .eq("slug", templateSlug)
+        .maybeSingle();
+      if (!tplRow) return NextResponse.json({ error: "template not found" }, { status: 404 });
+      const ticket = await instantiateTemplate(supabase, tplRow as TemplateRow, {
+        uid,
+        title: typeof fields.title === "string" ? fields.title : undefined,
+        project_id: typeof fields.project_id === "string" ? fields.project_id : undefined,
+        category: isTicketCategory(body.category) && (body.category === "inbox" || body.category === "backlog") ? body.category : "next",
+        vars: body.vars && typeof body.vars === "object" ? (body.vars as Record<string, string>) : undefined,
+      });
+      return NextResponse.json({ ticket, key: ticket.ticket_key }, { status: 201 });
+    }
 
     if (typeof fields.parent_task_id === "string") {
       const problem = await validateParent(supabase, fields.parent_task_id);
