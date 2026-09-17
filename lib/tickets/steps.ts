@@ -117,9 +117,43 @@ export function effectiveToggles(def: StepsDefinition | null | undefined, state:
   return out;
 }
 
-/** Steps visible under the current toggles (route-gated steps hidden). */
-export function visibleSteps(phase: Phase, toggles: Record<string, string>): Step[] {
-  return phase.steps.filter((s) => !s.route || toggles.route === s.route);
+/**
+ * Which toggle a step's `route` value belongs to: the first toggle whose
+ * options include it (the checklists spec named the toggle `route`; a
+ * definition may call it `device`, `shell`, …). Null when no toggle owns it.
+ */
+export function routeToggleKey(def: StepsDefinition | null | undefined, route: string): string | null {
+  for (const [key, t] of Object.entries(def?.toggles ?? {})) {
+    if (route in (t.options ?? {})) return key;
+  }
+  return null;
+}
+
+/** Human label for a step's route ("PC first", "Staging rehearsal"). */
+export function routeLabel(def: StepsDefinition | null | undefined, route: string): string {
+  const key = routeToggleKey(def, route);
+  return (key && def?.toggles?.[key]?.options?.[route]) || route;
+}
+
+/**
+ * Steps visible under the current toggles. A run-book hides steps whose
+ * route does not match the chosen toggle value. A `test` labels them
+ * instead (StepsPage shows a chip) so the denominator never moves between
+ * passes and a single run can reach 100 %. A route no toggle owns is
+ * always visible.
+ */
+export function visibleSteps(
+  phase: Phase,
+  toggles: Record<string, string>,
+  def?: StepsDefinition | null,
+): Step[] {
+  if ((def?.kind ?? "") === "test") return phase.steps;
+  return phase.steps.filter((s) => {
+    if (!s.route) return true;
+    const key = def ? routeToggleKey(def, s.route) : "route";
+    if (!key) return true;
+    return toggles[key] === s.route;
+  });
 }
 
 export function countSteps(
@@ -131,7 +165,7 @@ export function countSteps(
   let done = 0;
   let total = 0;
   for (const p of def.phases ?? []) {
-    for (const s of visibleSteps(p, toggles)) {
+    for (const s of visibleSteps(p, toggles, def)) {
       total += 1;
       if (state.steps[s.id]?.done) done += 1;
     }

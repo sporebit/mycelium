@@ -5,6 +5,7 @@ import { sanitizeHtml } from "@/lib/tickets/sanitize";
 import {
   countSteps,
   effectiveToggles,
+  routeLabel,
   substitute,
   unresolved,
   visibleSteps,
@@ -124,7 +125,7 @@ export function StepsPage({
       )}
 
       {definition.phases.map((phase) => {
-        const steps = visibleSteps(phase, toggles);
+        const steps = visibleSteps(phase, toggles, definition);
         if (steps.length === 0) return null;
         const phaseDone = steps.filter((s) => state.steps[s.id]?.done).length;
         return (
@@ -304,6 +305,14 @@ function StepRow({
             {step.actor && (
               <span className={`rounded-sm border px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] ${ACTOR_TONE[step.actor] ?? ""}`}>
                 {ACTOR_LABEL[step.actor] ?? step.actor}
+              </span>
+            )}
+            {step.route && (
+              <span
+                className="rounded-sm border border-ink-2 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-ink-3"
+                title="Only applies on this route / device; a test keeps it visible so every pass counts the same steps"
+              >
+                {routeLabel(definition, step.route)}
               </span>
             )}
             {step.where && (
