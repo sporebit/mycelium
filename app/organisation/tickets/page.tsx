@@ -7,6 +7,7 @@ import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { ticketPrefs } from "@/lib/settings/uiPrefs";
 import { GTD_LISTS, GTD_LIST_LABEL, type GtdList } from "@/lib/tickets/categories";
 import type { TicketCounts } from "@/lib/tickets/query";
+import { ClarifyStack } from "@/components/tickets/ClarifyStack";
 import { NowView } from "@/components/tickets/NowView";
 import { TicketListRow, type TicketRowData } from "@/components/tickets/TicketListRow";
 
@@ -103,7 +104,13 @@ export default function TicketsHomePage() {
       <p className="mt-2 text-[11px] text-ink-3">{HINT[tab]}</p>
 
       <div className="mt-4">
-        {tab === "now" ? <NowView simple={simple} /> : <ListTab list={tab} simple={simple} />}
+        {tab === "now" ? (
+          <NowView simple={simple} />
+        ) : tab === "inbox" ? (
+          <ClarifyStack simple={simple} />
+        ) : (
+          <ListTab list={tab} simple={simple} />
+        )}
       </div>
     </div>
   );

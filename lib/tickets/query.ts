@@ -58,7 +58,7 @@ export async function listTickets(
   const today = now.date;
   const limit = Math.min(Math.max(p.limit ?? 300, 1), 1000);
 
-  let q = supabase.from("tickets").select(LIST_SELECT);
+  let q = supabase.from("tickets").select(LIST_SELECT).is("deleted_at", null);
 
   let cats: readonly TicketCategory[] | null = p.categories?.length ? p.categories : null;
   let postFilter: ((t: TicketRow) => boolean) | null = null;
@@ -220,12 +220,14 @@ export async function ticketCounts(supabase: SupabaseClient): Promise<TicketCoun
       .select("id, someday, scheduled_on, deadline_on, ticket_status:ticket_statuses!inner(category)")
       .in("ticket_status.category", [...OPEN_CATEGORIES])
       .is("parent_task_id", null)
+      .is("deleted_at", null)
       .limit(2000),
     supabase
       .from("tickets")
       .select("id, ticket_status:ticket_statuses!inner(category)", { count: "exact", head: true })
       .in("ticket_status.category", [...CLOSED_CATEGORIES])
-      .is("parent_task_id", null),
+      .is("parent_task_id", null)
+      .is("deleted_at", null),
   ]);
   const counts: TicketCounts = {
     inbox: 0,
