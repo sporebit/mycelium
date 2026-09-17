@@ -19,6 +19,8 @@ export const LIMITS = {
   magicLinkEmail: { capacity: 4, refillPerMinute: 1 } satisfies Bucket,
   totpVerify: { capacity: 10, refillPerMinute: 5 } satisfies Bucket,
   inviteUser: { capacity: 20, refillPerMinute: 2 } satisfies Bucket,
+  /** Ticket writes per user (spec §11) — generous: a bulk clarify is many. */
+  ticketWrite: { capacity: 120, refillPerMinute: 60 } satisfies Bucket,
 } as const;
 
 /** A client with no session: rate_limit_take is callable by anon. */

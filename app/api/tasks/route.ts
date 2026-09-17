@@ -15,6 +15,12 @@ import {
 import { extractNameMentions } from "@/lib/people/regex-extract";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { pushTaskToGoogle } from "@/lib/google/sync";
+import {
+  LEGACY_HANDLED_KEYS,
+  isTicketCategory,
+  moveTicket,
+  ticketFieldsFromBody,
+} from "@/lib/tickets/server";
 
 /**
  * Soft-failure mention extraction for tasks created/edited outside the
@@ -147,6 +153,20 @@ type CreateBody = {
   context_device?: string | null;
   context_energy?: "low" | "medium" | "high" | null;
   context_tag?: string | null;
+  // Tickets Part B — optional new fields; `category` resolves to status_id.
+  category?: string;
+  kind?: string;
+  someday?: boolean;
+  urgent?: boolean;
+  points?: number | null;
+  where_ctx?: string;
+  tools?: string[];
+  time_window?: string;
+  scheduled_on?: string | null;
+  deadline_on?: string | null;
+  waiting_on_person_id?: string | null;
+  assignee_id?: string | null;
+  source?: string;
 };
 
 export async function POST(req: NextRequest) {
@@ -257,14 +277,31 @@ export async function POST(req: NextRequest) {
       context_device: suggestedDevice,
       context_energy: suggestedEnergy,
       context_tag: suggestedTag,
+      ...ticketFieldsFromBody(body as Record<string, unknown>, LEGACY_HANDLED_KEYS),
     };
 
-    const { data, error } = await supabase
+    const inserted = await supabase
       .from("tickets")
       .insert(insertPayload)
       .select(TASK_SELECT)
       .single();
-    if (error || !data) throw error ?? new Error("insert returned no row");
+    let data = inserted.data;
+    if (inserted.error || !data) throw inserted.error ?? new Error("insert returned no row");
+
+    // A requested category lands after the insert: the 0117 trigger has
+    // defaulted status_id (Inbox), and moveTicket resolves the space's
+    // status row for the category and logs the activity.
+    if (body.category && isTicketCategory(body.category)) {
+      const moved = await moveTicket(supabase, (data as { id: string }).id, body.category);
+      if (moved.ok) {
+        const { data: fresh } = await supabase
+          .from("tickets")
+          .select(TASK_SELECT)
+          .eq("id", (data as { id: string }).id)
+          .single();
+        if (fresh) data = fresh;
+      }
+    }
 
     // Mention extraction (soft-fail). Mirrors capture-pipeline behaviour.
     await extractTaskMentions(

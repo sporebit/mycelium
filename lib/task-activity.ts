@@ -13,6 +13,20 @@ const TRACKED_FIELDS = new Set([
   "description",
   "parent_task_id",
   "tags",
+  // Tickets Part B
+  "status_id",
+  "someday",
+  "urgent",
+  "points",
+  "where_ctx",
+  "tools",
+  "time_window",
+  "scheduled_on",
+  "deadline_on",
+  "assignee_id",
+  "waiting_on_person_id",
+  "kind",
+  "verified_at",
 ]);
 
 function stringify(v: unknown): string | null {

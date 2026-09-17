@@ -1,0 +1,57 @@
+import { NextRequest, NextResponse } from "next/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { TASK_SELECT, serializeTask } from "@/lib/tasks";
+import { logTaskActivity } from "@/lib/task-activity";
+import { principalUid, readJson, resolveTicketRef, ticketWriteGate } from "@/lib/tickets/server";
+
+export const runtime = "nodejs";
+
+/**
+ * POST /api/tickets/[key]/verify  { verified?: boolean }
+ * Phil's live check (spec §7.1): sets verified_by / verified_at on a Done
+ * ticket — the signal separate from automation's evidence-backed Done.
+ * `verified: false` clears it.
+ */
+export async function POST(
+  req: NextRequest,
+  ctx: { params: Promise<{ key: string }> },
+) {
+  const { key } = await ctx.params;
+  const uid = await principalUid();
+  if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = (await readJson<{ verified?: boolean }>(req)) ?? {};
+  const on = body.verified !== false;
+  try {
+    const supabase = await createUserClient();
+    const limited = await ticketWriteGate(supabase, uid);
+    if (limited) return limited;
+    const ref = await resolveTicketRef(supabase, key);
+    if (!ref) return NextResponse.json({ error: "not found" }, { status: 404 });
+    if (on && ref.category !== "done") {
+      return NextResponse.json({ error: "only a Done ticket can be verified" }, { status: 409 });
+    }
+    const verifiedAt = on ? new Date().toISOString() : null;
+    const { data, error } = await supabase
+      .from("tickets")
+      .update({
+        verified_by: on ? uid : null,
+        verified_at: verifiedAt,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", ref.id)
+      .select(TASK_SELECT)
+      .single();
+    if (error || !data) throw error ?? new Error("update failed");
+    await logTaskActivity(
+      supabase,
+      ref.id,
+      { verified_at: on ? null : "verified" },
+      { verified_at: on ? "verified" : null },
+    );
+    const task = serializeTask(data as Parameters<typeof serializeTask>[0]);
+    return NextResponse.json({ task, ticket: task });
+  } catch (err) {
+    console.error("[/api/tickets/:key/verify POST]", err);
+    return NextResponse.json({ error: "verify failed" }, { status: 500 });
+  }
+}

@@ -16,6 +16,12 @@ import { extractNameMentions } from "@/lib/people/regex-extract";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { logTaskActivity } from "@/lib/task-activity";
 import { pushTaskToGoogle, removeGoogleEvent } from "@/lib/google/sync";
+import {
+  LEGACY_HANDLED_KEYS,
+  isTicketCategory,
+  statusIdFor,
+  ticketFieldsFromBody,
+} from "@/lib/tickets/server";
 
 async function rebuildTaskMentions(
   supabase: SupabaseClient,
@@ -70,6 +76,10 @@ const ALLOWED_FIELDS = new Set([
   "context_energy",
   "context_tag",
 ]);
+// Tickets Part B — the compat route accepts the new columns too (validated
+// by ticketFieldsFromBody), so there is one write path. `category` is
+// translated to status_id below; the 0117 trigger keeps `status`,
+// `completed_at` and `cancelled_at` in step.
 
 export async function GET(
   _req: NextRequest,
@@ -155,6 +165,7 @@ export async function PATCH(
     }
     update[k] = v;
   }
+  Object.assign(update, ticketFieldsFromBody(body, LEGACY_HANDLED_KEYS));
   update.updated_at = new Date().toISOString();
 
   // Keep status and completed_at in sync — moving a card to/from the
@@ -225,10 +236,16 @@ export async function PATCH(
     const { data: beforeRow } = await supabase
       .from("tickets")
       .select(
-        "status, urgency, project_id, due_date, scheduled_at, time_estimate_min, key, owner, entity_id, title, description, parent_task_id, tags",
+        "space_id, status, urgency, project_id, due_date, scheduled_at, time_estimate_min, key, owner, entity_id, title, description, parent_task_id, tags, status_id, someday, urgent, points, where_ctx, tools, time_window, scheduled_on, deadline_on, assignee_id, waiting_on_person_id, kind",
       )
       .eq("id", id)
       .maybeSingle();
+
+    // `category` → the space's status row for it (Part B).
+    if (isTicketCategory(body.category) && beforeRow?.space_id) {
+      const sid = await statusIdFor(supabase, beforeRow.space_id as string, body.category);
+      if (sid) update.status_id = sid;
+    }
 
     const { data, error } = await supabase
       .from("tickets")

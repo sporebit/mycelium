@@ -1,3 +1,5 @@
+import type { TicketCategory } from "@/lib/tickets/categories";
+
 export type TaskUrgency = "today" | "this_week" | "this_month" | "someday";
 
 export const URGENCIES: readonly TaskUrgency[] = [
@@ -64,6 +66,38 @@ export type Task = {
   ticket_key?: string | null;
   /** The numeric part of ticket_key, for sorting (0116). */
   seq?: number | null;
+  // ---- Tickets Part B fields (0116 columns, surfaced by TASK_SELECT) ----
+  /** The workflow status row this ticket sits in. */
+  status_id?: string | null;
+  /** Category of status_id — what the GTD lists and automation bind to. */
+  category?: TicketCategory | null;
+  /** Display name of the status row (a project workflow may rename it). */
+  status_name?: string | null;
+  kind?: string;
+  someday?: boolean;
+  urgent?: boolean;
+  points?: number | null;
+  where_ctx?: string;
+  place_id?: string | null;
+  tools?: string[];
+  time_window?: string;
+  time_from?: string | null;
+  time_to?: string | null;
+  days?: number[] | null;
+  scheduled_on?: string | null;
+  deadline_on?: string | null;
+  remind_at?: string | null;
+  assignee_id?: string | null;
+  waiting_on_person_id?: string | null;
+  waiting_on_name?: string | null;
+  verified_by?: string | null;
+  verified_at?: string | null;
+  cancelled_at?: string | null;
+  source?: string;
+  suggested?: Record<string, unknown> | null;
+  rundown_md?: string | null;
+  recurrence_mode?: "spawn" | "series" | null;
+  recurrence_rrule?: string | null;
   priority_score: number | null;
   time_estimate_min: number | null;
   tags: string[] | null;
