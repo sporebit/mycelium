@@ -6,6 +6,7 @@ import { pushTaskToGoogle, removeGoogleEvent } from "@/lib/google/sync";
 import { TASK_STATUSES, URGENCIES } from "@/lib/types/task";
 import { attachBlockers, type TicketRow } from "@/lib/tickets/query";
 import { signTicketAttachment } from "@/lib/storage/tickets";
+import { createGithubIssue } from "@/lib/tickets/github";
 import {
   isTicketCategory,
   moveTicket,
@@ -216,6 +217,27 @@ export async function PATCH(
 
     if ("title" in update || "description" in update) {
       await rebuildTicketMentions(supabase, task.id, task.title, task.description);
+    }
+
+    // Opt-in Issues sync (spec Flag 3): ticket → Issue only when flagged.
+    if (update.sync_to_github === true && !task.github_issue_number && task.project_id) {
+      const { data: proj } = await supabase.from("projects").select("github_repo, github_issues_sync").eq("id", task.project_id).maybeSingle();
+      if (proj?.github_repo && proj.github_issues_sync) {
+        const issue = await createGithubIssue(
+          proj.github_repo as string,
+          `${task.ticket_key ?? ""} ${task.title}`.trim(),
+          `${task.description ?? ""}\n\n—\nMycelium ticket ${task.ticket_key ?? task.id}`,
+        );
+        if (issue) {
+          await supabase
+            .from("tickets")
+            .update({ github_issue_number: issue.number, github_issue_url: issue.html_url, github_synced_at: new Date().toISOString() })
+            .eq("id", task.id);
+          await supabase.from("ticket_links").insert({ ticket_id: task.id, kind: "github_issue", ref: String(issue.number), url: issue.html_url, label: `#${issue.number}` });
+          task.github_issue_number = issue.number;
+          task.github_issue_url = issue.html_url;
+        }
+      }
     }
 
     const closed = task.category === "done" || task.category === "cancelled" || !!task.completed_at;

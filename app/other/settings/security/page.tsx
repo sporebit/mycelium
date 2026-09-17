@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/Label";
 import { Mono } from "@/components/dashboard/Mono";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { usePasskeySupport } from "@/lib/auth/usePasskeySupport";
+import { ApiTokensCard } from "@/components/settings/ApiTokensCard";
 
 type Passkey = {
   id: string;
@@ -176,6 +177,9 @@ export default function SecuritySettingsPage() {
         supported={passkeysSupported}
         onChange={load}
       />
+
+      {/* Tickets spec §14.4: scoped bearer tokens for the tix CLI and Claude Code */}
+      <ApiTokensCard />
 
       <Card title="SESSIONS">
         {sessions.length === 0 ? (

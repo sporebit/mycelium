@@ -19,6 +19,9 @@ export const PUBLIC_PREFIXES: readonly string[] = [
   // checks). Cookies are still read by createUserClient() on public paths.
   "/invite/",
   "/api/invites/",
+  // Tickets Part G: signature-verified webhooks (spec §7.1, §14.3).
+  "/api/tickets/github",
+  "/api/tickets/vercel",
 ];
 
 /** Reachable with PC_METRICS_SECRET as a bearer token, this path only. */
@@ -40,11 +43,14 @@ export const PRINCIPAL_USER_HEADER = "x-principal-user";
 export const PRINCIPAL_AAL_HEADER = "x-principal-aal";
 /** The request path, for audit rows written where the URL is not in scope. */
 export const PRINCIPAL_PATH_HEADER = "x-principal-path";
+/** Set only for API-token principals (tickets spec §14.4): the token's scopes as JSON. */
+export const PRINCIPAL_SCOPES_HEADER = "x-principal-scopes";
 export const PRINCIPAL_HEADERS = [
   PRINCIPAL_HEADER,
   PRINCIPAL_USER_HEADER,
   PRINCIPAL_AAL_HEADER,
   PRINCIPAL_PATH_HEADER,
+  PRINCIPAL_SCOPES_HEADER,
 ] as const;
 
 /**

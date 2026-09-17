@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "verify:ownership": "node --experimental-strip-types --no-warnings scripts/verify-ownership.ts",
-    "isolation-test": "node --experimental-strip-types --no-warnings scripts/isolation-test.ts"
+    "isolation-test": "node --experimental-strip-types --no-warnings scripts/isolation-test.ts",
+    "tix": "node scripts/tix.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

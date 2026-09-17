@@ -190,7 +190,7 @@ export async function moveTicket(
 
 const STRING_FIELDS = ["title", "description", "kind", "where_ctx", "time_window", "source"] as const;
 const DATE_FIELDS = ["scheduled_on", "deadline_on"] as const;
-const BOOL_FIELDS = ["someday", "urgent", "key"] as const;
+const BOOL_FIELDS = ["someday", "urgent", "key", "sync_to_github"] as const;
 const UUID_FIELDS = [
   "project_id",
   "parent_task_id",

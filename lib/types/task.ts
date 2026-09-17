@@ -98,6 +98,11 @@ export type Task = {
   rundown_md?: string | null;
   recurrence_mode?: "spawn" | "series" | null;
   recurrence_rrule?: string | null;
+  series_id?: string | null;
+  sync_to_github?: boolean;
+  github_issue_number?: number | null;
+  github_issue_url?: string | null;
+  meta?: Record<string, unknown> | null;
   priority_score: number | null;
   time_estimate_min: number | null;
   tags: string[] | null;

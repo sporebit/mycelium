@@ -5,11 +5,11 @@ import {
   type Project,
   type ProjectStatus,
 } from "@/lib/types/project";
+import { PROJECT_SELECT_TICKETS, projectTicketFields } from "@/lib/tickets/projects";
 
 export const runtime = "nodejs";
 
-const PROJECT_SELECT =
-  "id, name, description, status, colour, created_at, updated_at";
+const PROJECT_SELECT = PROJECT_SELECT_TICKETS;
 
 const ALLOWED_FIELDS = new Set([
   "name",
@@ -107,7 +107,7 @@ export async function PATCH(
     return NextResponse.json({ error: "bad json" }, { status: 400 });
   }
 
-  const update: Record<string, unknown> = {};
+  const update: Record<string, unknown> = { ...projectTicketFields(body) };
   for (const [k, v] of Object.entries(body)) {
     if (!ALLOWED_FIELDS.has(k)) continue;
     if (

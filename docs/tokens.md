@@ -21,6 +21,13 @@ Values live in Vercel (Production/Preview) and in the local `.env.local`;
 | `PC_METRICS_SECRET` | pc-agent → `/api/pc-metrics` bearer | Only surviving copy is the Vercel env var (M1.5 parked). |
 | `HEALTH_IMPORT_SECRET` | Apple Health import bearer | GET now needs it too (P12). |
 | `SPOTIFY_*`, `PAYPAL_*` | Integration OAuth clients | Owner-only integrations. |
+| `GITHUB_WEBHOOK_SECRET` | HMAC for `POST /api/tickets/github` (Tickets Part G) | Set the same value on the GitHub App / repo webhook. Not yet set (2026-09-17). |
+| `GITHUB_TOKEN` | Outbound Issues sync (create issue) — PAT or App installation token | Only needed when a project has `github_issues_sync` on. Not yet set. |
+| `GITHUB_BOT_LOGIN` | Loop guard: inbound issue events by this login are ignored | Optional. |
+| `VERCEL_WEBHOOK_SECRET` | HMAC-SHA1 for `POST /api/tickets/vercel` | From the Vercel webhook's signing secret. Not yet set. |
+| `TICKETS_SMOKE_URL` | Smoke check after a production deploy | Defaults to `https://mycelium.sporebit.com/api/health`. |
+| `TICKETS_RUNDOWN_CAP_PENCE` | Monthly rundown cap (spec §9.1) | Defaults to 1000 (£10). |
+| `api_tokens` (table, not env) | Scoped `mtk_` bearer tokens for `tix` / Claude Code | Minted at Settings → Security → API tokens; hashes only in the DB; revoke there. |
 
 ## Retired at cutover (2026-09-15)
 

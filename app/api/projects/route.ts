@@ -6,11 +6,11 @@ import {
   type Project,
   type ProjectStatus,
 } from "@/lib/types/project";
+import { PROJECT_SELECT_TICKETS, projectTicketFields } from "@/lib/tickets/projects";
 
 export const runtime = "nodejs";
 
-const PROJECT_SELECT =
-  "id, name, description, status, colour, created_at, updated_at, space_id";
+const PROJECT_SELECT = PROJECT_SELECT_TICKETS;
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -58,6 +58,11 @@ type CreateBody = {
   description?: string | null;
   status?: ProjectStatus;
   colour?: string | null;
+  // Tickets (0116): per-project key prefix, area, GitHub settings (spec §11)
+  prefix?: string | null;
+  area_id?: string | null;
+  github_repo?: string | null;
+  github_issues_sync?: boolean;
 };
 
 export async function POST(req: NextRequest) {
@@ -82,6 +87,7 @@ export async function POST(req: NextRequest) {
           ? body.status
           : "active",
       colour: body.colour ?? null,
+      ...projectTicketFields(body as Record<string, unknown>),
     };
     const { data, error } = await supabase
       .from("projects")

@@ -5,6 +5,7 @@ import {
   PRINCIPAL_AAL_HEADER,
   PRINCIPAL_HEADER,
   PRINCIPAL_PATH_HEADER,
+  PRINCIPAL_SCOPES_HEADER,
   PRINCIPAL_USER_HEADER,
   isAal2,
   isApiPath,
@@ -22,6 +23,7 @@ import {
   verifyBreakGlassToken,
 } from "@/lib/auth/cookie";
 import { PHIL_AUTH_UID } from "@/lib/system/identity";
+import { resolveApiToken, tokenAllows } from "@/lib/system/apiTokens";
 import { REAUTH_COOKIE, verifyReauth } from "@/lib/auth/reauth";
 
 /**
@@ -68,6 +70,21 @@ export async function middleware(req: NextRequest) {
   }
   if (matchesSecret(req.headers.get("x-api-secret"), process.env.API_SECRET)) {
     return passThrough(req, "system", PHIL_AUTH_UID);
+  }
+
+  // 3b. Scoped API tokens (tickets spec §14.4): `Bearer mtk_…` resolves to
+  // its owning user; a request outside the token's route/verb scope is 403
+  // and audited by the route (the scopes travel in a principal header).
+  if (authorization?.startsWith("Bearer mtk_")) {
+    const principal = await resolveApiToken(authorization.slice(7).trim());
+    if (!principal) {
+      return NextResponse.json({ error: "Unauthorized", reason: "bad_token" }, { status: 401 });
+    }
+    if (isSensitivePath(pathname) || !tokenAllows(principal.scopes, req.method, pathname)) {
+      console.warn(`[api-token] out of scope: ${principal.name} ${req.method} ${pathname}`);
+      return NextResponse.json({ error: "Forbidden", reason: "token_scope" }, { status: 403 });
+    }
+    return passThrough(req, "user", principal.user_id, "aal1", JSON.stringify(principal.scopes));
   }
 
   // 4. Supabase Auth session.
@@ -156,12 +173,14 @@ function passThrough(
   principal: Principal,
   userId?: string,
   aal?: AssuranceLevel,
+  scopes?: string,
 ): NextResponse {
   const headers = stripPrincipalHeaders(new Headers(req.headers));
   headers.set(PRINCIPAL_HEADER, principal);
   headers.set(PRINCIPAL_PATH_HEADER, req.nextUrl.pathname);
   if (userId) headers.set(PRINCIPAL_USER_HEADER, userId);
   if (aal) headers.set(PRINCIPAL_AAL_HEADER, aal);
+  if (scopes) headers.set(PRINCIPAL_SCOPES_HEADER, scopes);
   return NextResponse.next({ request: { headers } });
 }
 

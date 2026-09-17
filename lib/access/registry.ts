@@ -268,6 +268,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
     tables: ["api_usage"],
     note: "Per-call LLM cost rows (tickets spec §9.1); the monthly rundown cap is per user.",
   },
+  {
+    section: "platform",
+    group: "api_tokens",
+    tables: ["api_tokens"],
+    note: "Scoped bearer tokens (tickets spec §14.4); hashes only, resolved by the middleware with the service role.",
+  },
 ];
 
 export type SharedReferenceDef = {
