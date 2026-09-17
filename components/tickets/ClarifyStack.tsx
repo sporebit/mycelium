@@ -14,13 +14,19 @@ type Item = { ticket: Task; suggestion: Suggestion };
 type Payload = { items: Item[]; total: number };
 
 const CLARIFY_KEY = "/api/tickets/clarify";
+export type ClarifySource = "inbox" | "backlog";
+const KEY_FOR: Record<ClarifySource, string> = {
+  inbox: CLARIFY_KEY,
+  backlog: `${CLARIFY_KEY}?category=backlog`,
+};
 
 function revalidateLists() {
-  void globalMutate(CLARIFY_KEY);
   void globalMutate("/api/tickets/counts");
-  void globalMutate((k) => typeof k === "string" && k.startsWith("/api/tickets?"), undefined, {
-    revalidate: true,
-  });
+  void globalMutate(
+    (k) => typeof k === "string" && (k.startsWith("/api/tickets?") || k.startsWith(CLARIFY_KEY)),
+    undefined,
+    { revalidate: true },
+  );
 }
 
 /**
@@ -29,11 +35,23 @@ function revalidateLists() {
  * Person) · Defer (accept or adjust the suggested project, contexts, points
  * and dates, then Next or Backlog). Multi-step → add sub-tasks first.
  */
-export function ClarifyStack({ simple }: { simple: boolean }) {
-  const { data, error, isLoading } = useApi<Payload>(CLARIFY_KEY);
+export function ClarifyStack({
+  simple,
+  source = "inbox",
+}: {
+  simple: boolean;
+  /** "backlog" = triage mode: the same stack over un-parked Backlog tickets. */
+  source?: ClarifySource;
+}) {
+  const { data, error, isLoading } = useApi<Payload>(KEY_FOR[source]);
   const [skipped, setSkipped] = useState<Set<string>>(new Set());
+  // Cards acted on this sitting: a backlog card kept in Backlog would
+  // otherwise come straight back after revalidation.
+  const [handled, setHandled] = useState<Set<string>>(new Set());
   const [doneCount, setDoneCount] = useState(0);
-  const items = (data?.items ?? []).filter((i) => !skipped.has(i.ticket.id));
+  const items = (data?.items ?? []).filter(
+    (i) => !skipped.has(i.ticket.id) && !handled.has(i.ticket.id),
+  );
   const current = items[0] ?? null;
 
   if (error) return <p className="text-sm text-ink-3">Could not load the Inbox.</p>;
@@ -42,7 +60,7 @@ export function ClarifyStack({ simple }: { simple: boolean }) {
   if (!current) {
     return (
       <div className="rounded-v2-lg border border-hairline bg-surface-1 p-10 text-center">
-        <p className="text-sm text-ink-4">Inbox zero.</p>
+        <p className="text-sm text-ink-4">{source === "backlog" ? "Backlog triaged." : "Inbox zero."}</p>
         {doneCount > 0 && (
           <p className="mt-1 text-[11px] text-ink-3">
             {doneCount} clarified this sitting.
@@ -70,8 +88,11 @@ export function ClarifyStack({ simple }: { simple: boolean }) {
         key={current.ticket.id}
         item={current}
         simple={simple}
+        source={source}
         onSkip={() => setSkipped((s) => new Set(s).add(current.ticket.id))}
         onDone={() => {
+          const id = current.ticket.id;
+          setHandled((s) => new Set(s).add(id));
           setDoneCount((n) => n + 1);
           revalidateLists();
         }}
@@ -85,11 +106,13 @@ type Mode = "ask" | "defer" | "delegate" | "subtasks";
 function ClarifyCard({
   item,
   simple,
+  source,
   onSkip,
   onDone,
 }: {
   item: Item;
   simple: boolean;
+  source: ClarifySource;
   onSkip: () => void;
   onDone: () => void;
 }) {
@@ -365,7 +388,7 @@ function ClarifyCard({
               onClick={() => void defer("backlog")}
               className="rounded-sm bg-ink-2 px-3 py-1.5 text-sm text-ink-4 disabled:opacity-40"
             >
-              → Backlog
+              {source === "backlog" ? "Save, keep in Backlog" : "→ Backlog"}
             </button>
             <button type="button" onClick={() => setMode("ask")} className="text-[11px] text-ink-3">
               back

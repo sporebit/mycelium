@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import type { Task } from "@/lib/types/task";
 import {
@@ -67,21 +68,63 @@ export function TicketListRow({
   simple = false,
   showCategory = true,
   action,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
+  onLongPress,
 }: {
   t: TicketRowData;
   simple?: boolean;
   showCategory?: boolean;
   action?: React.ReactNode;
+  /** Bulk mode (spec §12: long-press = bulk): a checkbox replaces navigation. */
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
+  onLongPress?: () => void;
 }) {
   const closed = t.category === "done" || t.category === "cancelled" || !!t.completed_at;
   const deadline = t.deadline_on ?? t.due_date ?? null;
   const scheduled = t.scheduled_on ?? (t.scheduled_at ? t.scheduled_at.slice(0, 10) : null);
   const blocked = (t.blocked_by?.length ?? 0) > 0;
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startPress = () => {
+    if (!onLongPress) return;
+    pressTimer.current = setTimeout(() => onLongPress(), 500);
+  };
+  const cancelPress = () => {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+    pressTimer.current = null;
+  };
   return (
     <li className="flex items-center gap-2">
+      {selectable && (
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={() => onToggleSelect?.()}
+          aria-label={`Select ${t.ticket_key ?? t.title}`}
+          className="h-4 w-4 shrink-0 accent-[var(--glow-0)]"
+        />
+      )}
       <Link
         href={ticketHref(t)}
-        className="group flex min-w-0 flex-1 items-center gap-3 rounded-v2-md border border-hairline bg-surface-1 px-3 py-2 transition-colors hover:bg-surface-2"
+        onClick={(e) => {
+          if (selectable) {
+            e.preventDefault();
+            onToggleSelect?.();
+          }
+        }}
+        onPointerDown={startPress}
+        onPointerUp={cancelPress}
+        onPointerLeave={cancelPress}
+        onPointerCancel={cancelPress}
+        onContextMenu={(e) => {
+          if (onLongPress) e.preventDefault();
+        }}
+        className={`group flex min-w-0 flex-1 items-center gap-3 rounded-v2-md border px-3 py-2 transition-colors hover:bg-surface-2 ${
+          selected ? "border-glow-2/50 bg-glow-2/10" : "border-hairline bg-surface-1"
+        }`}
       >
         <span className="w-[68px] shrink-0 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] text-glow-2">
           {t.ticket_key ?? "—"}

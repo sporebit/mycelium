@@ -12,10 +12,15 @@ export const runtime = "nodejs";
  * suggestion wins; a heuristic fills the gaps.
  */
 export async function GET(req: NextRequest) {
+  // ?category=backlog → triage mode: the same card stack over Backlog
+  // tickets that are not parked as someday (oldest first).
+  const triageBacklog = req.nextUrl.searchParams.get("category") === "backlog";
   try {
     const supabase = await createUserClient();
     const [{ tickets }, projects] = await Promise.all([
-      listTickets(supabase, { list: "inbox", limit: 100 }),
+      triageBacklog
+        ? listTickets(supabase, { categories: ["backlog"], someday: false, limit: 200 })
+        : listTickets(supabase, { list: "inbox", limit: 100 }),
       supabase
         .from("projects")
         .select("id, name, prefix")

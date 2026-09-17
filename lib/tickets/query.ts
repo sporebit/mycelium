@@ -45,6 +45,8 @@ export type ListParams = {
   /** Filter by kind. Habits (series tickets) are excluded unless asked for:
    *  they have their own surfaces (Habits strip, heatmap) — spec Flag 5. */
   kind?: string | null;
+  /** Explicit someday filter (the lists set their own; triage passes false). */
+  someday?: boolean | null;
 };
 
 export type TicketRow = Task & {
@@ -143,6 +145,7 @@ export async function listTickets(
   if (cats) q = q.in("ticket_status.category", [...cats]);
   if (p.kind) q = q.eq("kind", p.kind);
   else q = q.neq("kind", "habit");
+  if (typeof p.someday === "boolean") q = q.eq("someday", p.someday);
   if (p.projectId === "null") q = q.is("project_id", null);
   else if (p.projectId) q = q.eq("project_id", p.projectId);
   if (p.assignee) q = q.eq("assignee_id", p.assignee);
@@ -210,7 +213,7 @@ export async function attachBlockers(
   for (const t of tickets) t.blocked_by = byBlocked.get(t.id) ?? [];
 }
 
-export type TicketCounts = Record<Exclude<GtdList, "now">, number>;
+export type TicketCounts = Record<Exclude<GtdList, "now"> | "backlog", number>;
 
 /**
  * Tab badges for the GTD home: one light query over open top-level tickets
@@ -243,6 +246,7 @@ export async function ticketCounts(supabase: SupabaseClient): Promise<TicketCoun
     next: 0,
     waiting: 0,
     someday: 0,
+    backlog: 0,
     logbook: closed.count ?? 0,
   };
   type Row = {
@@ -255,6 +259,7 @@ export async function ticketCounts(supabase: SupabaseClient): Promise<TicketCoun
     const st = Array.isArray(r.ticket_status) ? r.ticket_status[0] : r.ticket_status;
     const cat = st?.category;
     if (cat === "inbox") counts.inbox += 1;
+    if (cat === "backlog" && !r.someday) counts.backlog += 1;
     if (cat === "waiting") counts.waiting += 1;
     if (cat === "next" && !r.someday) counts.next += 1;
     if (r.someday) counts.someday += 1;
