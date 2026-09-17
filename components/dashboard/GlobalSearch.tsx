@@ -7,12 +7,18 @@ import type { SearchMatch } from "@/lib/memory/types";
 import { SourceCard } from "@/components/stroma/SourceCard";
 import { SECTIONS } from "@/lib/nav/sections";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
+import { looksLikeKey } from "@/lib/tickets/categories";
+import { CategoryChip } from "@/components/tickets/CategoryChip";
+import type { Task } from "@/lib/types/task";
+
+type TicketHit = Pick<Task, "id" | "ticket_key" | "title" | "category" | "status_name" | "project_name">;
 
 export function GlobalSearch() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [matches, setMatches] = useState<SearchMatch[] | null>(null);
+  const [tickets, setTickets] = useState<TicketHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -21,9 +27,38 @@ export function GlobalSearch() {
     setOpen(false);
     setQuery("");
     setMatches(null);
+    setTickets([]);
     setError(null);
     setLoading(false);
   }
+
+  // Ticket keys and titles (spec §12: ⌘K indexes keys and titles). A bare
+  // key like MYC-42 is a direct jump; anything else is a title search.
+  useEffect(() => {
+    if (!open) return;
+    const q = query.trim();
+    if (!q) return;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          const res = await fetch(`/api/tickets?q=${encodeURIComponent(q)}&limit=6`, {
+            signal: ctrl.signal,
+          });
+          if (ctrl.signal.aborted || !res.ok) return;
+          const j = (await res.json()) as { tickets?: TicketHit[] };
+          if (ctrl.signal.aborted) return;
+          setTickets(Array.isArray(j.tickets) ? j.tickets : []);
+        } catch {
+          /* ticket search is best-effort */
+        }
+      })();
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort();
+    };
+  }, [query, open]);
 
   // Cmd/Ctrl+K to toggle, Escape to close. setState calls happen inside the
   // event handler, not directly in the effect body.
@@ -99,6 +134,7 @@ export function GlobalSearch() {
     if (!v.trim()) {
       // Clear stale results immediately when user empties the input.
       setMatches(null);
+      setTickets([]);
       setError(null);
     }
   }
@@ -186,6 +222,55 @@ export function GlobalSearch() {
         </form>
 
         <div className="max-h-[55vh] overflow-y-auto p-3">
+          {query.trim() && (tickets.length > 0 || looksLikeKey(query)) && (
+            <div className="mb-3">
+              <div className="px-1 pb-1 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
+                Tickets
+              </div>
+              <ul className="flex flex-col">
+                {looksLikeKey(query) && !tickets.some((t) => t.ticket_key === query.trim().toUpperCase()) && (
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const k = query.trim().toUpperCase();
+                        closeModal();
+                        router.push(`/organisation/tickets/${encodeURIComponent(k)}`);
+                      }}
+                      className="w-full text-left px-2 py-1.5 rounded-v2-sm text-sm text-text-mid hover:bg-surface-2 hover:text-text-hi transition-colors"
+                    >
+                      Open {query.trim().toUpperCase()} →
+                    </button>
+                  </li>
+                )}
+                {tickets.map((t) => (
+                  <li key={t.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeModal();
+                        router.push(
+                          t.ticket_key
+                            ? `/organisation/tickets/${encodeURIComponent(t.ticket_key)}`
+                            : `/organisation/tasks?task=${t.id}`,
+                        );
+                      }}
+                      className="w-full flex items-center gap-2 text-left px-2 py-1.5 rounded-v2-sm text-sm text-text-mid hover:bg-surface-2 hover:text-text-hi transition-colors"
+                    >
+                      <span className="shrink-0 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.08em] text-glow-2 w-[64px]">
+                        {t.ticket_key ?? "—"}
+                      </span>
+                      <CategoryChip category={t.category} name={t.status_name} />
+                      <span className="min-w-0 flex-1 truncate">{t.title}</span>
+                      {t.project_name && (
+                        <span className="hidden sm:inline shrink-0 text-[11px] text-text-lo">{t.project_name}</span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {navResults.length > 0 && (
             <div className="mb-3">
               <div className="px-1 pb-1 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">

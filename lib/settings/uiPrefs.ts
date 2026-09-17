@@ -28,6 +28,8 @@ export type UiPrefs = {
   tickets: {
     now_where: "anywhere" | "home" | "out";
     now_include_backlog: boolean;
+    /** Energy chip: max points (2 = Low, 5 = Normal, null = All). */
+    now_max_points: number | null;
     /** Collapse the eight categories to Todo / Doing / Waiting / Done. */
     simple_statuses: boolean;
     checkin_time: string; // "HH:MM" Europe/London
@@ -57,6 +59,7 @@ export const UI_PREFS_DEFAULTS: UiPrefs = {
   tickets: {
     now_where: "home",
     now_include_backlog: false,
+    now_max_points: 5,
     simple_statuses: false,
     checkin_time: "18:00",
     review_day: 7,

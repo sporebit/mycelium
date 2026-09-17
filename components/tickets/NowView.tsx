@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { mutate as globalMutate } from "swr";
 import { useApi } from "@/lib/data/useApi";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
@@ -13,6 +13,8 @@ import {
   toolsForDevice,
 } from "@/lib/tickets/categories";
 import type { Task } from "@/lib/types/task";
+import { useCurrentContext } from "@/lib/hooks/useCurrentContext";
+import { nowQueryUrl, orderForContext } from "./nowQuery";
 import { TicketListRow, type TicketRowData } from "./TicketListRow";
 import { useDevice } from "./useDevice";
 
@@ -62,26 +64,25 @@ export function NowView({ simple }: { simple: boolean }) {
   const includeBacklog = tp.now_include_backlog;
 
   const [toolOverride, setToolOverride] = useState<string[] | null>(null);
-  const [maxPoints, setMaxPoints] = useState<number | null>(5);
+  const maxPoints = tp.now_max_points;
+  const setMaxPoints = (v: number | null) => void setPrefs({ tickets: { ...tp, now_max_points: v } });
   const tools = toolOverride ?? toolsForDevice(device);
+  const [currentCtx] = useCurrentContext();
 
-  const sp = new URLSearchParams({ list: "now", where, tools: tools.join(",") });
-  if (maxPoints != null) sp.set("max_points", String(maxPoints));
-  if (includeBacklog) sp.set("include_backlog", "1");
-  const query = `/api/tickets?${sp.toString()}`;
+  const query = nowQueryUrl(tp, device, toolOverride);
 
   const { data, error, isLoading } = useApi<{ tickets: TicketRowData[] }>(
     prefsLoading ? null : query,
   );
-  const tickets = data?.tickets ?? [];
+  // The FROZEN scorer orders the pre-filtered set, as on the Today block.
+  const tickets = orderForContext(data?.tickets ?? [], currentCtx, device);
 
   const toggleTool = (tool: string) => {
     const next = tools.includes(tool) ? tools.filter((t) => t !== tool) : [...tools, tool];
     setToolOverride(next);
   };
 
-  const complete = useCallback(
-    async (t: Task) => {
+  const complete = async (t: Task) => {
       const key = t.ticket_key ?? t.id;
       await globalMutate<{ tickets: TicketRowData[] }>(
         query,
@@ -103,9 +104,7 @@ export function NowView({ simple }: { simple: boolean }) {
         },
       );
       void globalMutate("/api/tickets/counts");
-    },
-    [query],
-  );
+  };
 
   return (
     <div>
