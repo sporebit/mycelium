@@ -23,8 +23,10 @@ const LIST_SELECT =
   ", space_id";
 
 export type NowContext = {
-  where: "anywhere" | "home" | "out" | "place";
+  /** "any" = no Where filter (the client applies the chip itself). */
+  where: "anywhere" | "home" | "out" | "place" | "any";
   place_id: string | null;
+  /** ["*"] = no Tool filter (client-side chip). */
   tools: string[];
   max_points: number | null;
   include_backlog: boolean;
@@ -116,14 +118,16 @@ export async function listTickets(
       q = q.eq("someday", false);
       if (p.uid) q = q.or(`assignee_id.is.null,assignee_id.eq.${p.uid}`);
       if (ctx) {
-        const whereParts = ["where_ctx.eq.anywhere"];
-        if (ctx.where === "home" || ctx.where === "out") whereParts.push(`where_ctx.eq.${ctx.where}`);
-        if (ctx.where === "place" && ctx.place_id) {
-          whereParts.push(`and(where_ctx.eq.place,place_id.eq.${ctx.place_id})`);
+        if (ctx.where !== "any") {
+          const whereParts = ["where_ctx.eq.anywhere"];
+          if (ctx.where === "home" || ctx.where === "out") whereParts.push(`where_ctx.eq.${ctx.where}`);
+          if (ctx.where === "place" && ctx.place_id) {
+            whereParts.push(`and(where_ctx.eq.place,place_id.eq.${ctx.place_id})`);
+          }
+          q = q.or(whereParts.join(","));
         }
-        q = q.or(whereParts.join(","));
         const tools = ctx.tools.filter((t) => /^[a-z0-9_-]+$/i.test(t));
-        if (tools.length > 0) q = q.or(`tools.cs.{none},tools.ov.{${tools.join(",")}}`);
+        if (tools.length > 0 && !ctx.tools.includes("*")) q = q.or(`tools.cs.{none},tools.ov.{${tools.join(",")}}`);
         if (ctx.max_points != null) q = q.or(`points.is.null,points.lte.${ctx.max_points}`);
       }
       postFilter = (t) =>
@@ -171,9 +175,23 @@ export async function listTickets(
     space_id: (row as { space_id?: string }).space_id,
   }));
 
-  await attachBlockers(supabase, tickets);
+  await Promise.all([attachBlockers(supabase, tickets), attachAssigneeNames(supabase, tickets)]);
   if (postFilter) tickets = tickets.filter(postFilter);
   return { tickets, today };
+}
+
+/**
+ * assignee_id references auth.users, not people, so PostgREST cannot embed
+ * it from tickets; display names come from profiles in one extra query.
+ */
+export async function attachAssigneeNames(supabase: SupabaseClient, tickets: TicketRow[]): Promise<void> {
+  const ids = Array.from(new Set(tickets.map((t) => t.assignee_id).filter((x): x is string => !!x)));
+  if (ids.length === 0) return;
+  const { data } = await supabase.from("profiles").select("id, display_name").in("id", ids);
+  const names = new Map((data ?? []).map((p) => [p.id as string, (p.display_name as string | null) ?? null]));
+  for (const t of tickets) {
+    if (t.assignee_id) t.assignee_name = names.get(t.assignee_id) ?? t.assignee_id.slice(0, 8);
+  }
 }
 
 /** Fill `blocked_by` with the keys of open blockers (spec §3.2, §5). */

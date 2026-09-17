@@ -14,7 +14,7 @@ import {
 } from "@/lib/tickets/categories";
 import type { Task } from "@/lib/types/task";
 import { useCurrentContext } from "@/lib/hooks/useCurrentContext";
-import { nowQueryUrl, orderForContext } from "./nowQuery";
+import { applyNowContext, chipsFor, nowQueryUrl, orderForContext } from "./nowQuery";
 import { TicketListRow, type TicketRowData } from "./TicketListRow";
 import { useDevice } from "./useDevice";
 
@@ -69,13 +69,18 @@ export function NowView({ simple }: { simple: boolean }) {
   const tools = toolOverride ?? toolsForDevice(device);
   const [currentCtx] = useCurrentContext();
 
-  const query = nowQueryUrl(tp, device, toolOverride);
+  const query = nowQueryUrl(tp);
 
   const { data, error, isLoading } = useApi<{ tickets: TicketRowData[] }>(
     prefsLoading ? null : query,
   );
-  // The FROZEN scorer orders the pre-filtered set, as on the Today block.
-  const tickets = orderForContext(data?.tickets ?? [], currentCtx, device);
+  // Chips filter the cached candidate set on the client (instant); the
+  // FROZEN scorer then orders the pre-filtered set, as on the Today block.
+  const tickets = orderForContext(
+    applyNowContext(data?.tickets ?? [], chipsFor(tp, device, toolOverride)),
+    currentCtx,
+    device,
+  );
 
   const toggleTool = (tool: string) => {
     const next = tools.includes(tool) ? tools.filter((t) => t !== tool) : [...tools, tool];

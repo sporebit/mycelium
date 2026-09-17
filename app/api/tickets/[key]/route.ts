@@ -4,7 +4,7 @@ import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import { logTaskActivity } from "@/lib/task-activity";
 import { pushTaskToGoogle, removeGoogleEvent } from "@/lib/google/sync";
 import { TASK_STATUSES, URGENCIES } from "@/lib/types/task";
-import { attachBlockers, type TicketRow } from "@/lib/tickets/query";
+import { attachAssigneeNames, attachBlockers, type TicketRow } from "@/lib/tickets/query";
 import { signTicketAttachment } from "@/lib/storage/tickets";
 import { createGithubIssue } from "@/lib/tickets/github";
 import {
@@ -87,7 +87,10 @@ export async function GET(
     const sub_tasks: TicketRow[] = ((subs.data ?? []) as unknown as Raw[]).map((r) =>
       serializeTask(r),
     );
-    await attachBlockers(supabase, [task, ...sub_tasks]);
+    await Promise.all([
+      attachBlockers(supabase, [task, ...sub_tasks]),
+      attachAssigneeNames(supabase, [task, ...sub_tasks]),
+    ]);
 
     // attachments live in the private `tickets` bucket: hand out signed URLs
     const linkRows = await Promise.all(

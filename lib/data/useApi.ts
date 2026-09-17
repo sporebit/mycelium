@@ -26,6 +26,10 @@ export function useApi<T>(key: string | null, opts?: SWRConfiguration<T>) {
   return useSWR<T>(key, fetcher as (path: string) => Promise<T>, {
     revalidateOnFocus: true,
     dedupingInterval: 2000,
+    // A key change (a chip, a tab) keeps the last list on screen while the
+    // new one loads instead of blanking to "Loading…" — the difference
+    // between "slow" and "instant" on the Tickets tabs.
+    keepPreviousData: true,
     ...opts,
   });
 }

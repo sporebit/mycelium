@@ -2,36 +2,62 @@
   "slug": "smoke-test-parts-b-h",
   "name": "Tickets smoke test — Parts B to H",
   "kind": "test",
-  "version": 1,
+  "version": 2,
   "definition": {
     "title": "Tickets smoke test — Parts B–H ({{run}})",
     "body_md": "Phil's live check of everything Tickets shipped on 2026-09-17. Tick each step as you go; type what you saw into the answer boxes. Anything that fails: leave it unticked and add a comment on this ticket with the step id.",
     "kind": "test",
     "where_ctx": "anywhere",
-    "tools": ["phone", "pc"],
+    "tools": [
+      "phone",
+      "pc"
+    ],
     "time_window": "anytime",
     "points": 8,
     "steps_definition": {
       "slug": "smoke-test-parts-b-h",
       "kind": "test",
       "title": "Tickets smoke test — Parts B–H",
-      "version": 1,
+      "version": 2,
       "toggles": {
-        "device": { "label": "Device", "options": { "phone": "Phone first", "pc": "PC first" }, "default": "phone" }
+        "device": {
+          "label": "Device",
+          "options": {
+            "phone": "Phone first",
+            "pc": "PC first"
+          },
+          "default": "phone"
+        }
       },
       "values": [
-        { "key": "run", "label": "Run label", "placeholder": "2026-09-18 evening" },
-        { "key": "token_name", "label": "API token name you create in step 7.1", "placeholder": "claude-code on the PC" }
+        {
+          "key": "run",
+          "label": "Run label",
+          "placeholder": "2026-09-18 evening"
+        },
+        {
+          "key": "token_name",
+          "label": "API token name you create in step 7.1",
+          "placeholder": "claude-code on the PC"
+        }
       ],
       "intro": {
         "verdict_html": "<p>Seven phases, about 40 minutes end to end. Phases 1–4 are the daily surfaces (Now, Inbox, ticket page, habits). Phase 5 is Telegram. Phase 6 is templates, steps and the weekly review. Phase 7 is tokens, the CLI and the two webhooks, which need secrets you set yourself.</p>",
         "prerequisites": [
           "Signed in on the phone and the PC",
           "The Telegram bot chat open",
-          "Ten minutes of quiet for phase 5 — it sends real messages"
+          "Ten minutes of quiet for phase 5 — it sends real messages",
+          "For 6.3 (rundown): <code>ANTHROPIC_API_KEY</code> present in Vercel Production",
+          "For 7.5: <code>CRON_SECRET</code> in your shell; for 7.4 / 7.6: the two webhook secrets — see ticket MYC-127 and docs/tokens.md. Phase 7 is setup plus verification; do it once, then re-runs skip it."
         ],
-        "time": ["Phases 1–4: 15 min", "Phase 5: 10 min", "Phases 6–7: 15 min"],
-        "cost": ["One rundown ≈ 5p (Sonnet + web search)"]
+        "time": [
+          "Phases 1–4: 15 min",
+          "Phase 5: 10 min",
+          "Phases 6–7: 15 min"
+        ],
+        "cost": [
+          "One rundown ≈ 5p (Sonnet + web search)"
+        ]
       },
       "phases": [
         {
@@ -39,101 +65,500 @@
           "title": "Now view and the dashboard",
           "lede_html": "<p>The same list should appear in three places.</p>",
           "steps": [
-            { "id": "1.1", "title": "Open Tickets from the Organisation sidebar; the Now tab is selected", "actor": "you", "where": { "label": "/organisation/tickets", "url": "https://mycelium.sporebit.com/organisation/tickets", "kind": "page" } },
-            { "id": "1.2", "title": "Tap Home, then Out, then reload — the Where chip sticks", "actor": "you", "where": { "label": "Now tab", "kind": "page" }, "fields": [{ "key": "now_count", "label": "How many tickets Now shows with + backlog on", "placeholder": "e.g. 63" }] },
-            { "id": "1.3", "title": "Switch Energy to Low; the list shrinks to ≤2-point tickets and unpointed ones", "actor": "you", "where": { "label": "Now tab", "kind": "page" } },
-            { "id": "1.4", "title": "Open the dashboard; the Now block shows the same top three and its ? sheet names the facets", "actor": "you", "where": { "label": "Dashboard", "url": "https://mycelium.sporebit.com/", "kind": "page" } },
-            { "id": "1.5", "title": "Press ⌘K / Ctrl-K, type MYC-97, Enter — the Move habit ticket opens", "actor": "you", "where": { "label": "⌘K", "kind": "page" }, "route": "pc" }
+            {
+              "id": "1.1",
+              "title": "Open Tickets from the Organisation sidebar; the Now tab is selected",
+              "actor": "you",
+              "where": {
+                "label": "/organisation/tickets",
+                "url": "https://mycelium.sporebit.com/organisation/tickets",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "1.2",
+              "title": "Tap Home, then Out, then reload — the Where chip sticks",
+              "actor": "you",
+              "where": {
+                "label": "Now tab",
+                "kind": "page"
+              },
+              "fields": [
+                {
+                  "key": "now_count",
+                  "label": "How many tickets Now shows with + backlog on",
+                  "placeholder": "e.g. 63"
+                }
+              ]
+            },
+            {
+              "id": "1.3",
+              "title": "Switch Energy to Low; the list shrinks to ≤2-point tickets and unpointed ones",
+              "actor": "you",
+              "where": {
+                "label": "Now tab",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "1.4",
+              "title": "Open the dashboard; the Now block shows the same top three and its ? sheet names the facets",
+              "actor": "you",
+              "where": {
+                "label": "Dashboard",
+                "url": "https://mycelium.sporebit.com/",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "1.5",
+              "title": "Press ⌘K / Ctrl-K, type MYC-97, Enter — the Move habit ticket opens",
+              "actor": "you",
+              "where": {
+                "label": "⌘K",
+                "kind": "page"
+              },
+              "route": "pc"
+            }
           ],
-          "verify_html": ["Now on the tab, the Today block and the Now card agree", "The chips survive a reload"],
+          "verify_html": [
+            "Now on the tab, the Today block and the Now card agree",
+            "The chips survive a reload"
+          ],
           "why_html": "One query builder serves all three surfaces; the FROZEN scorer only orders."
         },
         {
           "id": "2",
           "title": "Inbox, Clarify and Backlog triage",
           "steps": [
-            { "id": "2.1", "title": "Inbox tab → Triage backlog: defer three tickets to Next with contexts (Where, Tool, When, points)", "actor": "you", "where": { "label": "Inbox tab", "kind": "page" }, "fields": [{ "key": "triaged_keys", "label": "Keys you deferred", "placeholder": "MYC-20, MYC-16, MYC-17" }] },
-            { "id": "2.2", "title": "On one card use Multi-step: add two sub-tasks, then Defer → Next; open the ticket and see both sub-tasks", "actor": "you", "where": { "label": "Inbox tab", "kind": "page" } },
-            { "id": "2.3", "title": "On one card use Delegate: pick a person → the ticket lands in Waiting with their name on the row", "actor": "you", "where": { "label": "Inbox tab", "kind": "page" } },
-            { "id": "2.4", "title": "Next tab → Select → tick two → Move to Doing from the bar; the Doing count rises by two", "actor": "you", "where": { "label": "Next tab", "kind": "page" } },
-            { "id": "2.5", "title": "Long-press a row on the phone: bulk mode opens with that row selected", "actor": "you", "where": { "label": "Any tab", "kind": "page" }, "route": "phone" }
+            {
+              "id": "2.1",
+              "title": "Inbox tab → Triage backlog: defer three tickets to Next with contexts (Where, Tool, When, points)",
+              "actor": "you",
+              "where": {
+                "label": "Inbox tab",
+                "kind": "page"
+              },
+              "fields": [
+                {
+                  "key": "triaged_keys",
+                  "label": "Keys you deferred",
+                  "placeholder": "MYC-20, MYC-16, MYC-17"
+                }
+              ]
+            },
+            {
+              "id": "2.2",
+              "title": "On one card use Multi-step: add two sub-tasks, then Defer → Next; open the ticket and see both sub-tasks",
+              "actor": "you",
+              "where": {
+                "label": "Inbox tab",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "2.3",
+              "title": "On one card use Delegate: pick a person → the ticket lands in Waiting with their name on the row",
+              "actor": "you",
+              "where": {
+                "label": "Inbox tab",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "2.4",
+              "title": "Next tab → Select → tick two → Move to Doing from the bar; the Doing count rises by two",
+              "actor": "you",
+              "where": {
+                "label": "Next tab",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "2.5",
+              "title": "Long-press a row on the phone: bulk mode opens with that row selected",
+              "actor": "you",
+              "where": {
+                "label": "Any tab",
+                "kind": "page"
+              },
+              "route": "phone"
+            }
           ],
-          "verify_html": ["Counts on the tabs change as you move tickets", "Nothing you clarified reappears in the triage stack"]
+          "verify_html": [
+            "Counts on the tabs change as you move tickets",
+            "Nothing you clarified reappears in the triage stack"
+          ]
         },
         {
           "id": "3",
           "title": "The ticket page",
           "steps": [
-            { "id": "3.1", "title": "Open a Doing ticket: move it Next → Doing → Verify with the status pills; the classic Tasks view shows the same status", "actor": "you", "where": { "label": "/organisation/tickets/<KEY>", "kind": "page" } },
-            { "id": "3.2", "title": "Set a deadline and a scheduled date; change Where/Tool/When/points; reload — all kept", "actor": "you", "where": { "label": "ticket page", "kind": "page" } },
-            { "id": "3.3", "title": "Add a link (any https URL) and a comment; both appear; remove the link with ×", "actor": "you", "where": { "label": "ticket page", "kind": "page" } },
-            { "id": "3.4", "title": "Add a checklist (one step per line), tick a step — the progress bar moves and Activity logs the step", "actor": "you", "where": { "label": "ticket page → Steps", "kind": "page" } },
-            { "id": "3.5", "title": "Move it to Done, tap Verified live, then unverify, then Reopen → Next", "actor": "you", "where": { "label": "ticket page", "kind": "page" } },
-            { "id": "3.6", "title": "Toggle Simple statuses in the Tickets header; the pills collapse to Todo / Doing / Waiting / Done", "actor": "you", "where": { "label": "Tickets header", "kind": "page" } }
+            {
+              "id": "3.1",
+              "title": "Open a Doing ticket: move it Next → Doing → Verify with the status pills; the classic Tasks view shows the same status",
+              "actor": "you",
+              "where": {
+                "label": "/organisation/tickets/<KEY>",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "3.2",
+              "title": "Set a deadline and a scheduled date; change Where/Tool/When/points; reload — all kept",
+              "actor": "you",
+              "where": {
+                "label": "ticket page",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "3.3",
+              "title": "Add a link (any https URL) and a comment; both appear; remove the link with ×",
+              "actor": "you",
+              "where": {
+                "label": "ticket page",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "3.4",
+              "title": "Add a checklist (one step per line), tick a step — the progress bar moves and Activity logs the step",
+              "actor": "you",
+              "where": {
+                "label": "ticket page → Steps",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "3.5",
+              "title": "Move it to Done, tap Verified live, then unverify, then Reopen → Next",
+              "actor": "you",
+              "where": {
+                "label": "ticket page",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "3.6",
+              "title": "Toggle Simple statuses in the Tickets header; the pills collapse to Todo / Doing / Waiting / Done",
+              "actor": "you",
+              "where": {
+                "label": "Tickets header",
+                "kind": "page"
+              }
+            }
           ],
-          "verify_html": ["Every change survives a reload", "The activity list at the bottom records the moves"]
+          "verify_html": [
+            "Every change survives a reload",
+            "The activity list at the bottom records the moves"
+          ]
         },
         {
           "id": "4",
           "title": "Habits",
           "steps": [
-            { "id": "4.1", "title": "Dashboard Habits tile: tap a habit; reload — it stays lit; tap again to clear", "actor": "you", "where": { "label": "Dashboard", "kind": "page" } },
-            { "id": "4.2", "title": "Open /organisation/habits — the heatmap still shows your history and today's toggles match the tile", "actor": "you", "where": { "label": "/organisation/habits", "url": "https://mycelium.sporebit.com/organisation/habits", "kind": "page" } },
-            { "id": "4.3", "title": "Edit habits → rename one → save; the tile shows the new name (it is a ticket: MYC-97…108)", "actor": "you", "where": { "label": "Habits tile → Edit", "kind": "page" } }
+            {
+              "id": "4.1",
+              "title": "Dashboard Habits tile: tap a habit; reload — it stays lit; tap again to clear",
+              "actor": "you",
+              "where": {
+                "label": "Dashboard",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "4.2",
+              "title": "Open /organisation/habits — the heatmap still shows your history and today's toggles match the tile",
+              "actor": "you",
+              "where": {
+                "label": "/organisation/habits",
+                "url": "https://mycelium.sporebit.com/organisation/habits",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "4.3",
+              "title": "Edit habits → rename one → save; the tile shows the new name (it is a ticket: MYC-97…108)",
+              "actor": "you",
+              "where": {
+                "label": "Habits tile → Edit",
+                "kind": "page"
+              }
+            }
           ],
-          "verify_html": ["No habit rows appear in Now, the GTD tabs or the classic Tasks list"]
+          "verify_html": [
+            "No habit rows appear in Now, the GTD tabs or the classic Tasks list"
+          ]
         },
         {
           "id": "5",
           "title": "Telegram — capture, reminders, check-in",
           "lede_html": "<p>Sends real messages to your chat.</p>",
           "steps": [
-            { "id": "5.1", "title": "Send: \"call the garage about the MOT\" → reply shows a key with 📱 phone · office hours and Next / Someday / Bin buttons; tap Next", "actor": "you", "where": { "label": "Telegram", "kind": "browser" }, "fields": [{ "key": "capture_key", "label": "Key in the reply", "placeholder": "MYC-1xx" }] },
-            { "id": "5.2", "title": "Send a photo with the caption \"return the kettle\" → the reply says 📎 attached; open the ticket: the attachment link opens the image", "actor": "you", "where": { "label": "Telegram", "kind": "browser" } },
-            { "id": "5.3", "title": "Send: \"remind me in 2 minutes to stretch\" → reminder set; within ~15 min a ⏰ message arrives with Done / +1h / Tomorrow; tap Done", "actor": "you", "where": { "label": "Telegram", "kind": "browser" } },
-            { "id": "5.4", "title": "Schedule any ticket for today, then at your check-in time (Settings default 18:00) a 📍 message lists it; tap Tomorrow — its date moves", "actor": "you", "where": { "label": "Telegram", "kind": "browser" }, "notes": [{ "kind": "info", "html": "To test now instead of waiting: run the cron with <code>?force=1</code> (step 7.5)." }] },
-            { "id": "5.5", "title": "Tomorrow morning: the briefing has a 🎫 TICKETS block (today / overdue / verify)", "actor": "you", "where": { "label": "Telegram", "kind": "browser" } }
+            {
+              "id": "5.1",
+              "title": "Send: \"call the garage about the MOT\" → reply shows a key with 📱 phone · office hours and Next / Someday / Bin buttons; tap Next",
+              "actor": "you",
+              "where": {
+                "label": "Telegram",
+                "kind": "browser"
+              },
+              "fields": [
+                {
+                  "key": "capture_key",
+                  "label": "Key in the reply",
+                  "placeholder": "MYC-1xx"
+                }
+              ]
+            },
+            {
+              "id": "5.2",
+              "title": "Send a photo with the caption \"return the kettle\" → the reply says 📎 attached; open the ticket: the attachment link opens the image",
+              "actor": "you",
+              "where": {
+                "label": "Telegram",
+                "kind": "browser"
+              }
+            },
+            {
+              "id": "5.3",
+              "title": "Send: \"remind me in 2 minutes to stretch\" → reminder set; within ~15 min a ⏰ message arrives with Done / +1h / Tomorrow; tap Done",
+              "actor": "you",
+              "where": {
+                "label": "Telegram",
+                "kind": "browser"
+              }
+            },
+            {
+              "id": "5.4",
+              "title": "Schedule any ticket for today, then at your check-in time (Settings default 18:00) a 📍 message lists it; tap Tomorrow — its date moves",
+              "actor": "you",
+              "where": {
+                "label": "Telegram",
+                "kind": "browser"
+              },
+              "notes": [
+                {
+                  "kind": "info",
+                  "html": "To test now instead of waiting: run the cron with <code>?force=1</code> (step 7.5)."
+                }
+              ]
+            },
+            {
+              "id": "5.5",
+              "title": "Tomorrow morning: the briefing has a 🎫 TICKETS block (today / overdue / verify)",
+              "actor": "you",
+              "where": {
+                "label": "Telegram",
+                "kind": "browser"
+              }
+            }
           ],
-          "verify_html": ["Every button press edits the message with a one-line result", "The Reminders page (/reminders) lists the reminder you sent"]
+          "verify_html": [
+            "Every button press edits the message with a one-line result",
+            "The Reminders page (/reminders) lists the reminder you sent"
+          ]
         },
         {
           "id": "6",
           "title": "Templates, run-books, rundowns, weekly review",
           "steps": [
-            { "id": "6.1", "title": "Templates → Sync repo templates → New from template \"Start a return\" (item: kettle) → a ticket with five sub-tasks opens", "actor": "you", "where": { "label": "/organisation/tickets/templates", "url": "https://mycelium.sporebit.com/organisation/tickets/templates", "kind": "page" } },
-            { "id": "6.2", "title": "New from template \"Production cutover run-book\": the house-style page renders phases, actor chips, copy blocks, value boxes; fill \"Branch\" and see it substituted in the ship command", "actor": "you", "where": { "label": "templates", "kind": "page" } },
-            { "id": "6.3", "title": "On the kettle ticket press Plan this → a rundown appears within ~30 s with sources; Regenerate works", "actor": "you", "where": { "label": "ticket page", "kind": "page" }, "fields": [{ "key": "rundown_ok", "label": "Did the rundown cite a real page?", "placeholder": "yes / no + note" }] },
-            { "id": "6.4", "title": "Open the weekly review, walk the seven steps, act on one item in each non-empty step, then Seal", "actor": "you", "where": { "label": "/organisation/tickets/review", "url": "https://mycelium.sporebit.com/organisation/tickets/review", "kind": "page" } },
-            { "id": "6.5", "title": "Open /review — the Tickets block shows the counts and \"review sealed\"", "actor": "you", "where": { "label": "/review", "url": "https://mycelium.sporebit.com/review", "kind": "page" } }
+            {
+              "id": "6.1",
+              "title": "Templates → Sync repo templates → New from template \"Start a return\" (item: kettle) → a ticket with five sub-tasks opens",
+              "actor": "you",
+              "where": {
+                "label": "/organisation/tickets/templates",
+                "url": "https://mycelium.sporebit.com/organisation/tickets/templates",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "6.2",
+              "title": "New from template \"Production cutover run-book\": the house-style page renders phases, actor chips, copy blocks, value boxes; fill \"Branch\" and see it substituted in the ship command",
+              "actor": "you",
+              "where": {
+                "label": "templates",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "6.3",
+              "title": "On the kettle ticket press Plan this → a rundown appears within ~30 s with sources; Regenerate works",
+              "actor": "you",
+              "where": {
+                "label": "ticket page",
+                "kind": "page"
+              },
+              "fields": [
+                {
+                  "key": "rundown_ok",
+                  "label": "Did the rundown cite a real page?",
+                  "placeholder": "yes / no + note"
+                }
+              ]
+            },
+            {
+              "id": "6.4",
+              "title": "Open the weekly review, walk the seven steps, act on one item in each non-empty step, then Seal",
+              "actor": "you",
+              "where": {
+                "label": "/organisation/tickets/review",
+                "url": "https://mycelium.sporebit.com/organisation/tickets/review",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "6.5",
+              "title": "Open /review — the Tickets block shows the counts and \"review sealed\"",
+              "actor": "you",
+              "where": {
+                "label": "/review",
+                "url": "https://mycelium.sporebit.com/review",
+                "kind": "page"
+              }
+            }
           ],
-          "verify_html": ["The sealed week appears as an activity row on the Weekly review ticket"]
+          "verify_html": [
+            "The sealed week appears as an activity row on the Weekly review ticket"
+          ]
         },
         {
           "id": "7",
           "title": "Tokens, CLI, webhooks (PC)",
           "lede_html": "<p>Needs secrets you set yourself; the webhooks stay dormant until then.</p>",
           "steps": [
-            { "id": "7.1", "title": "Settings → Security → API tokens: create one named {{token_name}} for MYC with write; copy it once", "actor": "you", "where": { "label": "/other/settings/security", "url": "https://mycelium.sporebit.com/other/settings/security", "kind": "page" }, "route": "pc" },
-            { "id": "7.2", "title": "In a shell set the token and list your Doing tickets", "actor": "claude-code", "where": { "label": "Terminal", "kind": "terminal" }, "route": "pc", "blocks": [{ "label": "tix", "shells": { "bash": "export MYCELIUM_URL=https://mycelium.sporebit.com MYCELIUM_TICKETS_TOKEN=mtk_…\ncd /a/Projects/Mycelium && npm run tix -- ls --list doing", "ps": "$env:MYCELIUM_URL='https://mycelium.sporebit.com'; $env:MYCELIUM_TICKETS_TOKEN='mtk_…'\ncd A:\\Projects\\Mycelium; npm run tix -- ls --list doing" } }] },
-            { "id": "7.3", "title": "Try a write outside scope: a token with read only should get 403 on `tix comment`", "actor": "claude-code", "where": { "label": "Terminal", "kind": "terminal" }, "route": "pc" },
-            { "id": "7.4", "title": "Set GITHUB_WEBHOOK_SECRET on Vercel and add a repo webhook (push, pull_request, issues) → /api/tickets/github; push a commit with a key in its message → the ticket gains a commit link and moves to Verify", "actor": "you", "where": { "label": "GitHub → repo → Settings → Webhooks", "kind": "dashboard" }, "route": "pc" },
-            { "id": "7.5", "title": "Run the check-in cron by hand and read the JSON (reminders / checkins / review_reminder)", "actor": "claude-code", "where": { "label": "Terminal", "kind": "terminal" }, "route": "pc", "blocks": [{ "label": "cron", "text": "curl -s -H \"authorization: Bearer $CRON_SECRET\" \"https://mycelium.sporebit.com/api/cron/tickets-checkins?force=1\"\ncurl -s -H \"authorization: Bearer $CRON_SECRET\" \"https://mycelium.sporebit.com/api/cron/tickets-nightly?dry=1\"" }] },
-            { "id": "7.6", "title": "Set VERCEL_WEBHOOK_SECRET and add a Vercel webhook (deployment.succeeded) → /api/tickets/vercel; after the next production deploy the Verify ticket from 7.4 is Done with deploy + smoke links", "actor": "you", "where": { "label": "Vercel → Settings → Webhooks", "kind": "dashboard" }, "route": "pc" },
-            { "id": "7.7", "title": "Export: open the backlog export and skim it", "actor": "you", "where": { "label": "/api/tickets/export?project=MYC&format=backlog-md", "url": "https://mycelium.sporebit.com/api/tickets/export?project=MYC&format=backlog-md", "kind": "browser" }, "route": "pc" }
+            {
+              "id": "7.1",
+              "title": "Settings → Security → API tokens: create one named {{token_name}} for MYC with write; copy it once",
+              "actor": "you",
+              "where": {
+                "label": "/other/settings/security",
+                "url": "https://mycelium.sporebit.com/other/settings/security",
+                "kind": "page"
+              },
+              "route": "pc"
+            },
+            {
+              "id": "7.2",
+              "title": "In a shell set the token and list your Doing tickets",
+              "actor": "claude-code",
+              "where": {
+                "label": "Terminal",
+                "kind": "terminal"
+              },
+              "route": "pc",
+              "blocks": [
+                {
+                  "label": "tix",
+                  "shells": {
+                    "bash": "export MYCELIUM_URL=https://mycelium.sporebit.com MYCELIUM_TICKETS_TOKEN=mtk_…\ncd /a/Projects/Mycelium && npm run tix -- ls --list doing",
+                    "ps": "$env:MYCELIUM_URL='https://mycelium.sporebit.com'; $env:MYCELIUM_TICKETS_TOKEN='mtk_…'\ncd A:\\Projects\\Mycelium; npm run tix -- ls --list doing"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "7.3",
+              "title": "Try a write outside scope: a token with read only should get 403 on `tix comment`",
+              "actor": "claude-code",
+              "where": {
+                "label": "Terminal",
+                "kind": "terminal"
+              },
+              "route": "pc"
+            },
+            {
+              "id": "7.4",
+              "title": "Set GITHUB_WEBHOOK_SECRET on Vercel and add a repo webhook (push, pull_request, issues) → /api/tickets/github; push a commit with a key in its message → the ticket gains a commit link and moves to Verify",
+              "actor": "you",
+              "where": {
+                "label": "GitHub → repo → Settings → Webhooks",
+                "kind": "dashboard"
+              },
+              "route": "pc"
+            },
+            {
+              "id": "7.5",
+              "title": "Run the check-in cron by hand and read the JSON (reminders / checkins / review_reminder)",
+              "actor": "claude-code",
+              "where": {
+                "label": "Terminal",
+                "kind": "terminal"
+              },
+              "route": "pc",
+              "blocks": [
+                {
+                  "label": "cron",
+                  "text": "curl -s -H \"authorization: Bearer $CRON_SECRET\" \"https://mycelium.sporebit.com/api/cron/tickets-checkins?force=1\"\ncurl -s -H \"authorization: Bearer $CRON_SECRET\" \"https://mycelium.sporebit.com/api/cron/tickets-nightly?dry=1\""
+                }
+              ]
+            },
+            {
+              "id": "7.6",
+              "title": "Set VERCEL_WEBHOOK_SECRET and add a Vercel webhook (deployment.succeeded) → /api/tickets/vercel; after the next production deploy the Verify ticket from 7.4 is Done with deploy + smoke links",
+              "actor": "you",
+              "where": {
+                "label": "Vercel → Settings → Webhooks",
+                "kind": "dashboard"
+              },
+              "route": "pc"
+            },
+            {
+              "id": "7.7",
+              "title": "Export: open the backlog export and skim it",
+              "actor": "you",
+              "where": {
+                "label": "/api/tickets/export?project=MYC&format=backlog-md",
+                "url": "https://mycelium.sporebit.com/api/tickets/export?project=MYC&format=backlog-md",
+                "kind": "browser"
+              },
+              "route": "pc"
+            }
           ],
-          "verify_html": ["A ticket closed by the Vercel webhook shows deploy + smoke links and <em>done (unverified)</em> in the export until you tap Verified live"],
+          "verify_html": [
+            "A ticket closed by the Vercel webhook shows deploy + smoke links and <em>done (unverified)</em> in the export until you tap Verified live"
+          ],
           "why_html": "Automation sets Done with evidence; your live check is the separate verified signal (Flag 1)."
         }
       ],
       "troubleshooting": [
-        { "symptom": "A chip on Now flickers back", "cause": "ui-prefs save failed", "fix": "check /api/settings/ui-prefs returns 200; the WHERE-clause fix shipped 2a00bd4" },
-        { "symptom": "Telegram answers nothing", "cause": "TELEGRAM_USER_ID missing in that Vercel environment", "fix": "vercel env ls; add to Production and Preview" },
-        { "symptom": "Plan this returns 422", "cause": "the ticket looks like code work", "fix": "code plans come from the skill: tix plan KEY --body-file plan.md" },
-        { "symptom": "Plan this returns 429", "cause": "monthly rundown cap reached", "fix": "raise TICKETS_RUNDOWN_CAP_PENCE or wait for next month" }
+        {
+          "symptom": "A chip on Now flickers back",
+          "cause": "ui-prefs save failed",
+          "fix": "check /api/settings/ui-prefs returns 200; the WHERE-clause fix shipped 2a00bd4"
+        },
+        {
+          "symptom": "Telegram answers nothing",
+          "cause": "TELEGRAM_USER_ID missing in that Vercel environment",
+          "fix": "vercel env ls; add to Production and Preview"
+        },
+        {
+          "symptom": "Plan this returns 500 \"ANTHROPIC_API_KEY missing\"",
+          "cause": "the key is not in the Vercel Production environment",
+          "fix": "add it under Vercel → Settings → Environment Variables, redeploy, retry"
+        },
+        {
+          "symptom": "Plan this returns 422",
+          "cause": "the ticket looks like code work",
+          "fix": "code plans come from the skill: tix plan KEY --body-file plan.md"
+        },
+        {
+          "symptom": "Plan this returns 429",
+          "cause": "monthly rundown cap reached",
+          "fix": "raise TICKETS_RUNDOWN_CAP_PENCE or wait for next month"
+        }
       ],
       "links": [
-        { "label": "Tickets spec", "url": "https://github.com/sporebit/mycelium/blob/main/claude/tickets-spec.md" },
-        { "label": "How it fits together", "url": "https://github.com/sporebit/mycelium/blob/main/docs/tickets/README.md" }
+        {
+          "label": "Tickets spec",
+          "url": "https://github.com/sporebit/mycelium/blob/main/claude/tickets-spec.md"
+        },
+        {
+          "label": "How it fits together",
+          "url": "https://github.com/sporebit/mycelium/blob/main/docs/tickets/README.md"
+        }
       ]
     }
   }

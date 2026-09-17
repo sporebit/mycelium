@@ -8,20 +8,37 @@ import type { Task } from "@/lib/types/task";
 import type { DeviceClass } from "./useDevice";
 
 /**
- * One place builds the Now query so the Today block and the Now tab always
- * show the same list (spec §5, §12). The SWR key is the raw URL, so both
- * surfaces share one cache entry when their inputs match.
+ * One place builds the Now query so the Today block, the Now card and the
+ * Now tab always show the same list (spec §5, §12).
+ *
+ * The request fetches the *candidate set* once (category next/doing, the
+ * time window, no open blockers, optionally backlog) and the Where / Tool /
+ * Energy chips are applied on the client with applyNowContext(). The URL
+ * is the SWR key, so this keeps one warm cache entry per include-backlog
+ * value instead of a cold fetch on every chip tap.
  */
-export function nowQueryUrl(
-  tp: UiPrefs["tickets"],
-  device: DeviceClass,
-  toolOverride: string[] | null = null,
-): string {
-  const tools = toolOverride ?? toolsForDevice(device);
-  const sp = new URLSearchParams({ list: "now", where: tp.now_where, tools: tools.join(",") });
-  if (tp.now_max_points != null) sp.set("max_points", String(tp.now_max_points));
+export function nowQueryUrl(tp: UiPrefs["tickets"]): string {
+  const sp = new URLSearchParams({ list: "now", where: "any", tools: "*" });
   if (tp.now_include_backlog) sp.set("include_backlog", "1");
   return `/api/tickets?${sp.toString()}`;
+}
+
+export type NowChips = { where: "anywhere" | "home" | "out"; tools: string[]; maxPoints: number | null };
+
+export function chipsFor(tp: UiPrefs["tickets"], device: DeviceClass, toolOverride: string[] | null = null): NowChips {
+  return { where: tp.now_where, tools: toolOverride ?? toolsForDevice(device), maxPoints: tp.now_max_points };
+}
+
+/** The spec §5 predicates, applied client-side (same semantics as the server's). */
+export function applyNowContext<T extends Task>(tickets: T[], chips: NowChips): T[] {
+  return tickets.filter((t) => {
+    const w = t.where_ctx ?? "anywhere";
+    if (!(w === "anywhere" || w === chips.where)) return false;
+    const tools = t.tools ?? ["none"];
+    if (!(tools.includes("none") || tools.some((x) => chips.tools.includes(x)))) return false;
+    if (chips.maxPoints != null && t.points != null && t.points > chips.maxPoints) return false;
+    return true;
+  });
 }
 
 /**
@@ -30,11 +47,7 @@ export function nowQueryUrl(
  * contradiction, then the API's own order (now_score, urgent, dates) breaks
  * ties. Contexts never enter the score; the score never enters the filter.
  */
-export function orderForContext<T extends Task>(
-  tickets: T[],
-  ctx: CurrentContext,
-  device: DeviceClass,
-): T[] {
+export function orderForContext<T extends Task>(tickets: T[], ctx: CurrentContext, device: DeviceClass): T[] {
   const scored: Array<{ t: T; score: number; i: number }> = [];
   tickets.forEach((t, i) => {
     const { score, contradicts } = scoreTaskForContext(t, ctx, device);

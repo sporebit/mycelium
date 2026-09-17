@@ -88,6 +88,8 @@ export type Task = {
   deadline_on?: string | null;
   remind_at?: string | null;
   assignee_id?: string | null;
+  /** Display name from profiles (attached server-side; auth.users has no PostgREST embed). */
+  assignee_name?: string | null;
   waiting_on_person_id?: string | null;
   waiting_on_name?: string | null;
   verified_by?: string | null;

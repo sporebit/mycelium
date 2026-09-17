@@ -7,7 +7,7 @@ import { useApi } from "@/lib/data/useApi";
 import { useCurrentContext } from "@/lib/hooks/useCurrentContext";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { ticketPrefs } from "@/lib/settings/uiPrefs";
-import { nowQueryUrl, orderForContext } from "@/components/tickets/nowQuery";
+import { applyNowContext, chipsFor, nowQueryUrl, orderForContext } from "@/components/tickets/nowQuery";
 import { useDevice } from "@/components/tickets/useDevice";
 import { ticketHref, type TicketRowData } from "@/components/tickets/TicketListRow";
 
@@ -21,9 +21,9 @@ export function Now() {
   const { prefs, isLoading: prefsLoading } = useUiPrefs();
   const tp = ticketPrefs(prefs);
   const { data } = useApi<{ tickets: TicketRowData[] }>(
-    prefsLoading ? null : nowQueryUrl(tp, device),
+    prefsLoading ? null : nowQueryUrl(tp),
   );
-  const visible = orderForContext(data?.tickets ?? [], currentCtx, device).slice(0, 5);
+  const visible = orderForContext(applyNowContext(data?.tickets ?? [], chipsFor(tp, device)), currentCtx, device).slice(0, 5);
 
   return (
     <Panel

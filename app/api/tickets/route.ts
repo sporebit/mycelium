@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     const tools = (sp.get("tools") ?? "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
     const mp = sp.get("max_points");
     now = {
-      where: where === "home" || where === "out" || where === "place" ? where : "anywhere",
+      where: where === "home" || where === "out" || where === "place" || where === "any" ? where : "anywhere",
       place_id: sp.get("place"),
       tools,
       max_points: mp ? Number(mp) || null : null,

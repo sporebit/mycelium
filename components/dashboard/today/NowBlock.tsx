@@ -18,7 +18,7 @@ import {
   type WhereCtx,
 } from "@/lib/tickets/categories";
 import { triggerFieldPulse } from "@/lib/motion";
-import { nowQueryUrl, orderForContext } from "@/components/tickets/nowQuery";
+import { applyNowContext, chipsFor, nowQueryUrl, orderForContext } from "@/components/tickets/nowQuery";
 import { useDevice } from "@/components/tickets/useDevice";
 import { ticketHref, type TicketRowData } from "@/components/tickets/TicketListRow";
 
@@ -36,12 +36,12 @@ export function NowBlock() {
   const device = useDevice();
   const { prefs, setPrefs, isLoading: prefsLoading } = useUiPrefs();
   const tp = ticketPrefs(prefs);
-  const key = nowQueryUrl(tp, device);
+  const key = nowQueryUrl(tp);
   const { data, isLoading } = useApi<NowResponse>(prefsLoading ? null : key);
   const [openInfoFor, setOpenInfoFor] = useState<string | null>(null);
   const [fadingOut, setFadingOut] = useState<Set<string>>(new Set());
 
-  const ordered = orderForContext(data?.tickets ?? [], currentCtx, device);
+  const ordered = orderForContext(applyNowContext(data?.tickets ?? [], chipsFor(tp, device)), currentCtx, device);
   const top = ordered.slice(0, 3);
 
   async function complete(task: Task) {

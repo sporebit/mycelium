@@ -155,6 +155,11 @@ export function TicketListRow({
             ⏳ {t.waiting_on_name}
           </span>
         )}
+        {t.assignee_name && (
+          <span className="hidden max-w-[110px] shrink-0 truncate text-[11px] text-glow-2 sm:inline" title="Assignee">
+            @{t.assignee_name}
+          </span>
+        )}
         {t.project_name && (
           <span className="hidden max-w-[140px] shrink-0 truncate text-[11px] text-ink-3 md:inline">
             {t.project_name}
