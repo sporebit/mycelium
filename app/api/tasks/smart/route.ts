@@ -180,6 +180,7 @@ export async function POST(req: NextRequest) {
       .select(TASK_SELECT)
       .is("deleted_at", null)
       .is("completed_at", null)
+      .neq("kind", "habit")
       .order("updated_at", { ascending: false })
       .limit(TASK_FETCH_LIMIT);
     if (error) throw error;

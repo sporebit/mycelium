@@ -1,71 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
-import { auditListRead } from "@/lib/system/readAudit";
-import { localDateKey } from "@/lib/util/date";
-import { parseNotes } from "@/lib/dailyLog";
-import { HABITS as DEFAULT_HABITS, type Habit } from "@/lib/config/habits";
-import { GOALS_SENTINEL_DATE } from "@/lib/types/goals";
+import { defaultHabits, habitHistory } from "@/lib/habits/store";
 
 export const runtime = "nodejs";
 
+/** GET /api/habits-history?days=N — heatmap data from ticket_completions (spec §8.3). */
 export async function GET(req: NextRequest) {
   const daysParam = req.nextUrl.searchParams.get("days");
   const days = Math.min(Math.max(parseInt(daysParam ?? "90") || 90, 1), 365);
-
   try {
     const supabase = await createUserClient();
-
-    const today = localDateKey();
-    const start = new Date(today);
-    start.setDate(start.getDate() - (days - 1));
-    const startStr = start.toISOString().slice(0, 10);
-
-    const [logsRes, configRes] = await Promise.all([
-      supabase
-        .from("daily_logs")
-        .select("log_date, notes, space_id")
-        .gte("log_date", startStr)
-        .lte("log_date", today)
-        .order("log_date", { ascending: true }),
-      supabase
-        .from("daily_logs")
-        .select("notes")
-        .eq("log_date", GOALS_SENTINEL_DATE)
-        .maybeSingle(),
-    ]);
-
-    auditListRead(req, logsRes.data, "journal", "daily_logs");
-    let habits: Habit[] = DEFAULT_HABITS;
-    if (configRes.data?.notes) {
-      const cfg = parseNotes(configRes.data.notes as string) as {
-        habits_config?: unknown;
-      };
-      if (Array.isArray(cfg.habits_config) && cfg.habits_config.length > 0) {
-        habits = cfg.habits_config as Habit[];
-      }
-    }
-
-    const byDate = new Map<string, string[]>();
-    for (const row of (logsRes.data ?? []) as { log_date: string; notes: string | null }[]) {
-      const notes = parseNotes(row.notes);
-      const done = Array.isArray(notes.habits?.done) ? notes.habits!.done! : [];
-      byDate.set(row.log_date, done.filter((x): x is string => typeof x === "string"));
-    }
-
-    const history: { date: string; completed: string[]; total: number }[] = [];
-    const cursor = new Date(startStr);
-    const end = new Date(today);
-    while (cursor <= end) {
-      const key = cursor.toISOString().slice(0, 10);
-      history.push({
-        date: key,
-        completed: byDate.get(key) ?? [],
-        total: habits.length,
-      });
-      cursor.setDate(cursor.getDate() + 1);
-    }
-
-    return NextResponse.json({ history, habits });
+    const { history, habits } = await habitHistory(supabase, days);
+    return NextResponse.json({
+      history,
+      habits: habits.length > 0 ? habits : defaultHabits(),
+    });
   } catch (err) {
     console.error("[/api/habits-history]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });

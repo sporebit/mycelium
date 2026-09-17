@@ -78,6 +78,8 @@ export async function GET(req: NextRequest) {
       .from("tickets")
       .select(`${TASK_SELECT}, space_id`)
       .is("deleted_at", null)
+      // habits are series tickets with their own surfaces (spec Flag 5)
+      .neq("kind", "habit")
       .order("priority_score", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false });
 

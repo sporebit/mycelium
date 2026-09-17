@@ -7,55 +7,50 @@ import { HABITS as DEFAULT_HABITS, type Habit } from "@/lib/config/habits";
 import { HabitsConfigModal } from "../HabitsConfigModal";
 import { triggerGlowPulse } from "@/lib/motion";
 import type { CardWidth } from "@/lib/dashboard/card-registry";
+import { mutate as globalMutate } from "swr";
 import { useApi } from "@/lib/data/useApi";
 import { mutateApi } from "@/lib/data/mutateApi";
 
+// Habits are series tickets (spec §8.3, Flag 5): the tile reads today's
+// completions and toggles through /api/habits/toggle, which also mirrors
+// the daily-log JSON for the surfaces still reading it.
+const HABITS_TODAY_KEY = "/api/habits/today";
 const DAILY_LOG_KEY = "/api/daily-log/today";
 const HABITS_CONFIG_KEY = "/api/habits-config";
 
-type DailyLogResponse = {
-  date: string;
-  mood: string | null;
-  notes: { habits?: { done?: string[] } } & Record<string, unknown>;
-};
-
+type HabitsTodayResponse = { date: string; habits: Habit[]; done: string[] };
 type HabitsConfigResponse = { habits?: Habit[] };
 
 export function Habits({ width = 1 }: { width?: CardWidth } = {}) {
   const [editing, setEditing] = useState(false);
-  const { data: daily } = useApi<DailyLogResponse>(DAILY_LOG_KEY);
-  const { data: cfg } = useApi<HabitsConfigResponse>(HABITS_CONFIG_KEY);
+  const { data: today } = useApi<HabitsTodayResponse>(HABITS_TODAY_KEY);
 
   const habits: Habit[] =
-    cfg?.habits && cfg.habits.length > 0 ? cfg.habits : DEFAULT_HABITS;
-  const doneList: string[] = daily?.notes?.habits?.done ?? [];
-  const done = new Set(doneList);
+    today?.habits && today.habits.length > 0 ? today.habits : DEFAULT_HABITS;
+  const done = new Set(today?.done ?? []);
 
   async function toggle(id: string) {
-    const next = new Set(done);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    const nextList = [...next];
-
-    await mutateApi<DailyLogResponse>(
-      DAILY_LOG_KEY,
-      (current) => ({
-        date: current?.date ?? "",
-        mood: current?.mood ?? null,
-        notes: {
-          ...(current?.notes ?? {}),
-          habits: { done: nextList },
-        },
-      }),
+    const willBeDone = !done.has(id);
+    await mutateApi<HabitsTodayResponse>(
+      HABITS_TODAY_KEY,
+      (current) => {
+        const next = new Set(current?.done ?? []);
+        if (willBeDone) next.add(id);
+        else next.delete(id);
+        return { date: current?.date ?? "", habits: current?.habits ?? habits, done: [...next] };
+      },
       async () => {
-        const res = await fetch(DAILY_LOG_KEY, {
-          method: "PATCH",
+        const res = await fetch("/api/habits/toggle", {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ habits: { done: nextList } }),
+          body: JSON.stringify({ id, done: willBeDone }),
         });
         if (!res.ok) throw new Error(`save failed (${res.status})`);
       },
     );
+    // the glance row and streak still read the mirrored daily log
+    void globalMutate(DAILY_LOG_KEY);
+    void globalMutate("/api/streak");
   }
 
   const count = done.size;
@@ -202,14 +197,15 @@ export function Habits({ width = 1 }: { width?: CardWidth } = {}) {
         <HabitsConfigModal
           habits={habits}
           onClose={() => setEditing(false)}
-          onSaved={() =>
-            mutateApi<HabitsConfigResponse>(
+          onSaved={() => {
+            void globalMutate(HABITS_TODAY_KEY);
+            return mutateApi<HabitsConfigResponse>(
               HABITS_CONFIG_KEY,
               (current) => current ?? { habits: [] },
               async () => {},
               { revalidate: true },
-            )
-          }
+            );
+          }}
         />
       )}
     </Panel>

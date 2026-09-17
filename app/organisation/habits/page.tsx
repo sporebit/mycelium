@@ -68,14 +68,16 @@ export default function HabitsPage() {
     return () => { cancelled = true; };
   }, []);
 
+  // Habits are series tickets (spec §8.3): today's done set comes from
+  // ticket_completions and toggles go through /api/habits/toggle.
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/daily-log/today")
+    fetch("/api/habits/today")
       .then((r) => r.json())
-      .then((j: { notes?: { habits?: { done?: string[] } } }) => {
+      .then((j: { done?: string[] }) => {
         if (cancelled) return;
-        const arr = Array.isArray(j?.notes?.habits?.done)
-          ? j.notes!.habits!.done!.filter((x: unknown) => typeof x === "string")
+        const arr = Array.isArray(j?.done)
+          ? j.done.filter((x: unknown) => typeof x === "string")
           : [];
         setDone(new Set(arr));
         writeLocalCache(arr);
@@ -87,15 +89,16 @@ export default function HabitsPage() {
   async function toggle(id: string) {
     const prev = new Set(done);
     const next = new Set(done);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
+    const willBeDone = !next.has(id);
+    if (willBeDone) next.add(id);
+    else next.delete(id);
     setDone(next);
     writeLocalCache([...next]);
     try {
-      const res = await fetch("/api/daily-log/today", {
-        method: "PATCH",
+      const res = await fetch("/api/habits/toggle", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ habits: { done: [...next] } }),
+        body: JSON.stringify({ id, done: willBeDone }),
       });
       if (!res.ok) throw new Error();
     } catch {

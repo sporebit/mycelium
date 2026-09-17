@@ -42,6 +42,9 @@ export type ListParams = {
   now?: NowContext | null;
   uid?: string | null;
   includeSubtasks?: boolean;
+  /** Filter by kind. Habits (series tickets) are excluded unless asked for:
+   *  they have their own surfaces (Habits strip, heatmap) — spec Flag 5. */
+  kind?: string | null;
 };
 
 export type TicketRow = Task & {
@@ -138,6 +141,8 @@ export async function listTickets(
   }
 
   if (cats) q = q.in("ticket_status.category", [...cats]);
+  if (p.kind) q = q.eq("kind", p.kind);
+  else q = q.neq("kind", "habit");
   if (p.projectId === "null") q = q.is("project_id", null);
   else if (p.projectId) q = q.eq("project_id", p.projectId);
   if (p.assignee) q = q.eq("assignee_id", p.assignee);
@@ -221,13 +226,15 @@ export async function ticketCounts(supabase: SupabaseClient): Promise<TicketCoun
       .in("ticket_status.category", [...OPEN_CATEGORIES])
       .is("parent_task_id", null)
       .is("deleted_at", null)
+      .neq("kind", "habit")
       .limit(2000),
     supabase
       .from("tickets")
       .select("id, ticket_status:ticket_statuses!inner(category)", { count: "exact", head: true })
       .in("ticket_status.category", [...CLOSED_CATEGORIES])
       .is("parent_task_id", null)
-      .is("deleted_at", null),
+      .is("deleted_at", null)
+      .neq("kind", "habit"),
   ]);
   const counts: TicketCounts = {
     inbox: 0,

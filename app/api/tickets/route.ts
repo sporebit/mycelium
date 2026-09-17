@@ -63,6 +63,7 @@ export async function GET(req: NextRequest) {
       projectId: sp.get("project"),
       assignee,
       q: sp.get("q"),
+      kind: sp.get("kind"),
       updatedSince: sp.get("updated_since"),
       limit: sp.get("limit") ? Number(sp.get("limit")) : undefined,
       now,

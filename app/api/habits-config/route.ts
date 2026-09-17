@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
-import { getOrCreateDailyLog, parseNotes } from "@/lib/dailyLog";
-import { GOALS_SENTINEL_DATE } from "@/lib/types/goals";
-import { HABITS as DEFAULT_HABITS, type Habit } from "@/lib/config/habits";
+import { type Habit } from "@/lib/config/habits";
+import { defaultHabits, listHabits, saveHabits } from "@/lib/habits/store";
+import { principalUid, ticketWriteGate } from "@/lib/tickets/server";
 
 export const runtime = "nodejs";
 
@@ -21,17 +21,16 @@ function isHabit(x: unknown): x is Habit {
   return true;
 }
 
+/**
+ * Habits are series tickets now (spec §8.3): GET lists them in the shape
+ * the tiles expect (id = legacy habit id), POST creates/renames/cancels
+ * the tickets. The defaults show until the first save creates real rows.
+ */
 export async function GET() {
   try {
     const supabase = await createUserClient();
-    const row = await getOrCreateDailyLog(supabase, GOALS_SENTINEL_DATE);
-    const notes = parseNotes(row.notes) as { habits_config?: unknown };
-    const arr = Array.isArray(notes.habits_config)
-      ? notes.habits_config.filter(isHabit)
-      : null;
-    return NextResponse.json({
-      habits: arr && arr.length > 0 ? arr : DEFAULT_HABITS,
-    });
+    const habits = await listHabits(supabase);
+    return NextResponse.json({ habits: habits.length > 0 ? habits : defaultHabits() });
   } catch (err) {
     console.error("[/api/habits-config GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });
@@ -49,29 +48,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "habits required" }, { status: 400 });
   }
   const habits: Habit[] = body.habits.filter(isHabit);
-
-  // Dedup ids — first occurrence wins
   const seen = new Set<string>();
-  const deduped = habits.filter((h) => {
-    if (seen.has(h.id)) return false;
-    seen.add(h.id);
-    return true;
-  });
+  const deduped = habits
+    .filter((h) => {
+      if (seen.has(h.id)) return false;
+      seen.add(h.id);
+      return true;
+    })
+    .map((h) => ({ id: h.id, name: h.name.trim(), category: h.category, target: h.target, unit: h.unit }))
+    .filter((h) => h.name.length > 0);
 
   try {
     const supabase = await createUserClient();
-    const row = await getOrCreateDailyLog(supabase, GOALS_SENTINEL_DATE);
-    const current = parseNotes(row.notes) as Record<string, unknown>;
-    const next = { ...current, habits_config: deduped };
-    const { error } = await supabase
-      .from("daily_logs")
-      .update({
-        notes: JSON.stringify(next),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", row.id);
-    if (error) throw error;
-    return NextResponse.json({ habits: deduped });
+    const uid = await principalUid();
+    const limited = await ticketWriteGate(supabase, uid);
+    if (limited) return limited;
+    const saved = await saveHabits(supabase, deduped, uid);
+    return NextResponse.json({ habits: saved });
   } catch (err) {
     console.error("[/api/habits-config POST]", err);
     return NextResponse.json({ error: "save failed" }, { status: 500 });
