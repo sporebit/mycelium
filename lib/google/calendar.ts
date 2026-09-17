@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { updateUserSettings } from "@/lib/settings/userSettingsRow";
 
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const CAL_BASE = "https://www.googleapis.com/calendar/v3";
@@ -55,16 +56,17 @@ export async function getAccessToken(
     Date.now() + (json.expires_in ?? 3600) * 1000,
   ).toISOString();
 
-  await supabase
-    .from("user_settings")
-    .update({
+  await updateUserSettings(
+    supabase,
+    {
       google_access_token: json.access_token,
       google_token_expires_at: newExpiresAt,
       ...(json.refresh_token
         ? { google_refresh_token: json.refresh_token }
         : {}),
-      updated_at: new Date().toISOString(),
-    });
+    },
+    { select: "id" },
+  );
 
   return json.access_token;
 }

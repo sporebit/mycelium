@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { updateUserSettings } from "@/lib/settings/userSettingsRow";
 
 export const runtime = "nodejs";
 
@@ -56,14 +57,15 @@ export async function GET(req: NextRequest) {
     ).toISOString();
 
     const supabase = await createUserClient();
-    await supabase
-      .from("user_settings")
-      .update({
+    await updateUserSettings(
+      supabase,
+      {
         google_refresh_token: tokens.refresh_token ?? null,
         google_access_token: tokens.access_token,
         google_token_expires_at: expiresAt,
-        updated_at: new Date().toISOString(),
-      });
+      },
+      { select: "id" },
+    );
 
     return NextResponse.redirect(
       new URL("/other/settings?google=connected", req.nextUrl.origin),

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { updateUserSettings } from "@/lib/settings/userSettingsRow";
 import {
   UI_PREFS_DEFAULTS,
   type UiPrefs,
@@ -39,9 +40,7 @@ export async function PATCH(req: NextRequest) {
       .maybeSingle();
     const current = (existing?.ui_prefs ?? {}) as Partial<UiPrefs>;
     const merged = { ...current, ...partial };
-    const { error } = await supabase
-      .from("user_settings")
-      .update({ ui_prefs: merged, updated_at: new Date().toISOString() });
+    const { error } = await updateUserSettings(supabase, { ui_prefs: merged }, { select: "id" });
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ...UI_PREFS_DEFAULTS, ...merged });

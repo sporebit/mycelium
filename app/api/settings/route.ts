@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { updateUserSettings } from "@/lib/settings/userSettingsRow";
 
 export const runtime = "nodejs";
 
@@ -37,11 +38,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
     const supabase = await createUserClient();
-    const { data, error } = await supabase
-      .from("user_settings")
-      .update({ ...body, updated_at: new Date().toISOString() })
-      .select()
-      .single();
+    const { data, error } = await updateUserSettings(supabase, body as Record<string, unknown>);
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ settings: data });
