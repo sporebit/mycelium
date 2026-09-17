@@ -42,3 +42,7 @@ Full spec: `claude/quotes-spec.md`. Summary: table `quotes` (migration after 011
 ## Dashboard cards
 
 Card grid ("Everything" view) with dnd + size picker, layout in `ui_prefs.dashboard_layout` (migrated off localStorage in P2); registry includes Goals, Journal, Glossary, KeyBlockers, Session, Operator, Habits, NowBlock-adjacent cards; Fuel + Tickers removed in P2. Morning briefing `/api/briefings/morning`; daily log `/api/daily-log/today`; goals `/api/goals`; blockers `/api/blockers`. **Planned (Day log):** the Journal card is re-pointed at the new day rows when 0003 is replaced.
+
+## Tickets (replaces Tasks; Habits and Reminders folded) — 2026-09-17
+
+Tasks, Habits and Reminders are now one `tickets` table (migrations 0116–0120). The full model, routes and pages are in `claude/tickets-spec.md` and the build notes in `docs/tickets/README.md`. Habits = `kind = habit` series tickets with `ticket_completions` (the tile, heatmap and streak read those); Reminders = `kind = reminder` with `remind_at` (the `/reminders` page and `/api/reminders` keep their shape over tickets). `/api/tasks/*` remain as compatibility routes for one release.

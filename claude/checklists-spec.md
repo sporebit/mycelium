@@ -1,5 +1,7 @@
 # Checklists — guides, test runs and any tick-box exercise, stored in Mycelium
 
+> **Superseded by `claude/tickets-spec.md` §9 (2026-09-17).** The §3 shapes survive byte-for-byte as `tickets.steps_definition` / `steps_state`, the per-key merge as `PATCH /api/tickets/[key]/steps`, and the house-style page as the render for `kind ∈ {runbook, test, guide, audit, setup}` (`components/tickets/StepsPage.tsx`). Nothing below is built as a standalone table.
+
 *Written 2026-09-11 from Phil's instruction: "I want all checks to be stored forever. Link it to the projects database in a new table for guides and testing and any other time you could think we need to go through a checkbox exercise. I want it to be a payload that stores all the ones that we've done or not done. I also want to be able to add answers into some of the boxes if it needs info. If something later in the page needs the info from the response or Claude Code / Cowork needs the response they can read it from the database directly. Make sure links are available every opportunity." Status: **spec agreed in principle; build after cutover** (see "Why not now").*
 
 ---

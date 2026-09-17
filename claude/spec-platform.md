@@ -42,3 +42,10 @@ Serwist service worker (`/sw.js`; warm `.next` breaks its build — always `rm -
 ## Settings (`/other/settings`)
 
 Settings v2 (P8): panel navigation (Sheet-based on mobile). Appearance (density → real table row heights, motion), Layout (pinned tabs, hidden sections, dashboard reset), FeatureFlags (behaviours: voice capture, AI categorisation, vision scan — distinct from hidden_sections which is nav visibility), Integrations, Capture labels, Data (export `/other/export`, api-usage). Storage split: `ui_prefs` (0091) vs `user_settings` (0075). Remaining P8 debt: Integrations/Capture/Data panels still on old inner styling.
+
+## Tickets additions — 2026-09-17
+
+- Capture intent: a `task` capture becomes a ticket in Inbox with `suggested` contexts; the Telegram reply carries the key and buttons; captioned photos/PDFs attach via the private `tickets` bucket.
+- Identity & access: scoped `api_tokens` (`Bearer mtk_…`, resolved in the middleware, scopes = projects/verbs/routes; `x-principal-scopes` header) — Settings → Security → API tokens.
+- Public prefixes: `/api/tickets/github` (HMAC-SHA256) and `/api/tickets/vercel` (HMAC-SHA1).
+- Crons: `/api/cron/tickets-nightly` 02:00, `/api/cron/tickets-checkins` every 15 min (vercel.json). `api_usage` table (0119) records LLM cost per tag.

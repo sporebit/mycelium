@@ -80,6 +80,8 @@ export default function TicketPage() {
   const simple = ticketPrefs(prefs).simple_statuses;
   const projects = useProjects();
   const people = usePeople();
+  const { data: assigneeData } = useApi<{ assignees: Array<{ id: string; display_name: string | null; me: boolean }> }>("/api/tickets/assignees");
+  const assignees = assigneeData?.assignees ?? [];
 
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -225,6 +227,26 @@ export default function TicketPage() {
           </button>
         )}
       </div>
+
+      {/* Assignee (spec §10, Part H): the caller plus team members */}
+      {(assignees.length > 1 || t.assignee_id) && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <Label>Assignee</Label>
+          <select
+            className="rounded-sm bg-ink-2 px-2 py-1 text-sm text-text-0"
+            value={t.assignee_id ?? ""}
+            onChange={(e) => void patch({ assignee_id: e.target.value || null })}
+          >
+            <option value="">— unassigned —</option>
+            {assignees.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.display_name}
+                {a.me ? " (me)" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {cat === "waiting" && (
         <div className="mt-2 flex flex-wrap items-center gap-2">

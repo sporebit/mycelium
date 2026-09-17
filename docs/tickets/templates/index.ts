@@ -7,6 +7,7 @@
 import bookHoliday from "./book-holiday.json";
 import startAReturn from "./start-a-return.json";
 import cutoverRunbook from "./cutover-runbook.json";
+import smokeTest from "./smoke-test-parts-b-h.json";
 
 export type RepoTemplate = {
   slug: string;
@@ -16,4 +17,4 @@ export type RepoTemplate = {
   definition: unknown;
 };
 
-export const REPO_TEMPLATES: RepoTemplate[] = [bookHoliday, startAReturn, cutoverRunbook] as RepoTemplate[];
+export const REPO_TEMPLATES: RepoTemplate[] = [bookHoliday, startAReturn, cutoverRunbook, smokeTest] as RepoTemplate[];

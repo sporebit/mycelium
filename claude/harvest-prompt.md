@@ -43,3 +43,11 @@ anything ambiguous rather than paraphrasing. Exclude pleasantries, dead ends
 (unless the dead end was itself a decision), and anything already fully
 captured in a project doc you can see. Do not include secret values.
 ```
+
+## Addendum — tickets (tickets spec §14.5, 2026-09-17)
+
+Append to the prompt above in every other Claude project once its backlog imports into Mycelium Tickets:
+
+> Output every outstanding, in-progress or recently finished item as JSON `[{title, body, status: backlog|next|doing|waiting|done, someday, where_ctx, tools, time_window, points, scheduled_on, deadline_on, source: 'harvest'}]` grouped by sub-project; nothing invented; unknown fields null.
+
+Import with `POST /api/tickets` per item (or `tix new`), `source = import`, project by prefix.
