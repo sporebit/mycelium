@@ -1,101 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withUser } from "@/lib/system/withUser";
 import { boundUser } from "@/lib/system/bindings";
-import { sendMessage } from "@/lib/telegram/api";
+import { matchesBearer } from "@/lib/auth/gate";
+import { sendDueReminders } from "@/lib/tickets/reminders";
+import { londonNow } from "@/lib/tickets/categories";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
 
-function nextDue(current: string, recurrence: string): string {
-  const d = new Date(current);
-  switch (recurrence) {
-    case "daily":
-      d.setDate(d.getDate() + 1);
-      break;
-    case "weekly":
-      d.setDate(d.getDate() + 7);
-      break;
-    case "monthly":
-      d.setMonth(d.getMonth() + 1);
-      break;
-    default:
-      return current;
-  }
-  return d.toISOString();
-}
-
+/**
+ * GET /api/cron/reminders — the pre-existing cron-job.org schedule, kept so
+ * nothing external changes. Since the reminders fold (0119) it sends due
+ * `kind = reminder` tickets; /api/cron/tickets-checkins does the same every
+ * 15 minutes, so either schedule alone is enough.
+ */
 export async function GET(req: NextRequest) {
-  const bearer = req.headers.get("authorization")?.replace("Bearer ", "");
-  const secret = process.env.REMINDERS_CRON_SECRET;
-  if (!secret || bearer !== secret) {
-    console.warn("[cron/reminders 401]", {
-      envVarSet: !!secret,
-      headerPresent: !!req.headers.get("authorization"),
-      prefixStripped: bearer !== req.headers.get("authorization"),
-      matched: bearer === secret,
-    });
+  const expected = process.env.REMINDERS_CRON_SECRET;
+  if (!expected || !matchesBearer(req.headers.get("authorization"), expected)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-
-  const chatId = process.env.TELEGRAM_USER_ID;
-  if (!chatId) {
-    return NextResponse.json(
-      { error: "TELEGRAM_USER_ID missing" },
-      { status: 500 },
-    );
-  }
-
   try {
-    // Public route, no session: act as the cron binding from configuration.
-    return await withUser(boundUser("cron"), async (supabase) => {
-      const now = new Date().toISOString();
-
-      const { data: due, error } = await supabase
-        .from("reminders")
-        .select("*")
-        .is("sent_at", null)
-        .eq("cancelled", false)
-        .lte("due_at", now)
-        .order("due_at")
-        .limit(20);
-
-      if (error) throw error;
-      if (!due || due.length === 0) {
-        return NextResponse.json({ sent: 0 });
-      }
-
-      let sent = 0;
-      for (const r of due) {
-        try {
-          await sendMessage(chatId, `⏰ ${r.message}`);
-
-          if (r.recurrence) {
-            await supabase
-              .from("reminders")
-              .update({ sent_at: now })
-              .eq("id", r.id);
-
-            await supabase.from("reminders").insert({ message: r.message,
-              due_at: nextDue(r.due_at, r.recurrence),
-              recurrence: r.recurrence,
-            });
-          } else {
-            await supabase
-              .from("reminders")
-              .update({ sent_at: now })
-              .eq("id", r.id);
-          }
-
-          sent++;
-        } catch (err) {
-          console.error(`[cron/reminders] failed to send ${r.id}:`, err);
-        }
-      }
-
-      return NextResponse.json({ sent, total: due.length });
-    });
+    const today = londonNow().date;
+    const result = await withUser(boundUser("cron"), (db) => sendDueReminders(db, today));
+    return NextResponse.json({ ok: true, ...result });
   } catch (err) {
     console.error("[cron/reminders]", err);
-    return NextResponse.json({ error: "cron failed" }, { status: 500 });
+    return NextResponse.json({ error: "failed" }, { status: 500 });
   }
 }

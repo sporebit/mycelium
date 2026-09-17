@@ -262,6 +262,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
     tables: ["memory_chunks"],
     note: "Embeddings derived from a user's own captures and journal; per-user content, never shared.",
   },
+  {
+    section: "platform",
+    group: "api_usage",
+    tables: ["api_usage"],
+    note: "Per-call LLM cost rows (tickets spec §9.1); the monthly rundown cap is per user.",
+  },
 ];
 
 export type SharedReferenceDef = {

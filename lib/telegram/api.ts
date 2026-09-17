@@ -24,7 +24,9 @@ async function tg<T = unknown>(
 
 export type InlineKeyboardButton = {
   text: string;
-  callback_data: string;
+  /** One of callback_data or url (Telegram allows exactly one per button). */
+  callback_data?: string;
+  url?: string;
 };
 
 export type InlineKeyboardMarkup = {

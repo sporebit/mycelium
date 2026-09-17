@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { removeGoogleEvent } from "@/lib/google/sync";
 import { londonNow } from "@/lib/tickets/categories";
+import { spawnAfterCompletion } from "@/lib/tickets/spawn";
 import {
   fetchTicketByKey,
   moveTicket,
@@ -89,7 +90,9 @@ export async function POST(
     removeGoogleEvent(supabase, "tasks", (row?.google_event_id as string | null) ?? null).catch(
       () => {},
     );
-    return NextResponse.json({ task: moved.task, ticket: moved.task, completed_on: on });
+    // an after_completion recurrence spawns its next occurrence now (spec §8.3)
+    const spawned = await spawnAfterCompletion(supabase, ref.id, on).catch(() => null);
+    return NextResponse.json({ task: moved.task, ticket: moved.task, completed_on: on, spawned });
   } catch (err) {
     console.error("[/api/tickets/:key/complete POST]", err);
     return NextResponse.json({ error: "complete failed" }, { status: 500 });

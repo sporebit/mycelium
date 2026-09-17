@@ -14,6 +14,21 @@ import {
 import { fetchWeather, type Weather } from "./weather";
 import { fetchPendingReviewCount } from "@/lib/captures/reviewCount";
 import type { FinanceData } from "@/lib/finance/types";
+import { listTickets, type TicketRow } from "@/lib/tickets/query";
+
+/** Tickets block (spec §8.2): scheduled today, overdue, and Done awaiting Phil's verification. */
+export type TicketsBlock = { today: TicketRow[]; overdue: TicketRow[]; verify: TicketRow[] };
+
+async function fetchTicketsBlock(supabase: SupabaseClient, dateKey: string): Promise<TicketsBlock> {
+  const [todayRes, verifyRes] = await Promise.all([
+    listTickets(supabase, { list: "today", limit: 40 }),
+    listTickets(supabase, { categories: ["verify"], limit: 20 }),
+  ]);
+  const anchor = (t: TicketRow) => t.scheduled_on ?? t.deadline_on ?? t.due_date ?? null;
+  const today = todayRes.tickets.filter((t) => anchor(t) === dateKey);
+  const overdue = todayRes.tickets.filter((t) => (anchor(t) ?? dateKey) < dateKey);
+  return { today, overdue, verify: verifyRes.tickets };
+}
 
 export type BriefingData = {
   dateKey: string;
@@ -31,6 +46,7 @@ export type BriefingData = {
   /** Captures awaiting triage at briefing time. Surfaced in the footer
    *  when > 0; suppressed otherwise so the daily summary stays quiet. */
   reviewCount: number;
+  tickets: TicketsBlock;
 };
 
 function startOfTodayLocal(dateKey: string): Date {
@@ -183,6 +199,7 @@ export async function gatherBriefingData(
     finance,
     weather,
     reviewCount,
+    tickets,
   ] = await Promise.allSettled([
     getCalendarData(supabase),
     fetchTopTasks(supabase),
@@ -192,6 +209,7 @@ export async function gatherBriefingData(
     fetchFinanceWithDelta(supabase, dateKey),
     fetchWeather(),
     fetchPendingReviewCount(supabase),
+    fetchTicketsBlock(supabase, dateKey),
   ]);
 
   const calendarEvents =
@@ -217,5 +235,7 @@ export async function gatherBriefingData(
     weather: weather.status === "fulfilled" ? weather.value : null,
     reviewCount:
       reviewCount.status === "fulfilled" ? reviewCount.value : 0,
+    tickets:
+      tickets.status === "fulfilled" ? tickets.value : { today: [], overdue: [], verify: [] },
   };
 }

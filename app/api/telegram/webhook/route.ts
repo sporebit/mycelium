@@ -25,18 +25,29 @@ import {
 import type { PendingButtonOption } from "@/lib/fitness/types";
 import { parseWeight } from "@/lib/health/parse-weight";
 import { localDateKey } from "@/lib/util/date";
+import { captureKeyboard, captureSummary } from "@/lib/tickets/notify";
+import { isTicketCategory, moveTicket } from "@/lib/tickets/server";
+import { addDays } from "@/lib/tickets/recur";
+import { uploadTicketAttachment } from "@/lib/storage/tickets";
 
 export const runtime = "nodejs";
 
 type TgUser = { id: number };
 type TgChat = { id: number };
 type TgVoice = { file_id: string; mime_type?: string; duration?: number };
+type TgPhotoSize = { file_id: string; width: number; height: number; file_size?: number };
+type TgDocument = { file_id: string; file_name?: string; mime_type?: string; file_size?: number };
 type TgMessage = {
   message_id: number;
   from?: TgUser;
   chat: TgChat;
   text?: string;
   voice?: TgVoice;
+  /** Photos and documents (spec §8.1): the caption is the capture text and
+   *  the file becomes a ticket attachment. */
+  photo?: TgPhotoSize[];
+  document?: TgDocument;
+  caption?: string;
 };
 type TgCallbackQuery = {
   id: string;
@@ -143,7 +154,7 @@ function buildUrgencyKeyboard(
   // regress past that — easier than chasing BUTTON_DATA_INVALID after a deploy.
   for (const row of keyboard.inline_keyboard) {
     for (const btn of row) {
-      const bytes = Buffer.byteLength(btn.callback_data, "utf8");
+      const bytes = Buffer.byteLength(btn.callback_data ?? "", "utf8");
       if (bytes > 64) {
         console.error(
           "[telegram] callback_data overflow:",
@@ -184,7 +195,7 @@ function buildPendingKeyboard(
   const keyboard: InlineKeyboardMarkup = { inline_keyboard: rows };
   for (const row of keyboard.inline_keyboard) {
     for (const btn of row) {
-      const bytes = Buffer.byteLength(btn.callback_data, "utf8");
+      const bytes = Buffer.byteLength(btn.callback_data ?? "", "utf8");
       if (bytes > 64) {
         console.error(
           "[telegram] pw callback_data overflow:",
@@ -298,10 +309,22 @@ async function handleMessage(
     }
   } else if (message.text) {
     rawText = message.text;
+  } else if ((message.photo?.length || message.document) && message.caption?.trim()) {
+    // A photo/PDF with a caption: the caption is the capture, the file
+    // attaches to the resulting ticket (spec §8.1).
+    rawText = message.caption;
+  } else if (message.photo?.length || message.document) {
+    await sendMessage(chatId, "Add a caption to the photo or file and I’ll make it a ticket with the attachment.");
+    return;
   } else {
     await sendMessage(chatId, "unsupported message type");
     return;
   }
+  const attachment: { file_id: string; mime: string; name?: string } | null = message.document
+    ? { file_id: message.document.file_id, mime: message.document.mime_type ?? "application/octet-stream", name: message.document.file_name }
+    : message.photo?.length
+      ? { file_id: message.photo[message.photo.length - 1].file_id, mime: "image/jpeg", name: "photo.jpg" }
+      : null;
 
   if (!rawText || !rawText.trim()) {
     await sendMessage(chatId, "⚠️ Empty capture.");
@@ -424,14 +447,32 @@ async function handleMessage(
     }
   }
 
-  // Reminder routing — insert into reminders table, skip generic capture.
+  // Reminder routing — a ticket of kind reminder with remind_at (spec §8.3
+  // reminders fold); the tickets-checkins cron sends it. Recurring ones
+  // carry an RRULE and re-arm in place.
   if (classification.kind === "reminder" && classification.reminder) {
     try {
       const dueAt = computeReminderDueAt(classification.reminder);
-      await supabase.from("reminders").insert({ message: classification.reminder.reminder_message || classification.title,
-        due_at: dueAt.toISOString(),
-        recurrence: classification.reminder.recurrence || null,
-      });
+      const rec = (classification.reminder.recurrence || "").toLowerCase();
+      const rrule = rec === "daily" ? "FREQ=DAILY" : rec === "weekly" ? "FREQ=WEEKLY" : rec === "monthly" ? "FREQ=MONTHLY" : null;
+      const { data: rem, error: remErr } = await supabase
+        .from("tickets")
+        .insert({
+          title: classification.reminder.reminder_message || classification.title,
+          kind: "reminder",
+          remind_at: dueAt.toISOString(),
+          scheduled_on: dueAt.toLocaleDateString("en-CA", { timeZone: "Europe/London" }),
+          recurrence_rrule: rrule,
+          recurrence_mode: null, // re-arms in place; 'spawn' is reserved for hidden templates
+          source: "telegram",
+          owner: userId,
+          urgency: "this_week",
+          priority_score: 0.5,
+        })
+        .select("id, ticket_key")
+        .single();
+      if (remErr || !rem) throw remErr ?? new Error("insert failed");
+      await moveTicket(supabase, (rem as { id: string }).id, "next");
 
       const timeStr = dueAt.toLocaleString("en-GB", {
         timeZone: "Europe/London",
@@ -516,6 +557,33 @@ async function handleMessage(
     return;
   }
 
+  // Tickets (spec §8.1): reply with the key and the guesses; buttons move it
+  // straight to Next / Someday / Bin, or open Clarify. A captioned photo or
+  // file becomes an attachment on the ticket.
+  if (result.routedTo === "tickets" && result.ticketKey) {
+    if (attachment) {
+      try {
+        const file = await getFile(attachment.file_id);
+        const { buffer, contentType } = await downloadFile(file.file_path);
+        const path = await uploadTicketAttachment(supabase, result.routedId, buffer, attachment.mime || contentType, attachment.name);
+        await supabase.from("ticket_links").insert({
+          ticket_id: result.routedId,
+          kind: "attachment",
+          ref: path,
+          label: attachment.name ?? "attachment",
+          meta: { mime: attachment.mime, via: "telegram" },
+        });
+      } catch (err) {
+        console.error("[telegram] attachment upload failed:", err);
+      }
+    }
+    const summary = captureSummary(result.ticketKey, (result.ticketSuggested ?? {}) as Record<string, never>);
+    await sendMessage(chatId, `✓ ${summary}\n${classification.title}${attachment ? "\n📎 attached" : ""}`, {
+      reply_markup: captureKeyboard(result.routedId, result.ticketKey),
+    });
+    return;
+  }
+
   const label = classification.kind.toUpperCase();
   const reply = `✓ Captured as ${label} — ${classification.urgency}: ${classification.title}`;
   await sendMessage(chatId, reply, {
@@ -578,6 +646,77 @@ async function handleCallback(
   const action = parts[0];
   const routedTo = decodeRoute(parts[1] ?? "");
   const rowId = parts[2];
+
+  // Tickets buttons (spec §7.2, §8.1): m|t|<id>|<category> moves a fresh
+  // capture; ci|t|<id>|done|tomorrow|skip|snooze answers a check-in or reminder.
+  if ((action === "m" || action === "ci") && routedTo === "tickets" && rowId) {
+    const arg = parts[3] ?? "";
+    let toast = "Updated";
+    let line = "";
+    try {
+      if (action === "m" && isTicketCategory(arg)) {
+        const moved = await moveTicket(supabase, rowId, arg, arg === "backlog" ? { extra: { someday: true } } : {});
+        if (!moved.ok) throw new Error(moved.error);
+        toast = `→ ${arg}`;
+        line = `${moved.task.ticket_key ?? ""} → ${arg}`;
+      } else if (action === "m" && arg === "someday") {
+        const moved = await moveTicket(supabase, rowId, "backlog", { extra: { someday: true } });
+        if (!moved.ok) throw new Error(moved.error);
+        toast = "→ someday";
+        line = `${moved.task.ticket_key ?? ""} → someday`;
+      } else if (action === "ci" && arg === "done") {
+        const moved = await moveTicket(supabase, rowId, "done");
+        if (!moved.ok) throw new Error(moved.error);
+        await supabase.from("ticket_completions").upsert(
+          { ticket_id: rowId, completed_on: localDateKey("Europe/London") },
+          { onConflict: "ticket_id,completed_on", ignoreDuplicates: true },
+        );
+        toast = "✓ Done";
+        line = `${moved.task.ticket_key ?? ""} ✓ done`;
+      } else if (action === "ci" && arg === "tomorrow") {
+        const { data: row } = await supabase.from("tickets").select("ticket_key, scheduled_on, remind_at, recurrence_rrule").eq("id", rowId).maybeSingle();
+        const today = localDateKey("Europe/London");
+        const next = addDays(today, 1);
+        const update: Record<string, unknown> = { scheduled_on: next, checkin_sent_on: null, updated_at: new Date().toISOString() };
+        if (row?.remind_at) {
+          const t = new Date(row.remind_at as string);
+          t.setUTCDate(t.getUTCDate() + 1);
+          update.remind_at = t.toISOString();
+          update.remind_sent_at = null;
+        }
+        await supabase.from("tickets").update(update).eq("id", rowId);
+        toast = "⏭ Tomorrow";
+        line = `${row?.ticket_key ?? ""} → ${next}`;
+      } else if (action === "ci" && arg === "snooze") {
+        const { data: row } = await supabase.from("tickets").select("ticket_key").eq("id", rowId).maybeSingle();
+        const at = new Date(Date.now() + 60 * 60_000).toISOString();
+        await supabase.from("tickets").update({ remind_at: at, remind_sent_at: null, updated_at: new Date().toISOString() }).eq("id", rowId);
+        toast = "⏰ +1h";
+        line = `${row?.ticket_key ?? ""} snoozed 1h`;
+      } else if (action === "ci" && arg === "skip") {
+        const moved = await moveTicket(supabase, rowId, "cancelled");
+        if (!moved.ok) throw new Error(moved.error);
+        toast = "✕ Not needed";
+        line = `${moved.task.ticket_key ?? ""} ✕ not needed`;
+      } else {
+        await answerCallbackQuery(cb.id, "Invalid action");
+        return;
+      }
+      await answerCallbackQuery(cb.id, toast);
+      if (cb.message) {
+        try {
+          const text = cb.message.text ?? "";
+          await editMessageText(cb.message.chat.id, cb.message.message_id, `${text}\n\n${line}`.slice(0, 4000));
+        } catch (err) {
+          console.error("[telegram] edit after ticket action failed:", err);
+        }
+      }
+    } catch (err) {
+      console.error("[telegram] ticket action failed:", err);
+      await answerCallbackQuery(cb.id, "Failed");
+    }
+    return;
+  }
 
   if (!routedTo || !rowId || (routedTo !== "tickets" && routedTo !== "raw_captures")) {
     await answerCallbackQuery(cb.id, "Invalid action");

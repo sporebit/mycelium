@@ -5,6 +5,7 @@ import { logTaskActivity } from "@/lib/task-activity";
 import { pushTaskToGoogle, removeGoogleEvent } from "@/lib/google/sync";
 import { TASK_STATUSES, URGENCIES } from "@/lib/types/task";
 import { attachBlockers, type TicketRow } from "@/lib/tickets/query";
+import { signTicketAttachment } from "@/lib/storage/tickets";
 import {
   isTicketCategory,
   moveTicket,
@@ -87,10 +88,20 @@ export async function GET(
     );
     await attachBlockers(supabase, [task, ...sub_tasks]);
 
+    // attachments live in the private `tickets` bucket: hand out signed URLs
+    const linkRows = await Promise.all(
+      ((links.data ?? []) as Array<{ id: string; kind: string; ref: string | null; url: string | null; label: string | null; meta: unknown; at: string }>).map(
+        async (l) =>
+          l.kind === "attachment" && l.ref && !l.url
+            ? { ...l, url: await signTicketAttachment(supabase, l.ref) }
+            : l,
+      ),
+    );
+
     return NextResponse.json({
       task,
       sub_tasks,
-      links: links.data ?? [],
+      links: linkRows,
       completions: (completions.data ?? []).map(
         (c) => (c as { completed_on: string }).completed_on,
       ),

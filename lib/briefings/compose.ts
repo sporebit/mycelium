@@ -69,6 +69,30 @@ export function composeMessage(
     sections.push(lines.join("\n"));
   }
 
+  // TICKETS (spec §8.2): scheduled today, overdue, Done awaiting verification — grouped by project
+  const tk = data.tickets;
+  if (tk && (tk.today.length > 0 || tk.overdue.length > 0 || tk.verify.length > 0)) {
+    const lines = ["🎫 <b>TICKETS</b>"];
+    const group = (label: string, rows: typeof tk.today) => {
+      if (rows.length === 0) return;
+      lines.push(`<i>${label}</i>`);
+      const byProject = new Map<string, typeof rows>();
+      for (const t of rows) {
+        const p = t.project_name ?? "—";
+        byProject.set(p, [...(byProject.get(p) ?? []), t]);
+      }
+      for (const [p, ts] of byProject) {
+        lines.push(`  ${escHtml(p)}`);
+        for (const t of ts.slice(0, 6)) lines.push(`  • ${escHtml(t.ticket_key ?? "")} ${escHtml(t.title)}`);
+        if (ts.length > 6) lines.push(`  … +${ts.length - 6}`);
+      }
+    };
+    group("Today", tk.today);
+    group("Overdue", tk.overdue);
+    group("Done — verify live", tk.verify);
+    sections.push(lines.join("\n"));
+  }
+
   // BLOCKERS — skip when empty
   if (data.blockers.length > 0) {
     const lines = ["🚨 <b>BLOCKERS</b>"];

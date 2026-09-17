@@ -145,6 +145,8 @@ export async function listTickets(
   if (cats) q = q.in("ticket_status.category", [...cats]);
   if (p.kind) q = q.eq("kind", p.kind);
   else q = q.neq("kind", "habit");
+  // spawn templates (recurrence_mode = spawn, series_id null) are hidden (spec §8.3)
+  q = q.or("recurrence_mode.is.null,recurrence_mode.neq.spawn,series_id.not.is.null");
   if (typeof p.someday === "boolean") q = q.eq("someday", p.someday);
   if (p.projectId === "null") q = q.is("project_id", null);
   else if (p.projectId) q = q.eq("project_id", p.projectId);

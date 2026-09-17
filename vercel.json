@@ -15,6 +15,14 @@
     {
       "path": "/api/cron/rundowns",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/tickets-nightly",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/tickets-checkins",
+      "schedule": "*/15 15-22 * * *"
     }
   ]
 }

@@ -3,6 +3,7 @@ import type { Classification } from "@/lib/router/classifyCapture";
 import { resolveEntityId } from "@/lib/router/resolveEntity";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { localDateKey } from "@/lib/util/date";
+import { suggestContexts } from "@/lib/tickets/suggest";
 
 export type WriteCaptureInput = {
   /** Auth uid of the capturing user — written as the task owner. */
@@ -23,6 +24,9 @@ export type WriteCaptureResult = {
   rawCaptureId: string;
   routedTo: string;
   routedId: string;
+  /** Set when the capture became a ticket (spec §8.1: the reply carries the key). */
+  ticketKey?: string | null;
+  ticketSuggested?: Record<string, unknown> | null;
   // Source identifiers the caller should use for the memory embedding —
   // journal entries embed as 'journal' so the Stroma tab can filter cleanly.
   memorySourceType: "capture" | "journal";
@@ -74,10 +78,27 @@ export async function writeCapture(
   // b. INSERT into routed table based on kind
   let routedTo: string;
   let routedId: string;
+  let ticketKey: string | null = null;
+  let ticketSuggested: Record<string, unknown> | null = null;
   let memorySourceType: "capture" | "journal" = "capture";
   let memorySourceId: string = rawCapture.id;
 
   if (classification.kind === "task") {
+    // Tickets spec §8.1: a capture lands in Inbox (0117 default) with
+    // Claude's guesses in `suggested` for the Clarify card to accept or
+    // adjust. Cheap heuristic here; the classifier's context fields win.
+    const { data: projectRows } = await supabase.from("projects").select("id, name, prefix").neq("status", "archived");
+    const heuristic = suggestContexts(
+      classification.title,
+      classification.summary,
+      (projectRows ?? []) as Array<{ id: string; name: string; prefix?: string | null }>,
+    );
+    const suggested: Record<string, unknown> = { ...heuristic };
+    delete suggested.reasons;
+    if (ctx.context_where === "home" || ctx.context_where === "out") suggested.where_ctx = ctx.context_where;
+    if (ctx.context_device === "pc" || ctx.context_device === "phone") suggested.tools = [ctx.context_device];
+    if (heuristic.reasons.length) suggested.reasons = heuristic.reasons;
+
     const { data: task, error: taskErr } = await supabase
       .from("tickets")
       .insert({ title: classification.title,
@@ -88,9 +109,11 @@ export async function writeCapture(
         tags: classification.tags,
         entity_id: entityId,
         owner: userId,
+        source: source === "telegram" ? "telegram" : source === "api" ? "shortcut" : "ui",
+        suggested,
         ...ctx,
       })
-      .select("id")
+      .select("id, ticket_key")
       .single();
 
     if (taskErr || !task) {
@@ -98,6 +121,8 @@ export async function writeCapture(
     }
     routedTo = "tickets";
     routedId = task.id;
+    ticketKey = (task as { ticket_key?: string | null }).ticket_key ?? null;
+    ticketSuggested = suggested;
   } else if (classification.kind === "purchase") {
     // Purchase fields are populated by the classifier in the same pass —
     // see PurchaseDetails in lib/router/classifyCapture.ts. Missing object
@@ -335,5 +360,7 @@ export async function writeCapture(
     routedId,
     memorySourceType,
     memorySourceId,
+    ticketKey,
+    ticketSuggested,
   };
 }
