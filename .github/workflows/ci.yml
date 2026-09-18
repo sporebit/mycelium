@@ -86,3 +86,25 @@ jobs:
           SUPABASE_JWT_SECRET: placeholder-jwt-secret-placeholder-jwt
           BREAK_GLASS_SECRET: placeholder-break-glass
           BREAK_GLASS_ENABLED: "false"
+
+      # Boot the built app and hit the public health route: proves the
+      # server starts (middleware, env parsing, route manifest) rather than
+      # only that it compiles. Same check the Vercel deploy webhook runs
+      # before it closes a ticket.
+      - name: App boot smoke (/api/health)
+        run: |
+          npx next start -p 3100 > .next-start.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3100/api/health > health.json 2>/dev/null; then break; fi
+            sleep 1
+          done
+          cat health.json || { echo "app did not answer on /api/health"; cat .next-start.log; exit 1; }
+          grep -q '"ok":true' health.json
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key
+          API_SECRET: placeholder-api-secret
+          SUPABASE_JWT_SECRET: placeholder-jwt-secret-placeholder-jwt
+          BREAK_GLASS_SECRET: placeholder-break-glass
+          BREAK_GLASS_ENABLED: "false"
