@@ -9,6 +9,7 @@ import startAReturn from "./start-a-return.json";
 import cutoverRunbook from "./cutover-runbook.json";
 import smokeTest from "./smoke-test-parts-b-h.json";
 import setupTokens from "./setup-tokens-webhooks.json";
+import smokeQuotesDaylog from "./smoke-test-quotes-daylog.json";
 
 export type RepoTemplate = {
   slug: string;
@@ -18,4 +19,4 @@ export type RepoTemplate = {
   definition: unknown;
 };
 
-export const REPO_TEMPLATES: RepoTemplate[] = [bookHoliday, startAReturn, cutoverRunbook, smokeTest, setupTokens] as RepoTemplate[];
+export const REPO_TEMPLATES: RepoTemplate[] = [bookHoliday, startAReturn, cutoverRunbook, smokeTest, setupTokens, smokeQuotesDaylog] as RepoTemplate[];

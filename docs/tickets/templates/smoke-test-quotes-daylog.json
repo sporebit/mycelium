@@ -1,0 +1,217 @@
+{
+  "slug": "smoke-test-quotes-daylog",
+  "name": "Quotes + Day log smoke test",
+  "kind": "test",
+  "version": 1,
+  "definition": {
+    "title": "Quotes + Day log smoke test ({{run}})",
+    "body_md": "Phil's live check of Quotes v1 (0126) and Day log Part A (0127/0128), shipped 2026-09-18. The API paths were smoke-tested from the PC (Quotes 26/26, Day log 15/19 then 5/5 after the persona fix); this ticket is the human half — the phone, the bot, the pages. Tick as you go; type what you saw in the answer boxes; anything that fails stays unticked with a comment naming the step id.",
+    "kind": "test",
+    "where_ctx": "anywhere",
+    "tools": ["phone", "pc"],
+    "time_window": "anytime",
+    "points": 5,
+    "steps_definition": {
+      "slug": "smoke-test-quotes-daylog",
+      "kind": "test",
+      "title": "Quotes + Day log smoke test",
+      "version": 1,
+      "toggles": {
+        "device": {
+          "label": "Device",
+          "options": { "phone": "Phone first", "pc": "PC first" },
+          "default": "phone"
+        }
+      },
+      "values": [
+        { "key": "run", "label": "Run label", "placeholder": "2026-09-18 evening" },
+        { "key": "friend", "label": "A friend who exists in People", "placeholder": "Jake" }
+      ],
+      "intro": {
+        "verdict_html": "<p>Four phases, about 25 minutes plus one evening. Phases 1–2 are Quotes (the page, then a voice capture through the review queue). Phase 3 is the Day log on Telegram — it wants a real evening, so do it tonight at the prompt. Phase 4 is the Day log in the app and can be done any time.</p>",
+        "prerequisites": [
+          "Signed in on the phone and the PC",
+          "The Telegram bot chat open",
+          "A person in People whose first name you can say (the value {{friend}})",
+          "Settings → Journal: the nightly prompt is ON by default at 21:30 London — leave it on for phase 3"
+        ],
+        "time": ["Phase 1: 8 min", "Phase 2: 5 min", "Phase 3: one evening, 10 min", "Phase 4: 5 min"],
+        "cost": ["One research call ≈ 1–2p (Sonnet + web search)", "One Talk night ≈ 1p"]
+      },
+      "phases": [
+        {
+          "id": "1",
+          "title": "Quotes — the page",
+          "lede_html": "<p>Everything on <code>/organisation/quotes</code>, no bot involved.</p>",
+          "steps": [
+            {
+              "id": "1.1",
+              "title": "Open Organisation → Quotes (nav or the org-index card); the page loads with the search box, All / Mine chips, Merch, and the view switch",
+              "actor": "you",
+              "where": { "label": "/organisation/quotes", "url": "https://mycelium.sporebit.com/organisation/quotes", "kind": "page" }
+            },
+            {
+              "id": "1.2",
+              "title": "+ ADD → type a line you said yourself, Said by = Me, SAVE — a card appears at the top with a research badge (researching, then original / known / skipped)",
+              "actor": "you",
+              "where": { "label": "Quotes", "kind": "page" },
+              "fields": [{ "key": "badge", "label": "What the badge said after a few seconds", "placeholder": "original" }]
+            },
+            {
+              "id": "1.3",
+              "title": "+ ADD the same line with two words changed — a near-duplicate warning names the existing quote with a percentage; CANCEL",
+              "actor": "you",
+              "where": { "label": "Quotes", "kind": "page" }
+            },
+            {
+              "id": "1.4",
+              "title": "Tap the quote text → the detail sheet: change Context, SAVE; the card shows the context line",
+              "actor": "you",
+              "where": { "label": "Quotes → sheet", "kind": "page" }
+            },
+            {
+              "id": "1.5",
+              "title": "In the sheet press RE-RUN — the research panel fills (verdict, confidence, sources if any); press WRONG — badge goes to wrong; THEIR OWN — badge goes to original",
+              "actor": "you",
+              "where": { "label": "Quotes → sheet", "kind": "page" },
+              "fields": [{ "key": "verdict", "label": "Verdict + confidence after RE-RUN", "placeholder": "unknown · low" }]
+            },
+            {
+              "id": "1.6",
+              "title": "Tap the merch button on the card — it ticks in place; toggle the Merch chip — only ticked quotes remain; EXPORT downloads quotes-<date>.csv with headers Quote, Said by, Own…",
+              "actor": "you",
+              "where": { "label": "Quotes", "kind": "page" }
+            },
+            {
+              "id": "1.7",
+              "title": "Switch the view to By month, then By person — headers group correctly; Mine shows only your own",
+              "actor": "you",
+              "where": { "label": "Quotes", "kind": "page" }
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "Quotes — voice capture through review",
+          "lede_html": "<p>The bot never creates the quote directly: it reads back, you approve.</p>",
+          "steps": [
+            {
+              "id": "2.1",
+              "title": "Send the bot a voice note: \"Quote from {{friend}}: never trust a skinny chef\" — the reply starts <em>Saved for review — {{friend}}: \"…\"</em> (with <em>(speaker uncertain)</em> only if it could not tell who said it)",
+              "actor": "you",
+              "where": { "label": "Telegram", "kind": "browser" },
+              "fields": [{ "key": "readback", "label": "The read-back, verbatim", "placeholder": "Saved for review — Jake: \"Never trust a skinny chef\"" }]
+            },
+            {
+              "id": "2.2",
+              "title": "Open Captures → Review: the capture shows Kind = quote with the quote editor — text, Said by (your friend pre-selected, or the picker with \"(matches)\" hints), When, Context, Source",
+              "actor": "you",
+              "where": { "label": "/organisation/captures/review", "url": "https://mycelium.sporebit.com/organisation/captures/review", "kind": "page" }
+            },
+            {
+              "id": "2.3",
+              "title": "Approve — the card leaves the queue; Quotes now lists it with the friend's chip; the friend's People page shows it in the Quotes block; the People list row says \"1 quote\"",
+              "actor": "you",
+              "where": { "label": "Quotes / People", "kind": "page" }
+            },
+            {
+              "id": "2.4",
+              "title": "Send a second voice note with almost the same line — on the review card the near-duplicate warning offers keep existing / replace its text; choose keep existing and approve — no second quote appears",
+              "actor": "you",
+              "where": { "label": "Telegram → Review", "kind": "browser" }
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "title": "Day log — one evening on Telegram",
+          "lede_html": "<p>Do this tonight. The bot asks at 21:30 London (Settings → Journal to change it). Every reply you send while the day is open goes to the interview; start a message with <code>/c </code> to capture something instead.</p>",
+          "steps": [
+            {
+              "id": "3.1",
+              "title": "At the prompt time the bot sends \"Evening. How was the day? Talk, Quick or Skip?\" with four buttons; the Journal card on the dashboard says PROMPTED",
+              "actor": "you",
+              "where": { "label": "Telegram", "kind": "browser" },
+              "fields": [{ "key": "prompt_time", "label": "Time the prompt arrived", "placeholder": "21:31" }]
+            },
+            {
+              "id": "3.2",
+              "title": "Press Snooze — \"Snoozed — I'll ask again at …\"; the prompt comes back after the snooze (default 60 min; set it to 5 in Settings → Journal first if you don't want to wait)",
+              "actor": "you",
+              "where": { "label": "Telegram", "kind": "browser" }
+            },
+            {
+              "id": "3.3",
+              "title": "Press Talk — \"Go on then — where did the day take you?\"; answer with a voice note mentioning a place and a person; you get one question back (a \"who's X?\" if the name is new)",
+              "actor": "you",
+              "where": { "label": "Telegram", "kind": "browser" },
+              "fields": [{ "key": "question", "label": "The first question it asked", "placeholder": "Who's Max?" }]
+            },
+            {
+              "id": "3.4",
+              "title": "Answer two or three more; check it never states a fact you didn't say and never asks two questions at once; then send \"done\" — a one-line recap and \"mood / energy / sleep / productivity, 1–5?\"",
+              "actor": "you",
+              "where": { "label": "Telegram", "kind": "browser" }
+            },
+            {
+              "id": "3.5",
+              "title": "Reply \"4 3\" only — it asks for the missing two; reply \"5 2\" — the recap line plus a link to /journal/<date>",
+              "actor": "you",
+              "where": { "label": "Telegram", "kind": "browser" }
+            },
+            {
+              "id": "3.6",
+              "title": "Open the link: the entry reads as what you said (no invented adjectives), scene bullets underneath, the four scores set, the transcript below with a cost line in pence",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" },
+              "fields": [{ "key": "cost", "label": "Cost shown for the night", "placeholder": "0.9p" }]
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "title": "Day log — the app",
+          "lede_html": "<p>Any time. Uses a past date so tonight is untouched.</p>",
+          "steps": [
+            {
+              "id": "4.1",
+              "title": "Journal (nav) — the day list with month groups, status chips and the score strip at the top; the legacy entries (if any) show \"migrated from the old journal\" when opened",
+              "actor": "you",
+              "where": { "label": "/journal", "url": "https://mycelium.sporebit.com/journal", "kind": "page" }
+            },
+            {
+              "id": "4.2",
+              "title": "Pick a date last week in the date box → OPEN; press SKIP — SCORES ONLY; type \"3 3 4 4\" and SEND — status becomes skipped, cost stays 0",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" }
+            },
+            {
+              "id": "4.3",
+              "title": "Open another past date → TALK → type two lines about it, then \"done\", then the scores — status closed, an entry appears; EDIT the entry, change a word, SAVE — it sticks after reload",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" }
+            },
+            {
+              "id": "4.4",
+              "title": "Tap a score number on a closed day — it changes in place; tap it again — it clears",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" }
+            },
+            {
+              "id": "4.5",
+              "title": "Send the bot a reflective line while NO day is open (e.g. \"feeling calm tonight, good walk by the river\") — reply \"📓 Added to today's day log\"; today's day page shows it in the transcript tagged capture; Captures lists it routed to Day log",
+              "actor": "you",
+              "where": { "label": "Telegram → /journal", "kind": "browser" }
+            },
+            {
+              "id": "4.6",
+              "title": "Settings → Journal: change the prompt time, save (blur), reload — it persists; turn Nightly prompt off if you don't want it yet",
+              "actor": "you",
+              "where": { "label": "/other/settings", "url": "https://mycelium.sporebit.com/other/settings", "kind": "page" }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
