@@ -39,3 +39,5 @@ One `tickets` table (the old `tasks`, renamed) holds everything with a done stat
 - No `api_usage` existed before 0119; the Day log should reuse it.
 - Sprints (0123): a commitment layer over GTD — `tickets.sprint_id`, one active sprint per project, velocity on close, burndown from completions, ⚡ chip on Now. The Tasks/Tickets split (0121) is by the project's area kind.
 - Any table adopted after 0116 needs the 0111 policy + grant loop re-run (0124); a policy-less table embedded in `TASK_SELECT` breaks every ticket read.
+- The `reminders` table is gone (0125, after an in-migration count check against `meta.legacy_reminder_id`); `/api/reminders` reads tickets. The `reminders` section constant survives for old `user_grants` rows.
+- `/api/tasks/*` and `/organisation/tasks` are the **Tasks surface** (life tasks, 0121), not just compat — they stay. Removing `/api/tasks/*` waits until `/organisation/tasks` reads `/api/tickets?surface=tasks` directly.
