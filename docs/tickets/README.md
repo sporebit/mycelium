@@ -31,9 +31,11 @@ One `tickets` table (the old `tasks`, renamed) holds everything with a done stat
 
 ## Deviations from the spec worth knowing
 
-- Keys are space-scoped (`MYC-n` for everything) until per-project prefixes are wired into the key trigger; `projects.prefix` is stored and exposed.
+- Keys: root project prefix + own sequence since 0122 (Mycelium `MYC-`, DropShipAuto `DSA-`, Home Improvement `GARDN-`, Surprise-Packs `CARDS-`, Madrid `MADRD-`, Selling `SELL-`); unprojected tickets are `PW-n`. Keys never change on move.
 - Recurring reminders re-arm in place (mode null + RRULE) rather than spawning rows; `spawn` templates are hidden and drive scheduled tasks.
 - The Vercel "commit in deployed range" check is approximated as "code evidence linked before the deploy" (pushes to main fast-forward).
-- Issues sync outbound uses `GITHUB_TOKEN`; the GitHub App private-key flow is not wired.
-- The daily-log habit JSON is dual-written until its remaining readers (glance row, Operator card, briefings, headlines) move to completions.
+- Issues sync outbound uses `GITHUB_TOKEN` (unset unless wanted); the GitHub App private-key flow is not wired. The repo webhook and the Vercel deployment webhook are registered and proven (MYC-134).
+- The daily-log habit JSON is retired (2026-09-18): every reader is on `ticket_completions`; `daily_logs` is journal-only.
 - No `api_usage` existed before 0119; the Day log should reuse it.
+- Sprints (0123): a commitment layer over GTD — `tickets.sprint_id`, one active sprint per project, velocity on close, burndown from completions, ⚡ chip on Now. The Tasks/Tickets split (0121) is by the project's area kind.
+- Any table adopted after 0116 needs the 0111 policy + grant loop re-run (0124); a policy-less table embedded in `TASK_SELECT` breaks every ticket read.
