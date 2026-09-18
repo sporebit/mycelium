@@ -74,3 +74,23 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "update failed" }, { status: 500 });
   }
 }
+
+/** DELETE — remove a day and everything under it (scenes, facts, media cascade). For test days and mistakes; the transcript is otherwise append-only. */
+export async function DELETE(_req: NextRequest, ctx: Ctx) {
+  const { date } = await ctx.params;
+  const uid = await principalUid();
+  try {
+    const supabase = await createUserClient();
+    const limited = await ticketWriteGate(supabase, uid);
+    if (limited) return limited;
+    let q = supabase.from("daylog_days").delete({ count: "exact" });
+    q = UUID_RE.test(date) ? q.eq("id", date) : DATE_RE.test(date) ? q.eq("day", date) : q.eq("id", "00000000-0000-0000-0000-000000000000");
+    const { error, count } = await q;
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    if (!count) return NextResponse.json({ error: "not found" }, { status: 404 });
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[/api/journal/days/:date DELETE]", err);
+    return NextResponse.json({ error: "delete failed" }, { status: 500 });
+  }
+}
