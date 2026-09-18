@@ -6,9 +6,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createUserClient } from "@/lib/supabase/user";
 import { resolveEntityId } from "@/lib/router/resolveEntity";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
-import { localDateKey } from "@/lib/util/date";
 import { createQuoteFromExtraction, extractionFromClassification } from "@/lib/quotes/server";
 import { researchQuote } from "@/lib/quotes/research";
+import { appendCapture } from "@/lib/daylog/engine";
 
 export const runtime = "nodejs";
 
@@ -147,6 +147,8 @@ async function deleteRoutedRow(
   // raw_captures is its own routing target for "decision"/"note"/"capture";
   // we never delete the audit row itself.
   if (routedTo === "raw_captures") return;
+  // a day-log day is append-only and shared by every capture that day
+  if (routedTo === "daylog_days") return;
   const table = routedTo;
   const { error } = await supabase
     .from(table)
@@ -213,26 +215,9 @@ async function createRoutedRow(
   }
 
   if (kind === "journal") {
-    const mood =
-      typeof classification.mood === "string" ? classification.mood : null;
-    const { data, error } = await supabase
-      .from("journal_entries")
-      .insert({ entry_date: localDateKey(),
-        raw_text: rawText,
-        audio_url: audioUrl,
-        summary: summary ? summary.slice(0, 40) : null,
-        tags: tags.length ? tags : null,
-        mood,
-        raw_capture_id: rawCaptureId,
-      })
-      .select("id")
-      .single();
-    if (error || !data) {
-      throw new Error(
-        `journal_entries insert failed: ${error?.message ?? "no row"}`,
-      );
-    }
-    return { routedTo: "journal_entries", routedId: data.id };
+    // Day log (0127): appended to today's transcript; never a journal_entries row.
+    const day = await appendCapture(supabase, rawText, { audioUrl });
+    return { routedTo: "daylog_days", routedId: day.id };
   }
 
   if (kind === "purchase") {

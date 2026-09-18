@@ -337,7 +337,7 @@ export function PersonDetail({ id }: { id: string }) {
                     : m.source_type === "capture"
                     ? `/organisation/captures?focus=${m.source_id}`
                     : m.source_type === "journal"
-                      ? `/journal?focus=${m.source_id}`
+                      ? `/journal/${m.source_id}`
                       : "/organisation/captures";
                 return (
                   <li key={m.id} className="growth-in py-3 first:pt-0 last:pb-0">

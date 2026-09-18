@@ -2,10 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Classification } from "@/lib/router/classifyCapture";
 import { resolveEntityId } from "@/lib/router/resolveEntity";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
-import { localDateKey } from "@/lib/util/date";
 import { suggestContexts } from "@/lib/tickets/suggest";
 import { resolveSpeaker } from "@/lib/quotes/server";
 import { applySpeakerRules, readBack } from "@/lib/quotes/text";
+import { appendCapture } from "@/lib/daylog/engine";
 
 export type WriteCaptureInput = {
   /** Auth uid of the capturing user — written as the task owner. */
@@ -259,32 +259,14 @@ export async function writeCapture(
     routedTo = "accounts";
     routedId = acctRow.id;
   } else if (classification.kind === "journal") {
-    const summary = classification.summary
-      ? classification.summary.slice(0, 40)
-      : null;
-    const { data: entry, error: journalErr } = await supabase
-      .from("journal_entries")
-      .insert({ entry_date: localDateKey(),
-        raw_text: rawText,
-        audio_url: audioUrl ?? null,
-        summary,
-        tags: classification.tags.length > 0 ? classification.tags : null,
-        mood: classification.mood,
-        raw_capture_id: rawCapture.id,
-        ...ctx,
-      })
-      .select("id")
-      .single();
-
-    if (journalErr || !entry) {
-      throw new Error(
-        `journal_entries insert failed: ${journalErr?.message ?? "unknown"}`
-      );
-    }
-    routedTo = "journal_entries";
-    routedId = entry.id;
+    // Day log (0127): a reflective capture is appended to today's day row
+    // (append-only transcript, channel "capture"); the old journal_entries
+    // table is read-only from here on.
+    const day = await appendCapture(supabase, rawText, { audioUrl: audioUrl ?? null });
+    routedTo = "daylog_days";
+    routedId = day.id;
     memorySourceType = "journal";
-    memorySourceId = entry.id;
+    memorySourceId = day.id;
   } else {
     // decision / note / capture stay in raw_captures only
     routedTo = "raw_captures";

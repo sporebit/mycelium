@@ -28,6 +28,7 @@ import { localDateKey } from "@/lib/util/date";
 import { captureKeyboard, captureSummary } from "@/lib/tickets/notify";
 import { isTicketCategory, moveTicket } from "@/lib/tickets/server";
 import { addDays } from "@/lib/tickets/recur";
+import { CAPTURE_ESCAPE, handleDaylogCallback, routeInbound } from "@/lib/daylog/telegram";
 import { uploadTicketAttachment } from "@/lib/storage/tickets";
 
 export const runtime = "nodejs";
@@ -403,6 +404,25 @@ async function handleMessage(
     return;
   }
 
+  // Day log routing rule (daylog spec §4.3): while tonight's day is open or
+  // waiting for its score line, replies belong to the interview. `/c ` at
+  // the start forces the capture path.
+  if (CAPTURE_ESCAPE.test(rawText)) {
+    rawText = rawText.replace(CAPTURE_ESCAPE, "").trim();
+  } else if (!attachment) {
+    try {
+      const routed = await routeInbound(supabase, rawText, message.voice?.file_id ?? null);
+      if (routed) {
+        await sendMessage(chatId, routed.reply);
+        return;
+      }
+    } catch (err) {
+      console.error("[telegram] daylog turn failed:", err);
+      await sendMessage(chatId, "⚠️ The day log stumbled — say that again, or 'done' to wrap up.");
+      return;
+    }
+  }
+
   const { classification, llm_source } = await classifyCapture(rawText, {
     supabase,
     userId,
@@ -522,12 +542,9 @@ async function handleMessage(
     return;
   }
 
-  // Journal entries are reflective, not actionable — no urgency/key buttons.
+  // Journal entries are reflective, not actionable — they land on today's day log.
   if (classification.kind === "journal") {
-    await sendMessage(
-      chatId,
-      `📓 Journal entry saved — ${classification.title}`
-    );
+    await sendMessage(chatId, `📓 Added to today's day log — ${classification.title}`);
     return;
   }
 
@@ -645,6 +662,27 @@ async function handleCallback(
     } catch (err) {
       console.error("[telegram] pw resolve failed:", err);
       await answerCallbackQuery(cb.id, "Resolve failed");
+    }
+    return;
+  }
+
+  // Day log buttons: dl|<YYYY-MM-DD>|talk|quick|skip|snooze|close
+  if (data.startsWith("dl|")) {
+    const [, day = "", act = ""] = data.split("|");
+    try {
+      const r = await handleDaylogCallback(supabase, day, act);
+      await answerCallbackQuery(cb.id, r.toast || undefined);
+      if (cb.message && act !== "snooze") {
+        try {
+          await editMessageText(cb.message.chat.id, cb.message.message_id, `${cb.message.text ?? ""}\n— ${act}`);
+        } catch {
+          /* the original may be too old to edit */
+        }
+      }
+      if (cb.message) await sendMessage(cb.message.chat.id, r.text);
+    } catch (err) {
+      console.error("[telegram] daylog callback failed:", err);
+      await answerCallbackQuery(cb.id, "Day log failed");
     }
     return;
   }

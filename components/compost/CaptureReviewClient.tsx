@@ -102,7 +102,7 @@ function routedUrl(c: Capture): string | null {
     case "task":
       return `/organisation/tasks?focus=${c.routed_id}`;
     case "journal":
-      return `/organisation/journal?focus=${c.routed_id}`;
+      return `/journal/${c.routed_id}`;
     case "purchase":
       return `/organisation/purchases?focus=${c.routed_id}`;
     case "reminder":

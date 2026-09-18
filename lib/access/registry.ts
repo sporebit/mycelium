@@ -238,6 +238,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
   },
   {
     section: "journal",
+    group: "daylog",
+    tables: ["daylog_days", "daylog_scenes", "daylog_scene_people", "daylog_facts", "daylog_media"],
+    note: "Day log / Journal v2 (0127). Keep ungranted: facts about other people live here (daylog spec §11 flag 2).",
+  },
+  {
+    section: "journal",
     group: "daily_logs",
     tables: ["daily_logs"],
     note: "A dated notes-and-mood log; sits with the journal rather than with habits.",

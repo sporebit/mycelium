@@ -33,8 +33,14 @@ function routedToLink(
       };
     case "journal_entries":
       return {
-        href: `/journal?focus=${routedId}`,
+        href: `/journal`,
         label: "Journal",
+        title: clsTitle ?? "open",
+      };
+    case "daylog_days":
+      return {
+        href: `/journal/${routedId}`,
+        label: "Day log",
         title: clsTitle ?? "open",
       };
     case "exercise_pain_logs":

@@ -64,16 +64,16 @@ export async function GET(
       }
     }
     if (journalIds.length > 0) {
-      const { data } = await supabase
-        .from("journal_entries")
-        .select("id, raw_text, created_at")
-        .in("id", journalIds);
-      for (const r of (data ?? []) as Array<{
-        id: string;
-        raw_text: string | null;
-        created_at: string;
-      }>) {
+      const [{ data: legacy }, { data: days }] = await Promise.all([
+        supabase.from("journal_entries").select("id, raw_text, created_at").in("id", journalIds),
+        supabase.from("daylog_days").select("id, summary, transcript, created_at").in("id", journalIds),
+      ]);
+      for (const r of (legacy ?? []) as Array<{ id: string; raw_text: string | null; created_at: string }>) {
         journalBy.set(r.id, { text: r.raw_text, at: r.created_at });
+      }
+      for (const r of (days ?? []) as Array<{ id: string; summary: string | null; transcript: Array<{ role: string; text: string }>; created_at: string }>) {
+        const first = (r.transcript ?? []).find((e) => e.role === "user")?.text ?? null;
+        journalBy.set(r.id, { text: r.summary ?? first, at: r.created_at });
       }
     }
 

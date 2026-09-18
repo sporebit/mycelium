@@ -10,6 +10,7 @@ export const ROUTE_CODE = {
   tickets: "t",
   raw_captures: "r",
   journal_entries: "j",
+  daylog_days: "d",
 } as const;
 
 export type RoutedTo = keyof typeof ROUTE_CODE;
@@ -18,6 +19,7 @@ export const ROUTE_FROM_CODE: Record<string, RoutedTo> = {
   t: "tickets",
   r: "raw_captures",
   j: "journal_entries",
+  d: "daylog_days",
 };
 
 export function encodeRoute(routedTo: string): string {

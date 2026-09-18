@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { daylogSettings, type DaylogSettings } from "@/lib/daylog/settings";
 import { Sheet } from "@/components/ui/Sheet";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
@@ -123,6 +124,7 @@ function SettingsBody({
     { key: "features", label: "Features", render: () => <FeatureFlagsSection settings={settings} onPatch={patch} /> },
     { key: "capture", label: "Capture", render: () => <CaptureSourcesSection settings={settings} onPatch={patch} /> },
     { key: "ai", label: "AI", render: () => <AIConfigSection settings={settings} onPatch={patch} /> },
+    { key: "journal", label: "Journal", render: () => <JournalSection settings={settings} onPatch={patch} /> },
     { key: "data", label: "Data", render: () => <DataSection stats={stats} /> },
     { key: "danger", label: "Danger zone", render: () => <DangerZoneSection /> },
   ];
@@ -177,6 +179,37 @@ function SettingsBody({
         </Sheet>
       )}
     </>
+  );
+}
+
+/**
+ * Day log (daylog spec §6): behaviour settings in user_settings.daylog —
+ * the nightly prompt, snooze, cutoff, turn cap, slot list and score keys.
+ */
+function JournalSection({ settings, onPatch }: { settings: Settings; onPatch: (f: Record<string, unknown>) => void }) {
+  const d = daylogSettings(settings.daylog);
+  const save = (partial: Partial<DaylogSettings>) => onPatch({ daylog: { ...d, ...partial } });
+  return (
+    <SectionCard title="JOURNAL — DAY LOG">
+      <ToggleSetting label="Nightly prompt" description="The bot asks about the day every evening (Talk / Quick / Skip / Snooze)." value={d.enabled} onToggle={(v) => save({ enabled: v })} />
+      <TextSetting label="Prompt time (London)" value={d.prompt_time} type="time" onSave={(v) => save({ prompt_time: v })} />
+      <TextSetting label="Snooze (minutes)" value={String(d.snooze_minutes)} type="number" onSave={(v) => save({ snooze_minutes: Number(v) || 60 })} />
+      <TextSetting label="Cutoff (nothing after)" value={d.cutoff} type="time" onSave={(v) => save({ cutoff: v })} />
+      <TextSetting label="Turn cap per night" value={String(d.turn_cap)} type="number" onSave={(v) => save({ turn_cap: Number(v) || 15 })} />
+      <TextSetting label="Minimum probes" value={String(d.min_probes)} type="number" onSave={(v) => save({ min_probes: Number(v) || 0 })} />
+      <TextSetting label="Slots (comma-separated, in order)" value={d.slots.join(", ")} onSave={(v) => save({ slots: v.split(",").map((s) => s.trim()).filter(Boolean) })} />
+      <TextSetting label="Score keys (comma-separated, in order)" value={d.scores.join(", ")} onSave={(v) => save({ scores: v.split(",").map((s) => s.trim()).filter(Boolean) })} />
+      <SelectSetting
+        label="Voice"
+        value={d.persona_agent_id ?? ""}
+        options={[
+          { value: "da_boi", label: "Da Boi" },
+          { value: "", label: "Plain interviewer" },
+        ]}
+        onSave={(v) => save({ persona_agent_id: v || null })}
+      />
+      <TextSetting label="Monthly alert (pence)" value={String(d.monthly_alert_pence)} type="number" onSave={(v) => save({ monthly_alert_pence: Number(v) || 0 })} />
+    </SectionCard>
   );
 }
 

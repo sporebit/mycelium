@@ -1,154 +1,53 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
-import type { JournalEntry } from "@/lib/journal/types";
+import { useApi } from "@/lib/data/useApi";
 import type { CardWidth } from "@/lib/dashboard/card-registry";
+import type { DayRow } from "@/lib/daylog/engine";
+import { daylogDay } from "@/lib/daylog/day";
 
-const MOOD_TONE: Record<string, string> = {
-  energised: "bg-ok/15 text-ok border-ok/40",
-  calm: "bg-ok/10 text-ok border-ok/30",
-  reflective: "bg-accent/15 text-accent border-accent/40",
-  grateful: "bg-accent/10 text-accent border-accent/30",
-  tired: "bg-ink-2 text-ink-3 border-ink-2",
-  anxious: "bg-warn/15 text-warn border-warn/40",
-  frustrated: "bg-danger/15 text-danger border-danger/40",
-  neutral: "bg-ink-2 text-ink-3 border-ink-2",
-};
-
-function fmtTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
-
+/** Dashboard card: today's day-log row — status, entry so far, scores, and the way in. */
 export function Journal({ width = 1 }: { width?: CardWidth } = {}) {
-  const [entries, setEntries] = useState<JournalEntry[] | null>(null);
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
-
-  useEffect(() => {
-    let mounted = true;
-    async function load() {
-      try {
-        const res = await fetch("/api/journal/today", { cache: "no-store" });
-        if (!res.ok || !mounted) return;
-        const j = (await res.json()) as { entries?: JournalEntry[] };
-        if (!mounted) return;
-        setEntries(Array.isArray(j.entries) ? j.entries : []);
-      } catch {
-        if (mounted) setEntries([]);
-      }
-    }
-    void load();
-    const onFocus = () => void load();
-    window.addEventListener("focus", onFocus);
-    return () => {
-      mounted = false;
-      window.removeEventListener("focus", onFocus);
-    };
-  }, []);
-
-  function toggle(id: string) {
-    setExpanded((cur) => {
-      const next = new Set(cur);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  const count = entries?.length ?? 0;
+  const today = daylogDay();
+  const { data } = useApi<{ day: DayRow; score_keys: string[] }>(`/api/journal/days/${today}`);
+  const day = data?.day ?? null;
+  const userTurns = day ? (day.transcript ?? []).filter((e) => e.role === "user").length : 0;
+  const scores = day ? Object.entries(day.scores ?? {}) : [];
 
   return (
     <Panel
       borderless
       title="JOURNAL"
-      topRight={<Mono>TODAY</Mono>}
+      topRight={<Mono>{day ? day.status.toUpperCase() : "TODAY"}</Mono>}
       bottomCTA={
-        <Link href="/journal" className="hover:text-ink-4 transition-colors">
-          {count > 0 ? `${count} ${count === 1 ? "entry" : "entries"} · ` : ""}
-          VIEW ALL →
+        <Link href={`/journal/${today}`} className="hover:text-ink-4 transition-colors">
+          {day && (day.status === "open" || day.status === "closing") ? "CONTINUE →" : day && day.status === "closed" ? "READ →" : "LOG TODAY →"}
         </Link>
       }
     >
-      {entries === null ? (
-        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-3">
-          Loading…
-        </div>
-      ) : entries.length === 0 ? (
-        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-3 leading-relaxed">
-          No journal entries yet today. Capture one via Telegram or the
-          capture box.
-        </div>
+      {!data ? (
+        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-3">Loading…</div>
       ) : (
-        <ul
-          className={
-            width >= 3
-              ? "grid grid-cols-2 gap-x-6"
-              : "flex flex-col divide-y divide-ink-2"
-          }
-        >
-          {entries.map((e) => {
-            const isOpen = expanded.has(e.id);
-            const moodCls =
-              e.mood && MOOD_TONE[e.mood]
-                ? MOOD_TONE[e.mood]
-                : "bg-ink-2 text-ink-3 border-ink-2";
-            return (
-              <li
-                key={e.id}
-                className={width >= 3 ? "border-b border-ink-2 last:border-b-0" : ""}
-              >
-                <button
-                  type="button"
-                  onClick={() => toggle(e.id)}
-                  className={`w-full text-left py-2.5 ${
-                    width >= 3 ? "" : "first:pt-0"
-                  } flex items-start gap-3 hover:bg-ink-2/30 transition-colors px-1 -mx-1 rounded-md`}
-                >
-                  <Mono className="text-[11px] text-ink-3 w-12 shrink-0 pt-0.5">
-                    {fmtTime(e.created_at)}
-                  </Mono>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-ink-4 leading-snug">
-                      {e.summary ?? e.raw_text.slice(0, 60)}
-                    </div>
-                    {e.mood && (
-                      <span
-                        className={`mt-1 inline-block text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border ${moodCls}`}
-                      >
-                        {e.mood}
-                      </span>
-                    )}
-                  </div>
-                </button>
-                {isOpen && (
-                  <div className="px-1 pb-3 pl-[60px]">
-                    <p className="text-sm text-ink-4 leading-relaxed whitespace-pre-wrap">
-                      {e.raw_text}
-                    </p>
-                    {e.tags && e.tags.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {e.tags.map((t) => (
-                          <span
-                            key={t}
-                            className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-ink-2 bg-ink-0/40 text-ink-3"
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+        <div className="flex flex-col gap-2 py-1">
+          {day?.summary ? (
+            <p className={`text-sm text-text-1 ${width === 1 ? "line-clamp-4" : "line-clamp-6"}`}>{day.summary.split("\n")[0]}</p>
+          ) : userTurns > 0 ? (
+            <p className="text-xs text-text-2">{userTurns} message{userTurns === 1 ? "" : "s"} so far — the entry is written at close.</p>
+          ) : (
+            <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">Nothing logged yet. The bot asks this evening.</p>
+          )}
+          {scores.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {scores.map(([k, v]) => (
+                <span key={k} className="rounded-full bg-glow-3/40 px-2 py-0.5 text-[10px] text-glow-1 font-[family-name:var(--font-mono)]">
+                  {k} {v}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </Panel>
   );

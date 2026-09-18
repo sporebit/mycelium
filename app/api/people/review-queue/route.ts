@@ -70,12 +70,15 @@ export async function GET(req: NextRequest) {
       }
     }
     if (journalIds.length > 0) {
-      const { data } = await supabase
-        .from("journal_entries")
-        .select("id, raw_text")
-        .in("id", journalIds);
-      for (const r of (data ?? []) as Array<{ id: string; raw_text: string | null }>) {
+      const [{ data: legacy }, { data: days }] = await Promise.all([
+        supabase.from("journal_entries").select("id, raw_text").in("id", journalIds),
+        supabase.from("daylog_days").select("id, summary, transcript").in("id", journalIds),
+      ]);
+      for (const r of (legacy ?? []) as Array<{ id: string; raw_text: string | null }>) {
         snippetByKey.set(`journal:${r.id}`, r.raw_text);
+      }
+      for (const r of (days ?? []) as Array<{ id: string; summary: string | null; transcript: Array<{ role: string; text: string }> }>) {
+        snippetByKey.set(`journal:${r.id}`, r.summary ?? (r.transcript ?? []).find((e) => e.role === "user")?.text ?? null);
       }
     }
 
