@@ -28,6 +28,14 @@ export function useProjects() {
   return projects;
 }
 
+export type AreaOption = { id: string; name: string; kind: "technical" | "life"; colour: string | null };
+
+/** Areas (0116 + kind from 0121) for the project editor's area picker. */
+export function useAreas() {
+  const { data } = useApi<{ areas: AreaOption[] }>("/api/areas");
+  return data?.areas ?? [];
+}
+
 /** People for the waiting-on picker. Never creates a Person. */
 export function usePeople() {
   const { data } = useApi<{ people: PersonOption[] }>("/api/people");

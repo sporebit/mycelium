@@ -15,6 +15,7 @@ import {
   type GtdList,
   type TicketCategory,
 } from "./categories";
+import { technicalProjectIds, type Surface } from "./surface";
 
 /** TASK_SELECT with an inner join on the status row, so category filters
  *  can be applied in PostgREST (`ticket_status.category=in.(...)`). */
@@ -49,7 +50,15 @@ export type ListParams = {
   kind?: string | null;
   /** Explicit someday filter (the lists set their own; triage passes false). */
   someday?: boolean | null;
+  /** Tickets / Tasks partition (0121): technical projects vs everything else. */
+  surface?: Surface | null;
 };
+
+/** Apply the surface predicate (see lib/tickets/surface.ts). */
+function surfaceClause(surface: Surface, ids: string[]): { kind: "in" | "or" | "none"; value: string } {
+  if (surface === "tickets") return ids.length ? { kind: "in", value: ids.join(",") } : { kind: "in", value: "00000000-0000-0000-0000-000000000000" };
+  return ids.length ? { kind: "or", value: `project_id.is.null,project_id.not.in.(${ids.join(",")})` } : { kind: "none", value: "" };
+}
 
 export type TicketRow = Task & {
   space_id?: string;
@@ -154,6 +163,11 @@ export async function listTickets(
   if (typeof p.someday === "boolean") q = q.eq("someday", p.someday);
   if (p.projectId === "null") q = q.is("project_id", null);
   else if (p.projectId) q = q.eq("project_id", p.projectId);
+  if (p.surface) {
+    const c = surfaceClause(p.surface, await technicalProjectIds(supabase));
+    if (c.kind === "in") q = q.in("project_id", c.value.split(","));
+    else if (c.kind === "or") q = q.or(c.value);
+  }
   if (p.assignee) q = q.eq("assignee_id", p.assignee);
   if (p.updatedSince) q = q.gte("updated_at", p.updatedSince);
   if (p.q) {
@@ -240,25 +254,32 @@ export type TicketCounts = Record<Exclude<GtdList, "now"> | "backlog", number>;
  * plus a head count of the Logbook. Now is context-dependent and counted by
  * the Now view itself. Next ignores blockers here (a badge, not the list).
  */
-export async function ticketCounts(supabase: SupabaseClient): Promise<TicketCounts> {
+export async function ticketCounts(supabase: SupabaseClient, surface: Surface | null = null): Promise<TicketCounts> {
   const today = londonNow().date;
-  const [open, closed] = await Promise.all([
-    supabase
-      .from("tickets")
-      .select("id, someday, scheduled_on, deadline_on, ticket_status:ticket_statuses!inner(category)")
-      .in("ticket_status.category", [...OPEN_CATEGORIES])
-      .is("parent_task_id", null)
-      .is("deleted_at", null)
-      .neq("kind", "habit")
-      .limit(2000),
-    supabase
-      .from("tickets")
-      .select("id, ticket_status:ticket_statuses!inner(category)", { count: "exact", head: true })
-      .in("ticket_status.category", [...CLOSED_CATEGORIES])
-      .is("parent_task_id", null)
-      .is("deleted_at", null)
-      .neq("kind", "habit"),
-  ]);
+  const clause = surface ? surfaceClause(surface, await technicalProjectIds(supabase)) : null;
+  let openQ = supabase
+    .from("tickets")
+    .select("id, someday, scheduled_on, deadline_on, ticket_status:ticket_statuses!inner(category)")
+    .in("ticket_status.category", [...OPEN_CATEGORIES])
+    .is("parent_task_id", null)
+    .is("deleted_at", null)
+    .neq("kind", "habit");
+  let closedQ = supabase
+    .from("tickets")
+    .select("id, ticket_status:ticket_statuses!inner(category)", { count: "exact", head: true })
+    .in("ticket_status.category", [...CLOSED_CATEGORIES])
+    .is("parent_task_id", null)
+    .is("deleted_at", null)
+    .neq("kind", "habit");
+  if (clause?.kind === "in") {
+    const ids = clause.value.split(",");
+    openQ = openQ.in("project_id", ids);
+    closedQ = closedQ.in("project_id", ids);
+  } else if (clause?.kind === "or") {
+    openQ = openQ.or(clause.value);
+    closedQ = closedQ.or(clause.value);
+  }
+  const [open, closed] = await Promise.all([openQ.limit(2000), closedQ]);
   const counts: TicketCounts = {
     inbox: 0,
     today: 0,

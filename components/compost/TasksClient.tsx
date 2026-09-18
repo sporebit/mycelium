@@ -240,9 +240,11 @@ export function TasksClient() {
   // The SWR key is the raw path, so this list is the same cache entry the
   // dashboard and NowBlock read — a task completed here updates them without
   // a round trip, which local component state could never do.
+  // Tickets / Tasks partition (0121): the classic view is the Tasks surface —
+  // life work and anything not under a Technical-area project.
   const tasksKey = showCompleted
-    ? "/api/tasks?status=open&include_completed=true"
-    : "/api/tasks?status=open";
+    ? "/api/tasks?status=open&include_completed=true&surface=tasks"
+    : "/api/tasks?status=open&surface=tasks";
   const { data: tasksData, error: tasksError, mutate: mutateTasks } = useApi<{
     tasks?: Task[];
   }>(tasksKey);

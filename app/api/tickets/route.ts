@@ -10,6 +10,7 @@ import {
   type TicketCategory,
 } from "@/lib/tickets/categories";
 import { listTickets, type NowContext } from "@/lib/tickets/query";
+import { parseSurface } from "@/lib/tickets/surface";
 import { TEMPLATE_SELECT, instantiateTemplate, type TemplateRow } from "@/lib/tickets/templates";
 import {
   isTicketCategory,
@@ -65,6 +66,7 @@ export async function GET(req: NextRequest) {
       assignee,
       q: sp.get("q"),
       kind: sp.get("kind"),
+      surface: parseSurface(sp.get("surface")),
       updatedSince: sp.get("updated_since"),
       limit: sp.get("limit") ? Number(sp.get("limit")) : undefined,
       now,

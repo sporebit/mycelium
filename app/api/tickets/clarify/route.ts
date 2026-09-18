@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { auditListRead } from "@/lib/system/readAudit";
 import { listTickets } from "@/lib/tickets/query";
+import { parseSurface } from "@/lib/tickets/surface";
 import { mergeSuggestions, suggestContexts, type Suggestion } from "@/lib/tickets/suggest";
 
 export const runtime = "nodejs";
@@ -15,12 +16,13 @@ export async function GET(req: NextRequest) {
   // ?category=backlog → triage mode: the same card stack over Backlog
   // tickets that are not parked as someday (oldest first).
   const triageBacklog = req.nextUrl.searchParams.get("category") === "backlog";
+  const surface = parseSurface(req.nextUrl.searchParams.get("surface"));
   try {
     const supabase = await createUserClient();
     const [{ tickets }, projects] = await Promise.all([
       triageBacklog
-        ? listTickets(supabase, { categories: ["backlog"], someday: false, limit: 200 })
-        : listTickets(supabase, { list: "inbox", limit: 100 }),
+        ? listTickets(supabase, { categories: ["backlog"], someday: false, limit: 200, surface })
+        : listTickets(supabase, { list: "inbox", limit: 100, surface }),
       supabase
         .from("projects")
         .select("id, name, prefix")

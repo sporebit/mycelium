@@ -2,10 +2,16 @@ import { SectionOverview } from "@/components/dashboard/SectionOverview";
 
 const CARDS = [
   {
+    key: "tickets",
+    label: "Tickets",
+    href: "/organisation/tickets",
+    description: "Technical projects you're building — backlog, Now and GTD.",
+  },
+  {
     key: "tasks",
     label: "Tasks",
     href: "/organisation/tasks",
-    description: "Daily driver — list, kanban, table, calendar.",
+    description: "Personal life and everything outside project work.",
   },
   {
     key: "projects",

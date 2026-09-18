@@ -14,6 +14,7 @@ import {
 } from "@/lib/types/project";
 import type { Task, TaskStatus } from "@/lib/types/task";
 import { TaskStatusBoard } from "./TaskStatusBoard";
+import { useAreas } from "@/components/tickets/pickers";
 
 const PROJECTS_KEY = "/api/projects";
 const KANBAN_TASKS_KEY = "/api/tasks?status=open&include_completed=true";
@@ -74,9 +75,12 @@ export function ProjectsClient() {
     name: "",
     description: "",
     colour: COLOUR_PRESETS[0],
+    area_id: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Tickets / Tasks partition (0121): a project under a Technical area is a Tickets project.
+  const areas = useAreas();
 
   // Kanban-mode state. `kanbanFilter === null` means the user hasn't
   // touched the filter — we render with the implicit default of "all
@@ -176,6 +180,7 @@ export function ProjectsClient() {
             name,
             description: draft.description.trim() || null,
             colour: draft.colour.trim() || null,
+            area_id: draft.area_id || null,
           }),
         });
         created = j.project;
@@ -192,7 +197,7 @@ export function ProjectsClient() {
         (cur) => ({ ...cur, projects: [project, ...(cur?.projects ?? [])] }),
         { revalidate: false },
       );
-      setDraft({ name: "", description: "", colour: COLOUR_PRESETS[0] });
+      setDraft({ name: "", description: "", colour: COLOUR_PRESETS[0], area_id: "" });
       setShowNew(false);
     } finally {
       setSaving(false);
@@ -288,6 +293,24 @@ export function ProjectsClient() {
               placeholder="What's this project for?"
               className="bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2 resize-y"
             />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              Area
+            </span>
+            <select
+              value={draft.area_id}
+              onChange={(e) => setDraft((d) => ({ ...d, area_id: e.target.value }))}
+              className="bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+            >
+              <option value="">— none (Tasks) —</option>
+              {areas.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name} · {a.kind === "technical" ? "Tickets" : "Tasks"}
+                </option>
+              ))}
+            </select>
+            <span className="text-[11px] text-ink-3">A project under a Technical area shows on Tickets; everything else is Tasks.</span>
           </label>
           <fieldset className="flex flex-col gap-2">
             <legend className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1">

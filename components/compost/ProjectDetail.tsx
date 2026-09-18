@@ -16,6 +16,7 @@ import {
   type Purchase,
   type PurchaseWantOrNeed,
 } from "@/lib/types/purchase";
+import { useAreas } from "@/components/tickets/pickers";
 
 type Props = {
   initialProject: Project;
@@ -44,6 +45,7 @@ export function ProjectDetail({ initialProject }: Props) {
   const [addDraft, setAddDraft] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const areas = useAreas();
 
   useEffect(() => {
     let mounted = true;
@@ -387,6 +389,20 @@ export function ProjectDetail({ initialProject }: Props) {
             {PROJECT_STATUSES.map((s) => (
               <option key={s} value={s}>
                 {PROJECT_STATUS_LABEL[s]}
+              </option>
+            ))}
+          </select>
+          {/* Tickets / Tasks partition (0121): the area decides which surface this project's tickets show on */}
+          <select
+            value={project.area_id ?? ""}
+            onChange={(e) => void patchProject({ area_id: e.target.value || null })}
+            title="A project under a Technical area shows on Tickets; everything else is Tasks"
+            className="text-[11px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-2 py-1 rounded-md border border-ink-2 bg-ink-1 text-ink-3"
+          >
+            <option value="">no area · tasks</option>
+            {areas.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name} · {a.kind === "technical" ? "tickets" : "tasks"}
               </option>
             ))}
           </select>

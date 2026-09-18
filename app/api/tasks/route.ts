@@ -21,6 +21,7 @@ import {
   moveTicket,
   ticketFieldsFromBody,
 } from "@/lib/tickets/server";
+import { parseSurface, technicalProjectIds } from "@/lib/tickets/surface";
 
 /**
  * Soft-failure mention extraction for tasks created/edited outside the
@@ -82,6 +83,14 @@ export async function GET(req: NextRequest) {
       .neq("kind", "habit")
       .order("priority_score", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false });
+    // Tickets / Tasks partition (0121): surface=tasks keeps the classic view
+    // to life work; absent = everything, as before.
+    const surface = parseSurface(url.searchParams.get("surface"));
+    if (surface) {
+      const ids = await technicalProjectIds(supabase);
+      if (surface === "tickets") q = q.in("project_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+      else if (ids.length) q = q.or(`project_id.is.null,project_id.not.in.(${ids.join(",")})`);
+    }
 
     if (status === "open") q = q.is("completed_at", null);
     else if (status === "done") q = q.not("completed_at", "is", null);

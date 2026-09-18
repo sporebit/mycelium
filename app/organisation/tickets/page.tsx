@@ -41,7 +41,8 @@ const HINT: Record<GtdList, string> = {
 };
 
 function ListTab({ list, simple }: { list: Exclude<GtdList, "now">; simple: boolean }) {
-  const key = `/api/tickets?list=${list}`;
+  // Tickets surface only (0121): technical projects; life work lives on /organisation/tasks
+  const key = `/api/tickets?list=${list}&surface=tickets`;
   const { data, error, isLoading } = useApi<{ tickets: TicketRowData[] }>(key);
   const tickets = data?.tickets ?? [];
   const projects = useProjects();
@@ -188,7 +189,7 @@ export default function TicketsHomePage() {
   const { prefs, setPrefs } = useUiPrefs();
   const tp = ticketPrefs(prefs);
   const simple = tp.simple_statuses;
-  const { data: countsData } = useApi<{ counts: TicketCounts }>("/api/tickets/counts");
+  const { data: countsData } = useApi<{ counts: TicketCounts }>("/api/tickets/counts?surface=tickets");
   const counts = countsData?.counts;
 
   return (
@@ -256,7 +257,7 @@ export default function TicketsHomePage() {
                   : `Triage backlog${counts?.backlog ? ` (${counts.backlog})` : ""} →`}
               </button>
             </div>
-            <ClarifyStack simple={simple} source={triage ? "backlog" : "inbox"} />
+            <ClarifyStack simple={simple} source={triage ? "backlog" : "inbox"} surface="tickets" />
           </div>
         ) : (
           <ListTab list={tab} simple={simple} />
