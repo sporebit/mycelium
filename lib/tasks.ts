@@ -9,7 +9,7 @@ type RawTaskRow = Omit<
   entities: One<{ name: string }>;
   projects: One<{ name: string; colour: string | null }>;
   ticket_status?: One<{ name: string; category: string }>;
-  waiting_on?: One<{ display_name: string | null }>;
+  waiting_on?: One<{ display_name: string | null; first_name?: string | null; last_name?: string | null }>;
 };
 
 /**
@@ -19,7 +19,7 @@ type RawTaskRow = Omit<
  * the Person behind the Waiting list.
  */
 export const TASK_SELECT =
-  "id, title, description, urgency, status, key, ticket_key, seq, priority_score, time_estimate_min, tags, due_date, scheduled_at, owner, entity_id, project_id, completed_at, created_at, updated_at, parent_task_id, converted_from, context_where, context_device, context_energy, context_tag, google_event_id, status_id, kind, someday, urgent, points, where_ctx, place_id, tools, time_window, time_from, time_to, days, scheduled_on, deadline_on, remind_at, assignee_id, waiting_on_person_id, verified_by, verified_at, cancelled_at, source, suggested, rundown_md, recurrence_mode, recurrence_rrule, series_id, sync_to_github, github_issue_number, github_issue_url, meta, entities(name), projects(name, colour), ticket_status:ticket_statuses(name, category), waiting_on:people(display_name)";
+  "id, title, description, urgency, status, key, ticket_key, seq, priority_score, time_estimate_min, tags, due_date, scheduled_at, owner, entity_id, project_id, completed_at, created_at, updated_at, parent_task_id, converted_from, context_where, context_device, context_energy, context_tag, google_event_id, status_id, kind, someday, urgent, points, where_ctx, place_id, tools, time_window, time_from, time_to, days, scheduled_on, deadline_on, remind_at, assignee_id, waiting_on_person_id, verified_by, verified_at, cancelled_at, source, suggested, rundown_md, recurrence_mode, recurrence_rrule, series_id, sync_to_github, github_issue_number, github_issue_url, meta, entities(name), projects(name, colour), ticket_status:ticket_statuses(name, category), waiting_on:people(display_name, first_name, last_name)";
 
 function first<T>(v: One<T> | undefined): T | null {
   if (!v) return null;
@@ -49,7 +49,8 @@ export function serializeTask(row: RawTaskRow): Task {
     project_colour: proj?.colour ?? null,
     category: (st?.category as Task["category"]) ?? null,
     status_name: st?.name ?? null,
-    waiting_on_name: wo?.display_name ?? null,
+    // people.display_name is optional; fall back to first + last (MYC-45 came back blank)
+    waiting_on_name: wo ? (wo.display_name || [wo.first_name, wo.last_name].filter(Boolean).join(" ") || null) : null,
   };
 }
 
