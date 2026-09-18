@@ -90,7 +90,14 @@ const { pos, opts } = parseArgs(rest);
 switch (cmd) {
   case "ls": {
     const sp = new URLSearchParams();
-    if (opts.list) sp.set("list", String(opts.list));
+    const GTD = ["now", "inbox", "today", "upcoming", "next", "waiting", "someday", "logbook"];
+    // --list takes a GTD list or a category (doing, backlog, verify, done, cancelled) or a csv of categories
+    if (opts.list) {
+      const v = String(opts.list);
+      if (GTD.includes(v)) sp.set("list", v);
+      else sp.set("category", v);
+    }
+    if (opts.surface) sp.set("surface", String(opts.surface));
     if (opts.q) sp.set("q", String(opts.q));
     if (opts.limit) sp.set("limit", String(opts.limit));
     if (opts.project) sp.set("project", await resolveProject(String(opts.project)));
