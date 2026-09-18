@@ -101,6 +101,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
   },
   {
     section: "organisation",
+    group: "quotes",
+    tables: ["quotes"],
+    note: "Quotes v1 (0126): things people said, attributed to a Person or to the owner.",
+  },
+  {
+    section: "organisation",
     group: "events",
     tables: ["events"],
     note: "Calendar lives under Organisation in the nav. events has no user_id column; Part 2 backfills created_by from the space owner.",
@@ -237,9 +243,10 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
     note: "A dated notes-and-mood log; sits with the journal rather than with habits.",
   },
 
-  // -- places / reminders ---------------------------------------------------
+  // -- places ---------------------------------------------------------------
+  // (the reminders table was folded into tickets — 0119 — and dropped in 0125;
+  //  the "reminders" section constant stays for existing user_grants rows)
   { section: "places", group: "places", tables: ["places"] },
-  { section: "reminders", group: "reminders", tables: ["reminders"] },
 
   // -- platform -------------------------------------------------------------
   {
