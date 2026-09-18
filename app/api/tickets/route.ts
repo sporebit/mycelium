@@ -67,6 +67,7 @@ export async function GET(req: NextRequest) {
       q: sp.get("q"),
       kind: sp.get("kind"),
       surface: parseSurface(sp.get("surface")),
+      sprint: sp.get("sprint"),
       updatedSince: sp.get("updated_since"),
       limit: sp.get("limit") ? Number(sp.get("limit")) : undefined,
       now,

@@ -161,6 +161,13 @@ export function NowView({ simple }: { simple: boolean }) {
         >
           + backlog
         </Chip>
+        <Chip
+          active={tp.now_sprint_only}
+          onClick={() => void setPrefs({ tickets: { ...tp, now_sprint_only: !tp.now_sprint_only } })}
+          title="Only tickets committed to an active sprint"
+        >
+          ⚡ sprint
+        </Chip>
       </div>
 
       <p className="mt-2 text-[11px] text-ink-3">

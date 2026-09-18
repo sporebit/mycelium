@@ -82,6 +82,10 @@ export default function TicketPage() {
   const people = usePeople();
   const { data: assigneeData } = useApi<{ assignees: Array<{ id: string; display_name: string | null; me: boolean }> }>("/api/tickets/assignees");
   const assignees = assigneeData?.assignees ?? [];
+  const { data: sprintData } = useApi<{ sprints: Array<{ id: string; name: string; status: string }> }>(
+    data?.task.project_id ? `/api/sprints?project=${data.task.project_id}` : null,
+  );
+  const sprints = (sprintData?.sprints ?? []).filter((s) => s.status !== "closed" || s.id === data?.task.sprint_id);
 
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -245,6 +249,28 @@ export default function TicketPage() {
               </option>
             ))}
           </select>
+        </div>
+      )}
+
+      {/* Sprint commitment (0123): planned or active sprints of the ticket's project */}
+      {(sprints.length > 0 || t.sprint_id) && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <Label>Sprint</Label>
+          <select
+            className="rounded-sm bg-ink-2 px-2 py-1 text-sm text-text-0"
+            value={t.sprint_id ?? ""}
+            onChange={(e) => void patch({ sprint_id: e.target.value || null })}
+          >
+            <option value="">— none —</option>
+            {sprints.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} ({s.status})
+              </option>
+            ))}
+          </select>
+          <Link href="/organisation/tickets/sprints" className="text-[11px] text-ink-3 hover:text-ink-4">
+            sprints →
+          </Link>
         </div>
       )}
 

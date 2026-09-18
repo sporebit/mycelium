@@ -52,6 +52,8 @@ export type ListParams = {
   someday?: boolean | null;
   /** Tickets / Tasks partition (0121): technical projects vs everything else. */
   surface?: Surface | null;
+  /** Sprint membership (0123): a sprint id, or "active" for tickets in any active sprint. */
+  sprint?: string | null;
 };
 
 /** Apply the surface predicate (see lib/tickets/surface.ts). */
@@ -74,7 +76,9 @@ export async function listTickets(
   const today = now.date;
   const limit = Math.min(Math.max(p.limit ?? 300, 1), 1000);
 
-  let q = supabase.from("tickets").select(LIST_SELECT).is("deleted_at", null);
+  // sprint=active needs an inner join on the sprint embed so the status filter applies
+  const select = p.sprint === "active" ? LIST_SELECT.replace("sprint:sprints(", "sprint:sprints!inner(") : LIST_SELECT;
+  let q = supabase.from("tickets").select(select).is("deleted_at", null);
 
   let cats: readonly TicketCategory[] | null = p.categories?.length ? p.categories : null;
   let postFilter: ((t: TicketRow) => boolean) | null = null;
@@ -168,6 +172,8 @@ export async function listTickets(
     if (c.kind === "in") q = q.in("project_id", c.value.split(","));
     else if (c.kind === "or") q = q.or(c.value);
   }
+  if (p.sprint === "active") q = q.eq("sprint.status", "active");
+  else if (p.sprint) q = q.eq("sprint_id", p.sprint);
   if (p.assignee) q = q.eq("assignee_id", p.assignee);
   if (p.updatedSince) q = q.gte("updated_at", p.updatedSince);
   if (p.q) {

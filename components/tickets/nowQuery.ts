@@ -23,10 +23,10 @@ export function nowQueryUrl(tp: UiPrefs["tickets"]): string {
   return `/api/tickets?${sp.toString()}`;
 }
 
-export type NowChips = { where: "anywhere" | "home" | "out"; tools: string[]; maxPoints: number | null };
+export type NowChips = { where: "anywhere" | "home" | "out"; tools: string[]; maxPoints: number | null; sprintOnly: boolean };
 
 export function chipsFor(tp: UiPrefs["tickets"], device: DeviceClass, toolOverride: string[] | null = null): NowChips {
-  return { where: tp.now_where, tools: toolOverride ?? toolsForDevice(device), maxPoints: tp.now_max_points };
+  return { where: tp.now_where, tools: toolOverride ?? toolsForDevice(device), maxPoints: tp.now_max_points, sprintOnly: tp.now_sprint_only };
 }
 
 /** The spec §5 predicates, applied client-side (same semantics as the server's). */
@@ -37,6 +37,7 @@ export function applyNowContext<T extends Task>(tickets: T[], chips: NowChips): 
     const tools = t.tools ?? ["none"];
     if (!(tools.includes("none") || tools.some((x) => chips.tools.includes(x)))) return false;
     if (chips.maxPoints != null && t.points != null && t.points > chips.maxPoints) return false;
+    if (chips.sprintOnly && t.sprint_status !== "active") return false;
     return true;
   });
 }

@@ -29,6 +29,7 @@ const BULK_FIELDS = new Set([
   "someday",
   "urgent",
   "kind",
+  "sprint_id",
 ]);
 
 const MAX = 200;

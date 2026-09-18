@@ -67,6 +67,7 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
       "ticket_completions",
       "ticket_dependencies",
       "ticket_templates",
+      "sprints",
     ],
   },
   {

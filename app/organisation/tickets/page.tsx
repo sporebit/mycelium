@@ -205,6 +205,12 @@ export default function TicketsHomePage() {
           >
             {simple ? "Detailed statuses" : "Simple statuses"}
           </button>
+          <Link href="/organisation/tickets/sprints" className="text-ink-3 hover:text-ink-4">
+            Sprints
+          </Link>
+          <Link href="/organisation/tickets/review" className="text-ink-3 hover:text-ink-4">
+            Review
+          </Link>
           <Link href="/organisation/tickets/templates" className="text-ink-3 hover:text-ink-4">
             Templates
           </Link>

@@ -155,6 +155,11 @@ export function TicketListRow({
             ⏳ {t.waiting_on_name}
           </span>
         )}
+        {t.sprint_name && (
+          <span className={`hidden max-w-[110px] shrink-0 truncate text-[10px] sm:inline ${t.sprint_status === "active" ? "text-accent" : "text-ink-3"}`} title={`Sprint: ${t.sprint_name} (${t.sprint_status})`}>
+            ⚡ {t.sprint_name}
+          </span>
+        )}
         {t.assignee_name && (
           <span className="hidden max-w-[110px] shrink-0 truncate text-[11px] text-glow-2 sm:inline" title="Assignee">
             @{t.assignee_name}

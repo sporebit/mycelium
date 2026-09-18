@@ -105,6 +105,10 @@ export type Task = {
   github_issue_number?: number | null;
   github_issue_url?: string | null;
   meta?: Record<string, unknown> | null;
+  /** Sprint commitment (0123). */
+  sprint_id?: string | null;
+  sprint_name?: string | null;
+  sprint_status?: "planned" | "active" | "closed" | null;
   priority_score: number | null;
   time_estimate_min: number | null;
   tags: string[] | null;
