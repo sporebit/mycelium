@@ -15,7 +15,7 @@ Values live in Vercel (Production/Preview) and in the local `.env.local`;
 | `BREAK_GLASS_SECRET` | Dormant emergency access (P12) | Random. `BREAK_GLASS_ENABLED=false` except during an incident. Replaced the retired `AUTH_SECRET`. |
 | `API_SECRET` | System/API principal bearer (acts as Phil) | Superseded per-token by Tickets `api_tokens` (spec §14.4) once that ships. |
 | `CRON_SECRET` | Authorises cron routes (rundowns, tickets nightly / check-ins, quotes research sweeper) | Rotate on suspicion; update cron-job.org / Vercel cron config together. |
-| `ANTHROPIC_API_KEY` | Rundowns (`tickets.rundown`) and Quotes research (`quotes.research`), both Sonnet + web search, both logged to `api_usage` | Set on Vercel (Production). Proven live 2026-09-19 by a Quotes research re-run. `ANTHROPIC_MODEL` optionally overrides the Sonnet id. |
+| `ANTHROPIC_API_KEY` | Rundowns (`tickets.rundown`) and Quotes research (`quotes.research`), both Sonnet + web search, both logged to `api_usage` | Set on Vercel (Production). Proven live 2026-09-18 by a Quotes research re-run. `ANTHROPIC_MODEL` optionally overrides the Sonnet id. |
 | `RESEND_API_KEY` | Transactional email (invites, rundowns) | Sending-only key. Set when Resend is configured. |
 | `TELEGRAM_*` | Capture bot webhook + send | Webhook secret + bot token. |
 | `GOOGLE_CLIENT_ID` / secret | Calendar integration, and (later) Google sign-in | A separate sign-in client is recommended over reusing the calendar client. |
