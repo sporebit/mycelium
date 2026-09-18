@@ -3,16 +3,13 @@
  *
  * A habit is a visible `series` ticket (kind = habit, FREQ=DAILY) whose
  * legacy id lives in meta.habit_id; a day's completion is a
- * ticket_completions row. This module is the only writer. During the
- * transition it also mirrors into the daily_logs JSON (notes.habits.done and
- * the sentinel row's habits_config) so the Today glance row, Operator card,
- * briefings and headlines — which still read the JSON — stay correct until
- * they are re-pointed and the old read path is dropped.
+ * ticket_completions row. This module is the only writer. The daily_logs
+ * JSON (notes.habits.done, the sentinel habits_config) is no longer read or
+ * written anywhere — the old path was retired on 2026-09-18 once every
+ * reader moved to completions.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { HABITS as DEFAULT_HABITS, type Habit } from "@/lib/config/habits";
-import { getOrCreateDailyLog, parseNotes } from "@/lib/dailyLog";
-import { GOALS_SENTINEL_DATE } from "@/lib/types/goals";
 import { localDateKey, previousDateKey } from "@/lib/util/date";
 import { moveTicket, statusIdFor } from "@/lib/tickets/server";
 
@@ -80,7 +77,7 @@ export async function doneOn(db: SupabaseClient, date: string): Promise<string[]
     .filter((x): x is string => !!x);
 }
 
-/** Set one habit done / not done for a day; mirrors into the daily-log JSON. */
+/** Set one habit done / not done for a day. */
 export async function setDone(
   db: SupabaseClient,
   habitId: string,
@@ -109,23 +106,7 @@ export async function setDone(
     if (error) throw error;
   }
 
-  const ids = await doneOn(db, date);
-  await mirrorDone(db, date, ids);
-  return ids;
-}
-
-async function mirrorDone(db: SupabaseClient, date: string, ids: string[]): Promise<void> {
-  try {
-    const row = await getOrCreateDailyLog(db, date);
-    const notes = parseNotes(row.notes);
-    const merged = { ...notes, habits: { ...(notes.habits ?? {}), done: ids } };
-    await db
-      .from("daily_logs")
-      .update({ notes: JSON.stringify(merged), updated_at: new Date().toISOString() })
-      .eq("id", row.id);
-  } catch (err) {
-    console.error("[habits] daily_log mirror failed:", err);
-  }
+  return doneOn(db, date);
 }
 
 /** History for the heatmap: one entry per day, oldest first. */
@@ -198,8 +179,7 @@ export async function habitStreak(db: SupabaseClient): Promise<number> {
 
 /**
  * Save the habit list from the config modal: rename / re-target existing
- * tickets, create new ones, cancel removed ones. Mirrors habits_config into
- * the sentinel daily-log row for the readers still on the JSON.
+ * tickets, create new ones, cancel removed ones.
  */
 export async function saveHabits(
   db: SupabaseClient,
@@ -268,18 +248,6 @@ export async function saveHabits(
   }
   for (const h of existing) {
     if (!keep.has(h.id)) await moveTicket(db, h.ticket_id, "cancelled");
-  }
-
-  // mirror config for the JSON readers
-  try {
-    const row = await getOrCreateDailyLog(db, GOALS_SENTINEL_DATE);
-    const current = parseNotes(row.notes) as Record<string, unknown>;
-    await db
-      .from("daily_logs")
-      .update({ notes: JSON.stringify({ ...current, habits_config: habits }), updated_at: now })
-      .eq("id", row.id);
-  } catch (err) {
-    console.error("[habits] sentinel mirror failed:", err);
   }
 
   return listHabits(db);

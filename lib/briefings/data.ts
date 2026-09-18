@@ -1,11 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { previousDateKey } from "@/lib/util/date";
-import { parseNotes } from "@/lib/dailyLog";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import { isBlocker, sortBlockers, toBlockerRow } from "@/lib/blockers";
 import type { BlockerRow } from "@/lib/blockers";
 import type { Task } from "@/lib/types/task";
-import { computeStreak } from "@/lib/streak/compute";
+import { doneOn, habitStreak, listHabits } from "@/lib/habits/store";
 import { getCalendarData, type CalendarEvent } from "@/lib/calendar/fetch";
 import {
   getLatestSnapshot,
@@ -123,33 +122,9 @@ async function fetchYesterdayHabits(
   supabase: SupabaseClient,
   yesterdayKey: string
 ): Promise<{ done: number; total: number }> {
-  // Yesterday's row → done count
-  const [yesterdayRow, sentinelRow] = await Promise.all([
-    supabase
-      .from("daily_logs")
-      .select("notes")
-      .eq("log_date", yesterdayKey)
-      .maybeSingle(),
-    supabase
-      .from("daily_logs")
-      .select("notes")
-      .eq("log_date", "2000-01-01")
-      .maybeSingle(),
-  ]);
-
-  const yNotes = parseNotes(yesterdayRow.data?.notes ?? null);
-  const sNotes = parseNotes(sentinelRow.data?.notes ?? null) as {
-    habits_config?: unknown;
-  };
-
-  const done = Array.isArray(yNotes.habits?.done)
-    ? yNotes.habits!.done!.length
-    : 0;
-  const total = Array.isArray(sNotes.habits_config)
-    ? sNotes.habits_config.length
-    : 6;
-
-  return { done, total };
+  // habits are series tickets (0118): completions yesterday over the habit tickets
+  const [habits, done] = await Promise.all([listHabits(supabase), doneOn(supabase, yesterdayKey)]);
+  return { done: done.length, total: habits.length || 6 };
 }
 
 async function fetchFinanceWithDelta(
@@ -205,7 +180,7 @@ export async function gatherBriefingData(
     fetchTopTasks(supabase),
     fetchTopBlockers(supabase, dateKey),
     fetchYesterdayHabits(supabase, yesterdayKey),
-    computeStreak(supabase, "Europe/London"),
+    habitStreak(supabase),
     fetchFinanceWithDelta(supabase, dateKey),
     fetchWeather(),
     fetchPendingReviewCount(supabase),

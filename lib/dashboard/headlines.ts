@@ -1,8 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { localDateKey, previousDateKey } from "@/lib/util/date";
 import { isoWeekString } from "@/lib/util/week";
-import { parseNotes } from "@/lib/dailyLog";
-import { GOALS_SENTINEL_DATE } from "@/lib/types/goals";
 import { HABITS as DEFAULT_HABITS } from "@/lib/config/habits";
 
 export type HeadlineContext = {
@@ -161,16 +159,18 @@ export async function buildHeadlineContext(
       .from("raw_captures")
       .select("id", { count: "exact", head: true })
       .gte("created_at", since24h),
+    // habits are series tickets (0118): yesterday's completions and the habit count
     supabase
-      .from("daily_logs")
-      .select("notes")
-      .eq("log_date", yesterday)
-      .maybeSingle(),
+      .from("ticket_completions")
+      .select("ticket_id", { count: "exact", head: true })
+      .eq("completed_on", yesterday),
     supabase
-      .from("daily_logs")
-      .select("notes")
-      .eq("log_date", GOALS_SENTINEL_DATE)
-      .maybeSingle(),
+      .from("tickets")
+      .select("id", { count: "exact", head: true })
+      .eq("kind", "habit")
+      .eq("recurrence_mode", "series")
+      .is("cancelled_at", null)
+      .is("deleted_at", null),
     supabase
       .from("raw_captures")
       .select("id", { count: "exact", head: true }),
@@ -227,20 +227,9 @@ export async function buildHeadlineContext(
     workoutsTodayPlanned = count ?? 0;
   }
 
-  // Habits — done set on yesterday's log, total from sentinel config
-  const yesterdayNotes = parseNotes(
-    (yesterdayLog.data as { notes: string | null } | null)?.notes ?? null
-  );
-  const habitsHitYesterday = Array.isArray(yesterdayNotes.habits?.done)
-    ? yesterdayNotes.habits!.done!.length
-    : 0;
-
-  const configNotes = parseNotes(
-    (habitsConfigLog.data as { notes: string | null } | null)?.notes ?? null
-  ) as { habits_config?: unknown };
-  const habitsTotalYesterday = Array.isArray(configNotes.habits_config)
-    ? configNotes.habits_config.length
-    : DEFAULT_HABITS.length;
+  // Habits (series tickets): completions yesterday over the configured habits
+  const habitsHitYesterday = yesterdayLog.count ?? 0;
+  const habitsTotalYesterday = habitsConfigLog.count || DEFAULT_HABITS.length;
 
   return {
     todaysCriticalTaskCount: criticalTasks.count ?? 0,

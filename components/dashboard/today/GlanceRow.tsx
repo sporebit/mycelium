@@ -5,9 +5,7 @@ import { Surface, Skeleton, Label, Num } from "@/components/ui";
 import { useApi } from "@/lib/data/useApi";
 import { localDateKey } from "@/lib/util/date";
 
-type DailyLogResponse = {
-  notes?: { habits?: { done?: string[] } } & Record<string, unknown>;
-};
+type HabitsToday = { date: string; done: string[]; habits: unknown[] };
 
 type PendingCount = { count?: number };
 
@@ -15,14 +13,15 @@ type SuppData = { progress: { taken: number; total: number } };
 
 export function GlanceRow() {
   const today = localDateKey();
-  const { data: daily, isLoading: dailyLoading } =
-    useApi<DailyLogResponse>("/api/daily-log/today");
+  // habits are series tickets: today's done set comes from ticket_completions
+  const { data: habitsToday, isLoading: dailyLoading } =
+    useApi<HabitsToday>("/api/habits/today");
   const { data: pending } =
     useApi<PendingCount>("/api/captures/review/pending-count");
   const { data: supp } =
     useApi<SuppData>(`/api/supplements/daily?date=${today}`);
 
-  const doneCount = daily?.notes?.habits?.done?.length ?? 0;
+  const doneCount = habitsToday?.done?.length ?? 0;
   const suppTaken = supp?.progress?.taken ?? 0;
   const suppTotal = supp?.progress?.total ?? 0;
   const captureCount = pending?.count ?? 0;
