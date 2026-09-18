@@ -1,0 +1,14 @@
+# Line endings: the repo stores LF everywhere. Windows checkouts with
+# core.autocrlf=true were re-committing whole files as CRLF churn, which made
+# doc diffs unreadable (2026-09-18). `git add --renormalize .` after changes.
+* text=auto eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.mjs text eol=lf
+*.sql text eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
