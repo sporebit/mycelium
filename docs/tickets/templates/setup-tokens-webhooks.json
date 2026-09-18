@@ -1,0 +1,174 @@
+{
+  "slug": "setup-tokens-webhooks",
+  "name": "Set up tokens and webhooks",
+  "kind": "setup",
+  "version": 1,
+  "definition": {
+    "title": "Set up the Tickets secrets, a token and the webhooks",
+    "body_md": "One-off setup for Part G: an API token for tix / Claude Code, the GitHub and Vercel webhooks, optional Issues sync, and the Anthropic key for rundowns. Names and purposes: docs/tokens.md.",
+    "kind": "setup",
+    "where_ctx": "home",
+    "tools": [
+      "pc"
+    ],
+    "time_window": "anytime",
+    "points": 3,
+    "steps_definition": {
+      "slug": "setup-tokens-webhooks",
+      "kind": "setup",
+      "title": "Tokens and webhooks",
+      "version": 1,
+      "toggles": {
+        "shell": {
+          "label": "Shell",
+          "options": {
+            "bash": "Git Bash",
+            "ps": "PowerShell"
+          },
+          "default": "bash"
+        }
+      },
+      "values": [
+        {
+          "key": "token_name",
+          "label": "API token name",
+          "placeholder": "claude-code on the PC"
+        }
+      ],
+      "intro": {
+        "verdict_html": "<p>Do this once. Each step names the exact place and the exact value; nothing here is a test.</p>",
+        "prerequisites": [
+          "Vercel project access (sporebit-s-projects / mycelium)",
+          "GitHub repo admin for the webhook",
+          "<code>CRON_SECRET</code> at hand for the manual cron run"
+        ],
+        "time": [
+          "20 minutes"
+        ],
+        "cost": [
+          "none"
+        ]
+      },
+      "phases": [
+        {
+          "id": "1",
+          "title": "Tokens and secrets",
+          "lede_html": "<p>Values live in Vercel; names only in docs/tokens.md.</p>",
+          "steps": [
+            {
+              "id": "7.1",
+              "title": "Settings → Security → API tokens: create one named {{token_name}} for MYC with write; copy it once",
+              "actor": "you",
+              "where": {
+                "label": "/other/settings/security",
+                "url": "https://mycelium.sporebit.com/other/settings/security",
+                "kind": "page"
+              }
+            },
+            {
+              "id": "7.2",
+              "title": "In a shell set the token and list your Doing tickets",
+              "actor": "claude-code",
+              "where": {
+                "label": "Terminal",
+                "kind": "terminal"
+              },
+              "blocks": [
+                {
+                  "label": "tix",
+                  "shells": {
+                    "bash": "export MYCELIUM_URL=https://mycelium.sporebit.com MYCELIUM_TICKETS_TOKEN=mtk_…\ncd /a/Projects/Mycelium && npm run tix -- ls --list doing",
+                    "ps": "$env:MYCELIUM_URL='https://mycelium.sporebit.com'; $env:MYCELIUM_TICKETS_TOKEN='mtk_…'\ncd A:\\Projects\\Mycelium; npm run tix -- ls --list doing"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "7.3",
+              "title": "Try a write outside scope: a token with read only should get 403 on `tix comment`",
+              "actor": "claude-code",
+              "where": {
+                "label": "Terminal",
+                "kind": "terminal"
+              }
+            },
+            {
+              "id": "7.4",
+              "title": "Set GITHUB_WEBHOOK_SECRET on Vercel and add a repo webhook (push, pull_request, issues) → /api/tickets/github; push a commit with a key in its message → the ticket gains a commit link and moves to Verify",
+              "actor": "you",
+              "where": {
+                "label": "GitHub → repo → Settings → Webhooks",
+                "kind": "dashboard"
+              }
+            },
+            {
+              "id": "7.5",
+              "title": "Run the check-in cron by hand and read the JSON (reminders / checkins / review_reminder)",
+              "actor": "claude-code",
+              "where": {
+                "label": "Terminal",
+                "kind": "terminal"
+              },
+              "blocks": [
+                {
+                  "label": "cron",
+                  "text": "curl -s -H \"authorization: Bearer $CRON_SECRET\" \"https://mycelium.sporebit.com/api/cron/tickets-checkins?force=1\"\ncurl -s -H \"authorization: Bearer $CRON_SECRET\" \"https://mycelium.sporebit.com/api/cron/tickets-nightly?dry=1\""
+                }
+              ]
+            },
+            {
+              "id": "7.6",
+              "title": "Set VERCEL_WEBHOOK_SECRET and add a Vercel webhook (deployment.succeeded) → /api/tickets/vercel; after the next production deploy the Verify ticket from 7.4 is Done with deploy + smoke links",
+              "actor": "you",
+              "where": {
+                "label": "Vercel → Settings → Webhooks",
+                "kind": "dashboard"
+              }
+            },
+            {
+              "id": "7.7",
+              "title": "Export: open the backlog export and skim it",
+              "actor": "you",
+              "where": {
+                "label": "/api/tickets/export?project=MYC&format=backlog-md",
+                "url": "https://mycelium.sporebit.com/api/tickets/export?project=MYC&format=backlog-md",
+                "kind": "browser"
+              }
+            }
+          ],
+          "verify_html": [
+            "A ticket closed by the Vercel webhook shows deploy + smoke links and <em>done (unverified)</em> in the export until you tap Verified live"
+          ],
+          "why_html": "Automation sets Done with evidence; your live check is the separate verified signal (Flag 1)."
+        }
+      ],
+      "troubleshooting": [
+        {
+          "symptom": "tix answers 401",
+          "cause": "token revoked, expired or mistyped",
+          "fix": "mint a new one at Settings → Security → API tokens"
+        },
+        {
+          "symptom": "tix answers 403 token_scope",
+          "cause": "the token is read-only or scoped to another route family",
+          "fix": "create a token with write and routes tickets"
+        },
+        {
+          "symptom": "GitHub webhook shows 401 in Recent Deliveries",
+          "cause": "GITHUB_WEBHOOK_SECRET differs between GitHub and Vercel",
+          "fix": "paste the same value both sides and redeploy"
+        }
+      ],
+      "links": [
+        {
+          "label": "Names of every secret",
+          "url": "https://github.com/sporebit/mycelium/blob/main/docs/tokens.md"
+        },
+        {
+          "label": "Settings → Security",
+          "url": "https://mycelium.sporebit.com/other/settings/security"
+        }
+      ]
+    }
+  }
+}

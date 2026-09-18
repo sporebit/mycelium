@@ -2,7 +2,7 @@
   "slug": "smoke-test-parts-b-h",
   "name": "Tickets smoke test — Parts B to H",
   "kind": "test",
-  "version": 2,
+  "version": 3,
   "definition": {
     "title": "Tickets smoke test — Parts B–H ({{run}})",
     "body_md": "Phil's live check of everything Tickets shipped on 2026-09-17. Tick each step as you go; type what you saw into the answer boxes. Anything that fails: leave it unticked and add a comment on this ticket with the step id.",
@@ -18,7 +18,7 @@
       "slug": "smoke-test-parts-b-h",
       "kind": "test",
       "title": "Tickets smoke test — Parts B–H",
-      "version": 2,
+      "version": 3,
       "toggles": {
         "device": {
           "label": "Device",
@@ -34,26 +34,21 @@
           "key": "run",
           "label": "Run label",
           "placeholder": "2026-09-18 evening"
-        },
-        {
-          "key": "token_name",
-          "label": "API token name you create in step 7.1",
-          "placeholder": "claude-code on the PC"
         }
       ],
       "intro": {
-        "verdict_html": "<p>Seven phases, about 40 minutes end to end. Phases 1–4 are the daily surfaces (Now, Inbox, ticket page, habits). Phase 5 is Telegram. Phase 6 is templates, steps and the weekly review. Phase 7 is tokens, the CLI and the two webhooks, which need secrets you set yourself.</p>",
+        "verdict_html": "<p>Six phases, about 30 minutes end to end. Phases 1–4 are the daily surfaces (Now, Inbox, ticket page, habits). Phase 5 is Telegram. Phase 6 is templates, steps and the weekly review. Tokens, the CLI and the two webhooks are a one-off setup ticket (template <em>setup-tokens-webhooks</em>, ticket MYC-127), not part of this test.</p>",
         "prerequisites": [
           "Signed in on the phone and the PC",
           "The Telegram bot chat open",
           "Ten minutes of quiet for phase 5 — it sends real messages",
           "For 6.3 (rundown): <code>ANTHROPIC_API_KEY</code> present in Vercel Production",
-          "For 7.5: <code>CRON_SECRET</code> in your shell; for 7.4 / 7.6: the two webhook secrets — see ticket MYC-127 and docs/tokens.md. Phase 7 is setup plus verification; do it once, then re-runs skip it."
+          "For 6.3 (rundown): <code>ANTHROPIC_API_KEY</code> present in Vercel Production — see MYC-127."
         ],
         "time": [
           "Phases 1–4: 15 min",
           "Phase 5: 10 min",
-          "Phases 6–7: 15 min"
+          "Phase 6: 10 min"
         ],
         "cost": [
           "One rundown ≈ 5p (Sonnet + web search)"
@@ -423,104 +418,6 @@
           "verify_html": [
             "The sealed week appears as an activity row on the Weekly review ticket"
           ]
-        },
-        {
-          "id": "7",
-          "title": "Tokens, CLI, webhooks (PC)",
-          "lede_html": "<p>Needs secrets you set yourself; the webhooks stay dormant until then.</p>",
-          "steps": [
-            {
-              "id": "7.1",
-              "title": "Settings → Security → API tokens: create one named {{token_name}} for MYC with write; copy it once",
-              "actor": "you",
-              "where": {
-                "label": "/other/settings/security",
-                "url": "https://mycelium.sporebit.com/other/settings/security",
-                "kind": "page"
-              },
-              "route": "pc"
-            },
-            {
-              "id": "7.2",
-              "title": "In a shell set the token and list your Doing tickets",
-              "actor": "claude-code",
-              "where": {
-                "label": "Terminal",
-                "kind": "terminal"
-              },
-              "route": "pc",
-              "blocks": [
-                {
-                  "label": "tix",
-                  "shells": {
-                    "bash": "export MYCELIUM_URL=https://mycelium.sporebit.com MYCELIUM_TICKETS_TOKEN=mtk_…\ncd /a/Projects/Mycelium && npm run tix -- ls --list doing",
-                    "ps": "$env:MYCELIUM_URL='https://mycelium.sporebit.com'; $env:MYCELIUM_TICKETS_TOKEN='mtk_…'\ncd A:\\Projects\\Mycelium; npm run tix -- ls --list doing"
-                  }
-                }
-              ]
-            },
-            {
-              "id": "7.3",
-              "title": "Try a write outside scope: a token with read only should get 403 on `tix comment`",
-              "actor": "claude-code",
-              "where": {
-                "label": "Terminal",
-                "kind": "terminal"
-              },
-              "route": "pc"
-            },
-            {
-              "id": "7.4",
-              "title": "Set GITHUB_WEBHOOK_SECRET on Vercel and add a repo webhook (push, pull_request, issues) → /api/tickets/github; push a commit with a key in its message → the ticket gains a commit link and moves to Verify",
-              "actor": "you",
-              "where": {
-                "label": "GitHub → repo → Settings → Webhooks",
-                "kind": "dashboard"
-              },
-              "route": "pc"
-            },
-            {
-              "id": "7.5",
-              "title": "Run the check-in cron by hand and read the JSON (reminders / checkins / review_reminder)",
-              "actor": "claude-code",
-              "where": {
-                "label": "Terminal",
-                "kind": "terminal"
-              },
-              "route": "pc",
-              "blocks": [
-                {
-                  "label": "cron",
-                  "text": "curl -s -H \"authorization: Bearer $CRON_SECRET\" \"https://mycelium.sporebit.com/api/cron/tickets-checkins?force=1\"\ncurl -s -H \"authorization: Bearer $CRON_SECRET\" \"https://mycelium.sporebit.com/api/cron/tickets-nightly?dry=1\""
-                }
-              ]
-            },
-            {
-              "id": "7.6",
-              "title": "Set VERCEL_WEBHOOK_SECRET and add a Vercel webhook (deployment.succeeded) → /api/tickets/vercel; after the next production deploy the Verify ticket from 7.4 is Done with deploy + smoke links",
-              "actor": "you",
-              "where": {
-                "label": "Vercel → Settings → Webhooks",
-                "kind": "dashboard"
-              },
-              "route": "pc"
-            },
-            {
-              "id": "7.7",
-              "title": "Export: open the backlog export and skim it",
-              "actor": "you",
-              "where": {
-                "label": "/api/tickets/export?project=MYC&format=backlog-md",
-                "url": "https://mycelium.sporebit.com/api/tickets/export?project=MYC&format=backlog-md",
-                "kind": "browser"
-              },
-              "route": "pc"
-            }
-          ],
-          "verify_html": [
-            "A ticket closed by the Vercel webhook shows deploy + smoke links and <em>done (unverified)</em> in the export until you tap Verified live"
-          ],
-          "why_html": "Automation sets Done with evidence; your live check is the separate verified signal (Flag 1)."
         }
       ],
       "troubleshooting": [
