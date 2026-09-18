@@ -56,6 +56,12 @@ const CARDS = [
     description: "Rolodex of mentions, captures, and shared context.",
   },
   {
+    key: "quotes",
+    label: "Quotes",
+    href: "/organisation/quotes",
+    description: "Things people said — attributed, researched, merch-flagged.",
+  },
+  {
     key: "habits",
     label: "Habits",
     href: "/organisation/habits",

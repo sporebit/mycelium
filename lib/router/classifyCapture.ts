@@ -20,7 +20,8 @@ export type CaptureKind =
   | "pain_log"
   | "reminder"
   | "media"
-  | "account";
+  | "account"
+  | "quote";
 export type CaptureUrgency = "today" | "this_week" | "this_month" | "someday";
 export type CaptureMood =
   | "energised"
@@ -93,6 +94,18 @@ export type AccountDetails = {
   status: "active" | "cancelled" | "paused" | "trial";
 };
 
+/** Quotes spec §4.1 — the extraction the classifier returns for kind = quote. */
+export type QuoteDetails = {
+  text: string;
+  speaker: string | null;
+  is_own: boolean;
+  speaker_confidence: "certain" | "uncertain";
+  context: string | null;
+  said_at_relative: string | null;
+  source: string | null;
+  likely_original: boolean;
+};
+
 export type ContextEnergy = "low" | "medium" | "high";
 
 export type Classification = {
@@ -110,6 +123,7 @@ export type Classification = {
   reminder: ReminderDetails | null; // only meaningful for reminder
   media: MediaDetails | null; // only meaningful for media
   account: AccountDetails | null; // only meaningful for account
+  quote: QuoteDetails | null; // only meaningful for quote
   /** Context fields — applies to every kind. The classifier sets them
    *  when they're clear from the text, otherwise leaves them null so
    *  the post-create suggester can fill in from history. */
@@ -136,6 +150,7 @@ const KINDS: readonly CaptureKind[] = [
   "reminder",
   "media",
   "account",
+  "quote",
 ];
 
 const PAIN_FEEL_RATINGS: readonly PainFeel[] = [
@@ -184,7 +199,7 @@ const MOODS: readonly CaptureMood[] = [
 export const CLASSIFIER_SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
 
 Rules:
-- "kind" is one of: task, note, decision, journal, capture, workout, purchase, pain_log, reminder, media, account.
+- "kind" is one of: task, note, decision, journal, capture, workout, purchase, pain_log, reminder, media, account, quote.
   - task = an action the user needs to DO (not buy), with NO explicit time/date trigger.
   - reminder = the user explicitly wants to be reminded at a specific time or after a delay. Signals: "remind me", "set a reminder", "in 30 minutes", "at 8pm", "every day at", "tomorrow at". If there's a concrete time/date/delay attached to a task-like request, classify as reminder, not task.
   - decision = a choice the user wants to record.
@@ -195,6 +210,7 @@ Rules:
   - pain_log = a standalone report of body pain or discomfort that is NOT part of a workout session report. Signals: "my knee hurts", "shoulder pain", "back is sore", "lower back twinging today", "tweaked my wrist". Distinguishing from workout: there are no sets/reps/exercises being reported. Distinguishing from journal: pain_log is specifically about a body region + sensation, not broad reflection on how the day went.
   - media = the user wants to add something to their watch, listen, or read list. Signals: "watch", "add to watch list", "read", "listen to", "check out this book/film/show/podcast/album/song/series/audiobook". The media object must include media_type ("watch" for films/shows/videos, "listen" for music/podcasts/audiobooks, "read" for books/articles) and creator (author/director/artist if mentioned, null otherwise).
   - account = the user wants to add, register, or manage a service/subscription account. Signals: "add [name] to my accounts", "signed up for", "subscribed to", "cancelled my [name]", "[name] costs", "opened a [name] account". This is for service accounts (Netflix, Spotify, AWS, etc.), NOT bank accounts. The title should be the service name. If the user says they "cancelled" a service, set account.status to "cancelled". If they're signing up or adding, set "active".
+  - quote = the user is recording something memorable that was SAID — by a friend, by themselves, or something they heard — to keep as a quote. Signals: "quote", "X said", "X told me", "X came out with", "I said", "my quote", "write that down", "that's going on a t-shirt", a sentence in quotation marks with an attribution. Not a task, not a note about a fact: the point is the wording itself.
   - capture = catch-all when none of the above clearly applies.
 
 Heuristics for journal (guidance, not strict):
@@ -240,6 +256,10 @@ Examples:
   - "Add Netflix to my accounts, £10.99 a month" -> account (account.cost_amount: 10.99, account.cost_period: "monthly", account.status: "active")
   - "Cancelled my Spotify subscription" -> account (account.status: "cancelled", account.cost_amount: null, account.cost_period: null)
   - "Signed up for GitHub Pro, $4 a month" -> account (account.cost_amount: 4, account.cost_period: "monthly", account.status: "active")
+  - "Quote from Jake: your dog is crazy" -> quote (quote.text: "Your dog is crazy", quote.speaker: "Jake", quote.is_own: false, quote.speaker_confidence: "certain")
+  - "Jake told me last Tuesday, the best time to plant a tree was twenty years ago" -> quote (quote.text: "The best time to plant a tree was twenty years ago", quote.speaker: "Jake", quote.is_own: false, quote.said_at_relative: "last Tuesday", quote.likely_original: false)
+  - "I've just said a quote: sleep is the best pre-workout" -> quote (quote.text: "Sleep is the best pre-workout", quote.speaker: null, quote.is_own: true, quote.speaker_confidence: "certain")
+  - "Jake, your dog is crazy" -> quote (quote.text: "Jake, your dog is crazy", quote.speaker: null, quote.is_own: true, quote.speaker_confidence: "uncertain")
 
 Other fields:
 - "urgency" is one of: today, this_week, this_month, someday. For journal entries this is unused — pick "someday".
@@ -293,6 +313,17 @@ Other fields:
     - date: "today" (default if only a time is given), "tomorrow", a day name ("friday"), or ISO date. Null if only relative_minutes.
     - relative_minutes: set when the user says "in X minutes/hours". "in 30 minutes" → 30, "in 2 hours" → 120. Null when an absolute time is given.
     - recurrence: "daily", "weekly", or "monthly" if the user says "every day", "every week", etc. Null for one-shot reminders.
+
+- "quote" is an object ONLY when kind = "quote"; null for every other kind. Shape:
+    { "text": <string>, "speaker": <string or null>, "is_own": <boolean>, "speaker_confidence": "certain" | "uncertain", "context": <string or null>, "said_at_relative": <string or null>, "source": <string or null>, "likely_original": <boolean> }
+    - text: the quote itself, cleaned of the "quote from X" / "X said" framing, sentence-cased, no surrounding quotation marks. Keep the user's wording; do not paraphrase.
+    - speaker: the first name (or name as given) of the person who SAID it to the user — "X said", "X told me", "quote from X", "X's quote" → X. Null when the user said it themselves or no one is named.
+    - is_own: true when the user said it ("I said", "my quote", "I've just said"), or when nobody is named and the sentence is addressed to someone ("Jake, your dog is crazy" is the user speaking TO Jake). False when a speaker is named.
+    - speaker_confidence: "certain" when the attribution is explicit; "uncertain" when it is inferred (addressee-only, or no attribution at all).
+    - context: where / when / what was happening if the user says so ("at the pub", "on the walk"), else null.
+    - said_at_relative: any time phrase the user gives ("last Tuesday", "this morning", "yesterday"), verbatim, else null.
+    - source: a film / book / person the user says it comes from, if any, else null.
+    - likely_original: false when it reads like a well-known saying, proverb, film line or famous quotation; true when it sounds like the speaker's own words.
 
 Respond ONLY with a single JSON object matching this schema. No markdown, no preface.`;
 
@@ -462,6 +493,33 @@ function validate(obj: unknown): Classification | null {
     account = { cost_amount, cost_period, status };
   }
 
+  // quote is only meaningful for kind === 'quote'.
+  let quote: QuoteDetails | null = null;
+  if (kind === "quote") {
+    const q = (o.quote as Record<string, unknown> | null | undefined) ?? {};
+    const text =
+      typeof q.text === "string" && q.text.trim()
+        ? q.text.trim().replace(/^["\u201c\u201d']+|["\u201c\u201d']+$/g, "")
+        : typeof o.title === "string"
+          ? o.title
+          : "";
+    if (!text) return null;
+    const speaker = typeof q.speaker === "string" && q.speaker.trim() ? q.speaker.trim() : null;
+    const is_own = q.is_own === true || (!speaker && q.is_own !== false);
+    const speaker_confidence: "certain" | "uncertain" = q.speaker_confidence === "uncertain" ? "uncertain" : "certain";
+    const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+    quote = {
+      text,
+      speaker: is_own ? null : speaker,
+      is_own,
+      speaker_confidence,
+      context: str(q.context),
+      said_at_relative: str(q.said_at_relative),
+      source: str(q.source),
+      likely_original: q.likely_original !== false,
+    };
+  }
+
   // Context fields are optional on every kind. Permissively read each one;
   // anything unusable (wrong type, non-whitelisted energy) falls back to null.
   const context_where =
@@ -497,6 +555,7 @@ function validate(obj: unknown): Classification | null {
     reminder,
     media,
     account,
+    quote,
     context_where,
     context_device,
     context_energy,
@@ -745,8 +804,15 @@ function classifyRegex(text: string): Classification {
     /\b(add .+ to my accounts|signed up for|subscribed to|cancelled my|cancel my|opened .+ account)\b/.test(lower) &&
     !purchaseSignals;
 
+  const quoteSignals =
+    /\b(quote|quotes)\b/.test(lower) ||
+    /\b[a-z]+ (told me|came out with)\b/.test(lower) ||
+    /\b(write that down|going on a t-shirt)\b/.test(lower);
+
   let kind: CaptureKind = "capture";
-  if (/\b(decided|decision|chose|choosing)\b/.test(lower)) {
+  if (quoteSignals && !workoutSignals) {
+    kind = "quote";
+  } else if (/\b(decided|decision|chose|choosing)\b/.test(lower)) {
     kind = "decision";
   } else if (/\b(idea|thought|remember)\b/.test(lower)) {
     kind = "note";
@@ -800,11 +866,28 @@ function classifyRegex(text: string): Classification {
     reminder: kind === "reminder" ? extractReminderFromText(text) : null,
     media: kind === "media" ? extractMediaFromText(text) : null,
     account: kind === "account" ? extractAccountFromText(text) : null,
+    quote: kind === "quote" ? extractQuoteFromText(text) : null,
     context_where: ctx.where,
     context_device: ctx.device,
     context_energy: ctx.energy,
     context_tag: ctx.tag,
   };
+}
+
+/** Regex fallback for quotes: strip the framing, keep the speaker if named. */
+function extractQuoteFromText(text: string): QuoteDetails {
+  const t = text.trim();
+  const clean = (s: string) => s.trim().replace(/^["\u201c\u201d']+|["\u201c\u201d']+$/g, "").trim();
+  const base = { context: null, said_at_relative: null, source: null, likely_original: true };
+  const own = t.match(/^(?:i(?:'ve)?\s+(?:just\s+)?said(?:\s+a\s+quote)?|my\s+quote)\s*[:,-]?\s*(.+)$/i);
+  if (own) return { text: clean(own[1]), speaker: null, is_own: true, speaker_confidence: "certain", ...base };
+  const from = t.match(/^quote\s+(?:from|by)\s+([A-Za-z][\w'-]*)\s*[:,-]?\s*(.+)$/i);
+  const said = t.match(/^([A-Za-z][\w'-]*)\s+(?:just\s+)?(?:said|told me|came out with)\s*[:,-]?\s*(.+)$/i);
+  const m = from ?? said;
+  if (m && !/^(i|he|she|they|someone|somebody)$/i.test(m[1])) {
+    return { text: clean(m[2]), speaker: m[1], is_own: false, speaker_confidence: "certain", ...base };
+  }
+  return { text: clean(t.replace(/^quote\s*[:,-]?\s*/i, "")), speaker: null, is_own: true, speaker_confidence: "uncertain", ...base };
 }
 
 function extractMediaFromText(text: string): MediaDetails {

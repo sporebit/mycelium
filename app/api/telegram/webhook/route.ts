@@ -515,6 +515,13 @@ async function handleMessage(
     text: rawText,
   });
 
+  // Quotes (spec decision 4): read back what was heard; the row is created
+  // on approve in /organisation/captures/review.
+  if (classification.kind === "quote") {
+    await sendMessage(chatId, `💬 ${result.quoteReadBack ?? `Saved for review — ${classification.title}`}`);
+    return;
+  }
+
   // Journal entries are reflective, not actionable — no urgency/key buttons.
   if (classification.kind === "journal") {
     await sendMessage(

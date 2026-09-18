@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Mono } from "@/components/dashboard/Mono";
 import { PersonDrawer } from "./PersonDrawer";
 import { triggerGlowPulse } from "@/lib/motion";
+import { QuoteCard } from "@/components/quotes/QuoteCard";
+import type { QuoteRow } from "@/lib/quotes/server";
 import type {
   MentionWithSnippet,
   PersonWithAliases,
@@ -47,6 +49,7 @@ export function PersonDetail({ id }: { id: string }) {
   const router = useRouter();
   const [person, setPerson] = useState<PersonWithAliases | null>(null);
   const [mentions, setMentions] = useState<MentionWithSnippet[] | null>(null);
+  const [quotes, setQuotes] = useState<QuoteRow[] | null>(null);
   const [aliasDraft, setAliasDraft] = useState("");
   const [notesDraft, setNotesDraft] = useState("");
   const [editing, setEditing] = useState(false);
@@ -68,11 +71,18 @@ export function PersonDetail({ id }: { id: string }) {
     let mounted = true;
     (async () => {
       try {
-        const [pRes, mRes] = await Promise.all([
+        const [pRes, mRes, qRes] = await Promise.all([
           fetch(`/api/people/${id}`, { cache: "no-store" }),
           fetch(`/api/people/${id}/mentions?limit=50`, { cache: "no-store" }),
+          fetch(`/api/people/${id}/quotes?limit=50`, { cache: "no-store" }),
         ]);
         if (!mounted) return;
+        if (qRes.ok) {
+          const j = (await qRes.json()) as { quotes: QuoteRow[] };
+          if (mounted) setQuotes(j.quotes ?? []);
+        } else if (mounted) {
+          setQuotes([]);
+        }
         if (pRes.ok) {
           const j = (await pRes.json()) as { person: PersonWithAliases };
           if (mounted) {
@@ -264,6 +274,26 @@ export function PersonDetail({ id }: { id: string }) {
                 className="bg-transparent outline-none text-sm text-text-0 placeholder:text-text-3 min-w-[100px]"
               />
             </div>
+          </div>
+
+          <div className="rounded-md bg-ink-1 p-6">
+            <div className="card-eyebrow mb-3 flex items-center justify-between">
+              <span>Quotes</span>
+              <Link href={`/organisation/quotes?person=${id}`} className="text-[10px] text-text-2 hover:text-text-0 font-[family-name:var(--font-mono)]">
+                {quotes === null ? "…" : quotes.length} →
+              </Link>
+            </div>
+            {quotes === null ? (
+              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">Loading…</div>
+            ) : quotes.length === 0 ? (
+              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">Nothing quoted yet.</div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {quotes.slice(0, 5).map((q) => (
+                  <QuoteCard key={q.id} q={q} showPerson={false} />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="rounded-md bg-ink-1 p-6">

@@ -36,6 +36,7 @@ export type PersonAlias = {
 export type PersonWithAliases = Person & {
   aliases: PersonAlias[];
   mention_count?: number;
+  quote_count?: number;
   last_mention_at?: string | null;
 };
 

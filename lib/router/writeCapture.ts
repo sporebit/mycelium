@@ -4,6 +4,8 @@ import { resolveEntityId } from "@/lib/router/resolveEntity";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { localDateKey } from "@/lib/util/date";
 import { suggestContexts } from "@/lib/tickets/suggest";
+import { resolveSpeaker } from "@/lib/quotes/server";
+import { applySpeakerRules, readBack } from "@/lib/quotes/text";
 
 export type WriteCaptureInput = {
   /** Auth uid of the capturing user — written as the task owner. */
@@ -27,6 +29,8 @@ export type WriteCaptureResult = {
   /** Set when the capture became a ticket (spec §8.1: the reply carries the key). */
   ticketKey?: string | null;
   ticketSuggested?: Record<string, unknown> | null;
+  /** Quotes spec decision 4: the channel read-back ("Saved for review — Jake: …"). */
+  quoteReadBack?: string | null;
   // Source identifiers the caller should use for the memory embedding —
   // journal entries embed as 'journal' so the Stroma tab can filter cleanly.
   memorySourceType: "capture" | "journal";
@@ -53,11 +57,36 @@ export async function writeCapture(
     context_tag: classification.context_tag ?? null,
   };
 
+  // Quotes (spec §4): the speaker rules run on top of the model's guess,
+  // the alias match is recorded on the classification (never auto-creating
+  // a person), and the capture is forced into the review queue — the
+  // quotes row is only created on approve.
+  let quoteReadBack: string | null = null;
+  let storedClassification: Record<string, unknown> = { ...classification, resolved_entity_id: entityId };
+  if (classification.kind === "quote" && classification.quote) {
+    const ex = applySpeakerRules(rawText, classification.quote);
+    const resolved = await resolveSpeaker(supabase, ex.is_own ? null : ex.speaker);
+    let speakerName: string | null = null;
+    if (resolved.person_id) {
+      const { data: p } = await supabase.from("people").select("display_name, first_name, last_name").eq("id", resolved.person_id).maybeSingle();
+      const row = p as { display_name: string | null; first_name: string | null; last_name: string | null } | null;
+      speakerName = row ? (row.display_name ?? [row.first_name, row.last_name].filter(Boolean).join(" ")) || null : null;
+    }
+    storedClassification = {
+      ...storedClassification,
+      quote: ex,
+      quote_person_id: resolved.person_id,
+      quote_person_candidates: resolved.candidates,
+      confidence: "low",
+    };
+    quoteReadBack = readBack(ex, speakerName);
+  }
+
   // a. INSERT into raw_captures (always — audit / memory continuity)
   const captureRow: Record<string, unknown> = { source,
     raw_text: rawText,
     audio_url: audioUrl ?? null,
-    classification: { ...classification, resolved_entity_id: entityId },
+    classification: storedClassification,
     llm_source: llmSource,
     ...ctx,
   };
@@ -362,5 +391,6 @@ export async function writeCapture(
     memorySourceId,
     ticketKey,
     ticketSuggested,
+    quoteReadBack,
   };
 }

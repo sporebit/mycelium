@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -6,6 +7,8 @@ import { createUserClient } from "@/lib/supabase/user";
 import { resolveEntityId } from "@/lib/router/resolveEntity";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { localDateKey } from "@/lib/util/date";
+import { createQuoteFromExtraction, extractionFromClassification } from "@/lib/quotes/server";
+import { researchQuote } from "@/lib/quotes/research";
 
 export const runtime = "nodejs";
 
@@ -23,6 +26,18 @@ type ReviewBody = {
   mentions?: Array<{ raw: string; name_hint: string }>;
   date_inferred?: string | null; // YYYY-MM-DD
   scheduled_at?: string | null; // ISO 8601 timestamptz
+  /** Quotes (spec §4.7): the reviewer's corrections to the extraction. */
+  quote?: {
+    text?: string;
+    speaker?: string | null;
+    said_by_person_id?: string | null;
+    is_own?: boolean;
+    context?: string | null;
+    said_at_relative?: string | null;
+    source?: string | null;
+  };
+  /** Near-duplicate merge: keep the existing quote (discard this one) or replace its text. */
+  duplicate?: { id: string; action: "keep" | "replace" };
 };
 
 const ALLOWED_KINDS = new Set([
@@ -34,6 +49,7 @@ const ALLOWED_KINDS = new Set([
   "workout",
   "purchase",
   "media",
+  "quote",
 ]);
 const ALLOWED_URGENCIES = new Set([
   "today",
@@ -94,6 +110,21 @@ function mergeClassification(
           typeof m?.name_hint === "string" ? m.name_hint.trim() : "",
       }))
       .filter((m) => m.raw && m.name_hint);
+  }
+  if (body.quote && typeof body.quote === "object") {
+    const prev = (merged.quote as Record<string, unknown> | null | undefined) ?? {};
+    const q: Record<string, unknown> = { ...prev };
+    const b = body.quote;
+    if (typeof b.text === "string" && b.text.trim()) q.text = b.text.trim();
+    if (b.speaker !== undefined) q.speaker = typeof b.speaker === "string" && b.speaker.trim() ? b.speaker.trim() : null;
+    if (typeof b.is_own === "boolean") q.is_own = b.is_own;
+    if (b.context !== undefined) q.context = typeof b.context === "string" && b.context.trim() ? b.context.trim() : null;
+    if (b.said_at_relative !== undefined) q.said_at_relative = typeof b.said_at_relative === "string" && b.said_at_relative.trim() ? b.said_at_relative.trim() : null;
+    if (b.source !== undefined) q.source = typeof b.source === "string" && b.source.trim() ? b.source.trim() : null;
+    if (q.is_own === true) q.speaker = null;
+    merged.quote = q;
+    if (b.said_by_person_id !== undefined) merged.quote_person_id = q.is_own === true ? null : b.said_by_person_id;
+    if (typeof q.text === "string") merged.title = q.text;
   }
   if (body.date_inferred === null) {
     delete merged.date_inferred;
@@ -281,6 +312,15 @@ async function createRoutedRow(
     return { routedTo: "media_items", routedId: data.id };
   }
 
+  if (kind === "quote") {
+    const ex = extractionFromClassification(classification);
+    if (!ex.text) throw new Error("quote text required");
+    const pid = typeof classification.quote_person_id === "string" ? classification.quote_person_id : undefined;
+    const row = await createQuoteFromExtraction(supabase, ex, { raw_text: rawText, capture_id: rawCaptureId, said_by_person_id: pid });
+    if (row.research_status === "pending") after(() => researchQuote(supabase, row.id).catch((e) => console.error("[quotes research]", e)));
+    return { routedTo: "quotes", routedId: row.id };
+  }
+
   // decision / note / capture / workout / other — leave in raw_captures.
   return { routedTo: "raw_captures", routedId: rawCaptureId };
 }
@@ -377,11 +417,31 @@ export async function PATCH(
     );
 
     if (action === "approve") {
+      // Quotes are materialised on approve (spec §4 step 7), not at capture.
+      let quoteRoute: { routed_to: string; routed_id: string } | null = null;
+      if (mergedClassification.kind === "quote" && existing.routed_to !== "quotes") {
+        const dup = body.duplicate;
+        if (dup && typeof dup.id === "string" && (dup.action === "keep" || dup.action === "replace")) {
+          if (dup.action === "replace") {
+            const ex = extractionFromClassification(mergedClassification);
+            const { error: repErr } = await supabase
+              .from("quotes")
+              .update({ text: ex.text, raw_text: existing.raw_text ?? null, updated_at: new Date().toISOString() })
+              .eq("id", dup.id);
+            if (repErr) return NextResponse.json({ error: repErr.message }, { status: 500 });
+          }
+          quoteRoute = { routed_to: "quotes", routed_id: dup.id };
+        } else {
+          const r = await createRoutedRow(supabase, uid, id, existing.raw_text ?? "", existing.audio_url ?? null, mergedClassification, body.scheduled_at);
+          quoteRoute = { routed_to: r.routedTo, routed_id: r.routedId };
+        }
+      }
       const { data, error } = await supabase
         .from("raw_captures")
         .update({
           classification: mergedClassification,
           reviewed_at: new Date().toISOString(),
+          ...(quoteRoute ?? {}),
         })
         .eq("id", id)
         .select(

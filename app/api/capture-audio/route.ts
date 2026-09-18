@@ -186,6 +186,7 @@ export async function POST(req: NextRequest) {
       text: trimmed,
     });
     let summary = `Captured as ${classification.kind.toUpperCase()} — ${classification.title}`;
+    if (classification.kind === "quote" && result.quoteReadBack) summary = result.quoteReadBack;
     if (classification.kind === "pain_log") {
       const pain = classification.pain;
       const regions = pain?.pain_regions.length

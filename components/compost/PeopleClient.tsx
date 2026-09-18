@@ -287,6 +287,9 @@ export function PeopleClient() {
                   {p.mention_count
                     ? `${p.mention_count} mention${p.mention_count === 1 ? "" : "s"} · `
                     : ""}
+                  {p.quote_count
+                    ? `${p.quote_count} quote${p.quote_count === 1 ? "" : "s"} · `
+                    : ""}
                   {p.last_mention_at
                     ? `last ${relativeDate(p.last_mention_at)}`
                     : "no mentions"}

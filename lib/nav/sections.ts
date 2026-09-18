@@ -25,6 +25,7 @@ export const SECTIONS: SectionConfig[] = [
       { label: "Purchases", href: "/organisation/purchases", primary: false },
       { label: "Habits", href: "/organisation/habits", primary: false },
       { label: "Media", href: "/organisation/media", primary: false },
+      { label: "Quotes", href: "/organisation/quotes", primary: false },
       { label: "Journal", href: "/journal", primary: false },
       { label: "Reminders", href: "/reminders", primary: false },
       { label: "Entity review", href: "/organisation/captures/review", primary: false },

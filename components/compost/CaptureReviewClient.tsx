@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
+import { QuoteReviewEditor, type DuplicateChoice, type QuoteDraft } from "@/components/quotes/QuoteReviewEditor";
 import { PendingEntitiesList } from "./PendingEntitiesList";
 import { parseWeight } from "@/lib/health/parse-weight";
 
@@ -42,6 +43,7 @@ type Toast = { kind: "ok" | "error"; text: string } | null;
 
 const KIND_OPTIONS = [
   "task",
+  "quote",
   "journal",
   "workout",
   "purchase",
@@ -188,6 +190,8 @@ export function CaptureReviewClient() {
         if (draft.scheduled_at !== undefined) {
           body.scheduled_at = draft.scheduled_at;
         }
+        if (draft.quote && typeof draft.quote === "object") body.quote = draft.quote;
+        if (draft.duplicate) body.duplicate = draft.duplicate;
       }
       const r = await fetch(`/api/captures/${capture.id}/review`, {
         method: "PATCH",
@@ -341,6 +345,22 @@ function ReviewCard({
   );
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
+  const [quoteDraft, setQuoteDraft] = useState<QuoteDraft>(() => {
+    const q = (cls.quote as Partial<QuoteDraft> | null | undefined) ?? {};
+    const pid = typeof cls.quote_person_id === "string" ? cls.quote_person_id : null;
+    return {
+      text: typeof q.text === "string" ? q.text : (typeof cls.title === "string" ? cls.title : (capture.raw_text ?? "")),
+      speaker: typeof q.speaker === "string" ? q.speaker : null,
+      said_by_person_id: pid,
+      is_own: q.is_own === true,
+      speaker_confidence: q.speaker_confidence === "uncertain" ? "uncertain" : "certain",
+      context: typeof q.context === "string" ? q.context : null,
+      said_at_relative: typeof q.said_at_relative === "string" ? q.said_at_relative : null,
+      source: typeof q.source === "string" ? q.source : null,
+    };
+  });
+  const [duplicate, setDuplicate] = useState<DuplicateChoice>(null);
+  const quoteCandidates: string[] = Array.isArray(cls.quote_person_candidates) ? (cls.quote_person_candidates as string[]) : [];
 
   const draft: Classification = useMemo(() => {
     let scheduled_at: string | null = null;
@@ -364,8 +384,9 @@ function ReviewCard({
       mentions,
       date_inferred: dateInferred || null,
       scheduled_at,
+      ...(kind === "quote" ? { quote: quoteDraft, duplicate } : {}),
     };
-  }, [kind, urgency, title, entities, mentions, dateInferred, scheduledDate, scheduledTime]);
+  }, [kind, urgency, title, entities, mentions, dateInferred, scheduledDate, scheduledTime, quoteDraft, duplicate]);
 
   const detectedWeight = useMemo(
     () => (capture.raw_text ? parseWeight(capture.raw_text) : null),
@@ -502,6 +523,10 @@ function ReviewCard({
           )}
         </Field>
       </div>
+
+      {kind === "quote" && (
+        <QuoteReviewEditor value={quoteDraft} onChange={setQuoteDraft} candidates={quoteCandidates} duplicate={duplicate} onDuplicate={setDuplicate} />
+      )}
 
       {kind === "task" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

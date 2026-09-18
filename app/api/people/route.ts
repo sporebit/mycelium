@@ -32,9 +32,10 @@ export async function GET(req: NextRequest) {
     const ids = people.map((p) => p.id);
     const aliasByPerson = new Map<string, PersonAlias[]>();
     const mentionCountByPerson = new Map<string, number>();
+    const quoteCountByPerson = new Map<string, number>();
     const lastMentionByPerson = new Map<string, string>();
     if (ids.length > 0) {
-      const [aliasRes, mentionRes] = await Promise.all([
+      const [aliasRes, mentionRes, quoteRes] = await Promise.all([
         supabase
           .from("people_aliases")
           .select("id, person_id, alias, is_primary, created_at")
@@ -43,7 +44,11 @@ export async function GET(req: NextRequest) {
           .from("people_mentions")
           .select("person_id, created_at")
           .in("person_id", ids),
+        supabase.from("quotes").select("said_by_person_id").in("said_by_person_id", ids),
       ]);
+      for (const q of (quoteRes.data ?? []) as Array<{ said_by_person_id: string }>) {
+        quoteCountByPerson.set(q.said_by_person_id, (quoteCountByPerson.get(q.said_by_person_id) ?? 0) + 1);
+      }
       for (const a of (aliasRes.data ?? []) as PersonAlias[]) {
         const list = aliasByPerson.get(a.person_id) ?? [];
         list.push(a);
@@ -71,6 +76,7 @@ export async function GET(req: NextRequest) {
       ...p,
       aliases: aliasByPerson.get(p.id) ?? [],
       mention_count: mentionCountByPerson.get(p.id) ?? 0,
+      quote_count: quoteCountByPerson.get(p.id) ?? 0,
       last_mention_at: lastMentionByPerson.get(p.id) ?? null,
     }));
 
