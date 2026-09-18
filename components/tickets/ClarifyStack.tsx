@@ -39,12 +39,16 @@ function revalidateClarify() {
 export function ClarifyStack({
   simple,
   source = "inbox",
+  surface = null,
 }: {
   simple: boolean;
   /** "backlog" = triage mode: the same stack over un-parked Backlog tickets, contexts first. */
   source?: ClarifySource;
+  /** Tickets / Tasks partition: limit the stack to one surface (0121). */
+  surface?: "tickets" | "tasks" | null;
 }) {
-  const { data, error, isLoading } = useApi<Payload>(KEY_FOR[source]);
+  const key = surface ? `${KEY_FOR[source]}${source === "inbox" ? "?" : "&"}surface=${surface}` : KEY_FOR[source];
+  const { data, error, isLoading } = useApi<Payload>(key);
   const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [handled, setHandled] = useState<Set<string>>(new Set());
   const [doneCount, setDoneCount] = useState(0);
@@ -65,8 +69,11 @@ export function ClarifyStack({
           return next;
         });
         setDoneCount((n) => Math.max(0, n - 1));
-        setToast(e instanceof Error ? e.message : "That didn't save — the card is back.");
+        const msg = e instanceof Error ? e.message : "That didn't save — the card is back.";
+        setToast(msg);
         setTimeout(() => setToast(null), 4000);
+        // the app-wide toast (<ApiErrorToast/> in Shell listens for this)
+        window.dispatchEvent(new CustomEvent("api-error", { detail: `Clarify: ${msg}` }));
       });
   };
 

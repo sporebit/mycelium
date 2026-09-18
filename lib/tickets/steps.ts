@@ -136,11 +136,13 @@ export function routeLabel(def: StepsDefinition | null | undefined, route: strin
 }
 
 /**
- * Steps visible under the current toggles. A run-book hides steps whose
- * route does not match the chosen toggle value. A `test` labels them
- * instead (StepsPage shows a chip) so the denominator never moves between
- * passes and a single run can reach 100 %. A route no toggle owns is
- * always visible.
+ * Steps visible under the current toggles. `route` is presentational
+ * (StepsPage shows a chip) except in the one case the checklists spec
+ * defined: a run-book with a toggle literally named `route` hides the steps
+ * whose route is not the chosen one. A `test` never hides — the denominator
+ * must not move between toggle positions or no single pass can reach 100 %.
+ * No generalised {toggle, value} gate: if a real branch is ever needed that
+ * is a separate design.
  */
 export function visibleSteps(
   phase: Phase,
@@ -148,12 +150,9 @@ export function visibleSteps(
   def?: StepsDefinition | null,
 ): Step[] {
   if ((def?.kind ?? "") === "test") return phase.steps;
-  return phase.steps.filter((s) => {
-    if (!s.route) return true;
-    const key = def ? routeToggleKey(def, s.route) : "route";
-    if (!key) return true;
-    return toggles[key] === s.route;
-  });
+  const hasRouteToggle = def ? !!def.toggles?.route : true;
+  if (!hasRouteToggle) return phase.steps;
+  return phase.steps.filter((s) => !s.route || toggles.route === s.route);
 }
 
 export function countSteps(
