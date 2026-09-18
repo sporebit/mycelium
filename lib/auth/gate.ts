@@ -19,9 +19,11 @@ export const PUBLIC_PREFIXES: readonly string[] = [
   // checks). Cookies are still read by createUserClient() on public paths.
   "/invite/",
   "/api/invites/",
-  // Tickets Part G: signature-verified webhooks (spec §7.1, §14.3).
+  // Tickets Part G: signature-verified webhooks (spec §7.1, §14.3), and the
+  // smoke check the Vercel webhook runs before it closes a ticket.
   "/api/tickets/github",
   "/api/tickets/vercel",
+  "/api/health",
 ];
 
 /** Reachable with PC_METRICS_SECRET as a bearer token, this path only. */
