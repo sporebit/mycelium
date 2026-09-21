@@ -18,7 +18,7 @@ import { daylogDay, DATE_RE } from "./day";
 import { parseScoreLine, scoreLinePrompt } from "./scores";
 import { getDaylogSettings, type DaylogSettings } from "./settings";
 import { extractTranscript, extractTurn, groundingBlock } from "./extract";
-import { mergePatch, normaliseExtraction, quickExtraction, type Extraction } from "./extraction";
+import { collapseScenes, mergePatch, normaliseExtraction, quickExtraction, type Extraction } from "./extraction";
 import { materialise, pendingCount } from "./materialise";
 
 export type TranscriptEntry = { role: "user" | "assistant" | "system"; at: string; text: string; channel: "telegram" | "app" | "capture" | "legacy" | "system"; media_id?: string | null };
@@ -272,7 +272,7 @@ export async function runTurn(db: SupabaseClient, dayId: string, text: string, c
     // the template parse stands on its own; the one Haiku call only adds to it
     const base = mergePatch(normaliseExtraction(d.extraction), quickExtraction(text));
     const grounded = await extractTurn(db, d.id, base, QUICK_PROMPT, text);
-    d = await append(db, d, [userEntry], { summary: d.summary_edited_by_user ? d.summary : text.trim(), extraction: grounded.extraction });
+    d = await append(db, d, [userEntry], { summary: d.summary_edited_by_user ? d.summary : text.trim(), extraction: collapseScenes(grounded.extraction, "day") });
     return toScores(db, d, s, channel);
   }
 
@@ -377,7 +377,8 @@ export async function reextract(db: SupabaseClient, dayId: string): Promise<{ da
   if (d.status !== "closed") throw new Error("only a closed day can be re-extracted");
   const current = normaliseExtraction(d.extraction);
   const seed: Extraction = d.mode === "quick" ? mergePatch(current, quickExtraction(d.transcript.find((e) => e.role === "user")?.text ?? "")) : current;
-  const fresh = (await extractTranscript(db, d.id, d.transcript, seed)) ?? seed;
+  const read = (await extractTranscript(db, d.id, d.transcript, seed)) ?? seed;
+  const fresh = d.mode === "quick" ? collapseScenes(read, "day") : read;
   const m = await materialise(db, { id: d.id, day: d.day, summary: d.summary }, { ...fresh, scene_ids: current.scene_ids });
   const cost = await dayCostPence(db, d.id);
   const { data: v } = await db.from("daylog_days").select("extraction_version").eq("id", d.id).maybeSingle();

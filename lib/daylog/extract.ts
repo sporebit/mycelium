@@ -109,7 +109,7 @@ async function patched(db: SupabaseClient, dayId: string, ex: Extraction, lastAs
 export async function extractTranscript(db: SupabaseClient, dayId: string, transcript: Array<{ role: string; text: string }>, seed: Extraction): Promise<Extraction | null> {
   const lines = transcript.filter((e) => e.role !== "system").map((e) => `${e.role === "user" ? "Narrator" : "Interviewer"}: ${e.text}`);
   if (!lines.some((l) => l.startsWith("Narrator"))) return null;
-  const patch = await haikuPatch(db, dayId, `Extraction so far:\n${factsSoFar(seed)}\n\nKnown people: not supplied\n\nThe whole interview — record everything it contains:\n${lines.join("\n")}`, "reextract", 2500);
+  const patch = await haikuPatch(db, dayId, `Extraction so far:\n${factsSoFar(seed)}\n\nKnown people: not supplied\n\nEverything under "Extraction so far" is already recorded: do not restate any of it, even in different words. Read the whole interview below and return only scenes and facts that are missing from it entirely (empty arrays if nothing is):\n${lines.join("\n")}`, "reextract", 2500);
   if (!patch) return null;
   const merged = mergePatch(seed, patch);
   return withoutKnown(merged, (await knownPeople(db, [...namesIn(merged), ...merged.unknown_names])).keys());

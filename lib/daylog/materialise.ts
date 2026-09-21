@@ -24,7 +24,9 @@ export type MaterialiseResult = { extraction: Extraction; scenes: number; queued
 
 export async function materialise(db: SupabaseClient, day: { id: string; day: string; summary: string | null }, ex: Extraction): Promise<MaterialiseResult> {
   // -- scenes ---------------------------------------------------------------
-  const { data: existingRows } = await db.from("daylog_scenes").select("id, position, title, place_id, narrative, narrative_edited_by_user").eq("day_id", day.id).order("position");
+  const { data: existingRows, error: readErr } = await db.from("daylog_scenes").select("id, position, title, place_id, narrative, narrative_edited_by_user").eq("day_id", day.id).order("position");
+  // never queue review items against scenes we could not read: they would all lose their scene
+  if (readErr) throw new Error(`daylog_scenes read failed: ${readErr.message}`);
   const existing = (existingRows ?? []) as SceneRow[];
   const sceneIds: Record<string, string> = { ...(ex.scene_ids ?? {}) };
   // a row that went away (deleted on the day page) must not be resurrected or linked to

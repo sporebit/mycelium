@@ -62,6 +62,23 @@ export function normaliseExtraction(raw: unknown): Extraction {
   return merged;
 }
 
+const STOP = new Set(["a", "an", "the", "and", "of", "to", "in", "at", "on", "with", "for", "was", "were", "had", "has", "is", "it", "my", "i", "we", "about"]);
+function tokens(s: string): Set<string> {
+  return new Set(norm(s).split(" ").filter((t) => t && !STOP.has(t)));
+}
+/** The same fact said twice in different words: most of the shorter one's content words appear in the other. */
+export function sameFact(a: string, b: string): boolean {
+  if (norm(a) === norm(b)) return true;
+  const ta = tokens(a);
+  const tb = tokens(b);
+  const small = ta.size <= tb.size ? ta : tb;
+  const big = small === ta ? tb : ta;
+  if (small.size < 2) return false;
+  let hit = 0;
+  for (const t of small) if (big.has(t)) hit++;
+  return hit / small.size >= 0.75;
+}
+
 function slug(s: string): string {
   return norm(s).replace(/\s+/g, "-").slice(0, 40) || "scene";
 }
@@ -107,8 +124,7 @@ export function mergePatch(ex: Extraction, patch: ExtractionPatch | null | undef
     const kind: FactKind = (FACT_KINDS as readonly string[]).includes(String(f.kind)) ? (f.kind as FactKind) : "other";
     const subjectRaw = str(f.subject);
     const subject = subjectRaw && !SELF.has(subjectRaw.toLowerCase()) ? subjectRaw : null;
-    const key = norm(text);
-    if (next.facts.some((o) => norm(o.text) === key && (o.subject ?? "").toLowerCase() === (subject ?? "").toLowerCase())) continue;
+    if (next.facts.some((o) => sameFact(o.text, text) && (o.subject ?? "").toLowerCase() === (subject ?? "").toLowerCase())) continue;
     const sceneRef = str(f.scene_ref);
     next.facts.push({
       scene_ref: sceneRef && next.scenes.some((s) => s.ref === sceneRef) ? sceneRef : null,
@@ -185,6 +201,23 @@ export function parseQuickTemplate(text: string): { who: string[]; where: string
   const alone = /^(no ?one|nobody|alone|just me|me|solo|-|n\/a)$/i.test(whoRaw);
   const who = alone ? [] : cleanNames(whoRaw.split(/\s*(?:,|&|\band\b|\+)\s*/i));
   return { who, where: /^(-|n\/a|nowhere)$/i.test(where) ? null : where, line: rest.join(" / ") };
+}
+
+/**
+ * Quick mode is one scene by definition (spec §2.1). Whatever the model split
+ * out folds back into `ref`: people union, every fact re-pointed.
+ */
+export function collapseScenes(ex: Extraction, ref: string): Extraction {
+  const keep = ex.scenes.find((s) => s.ref === ref) ?? ex.scenes[0];
+  if (!keep || ex.scenes.length === 1) return ex;
+  const people = [...keep.people];
+  for (const s of ex.scenes) for (const n of s.people) if (!people.some((o) => o.toLowerCase() === n.toLowerCase())) people.push(n);
+  const others = ex.scenes.filter((s) => s !== keep);
+  return {
+    ...ex,
+    scenes: [{ ...keep, people, time_hint: keep.time_hint ?? others.find((s) => s.time_hint)?.time_hint ?? null, place_text: keep.place_text ?? others.find((s) => s.place_text)?.place_text ?? null }],
+    facts: ex.facts.map((f) => ({ ...f, scene_ref: keep.ref })),
+  };
 }
 
 /** The single-scene extraction a Quick reply stands for before any model call. */

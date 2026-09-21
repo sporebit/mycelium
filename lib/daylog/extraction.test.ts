@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emptyExtraction, factsSoFar, mergePatch, namesIn, normaliseExtraction, parseQuickTemplate, pendingItems, quickExtraction, sceneLines, withoutKnown, type ExtractionPatch } from "./extraction";
+import { collapseScenes, emptyExtraction, factsSoFar, mergePatch, namesIn, normaliseExtraction, parseQuickTemplate, pendingItems, quickExtraction, sameFact, sceneLines, withoutKnown, type ExtractionPatch } from "./extraction";
 
 describe("mergePatch (spec §8)", () => {
   it("upserts a scene by ref and unions its people", () => {
@@ -56,6 +56,25 @@ describe("mergePatch (spec §8)", () => {
   });
 });
 
+describe("sameFact", () => {
+  it("a reworded restatement is the same fact", () => {
+    expect(sameFact("I paid, about £30", "Paid about £30 at the restaurant")).toBe(true);
+    expect(sameFact("Kirsty had a bowl of chips and half my cod with curry sauce", "Bowl of chips, half my cod, curry sauce")).toBe(true);
+  });
+  it("different facts stay different", () => {
+    expect(sameFact("Cod and chips with mushy peas", "Tap water")).toBe(false);
+    expect(sameFact("Walked down to the beach", "Tried to see the whale arches but they were missing")).toBe(false);
+  });
+  it("one shared word is not enough", () => {
+    expect(sameFact("Chips", "Bowl of chips and curry sauce")).toBe(false);
+  });
+  it("mergePatch drops a reworded fact for the same subject but keeps it for another", () => {
+    let ex = mergePatch(emptyExtraction(), { facts: [{ kind: "spend", text: "I paid, about £30" }] });
+    ex = mergePatch(ex, { facts: [{ kind: "spend", text: "Paid about £30 at the restaurant" }, { kind: "spend", subject: "Kirsty", text: "Paid about £30 at the restaurant" }] });
+    expect(ex.facts).toHaveLength(2);
+  });
+});
+
 describe("Quick-mode template parse (spec §8)", () => {
   it("who / where / one line", () => {
     expect(parseQuickTemplate("Kirsty and Max / Whitby / fish and chips then the beach")).toEqual({ who: ["Kirsty", "Max"], where: "Whitby", line: "fish and chips then the beach" });
@@ -68,6 +87,16 @@ describe("Quick-mode template parse (spec §8)", () => {
   });
   it("a reply that ignores the template is the line", () => {
     expect(parseQuickTemplate("Just a quiet one at home")).toEqual({ who: [], where: null, line: "Just a quiet one at home" });
+  });
+  it("stays a single scene whatever the model splits out", () => {
+    const split = mergePatch(quickExtraction("Kirsty / home / film night and a curry"), {
+      scenes: [{ ref: "film", title: "Film night", time_hint: "evening", people: ["Tom"] }],
+      facts: [{ scene_ref: "film", kind: "media", text: "Watched Paddington 2" }, { kind: "food", text: "Had a curry" }],
+    });
+    const one = collapseScenes(split, "day");
+    expect(one.scenes).toHaveLength(1);
+    expect(one.scenes[0]).toMatchObject({ ref: "day", place_text: "home", time_hint: "evening", people: ["Kirsty", "Tom"] });
+    expect(one.facts.map((f) => f.scene_ref)).toEqual(["day", "day"]);
   });
   it("becomes a single scene", () => {
     const ex = quickExtraction("Kirsty / Whitby / chips");
