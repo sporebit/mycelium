@@ -7,13 +7,15 @@
  * - Vercel deployment.succeeded (production) → tickets in Verify with code
  *   evidence → smoke (GET smoke_url expecting 200 + ok:true) → Done with
  *   deploy + smoke links; verified_by stays null until Phil taps.
+ * - Step-driven kinds (RUNBOOK_KINDS) get the link but never the move, on
+ *   either webhook — see isStepDriven.
  * - Issues sync is opt-in per project (projects.github_issues_sync). v1 uses
  *   a GITHUB_TOKEN (PAT or App installation token) for outbound calls; the
  *   loop guard ignores inbound events by GITHUB_BOT_LOGIN and anything
  *   already carrying github_synced_at within 30 s.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { TICKET_KEY_RE } from "./categories";
+import { RUNBOOK_KINDS, TICKET_KEY_RE } from "./categories";
 import { moveTicket, resolveTicketRef, statusIdFor } from "./server";
 
 export function keysIn(text: string | null | undefined): string[] {
@@ -51,6 +53,15 @@ export async function verifyVercelSignature(body: string, header: string | null,
 
 export type CodeEvidence = { key: string; kind: "commit" | "pr"; url: string; ref: string; label: string };
 
+/**
+ * Step-driven kinds (runbook, test, guide, audit, setup) are finished by their
+ * steps, not by a deploy: a commit naming the key is a record, never proof the
+ * check was run. Automation links them and leaves the category alone.
+ */
+export function isStepDriven(kind: string | null | undefined): boolean {
+  return (RUNBOOK_KINDS as readonly string[]).includes(kind ?? "");
+}
+
 /** Attach evidence and move the ticket to Verify (automation: forward only). */
 export async function applyCodeEvidence(db: SupabaseClient, ev: CodeEvidence): Promise<{ key: string; moved: boolean; reason?: string }> {
   const ref = await resolveTicketRef(db, ev.key);
@@ -59,6 +70,7 @@ export async function applyCodeEvidence(db: SupabaseClient, ev: CodeEvidence): P
   if (!existing?.length) {
     await db.from("ticket_links").insert({ ticket_id: ref.id, kind: ev.kind, ref: ev.ref, url: ev.url, label: ev.label, meta: { via: "github" } });
   }
+  if (isStepDriven(ref.kind)) return { key: ev.key, moved: false, reason: `${ref.kind} tickets close by their steps` };
   if (ref.category === "done" || ref.category === "cancelled" || ref.category === "verify") return { key: ev.key, moved: false, reason: `already ${ref.category}` };
   const moved = await moveTicket(db, ref.id, "verify", { forwardOnly: true });
   return { key: ev.key, moved: moved.ok, reason: moved.ok ? undefined : moved.error };

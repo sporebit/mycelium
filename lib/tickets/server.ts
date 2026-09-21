@@ -100,11 +100,11 @@ export async function fetchTicketByKey(
 export async function resolveTicketRef(
   supabase: SupabaseClient,
   ref: string,
-): Promise<{ id: string; space_id: string; status_id: string | null; category: string | null } | null> {
+): Promise<{ id: string; space_id: string; status_id: string | null; category: string | null; kind: string | null } | null> {
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ref);
   const q = supabase
     .from("tickets")
-    .select("id, space_id, status_id, ticket_status:ticket_statuses(category)");
+    .select("id, space_id, status_id, kind, ticket_status:ticket_statuses(category)");
   const { data } = await (isUuid ? q.eq("id", ref) : q.eq("ticket_key", ref.toUpperCase())).maybeSingle();
   if (!data) return null;
   const st = Array.isArray(data.ticket_status) ? data.ticket_status[0] : data.ticket_status;
@@ -113,6 +113,7 @@ export async function resolveTicketRef(
     space_id: data.space_id as string,
     status_id: (data.status_id as string | null) ?? null,
     category: (st as { category: string } | null)?.category ?? null,
+    kind: (data.kind as string | null) ?? null,
   };
 }
 

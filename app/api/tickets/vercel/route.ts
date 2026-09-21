@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { boundUser } from "@/lib/system/bindings";
 import { withUser } from "@/lib/system/withUser";
-import { runSmoke, verifyVercelSignature } from "@/lib/tickets/github";
+import { isStepDriven, runSmoke, verifyVercelSignature } from "@/lib/tickets/github";
 import { moveTicket } from "@/lib/tickets/server";
 
 export const runtime = "nodejs";
@@ -50,11 +50,14 @@ export async function POST(req: NextRequest) {
     const result = await withUser(boundUser("cron"), async (db) => {
       const { data: rows } = await db
         .from("tickets")
-        .select("id, ticket_key, ticket_status:ticket_statuses!inner(category)")
+        .select("id, ticket_key, kind, ticket_status:ticket_statuses!inner(category)")
         .eq("ticket_status.category", "verify")
         .is("deleted_at", null)
         .limit(100);
-      const candidates = (rows ?? []) as Array<{ id: string; ticket_key: string | null }>;
+      // Step-driven kinds wait in Verify for their steps, not for a deploy.
+      const candidates = ((rows ?? []) as Array<{ id: string; ticket_key: string | null; kind: string | null }>).filter(
+        (c) => !isStepDriven(c.kind),
+      );
       if (candidates.length === 0) return { verify: 0 };
 
       const { data: links } = await db

@@ -21,7 +21,7 @@ The ticket DB is canonical. `claude/backlog.md`-style docs are generated exports
 
 ## While working
 
-- Reference keys in every commit message: `MYC-142: …` or `[MYC-142]`. The GitHub webhook moves referenced tickets to Verify on merge to main; the Vercel webhook moves them to Done after a green deploy + smoke.
+- Reference keys in every commit message: `MYC-142: …` or `[MYC-142]`. The GitHub webhook moves referenced tickets to Verify on merge to main; the Vercel webhook moves them to Done after a green deploy + smoke. Step-driven kinds (runbook, test, guide, audit, setup) are the exception: the webhooks link the commit but never move them — they close by their steps, so check `tix answers KEY`, not the category.
 - Anything Phil and you agree to do that is not already a ticket: `tix new "title" --project MYC --category inbox` (source is recorded as `claude`).
 - Move forward by category only (`inbox → backlog → next → doing → waiting → verify → done`), never backwards: `tix move KEY doing`.
 - Code plans are written by you, not the app: `tix plan KEY --body-file plan.md`.
