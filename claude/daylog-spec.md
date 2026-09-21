@@ -315,6 +315,28 @@ Note what it does not do: it never says the arches were removed in 2024 (decisio
 - **Part D — seeds, photos, guardrails, continuity.** Seed queries + toggles, photo intake to the `daylog` bucket + scene attach + strip, turn cap + monthly alert, `open_thread` carry-over, memory-index embedding, weekly review block, agent context diet.
 - **Part E — linked users.** `people.linked_user_id`, `/api/people/[id]/link` (team check), `/api/journal/shared`, the "with Phil" cards, `hidden_from_linked` + `shareable` toggles, the cross-user isolation test.
 
+### 12.1 Part B as built (2026-09-21) `[claude]`
+
+Shipped on `tickets` → `main` as `7ce1514` `4c8a1cf` `660e5bb` `05dc074` `d6d3bcf` `3a1544c`, migrations **0129** and **0130**. Production smoke 50/50 (a Talk night and a Quick night on test days, cleaned up after): ~3.1p a Talk night with extraction, ~0.2p a Quick night. Phil's live check is the `smoke-test-daylog-part-b` template.
+
+Where the code lives: `lib/daylog/extraction.ts` (pure — `mergePatch`, `sameFact`, `collapseScenes`, `parseQuickTemplate`, `pendingItems`, the tool schema and the extraction prompt; unit-tested, including the §9 night as a patch fixture), `lib/daylog/extract.ts` (the Haiku calls, person cards, the grounding block), `lib/daylog/materialise.ts` (close steps 2–3), `lib/daylog/approve.ts` (what an approval writes), `lib/daylog/rows.ts` (the day page read model). The interviewer's rules gained a "context block" section in `lib/daylog/rules.md`.
+
+Deviations from the text above, each deliberate:
+
+1. **The pending kinds live in `pending_entities`**, not as captures: 0129 widens its `entity_type` check with `daylog_person_link`, `daylog_new_person`, `daylog_fact`, `daylog_place`. Rows carry no `capture_id`; `additional_data` holds `{day_id, day, key, …}`. They surface on Capture review → New entities, grouped by day (`?tab=entities&day=<day id>`). Quotes alone go through captures: a `source = daylog` quote capture at low confidence, so the Quotes pipeline is unchanged.
+2. **One who-was-there item per person per day**, carrying the list of scenes — not one per scene (§4.4 step 3). Four scenes with two people would otherwise be eight identical approvals (flag 1).
+3. **"Approve N as proposed"** on each day group clears who-was-there links and facts in one go; new people and places always need a decision.
+4. **Per-scene narrative costs no extra call**: the close narrative already ends with one bullet per scene; the bullets are assigned to scenes only when their count equals the scene count, else scenes start without a narrative.
+5. **Re-extract is additive only.** It never updates or deletes a scene or a fact, edited or not — stronger than "skips `edited_by_user` rows". New scenes and new review items are added; item keys make it idempotent; a scene deleted by hand is not resurrected.
+6. **Facts dedupe fuzzily** (`sameFact`: ≥ 75% of the shorter fact's content words, same subject). Without it a re-extract re-queued reworded copies of facts already reviewed.
+7. **Quick mode**: the `who / where / one line` parse is deterministic and stands on its own; the one Haiku call only adds facts, and the result is collapsed to the single scene Quick is defined as.
+8. A bare "done" skips the extraction call (nothing new to read).
+9. Person cards are name + relationship; "last seen" waits for Part C's `people_daylog_stats`.
+10. The `hidden_from_linked` toggle is accepted by `PATCH /api/journal/scenes/[id]` but not shown on the card until Part E.
+11. The narrator filter (`I / me / we / Phil`) hard-codes the name "Phil"; a second user's own name would not be filtered. Revisit with Part E.
+
+**§3 correction — the linked-user policies as written above recurse.** The `daylog_scenes` policy reads `daylog_scene_people` and the `daylog_scene_people` policy reads `daylog_scenes`; Postgres applies policies inside policy subqueries, so every statement on either table failed with "infinite recursion detected in policy" — including the owner's own inserts. Part A never touched scenes, so it surfaced with Part B's first close. **0130** replaces the subqueries with `app.daylog_scene_visible_to_linked(scene_id)` (SECURITY DEFINER, the 0110 pattern); the rule is unchanged. Part E should build on that function, not on the SQL in §3.
+
 ## 13. Claude Code prompt (build)
 
 > Read `AGENTS.md`, `docs/multi-user-handoff.md`, `claude/daylog-spec.md`, `claude/spec-organisation.md`, `claude/spec-studio-drops-ventures.md` (Journal) and `claude/quotes-spec.md` (review-queue conventions). Branch `daylog` off `main` after cutover. First, grep `journal` across `app/`, `components/`, `lib/` and list every touchpoint of the 0003 journal in the PR description. Migration `supabase/migrations/<next>_daylog.sql` per §3 using the post-P12 adoption helper and entity-group registration (`journal.daylog`); RLS per invariant; the linked-user select policies exactly as §3. Build Part A per §12 and stop for Phil's live check before Part B. Engine in `lib/daylog/engine.ts` with the rules block in `lib/daylog/rules.md` (loaded at runtime, not inlined). Models via `lib/config/models.ts` (Sonnet chat + narrative, Haiku extraction). Reuse the Whisper path from `/api/capture-audio` and the outbound `/api/telegram/send`; add the routing rule and callback buttons to the webhook. Routes per §5; pages per §6 with existing primitives; tests per §8 including the prompt-regression fixture from §9. `rm -rf .next && npx next build`, `npm test`, isolation script (with the cross-user positive case once Part E lands). Update `claude/spec-studio-drops-ventures.md` §Journal, `claude/spec-organisation.md` §People/§Captures and the backlog. Do not push migrations until Phil says the branch owns `supabase/migrations/**`.
