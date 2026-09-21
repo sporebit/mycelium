@@ -10,7 +10,7 @@ import { costPence, recordUsage } from "@/lib/ai/usage";
 import { resolveSpeaker } from "@/lib/quotes/server";
 import { EXTRACTION_SYSTEM, EXTRACTION_TOOL, factsSoFar, mergePatch, namesIn, withoutKnown, type Extraction, type ExtractionPatch } from "./extraction";
 
-type PersonRow = { id: string; display_name: string | null; first_name: string | null; last_name: string | null; relationship: string | null };
+type PersonRow = { id: string; display_name: string | null; first_name: string | null; last_name: string | null; relationship: string | null; notes: string | null };
 
 /** name (lower-cased) → person id, for names that match exactly one person by alias. Never creates anyone. */
 export async function knownPeople(db: SupabaseClient, names: string[]): Promise<Map<string, string>> {
@@ -26,18 +26,20 @@ export async function knownPeople(db: SupabaseClient, names: string[]): Promise<
   return out;
 }
 
-/** One-line person cards for anyone mentioned (decision 22): name, relationship, last seen — nothing more. */
+/** One-line person cards for anyone mentioned (decision 22): name, who they are, last seen — nothing more. */
 export async function personCards(db: SupabaseClient, known: Map<string, string>): Promise<string[]> {
   const ids = Array.from(new Set(known.values()));
   if (!ids.length) return [];
   const [{ data }, { data: seen }] = await Promise.all([
-    db.from("people").select("id, display_name, first_name, last_name, relationship").in("id", ids),
+    db.from("people").select("id, display_name, first_name, last_name, relationship, notes").in("id", ids),
     db.from("people_daylog_stats").select("person_id, last_seen").in("person_id", ids),
   ]);
   const lastSeen = new Map(((seen ?? []) as Array<{ person_id: string; last_seen: string }>).map((r) => [r.person_id, r.last_seen]));
   return ((data ?? []) as PersonRow[]).map((p) => {
     const name = p.display_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "someone");
-    return [name, p.relationship, lastSeen.get(p.id) ? `last seen ${lastSeen.get(p.id)}` : null].filter(Boolean).join(" — ");
+    // no relationship set: the first line of their notes is where a "who's X?" answer was kept
+    const who = p.relationship ?? (p.notes ? p.notes.split("\n")[0].trim().slice(0, 80) || null : null);
+    return [name, who, lastSeen.get(p.id) ? `last seen ${lastSeen.get(p.id)}` : null].filter(Boolean).join(" — ");
   });
 }
 
@@ -124,7 +126,7 @@ export function groundingBlock(g: Grounding): string {
   return [
     "[context for you — none of this was said tonight unless it appears under facts]",
     `facts so far:\n${factsSoFar(g.extraction)}`,
-    `person cards: ${g.cards.length ? g.cards.join("; ") : "none"}`,
+    `person cards (already in their People — never ask who these are, however little the card says): ${g.cards.length ? g.cards.join("; ") : "none"}`,
     g.extraction.unknown_names.length ? `names not yet explained (ask who they are, once): ${g.extraction.unknown_names.join(", ")}` : "names not yet explained: none",
   ].join("\n");
 }
