@@ -21,6 +21,21 @@ export async function GET(req: NextRequest) {
     if (error) throw error;
     auditListRead(req, data as Array<{ space_id?: string | null }>, "journal", "daylog");
     const rows = (data ?? []) as Array<DayRow & { space_id?: string }>;
+    // Part B: scene titles and the unreviewed count per day, two queries for the whole window
+    const ids = rows.map((d) => d.id);
+    const [{ data: sceneRows }, { data: pendingRows }] = ids.length
+      ? await Promise.all([
+          supabase.from("daylog_scenes").select("day_id, title, position").in("day_id", ids).order("position"),
+          supabase.from("pending_entities").select("additional_data").is("resolved_at", null).like("entity_type", "daylog_%").limit(2000),
+        ])
+      : [{ data: [] }, { data: [] }];
+    const titles = new Map<string, string[]>();
+    for (const r of (sceneRows ?? []) as Array<{ day_id: string; title: string }>) titles.set(r.day_id, [...(titles.get(r.day_id) ?? []), r.title]);
+    const toReview = new Map<string, number>();
+    for (const r of (pendingRows ?? []) as Array<{ additional_data: { day_id?: string } | null }>) {
+      const k = r.additional_data?.day_id;
+      if (k) toReview.set(k, (toReview.get(k) ?? 0) + 1);
+    }
     const days = rows.map((d) => {
       const userTurns = (d.transcript ?? []).filter((e) => e.role === "user").length;
       return {
@@ -35,6 +50,8 @@ export async function GET(req: NextRequest) {
         cost_pence: d.cost_pence,
         closed_at: d.closed_at,
         legacy: !!d.legacy_journal_id,
+        scene_titles: titles.get(d.id) ?? [],
+        to_review: toReview.get(d.id) ?? 0,
       };
     });
     return NextResponse.json({ days, window: { from, to }, today });

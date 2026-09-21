@@ -18,6 +18,8 @@ type DayListRow = {
   cost_pence: number;
   closed_at: string | null;
   legacy: boolean;
+  scene_titles?: string[];
+  to_review?: number;
 };
 type Series = { keys: string[]; series: Array<Record<string, number | string | null>> };
 
@@ -128,8 +130,10 @@ export function DayListClient() {
                       </span>
                     ))}
                   </div>
+                  {(d.to_review ?? 0) > 0 && <span className="rounded-md bg-warn/15 border border-warn/40 px-1.5 py-0.5 text-[10px] text-warn font-[family-name:var(--font-mono)]">{d.to_review} to review</span>}
                   {d.cost_pence > 0 && <Mono className="text-[10px] text-text-2">{d.cost_pence.toFixed(1)}p</Mono>}
                 </div>
+                {(d.scene_titles ?? []).length > 0 && <p className="text-xs text-text-2 truncate">{d.scene_titles!.join(" → ")}</p>}
                 {d.summary ? <p className="text-sm text-text-1 line-clamp-2">{d.summary.split("\n")[0]}</p> : <p className="text-xs text-text-2 italic">{d.user_turns ? `${d.user_turns} messages, no summary` : "nothing logged"}</p>}
               </Link>
             ))}

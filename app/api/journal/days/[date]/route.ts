@@ -4,6 +4,7 @@ import { principalUid, readJson, ticketWriteGate } from "@/lib/tickets/server";
 import { DAY_SELECT, ensureDay, getDayById, type DayRow } from "@/lib/daylog/engine";
 import { DATE_RE } from "@/lib/daylog/day";
 import { getDaylogSettings } from "@/lib/daylog/settings";
+import { dayDetail } from "@/lib/daylog/rows";
 
 export const runtime = "nodejs";
 
@@ -20,8 +21,8 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
     else if (DATE_RE.test(date)) day = await ensureDay(supabase, date);
     else return NextResponse.json({ error: "bad date" }, { status: 400 });
     if (!day) return NextResponse.json({ error: "not found" }, { status: 404 });
-    const settings = await getDaylogSettings(supabase);
-    return NextResponse.json({ day, score_keys: settings.scores });
+    const [settings, detail] = await Promise.all([getDaylogSettings(supabase), dayDetail(supabase, day.id)]);
+    return NextResponse.json({ day, score_keys: settings.scores, ...detail });
   } catch (err) {
     console.error("[/api/journal/days/:date GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });

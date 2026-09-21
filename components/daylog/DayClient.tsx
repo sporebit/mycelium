@@ -6,8 +6,10 @@ import { useApi } from "@/lib/data/useApi";
 import { Mono } from "@/components/dashboard/Mono";
 import type { DayRow, TranscriptEntry } from "@/lib/daylog/engine";
 import { shiftDate } from "@/lib/daylog/day";
+import type { FactRow, SceneRow } from "@/lib/daylog/rows";
+import { ScenesSection } from "./ScenesSection";
 
-type Payload = { day: DayRow; score_keys: string[] };
+type Payload = { day: DayRow; score_keys: string[]; scenes?: SceneRow[]; facts?: FactRow[]; pending?: number };
 type TurnReply = { reply: string; state: "open" | "scores" | "closed"; missing: string[]; day: DayRow; error?: string };
 
 const input = "w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
@@ -29,9 +31,10 @@ async function post<T>(url: string, body?: unknown): Promise<T> {
 }
 
 /**
- * /journal/[date] (spec §6, Part A): summary (editable), scores row,
- * the read-only transcript with a composer while the day is open or
- * awaiting scores, and Talk / Quick / Skip when it has not started.
+ * /journal/[date] (spec §6): summary (editable), the scene cards with their
+ * reviewed people and facts (Part B), scores row, the read-only transcript
+ * with a composer while the day is open or awaiting scores, Talk / Quick /
+ * Skip when it has not started, and re-extract once it is closed.
  */
 export function DayClient({ date }: { date: string }) {
   const key = `/api/journal/days/${date}`;
@@ -44,7 +47,22 @@ export function DayClient({ date }: { date: string }) {
   const day = data?.day ?? null;
   const keys = data?.score_keys ?? [];
 
-  const apply = (r: TurnReply) => void mutate((cur) => (cur ? { ...cur, day: r.day } : cur), { revalidate: false });
+  // a turn that closes the day also writes scenes and review items, so refetch then
+  const apply = (r: TurnReply) => void mutate((cur) => (cur ? { ...cur, day: r.day } : cur), { revalidate: r.state === "closed" });
+  const [notice, setNotice] = useState<string | null>(null);
+  const reextract = async () => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const r = await post<{ scenes_added: number; queued: number; quotes: number }>(`${key}/reextract`);
+      setNotice(r.scenes_added || r.queued || r.quotes ? `Re-extracted: ${r.scenes_added} new scene${r.scenes_added === 1 ? "" : "s"}, ${r.queued + r.quotes} new item${r.queued + r.quotes === 1 ? "" : "s"} to review.` : "Re-extracted: nothing new.");
+      await mutate();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "failed");
+    } finally {
+      setBusy(false);
+    }
+  };
   const run = async (fn: () => Promise<TurnReply>) => {
     setBusy(true);
     setErr(null);
@@ -151,6 +169,8 @@ export function DayClient({ date }: { date: string }) {
         )}
       </section>
 
+      <ScenesSection scenes={data.scenes ?? []} dayFacts={data.facts ?? []} pending={data.pending ?? 0} dayId={day.id} onChanged={() => void mutate()} />
+
       {/* scores */}
       {keys.length > 0 && (
         <section className="rounded-md bg-ink-1 p-4 flex flex-col gap-2">
@@ -238,7 +258,15 @@ export function DayClient({ date }: { date: string }) {
           </div>
         )}
         {err && <div className="text-xs text-error">{err}</div>}
-        {day.cost_pence > 0 && <Mono className="text-[10px] text-text-2">cost {day.cost_pence.toFixed(1)}p</Mono>}
+        {notice && <div className="text-xs text-text-2">{notice}</div>}
+        <div className="flex items-center justify-between gap-3">
+          {day.cost_pence > 0 ? <Mono className="text-[10px] text-text-2">cost {day.cost_pence.toFixed(1)}p</Mono> : <span />}
+          {day.status === "closed" && day.mode !== "legacy" && (
+            <button type="button" className="text-[10px] text-text-2 hover:text-text-0 font-[family-name:var(--font-mono)] disabled:opacity-50" disabled={busy} onClick={() => void reextract()} title="Read the conversation again for scenes and facts. Adds what is new; never changes what you have edited or reviewed.">
+              {busy ? "…" : "RE-EXTRACT"}
+            </button>
+          )}
+        </div>
       </section>
     </div>
   );
