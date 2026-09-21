@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { normaliseAlias } from "@/lib/people/normalise";
+import { approveDaylogPending, type DaylogPendingRow } from "@/lib/daylog/approve";
+import { isDaylogPending } from "@/lib/daylog/materialise";
 
 export const runtime = "nodejs";
 
@@ -8,6 +10,9 @@ type ResolveBody = {
   action?: "create_new" | "link_existing" | "reject";
   /** When action='link_existing', the id of the existing entity. */
   link_to_id?: string;
+  /** Day-log facts only: the reviewer's corrected wording / kind. */
+  text?: string;
+  kind?: string;
 };
 
 /**
@@ -42,7 +47,7 @@ export async function POST(
     const supabase = await createUserClient();
     const { data: pending } = await supabase
       .from("pending_entities")
-      .select("id, capture_id, entity_type, entity_name, resolved_at")
+      .select("id, capture_id, entity_type, entity_name, additional_data, resolved_at")
       .eq("id", id)
       .maybeSingle();
     if (!pending) {
@@ -61,7 +66,15 @@ export async function POST(
 
     let resolvedId: string | null = null;
 
-    if (action === "create_new") {
+    // Day log kinds (daylog spec 4.4): approval is what writes to People,
+    // Places and daylog_facts; a reject just closes the item.
+    if (isDaylogPending(row.entity_type)) {
+      if (action !== "reject") {
+        const r = await approveDaylogPending(supabase, pending as unknown as DaylogPendingRow, { action, link_to_id: body.link_to_id, text: body.text, kind: body.kind });
+        if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
+        resolvedId = r.resolved_entity_id;
+      }
+    } else if (action === "create_new") {
       if (row.entity_type === "person") {
         const { data: created } = await supabase
           .from("people")

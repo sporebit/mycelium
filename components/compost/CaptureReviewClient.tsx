@@ -112,8 +112,8 @@ function routedUrl(c: Capture): string | null {
   }
 }
 
-export function CaptureReviewClient() {
-  const [tab, setTab] = useState<Tab>("needs_review");
+export function CaptureReviewClient({ initialTab = "needs_review", dayId = null }: { initialTab?: Tab; dayId?: string | null } = {}) {
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [captures, setCaptures] = useState<Capture[] | null>(null);
   const [toast, setToast] = useState<Toast>(null);
   const [loading, setLoading] = useState(true);
@@ -265,7 +265,7 @@ export function CaptureReviewClient() {
       </header>
 
       {tab === "entities" ? (
-        <PendingEntitiesList />
+        <PendingEntitiesList dayId={dayId} />
       ) : captures === null || loading ? (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…

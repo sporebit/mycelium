@@ -17,6 +17,8 @@ export async function GET(req: NextRequest) {
       .select(PENDING_SELECT)
       .order("created_at", { ascending: false });
     if (!includeResolved) q = q.is("resolved_at", null);
+    const dayId = url.searchParams.get("day_id");
+    if (dayId) q = q.eq("additional_data->>day_id", dayId);
     const { data: pending, error } = await q;
     if (error) throw error;
     auditListRead(req, pending, "organisation", "captures");
