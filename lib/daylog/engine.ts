@@ -4,7 +4,10 @@
  * (prompt → Talk / Quick / Skip / Snooze → turns → score line → close),
  * the append-only transcript, the Sonnet conversation with the rules block
  * (lib/daylog/rules.md, read at runtime), the Sonnet close narrative, the
- * score line in every mode, api_usage tagging. No extraction yet (Part B).
+ * score line in every mode, api_usage tagging. Part B: the per-turn Haiku
+ * delta runs before each reply so the probe is grounded in facts-so-far
+ * (lib/daylog/extract.ts), Quick mode extracts once, and the close turns the
+ * extraction into scenes and review items (lib/daylog/materialise.ts).
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -14,6 +17,9 @@ import { costPence, recordUsage } from "@/lib/ai/usage";
 import { daylogDay, DATE_RE } from "./day";
 import { parseScoreLine, scoreLinePrompt } from "./scores";
 import { getDaylogSettings, type DaylogSettings } from "./settings";
+import { extractTranscript, extractTurn, groundingBlock } from "./extract";
+import { mergePatch, normaliseExtraction, quickExtraction, type Extraction } from "./extraction";
+import { materialise, pendingCount } from "./materialise";
 
 export type TranscriptEntry = { role: "user" | "assistant" | "system"; at: string; text: string; channel: "telegram" | "app" | "capture" | "legacy" | "system"; media_id?: string | null };
 
@@ -51,6 +57,8 @@ export type TurnResult = {
   /** what the transport should do next: nothing special, ask for the missing scores, or the day just closed */
   state: "open" | "scores" | "closed";
   missing?: string[];
+  /** review items waiting for this day, set when it closes */
+  pending?: number;
 };
 
 const DONE_RE = /^\s*(done|stop|that's it|thats it|that is it|finished|end|no more)\b[.!]*\s*$/i;
@@ -261,16 +269,26 @@ export async function runTurn(db: SupabaseClient, dayId: string, text: string, c
 
   // Quick mode: the one line is the day; go to scores
   if (d.mode === "quick") {
-    d = await append(db, d, [userEntry], { summary: d.summary_edited_by_user ? d.summary : text.trim() });
+    // the template parse stands on its own; the one Haiku call only adds to it
+    const base = mergePatch(normaliseExtraction(d.extraction), quickExtraction(text));
+    const grounded = await extractTurn(db, d.id, base, QUICK_PROMPT, text);
+    d = await append(db, d, [userEntry], { summary: d.summary_edited_by_user ? d.summary : text.trim(), extraction: grounded.extraction });
     return toScores(db, d, s, channel);
   }
 
+  const lastAssistant = [...(d.transcript ?? [])].reverse().find((e) => e.role === "assistant")?.text ?? null;
   d = await append(db, d, [userEntry], { turn_count: (d.turn_count ?? 0) + 1 });
+
+  // per-turn delta extraction, before the reply, so the probe is grounded (decision 16)
+  const grounded = await extractTurn(db, d.id, normaliseExtraction(d.extraction), lastAssistant, text, { skipModel: DONE_RE.test(text) });
+  d = await patchDay(db, d.id, { extraction: grounded.extraction });
 
   // (b) done, or the cap
   const wantsClose = DONE_RE.test(text) || d.turn_count >= s.turn_cap;
   const system = systemPrompt(await personaLine(db, d.persona_agent_id ?? s.persona_agent_id), s);
   const messages = toMessages(d.transcript);
+  // dynamic and uncached: it rides on the last user message, never in the transcript
+  if (messages.length) messages[messages.length - 1].content += `\n\n${groundingBlock(grounded)}`;
   if (wantsClose) {
     messages.push({ role: "user", content: "[system: close now — one line recapping the scenes, then the score line, nothing else]" });
   } else if (d.turn_count >= s.turn_cap - 1) {
@@ -332,10 +350,40 @@ async function finalise(db: SupabaseClient, d: DayRow): Promise<TurnResult> {
       }
     }
   }
+  // scenes + review items (spec §4.4 steps 2–3); a failure here never blocks the close
+  let extraction: Extraction = normaliseExtraction(d.extraction);
+  let pending = 0;
+  try {
+    const m = await materialise(db, { id: d.id, day: d.day, summary: summary ?? d.summary }, extraction);
+    extraction = m.extraction;
+    pending = (await pendingCount(db, d.id)) + m.quotes;
+  } catch (err) {
+    console.error("[daylog] materialise failed:", err instanceof Error ? err.message : err);
+  }
   const cost = await dayCostPence(db, d.id);
-  const next = await patchDay(db, d.id, { status: "closed", closed_at: closedAt, summary: summary ?? d.summary, cost_pence: cost });
+  const next = await patchDay(db, d.id, { status: "closed", closed_at: closedAt, summary: summary ?? d.summary, cost_pence: cost, extraction, open_thread: d.open_thread ?? extraction.open_thread });
   const recap = summary ? summary.split("\n")[0] : "Closed.";
-  return { reply: recap, day: next, state: "closed" };
+  return { reply: pending ? `${recap}\n${pending} item${pending === 1 ? "" : "s"} to review.` : recap, day: next, state: "closed", pending };
+}
+
+/**
+ * Re-run extraction on the frozen transcript (spec §5). Starts from the
+ * current state, so refs stay stable; materialise only adds scenes and review
+ * items that are new — existing rows, edited or not, are never rewritten.
+ */
+export async function reextract(db: SupabaseClient, dayId: string): Promise<{ day: DayRow; scenes: number; queued: number; quotes: number }> {
+  const d = await getDayById(db, dayId);
+  if (!d) throw new Error("day not found");
+  if (d.status !== "closed") throw new Error("only a closed day can be re-extracted");
+  const current = normaliseExtraction(d.extraction);
+  const seed: Extraction = d.mode === "quick" ? mergePatch(current, quickExtraction(d.transcript.find((e) => e.role === "user")?.text ?? "")) : current;
+  const fresh = (await extractTranscript(db, d.id, d.transcript, seed)) ?? seed;
+  const m = await materialise(db, { id: d.id, day: d.day, summary: d.summary }, { ...fresh, scene_ids: current.scene_ids });
+  const cost = await dayCostPence(db, d.id);
+  const { data: v } = await db.from("daylog_days").select("extraction_version").eq("id", d.id).maybeSingle();
+  const version = Number((v as { extraction_version?: number } | null)?.extraction_version ?? 1) + 1;
+  const next = await patchDay(db, d.id, { extraction: m.extraction, extraction_version: version, cost_pence: cost });
+  return { day: next, scenes: m.scenes, queued: m.queued, quotes: m.quotes };
 }
 
 export async function dayCostPence(db: SupabaseClient, dayId: string): Promise<number> {
