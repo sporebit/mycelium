@@ -1,0 +1,100 @@
+{
+  "slug": "smoke-test-daylog-part-c",
+  "name": "Day log Part C smoke test",
+  "kind": "test",
+  "version": 1,
+  "definition": {
+    "title": "Day log Part C smoke test ({{run}})",
+    "body_md": "Phil's live check of Day log Part C — People (0131), shipped 2026-09-21. The API path was smoke-tested from the PC with a made-up person over two test days; this ticket is the human half: does a real person's page read true. Do it after the Part B check — it needs at least one day whose people and facts you have approved. Tick as you go; anything that fails stays unticked with a comment naming the step id.",
+    "kind": "test",
+    "where_ctx": "anywhere",
+    "tools": ["phone", "pc"],
+    "time_window": "anytime",
+    "points": 3,
+    "steps_definition": {
+      "slug": "smoke-test-daylog-part-c",
+      "kind": "test",
+      "title": "Day log Part C smoke test",
+      "version": 1,
+      "toggles": { "device": { "label": "Device", "options": { "phone": "Phone first", "pc": "PC first" }, "default": "pc" } },
+      "values": [
+        { "key": "run", "label": "Run label", "placeholder": "2026-09-22 evening" },
+        { "key": "friend", "label": "The person you approved onto a day in the Part B check", "placeholder": "Kirsty" }
+      ],
+      "intro": {
+        "verdict_html": "<p>Two phases, about 10 minutes. Phase 1 reads {{friend}}'s page against what you know you approved. Phase 2 adds a second day and watches the numbers move, then checks the interviewer now knows who they are.</p>",
+        "prerequisites": [
+          "The Part B check is done: at least one closed day where {{friend}} was approved as WAS THERE and a fact or two about them was approved",
+          "Signed in on the PC"
+        ],
+        "time": ["Phase 1: 4 min", "Phase 2: 6 min"],
+        "cost": ["One Quick night ≈ 0.2p", "One Talk turn ≈ 0.5p"]
+      },
+      "phases": [
+        {
+          "id": "1",
+          "title": "The person page",
+          "steps": [
+            {
+              "id": "1.1",
+              "title": "People → the row for {{friend}} shows \"N days together\" alongside mentions and quotes; someone who has never been on a day shows nothing extra",
+              "actor": "you",
+              "where": { "label": "People", "url": "https://mycelium.sporebit.com/organisation/people", "kind": "page" },
+              "fields": [{ "key": "days", "label": "Days together shown on the row", "placeholder": "1" }]
+            },
+            {
+              "id": "1.2",
+              "title": "Open {{friend}}. Below the three columns is a Days block: the count with first and last dates in its header — matching what you approved",
+              "actor": "you",
+              "where": { "label": "People → {{friend}}", "kind": "page" }
+            },
+            {
+              "id": "1.3",
+              "title": "Timeline: one row per scene they were in, newest day first, the date shown once per day, each with its place and one line. The date opens that day's journal page",
+              "actor": "you",
+              "where": { "label": "People → {{friend}}", "kind": "page" }
+            },
+            {
+              "id": "1.4",
+              "title": "Facts and preferences: only facts about {{friend}} (not yours), each with a kind tag and its day. Places and food together: grouped by place with a day count, a linked place opening Places, what you ate, drank and spent there underneath. Milestones, if you approved one, sit at the top in the accent colour",
+              "actor": "you",
+              "where": { "label": "People → {{friend}}", "kind": "page" },
+              "fields": [{ "key": "wrong", "label": "Anything on the page that is wrong or is not theirs", "placeholder": "none" }]
+            },
+            {
+              "id": "1.5",
+              "title": "Nothing you rejected, and nothing still waiting in the review queue, appears anywhere in the block",
+              "actor": "you",
+              "where": { "label": "People → {{friend}}", "kind": "page" }
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "A second day",
+          "steps": [
+            {
+              "id": "2.1",
+              "title": "Journal → another past date → QUICK → \"{{friend}} / <the same place as before, same wording> / one line\" → scores. In review, {{friend}} is a WAS THERE card (not a new person), and a place you already created does not come back as a PLACE card. Approve the day's items",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" }
+            },
+            {
+              "id": "2.2",
+              "title": "Back on {{friend}}: days together went up by one, last seen moved to the new date, the place's day count went up, and the new scene tops the timeline",
+              "actor": "you",
+              "where": { "label": "People → {{friend}}", "kind": "page" }
+            },
+            {
+              "id": "2.3",
+              "title": "A third past date → TALK → mention {{friend}} by name in your first message. The interviewer does NOT ask who they are. Type \"done\", give the scores, then delete or keep the day as you like",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" },
+              "fields": [{ "key": "asked", "label": "What it asked instead", "placeholder": "Where did you go?" }]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
