@@ -1,0 +1,187 @@
+{
+  "slug": "smoke-test-daylog-part-b",
+  "name": "Day log Part B smoke test",
+  "kind": "test",
+  "version": 1,
+  "definition": {
+    "title": "Day log Part B smoke test ({{run}})",
+    "body_md": "Phil's live check of Day log Part B — extraction and review (0129/0130), shipped 2026-09-21. The API path was smoke-tested from the PC on two test days; this ticket is the human half: does the interviewer feel grounded, is the review queue bearable, do approvals land where they should. Tick as you go; type what you saw in the answer boxes; anything that fails stays unticked with a comment naming the step id.",
+    "kind": "test",
+    "where_ctx": "anywhere",
+    "tools": ["phone", "pc"],
+    "time_window": "anytime",
+    "points": 5,
+    "steps_definition": {
+      "slug": "smoke-test-daylog-part-b",
+      "kind": "test",
+      "title": "Day log Part B smoke test",
+      "version": 1,
+      "toggles": { "device": { "label": "Device", "options": { "phone": "Phone first", "pc": "PC first" }, "default": "pc" } },
+      "values": [
+        { "key": "run", "label": "Run label", "placeholder": "2026-09-22 evening" },
+        { "key": "friend", "label": "Someone who exists in People, by the name you would say", "placeholder": "Kirsty" },
+        { "key": "stranger", "label": "A name that is NOT in People (a pet, a colleague)", "placeholder": "Max" }
+      ],
+      "intro": {
+        "verdict_html": "<p>Four phases, about 25 minutes. Phase 1 is one Talk night on a past date in the app, watching the interviewer use what it has learned. Phase 2 is the review queue. Phase 3 is the day page after review: scenes, facts, editing, re-extract. Phase 4 is Quick mode. A real evening on Telegram uses the same engine, so nothing here needs the bot.</p>",
+        "prerequisites": [
+          "Signed in on the PC (the review queue is easier on a wide screen)",
+          "{{friend}} exists in People under that name or an alias",
+          "{{stranger}} does not exist in People",
+          "Two past dates you have not logged, e.g. last Saturday and last Sunday"
+        ],
+        "time": ["Phase 1: 8 min", "Phase 2: 8 min", "Phase 3: 5 min", "Phase 4: 3 min"],
+        "cost": ["One Talk night with extraction ≈ 3p", "One Quick night ≈ 0.2p", "One re-extract ≈ 0.3p"]
+      },
+      "phases": [
+        {
+          "id": "1",
+          "title": "A Talk night, grounded",
+          "lede_html": "<p>Use a past date so tonight is untouched. Say things the way you would say them at 21:30.</p>",
+          "steps": [
+            {
+              "id": "1.1",
+              "title": "Journal → pick a past date → OPEN → TALK. First message: a day with two or three places, with {{friend}} and {{stranger}} both in it — e.g. \"Went to Whitby with {{friend}} and {{stranger}}, fish and chips on the quayside, then the beach\"",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" },
+              "fields": [{ "key": "first_reply", "label": "What it asked back", "placeholder": "Who's Max?" }]
+            },
+            {
+              "id": "1.2",
+              "title": "It asks who {{stranger}} is — and does NOT ask who {{friend}} is. Answer it in a few words",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" }
+            },
+            {
+              "id": "1.3",
+              "title": "Volunteer several slots in one message (what you ate, who paid, roughly how much). The next question does NOT re-ask any of those — it moves on",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" },
+              "fields": [{ "key": "reasked", "label": "Anything it asked that you had already answered", "placeholder": "nothing" }]
+            },
+            {
+              "id": "1.4",
+              "title": "Mention one thing about {{friend}} (a preference, something they said in their words) and one first-time moment. It never asks who {{stranger}} is a second time",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" }
+            },
+            {
+              "id": "1.5",
+              "title": "Type \"done\", then the scores. The closing message ends with \"N items to review\" and the status chip reads closed",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" },
+              "fields": [{ "key": "items", "label": "How many items it said", "placeholder": "14" }]
+            },
+            {
+              "id": "1.6",
+              "title": "The page now shows a Scenes section: one card per place, in order, each with a line of narrative and a dashed place chip. No people chips and no facts yet — nothing is on the record until reviewed. An amber \"N TO REVIEW\" badge sits on the section",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" },
+              "fields": [{ "key": "scenes", "label": "The scene titles it made", "placeholder": "Quayside · Beach" }]
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "The review queue",
+          "lede_html": "<p>The amber badge opens Capture review on the New entities tab, narrowed to that day. People sort first so a fact's subject exists by the time you approve it.</p>",
+          "steps": [
+            {
+              "id": "2.1",
+              "title": "Tap the badge. The list is headed \"Day log · <date>\" and holds only that day's items: a WAS THERE card for {{friend}}, a NEW PERSON card for {{stranger}} quoting your answer, PLACE cards, FACT cards",
+              "actor": "you",
+              "where": { "label": "Capture review → New entities", "kind": "page" }
+            },
+            {
+              "id": "2.2",
+              "title": "NEW PERSON {{stranger}} → CREATE PERSON. The card goes. People now has {{stranger}} with your answer as the note",
+              "actor": "you",
+              "where": { "label": "People", "url": "https://mycelium.sporebit.com/organisation/people", "kind": "page" }
+            },
+            {
+              "id": "2.3",
+              "title": "One PLACE card → CREATE PLACE; another → LINK TO EXISTING and pick a place you already have (or REJECT it if none fits)",
+              "actor": "you",
+              "where": { "label": "Capture review → New entities", "kind": "page" }
+            },
+            {
+              "id": "2.4",
+              "title": "One FACT card: change a word in the text box and the kind in the dropdown, then APPROVE. Another FACT card: REJECT",
+              "actor": "you",
+              "where": { "label": "Capture review → New entities", "kind": "page" }
+            },
+            {
+              "id": "2.5",
+              "title": "Press \"APPROVE N AS PROPOSED\" at the top of the day's group — the who-was-there links and the remaining facts clear in one go; new people and places are left for a decision",
+              "actor": "you",
+              "where": { "label": "Capture review → New entities", "kind": "page" },
+              "fields": [{ "key": "wrong", "label": "Any fact that was wrong, invented, or about the wrong person", "placeholder": "none" }]
+            },
+            {
+              "id": "2.6",
+              "title": "If you quoted someone's words in phase 1: the NEEDS REVIEW tab has a quote card for it, from source daylog, with the speaker picked. Approve or discard it as you would any quote",
+              "actor": "you",
+              "where": { "label": "Capture review → Needs review", "kind": "page" }
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "title": "The day page after review",
+          "steps": [
+            {
+              "id": "3.1",
+              "title": "Back on the day: scene cards now carry people chips ({{friend}}, {{stranger}}) that open People, solid place chips that open Places, and the approved facts grouped by kind, with the subject's name in front of facts about someone else. The rejected fact is absent; the badge is gone or lower",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" }
+            },
+            {
+              "id": "3.2",
+              "title": "EDIT a scene: change the title and the narrative, SAVE — both stick after reload. EDIT a fact's text — sticks. Delete one fact with × — gone",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" }
+            },
+            {
+              "id": "3.3",
+              "title": "RE-EXTRACT (bottom of the Conversation card). It reports what it added — usually nothing. Your edited scene and fact are unchanged, and nothing you already approved or rejected comes back into the queue",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" },
+              "fields": [{ "key": "reextract", "label": "What the re-extract line said", "placeholder": "Re-extracted: nothing new." }]
+            },
+            {
+              "id": "3.4",
+              "title": "Journal list: that day's row shows the scene titles joined with arrows, and a \"to review\" chip only while something is still waiting",
+              "actor": "you",
+              "where": { "label": "/journal", "url": "https://mycelium.sporebit.com/journal", "kind": "page" }
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "title": "Quick mode",
+          "steps": [
+            {
+              "id": "4.1",
+              "title": "Another past date → QUICK → reply in the template: \"{{friend}} / home / film night and a curry\" → the scores. Closed, with exactly one scene titled by the place, and the one line as the entry",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" }
+            },
+            {
+              "id": "4.2",
+              "title": "Its review items: a WAS THERE card for {{friend}} and a fact or two from the line. Approve them — the scene shows {{friend}}",
+              "actor": "you",
+              "where": { "label": "Capture review → New entities", "kind": "page" }
+            },
+            {
+              "id": "4.3",
+              "title": "Verdict: is a nightly queue of this size something you would actually clear? If not, say what should auto-approve",
+              "actor": "you",
+              "where": { "label": "here", "kind": "page" },
+              "fields": [{ "key": "verdict", "label": "Bearable? What should skip review?", "placeholder": "fine / auto-approve known people" }]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
