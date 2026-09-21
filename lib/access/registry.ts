@@ -311,7 +311,7 @@ export const SHARED_REFERENCE: readonly SharedReferenceDef[] = [
  * they select from (all are security_invoker). Listed so the coverage test
  * notices a new view rather than silently ignoring it.
  */
-export const DERIVED_RELATIONS: readonly string[] = ["pc_metrics_machines"];
+export const DERIVED_RELATIONS: readonly string[] = ["pc_metrics_machines", "people_daylog_stats"];
 
 /**
  * Tables that define identity and access itself: who a user is, which
