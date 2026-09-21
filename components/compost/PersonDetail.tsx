@@ -7,6 +7,7 @@ import { Mono } from "@/components/dashboard/Mono";
 import { PersonDrawer } from "./PersonDrawer";
 import { triggerGlowPulse } from "@/lib/motion";
 import { QuoteCard } from "@/components/quotes/QuoteCard";
+import { PersonDays } from "@/components/daylog/PersonDays";
 import type { QuoteRow } from "@/lib/quotes/server";
 import type {
   MentionWithSnippet,
@@ -367,6 +368,9 @@ export function PersonDetail({ id }: { id: string }) {
           )}
         </section>
       </div>
+
+      {/* DAYS — what the day log has learned, reviewed rows only (daylog spec §6) */}
+      <PersonDays personId={id} />
 
       {editing && (
         <PersonDrawer

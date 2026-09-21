@@ -290,6 +290,9 @@ export function PeopleClient() {
                   {p.quote_count
                     ? `${p.quote_count} quote${p.quote_count === 1 ? "" : "s"} · `
                     : ""}
+                  {p.days_together
+                    ? `${p.days_together} day${p.days_together === 1 ? "" : "s"} together · `
+                    : ""}
                   {p.last_mention_at
                     ? `last ${relativeDate(p.last_mention_at)}`
                     : "no mentions"}
