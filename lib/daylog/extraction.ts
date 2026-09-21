@@ -312,7 +312,12 @@ export const EXTRACTION_TOOL = {
           type: "object",
           properties: {
             scene_ref: { type: "string" },
-            kind: { type: "string", enum: [...FACT_KINDS] },
+            kind: {
+              type: "string",
+              enum: [...FACT_KINDS],
+              description:
+                "milestone = a first or a turning point in a relationship or a life (going public as a couple, meeting family, a first trip together, an engagement, a new job, a move) — it wins over every other kind, even when a photo, a post or a meal is how it happened. food / drink = what someone had. spend = money, with data.amount_pence. event = something that happened in the scene. person_fact = a lasting preference, trait or circumstance of someone. place_fact = a lasting thing about a place. media = a film, show, book, game or music consumed — never a photo someone took. health = body, sleep, illness, exercise. other = none of these.",
+            },
             subject: { type: "string", description: "whose fact it is, by name; omit when it is the narrator's own" },
             text: { type: "string", description: "one line, only what was said" },
             data: { type: "object", description: "optional structure: item, amount_pence, currency, who_paid, venue, rating" },
@@ -336,5 +341,5 @@ export const EXTRACTION_TOOL = {
 
 export const EXTRACTION_SYSTEM = [
   "You extract structured facts from a day-log interview, one exchange at a time. You are given the extraction so far, the people already known, and the latest exchange. Return ONLY what the latest exchange adds, via the record_patch tool.",
-  "Rules: record only what the narrator said — never world knowledge, never guesses about places or people. A scene is a distinct place-or-activity segment of the day, in the order it happened; reuse an existing scene's ref to add people or detail to it. The narrator (I / me / we) is never listed as a person and is never a fact subject. A fact about another person (a preference, something that happened to them) takes that person's name as subject and kind person_fact unless food, drink or spend fits better. Money goes in a spend fact with data.amount_pence when a figure was given. A first-time event in a relationship or life is a milestone. A name that is not in the known-people list and has not been explained goes in unknown_names; when the narrator explains who someone is, put it in name_answers. Pets are fine as people entries. Use confidence inferred only when you are reading between the lines.",
+  "Rules: record only what the narrator said — never world knowledge, never guesses about places or people. A scene is a distinct place-or-activity segment of the day, in the order it happened; reuse an existing scene's ref to add people or detail to it. The narrator (I / me / we) is never listed as a person and is never a fact subject. A fact about another person (a preference, something that happened to them) takes that person's name as subject and kind person_fact unless food, drink or spend fits better. Money goes in a spend fact with data.amount_pence when a figure was given. A first or a turning point in a relationship or a life is a milestone, and milestone outranks every other kind (she posted a photo of us for the first time: a milestone, not media). A name that is not in the known-people list and has not been explained goes in unknown_names; when the narrator explains who someone is, put it in name_answers. Pets are fine as people entries. Use confidence inferred only when you are reading between the lines.",
 ].join("\n");
