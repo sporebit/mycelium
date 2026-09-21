@@ -26,14 +26,18 @@ export async function knownPeople(db: SupabaseClient, names: string[]): Promise<
   return out;
 }
 
-/** One-line person cards for anyone mentioned (decision 22): name and relationship, nothing more. */
+/** One-line person cards for anyone mentioned (decision 22): name, relationship, last seen — nothing more. */
 export async function personCards(db: SupabaseClient, known: Map<string, string>): Promise<string[]> {
   const ids = Array.from(new Set(known.values()));
   if (!ids.length) return [];
-  const { data } = await db.from("people").select("id, display_name, first_name, last_name, relationship").in("id", ids);
+  const [{ data }, { data: seen }] = await Promise.all([
+    db.from("people").select("id, display_name, first_name, last_name, relationship").in("id", ids),
+    db.from("people_daylog_stats").select("person_id, last_seen").in("person_id", ids),
+  ]);
+  const lastSeen = new Map(((seen ?? []) as Array<{ person_id: string; last_seen: string }>).map((r) => [r.person_id, r.last_seen]));
   return ((data ?? []) as PersonRow[]).map((p) => {
     const name = p.display_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "someone");
-    return p.relationship ? `${name} — ${p.relationship}` : name;
+    return [name, p.relationship, lastSeen.get(p.id) ? `last seen ${lastSeen.get(p.id)}` : null].filter(Boolean).join(" — ");
   });
 }
 
