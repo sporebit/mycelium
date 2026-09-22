@@ -28,7 +28,7 @@ import { localDateKey } from "@/lib/util/date";
 import { captureKeyboard, captureSummary } from "@/lib/tickets/notify";
 import { isTicketCategory, moveTicket } from "@/lib/tickets/server";
 import { addDays } from "@/lib/tickets/recur";
-import { CAPTURE_ESCAPE, handleDaylogCallback, routeInbound } from "@/lib/daylog/telegram";
+import { CAPTURE_ESCAPE, handleDaylogCallback, routeInbound, routeInboundPhoto } from "@/lib/daylog/telegram";
 import { uploadTicketAttachment } from "@/lib/storage/tickets";
 
 export const runtime = "nodejs";
@@ -40,6 +40,8 @@ type TgPhotoSize = { file_id: string; width: number; height: number; file_size?:
 type TgDocument = { file_id: string; file_name?: string; mime_type?: string; file_size?: number };
 type TgMessage = {
   message_id: number;
+  /** unix seconds — a photo's taken-at for the day log (decision 28) */
+  date: number;
   from?: TgUser;
   chat: TgChat;
   text?: string;
@@ -310,6 +312,28 @@ async function handleMessage(
     }
   } else if (message.text) {
     rawText = message.text;
+  } else if (message.photo?.length && !CAPTURE_ESCAPE.test(message.caption ?? "")) {
+    // Day log (daylog spec decision 28): while tonight's day is open, a photo
+    // is the day's — with or without a caption. `/c ` in the caption forces
+    // the ticket path below.
+    try {
+      const fileId = message.photo[message.photo.length - 1].file_id;
+      const file = await getFile(fileId);
+      const routed = await routeInboundPhoto(supabase, await downloadFile(file.file_path), message.caption ?? null, new Date(message.date * 1000));
+      if (routed) {
+        await sendMessage(chatId, routed.reply);
+        return;
+      }
+    } catch (err) {
+      console.error("[telegram] daylog photo failed:", err);
+      await sendMessage(chatId, "⚠️ Couldn't keep that photo — try again, or caption it to make a ticket.");
+      return;
+    }
+    if (!message.caption?.trim()) {
+      await sendMessage(chatId, "Add a caption to the photo or file and I’ll make it a ticket with the attachment.");
+      return;
+    }
+    rawText = message.caption;
   } else if ((message.photo?.length || message.document) && message.caption?.trim()) {
     // A photo/PDF with a caption: the caption is the capture, the file
     // attaches to the resulting ticket (spec §8.1).

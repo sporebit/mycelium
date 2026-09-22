@@ -10,6 +10,7 @@ import type { InlineKeyboardMarkup } from "@/lib/telegram/api";
 import { APP_URL } from "@/lib/tickets/notify";
 import { currentDay, forceClose, getDay, runTurn, snooze, startQuick, startSkip, startTalk, type DayRow, type TurnResult } from "./engine";
 import { shiftDate } from "./day";
+import { uploadDaylogPhoto } from "./media";
 
 export const CAPTURE_ESCAPE = /^\/c\s+/i;
 
@@ -65,6 +66,23 @@ function decorate(r: TurnResult): string {
     return `${r.reply}\n${dayUrl(d.day)}`;
   }
   return r.reply;
+}
+
+/**
+ * A photo while a day is open or awaiting scores belongs to that day (decision
+ * 28): stored in the private bucket, attached to a scene by timing at close.
+ * A caption is kept on the photo and also appended as a message so the
+ * interviewer can use it. Returns null when no day is live (fall through).
+ */
+export async function routeInboundPhoto(db: SupabaseClient, file: { buffer: ArrayBuffer; contentType: string }, caption: string | null, sentAt: Date): Promise<{ reply: string } | null> {
+  const d = await activeDay(db);
+  if (!d || d.status === "prompted") return null;
+  const row = await uploadDaylogPhoto(db, d.id, file.buffer, file.contentType, { takenAt: sentAt.toISOString(), caption });
+  if (caption?.trim() && d.status === "open") {
+    const r = await runTurn(db, d.id, caption.trim(), "telegram", row.id);
+    return { reply: `📷 kept.\n${decorate(r)}` };
+  }
+  return { reply: "📷 kept — it goes on the scene you were talking about." };
 }
 
 /** Callback `dl|<day>|talk|quick|skip|snooze` → the reply text (and whether to keep the buttons). */
