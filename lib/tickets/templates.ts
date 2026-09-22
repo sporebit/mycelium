@@ -10,6 +10,7 @@ import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import type { Task } from "@/lib/types/task";
 import { isStepsDefinition, type StepsDefinition } from "./steps";
 import { moveTicket, resolveTicketRef, statusIdFor } from "./server";
+import { syncTicketToGoogle } from "@/lib/google/sync";
 import { REPO_TEMPLATES } from "@/docs/tickets/templates/index";
 
 export type TemplateDefinition = {
@@ -165,6 +166,7 @@ export async function instantiateTemplate(
     if (subStatus) row.status_id = subStatus;
     await db.from("tickets").insert(row);
   }
+  if (ticket.scheduled_on || ticket.scheduled_at) void syncTicketToGoogle(db, ticket); // MYC-40
   return ticket;
 }
 

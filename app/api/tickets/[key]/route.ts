@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import { logTaskActivity } from "@/lib/task-activity";
-import { pushTaskToGoogle, removeGoogleEvent } from "@/lib/google/sync";
+import { removeGoogleEvent, syncTicketToGoogle } from "@/lib/google/sync";
 import { TASK_STATUSES, URGENCIES } from "@/lib/types/task";
 import { attachAssigneeNames, attachBlockers, type TicketRow } from "@/lib/tickets/query";
 import { signTicketAttachment } from "@/lib/storage/tickets";
@@ -243,20 +243,9 @@ export async function PATCH(
       }
     }
 
-    const closed = task.category === "done" || task.category === "cancelled" || !!task.completed_at;
-    if (closed) {
-      removeGoogleEvent(supabase, "tasks", task.google_event_id ?? null).catch(() => {});
-    } else if (
-      task.scheduled_at &&
-      ("scheduled_at" in update || "title" in update || "description" in update)
-    ) {
-      pushTaskToGoogle(supabase, {
-        id: task.id,
-        title: task.title,
-        description: task.description,
-        scheduled_at: task.scheduled_at,
-        google_event_id: task.google_event_id ?? null,
-      }).catch(() => {});
+    // Google Calendar (MYC-40): decided from the ticket's state after the write
+    if (["scheduled_at", "scheduled_on", "title", "description", "status", "status_id", "completed_at"].some((k) => k in update) || task.category === "done" || task.category === "cancelled") {
+      void syncTicketToGoogle(supabase, task);
     }
 
     return NextResponse.json({ task, ticket: task });

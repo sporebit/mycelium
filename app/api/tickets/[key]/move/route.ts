@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
-import { removeGoogleEvent } from "@/lib/google/sync";
+import { syncTicketToGoogle } from "@/lib/google/sync";
 import {
   isLinkKind,
   isTicketCategory,
@@ -71,9 +71,8 @@ export async function POST(
         meta: { via: "move", to: moved.to },
       });
     }
-    if (moved.to === "done" || moved.to === "cancelled") {
-      removeGoogleEvent(supabase, "tasks", moved.task.google_event_id ?? null).catch(() => {});
-    }
+    // Google Calendar (MYC-40): a close removes the event, a scheduled_on on the move creates or moves it
+    if (moved.to === "done" || moved.to === "cancelled" || "scheduled_on" in extra) void syncTicketToGoogle(supabase, moved.task);
     return NextResponse.json({ task: moved.task, ticket: moved.task, from: moved.from, to: moved.to });
   } catch (err) {
     console.error("[/api/tickets/:key/move POST]", err);

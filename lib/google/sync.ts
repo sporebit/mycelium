@@ -28,6 +28,65 @@ function oneHourLater(iso: string): string {
 
 // ─── PUSH: Myphelium2 → Google ──────────────────────────────────
 
+function nextDay(date: string): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+export type TicketForCalendar = {
+  id: string;
+  title: string;
+  description?: string | null;
+  /** timed (legacy): a one-hour event */
+  scheduled_at?: string | null;
+  /** dated (tickets spec §4.4): an all-day event */
+  scheduled_on?: string | null;
+  google_event_id?: string | null;
+  category?: string | null;
+  completed_at?: string | null;
+  cancelled_at?: string | null;
+};
+
+/**
+ * Bring a ticket's Google event in line with the ticket (MYC-40). Decided
+ * from state, not from which field changed, so every write path can call
+ * it after the fact: dated and open → create or update (all-day for a
+ * `scheduled_on` date, one hour for a `scheduled_at` time); undated, done or
+ * cancelled → delete and forget the id. Soft: never throws, never blocks.
+ */
+/** The event a ticket should have on the calendar, or null when it should have none (pure). */
+export function ticketCalendarEvent(t: TicketForCalendar): GoogleCalendarEvent | null {
+  const closed = t.category === "done" || t.category === "cancelled" || !!t.completed_at || !!t.cancelled_at;
+  if (closed) return null;
+  if (t.scheduled_at) return { summary: t.title, description: t.description ?? "", start: { dateTime: t.scheduled_at, timeZone: TZ }, end: { dateTime: oneHourLater(t.scheduled_at), timeZone: TZ } };
+  if (t.scheduled_on) return { summary: t.title, description: t.description ?? "", start: { date: t.scheduled_on }, end: { date: nextDay(t.scheduled_on) } };
+  return null;
+}
+
+export async function syncTicketToGoogle(supabase: SupabaseClient, t: TicketForCalendar): Promise<"created" | "updated" | "removed" | "none"> {
+  try {
+    if (!(await isGoogleConnected(supabase))) return "none";
+    const event = ticketCalendarEvent(t);
+    if (!event) {
+      if (!t.google_event_id) return "none";
+      await deleteEvent(supabase, t.google_event_id);
+      await supabase.from("tickets").update({ google_event_id: null }).eq("id", t.id);
+      return "removed";
+    }
+    if (t.google_event_id) {
+      await updateEvent(supabase, t.google_event_id, event);
+      return "updated";
+    }
+    const created = await createEvent(supabase, event);
+    if (created?.id) await supabase.from("tickets").update({ google_event_id: created.id }).eq("id", t.id);
+    return created?.id ? "created" : "none";
+  } catch (err) {
+    console.error("[google/sync] syncTicketToGoogle failed:", err);
+    return "none";
+  }
+}
+
 export async function pushTaskToGoogle(
   supabase: SupabaseClient,
   task: {
@@ -198,14 +257,24 @@ export async function pullFromGoogle(
     const gStart = ge.start.dateTime ?? ge.start.date;
     if (!gStart) continue;
 
-    // Check tasks
+    // Check tasks — an all-day event moves scheduled_on, a timed one scheduled_at (MYC-40)
     const { data: task } = await supabase
       .from("tickets")
-      .select("id, scheduled_at")
+      .select("id, scheduled_at, scheduled_on")
       .eq("google_event_id", ge.id)
       .maybeSingle();
 
     if (task) {
+      if (ge.start.date && !ge.start.dateTime) {
+        if (task.scheduled_on !== ge.start.date) {
+          await supabase
+            .from("tickets")
+            .update({ scheduled_on: ge.start.date, updated_at: new Date().toISOString() })
+            .eq("id", task.id);
+          result.updated.push(`task: ${ge.summary ?? ge.id}`);
+        }
+        continue;
+      }
       const current = task.scheduled_at
         ? new Date(task.scheduled_at).toISOString()
         : null;

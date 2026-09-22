@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { logTaskActivity } from "@/lib/task-activity";
+import { syncTicketToGoogle, type TicketForCalendar } from "@/lib/google/sync";
 import {
   isTicketCategory,
   principalUid,
@@ -111,6 +112,15 @@ export async function POST(req: NextRequest) {
         .select("id");
       if (error) throw error;
       updated += data?.length ?? 0;
+    }
+
+    // Google Calendar (MYC-40): a scheduled_on or a close changes the event
+    if ("scheduled_on" in set || category === "done" || category === "cancelled") {
+      const { data: after } = await supabase.from("tickets").select("id, title, description, scheduled_at, scheduled_on, google_event_id, completed_at, cancelled_at, ticket_status:ticket_statuses(category)").in("id", found.map((r) => r.id));
+      for (const t of (after ?? []) as Array<TicketForCalendar & { ticket_status: { category: string } | { category: string }[] | null }>) {
+        const st = Array.isArray(t.ticket_status) ? t.ticket_status[0] : t.ticket_status;
+        void syncTicketToGoogle(supabase, { ...t, category: st?.category ?? null });
+      }
     }
 
     // Activity per ticket, categories logged by name.

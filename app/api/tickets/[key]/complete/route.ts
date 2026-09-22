@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
-import { removeGoogleEvent } from "@/lib/google/sync";
+import { syncTicketToGoogle } from "@/lib/google/sync";
 import { londonNow } from "@/lib/tickets/categories";
 import { spawnAfterCompletion } from "@/lib/tickets/spawn";
 import {
@@ -87,9 +87,8 @@ export async function POST(
         { ticket_id: ref.id, completed_on: on, completed_by: uid },
         { onConflict: "ticket_id,completed_on", ignoreDuplicates: true },
       );
-    removeGoogleEvent(supabase, "tasks", (row?.google_event_id as string | null) ?? null).catch(
-      () => {},
-    );
+    // Google Calendar (MYC-40): a completed one-off loses its event; a series row keeps its next date
+    void syncTicketToGoogle(supabase, moved.task);
     // an after_completion recurrence spawns its next occurrence now (spec §8.3)
     const spawned = await spawnAfterCompletion(supabase, ref.id, on).catch(() => null);
     return NextResponse.json({ task: moved.task, ticket: moved.task, completed_on: on, spawned });

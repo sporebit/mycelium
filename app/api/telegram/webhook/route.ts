@@ -30,6 +30,7 @@ import { isTicketCategory, moveTicket } from "@/lib/tickets/server";
 import { addDays } from "@/lib/tickets/recur";
 import { CAPTURE_ESCAPE, handleDaylogCallback, routeInbound, routeInboundPhoto } from "@/lib/daylog/telegram";
 import { uploadTicketAttachment } from "@/lib/storage/tickets";
+import { syncTicketToGoogle } from "@/lib/google/sync";
 
 export const runtime = "nodejs";
 
@@ -753,7 +754,8 @@ async function handleCallback(
           update.remind_at = t.toISOString();
           update.remind_sent_at = null;
         }
-        await supabase.from("tickets").update(update).eq("id", rowId);
+        const { data: rescheduled } = await supabase.from("tickets").update(update).eq("id", rowId).select("id, title, description, scheduled_at, scheduled_on, google_event_id").maybeSingle();
+        if (rescheduled) void syncTicketToGoogle(supabase, rescheduled as Parameters<typeof syncTicketToGoogle>[1]); // MYC-40
         toast = "⏭ Tomorrow";
         line = `${row?.ticket_key ?? ""} → ${next}`;
       } else if (action === "ci" && arg === "snooze") {

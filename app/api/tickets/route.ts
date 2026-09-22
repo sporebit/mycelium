@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { auditListRead } from "@/lib/system/readAudit";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
+import { syncTicketToGoogle } from "@/lib/google/sync";
 import { logTaskCreated } from "@/lib/task-activity";
 import {
   GTD_LISTS,
@@ -150,6 +151,7 @@ export async function POST(req: NextRequest) {
       const moved = await moveTicket(supabase, id, body.category);
       if (moved.ok) ticket = moved.task;
     }
+    if (ticket.scheduled_on || ticket.scheduled_at) void syncTicketToGoogle(supabase, ticket);
     return NextResponse.json({ ticket, key: ticket.ticket_key }, { status: 201 });
   } catch (err) {
     console.error("[/api/tickets POST]", err);
