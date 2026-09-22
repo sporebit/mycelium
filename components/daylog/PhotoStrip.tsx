@@ -78,6 +78,16 @@ export function PhotoStrip({ photos, onChanged, uploadTo }: { photos: SignedMedi
               )}
               <button
                 type="button"
+                className={`${tiny} absolute top-1 left-1 rounded-sm bg-ink-0/70 px-1 ${p.shareable ? "text-glow-1" : "text-text-2 hover:text-text-0"}`}
+                disabled={busy}
+                aria-label={p.shareable ? "Shared with linked people" : "Not shared with linked people"}
+                title={p.shareable ? "Anyone linked to a person in this scene can see this photo. Click to keep it to yourself." : "Only you. Click to share with anyone linked to a person in this scene."}
+                onClick={() => void act(() => fetch(`/api/journal/media/${p.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ shareable: !p.shareable }) }))}
+              >
+                {p.shareable ? "shared" : "private"}
+              </button>
+              <button
+                type="button"
                 className={`${tiny} absolute top-1 right-1 rounded-sm bg-ink-0/70 px-1 text-text-2 hover:text-warn`}
                 disabled={busy}
                 aria-label="Remove photo"

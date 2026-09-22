@@ -150,6 +150,15 @@ function SceneCard({ scene, index, busy, act, photos, onChanged }: { scene: Scen
               {p.name}
             </Link>
           ))}
+          <button
+            type="button"
+            className={`${tiny} ml-auto ${scene.hidden_from_linked ? "text-warn" : "text-text-2 hover:text-text-0"}`}
+            disabled={busy}
+            title={scene.hidden_from_linked ? "Hidden from anyone linked to a person in this scene. Click to share the scene basics with them." : "Anyone linked to a person in this scene sees its title, place, names and line. Click to hide it from them."}
+            onClick={() => void act(() => call(url, "PATCH", { hidden_from_linked: !scene.hidden_from_linked }))}
+          >
+            {scene.hidden_from_linked ? "HIDDEN FROM LINKED" : "SHARED WITH LINKED"}
+          </button>
         </div>
       )}
 

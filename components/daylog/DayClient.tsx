@@ -9,6 +9,7 @@ import { shiftDate } from "@/lib/daylog/day";
 import type { FactRow, SceneRow } from "@/lib/daylog/rows";
 import { ScenesSection } from "./ScenesSection";
 import { PhotoStrip } from "./PhotoStrip";
+import { SharedScenes } from "./SharedScenes";
 import { seedsLine } from "@/lib/daylog/seeds";
 import type { SignedMedia } from "@/lib/daylog/media";
 
@@ -174,6 +175,9 @@ export function DayClient({ date }: { date: string }) {
       </section>
 
       <ScenesSection scenes={data.scenes ?? []} dayFacts={data.facts ?? []} pending={data.pending ?? 0} dayId={day.id} media={data.media ?? []} onChanged={() => void mutate()} />
+
+      {/* Part E (decision 30): scenes someone else's day log placed me in today */}
+      <SharedScenes date={date} />
 
       {/* photos (decision 28): from Telegram while the day is open, or added here; attached to scenes by timing at close */}
       {day.mode !== "legacy" && (

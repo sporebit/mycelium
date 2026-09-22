@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useApi } from "@/lib/data/useApi";
 import { Mono } from "@/components/dashboard/Mono";
 import type { PersonDays as PersonDaysData, PersonFact } from "@/lib/daylog/person";
+import { LinkControl } from "./LinkControl";
 
 type Payload = PersonDaysData & { stats: { days_together: number; first_seen: string | null; last_seen: string | null } };
 
@@ -78,6 +79,8 @@ export function PersonDays({ personId }: { personId: string }) {
           </div>
         )}
       </div>
+      {/* Part E: this person as a Mycelium user (decision 26) */}
+      <LinkControl personId={personId} />
 
       {empty ? (
         <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">Nothing from the day log yet. Days appear here once you approve them in Capture review.</div>
