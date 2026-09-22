@@ -5,6 +5,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { pendingCount } from "./materialise";
+import { dayMedia, type SignedMedia } from "./media";
 
 export const SCENE_SELECT = "id, day_id, position, title, place_id, place_text, time_hint, narrative, narrative_edited_by_user, hidden_from_linked";
 export const FACT_SELECT = "id, day_id, scene_id, kind, subject_person_id, text, data, confidence, edited_by_user";
@@ -26,16 +27,17 @@ export type SceneRow = {
   people: ScenePerson[];
   facts: FactRow[];
 };
-export type DayDetail = { scenes: SceneRow[]; facts: FactRow[]; pending: number };
+export type DayDetail = { scenes: SceneRow[]; facts: FactRow[]; pending: number; media: SignedMedia[] };
 
 type PersonLite = { id: string; display_name: string | null; first_name: string | null; last_name: string | null };
 const personName = (p: PersonLite): string => p.display_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "someone");
 
 export async function dayDetail(db: SupabaseClient, dayId: string): Promise<DayDetail> {
-  const [{ data: sceneRows }, { data: factRows }, pending] = await Promise.all([
+  const [{ data: sceneRows }, { data: factRows }, pending, media] = await Promise.all([
     db.from("daylog_scenes").select(SCENE_SELECT).eq("day_id", dayId).order("position"),
     db.from("daylog_facts").select(FACT_SELECT).eq("day_id", dayId).order("created_at"),
     pendingCount(db, dayId),
+    dayMedia(db, dayId),
   ]);
   const scenes = (sceneRows ?? []) as Array<Omit<SceneRow, "people" | "facts" | "place_name">>;
   const rawFacts = (factRows ?? []) as Array<Omit<FactRow, "subject_name">>;
@@ -65,5 +67,6 @@ export async function dayDetail(db: SupabaseClient, dayId: string): Promise<DayD
     })),
     facts: facts.filter((f) => !f.scene_id || !sceneIds.includes(f.scene_id)),
     pending,
+    media,
   };
 }

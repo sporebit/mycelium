@@ -8,8 +8,11 @@ import type { DayRow, TranscriptEntry } from "@/lib/daylog/engine";
 import { shiftDate } from "@/lib/daylog/day";
 import type { FactRow, SceneRow } from "@/lib/daylog/rows";
 import { ScenesSection } from "./ScenesSection";
+import { PhotoStrip } from "./PhotoStrip";
+import { seedsLine } from "@/lib/daylog/seeds";
+import type { SignedMedia } from "@/lib/daylog/media";
 
-type Payload = { day: DayRow; score_keys: string[]; scenes?: SceneRow[]; facts?: FactRow[]; pending?: number };
+type Payload = { day: DayRow; score_keys: string[]; scenes?: SceneRow[]; facts?: FactRow[]; pending?: number; media?: SignedMedia[] };
 type TurnReply = { reply: string; state: "open" | "scores" | "closed"; missing: string[]; day: DayRow; error?: string };
 
 const input = "w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
@@ -140,6 +143,7 @@ export function DayClient({ date }: { date: string }) {
       </div>
 
       {day.legacy_journal_id && <div className="text-xs text-text-2 italic">Migrated from the old journal.</div>}
+      {seedsLine(day.seeds) && <div className="text-xs text-text-2">{seedsLine(day.seeds)}</div>}
 
       {/* summary */}
       <section className="rounded-md bg-ink-1 p-4 flex flex-col gap-2">
@@ -169,7 +173,16 @@ export function DayClient({ date }: { date: string }) {
         )}
       </section>
 
-      <ScenesSection scenes={data.scenes ?? []} dayFacts={data.facts ?? []} pending={data.pending ?? 0} dayId={day.id} onChanged={() => void mutate()} />
+      <ScenesSection scenes={data.scenes ?? []} dayFacts={data.facts ?? []} pending={data.pending ?? 0} dayId={day.id} media={data.media ?? []} onChanged={() => void mutate()} />
+
+      {/* photos (decision 28): from Telegram while the day is open, or added here; attached to scenes by timing at close */}
+      {day.mode !== "legacy" && (
+        <section className="rounded-md bg-ink-1 p-4 flex flex-col gap-2">
+          <div className="card-eyebrow">Photos</div>
+          <p className="text-xs text-text-2">Send them to the bot while the day is open, or add one here. They join the scene you were talking about when the day closes.</p>
+          <PhotoStrip photos={[]} onChanged={() => void mutate()} uploadTo={`${key}/media`} />
+        </section>
+      )}
 
       {/* scores */}
       {keys.length > 0 && (

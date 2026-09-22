@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
 import { FACT_KINDS } from "@/lib/daylog/extraction";
 import type { FactRow, SceneRow } from "@/lib/daylog/rows";
+import type { SignedMedia } from "@/lib/daylog/media";
+import { PhotoStrip } from "./PhotoStrip";
 
 const input = "w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
 const tiny = "text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] disabled:opacity-50";
@@ -24,7 +26,7 @@ async function call(url: string, method: "PATCH" | "DELETE", body?: unknown): Pr
  * editable except the transcript. Only reviewed rows appear here; what is
  * still waiting sits behind the pending badge.
  */
-export function ScenesSection({ scenes, dayFacts, pending, dayId, onChanged }: { scenes: SceneRow[]; dayFacts: FactRow[]; pending: number; dayId: string; onChanged: () => void }) {
+export function ScenesSection({ scenes, dayFacts, pending, dayId, media = [], onChanged }: { scenes: SceneRow[]; dayFacts: FactRow[]; pending: number; dayId: string; media?: SignedMedia[]; onChanged: () => void }) {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const act = async (fn: () => Promise<void>) => {
@@ -40,7 +42,8 @@ export function ScenesSection({ scenes, dayFacts, pending, dayId, onChanged }: {
     }
   };
 
-  if (!scenes.length && !dayFacts.length && !pending) return null;
+  const loose = media.filter((m) => !m.scene_id || !scenes.some((s) => s.id === m.scene_id));
+  if (!scenes.length && !dayFacts.length && !pending && !loose.length) return null;
 
   return (
     <section className="flex flex-col gap-3">
@@ -53,8 +56,14 @@ export function ScenesSection({ scenes, dayFacts, pending, dayId, onChanged }: {
         )}
       </div>
       {scenes.map((s, i) => (
-        <SceneCard key={s.id} scene={s} index={i} busy={busy} act={act} />
+        <SceneCard key={s.id} scene={s} index={i} busy={busy} act={act} photos={media.filter((m) => m.scene_id === s.id)} onChanged={onChanged} />
       ))}
+      {loose.length > 0 && (
+        <div className="rounded-md bg-ink-1 p-4 flex flex-col gap-2">
+          <div className="card-eyebrow">Photos not yet on a scene</div>
+          <PhotoStrip photos={loose} onChanged={onChanged} />
+        </div>
+      )}
       {dayFacts.length > 0 && (
         <div className="rounded-md bg-ink-1 p-4 flex flex-col gap-2">
           <div className="card-eyebrow">The day in general</div>
@@ -68,7 +77,7 @@ export function ScenesSection({ scenes, dayFacts, pending, dayId, onChanged }: {
 
 type Act = (fn: () => Promise<void>) => Promise<void>;
 
-function SceneCard({ scene, index, busy, act }: { scene: SceneRow; index: number; busy: boolean; act: Act }) {
+function SceneCard({ scene, index, busy, act, photos, onChanged }: { scene: SceneRow; index: number; busy: boolean; act: Act; photos: SignedMedia[]; onChanged: () => void }) {
   const [edit, setEdit] = useState<{ title: string; place_text: string; time_hint: string; narrative: string } | null>(null);
   const url = `/api/journal/scenes/${scene.id}`;
 
@@ -150,6 +159,7 @@ function SceneCard({ scene, index, busy, act }: { scene: SceneRow; index: number
         <p className="text-sm text-text-1 whitespace-pre-wrap">{scene.narrative}</p>
       ) : null}
 
+      <PhotoStrip photos={photos} onChanged={onChanged} />
       <FactList facts={scene.facts} busy={busy} act={act} />
     </div>
   );

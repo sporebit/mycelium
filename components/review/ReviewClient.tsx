@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mono } from "@/components/dashboard/Mono";
 import { ReviewBlock } from "@/components/tickets/ReviewBlock";
+import { WeekBlock } from "@/components/daylog/WeekBlock";
 import {
   REVIEW_FIELDS,
   emptyReview,
@@ -425,6 +426,13 @@ export function ReviewClient({
           <div className="my-3">
             <ReviewBlock locked={locked} />
           </div>
+
+          {/* Day log block (daylog spec §4.4 step 5): the week's days and score averages */}
+          {meta && (
+            <div className="my-3">
+              <WeekBlock isoYear={meta.iso_year} isoWeek={meta.iso_week} />
+            </div>
+          )}
 
           <ReviewField
             field="next_week_top_3"
