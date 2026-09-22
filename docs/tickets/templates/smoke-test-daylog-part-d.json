@@ -2,7 +2,7 @@
   "slug": "smoke-test-daylog-part-d",
   "name": "Day log Part D smoke test",
   "kind": "test",
-  "version": 1,
+  "version": 2,
   "definition": {
     "title": "Day log Part D smoke test ({{run}})",
     "body_md": "Phil's live check of Day log Part D — seeds, photos, guardrails, continuity (0132), shipped 2026-09-22. The API path was smoke-tested from the PC (photos, media routes, week block, memory index, the carry-over); this ticket is the human half: the prompt with seeds on the phone, a photo sent to the bot, the carry-over on a real second night, the review page. Phase 1 wants a real evening at the prompt. Tick as you go; anything that fails stays unticked with a comment naming the step id.",
@@ -10,7 +10,7 @@
     "where_ctx": "anywhere",
     "tools": ["phone", "pc"],
     "time_window": "anytime",
-    "points": 4,
+    "points": 3,
     "steps_definition": {
       "slug": "smoke-test-daylog-part-d",
       "kind": "test",
