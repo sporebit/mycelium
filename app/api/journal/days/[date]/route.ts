@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { principalUid, readJson, ticketWriteGate } from "@/lib/tickets/server";
-import { DAY_SELECT, ensureDay, getDayById, type DayRow } from "@/lib/daylog/engine";
+import { DAY_SELECT, ensureDay, getDay, getDayById, type DayRow } from "@/lib/daylog/engine";
 import { DATE_RE } from "@/lib/daylog/day";
 import { getDaylogSettings } from "@/lib/daylog/settings";
 import { dayDetail } from "@/lib/daylog/rows";
+import { DAYLOG_SOURCE_TYPE } from "@/lib/daylog/afterClose";
+import { DAYLOG_BUCKET } from "@/lib/daylog/media";
 
 export const runtime = "nodejs";
 
@@ -84,9 +86,14 @@ export async function DELETE(_req: NextRequest, ctx: Ctx) {
     const supabase = await createUserClient();
     const limited = await ticketWriteGate(supabase, uid);
     if (limited) return limited;
-    let q = supabase.from("daylog_days").delete({ count: "exact" });
-    q = UUID_RE.test(date) ? q.eq("id", date) : DATE_RE.test(date) ? q.eq("day", date) : q.eq("id", "00000000-0000-0000-0000-000000000000");
-    const { error, count } = await q;
+    const day = UUID_RE.test(date) ? await getDayById(supabase, date) : DATE_RE.test(date) ? await getDay(supabase, date) : null;
+    if (!day) return NextResponse.json({ error: "not found" }, { status: 404 });
+    // the rows cascade; the memory chunk (no FK) and the bucket objects do not
+    const { data: media } = await supabase.from("daylog_media").select("storage_path").eq("day_id", day.id);
+    const paths = ((media ?? []) as Array<{ storage_path: string }>).map((m) => m.storage_path);
+    if (paths.length) await supabase.storage.from(DAYLOG_BUCKET).remove(paths);
+    await supabase.from("memory_chunks").delete().eq("source_type", DAYLOG_SOURCE_TYPE).eq("source_id", day.id);
+    const { error, count } = await supabase.from("daylog_days").delete({ count: "exact" }).eq("id", day.id);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     if (!count) return NextResponse.json({ error: "not found" }, { status: 404 });
     return NextResponse.json({ ok: true });
