@@ -1,0 +1,109 @@
+{
+  "slug": "smoke-test-daylog-part-e",
+  "name": "Day log Part E smoke test",
+  "kind": "test",
+  "version": 1,
+  "definition": {
+    "title": "Day log Part E smoke test ({{run}})",
+    "body_md": "Phil's live check of Day log Part E — linked users (0133), shipped 2026-09-22. The boundary was proven on the local stack from a second account (lib/access/daylogLinked.test.ts, 9/9) and the single-account half on production; this ticket is the human half: link a real teammate, then look through their eyes. It needs a second Mycelium account in a team with you — the test mailbox from the cutover will do. Tick as you go; anything that fails stays unticked with a comment naming the step id.",
+    "kind": "test",
+    "where_ctx": "anywhere",
+    "tools": ["pc"],
+    "time_window": "anytime",
+    "points": 3,
+    "steps_definition": {
+      "slug": "smoke-test-daylog-part-e",
+      "kind": "test",
+      "title": "Day log Part E smoke test",
+      "version": 1,
+      "toggles": { "device": { "label": "Device", "options": { "pc": "PC", "phone": "Phone" }, "default": "pc" } },
+      "values": [
+        { "key": "run", "label": "Run label", "placeholder": "2026-09-23" },
+        { "key": "viewer", "label": "The second account's display name", "placeholder": "Tess" },
+        { "key": "person", "label": "The People entry that IS that account (approved onto at least one closed day)", "placeholder": "Kirsty" }
+      ],
+      "intro": {
+        "verdict_html": "<p>Three phases, about 15 minutes with two browsers (or one normal, one private window). Phase 1 links. Phase 2 is what the other account sees — and does not see. Phase 3 hides and unlinks.</p>",
+        "prerequisites": [
+          "A second Mycelium account ({{viewer}}) in a team with you — Settings → Teams → invite, accept in the other browser",
+          "{{person}} has been approved onto at least one closed day (the Part B or C check did this), with a photo on that scene if you want to test sharing one",
+          "Two browsers signed in as each account"
+        ],
+        "time": ["Phase 1: 3 min", "Phase 2: 7 min", "Phase 3: 5 min"],
+        "cost": ["Nothing — no model calls"]
+      },
+      "phases": [
+        {
+          "id": "1",
+          "title": "Link",
+          "steps": [
+            {
+              "id": "1.1",
+              "title": "As you: People → {{person}} → the Days block header has LINK TO A TEAMMATE. The dropdown offers {{viewer}} with the team name — and nobody who is not in a team with you",
+              "actor": "you",
+              "where": { "label": "People → {{person}}", "kind": "page" }
+            },
+            {
+              "id": "1.2",
+              "title": "Pick {{viewer}} → LINK. The header now reads \"Linked to {{viewer}}\" with UNLINK",
+              "actor": "you",
+              "where": { "label": "People → {{person}}", "kind": "page" }
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "Through their eyes",
+          "lede_html": "<p>Everything in this phase is in the other browser, as {{viewer}}.</p>",
+          "steps": [
+            {
+              "id": "2.1",
+              "title": "As {{viewer}}: Journal → the date of a day {{person}} was on. A card \"With <your name>\" lists the scene(s) they were in: title, place, the names in the scene, the scene line. Photos only if you marked one shared",
+              "actor": "you",
+              "where": { "label": "/journal/<date>, as the viewer", "kind": "page" },
+              "fields": [{ "key": "seen", "label": "What the card showed", "placeholder": "Quayside · Whitby · Kirsty · one line" }]
+            },
+            {
+              "id": "2.2",
+              "title": "The card shows NO entry text, NO facts, NO scores, NO transcript, and no scene {{person}} was not in. Their own Journal list does not show your day as theirs",
+              "actor": "you",
+              "where": { "label": "/journal/<date>, as the viewer", "kind": "page" },
+              "fields": [{ "key": "leak", "label": "Anything visible that should not be", "placeholder": "nothing" }]
+            },
+            {
+              "id": "2.3",
+              "title": "As {{viewer}}: People → {{person}} does not exist for them (your People are yours); The Boys → Ask about your day finds nothing of yours",
+              "actor": "you",
+              "where": { "label": "as the viewer", "kind": "page" }
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "title": "Hide, share, unlink",
+          "steps": [
+            {
+              "id": "3.1",
+              "title": "As you: on that day page, a scene card's chip row ends with SHARED WITH LINKED — click it → HIDDEN FROM LINKED. As {{viewer}}, reload: that scene is gone from the card (the card itself goes if it was the only one)",
+              "actor": "you",
+              "where": { "label": "/journal/<date>, both browsers", "kind": "page" }
+            },
+            {
+              "id": "3.2",
+              "title": "As you: a photo on a shared scene shows \"private\" in its corner — click it → \"shared\". As {{viewer}}, reload: the photo appears on the card and opens",
+              "actor": "you",
+              "where": { "label": "/journal/<date>, both browsers", "kind": "page" }
+            },
+            {
+              "id": "3.3",
+              "title": "As you: People → {{person}} → UNLINK. As {{viewer}}, reload: no \"With …\" card anywhere. Re-link if you want to keep it",
+              "actor": "you",
+              "where": { "label": "People → {{person}}", "kind": "page" },
+              "fields": [{ "key": "verdict", "label": "Would you actually link someone? What is missing?", "placeholder": "yes / needs a note on why they can see it" }]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

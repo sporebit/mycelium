@@ -13,6 +13,7 @@ import smokeQuotesDaylog from "./smoke-test-quotes-daylog.json";
 import smokeDaylogPartB from "./smoke-test-daylog-part-b.json";
 import smokeDaylogPartC from "./smoke-test-daylog-part-c.json";
 import smokeDaylogPartD from "./smoke-test-daylog-part-d.json";
+import smokeDaylogPartE from "./smoke-test-daylog-part-e.json";
 
 export type RepoTemplate = {
   slug: string;
@@ -22,4 +23,4 @@ export type RepoTemplate = {
   definition: unknown;
 };
 
-export const REPO_TEMPLATES: RepoTemplate[] = [bookHoliday, startAReturn, cutoverRunbook, smokeTest, setupTokens, smokeQuotesDaylog, smokeDaylogPartB, smokeDaylogPartC, smokeDaylogPartD] as RepoTemplate[];
+export const REPO_TEMPLATES: RepoTemplate[] = [bookHoliday, startAReturn, cutoverRunbook, smokeTest, setupTokens, smokeQuotesDaylog, smokeDaylogPartB, smokeDaylogPartC, smokeDaylogPartD, smokeDaylogPartE] as RepoTemplate[];
