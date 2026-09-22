@@ -8,6 +8,7 @@ const EXERCISE_FIELDS =
   "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity";
 
 const NUMERIC_FIELDS = new Set([
+  "superset_group",
   "default_sets",
   "default_weight",
   "rest_seconds",

@@ -53,6 +53,8 @@ export type TemplateExercise = {
   data_shape: ExerciseDataShape;
   with_weight: boolean;
   default_hold_seconds: number | null;
+  /** Superset (0134): exercises sharing a number are done back to back. */
+  superset_group?: number | null;
   /** Bodyweight flag — added by migration 0031. When true the logger
    *  renders the weight column as "+ KG" (added weight on top of body)
    *  and empty values display as "BW". */
@@ -212,6 +214,9 @@ export type SessionExercise = {
   added_at: string;
   data_shape: ExerciseDataShape;
   with_weight: boolean;
+  /** Superset (0134, MYC-30): exercises sharing a number are done back to
+   *  back and the rest timer runs after the last one in the group. */
+  superset_group?: number | null;
   /** Bodyweight flag — added by migration 0031. Set by the voice parser
    *  for canonically-bodyweight movements (pullups, dips, push-ups) and
    *  toggleable from the BW chip in the session-log header. */

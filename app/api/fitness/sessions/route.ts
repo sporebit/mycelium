@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
       const { data: tplExs } = await supabase
         .from("workout_programme_exercises")
         .select(
-          "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity, data_shape, with_weight"
+          "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity, data_shape, with_weight, superset_group"
         )
         .eq("programme_session_id", programmeSessionId)
         .order("position", { ascending: true });
@@ -185,6 +185,7 @@ export async function POST(req: NextRequest) {
         skipped: false,
         data_shape: t.data_shape ?? "sets_reps",
         with_weight: !!t.with_weight,
+        superset_group: t.superset_group ?? null,
       }));
       const { error: exErr } = await supabase
         .from("workout_session_exercises")

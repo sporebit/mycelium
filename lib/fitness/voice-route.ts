@@ -444,7 +444,7 @@ async function startSessionFromTemplate(
   const { data: tplExs } = await supabase
     .from("workout_programme_exercises")
     .select(
-      "id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity"
+      "id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity, superset_group"
     )
     .eq("programme_session_id", programmeSessionId)
     .order("position", { ascending: true });
@@ -475,6 +475,7 @@ async function startSessionFromTemplate(
       programme_exercise_id: t.id,
       save_to_template: false,
       skipped: false,
+      superset_group: t.superset_group ?? null,
     }));
     await supabase.from("workout_session_exercises").insert(rows);
   }

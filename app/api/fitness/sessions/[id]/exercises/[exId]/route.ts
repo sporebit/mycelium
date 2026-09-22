@@ -29,6 +29,7 @@ type PatchBody = {
   comment?: string | null;
   notes?: string | null;
   skipped?: boolean;
+  superset_group?: number | null;
   save_to_template?: boolean;
   rest_seconds?: number | null;
   duration_min?: number | null;
@@ -59,6 +60,7 @@ export async function PATCH(
   if (body.save_to_template !== undefined)
     update.save_to_template = body.save_to_template;
   if (body.rest_seconds !== undefined) update.rest_seconds = body.rest_seconds;
+  if (body.superset_group === null || (typeof body.superset_group === "number" && Number.isInteger(body.superset_group) && body.superset_group > 0)) update.superset_group = body.superset_group;
   if (body.duration_min !== undefined) update.duration_min = body.duration_min;
   if (body.distance_km !== undefined) update.distance_km = body.distance_km;
   if (body.intensity !== undefined) update.intensity = body.intensity;

@@ -127,6 +127,34 @@ function showsWeightColumn(_ex: SessionExercise): boolean {
  *  weight column header becomes "+ KG" and empty values render as
  *  "BW". Falls back to the template's flag when the session row
  *  hasn't been touched yet. */
+/**
+ * Superset labels (MYC-30): exercises sharing `superset_group` are one
+ * superset. Labels are letters by first appearance in session order —
+ * A1, A2 for the first group, B1, B2 for the next — so the same group
+ * number never means two different letters within a session.
+ */
+function supersetLabels(exercises: SessionExercise[]): Map<string, string> {
+  const letters = new Map<number, string>();
+  const counts = new Map<number, number>();
+  const out = new Map<string, string>();
+  for (const e of exercises) {
+    const g = e.superset_group;
+    if (g == null) continue;
+    if (!letters.has(g)) letters.set(g, String.fromCharCode(65 + letters.size));
+    const n = (counts.get(g) ?? 0) + 1;
+    counts.set(g, n);
+    out.set(e.id, `${letters.get(g)}${n}`);
+  }
+  return out;
+}
+
+/** The exercise after `ex` in the same superset, if any — rest waits for the last one. */
+function nextInSuperset(exercises: SessionExercise[], ex: SessionExercise): SessionExercise | null {
+  if (ex.superset_group == null) return null;
+  const i = exercises.findIndex((e) => e.id === ex.id);
+  return exercises.slice(i + 1).find((e) => e.superset_group === ex.superset_group && !e.skipped) ?? null;
+}
+
 function isBodyweight(ex: SessionExercise): boolean {
   if (typeof ex.is_bodyweight === "boolean") return ex.is_bodyweight;
   if (typeof ex.template?.is_bodyweight === "boolean") {
@@ -639,16 +667,22 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
       return;
     }
     // Start a new rest timer (auto-stops any running one because endsAt resets)
+    // — unless a superset partner comes next: the rest belongs after the group (MYC-30)
     const restSec = ex.rest_seconds ?? 90;
     const visible = getVisibleSets(ex);
     const displayedIndex = visible.indexOf(setNumber);
-    setRestMeta({
-      exerciseName: ex.name,
-      setNumber: displayedIndex >= 0 ? displayedIndex + 1 : undefined,
-      totalSets: visible.length,
-    });
-    // eslint-disable-next-line react-hooks/purity -- timestamp captured inside async callback, not render
-    setRestEndsAt(Date.now() + restSec * 1000);
+    const partner = nextInSuperset(exercises, ex);
+    if (partner) {
+      setToast({ kind: "ok", text: `Straight on to ${partner.name}` });
+    } else {
+      setRestMeta({
+        exerciseName: ex.name,
+        setNumber: displayedIndex >= 0 ? displayedIndex + 1 : undefined,
+        totalSets: visible.length,
+      });
+      // eslint-disable-next-line react-hooks/purity -- timestamp captured inside async callback, not render
+      setRestEndsAt(Date.now() + restSec * 1000);
+    }
     await reload();
     noteSaving("saved");
 
@@ -770,6 +804,43 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
       }
     );
     if (r.ok) await reload();
+  }
+
+  /**
+   * Superset with the previous exercise (MYC-30). Joining takes the previous
+   * exercise's group, or mints one for the pair; leaving clears this
+   * exercise's group (a group of one is dissolved). Optimistic, rolled back
+   * on failure, like the bodyweight chip.
+   */
+  async function toggleSuperset(ex: SessionExercise) {
+    if (readOnly) return;
+    const i = exercises.findIndex((e) => e.id === ex.id);
+    const prev = i > 0 ? exercises[i - 1] : null;
+    const changes = new Map<string, number | null>();
+    if (ex.superset_group != null) {
+      changes.set(ex.id, null);
+      const rest = exercises.filter((e) => e.id !== ex.id && e.superset_group === ex.superset_group);
+      if (rest.length === 1) changes.set(rest[0].id, null);
+    } else if (prev) {
+      const group = prev.superset_group ?? Math.max(0, ...exercises.map((e) => e.superset_group ?? 0)) + 1;
+      changes.set(ex.id, group);
+      if (prev.superset_group == null) changes.set(prev.id, group);
+    } else {
+      return;
+    }
+    const before = new Map(exercises.map((e) => [e.id, e.superset_group ?? null]));
+    const apply = (m: Map<string, number | null>) =>
+      setSession((cur) => ({ ...cur, exercises: cur.exercises.map((e) => (m.has(e.id) ? { ...e, superset_group: m.get(e.id) ?? null } : e)) }));
+    apply(changes);
+    const results = await Promise.all(
+      Array.from(changes, ([id, superset_group]) =>
+        fetch(`/api/fitness/sessions/${session.id}/exercises/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ superset_group }) }),
+      ),
+    );
+    if (results.some((r) => !r.ok)) {
+      apply(new Map(Array.from(changes.keys(), (id) => [id, before.get(id) ?? null])));
+      setToast({ kind: "error", text: "Superset change failed" });
+    }
   }
 
   /** Flip is_bodyweight on the selected exercise. Optimistic — we
@@ -1134,6 +1205,9 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
             unit={unitFor(current)}
             setUnit={(u) => setUnitFor(current, u)}
             onToggleBodyweight={toggleBodyweight}
+            supersetLabel={supersetLabels(exercises).get(current.id) ?? null}
+            canSuperset={exercises.findIndex((e) => e.id === current.id) > 0}
+            onToggleSuperset={toggleSuperset}
             last={lastByEx[current.id] ?? null}
             inputDraft={inputDraft}
             setInputDraft={setInputDraft}
@@ -1375,6 +1449,9 @@ function CurrentExerciseCard({
   onStartRest,
   onToggleBodyweight,
   restActive,
+  supersetLabel,
+  canSuperset,
+  onToggleSuperset,
 }: {
   ex: SessionExercise;
   readOnly: boolean;
@@ -1406,6 +1483,9 @@ function CurrentExerciseCard({
   ) => void | Promise<void>;
   onStartRest: () => void;
   onToggleBodyweight: (ex: SessionExercise, next: boolean) => void;
+  supersetLabel: string | null;
+  canSuperset: boolean;
+  onToggleSuperset: (ex: SessionExercise) => void;
   restActive: boolean;
 }) {
   const sets = useMemo<LoggedSet[]>(() => ex.sets ?? [], [ex.sets]);
@@ -1461,7 +1541,12 @@ function CurrentExerciseCard({
     <div className="mt-3 rounded-2xl border border-accent/40 bg-accent/5 p-4">
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
-          <div className="text-lg sm:text-xl text-ink-4 leading-tight">
+          <div className="text-lg sm:text-xl text-ink-4 leading-tight flex items-baseline gap-2 flex-wrap">
+            {supersetLabel && (
+              <span className="rounded-v2-md bg-accent/20 border border-accent/40 text-accent text-[10px] px-1.5 py-0.5 font-[family-name:var(--font-mono)] tracking-[0.15em]" title="Superset — no rest until the last exercise in the group">
+                SS {supersetLabel}
+              </span>
+            )}
             {readOnly ? (
               <Link
                 href={`/fitness/history/exercise/${encodeURIComponent(ex.name)}`}
@@ -1489,6 +1574,16 @@ function CurrentExerciseCard({
             <div className="text-[11px] text-ink-3 italic font-[family-name:var(--font-display)] mt-1 leading-snug">
               {ex.notes}
             </div>
+          )}
+          {!readOnly && (canSuperset || supersetLabel) && (
+            <button
+              type="button"
+              onClick={() => onToggleSuperset(ex)}
+              className="mt-1 text-[10px] uppercase tracking-[0.15em] text-ink-3 hover:text-accent font-[family-name:var(--font-mono)]"
+              title={supersetLabel ? "Take this exercise out of its superset" : "Pair with the previous exercise: no rest between them, rest after the pair"}
+            >
+              {supersetLabel ? "− leave superset" : "⇄ superset with previous"}
+            </button>
           )}
         </div>
         {grid && (
