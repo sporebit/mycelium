@@ -183,6 +183,22 @@ type Toast = { kind: "ok" | "error"; text: string } | null;
 export function LogClient({ initial }: { initial: SessionDetail }) {
   const router = useRouter();
   const [session, setSession] = useState<SessionDetail>(initial);
+  // MYC-31: rename a session after entry — the name is what the calendar and history show
+  const [nameDraft, setNameDraft] = useState<string | null>(null);
+  const saveName = useCallback(async () => {
+    if (nameDraft === null) return;
+    const name = nameDraft.trim();
+    setNameDraft(null);
+    if (!name || name === (session.name ?? "")) return;
+    const prev = session.name;
+    setSession((s) => ({ ...s, name }));
+    try {
+      const r = await fetch(`/api/fitness/sessions/${session.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
+      if (!r.ok) throw new Error(`${r.status}`);
+    } catch {
+      setSession((s) => ({ ...s, name: prev }));
+    }
+  }, [nameDraft, session.id, session.name]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [restEndsAt, setRestEndsAt] = useState<number | null>(null);
   const [lastByEx, setLastByEx] = useState<Record<string, LastSession>>({});
@@ -942,9 +958,32 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
             ←
           </button>
           <div className="flex-1 min-w-0">
-            <div className="text-sm text-ink-4 truncate">
-              {session.name ?? "Session"}
-            </div>
+            {nameDraft !== null ? (
+              <input
+                autoFocus
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                onBlur={() => void saveName()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void saveName();
+                  }
+                  if (e.key === "Escape") setNameDraft(null);
+                }}
+                aria-label="Session name"
+                className="w-full bg-ink-2 rounded-sm text-sm text-ink-4 px-2 py-0.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setNameDraft(session.name ?? "")}
+                title="Rename this session"
+                className="max-w-full text-left text-sm text-ink-4 truncate hover:underline underline-offset-2 decoration-ink-3"
+              >
+                {session.name ?? "Session"}
+              </button>
+            )}
             <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] flex items-center gap-2">
               <span>{session.slot}</span>
               {typeLabel && (
