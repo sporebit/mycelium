@@ -8,6 +8,10 @@
  * delta runs before each reply so the probe is grounded in facts-so-far
  * (lib/daylog/extract.ts), Quick mode extracts once, and the close turns the
  * extraction into scenes and review items (lib/daylog/materialise.ts).
+ * Part D: seeds on the row and in the prompt (lib/daylog/seeds.ts), the
+ * open-thread carry-over (decision 24), photos attached to scenes at close
+ * (lib/daylog/media.ts), the day embedded into the memory index and the
+ * monthly alert checked (lib/daylog/afterClose.ts).
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -20,6 +24,9 @@ import { getDaylogSettings, type DaylogSettings } from "./settings";
 import { extractTranscript, extractTurn, groundingBlock } from "./extract";
 import { collapseScenes, mergePatch, normaliseExtraction, quickExtraction, type Extraction } from "./extraction";
 import { materialise, pendingCount } from "./materialise";
+import { gatherSeeds, seedsBlock, type Seeds } from "./seeds";
+import { attachPhotosToScenes } from "./media";
+import { embedDay, monthlyAlert } from "./afterClose";
 
 export type TranscriptEntry = { role: "user" | "assistant" | "system"; at: string; text: string; channel: "telegram" | "app" | "capture" | "legacy" | "system"; media_id?: string | null };
 
@@ -35,6 +42,8 @@ export type DayRow = {
   extraction: Record<string, unknown>;
   scores: Record<string, number>;
   open_thread: string | null;
+  open_thread_asked_at: string | null;
+  seeds: Seeds | null;
   turn_count: number;
   cost_pence: number;
   prompted_at: string | null;
@@ -49,7 +58,7 @@ export type DayRow = {
 };
 
 export const DAY_SELECT =
-  "id, day, status, mode, persona_agent_id, transcript, summary, summary_edited_by_user, extraction, scores, open_thread, turn_count, cost_pence, prompted_at, snoozed_until, last_activity_at, closed_at, legacy_journal_id, created_at, updated_at";
+  "id, day, status, mode, persona_agent_id, transcript, summary, summary_edited_by_user, extraction, scores, open_thread, open_thread_asked_at, seeds, turn_count, cost_pence, prompted_at, snoozed_until, last_activity_at, closed_at, legacy_journal_id, created_at, updated_at";
 
 export type TurnResult = {
   reply: string;
@@ -135,7 +144,8 @@ async function personaLine(db: SupabaseClient, agentId: string | null): Promise<
   return `You are ${a.display_name} — ${a.tagline}.`;
 }
 
-function systemPrompt(persona: string, s: DaylogSettings): string {
+function systemPrompt(persona: string, s: DaylogSettings, seeds: Seeds | null, openThread: string | null): string {
+  const seedText = seedsBlock(seeds);
   return [
     persona,
     "",
@@ -143,7 +153,11 @@ function systemPrompt(persona: string, s: DaylogSettings): string {
     "",
     `Slot list per scene (ask in this order, skipping what is already known): ${s.slots.join(" · ")}.`,
     `Minimum probes for a thin day: ${s.min_probes}. Score keys, in order: ${s.scores.join(", ")}.`,
-  ].join("\n");
+    seedText ? `\n${seedText}` : null,
+    openThread ? `\nOpen thread from a previous night (rule 7 — ask about it once, early, then drop it): ${openThread}` : null,
+  ]
+    .filter((x) => x !== null)
+    .join("\n");
 }
 
 async function sonnet(
@@ -208,7 +222,9 @@ export async function startTalk(db: SupabaseClient, day: string, channel: Transc
   let d = await ensureDay(db, day);
   if (d.status === "closed" || d.status === "skipped") return { reply: `That day is ${d.status}.`, day: d, state: "closed" };
   if (d.status === "open") return { reply: "Carry on — I'm listening.", day: d, state: "open" };
-  d = await append(db, d, [{ role: "assistant", at: new Date().toISOString(), text: OPENER, channel }], { status: "open", mode: "talk", persona_agent_id: s.persona_agent_id });
+  // started from the page rather than the prompt: the seeds have not been gathered yet
+  const seeds = d.seeds ?? (await gatherSeeds(db, day, s));
+  d = await append(db, d, [{ role: "assistant", at: new Date().toISOString(), text: OPENER, channel }], { status: "open", mode: "talk", persona_agent_id: s.persona_agent_id, seeds });
   return { reply: OPENER, day: d, state: "open" };
 }
 
@@ -285,7 +301,9 @@ export async function runTurn(db: SupabaseClient, dayId: string, text: string, c
 
   // (b) done, or the cap
   const wantsClose = DONE_RE.test(text) || d.turn_count >= s.turn_cap;
-  const system = systemPrompt(await personaLine(db, d.persona_agent_id ?? s.persona_agent_id), s);
+  // decision 24: at most one carry-over, asked once — the first model turn of the night takes it
+  const carry = d.turn_count <= 1 && !d.open_thread_asked_at ? await takeOpenThread(db, d) : null;
+  const system = systemPrompt(await personaLine(db, d.persona_agent_id ?? s.persona_agent_id), s, d.seeds ?? null, carry);
   const messages = toMessages(d.transcript);
   // dynamic and uncached: it rides on the last user message, never in the transcript
   if (messages.length) messages[messages.length - 1].content += `\n\n${groundingBlock(grounded)}`;
@@ -360,8 +378,16 @@ async function finalise(db: SupabaseClient, d: DayRow): Promise<TurnResult> {
   } catch (err) {
     console.error("[daylog] materialise failed:", err instanceof Error ? err.message : err);
   }
+  try {
+    await attachPhotosToScenes(db, d.id, d.transcript);
+  } catch (err) {
+    console.error("[daylog] photo attach failed:", err instanceof Error ? err.message : err);
+  }
   const cost = await dayCostPence(db, d.id);
   const next = await patchDay(db, d.id, { status: "closed", closed_at: closedAt, summary: summary ?? d.summary, cost_pence: cost, extraction, open_thread: d.open_thread ?? extraction.open_thread });
+  // steps 5–6: the memory index and the monthly line, neither on the reply's critical path
+  void embedDay(db, next);
+  void monthlyAlert(db).catch((err) => console.error("[daylog] monthly alert failed:", err instanceof Error ? err.message : err));
   const recap = summary ? summary.split("\n")[0] : "Closed.";
   return { reply: pending ? `${recap}\n${pending} item${pending === 1 ? "" : "s"} to review.` : recap, day: next, state: "closed", pending };
 }
@@ -385,6 +411,26 @@ export async function reextract(db: SupabaseClient, dayId: string): Promise<{ da
   const version = Number((v as { extraction_version?: number } | null)?.extraction_version ?? 1) + 1;
   const next = await patchDay(db, d.id, { extraction: m.extraction, extraction_version: version, cost_pence: cost });
   return { day: next, scenes: m.scenes, queued: m.queued, quotes: m.quotes };
+}
+
+/**
+ * The most recent earlier day with an unasked open thread: mark it asked
+ * (never asked again, decision 24) and return the thread for tonight's prompt.
+ */
+async function takeOpenThread(db: SupabaseClient, d: DayRow): Promise<string | null> {
+  const { data } = await db
+    .from("daylog_days")
+    .select("id, open_thread")
+    .lt("day", d.day)
+    .not("open_thread", "is", null)
+    .is("open_thread_asked_at", null)
+    .order("day", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const prev = data as { id: string; open_thread: string } | null;
+  if (!prev?.open_thread) return null;
+  await db.from("daylog_days").update({ open_thread_asked_at: new Date().toISOString() }).eq("id", prev.id);
+  return prev.open_thread;
 }
 
 export async function dayCostPence(db: SupabaseClient, dayId: string): Promise<number> {

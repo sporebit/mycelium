@@ -5,6 +5,8 @@ import { createUserClient } from "@/lib/supabase/user";
 import { AGENT_SYSTEM_PROMPTS, buildDaBoiPrompt } from "@/lib/agents/prompts";
 import { relevantDomains, type DaBoiDomain } from "@/lib/agents/relevance";
 import { toolsForAgent } from "@/lib/agents/tools";
+import { recentDaysContext } from "@/lib/daylog/afterClose";
+import { getDaylogSettings } from "@/lib/daylog/settings";
 
 export const runtime = "nodejs";
 
@@ -289,6 +291,19 @@ export async function POST(
       systemPrompt = promptFn
         ? promptFn(memory?.summary || "No previous memory.")
         : `You are an AI assistant. ${memory?.summary || ""}`;
+    }
+
+    // Day log context diet (daylog spec §4.4 step 5, flag 6): the last three
+    // day summaries, ~300 words, for Da Boi and the persona agent only —
+    // read here, never written into agent_memory.
+    try {
+      const persona = (await getDaylogSettings(supabase)).persona_agent_id;
+      if (agentId === "da_boi" || agentId === persona) {
+        const recent = await recentDaysContext(supabase);
+        if (recent) systemPrompt += `\n\n${recent}`;
+      }
+    } catch (err) {
+      console.error("[agents] day log context failed:", err instanceof Error ? err.message : err);
     }
 
     const tools = toolsForAgent(agentId);
