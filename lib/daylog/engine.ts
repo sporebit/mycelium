@@ -144,7 +144,7 @@ async function personaLine(db: SupabaseClient, agentId: string | null): Promise<
   return `You are ${a.display_name} — ${a.tagline}.`;
 }
 
-function systemPrompt(persona: string, s: DaylogSettings, seeds: Seeds | null, openThread: string | null): string {
+function systemPrompt(persona: string, s: DaylogSettings, seeds: Seeds | null): string {
   const seedText = seedsBlock(seeds);
   return [
     persona,
@@ -154,7 +154,6 @@ function systemPrompt(persona: string, s: DaylogSettings, seeds: Seeds | null, o
     `Slot list per scene (ask in this order, skipping what is already known): ${s.slots.join(" · ")}.`,
     `Minimum probes for a thin day: ${s.min_probes}. Score keys, in order: ${s.scores.join(", ")}.`,
     seedText ? `\n${seedText}` : null,
-    openThread ? `\nOpen thread from a previous night (rule 7 — ask about it once, early, then drop it): ${openThread}` : null,
   ]
     .filter((x) => x !== null)
     .join("\n");
@@ -214,6 +213,10 @@ function toMessages(t: TranscriptEntry[]): Array<{ role: "user" | "assistant"; c
 // ---------------------------------------------------------------------------
 
 export const OPENER = "Go on then — where did the day take you?";
+/** The opener when a previous night left a loose end (decision 24): asked here, once, with no model turn. */
+export function openerWithThread(thread: string): string {
+  return `Last time you mentioned ${/[.!?]$/.test(thread) ? thread : `${thread}.`} How did that go? Then tell me about today.`;
+}
 export const QUICK_PROMPT = "Quick one: who / where / one line about the day.";
 
 /** Talk: open the day; the opener is fixed (no model call). */
@@ -224,8 +227,11 @@ export async function startTalk(db: SupabaseClient, day: string, channel: Transc
   if (d.status === "open") return { reply: "Carry on — I'm listening.", day: d, state: "open" };
   // started from the page rather than the prompt: the seeds have not been gathered yet
   const seeds = d.seeds ?? (await gatherSeeds(db, day, s));
-  d = await append(db, d, [{ role: "assistant", at: new Date().toISOString(), text: OPENER, channel }], { status: "open", mode: "talk", persona_agent_id: s.persona_agent_id, seeds });
-  return { reply: OPENER, day: d, state: "open" };
+  // decision 24: at most one carry-over, asked once — it rides on the opener, so the model never has to remember
+  const thread = await takeOpenThread(db, d);
+  const opener = thread ? openerWithThread(thread) : OPENER;
+  d = await append(db, d, [{ role: "assistant", at: new Date().toISOString(), text: opener, channel }], { status: "open", mode: "talk", persona_agent_id: s.persona_agent_id, seeds });
+  return { reply: opener, day: d, state: "open" };
 }
 
 /** Quick: one template reply, then the score line. */
@@ -301,9 +307,7 @@ export async function runTurn(db: SupabaseClient, dayId: string, text: string, c
 
   // (b) done, or the cap
   const wantsClose = DONE_RE.test(text) || d.turn_count >= s.turn_cap;
-  // decision 24: at most one carry-over, asked once — the first model turn of the night takes it
-  const carry = d.turn_count <= 1 && !d.open_thread_asked_at ? await takeOpenThread(db, d) : null;
-  const system = systemPrompt(await personaLine(db, d.persona_agent_id ?? s.persona_agent_id), s, d.seeds ?? null, carry);
+  const system = systemPrompt(await personaLine(db, d.persona_agent_id ?? s.persona_agent_id), s, d.seeds ?? null);
   const messages = toMessages(d.transcript);
   // dynamic and uncached: it rides on the last user message, never in the transcript
   if (messages.length) messages[messages.length - 1].content += `\n\n${groundingBlock(grounded)}`;
@@ -415,7 +419,7 @@ export async function reextract(db: SupabaseClient, dayId: string): Promise<{ da
 
 /**
  * The most recent earlier day with an unasked open thread: mark it asked
- * (never asked again, decision 24) and return the thread for tonight's prompt.
+ * (never asked again, decision 24) and return the thread for tonight's opener.
  */
 async function takeOpenThread(db: SupabaseClient, d: DayRow): Promise<string | null> {
   const { data } = await db
