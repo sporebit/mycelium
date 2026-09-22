@@ -1,0 +1,113 @@
+{
+  "slug": "smoke-test-daylog-part-d",
+  "name": "Day log Part D smoke test",
+  "kind": "test",
+  "version": 1,
+  "definition": {
+    "title": "Day log Part D smoke test ({{run}})",
+    "body_md": "Phil's live check of Day log Part D — seeds, photos, guardrails, continuity (0132), shipped 2026-09-22. The API path was smoke-tested from the PC (photos, media routes, week block, memory index, the carry-over); this ticket is the human half: the prompt with seeds on the phone, a photo sent to the bot, the carry-over on a real second night, the review page. Phase 1 wants a real evening at the prompt. Tick as you go; anything that fails stays unticked with a comment naming the step id.",
+    "kind": "test",
+    "where_ctx": "anywhere",
+    "tools": ["phone", "pc"],
+    "time_window": "anytime",
+    "points": 4,
+    "steps_definition": {
+      "slug": "smoke-test-daylog-part-d",
+      "kind": "test",
+      "title": "Day log Part D smoke test",
+      "version": 1,
+      "toggles": { "device": { "label": "Device", "options": { "phone": "Phone first", "pc": "PC first" }, "default": "phone" } },
+      "values": [{ "key": "run", "label": "Run label", "placeholder": "2026-09-22 evening" }],
+      "intro": {
+        "verdict_html": "<p>Three phases, one evening plus ten minutes the next day. Phase 1 is tonight at the prompt: the seeds line, a photo to the bot, a loose end left open on purpose. Phase 2 is the next night: the interviewer asks about that loose end, once. Phase 3 is the review page and the day page, any time.</p>",
+        "prerequisites": [
+          "Settings → Journal: the nightly prompt is ON and the seed toggles are on",
+          "Something on today's calendar, or at least the weather cache warm (open the dashboard once today)",
+          "The Telegram bot chat open on the phone"
+        ],
+        "time": ["Phase 1: one evening, 10 min", "Phase 2: the next evening, 3 min", "Phase 3: 5 min"],
+        "cost": ["Two Talk nights ≈ 6p"]
+      },
+      "phases": [
+        {
+          "id": "1",
+          "title": "Tonight at the prompt",
+          "lede_html": "<p>Wait for the 21:30 prompt rather than starting from the page — the seeds are gathered when it fires.</p>",
+          "steps": [
+            {
+              "id": "1.1",
+              "title": "The prompt reads \"Evening. Calendar had …\" (and/or the weather, something you finished on Media) before \"Talk, Quick or Skip?\" — not the bare \"How was the day?\"",
+              "actor": "you",
+              "where": { "label": "Telegram", "kind": "page" },
+              "fields": [{ "key": "seeds", "label": "What it quoted", "placeholder": "Calendar had Dentist · light rain, 14°" }]
+            },
+            {
+              "id": "1.2",
+              "title": "Tap Talk and answer. Then send a photo to the bot with no caption — it replies \"📷 kept\" and does NOT make a ticket. Send a second photo with a caption — the caption is answered like a message",
+              "actor": "you",
+              "where": { "label": "Telegram", "kind": "page" }
+            },
+            {
+              "id": "1.3",
+              "title": "Before you finish, say something unresolved that points at later — \"we're going back on Saturday to …\", \"waiting to hear about …\". Then \"done\" and the scores",
+              "actor": "you",
+              "where": { "label": "Telegram", "kind": "page" },
+              "fields": [{ "key": "thread", "label": "The loose end you left", "placeholder": "going back Saturday for the lamp room" }]
+            },
+            {
+              "id": "1.4",
+              "title": "Open today's day page. The seeds line sits under the heading; each photo is on the scene you were talking about when you sent it (drag none — check the strip under the scene); the captioned one carries its caption",
+              "actor": "you",
+              "where": { "label": "/journal/<today>", "kind": "page" },
+              "fields": [{ "key": "photo_scene", "label": "Which scene each photo landed on — right or wrong?", "placeholder": "both right" }]
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "The next night",
+          "steps": [
+            {
+              "id": "2.1",
+              "title": "At tomorrow's prompt, Talk. Its first or second question asks about the loose end from step 1.3 — once. It does not come up again that night, nor on any later night",
+              "actor": "you",
+              "where": { "label": "Telegram", "kind": "page" },
+              "fields": [{ "key": "asked", "label": "How it asked", "placeholder": "Did you get to the lamp room on Saturday?" }]
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "title": "The review page and the day page",
+          "steps": [
+            {
+              "id": "3.1",
+              "title": "Weekly review → below the Tickets block, a Day log block: one row per day this week with its first line and score dots, the header counting logged and skipped with the score averages. A weekday opens that day",
+              "actor": "you",
+              "where": { "label": "Weekly review", "url": "https://mycelium.sporebit.com/review", "kind": "page" }
+            },
+            {
+              "id": "3.2",
+              "title": "On a day page: + PHOTO in the Photos card uploads one from the phone or PC; a photo's caption edits in place; × removes it. Tap a photo — the full image opens (a signed link, so it expires after an hour)",
+              "actor": "you",
+              "where": { "label": "/journal/<date>", "kind": "page" }
+            },
+            {
+              "id": "3.3",
+              "title": "The Boys → Ask: ask about something you said on a closed day this week — the answer draws on that day (source type daylog_day in the sources panel)",
+              "actor": "you",
+              "where": { "label": "Ask", "url": "https://mycelium.sporebit.com/the-boys/ask", "kind": "page" },
+              "fields": [{ "key": "ask", "label": "Did it find the day?", "placeholder": "yes, cited 2026-09-22" }]
+            },
+            {
+              "id": "3.4",
+              "title": "Ask Da Boi \"what have I been up to this week?\" — the answer draws on the last three day logs without you pasting anything",
+              "actor": "you",
+              "where": { "label": "The Boys → Da Boi", "url": "https://mycelium.sporebit.com/the-boys/da_boi", "kind": "page" }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
