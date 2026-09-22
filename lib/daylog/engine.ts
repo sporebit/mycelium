@@ -215,7 +215,8 @@ function toMessages(t: TranscriptEntry[]): Array<{ role: "user" | "assistant"; c
 export const OPENER = "Go on then — where did the day take you?";
 /** The opener when a previous night left a loose end (decision 24): asked here, once, with no model turn. */
 export function openerWithThread(thread: string): string {
-  return `Last time you mentioned ${/[.!?]$/.test(thread) ? thread : `${thread}.`} How did that go? Then tell me about today.`;
+  const t = thread.trim().replace(/^[A-Z](?=[a-z])/, (c) => c.toLowerCase());
+  return `Last time you mentioned ${/[.!?]$/.test(t) ? t : `${t}.`} How did that go? Then tell me about today.`;
 }
 export const QUICK_PROMPT = "Quick one: who / where / one line about the day.";
 
