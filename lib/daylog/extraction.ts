@@ -274,6 +274,35 @@ export function pendingItems(ex: Extraction, known: Map<string, string>, linkedP
   return deduped;
 }
 
+/**
+ * Give each scene its narrative bullet. Equal counts → by position; otherwise
+ * each scene takes the unused bullet sharing the most content words with its
+ * title (at least one), so a model that wrote five bullets for four scenes
+ * still leaves most scenes with a line rather than none.
+ */
+export function assignSceneLines(titles: string[], lines: string[]): Array<string | null> {
+  if (!lines.length) return titles.map(() => null);
+  if (lines.length === titles.length) return [...lines];
+  const used = new Set<number>();
+  return titles.map((title) => {
+    const t = tokens(title);
+    let best = -1;
+    let score = 0;
+    lines.forEach((line, i) => {
+      if (used.has(i)) return;
+      let hit = 0;
+      for (const w of tokens(line)) if (t.has(w)) hit++;
+      if (hit > score) {
+        score = hit;
+        best = i;
+      }
+    });
+    if (best < 0) return null;
+    used.add(best);
+    return lines[best];
+  });
+}
+
 /** The bullet lines of the close narrative ("• …"), one per scene in order. */
 export function sceneLines(summary: string | null | undefined): string[] {
   if (!summary) return [];

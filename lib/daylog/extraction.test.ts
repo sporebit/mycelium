@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { collapseScenes, emptyExtraction, factsSoFar, mergePatch, namesIn, normaliseExtraction, parseQuickTemplate, pendingItems, quickExtraction, sameFact, sceneLines, withoutKnown, type ExtractionPatch } from "./extraction";
+import { assignSceneLines, collapseScenes, emptyExtraction, factsSoFar, mergePatch, namesIn, normaliseExtraction, parseQuickTemplate, pendingItems, quickExtraction, sameFact, sceneLines, withoutKnown, type ExtractionPatch } from "./extraction";
 
 describe("mergePatch (spec §8)", () => {
   it("upserts a scene by ref and unions its people", () => {
@@ -190,6 +190,21 @@ describe("the Whitby night", () => {
     const counts: Record<string, number> = {};
     for (const i of pendingItems(final, new Map([["kirsty", "p1"]]))) counts[i.type] = (counts[i.type] ?? 0) + 1;
     expect(counts).toEqual({ daylog_person_link: 1, daylog_new_person: 1, daylog_place: 4, daylog_fact: 8 });
+  });
+});
+
+describe("assignSceneLines", () => {
+  it("equal counts go by position", () => {
+    expect(assignSceneLines(["A", "B"], ["one", "two"])).toEqual(["one", "two"]);
+  });
+  it("a mismatch matches by content words, each bullet once", () => {
+    const titles = ["Quayside, fish and chips", "Walk on the beach", "Pod in Staintondale"];
+    const lines = ["We started at the quayside with fish and chips.", "The beach was windy.", "Photos on the hill.", "The Staintondale pod was decent."];
+    expect(assignSceneLines(titles, lines)).toEqual([lines[0], lines[1], lines[3]]);
+  });
+  it("no overlap → no line, never a wrong one", () => {
+    expect(assignSceneLines(["Dentist", "Gym"], ["Went to the pub.", "Home by nine.", "Bed early."])).toEqual([null, null]);
+    expect(assignSceneLines(["Dentist"], [])).toEqual([null]);
   });
 });
 

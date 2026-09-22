@@ -8,7 +8,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveSpeaker } from "@/lib/quotes/server";
 import { knownPeople } from "./extract";
-import { namesIn, pendingItems, sceneLines, type Extraction } from "./extraction";
+import { assignSceneLines, namesIn, pendingItems, sceneLines, type Extraction } from "./extraction";
 
 export const DAYLOG_PENDING_TYPES = ["daylog_person_link", "daylog_new_person", "daylog_fact", "daylog_place"] as const;
 export type DaylogPendingType = (typeof DAYLOG_PENDING_TYPES)[number];
@@ -33,8 +33,7 @@ export async function materialise(db: SupabaseClient, day: { id: string; day: st
   for (const [ref, id] of Object.entries(sceneIds)) if (!existing.some((r) => r.id === id)) delete sceneIds[ref];
   const hadScenes = Object.keys(ex.scene_ids ?? {}).length > 0;
 
-  const lines = sceneLines(day.summary);
-  const useLines = lines.length === ex.scenes.length;
+  const lines = assignSceneLines(ex.scenes.map((s) => s.title), sceneLines(day.summary));
   const linkedPlaces = new Set<string>();
   let position = existing.reduce((m, r) => Math.max(m, r.position), -1) + 1;
   let inserted = 0;
@@ -57,7 +56,7 @@ export async function materialise(db: SupabaseClient, day: { id: string; day: st
     if (hadScenes && ex.scene_ids && s.ref in ex.scene_ids) continue; // was materialised once, then deleted by hand
     const { data: row, error } = await db
       .from("daylog_scenes")
-      .insert({ day_id: day.id, position: position++, title: s.title, place_id: placeId, place_text: s.place_text, time_hint: s.time_hint, narrative: useLines ? lines[i] : null })
+      .insert({ day_id: day.id, position: position++, title: s.title, place_id: placeId, place_text: s.place_text, time_hint: s.time_hint, narrative: lines[i] ?? null })
       .select("id")
       .single();
     if (error || !row) {
