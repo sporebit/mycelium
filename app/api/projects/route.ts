@@ -30,20 +30,28 @@ export async function GET(req: NextRequest) {
     auditListRead(req, data, "organisation", "tickets");
     const projects = (data ?? []) as Project[];
 
-    // Task counts per project (open tasks only)
+    // Task counts per project (open tasks only) and last use (MYC-41: the
+    // newest ticket touched in the project, any status — a completion is use
+    // too; a project with no tickets falls back to its own updated_at).
     if (projects.length > 0) {
       const ids = projects.map((p) => p.id);
       const { data: taskRows } = await supabase
         .from("tickets")
-        .select("id, project_id")
+        .select("id, project_id, completed_at, updated_at")
         .is("deleted_at", null)
-        .is("completed_at", null)
         .in("project_id", ids);
       const counts = new Map<string, number>();
-      for (const row of (taskRows ?? []) as Array<{ project_id: string }>) {
-        counts.set(row.project_id, (counts.get(row.project_id) ?? 0) + 1);
+      const lastUsed = new Map<string, string>();
+      for (const row of (taskRows ?? []) as Array<{ project_id: string; completed_at: string | null; updated_at: string | null }>) {
+        if (!row.completed_at) counts.set(row.project_id, (counts.get(row.project_id) ?? 0) + 1);
+        const at = row.updated_at ?? "";
+        if (at > (lastUsed.get(row.project_id) ?? "")) lastUsed.set(row.project_id, at);
       }
-      for (const p of projects) p.task_count = counts.get(p.id) ?? 0;
+      for (const p of projects) {
+        p.task_count = counts.get(p.id) ?? 0;
+        p.last_used_at = lastUsed.get(p.id) ?? p.updated_at ?? p.created_at;
+      }
+      projects.sort((a, b) => (b.last_used_at ?? "").localeCompare(a.last_used_at ?? ""));
     }
 
     return NextResponse.json({ projects });

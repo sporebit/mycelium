@@ -26,6 +26,8 @@ export type Project = {
   created_at: string;
   updated_at: string;
   task_count?: number;
+  /** MYC-41: the newest ticket activity in the project (or the project's own updated_at when it has none); the list is ordered by it. */
+  last_used_at?: string;
   /** Sum of `purchases.amount` for every purchase linked to this project,
    *  completed or not. Computed server-side on GET /api/projects/[id]. */
   estimated_cost?: number;
