@@ -510,3 +510,44 @@ Build Tickets Part A from claude/tickets-spec.md on branch tickets (worktree own
 7. **Decided (Q38):** when Phil's partner is onboarded, the **HOME** project and its tickets move into a household team space (prefix chosen then, e.g. `HH`); until then it lives in Phil's personal space. Moving a project between spaces re-keys its tickets (the one exception to stable keys — old keys redirect).
 
 Decided in Q26–Q35 and folded into the sections above: space prefix + stable keys (§4.4 trigger a), check-in and review defaults (§8.2), Where fixed / Tool open (§3.3), purchases linkable (§4.5), Issues sync off by default (§14.3), £10 cap (§9.1), numeric points for everyone (§5), full tree for everyone and team permissions (§10).
+
+---
+
+## 18. Revision 2026-09-23 — statuses and "When" (Phil, Cowork; supersedes §6's default set, Q8's status names and Q16's urgent flag)
+
+### 18.1 Decisions
+
+| # | Decision |
+|---|---|
+| R1 | **One 12-status workflow for every space and surface** (Tickets and life Tasks alike), in this display / board order: Inbox · Selected for Development · In Progress · In Review · Testing · Waiting on 3rd Party · Waiting on my Decision · On Hold · Done · Closed · Backlog · Cancelled. |
+| R2 | **Done vs Closed:** Done = shipped with evidence (merge + deploy + smoke, or a manual tick). **Closed = Phil verified it live** — moving to Closed sets `verified_by` / `verified_at`; the "Verified live" button becomes "Close". The export's `done (unverified)` = Done; Closed = verified. |
+| R3 | **Waiting on my Decision is category `next`** — it shows in Now and Next Actions, because only Phil can unblock it. |
+| R4 | The legacy `urgency` labels (today / this week / this month / someday) are **retired from tickets**. They are replaced by a **When** picker that always writes a date: **Within a week** (deadline = today + 7) · **Within a month** (today + 30) · **End of the month** (last day of the current month) · **On the weekend** (Phil picks a specific weekend from the next eight: `scheduled_on` = Saturday, `deadline_on` = Sunday) · **Someday** (`someday = true`, no dates) · **Pick a date**. Dates are Europe/London. The choice is stored in `tickets.due_window`; a window label never goes stale because the label is only shown while the date is in the future. |
+| R5 | **Overdue is a flag, not a status.** `deadline_on < today (London)` and category not `done` / `cancelled` → a red **OVERDUE** pill replaces the window label on rows, board cards, the ticket page, Now and ⌘K; an Overdue count in the counts endpoint and the morning briefing. |
+| R6 | **Calendar: scheduled dates only.** Deadline windows (week / month / end of month) never create a calendar event; `scheduled_on` does (existing `syncTicketToGoogle`). A weekend pick sets `scheduled_on`, so it reaches the calendar — as an all-day Sat–Sun event. Blocked in practice until Google is reconnected (MYC-147). |
+| R7 | **Existing urgency labels re-dated from `created_at`** (open tickets without a `deadline_on`): today → created date, this_week → +7, this_month → +30, someday → `someday = true`. Phil chose the honest version: old items show Overdue immediately. |
+| R8 | **The manual `urgent` flag is removed** from the UI; the column stays, reset to false so it no longer orders Now invisibly. The FROZEN NOW scorer does not read `urgency` or `urgent` and is untouched. |
+
+### 18.2 Status → category map (automation, Now and GTD lists bind to categories, §2 Flag 2)
+
+| Status | Category | Legacy `status` | Category default? |
+|---|---|---|---|
+| Inbox | inbox | new | ✓ |
+| Selected for Development | next | new | ✓ (was "Next") |
+| In Progress | doing | in_progress | ✓ (was "Doing") |
+| In Review | verify | review / pending_review | ✓ (was "Verify") — GitHub merge lands here |
+| Testing | verify | testing | |
+| Waiting on 3rd Party | waiting | waiting_third_party / blocked | ✓ (was "Waiting") |
+| Waiting on my Decision | next | new | |
+| On Hold | backlog | on_hold | |
+| Done | done | completed | ✓ — Vercel deploy + smoke lands here |
+| Closed | done | completed | set by "Close" (verified) |
+| Backlog | backlog | new | ✓ |
+| Cancelled | cancelled | cancelled | ✓ |
+
+**Why a category-default flag is needed:** `ticket_status_for(space, category)` picks the lowest `sort_order`, so with the new order a derived `backlog` would resolve to **On Hold** (sort 7) before **Backlog** (sort 10). Add `ticket_statuses.is_category_default boolean` (one per workflow + category, partial unique index) and resolve by it. Also: legacy `status` → a **specific status**, not just its category (on_hold → On Hold, testing → Testing), so the finer values survive the 0117 sync trigger.
+
+### 18.3 Build (migration 0137, branch `tickets`, which owns `supabase/migrations/**`)
+
+- **0137_status_when_revision.sql:** rename in place per workflow (ids kept, so every ticket keeps its status): Next → Selected for Development, Doing → In Progress, Verify → In Review, Waiting → Waiting on 3rd Party; insert Testing, Waiting on my Decision, On Hold, Closed; set `sort_order` per R1; add + backfill `is_category_default`; update `ticket_status_for` and the 0117 trigger's legacy mapping; update the per-space seed function so new spaces get the 12. Move Done tickets with `verified_by` set → Closed. Add `tickets.due_window text check (due_window in ('week','month','month_end','weekend','someday','date'))`. Backfill per R7. `urgent = false` everywhere. RLS unchanged (no new tables). Replay on the local stack first; `supabase db push`.
+- **Code:** `lib/tickets/when.ts` (pure: window → dates in London, the weekend list, `isOverdue(t, today)` on `deadline_on ?? due_date` excluding done/cancelled; unit tests incl. month-end and a Saturday/Sunday "today"); a `WhenPicker` used by the ticket page, the Clarify defer panel, the bulk bar and the new-ticket form; an `OverduePill`; replace every urgency select/pill on the tickets and tasks surfaces; `POST /api/tickets` stops defaulting `urgency = 'this_week'`; `PATCH` accepts `due_window` and derives the dates server-side; the "Close" button + `/verify` moves to Closed; briefings HOT logic, `lib/blockers.ts` and `KeyBlockers` re-point from `urgency === 'today'|'this_week'` to overdue / due within 7 days; counts gain `overdue`; Google sync gives a weekend pick a Sat–Sun all-day span. Purchases keep their own `urgency` (separate table, untouched). The `urgency` column stays for one release, unwritten.
