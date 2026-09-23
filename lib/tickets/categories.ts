@@ -268,3 +268,21 @@ export const TICKET_KEY_RE = /\b[A-Z][A-Z0-9]{1,4}-\d+\b/g;
 export function looksLikeKey(s: string): boolean {
   return /^[A-Z][A-Z0-9]{1,4}-\d+$/.test(s.trim().toUpperCase());
 }
+
+/**
+ * PostgREST `or` filter that matches a ticket by its live key OR by any key
+ * it carried before a re-key (0135 `key_aliases`). Null when `s` is not
+ * key-shaped — a non-key can never match, and only key-shaped input is safe
+ * to splice into a filter string.
+ */
+export function ticketKeyFilter(s: string): string | null {
+  if (!looksLikeKey(s)) return null;
+  const k = s.trim().toUpperCase();
+  return `ticket_key.eq.${k},key_aliases.cs.{${k}}`;
+}
+
+/** Pick the row whose live key is `key`, else the (alias) match. */
+export function preferLiveKey<T extends { ticket_key?: string | null }>(rows: T[], key: string): T | null {
+  const k = key.trim().toUpperCase();
+  return rows.find((r) => r.ticket_key === k) ?? rows[0] ?? null;
+}

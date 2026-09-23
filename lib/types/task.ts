@@ -64,6 +64,9 @@ export type Task = {
   /** The stable per-space ticket identifier, e.g. "MYC-33" (0116). Null only
    *  on rows created before the key trigger; every current row has one. */
   ticket_key?: string | null;
+  /** Keys this ticket carried before a re-key (0135), oldest first. Each
+   *  still resolves in /api/tickets/[key], ⌘K, tix and commit matching. */
+  key_aliases?: string[] | null;
   /** The numeric part of ticket_key, for sorting (0116). */
   seq?: number | null;
   // ---- Tickets Part B fields (0116 columns, surfaced by TASK_SELECT) ----

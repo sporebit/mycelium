@@ -39,7 +39,7 @@ One `tickets` table replaces `tasks`. A ticket is anything with a done state: a 
 | 23 | GitHub: **keys in commits + webhook + `tix` CLI + Claude Code skill, AND two-way GitHub Issues sync**, opt-in per repo. | Flag 3. |
 | 24 | First import: **tasks + projects + backlog.md; reminders + habits + venture_steps; other projects' backlogs after a harvest pass in each.** Purchases/wishlist stay as Purchases. | |
 | 25 | **First after cutover, everything in one stream, absorbing Checklists' slot.** Quotes and Day log follow. | Flag 4: one stream still means gated Parts. |
-| 26 | Inbox (unprojected) tickets take the **space prefix** (personal default = initials, `PW-57`); **keys are stable on move** between projects. | Commit references keep resolving. |
+| 26 | Inbox (unprojected) tickets take the **space prefix** (personal default = initials, `PW-57`). **Amended 2026-09-23 (Cowork, 0135):** a space-keyed ticket is **re-keyed the first time it gets a project** with a prefix (`PW-14` → `DSA-3`); the old key is kept in `key_aliases` and keeps resolving everywhere (`/api/tickets/[key]`, ⌘K, `tix`, commit matching). After that, **keys are stable on move** between projects. `MYC-` is for the Mycelium project only. | Commit references keep resolving — through the live key or an alias. |
 | 27 | Defaults: **check-in 18:00; weekly review Sunday 18:00** — per user in `ui_prefs`. | Before the Day log's 21:30 prompt. |
 | 28 | **Where fixed** (anywhere / home / out / a Place); **Tool open** (chips none / phone / PC / car + free text). | |
 | 29 | **Purchases stay separate, linkable both ways** — `ticket_links.kind = purchase`; a purchase can spawn a ticket. | Not imported. |
@@ -167,6 +167,7 @@ alter table public.task_activity rename to ticket_activity;
 alter table public.tickets
 	add column if not exists key                  text,                -- MYC-142; unique per space
 	add column if not exists seq                  int,
+	add column if not exists key_aliases          text[] not null default '{}', -- 0135: every earlier key (re-key on first project); GIN-indexed, each still resolves
 	add column if not exists parent_id            uuid references public.tickets(id) on delete cascade, -- sub-task (already exists from 0004? keep whichever name; one column)
 	add column if not exists kind                 text not null default 'task'
 		check (kind in ('task','habit','reminder','runbook','test','guide','audit','setup')),
@@ -211,7 +212,12 @@ create unique index if not exists tickets_key_per_space on public.tickets (space
 create index if not exists tickets_now_idx on public.tickets (space_id, status_id, scheduled_on, deadline_on);
 create index if not exists tickets_project_idx on public.tickets (project_id, status_id);
 create index if not exists tickets_series_idx on public.tickets (series_id) where series_id is not null;
--- triggers: (a) key = prefix || '-' || seq, prefix from root project or spaces.ticket_prefix, seq from that owner's next_seq, assigned on insert and never changed;
+-- triggers: (a) key = prefix || '-' || seq, prefix from root project or spaces.ticket_prefix, seq from that owner's next_seq, assigned on insert (0122).
+--               Amended 0135 (2026-09-23): `key_aliases text[]` on tickets. On `update of project_id`, a ticket whose key still carries the SPACE
+--               prefix (never project-keyed) takes the new root project's prefix + next seq; the old key is appended to key_aliases. A key is never
+--               reused while it is live or an alias (one taker, tickets_take_key(), for both triggers). Once project-keyed, stable on every move.
+--               Resolvers (fetchTicketByKey / resolveTicketRef, the ⌘K term search) match ticket_key OR key_aliases and prefer the live key.
+--               One-off in 0135: every MYC-n outside the Mycelium project (79 unprojected incl. habits MYC-97…108, plus those in GARDN/SELL/MADRD) re-keyed, old key aliased.
 --           (b) depth: parent_id may not point at a ticket that itself has parent_id;
 --           (c) assignee must be a member of the ticket's space (team_members) or the space owner;
 --           (d) completed_at set/cleared on category change to/from done.
@@ -416,7 +422,7 @@ Rate limiting via `lib/system/rateLimit` on writes. All routes honour `Authoriza
 | Ventures (existing section) | one project per `ventures` row, prefix from the name at import | §13.6 |
 | — not imported — | Everlight (Q3); superseded older Claude projects (FastAPI-era "Calendar Management", "Fitness Tracker App" — absorbed into Mycelium) | |
 
-Personal space prefix **PW** for Inbox tickets (Q26). Prefix rule `^[A-Z][A-Z0-9]{1,4}$`, unique per space. **Map accepted as proposed (Q36, 2026-09-14).** Existing `projects` and `ventures` rows: Claude Code lists them with proposed prefix + area as the first step of Part A; Phil confirms in one multiple-choice round; then the import runs (Q37).
+Personal space prefix **PW** for Inbox tickets (Q26; re-keyed to the project prefix on first project assignment, old key aliased — 0135). Prefix rule `^[A-Z][A-Z0-9]{1,4}$`, unique per space. **Map accepted as proposed (Q36, 2026-09-14).** Existing `projects` and `ventures` rows: Claude Code lists them with proposed prefix + area as the first step of Part A; Phil confirms in one multiple-choice round; then the import runs (Q37).
 3. **backlog.md → tickets**: Cowork produces `docs/tickets/import/backlog-2026-09.json` (one object per bullet: sub-project by section, title = bold lead or first clause, body = the rest, status by prefix — idea→Backlog (+`someday` when "parked"/"idea"), committed→Next, in-progress→Doing, blocked→Waiting, done→Done with `verified_by` = Phil when the doc says verified — `source = claude` for `[claude]` items, notes → comments). The script inserts as Phil.
 4. **reminders → tickets** `kind = reminder`, `remind_at`, category Next; the reminders cron re-pointed; old table dropped after a count check.
 5. **habits → series tickets**: one per configured habit (`/api/habits-config` source), `FREQ=DAILY`; history from `daily_logs.notes` JSON into `ticket_completions` — assert counts per habit match before the old read path is removed.

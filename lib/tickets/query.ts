@@ -11,6 +11,7 @@ import {
   OPEN_CATEGORIES,
   isClosedCategory,
   londonNow,
+  ticketKeyFilter,
   timeWindowContains,
   type GtdList,
   type TicketCategory,
@@ -178,7 +179,10 @@ export async function listTickets(
   if (p.updatedSince) q = q.gte("updated_at", p.updatedSince);
   if (p.q) {
     const term = p.q.replace(/[%,()]/g, " ").trim();
-    if (term) q = q.or(`title.ilike.%${term}%,description.ilike.%${term}%,ticket_key.ilike.%${term}%`);
+    // A key-shaped term also matches a ticket's pre-re-key aliases (0135), so
+    // ⌘K "MYC-50" still lands on the ticket that is now PW-31.
+    const alias = ticketKeyFilter(term);
+    if (term) q = q.or(`title.ilike.%${term}%,description.ilike.%${term}%,ticket_key.ilike.%${term}%${alias ? `,${alias}` : ""}`);
   }
   if (!p.includeSubtasks && p.list !== "now" && p.list !== "next") {
     // sub-tasks stay under their parent in the general lists; Now and Next

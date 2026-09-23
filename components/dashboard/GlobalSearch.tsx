@@ -11,7 +11,7 @@ import { looksLikeKey } from "@/lib/tickets/categories";
 import { CategoryChip } from "@/components/tickets/CategoryChip";
 import type { Task } from "@/lib/types/task";
 
-type TicketHit = Pick<Task, "id" | "ticket_key" | "title" | "category" | "status_name" | "project_name">;
+type TicketHit = Pick<Task, "id" | "ticket_key" | "key_aliases" | "title" | "category" | "status_name" | "project_name">;
 
 export function GlobalSearch() {
   const router = useRouter();
@@ -228,7 +228,8 @@ export function GlobalSearch() {
                 Tickets
               </div>
               <ul className="flex flex-col">
-                {looksLikeKey(query) && !tickets.some((t) => t.ticket_key === query.trim().toUpperCase()) && (
+                {looksLikeKey(query) &&
+                  !tickets.some((t) => t.ticket_key === query.trim().toUpperCase() || (t.key_aliases ?? []).includes(query.trim().toUpperCase())) && (
                   <li>
                     <button
                       type="button"

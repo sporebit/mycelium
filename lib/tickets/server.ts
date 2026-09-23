@@ -24,6 +24,8 @@ import {
   TICKET_KINDS,
   TIME_WINDOWS,
   WHERE_CTX,
+  preferLiveKey,
+  ticketKeyFilter,
   type TicketCategory,
 } from "./categories";
 
@@ -83,20 +85,25 @@ export function readJson<T = Record<string, unknown>>(req: Request): Promise<T |
 
 type Raw = Parameters<typeof serializeTask>[0];
 
+/**
+ * The ticket for a key — its live key, or one it carried before a re-key
+ * (0135: a `PW-n` ticket becomes `DSA-3` the first time it gets a project;
+ * `PW-n` stays in `key_aliases` so old links, commits and `tix` calls keep
+ * resolving). Callers see the live key on the returned task.
+ */
 export async function fetchTicketByKey(
   supabase: SupabaseClient,
   key: string,
 ): Promise<Task | null> {
-  const { data, error } = await supabase
-    .from("tickets")
-    .select(TASK_SELECT)
-    .eq("ticket_key", key.toUpperCase())
-    .maybeSingle();
-  if (error || !data) return null;
-  return serializeTask(data as unknown as Raw);
+  const filter = ticketKeyFilter(key);
+  if (!filter) return null;
+  const { data, error } = await supabase.from("tickets").select(TASK_SELECT).or(filter).limit(2);
+  if (error || !data?.length) return null;
+  const row = preferLiveKey(data as unknown as Raw[], key);
+  return row ? serializeTask(row) : null;
 }
 
-/** Resolve a key ("MYC-33") or a uuid to the ticket's id + space. */
+/** Resolve a key ("MYC-33", or a pre-re-key alias) or a uuid to the ticket's id + space. */
 export async function resolveTicketRef(
   supabase: SupabaseClient,
   ref: string,
@@ -104,8 +111,16 @@ export async function resolveTicketRef(
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ref);
   const q = supabase
     .from("tickets")
-    .select("id, space_id, status_id, kind, ticket_status:ticket_statuses(category)");
-  const { data } = await (isUuid ? q.eq("id", ref) : q.eq("ticket_key", ref.toUpperCase())).maybeSingle();
+    .select("id, space_id, status_id, kind, ticket_key, ticket_status:ticket_statuses(category)");
+  let data: Record<string, unknown> | null = null;
+  if (isUuid) {
+    data = (await q.eq("id", ref).maybeSingle()).data;
+  } else {
+    const filter = ticketKeyFilter(ref);
+    if (!filter) return null;
+    const rows = (await q.or(filter).limit(2)).data ?? [];
+    data = preferLiveKey(rows as Array<{ ticket_key: string | null }>, ref) as Record<string, unknown> | null;
+  }
   if (!data) return null;
   const st = Array.isArray(data.ticket_status) ? data.ticket_status[0] : data.ticket_status;
   return {

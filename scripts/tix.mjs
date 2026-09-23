@@ -121,6 +121,7 @@ switch (cmd) {
     else {
       const t = j.task;
       console.log(row(t));
+      if (t.key_aliases?.length) console.log(`formerly ${t.key_aliases.join(", ")} (old keys still resolve)`);
       if (t.description) console.log(`\n${t.description}\n`);
       console.log(`where ${t.where_ctx} · tools ${(t.tools ?? []).join(",")} · ${t.time_window} · ${t.points ?? "-"} pts · ${t.status_name ?? t.category}`);
       if (j.sub_tasks?.length) {

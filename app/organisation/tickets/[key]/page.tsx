@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { mutate as globalMutate } from "swr";
 import { useApi, ApiError } from "@/lib/data/useApi";
@@ -76,6 +76,15 @@ export default function TicketPage() {
   const ticketKey = params.key;
   const apiKey = `/api/tickets/${encodeURIComponent(ticketKey)}`;
   const { data, error, mutate } = useApi<Payload>(apiKey);
+  const router = useRouter();
+  // An old key (pre-re-key alias, 0135) still resolves; settle the URL on
+  // the live key so bookmarks, ⌘K and the SWR cache converge on one address.
+  const liveKey = data?.task.ticket_key ?? null;
+  useEffect(() => {
+    if (liveKey && liveKey !== ticketKey.toUpperCase()) {
+      router.replace(`/organisation/tickets/${encodeURIComponent(liveKey)}`);
+    }
+  }, [liveKey, ticketKey, router]);
   const { prefs } = useUiPrefs();
   const simple = ticketPrefs(prefs).simple_statuses;
   const projects = useProjects();
@@ -164,6 +173,11 @@ export default function TicketPage() {
         </div>
         <span className="text-xs font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3">
           {t.ticket_key ?? "—"}
+          {(t.key_aliases?.length ?? 0) > 0 && (
+            <span className="ml-2 text-ink-4" title="Earlier keys — still resolve">
+              formerly {(t.key_aliases ?? []).join(", ")}
+            </span>
+          )}
           {saving && <span className="ml-2">saving…</span>}
         </span>
       </div>
