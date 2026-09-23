@@ -656,6 +656,86 @@ function ReviewForm({
   );
 }
 
+/* ─── Inline edit (MYC-152) ────────────────────────────────── */
+
+function EditForm({
+  item,
+  onPatch,
+  onClose,
+}: {
+  item: MediaItem;
+  onPatch: (id: string, patch: Record<string, unknown>) => void;
+  onClose: () => void;
+}) {
+  const [title, setTitle] = useState(item.title);
+  const [creator, setCreator] = useState(item.creator ?? "");
+  const [url, setUrl] = useState(item.url ?? "");
+  const [notes, setNotes] = useState(item.notes ?? "");
+  const [tags, setTags] = useState((item.tags ?? []).join(", "));
+
+  const field = "w-full bg-transparent border border-ink-2/40 rounded text-xs text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 placeholder:text-ink-3";
+  const label = "text-[9px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]";
+
+  function save() {
+    const t = title.trim();
+    if (!t) return;
+    onPatch(item.id, {
+      title: t,
+      creator: creator.trim() || null,
+      url: url.trim() || null,
+      notes: notes.trim() || null,
+      tags: tags.split(",").map((s) => s.trim()).filter(Boolean),
+    });
+    onClose();
+  }
+
+  return (
+    <form
+      onSubmit={(e) => { e.preventDefault(); save(); }}
+      className="mt-2 p-2 rounded-lg bg-ink-0/60 border border-ink-2/50 flex flex-col gap-2"
+    >
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div>
+          <label className={label}>TITLE</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className={field} autoFocus />
+        </div>
+        <div>
+          <label className={label}>CREATOR</label>
+          <input value={creator} onChange={(e) => setCreator(e.target.value)} className={field} placeholder="Director, artist, author…" />
+        </div>
+      </div>
+      <div>
+        <label className={label}>URL</label>
+        <input value={url} onChange={(e) => setUrl(e.target.value)} className={field} placeholder="https://" inputMode="url" />
+      </div>
+      <div>
+        <label className={label}>TAGS</label>
+        <input value={tags} onChange={(e) => setTags(e.target.value)} className={field} placeholder="comma, separated" />
+      </div>
+      <div>
+        <label className={label}>NOTES</label>
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={`${field} resize-y`} />
+      </div>
+      <div className="flex items-center gap-2 justify-end">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-2 py-0.5 rounded text-[9px] font-[family-name:var(--font-mono)] border border-ink-2 text-ink-3 hover:text-ink-4 transition-colors"
+        >
+          CANCEL
+        </button>
+        <button
+          type="submit"
+          disabled={!title.trim()}
+          className="px-2 py-0.5 rounded text-[9px] font-[family-name:var(--font-mono)] bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 disabled:opacity-40 transition-colors"
+        >
+          SAVE
+        </button>
+      </div>
+    </form>
+  );
+}
+
 /* ─── Row ──────────────────────────────────────────────────── */
 
 function MediaRow({
@@ -683,6 +763,7 @@ function MediaRow({
   onLogEpisode: () => void;
   onDeleteEpisode: (episodeId: string) => void;
 }) {
+  const [editing, setEditing] = useState(false);
   const tone = STATUS_TONE[item.media_status];
   const isCompleted = item.media_status === "completed";
   const isPodcast = tab === "listen" && (item.creator?.toLowerCase().includes("podcast") || item.title.toLowerCase().includes("podcast"));
@@ -759,6 +840,16 @@ function MediaRow({
 
           <button
             type="button"
+            onClick={() => setEditing((v) => !v)}
+            className={`text-xs transition-opacity ${editing ? "text-accent" : "opacity-0 group-hover:opacity-100 text-ink-3 hover:text-accent"}`}
+            aria-label="Edit"
+            title="Edit"
+          >
+            ✎
+          </button>
+
+          <button
+            type="button"
             onClick={() => onDelete(item.id)}
             className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-danger text-xs transition-opacity"
             aria-label="Delete"
@@ -767,6 +858,8 @@ function MediaRow({
           </button>
         </div>
       </div>
+
+      {editing && <EditForm item={item} onPatch={onPatch} onClose={() => setEditing(false)} />}
 
       {/* Auto-generated links */}
       {tab === "watch" && <WatchLinks item={item} onRefresh={() => onRefreshStreaming(item)} />}
