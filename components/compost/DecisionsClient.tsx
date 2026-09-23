@@ -62,9 +62,34 @@ export function DecisionsClient() {
   if (source !== "all") params.set("source", source);
   params.set("kind", "decision");
   params.set("limit", "100");
-  const { data, error } = useApi<{ captures?: Capture[] }>(
+  const { data, error, mutate } = useApi<{ captures?: Capture[] }>(
     `/api/captures?${params.toString()}`,
   );
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  /** Soft-delete (MYC-151): the row leaves the list at once; the request runs behind it. */
+  async function remove(c: Capture) {
+    if (deleting) return;
+    if (!confirm(`Delete this decision?\n\n${truncate(c.raw_text, 120)}`)) return;
+    setDeleting(c.id);
+    const optimistic = { captures: (data?.captures ?? []).filter((x) => x.id !== c.id) };
+    try {
+      await mutate(
+        async () => {
+          const r = await fetch(`/api/captures/${c.id}`, { method: "DELETE" });
+          if (!r.ok) throw new Error(`${r.status}`);
+          return optimistic;
+        },
+        { optimisticData: optimistic, rollbackOnError: true, revalidate: true },
+      );
+    } catch {
+      setNotice("Delete failed");
+      setTimeout(() => setNotice(null), 3000);
+    } finally {
+      setDeleting(null);
+    }
+  }
   // null while loading; [] on failure — same contract the old effect had.
   const decisions = useMemo<Capture[] | null>(() => {
     if (error) return [];
@@ -85,8 +110,8 @@ export function DecisionsClient() {
     <div className="flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-3">
         <div className="card-eyebrow">Decisions</div>
-        <Mono className="text-[10px] text-ink-3">
-          {decisions === null ? "…" : `${decisions.length} ${decisions.length === 1 ? "decision" : "decisions"}`}
+        <Mono className={`text-[10px] ${notice ? "text-danger" : "text-ink-3"}`}>
+          {notice ?? (decisions === null ? "…" : `${decisions.length} ${decisions.length === 1 ? "decision" : "decisions"}`)}
         </Mono>
       </div>
 
@@ -112,33 +137,45 @@ export function DecisionsClient() {
           {decisions.map((c) => {
             const isOpen = expanded.has(c.id);
             return (
-              <li key={c.id} className="growth-in">
-                <button
-                  type="button"
-                  onClick={() => toggle(c.id)}
-                  className="w-full text-left px-4 py-3 hover:bg-ink-2/30 transition-colors flex items-start gap-3"
-                >
-                  <span
-                    aria-hidden
-                    className="text-ink-3 text-base w-5 shrink-0 mt-0.5"
-                    title={c.source}
+              <li key={c.id} className="growth-in group">
+                <div className="flex items-start gap-3 px-4 py-3 hover:bg-ink-2/30 transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => toggle(c.id)}
+                    className="flex-1 min-w-0 text-left flex items-start gap-3"
                   >
-                    {sourceIcon(c.source)}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <Mono className="text-[10px] text-ink-3">
-                        {relativeDate(c.created_at)}
-                      </Mono>
-                      <span className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-warn/15 text-warn border-warn/40">
-                        DECISION
-                      </span>
+                    <span
+                      aria-hidden
+                      className="text-ink-3 text-base w-5 shrink-0 mt-0.5"
+                      title={c.source}
+                    >
+                      {sourceIcon(c.source)}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <Mono className="text-[10px] text-ink-3">
+                          {relativeDate(c.created_at)}
+                        </Mono>
+                        <span className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-warn/15 text-warn border-warn/40">
+                          DECISION
+                        </span>
+                      </div>
+                      <div className="text-sm text-ink-4 mt-1 leading-snug break-words">
+                        {isOpen ? c.raw_text : truncate(c.raw_text, 200)}
+                      </div>
                     </div>
-                    <div className="text-sm text-ink-4 mt-1 leading-snug break-words">
-                      {isOpen ? c.raw_text : truncate(c.raw_text, 200)}
-                    </div>
-                  </div>
-                </button>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => remove(c)}
+                    disabled={deleting === c.id}
+                    aria-label="Delete decision"
+                    title="Delete"
+                    className="shrink-0 mt-0.5 px-2 py-1 rounded-md text-ink-3 hover:text-danger hover:bg-danger/10 disabled:opacity-40 text-xs transition-colors opacity-60 group-hover:opacity-100"
+                  >
+                    {deleting === c.id ? "…" : "✕"}
+                  </button>
+                </div>
                 {isOpen && (
                   <div className="px-4 pb-3">
                     <details className="rounded-md border border-ink-2 bg-ink-0/40 p-2">
