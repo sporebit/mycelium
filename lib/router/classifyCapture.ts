@@ -13,6 +13,7 @@ export type CaptureKind =
   | "task"
   | "note"
   | "decision"
+  | "idea"
   | "journal"
   | "capture"
   | "workout"
@@ -142,6 +143,7 @@ const KINDS: readonly CaptureKind[] = [
   "task",
   "note",
   "decision",
+  "idea",
   "journal",
   "capture",
   "workout",
@@ -199,10 +201,11 @@ const MOODS: readonly CaptureMood[] = [
 export const CLASSIFIER_SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
 
 Rules:
-- "kind" is one of: task, note, decision, journal, capture, workout, purchase, pain_log, reminder, media, account, quote.
+- "kind" is one of: task, note, decision, idea, journal, capture, workout, purchase, pain_log, reminder, media, account, quote.
   - task = an action the user needs to DO (not buy), with NO explicit time/date trigger.
   - reminder = the user explicitly wants to be reminded at a specific time or after a delay. Signals: "remind me", "set a reminder", "in 30 minutes", "at 8pm", "every day at", "tomorrow at". If there's a concrete time/date/delay attached to a task-like request, classify as reminder, not task.
   - decision = a choice the user wants to record.
+  - idea = something the user might build, make, try or start — a product, a venture, a project, a feature, a plan for later. Signals: "idea", "what if", "we could", "someone should build", "I want to make". Not a decision (nothing chosen yet), not a task (no commitment to do it).
   - note = a fact or piece of info to remember.
   - journal = reflection, feeling, or observation about themselves or their day; longer-form expressive content; the kind of thing they'd want to re-read in a year.
   - workout = a description of exercise the user just did, is doing, or is reporting on. Signals: set/rep patterns ("5x5", "3 sets of 8"), weights in kg/lbs ("80kg", "100lbs"), named exercises (bench press, squat, deadlift, RDL, lunges, etc.), cardio terms ("ran 5km", "10 mins on treadmill"), pain or feel words paired with body parts ("shoulder twinged", "left knee sore", "felt pumped"), session-shaped sentences ("did push day", "morning workout", "just finished legs").
@@ -233,6 +236,7 @@ Examples:
   - "Set a reminder for Friday at 3pm to call the dentist" -> reminder (reminder.reminder_message: "call the dentist", reminder.date: "friday", reminder.time: "15:00")
   - "File the taxes by end of month" -> task (no explicit time trigger, just a deadline)
   - "We decided to go with the React 19 upgrade after all" -> decision
+  - "Idea: a wall-mounted e-ink board that shows the day's tickets" -> idea
   - "Stoic gym this morning was brutal but I noticed I'm finally enjoying the back-squat day. Body's adapting." -> journal
   - "Beautiful walk through Sandall Park, the geese are back" -> journal
   - "Need to remember Dad's birthday is on the 14th" -> note
@@ -814,7 +818,9 @@ function classifyRegex(text: string): Classification {
     kind = "quote";
   } else if (/\b(decided|decision|chose|choosing)\b/.test(lower)) {
     kind = "decision";
-  } else if (/\b(idea|thought|remember)\b/.test(lower)) {
+  } else if (/\b(idea|what if|we could|could build|should build|want to make)\b/.test(lower)) {
+    kind = "idea";
+  } else if (/\b(thought|remember)\b/.test(lower)) {
     kind = "note";
   } else if (workoutSignals) {
     kind = "workout";

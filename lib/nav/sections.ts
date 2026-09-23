@@ -22,6 +22,7 @@ export const SECTIONS: SectionConfig[] = [
       { label: "Calendar", href: "/organisation/calendar", primary: true },
       { label: "Projects", href: "/organisation/projects", primary: false },
       { label: "Decisions", href: "/organisation/decisions", primary: false },
+      { label: "Ideas", href: "/organisation/ideas", primary: false },
       { label: "Purchases", href: "/organisation/purchases", primary: false },
       { label: "Habits", href: "/organisation/habits", primary: false },
       { label: "Media", href: "/organisation/media", primary: false },

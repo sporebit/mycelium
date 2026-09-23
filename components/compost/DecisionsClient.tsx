@@ -52,7 +52,22 @@ function sourceIcon(s: string): string {
   return "·";
 }
 
-export function DecisionsClient() {
+/**
+ * A list of captures of one kind that live only as captures (decisions,
+ * ideas): filter by source, expand, delete. Ideas (MYC-156) reuse it until
+ * the Ideas spec gives them a surface of their own.
+ */
+export function DecisionsClient({
+  kind = "decision",
+  label = "Decision",
+  plural = "decisions",
+  badgeClass = "bg-warn/15 text-warn border-warn/40",
+}: {
+  kind?: string;
+  label?: string;
+  plural?: string;
+  badgeClass?: string;
+} = {}) {
   const [source, setSource] = useState("all");
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 
@@ -60,7 +75,7 @@ export function DecisionsClient() {
   // different cache entry rather than clobbering the current one.
   const params = new URLSearchParams();
   if (source !== "all") params.set("source", source);
-  params.set("kind", "decision");
+  params.set("kind", kind);
   params.set("limit", "100");
   const { data, error, mutate } = useApi<{ captures?: Capture[] }>(
     `/api/captures?${params.toString()}`,
@@ -71,7 +86,7 @@ export function DecisionsClient() {
   /** Soft-delete (MYC-151): the row leaves the list at once; the request runs behind it. */
   async function remove(c: Capture) {
     if (deleting) return;
-    if (!confirm(`Delete this decision?\n\n${truncate(c.raw_text, 120)}`)) return;
+    if (!confirm(`Delete this ${label.toLowerCase()}?\n\n${truncate(c.raw_text, 120)}`)) return;
     setDeleting(c.id);
     const optimistic = { captures: (data?.captures ?? []).filter((x) => x.id !== c.id) };
     try {
@@ -109,9 +124,9 @@ export function DecisionsClient() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-3">
-        <div className="card-eyebrow">Decisions</div>
+        <div className="card-eyebrow">{plural[0].toUpperCase() + plural.slice(1)}</div>
         <Mono className={`text-[10px] ${notice ? "text-danger" : "text-ink-3"}`}>
-          {notice ?? (decisions === null ? "…" : `${decisions.length} ${decisions.length === 1 ? "decision" : "decisions"}`)}
+          {notice ?? (decisions === null ? "…" : `${decisions.length} ${decisions.length === 1 ? label.toLowerCase() : plural}`)}
         </Mono>
       </div>
 
@@ -130,7 +145,7 @@ export function DecisionsClient() {
         </div>
       ) : decisions.length === 0 ? (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
-          No decisions logged yet. Capture one below — the classifier will route it as a decision.
+          No {plural} logged yet. Capture one below — the classifier will route it as {label.toLowerCase() === "idea" ? "an" : "a"} {label.toLowerCase()}.
         </div>
       ) : (
         <ul className="flex flex-col divide-y divide-ink-2 rounded-xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl overflow-hidden">
@@ -156,8 +171,8 @@ export function DecisionsClient() {
                         <Mono className="text-[10px] text-ink-3">
                           {relativeDate(c.created_at)}
                         </Mono>
-                        <span className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-warn/15 text-warn border-warn/40">
-                          DECISION
+                        <span className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 ${badgeClass}`}>
+                          {label.toUpperCase()}
                         </span>
                       </div>
                       <div className="text-sm text-ink-4 mt-1 leading-snug break-words">
@@ -169,7 +184,7 @@ export function DecisionsClient() {
                     type="button"
                     onClick={() => remove(c)}
                     disabled={deleting === c.id}
-                    aria-label="Delete decision"
+                    aria-label={`Delete ${label.toLowerCase()}`}
                     title="Delete"
                     className="shrink-0 mt-0.5 px-2 py-1 rounded-md text-ink-3 hover:text-danger hover:bg-danger/10 disabled:opacity-40 text-xs transition-colors opacity-60 group-hover:opacity-100"
                   >
@@ -195,7 +210,7 @@ export function DecisionsClient() {
       )}
 
       <div className="max-w-2xl w-full mx-auto pt-2">
-        <SuggestCapture label="Decision" prefix="[decision]" />
+        <SuggestCapture label={label} prefix={`[${kind}]`} />
       </div>
     </div>
   );

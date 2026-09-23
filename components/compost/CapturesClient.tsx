@@ -85,6 +85,7 @@ const KINDS = [
   { id: "person", label: "PERSON" },
   { id: "note", label: "NOTE" },
   { id: "decision", label: "DECISION" },
+  { id: "idea", label: "IDEA" },
   { id: "capture", label: "CAPTURE" },
 ];
 
@@ -123,6 +124,8 @@ function kindBadge(kind: string | undefined): { label: string; className: string
     return { label: "PERSON", className: "bg-[#f56db5]/15 text-[#f56db5] border-[#f56db5]/40" };
   if (kind === "decision")
     return { label: "DECISION", className: "bg-warn/15 text-warn border-warn/40" };
+  if (kind === "idea")
+    return { label: "IDEA", className: "bg-glow-2/15 text-glow-2 border-glow-2/40" };
   if (kind === "note")
     return { label: "NOTE", className: "bg-ink-2 text-ink-4 border-ink-2" };
   return {

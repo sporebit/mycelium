@@ -53,6 +53,7 @@ const KIND_OPTIONS = [
   "purchase",
   "media",
   "decision",
+  "idea",
   "capture",
   "note",
   "other",

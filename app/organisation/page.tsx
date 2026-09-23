@@ -50,6 +50,12 @@ const CARDS = [
     description: "Choices you logged so you can find them later.",
   },
   {
+    key: "ideas",
+    label: "Ideas",
+    href: "/organisation/ideas",
+    description: "Things you might build, make or try — captured before they fade.",
+  },
+  {
     key: "people",
     label: "People",
     href: "/organisation/people",

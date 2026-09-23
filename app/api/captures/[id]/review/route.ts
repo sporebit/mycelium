@@ -51,6 +51,7 @@ const ALLOWED_KINDS = new Set([
   "person",
   "note",
   "decision",
+  "idea",
   "journal",
   "capture",
   "workout",
