@@ -1,7 +1,7 @@
 /**
  * "When" (tickets spec §18 R4–R7): the picker that replaced the urgency
  * labels. Every choice writes a date, in Europe/London; the choice itself is
- * kept in `tickets.due_window` so the row can say "Within a week" while the
+ * kept in `tickets.due_window` so the row can say "This week" while the
  * date is still ahead, and OVERDUE once it is not. Pure: dates in, dates
  * out, no clock unless asked (`todayLondon`).
  */
@@ -11,8 +11,8 @@ export type DueWindow = "week" | "month" | "month_end" | "weekend" | "someday" |
 export const DUE_WINDOWS: readonly DueWindow[] = ["week", "month", "month_end", "weekend", "someday", "date"];
 
 export const DUE_WINDOW_LABEL: Record<DueWindow, string> = {
-  week: "Within a week",
-  month: "Within a month",
+  week: "This week",
+  month: "This month",
   month_end: "End of the month",
   weekend: "On the weekend",
   someday: "Someday",
@@ -57,6 +57,25 @@ export function isoWeekday(date: string): number {
   const [y, m, d] = parts(date);
   const js = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
   return js === 0 ? 7 : js;
+}
+
+/**
+ * "This week" ends on the next Sunday (Phil, 2026-09-24): on a Sunday that is
+ * the following one, never today.
+ */
+export function weekEnd(today: string): string {
+  const wd = isoWeekday(today);
+  return wd === 7 ? addDays(today, 7) : addDays(today, 7 - wd);
+}
+
+/**
+ * "This month" ends on the month's last day — unless that already falls
+ * inside this week, when it rolls to the end of next month. One helper so
+ * the board columns and the picker never disagree.
+ */
+export function monthWindowEnd(today: string): string {
+  const end = monthEnd(today);
+  return end <= weekEnd(today) ? monthEnd(addDays(end, 1)) : end;
 }
 
 export function daysBetween(from: string, to: string): number {
@@ -113,9 +132,9 @@ export type WhenDates = {
 export function datesForWhen(choice: WhenChoice, today: string): WhenDates {
   switch (choice.window) {
     case "week":
-      return { due_window: "week", deadline_on: addDays(today, 7), scheduled_on: null, someday: false };
+      return { due_window: "week", deadline_on: weekEnd(today), scheduled_on: null, someday: false };
     case "month":
-      return { due_window: "month", deadline_on: addDays(today, 30), scheduled_on: null, someday: false };
+      return { due_window: "month", deadline_on: monthWindowEnd(today), scheduled_on: null, someday: false };
     case "month_end":
       return { due_window: "month_end", deadline_on: monthEnd(today), scheduled_on: null, someday: false };
     case "weekend":
@@ -218,8 +237,8 @@ export function bucketOf(t: WhenSubject, today: string): WhenBucket {
   if (t.someday) return "someday";
   const d = t.deadline_on ?? t.due_date ?? t.scheduled_on ?? null;
   if (!d) return "later";
-  if (d <= addDays(today, 7)) return "week";
-  if (d <= addDays(today, 30)) return "month";
+  if (d <= weekEnd(today)) return "week";
+  if (d <= monthWindowEnd(today)) return "month";
   return "later";
 }
 
@@ -228,7 +247,8 @@ export const LATER_DAYS = 90;
 
 /**
  * Dropping into a column writes a When with its dates, so the due date moves
- * with the card: this week +7, this month +30, later +90 (a picked date),
+ * with the card: this week = next Sunday, this month = the month's end (or
+ * next month's when that is inside this week), later +90 (a picked date),
  * someday parks it. The server derives the same dates from `due_window`.
  */
 export function whenForBucket(b: WhenBucket, today: string = todayLondon()): WhenDates {

@@ -14,7 +14,7 @@ export function OverduePill({
   today = todayLondon(),
 }: {
   t: WhenSubject;
-  /** also show the window label ("Within a week", "Weekend 26 Sep", "Due 5 Nov") when not overdue */
+  /** also show the window label ("This week", "Weekend 26 Sep", "Due 5 Nov") when not overdue */
   window?: boolean;
   className?: string;
   today?: string;

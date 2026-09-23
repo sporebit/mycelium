@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, bucketOf, datesForWhen, isDueWithin, isOverdue, monthEnd, todayLondon, weekendsFrom, whenForBucket, whenLabel, WHEN_BUCKETS } from "./when";
+import { addDays, bucketOf, datesForWhen, isDueWithin, isOverdue, monthEnd, monthWindowEnd, todayLondon, weekEnd, weekendsFrom, whenForBucket, whenLabel, WHEN_BUCKETS } from "./when";
 
 describe("when — calendar arithmetic (spec §18 R4)", () => {
   it("adds days across month and year ends", () => {
@@ -25,10 +25,25 @@ describe("when — calendar arithmetic (spec §18 R4)", () => {
 
 describe("when — the choices write dates", () => {
   const today = "2026-09-23"; // a Wednesday
-  it("week / month / end of month set a deadline only", () => {
-    expect(datesForWhen({ window: "week" }, today)).toEqual({ due_window: "week", deadline_on: "2026-09-30", scheduled_on: null, someday: false });
-    expect(datesForWhen({ window: "month" }, today)).toEqual({ due_window: "month", deadline_on: "2026-10-23", scheduled_on: null, someday: false });
+  it("this week = next Sunday, this month = month end, end of month = month end; deadline only", () => {
+    expect(datesForWhen({ window: "week" }, today)).toEqual({ due_window: "week", deadline_on: "2026-09-27", scheduled_on: null, someday: false });
+    expect(datesForWhen({ window: "month" }, today)).toEqual({ due_window: "month", deadline_on: "2026-09-30", scheduled_on: null, someday: false });
     expect(datesForWhen({ window: "month_end" }, today)).toEqual({ due_window: "month_end", deadline_on: "2026-09-30", scheduled_on: null, someday: false });
+  });
+  it("this week / this month across the week and month boundaries (Phil, 2026-09-24)", () => {
+    // Sunday: the following Sunday, never today
+    expect(weekEnd("2026-09-27")).toBe("2026-10-04");
+    // Tuesday 29 Sep: the month end (30 Sep) is inside this week, so this month rolls to 31 Oct
+    expect(weekEnd("2026-09-29")).toBe("2026-10-04");
+    expect(monthWindowEnd("2026-09-29")).toBe("2026-10-31");
+    // Sunday 29 Nov: 30 Nov is inside this week → 31 Dec
+    expect(weekEnd("2026-11-29")).toBe("2026-12-06");
+    expect(monthWindowEnd("2026-11-29")).toBe("2026-12-31");
+    // Saturday 26 Dec: week ends tomorrow, the month end is still ahead of it
+    expect(weekEnd("2026-12-26")).toBe("2026-12-27");
+    expect(monthWindowEnd("2026-12-26")).toBe("2026-12-31");
+    // the separate End of the month choice stays this month's last day even then
+    expect(datesForWhen({ window: "month_end" }, "2026-09-29").deadline_on).toBe("2026-09-30");
   });
   it("a weekend schedules Saturday and deadlines Sunday", () => {
     expect(datesForWhen({ window: "weekend", saturday: "2026-09-26" }, today)).toEqual({ due_window: "weekend", scheduled_on: "2026-09-26", deadline_on: "2026-09-27", someday: false });
@@ -82,7 +97,7 @@ describe("when — what the row shows", () => {
   const today = "2026-09-23";
   it("OVERDUE with the day count, else the window while the date is ahead", () => {
     expect(whenLabel({ deadline_on: "2026-09-20", due_window: "week", category: "next" }, today)).toEqual({ kind: "overdue", days: 3 });
-    expect(whenLabel({ deadline_on: "2026-09-30", due_window: "week", category: "next" }, today)).toEqual({ kind: "window", text: "Within a week", date: "2026-09-30" });
+    expect(whenLabel({ deadline_on: "2026-09-27", due_window: "week", category: "next" }, today)).toEqual({ kind: "window", text: "This week", date: "2026-09-27" });
     expect(whenLabel({ deadline_on: "2026-09-30", due_window: "month_end", category: "next" }, today)).toEqual({ kind: "window", text: "End of the month", date: "2026-09-30" });
   });
   it("a weekend names the Saturday; a bare date says Due; today says Today", () => {
@@ -99,13 +114,28 @@ describe("when — what the row shows", () => {
 
 describe("when — dropping into a board column dates the ticket", () => {
   const today = "2026-09-23";
-  it("week +7, month +30, later +90, someday parks", () => {
-    expect(whenForBucket("week", today)).toMatchObject({ due_window: "week", deadline_on: "2026-09-30" });
-    expect(whenForBucket("month", today)).toMatchObject({ due_window: "month", deadline_on: "2026-10-23" });
+  it("this week = next Sunday, this month = month end, later +90, someday parks", () => {
+    expect(whenForBucket("week", today)).toMatchObject({ due_window: "week", deadline_on: "2026-09-27" });
+    expect(whenForBucket("month", today)).toMatchObject({ due_window: "month", deadline_on: "2026-09-30" });
     expect(whenForBucket("later", today)).toMatchObject({ due_window: "date", deadline_on: "2026-12-22" });
     expect(whenForBucket("someday", today)).toMatchObject({ due_window: "someday", deadline_on: null, someday: true });
   });
-  it("every drop lands back in the column it was dropped in", () => {
-    for (const b of WHEN_BUCKETS) expect(bucketOf(whenForBucket(b, today), today)).toBe(b);
+  it("the week and month drops on the boundary dates", () => {
+    expect(whenForBucket("week", "2026-09-27").deadline_on).toBe("2026-10-04");
+    expect(whenForBucket("week", "2026-09-29").deadline_on).toBe("2026-10-04");
+    expect(whenForBucket("month", "2026-09-29").deadline_on).toBe("2026-10-31");
+    expect(whenForBucket("week", "2026-11-29").deadline_on).toBe("2026-12-06");
+    expect(whenForBucket("month", "2026-11-29").deadline_on).toBe("2026-12-31");
+    expect(whenForBucket("week", "2026-12-26").deadline_on).toBe("2026-12-27");
+    expect(whenForBucket("month", "2026-12-26").deadline_on).toBe("2026-12-31");
+  });
+  it("every drop lands back in the column it was dropped in, on each of those dates", () => {
+    for (const d of ["2026-09-23", "2026-09-27", "2026-09-29", "2026-11-29", "2026-12-26"]) {
+      for (const b of WHEN_BUCKETS) expect(bucketOf(whenForBucket(b, d), d), `${b} on ${d}`).toBe(b);
+    }
+  });
+  it("overdue still counts as this week; undated is later", () => {
+    expect(bucketOf({ deadline_on: "2026-09-01" }, today)).toBe("week");
+    expect(bucketOf({}, today)).toBe("later");
   });
 });
