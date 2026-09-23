@@ -1,66 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createUserClient } from "@/lib/supabase/user";
+import { agentVoice, speakable, synthesize, type AgentVoice } from "@/lib/agents/voice";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
-const VOICE_MAP: Record<string, string> = {
-  da_boi: "onyx",
-  fitness: "echo",
-  finance: "fable",
-  tasks: "alloy",
-  nutrition: "nova",
-  founder: "onyx",
-  engineer: "echo",
-};
-
+/**
+ * Speak one sentence in an agent's voice (MYC-148/149). The provider's audio
+ * stream is passed straight through, so the first bytes reach the client as
+ * soon as the provider has them rather than after the whole clip.
+ *
+ * Body: `{ text, agentId }` speaks with the agent's stored voice; `{ text,
+ * voice: { provider, voice_id } }` previews a voice from the picker.
+ */
 export async function POST(req: NextRequest) {
+  let body: { text?: unknown; agentId?: unknown; voice?: { provider?: unknown; voice_id?: unknown } };
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "OPENAI_API_KEY missing" },
-        { status: 500 },
-      );
+    body = (await req.json()) as typeof body;
+  } catch {
+    return NextResponse.json({ error: "bad json" }, { status: 400 });
+  }
+  const text = typeof body.text === "string" ? speakable(body.text).slice(0, 2000) : "";
+  if (!text) return NextResponse.json({ error: "text required" }, { status: 400 });
+
+  try {
+    let voice: AgentVoice;
+    const p = body.voice?.provider;
+    const id = body.voice?.voice_id;
+    if ((p === "elevenlabs" || p === "openai") && typeof id === "string" && id.trim()) {
+      voice = { provider: p, voice_id: id.trim(), voice_name: null, speaking_style: null };
+    } else {
+      const supabase = await createUserClient();
+      voice = await agentVoice(supabase, typeof body.agentId === "string" ? body.agentId : "da_boi");
     }
 
-    const { text, agentId } = (await req.json()) as {
-      text?: string;
-      agentId?: string;
-    };
-    if (!text) {
-      return NextResponse.json({ error: "text required" }, { status: 400 });
-    }
-
-    const voice = VOICE_MAP[agentId ?? ""] ?? "alloy";
-
-    const res = await fetch("https://api.openai.com/v1/audio/speech", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "tts-1",
-        voice,
-        input: text,
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      console.error("[agents/tts] OpenAI error", res.status, err);
-      return NextResponse.json({ error: "TTS failed" }, { status: 502 });
-    }
-
-    const audioBuffer = await res.arrayBuffer();
-    return new NextResponse(audioBuffer, {
+    const audio = await synthesize(text, voice);
+    return new Response(audio, {
       headers: {
         "Content-Type": "audio/mpeg",
-        "Content-Length": String(audioBuffer.byteLength),
+        "Cache-Control": "no-store",
+        "X-Voice": `${voice.provider}:${voice.voice_id}`,
       },
     });
   } catch (err) {
-    console.error("[agents/tts POST]", err);
-    return NextResponse.json({ error: "tts failed" }, { status: 500 });
+    console.error("[agents/tts]", err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: "TTS failed" }, { status: 502 });
   }
 }

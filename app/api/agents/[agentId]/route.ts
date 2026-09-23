@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { MODEL_CHAT } from "@/lib/config/models";
 import { createUserClient } from "@/lib/supabase/user";
-import { AGENT_SYSTEM_PROMPTS, buildDaBoiPrompt } from "@/lib/agents/prompts";
-import { relevantDomains, type DaBoiDomain } from "@/lib/agents/relevance";
-import { toolsForAgent } from "@/lib/agents/tools";
-import { recentDaysContext } from "@/lib/daylog/afterClose";
-import { getDaylogSettings } from "@/lib/daylog/settings";
+import { buildAgentSystemPrompt } from "@/lib/agents/system";
+import { agentVoice } from "@/lib/agents/voice";
 
 export const runtime = "nodejs";
 
@@ -129,90 +125,13 @@ export async function GET(
       memoryUpdatedAt: memory?.updated_at ?? null,
       conversationId: conv?.id ?? null,
       messages,
+      voice: await agentVoice(supabase, agentId),
     });
   } catch (err) {
     console.error("[/api/agents/:agentId GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });
   }
 }
-
-async function getDaBoiContext(
-  supabase: SupabaseClient,
-  domains: Set<DaBoiDomain>,
-) {
-  const { data: allMemories } = await supabase
-    .from("agent_memory")
-    .select("agent_id, summary");
-  const memMap = new Map<string, string>();
-  for (const m of (allMemories ?? []) as { agent_id: string; summary: string }[]) {
-    memMap.set(m.agent_id, m.summary);
-  }
-
-  let recentWorkouts: string | undefined;
-  if (domains.has("fitness")) {
-  const { data: workouts } = await supabase
-    .from("workout_sessions")
-    .select("date, name, slot, kind, status")
-    .order("date", { ascending: false })
-    .limit(5);
-  recentWorkouts = (workouts ?? [])
-    .map((w: Record<string, unknown>) => `${w.date}: ${w.name} (${w.kind}, ${w.status})`)
-    .join("; ") || "none";
-  }
-
-  let monthlySpend: string | undefined;
-  if (domains.has("finance")) try {
-    monthlySpend = "unknown";
-    const { data: spendData } = await supabase.rpc("txn_agg", {
-      p_from: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10),
-      p_to: new Date().toISOString().slice(0, 10),
-    });
-    if (spendData && typeof spendData === "object" && "total" in (spendData as Record<string, unknown>)) {
-      monthlySpend = `£${(spendData as { total: number }).total.toFixed(2)}`;
-    }
-  } catch { /* RPC may not exist */ }
-
-  let openTaskCount: number | undefined;
-  if (domains.has("tasks")) try {
-    openTaskCount = 0;
-    const { count } = await supabase
-      .from("tickets")
-      .select("id", { count: "exact", head: true })
-      .is("completed_at", null);
-    openTaskCount = count ?? 0;
-  } catch { /* table may differ */ }
-
-  let avgCalories: string | undefined;
-  if (domains.has("nutrition")) try {
-    avgCalories = "unknown";
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const { data: nutritionData } = await supabase
-      .from("nutrition_logs")
-      .select("calories")
-      .gte("logged_at", sevenDaysAgo.toISOString());
-    if (nutritionData && nutritionData.length > 0) {
-      const total = (nutritionData as { calories: number }[]).reduce((s, n) => s + (n.calories || 0), 0);
-      avgCalories = `${Math.round(total / nutritionData.length)} kcal`;
-    }
-  } catch { /* table may differ */ }
-
-  const memories: Partial<Record<DaBoiDomain, string>> = {};
-  for (const d of domains) memories[d] = memMap.get(d) || "none";
-
-  return buildDaBoiPrompt({
-    memories,
-    live: {
-      recent_workouts: recentWorkouts,
-      monthly_spend: monthlySpend,
-      open_task_count: openTaskCount,
-      avg_calories: avgCalories,
-    },
-  });
-}
-
-const TOOL_CAPABILITY_SUFFIX =
-  "\n\nYou have tools available to create tasks and records in Myphelium2 directly. When the user asks you to create something, first describe what you plan to create and ask for confirmation. Only call the tool after they confirm.";
 
 export async function POST(
   req: NextRequest,
@@ -277,39 +196,7 @@ export async function POST(
       .limit(50);
     const chatMessages = (history ?? []) as { role: string; content: string }[];
 
-    let systemPrompt: string;
-    if (agentId === "da_boi") {
-      // Only load the domains this message actually touches.
-      systemPrompt = await getDaBoiContext(supabase, relevantDomains(userMessage));
-    } else {
-      const { data: memory } = await supabase
-        .from("agent_memory")
-        .select("summary")
-        .eq("agent_id", agentId)
-        .single();
-      const promptFn = AGENT_SYSTEM_PROMPTS[agentId];
-      systemPrompt = promptFn
-        ? promptFn(memory?.summary || "No previous memory.")
-        : `You are an AI assistant. ${memory?.summary || ""}`;
-    }
-
-    // Day log context diet (daylog spec §4.4 step 5, flag 6): the last three
-    // day summaries, ~300 words, for Da Boi and the persona agent only —
-    // read here, never written into agent_memory.
-    try {
-      const persona = (await getDaylogSettings(supabase)).persona_agent_id;
-      if (agentId === "da_boi" || agentId === persona) {
-        const recent = await recentDaysContext(supabase);
-        if (recent) systemPrompt += `\n\n${recent}`;
-      }
-    } catch (err) {
-      console.error("[agents] day log context failed:", err instanceof Error ? err.message : err);
-    }
-
-    const tools = toolsForAgent(agentId);
-    if (tools.length > 0) {
-      systemPrompt += TOOL_CAPABILITY_SUFFIX;
-    }
+    const { system: systemPrompt, tools } = await buildAgentSystemPrompt(supabase, agentId, { userMessage });
 
     const apiMessages = chatMessages.map((m) => ({ role: m.role, content: m.content }));
     const response = await callClaude(systemPrompt, apiMessages, tools);

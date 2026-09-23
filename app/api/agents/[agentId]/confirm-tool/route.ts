@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DA_BOI_DOMAINS, type DaBoiDomain } from "@/lib/agents/relevance";
 import { MODEL_CHAT } from "@/lib/config/models";
 import { createUserClient } from "@/lib/supabase/user";
-import { AGENT_SYSTEM_PROMPTS, buildDaBoiPrompt } from "@/lib/agents/prompts";
-import { executeTool, toolsForAgent } from "@/lib/agents/tools";
+import { buildAgentSystemPrompt } from "@/lib/agents/system";
+import { executeTool } from "@/lib/agents/tools";
 
 export const runtime = "nodejs";
 
@@ -116,33 +115,10 @@ export async function POST(
       .limit(50);
     const chatMessages = (history ?? []) as { role: string; content: string }[];
 
-    let systemPrompt: string;
-    if (agentId === "da_boi") {
-      const { data: allMemories } = await supabase
-        .from("agent_memory")
-        .select("agent_id, summary");
-      const memMap = new Map<string, string>();
-      for (const m of (allMemories ?? []) as { agent_id: string; summary: string }[]) {
-        memMap.set(m.agent_id, m.summary);
-      }
-      // A tool confirmation continues an existing conversation, so there is
-      // no fresh message to scope domains against — keep all six summaries.
-      // Live data is omitted rather than stubbed with "see conversation":
-      // the transcript already carries whatever was loaded originally.
-      const memories: Partial<Record<DaBoiDomain, string>> = {};
-      for (const d of DA_BOI_DOMAINS) memories[d] = memMap.get(d) || "none";
-      systemPrompt = buildDaBoiPrompt({ memories, live: {} });
-    } else {
-      const { data: memory } = await supabase
-        .from("agent_memory")
-        .select("summary")
-        .eq("agent_id", agentId)
-        .single();
-      const promptFn = AGENT_SYSTEM_PROMPTS[agentId];
-      systemPrompt = promptFn
-        ? promptFn(memory?.summary || "No previous memory.")
-        : `You are an AI assistant. ${memory?.summary || ""}`;
-    }
+    // A tool confirmation continues an existing conversation, so there is no
+    // fresh message to scope Da Boi's domains against — the builder keeps
+    // every summary and omits live data (the transcript already carries it).
+    const { system: systemPrompt, tools } = await buildAgentSystemPrompt(supabase, agentId);
 
     const toolResultMsg = result.ok
       ? `Tool "${body.tool_name}" executed successfully: ${result.summary}. Result: ${JSON.stringify(result.result)}. Give the user a brief confirmation of what was created.`
@@ -153,7 +129,6 @@ export async function POST(
       { role: "user" as const, content: toolResultMsg },
     ];
 
-    const tools = toolsForAgent(agentId);
     const followUp = await callClaude(systemPrompt, apiMessages, tools);
     const reply = followUp || result.summary;
 

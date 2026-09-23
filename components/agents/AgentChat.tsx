@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mono } from "@/components/dashboard/Mono";
 import { VoiceChatOverlay } from "./VoiceChatOverlay";
+import { AgentVoiceSheet } from "./AgentVoiceSheet";
+import type { AgentVoice } from "@/lib/agents/voice";
 
 type Agent = {
   id: string;
@@ -68,6 +70,8 @@ export function AgentChat({
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
   const [voiceChatOpen, setVoiceChatOpen] = useState(false);
+  const [voiceSheetOpen, setVoiceSheetOpen] = useState(false);
+  const [voice, setVoice] = useState<AgentVoice | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const didAutoSubmit = useRef(false);
@@ -89,9 +93,10 @@ export function AgentChat({
   useEffect(() => {
     fetch(`/api/agents/${agentId}`)
       .then((r) => r.json())
-      .then((data: { agent: Agent; messages: Message[] }) => {
+      .then((data: { agent: Agent; messages: Message[]; voice?: AgentVoice }) => {
         setAgent(data.agent);
         setMessages(data.messages ?? []);
+        setVoice(data.voice ?? null);
         setLoading(false);
         scrollToBottom();
       })
@@ -325,14 +330,24 @@ export function AgentChat({
             </span>
           )}
         </div>
-        <button
-          type="button"
-          onClick={endSession}
-          disabled={sending || messages.length === 0}
-          className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-30 disabled:cursor-not-allowed text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase transition-colors"
-        >
-          END SESSION
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setVoiceSheetOpen(true)}
+            title={voice?.voice_name ?? voice?.voice_id ?? "Voice & manner"}
+            className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase transition-colors"
+          >
+            VOICE
+          </button>
+          <button
+            type="button"
+            onClick={endSession}
+            disabled={sending || messages.length === 0}
+            className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-30 disabled:cursor-not-allowed text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase transition-colors"
+          >
+            END SESSION
+          </button>
+        </div>
       </header>
 
       {/* Messages */}
@@ -493,6 +508,17 @@ export function AgentChat({
         >
           {toast.text}
         </div>
+      )}
+
+      {/* Voice & manner */}
+      {agent && (
+        <AgentVoiceSheet
+          agentId={agentId}
+          agentName={agent.display_name}
+          open={voiceSheetOpen}
+          onClose={() => setVoiceSheetOpen(false)}
+          onSaved={(v) => setVoice(v)}
+        />
       )}
 
       {/* Voice Chat Overlay */}
