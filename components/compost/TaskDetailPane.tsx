@@ -678,12 +678,15 @@ export function TaskDetailPane({
         </button>
         <button
           type="button"
-          onClick={() =>
+          onClick={() => {
+            const done = !!task.completed_at;
             onPatch({
-              status: task.completed_at ? "new" : "completed",
-              completed_at: task.completed_at ? null : new Date().toISOString(),
-            })
-          }
+              status: done ? "new" : "completed",
+              completed_at: done ? null : new Date().toISOString(),
+            });
+            // Marking done hands back to the board; reopening stays put.
+            if (!done) onClose();
+          }}
           className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
             task.completed_at
               ? "bg-ink-2 text-ink-3 hover:bg-ink-2/80"

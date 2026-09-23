@@ -43,7 +43,7 @@ export function TaskMainView({
   onMoveStatus: (id: string, status: TaskStatus) => void;
   onMoveUrgency: (
     id: string,
-    bucket: WhenBucket,
+    bucket: WhenBucket | null,
     priorityScore: number,
     extra?: Partial<Task>,
   ) => void;

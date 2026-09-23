@@ -48,6 +48,9 @@ export function serializeTask(row: RawTaskRow): Task {
   void _sprint;
   return {
     ...rest,
+    // deadline_on supersedes the legacy due_date (0116); once a When has been
+    // chosen it is the only truth, so a stale due_date never shows.
+    due_date: rest.due_window ? (rest.deadline_on ?? null) : (rest.deadline_on ?? rest.due_date ?? null),
     entity_name: ent?.name ?? null,
     project_name: proj?.name ?? null,
     project_colour: proj?.colour ?? null,

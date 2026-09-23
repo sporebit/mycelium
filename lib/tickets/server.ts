@@ -283,6 +283,23 @@ export function whenFieldsFromBody(body: Record<string, unknown>, today: string 
   return { ...datesForWhen({ window: w }, today) };
 }
 
+/**
+ * The classic Tasks surface still shows and edits the legacy `due_date`,
+ * which 0116 kept for one release after `deadline_on` superseded it. On the
+ * compat routes the two move together: any write that lands a deadline
+ * (a When, a drop into a board column) writes `due_date` too, and a bare
+ * `due_date` edit becomes a picked date. `derived` is what the route already
+ * took from ticketFieldsFromBody + whenFieldsFromBody.
+ */
+export function legacyDueDateSync(body: Record<string, unknown>, derived: Record<string, unknown>): Record<string, unknown> {
+  if ("deadline_on" in derived) return { due_date: derived.deadline_on ?? null };
+  if (!("due_date" in body)) return {};
+  const v = body.due_date;
+  if (v === null || v === "") return { due_date: null, deadline_on: null, due_window: null };
+  if (typeof v === "string" && DATE_RE.test(v)) return { due_date: v, deadline_on: v, due_window: "date", someday: false };
+  return {};
+}
+
 /** Keys the legacy Tasks routes compute themselves (inheritance, defaults). */
 export const LEGACY_HANDLED_KEYS = [
   "title",

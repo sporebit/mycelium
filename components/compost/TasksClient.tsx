@@ -12,7 +12,7 @@ import type {
   TaskStatus,
 } from "@/lib/types/task";
 import type { Project } from "@/lib/types/project";
-import { ViewSwitcher, type CrmView } from "./ViewSwitcher";
+import { ViewSwitcher, visibleView, type CrmView } from "./ViewSwitcher";
 import { TaskBulkBar } from "./TaskBulkBar";
 import { ShortcutHintBar, ShortcutHelpModal } from "./TaskShortcutHelp";
 import { TaskDrawer, type DrawerMode } from "./TaskDrawer";
@@ -114,7 +114,7 @@ export function TasksClient() {
   const viewParam = searchParams.get("view") as CrmView | null;
   const filterMode = searchParams.get("filter");
 
-  const [view, setView] = useState<CrmView>(() => viewParam ?? readView());
+  const [view, setView] = useState<CrmView>(() => visibleView(viewParam ?? readView()));
   const [showCompleted, setShowCompleted] = useState<boolean>(() =>
     readShowCompleted(),
   );
@@ -211,7 +211,7 @@ export function TasksClient() {
       queueMicrotask(() => {
         // An explicit ?view= in the URL is a deep link and outranks the
         // stored preference; adopting cv here would clobber it.
-        if (!viewParam && cv !== view) setView(cv as CrmView);
+        if (!viewParam && visibleView(cv) !== view) setView(visibleView(cv));
         if (cc !== showCompleted) setShowCompleted(cc);
         if (cp !== showProjectTasks) setShowProjectTasks(cp);
       });
@@ -335,6 +335,17 @@ export function TasksClient() {
   const filteredTasks = useMemo(() => {
     if (!tasks) return [];
     let result = tasks;
+    // Done and cancelled leave the boards the moment they change (the list
+    // endpoint excludes both on reload), unless SHOW COMPLETED is on.
+    if (!showCompleted) {
+      result = result.filter(
+        (t) =>
+          !t.completed_at &&
+          !t.cancelled_at &&
+          t.status !== "completed" &&
+          t.status !== "cancelled",
+      );
+    }
     if (filterMode === "blockers") {
       const todayKey = localDateKey();
       result = result.filter((t) => isBlocker(t, todayKey));
@@ -365,7 +376,7 @@ export function TasksClient() {
       });
     }
     return result;
-  }, [tasks, search, filterMode, projectFilter, showProjectTasks]);
+  }, [tasks, search, filterMode, projectFilter, showProjectTasks, showCompleted]);
 
   // NOW filter: hide tasks that contradict the current context, then
   // rank the rest by match score. Sub-tasks pass through unchanged so
@@ -496,12 +507,20 @@ export function TasksClient() {
 
   function handleMove(
     id: string,
-    bucket: WhenBucket,
+    bucket: WhenBucket | null,
     priorityScore: number,
     extra?: Partial<Task>,
   ) {
-    // A column is a When bucket (tickets spec §18): dropping writes the window; the server dates it.
-    void patchTask(id, { ...whenForBucket(bucket), priority_score: priorityScore, ...extra });
+    // A column is a When bucket (tickets spec §18): a drop into another column
+    // writes the window and its dates (the server derives the same ones), so
+    // the due date moves with the card; a reorder inside a column (bucket null)
+    // only moves the score.
+    const when = bucket ? whenForBucket(bucket) : null;
+    void patchTask(id, {
+      ...(when ? { ...when, due_date: when.deadline_on } : {}),
+      priority_score: priorityScore,
+      ...extra,
+    });
     if (extra && "parent_task_id" in extra && extra.parent_task_id === null) {
       showToast("Promoted to top-level task", "success");
     }

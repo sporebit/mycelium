@@ -1,4 +1,4 @@
-import { whenFieldsFromBody } from "@/lib/tickets/server";
+import { legacyDueDateSync, whenFieldsFromBody } from "@/lib/tickets/server";
 import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createUserClient } from "@/lib/supabase/user";
@@ -161,7 +161,8 @@ export async function PATCH(
     }
     update[k] = v;
   }
-  Object.assign(update, ticketFieldsFromBody(body, LEGACY_HANDLED_KEYS), whenFieldsFromBody(body));
+  const derived = { ...ticketFieldsFromBody(body, LEGACY_HANDLED_KEYS), ...whenFieldsFromBody(body) };
+  Object.assign(update, derived, legacyDueDateSync(body, derived));
   update.updated_at = new Date().toISOString();
 
   // Keep status and completed_at in sync — moving a card to/from the

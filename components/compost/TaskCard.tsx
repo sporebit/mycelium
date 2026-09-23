@@ -156,9 +156,14 @@ export function TaskCard({
         )}
       </div>
 
-      {(tags.length > 0 || task.entity_name || task.project_name || due || task.scheduled_at) && (
+      {(task.ticket_key || tags.length > 0 || task.entity_name || task.project_name || due || task.scheduled_at) && (
         <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
           <div className="flex items-center gap-1.5 min-w-0">
+            {task.ticket_key && (
+              <Mono className="text-ink-4 shrink-0" title={`Ticket ${task.ticket_key}`}>
+                {task.ticket_key}
+              </Mono>
+            )}
             {task.project_name && (
               <span
                 className="px-1.5 py-0.5 rounded-md border border-accent/40 bg-accent/10 text-accent truncate max-w-[120px]"

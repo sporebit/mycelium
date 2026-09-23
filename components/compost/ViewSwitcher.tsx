@@ -11,23 +11,26 @@ export type CrmView =
   | "table"
   | "calendar";
 
+// List, Smart, Category and Table are hidden (Phil, 2026-09-23); their
+// components stay so a view can come back by adding it here.
 const VIEWS: { id: CrmView; label: string }[] = [
-  { id: "list", label: "LIST" },
-  { id: "smart", label: "SMART" },
   { id: "kanban", label: "URGENCY" },
   { id: "status", label: "KANBAN" },
-  { id: "category", label: "CATEGORY" },
-  { id: "table", label: "TABLE" },
   { id: "calendar", label: "CALENDAR" },
 ];
+
+export const DEFAULT_VIEW: CrmView = "kanban";
+
+/** A stored preference or ?view= link to a hidden view opens the default instead. */
+export function visibleView(v: string | null | undefined): CrmView {
+  return VIEWS.some((x) => x.id === v) ? (v as CrmView) : DEFAULT_VIEW;
+}
 
 const OPTIONS = VIEWS.map((v) => ({ value: v.id, label: v.label }));
 
 /**
- * Seven segments need roughly 630px, so they sit comfortably on desktop but
- * cannot fit a 390px phone. Rather than shrink the labels to illegibility,
- * the SegmentedControl keeps its natural width inside a horizontally
- * scrollable wrapper. The sliding pill measures against the control itself,
+ * The SegmentedControl keeps its natural width inside a horizontally
+ * scrollable wrapper, so labels never shrink to illegibility on a phone. The sliding pill measures against the control itself,
  * not the wrapper, so scrolling does not disturb it.
  */
 export function ViewSwitcher({

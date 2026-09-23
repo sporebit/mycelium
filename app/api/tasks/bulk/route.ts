@@ -1,4 +1,4 @@
-import { whenFieldsFromBody } from "@/lib/tickets/server";
+import { legacyDueDateSync, whenFieldsFromBody } from "@/lib/tickets/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
@@ -64,7 +64,8 @@ export async function POST(req: NextRequest) {
     patch[k] = v;
   }
   // When (tickets spec §18): a `due_window` in the patch derives the dates for the whole selection.
-  Object.assign(patch, whenFieldsFromBody(rawPatch));
+  const derived = whenFieldsFromBody(rawPatch);
+  Object.assign(patch, derived, legacyDueDateSync(rawPatch, derived));
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "no valid patch fields" }, { status: 400 });
   }

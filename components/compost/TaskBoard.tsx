@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   DndContext,
   PointerSensor,
@@ -17,6 +17,7 @@ import {
   SortableContext,
   useSortable,
   arrayMove,
+  rectSortingStrategy,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -28,7 +29,13 @@ import {
 } from "@/lib/types/task";
 import { TaskCard } from "./TaskCard";
 
-type Columns = Record<WhenBucket, Task[]>;
+/**
+ * The four When columns plus the OVERDUE row. Overdue is a source only:
+ * cards drag out of it into a column (which re-dates them), nothing drops in.
+ */
+type Group = WhenBucket | "overdue";
+const GROUPS: readonly Group[] = [...WHEN_BUCKETS, "overdue"];
+type Columns = Record<Group, Task[]>;
 
 /**
  * Display order per column: each parent immediately followed by its
@@ -42,6 +49,7 @@ type Columns = Record<WhenBucket, Task[]>;
 function groupByUrgency(tasks: Task[]): Columns {
   const today = todayLondon();
   const out: Columns = {
+    overdue: [],
     week: [],
     month: [],
     later: [],
@@ -79,12 +87,12 @@ function groupByUrgency(tasks: Task[]): Columns {
   return out;
 }
 
-function findColumnIn(cols: Columns, idOrCol: string): WhenBucket | null {
+function findColumnIn(cols: Columns, idOrCol: string): Group | null {
   if (idOrCol.startsWith("column-")) {
-    const u = idOrCol.slice("column-".length) as WhenBucket;
-    return WHEN_BUCKETS.includes(u) ? u : null;
+    const u = idOrCol.slice("column-".length) as Group;
+    return GROUPS.includes(u) ? u : null;
   }
-  for (const u of WHEN_BUCKETS) {
+  for (const u of GROUPS) {
     if (cols[u].some((t) => t.id === idOrCol)) return u;
   }
   return null;
@@ -223,9 +231,10 @@ export function TaskBoard({
 }: {
   tasks: Task[];
   onCardClick: (t: Task) => void;
+  /** `bucket` is null for a reorder inside a column: only the score moves, the date stays. */
   onMove: (
     id: string,
-    urgency: WhenBucket,
+    bucket: WhenBucket | null,
     priorityScore: number,
     extra?: Partial<Task>
   ) => void;
@@ -262,9 +271,12 @@ export function TaskBoard({
   }, [tasks]);
 
   const baseColumns = useMemo(
-    () => groupByUrgency(nonOverdueTasks),
-    [nonOverdueTasks]
+    () => ({ ...groupByUrgency(nonOverdueTasks), overdue: overdueTasks }),
+    [nonOverdueTasks, overdueTasks]
   );
+  // The column a drag started in: during the drag the override has already
+  // moved the card, so the end handler cannot tell a move from a reorder.
+  const dragFromRef = useRef<Group | null>(null);
   const [dragOverride, setDragOverride] = useState<Columns | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   // One-shot glow on the card that was just dropped; cleared after
@@ -278,6 +290,7 @@ export function TaskBoard({
 
   function handleDragStart(e: DragStartEvent) {
     setDraggingId(String(e.active.id));
+    dragFromRef.current = findColumnIn(baseColumns, String(e.active.id));
     setDragOverride(baseColumns);
   }
 
@@ -292,6 +305,7 @@ export function TaskBoard({
       const activeCol = findColumnIn(source, activeId);
       const overCol = findColumnIn(source, overId);
       if (!activeCol || !overCol || activeCol === overCol) return source;
+      if (overCol === "overdue") return source;
 
       const activeTask = source[activeCol].find((t) => t.id === activeId);
       if (!activeTask) return source;
@@ -334,12 +348,16 @@ export function TaskBoard({
     const overId = String(over.id);
     const draggedTask = tasks.find((t) => t.id === activeId);
     const wasSubTask = !!draggedTask?.parent_task_id;
+    const fromCol = dragFromRef.current;
+    dragFromRef.current = null;
 
     setDragOverride((prev) => {
       const source = prev ?? baseColumns;
       const activeCol = findColumnIn(source, activeId);
       const overCol = findColumnIn(source, overId);
       if (!activeCol || !overCol) return null;
+      // Nothing drops into OVERDUE; a card dragged about inside it stays put.
+      if (overCol === "overdue") return null;
 
       // Sub-task moved within its current column → ignore (no persist).
       // Sub-task moved across columns → promote to top-level.
@@ -390,7 +408,8 @@ export function TaskBoard({
             ? finalColTasks[finalIdx + 1].priority_score
             : null;
         const newScore = midpointScore(above, below);
-        onMove(activeId, overCol, newScore);
+        // Only a move into another column (overdue included) writes a When.
+        onMove(activeId, fromCol === overCol ? null : overCol, newScore);
       }
 
       return null;
@@ -403,32 +422,6 @@ export function TaskBoard({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* OVERDUE row */}
-      {overdueTasks.length > 0 && (
-        <div className="rounded-xl border border-danger/30 bg-danger/5 p-2">
-          <div className="flex items-center justify-between px-1 pb-2">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
-              OVERDUE{" "}
-              <span className="text-ink-4">{overdueTasks.length}</span>
-            </span>
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-              edit in drawer
-            </span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
-            {overdueTasks.map((t) => (
-              <TaskCard
-                key={t.id}
-                task={t}
-                onClick={() => onCardClick(t)}
-                compact
-                subStats={subStatsById.get(t.id) ?? null}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -436,10 +429,41 @@ export function TaskBoard({
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
         onDragCancel={() => {
+          dragFromRef.current = null;
           setDraggingId(null);
           setDragOverride(null);
         }}
       >
+        {/* OVERDUE row — drag a card into a column to re-date it */}
+        {columns.overdue.length > 0 && (
+          <div className="rounded-xl border border-danger/30 bg-danger/5 p-2">
+            <div className="flex items-center justify-between px-1 pb-2">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-danger font-[family-name:var(--font-mono)]">
+                OVERDUE{" "}
+                <span className="text-ink-4">{columns.overdue.length}</span>
+              </span>
+              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                drag to a column to re-date
+              </span>
+            </div>
+            <SortableContext items={columns.overdue.map((t) => t.id)} strategy={rectSortingStrategy}>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
+                {columns.overdue.map((t) => (
+                  <SortableTaskCard
+                    key={t.id}
+                    pulse={pulseId === t.id}
+                    task={t}
+                    onClick={onCardClick}
+                    isSubTask={false}
+                    subStats={subStatsById.get(t.id) ?? null}
+                    onStatusChange={(st) => onStatusChange(t.id, st)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           {WHEN_BUCKETS.map((u) => (
             <Column

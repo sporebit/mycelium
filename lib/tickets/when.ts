@@ -223,7 +223,23 @@ export function bucketOf(t: WhenSubject, today: string): WhenBucket {
   return "later";
 }
 
-/** Dropping into a column writes a When; "later" clears it. */
-export function whenForBucket(b: WhenBucket): { due_window: DueWindow | null } {
-  return { due_window: b === "week" ? "week" : b === "month" ? "month" : b === "someday" ? "someday" : null };
+/** Days out that a drop into LATER dates a ticket (Phil, 2026-09-23). */
+export const LATER_DAYS = 90;
+
+/**
+ * Dropping into a column writes a When with its dates, so the due date moves
+ * with the card: this week +7, this month +30, later +90 (a picked date),
+ * someday parks it. The server derives the same dates from `due_window`.
+ */
+export function whenForBucket(b: WhenBucket, today: string = todayLondon()): WhenDates {
+  switch (b) {
+    case "week":
+      return datesForWhen({ window: "week" }, today);
+    case "month":
+      return datesForWhen({ window: "month" }, today);
+    case "later":
+      return datesForWhen({ window: "date", date: addDays(today, LATER_DAYS) }, today);
+    case "someday":
+      return datesForWhen({ window: "someday" }, today);
+  }
 }

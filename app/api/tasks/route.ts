@@ -1,4 +1,4 @@
-import { whenFieldsFromBody } from "@/lib/tickets/server";
+import { legacyDueDateSync, whenFieldsFromBody } from "@/lib/tickets/server";
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
@@ -93,7 +93,8 @@ export async function GET(req: NextRequest) {
       else if (ids.length) q = q.or(`project_id.is.null,project_id.not.in.(${ids.join(",")})`);
     }
 
-    if (status === "open") q = q.is("completed_at", null);
+    // Cancelled is closed too (Phil, 2026-09-23): it leaves the open boards.
+    if (status === "open") q = q.is("completed_at", null).is("cancelled_at", null);
     else if (status === "done") q = q.not("completed_at", "is", null);
 
     if (urgency && URGENCIES.includes(urgency as TaskUrgency)) {
@@ -257,7 +258,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // `urgency` is no longer written (tickets spec §18 R4); `due_window` derives the dates below.
+    // `urgency` is no longer written (tickets spec §18 R4); `due_window` derives the dates.
+    const derivedTicketFields = {
+      ...ticketFieldsFromBody(body as Record<string, unknown>, LEGACY_HANDLED_KEYS),
+      ...whenFieldsFromBody(body as Record<string, unknown>),
+    };
     const insertPayload = { title,
       description: body.description ?? null,
       status:
@@ -284,8 +289,8 @@ export async function POST(req: NextRequest) {
       context_device: suggestedDevice,
       context_energy: suggestedEnergy,
       context_tag: suggestedTag,
-      ...ticketFieldsFromBody(body as Record<string, unknown>, LEGACY_HANDLED_KEYS),
-      ...whenFieldsFromBody(body as Record<string, unknown>),
+      ...derivedTicketFields,
+      ...legacyDueDateSync(body as Record<string, unknown>, derivedTicketFields),
     };
 
     const inserted = await supabase

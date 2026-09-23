@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, datesForWhen, isDueWithin, isOverdue, monthEnd, todayLondon, weekendsFrom, whenLabel } from "./when";
+import { addDays, bucketOf, datesForWhen, isDueWithin, isOverdue, monthEnd, todayLondon, weekendsFrom, whenForBucket, whenLabel, WHEN_BUCKETS } from "./when";
 
 describe("when — calendar arithmetic (spec §18 R4)", () => {
   it("adds days across month and year ends", () => {
@@ -94,5 +94,18 @@ describe("when — what the row shows", () => {
     expect(whenLabel({ someday: true, category: "backlog" }, today)).toEqual({ kind: "someday" });
     expect(whenLabel({ deadline_on: "2026-09-01", category: "done" }, today)).toBeNull();
     expect(whenLabel({ category: "next" }, today)).toBeNull();
+  });
+});
+
+describe("when — dropping into a board column dates the ticket", () => {
+  const today = "2026-09-23";
+  it("week +7, month +30, later +90, someday parks", () => {
+    expect(whenForBucket("week", today)).toMatchObject({ due_window: "week", deadline_on: "2026-09-30" });
+    expect(whenForBucket("month", today)).toMatchObject({ due_window: "month", deadline_on: "2026-10-23" });
+    expect(whenForBucket("later", today)).toMatchObject({ due_window: "date", deadline_on: "2026-12-22" });
+    expect(whenForBucket("someday", today)).toMatchObject({ due_window: "someday", deadline_on: null, someday: true });
+  });
+  it("every drop lands back in the column it was dropped in", () => {
+    for (const b of WHEN_BUCKETS) expect(bucketOf(whenForBucket(b, today), today)).toBe(b);
   });
 });
