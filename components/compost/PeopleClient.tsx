@@ -64,6 +64,7 @@ function daysUntilBirthday(iso: string): number {
 export function PeopleClient() {
   const [filter, setFilter] = useState<Filter>("all");
   const [relationship, setRelationship] = useState<string>("all");
+  const [q, setQ] = useState("");
   const [drawerMode, setDrawerMode] = useState<
     { kind: "create" } | { kind: "edit"; person: PersonWithAliases } | null
   >(null);
@@ -101,8 +102,29 @@ export function PeopleClient() {
     if (relationship !== "all") {
       list = list.filter((p) => p.relationship === relationship);
     }
+    // Search (MYC-155): name, alias, relationship, email, phone, notes — every word must match somewhere.
+    const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (words.length > 0) {
+      list = list.filter((p) => {
+        const hay = [
+          displayName(p),
+          p.first_name,
+          p.last_name,
+          ...(p.aliases ?? []).map((a) => a.alias),
+          p.relationship,
+          p.email,
+          p.phone,
+          p.notes,
+          p.where_we_met,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return words.every((w) => hay.includes(w));
+      });
+    }
     return list;
-  }, [people, filter, relationship]);
+  }, [people, filter, relationship, q]);
 
   const upcomingBirthdays = useMemo(() => {
     if (!people) return [];
@@ -149,6 +171,15 @@ export function PeopleClient() {
           </button>
         </div>
       </div>
+
+      <input
+        type="search"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Search people — name, alias, relationship, email, phone, notes…"
+        aria-label="Search people"
+        className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 placeholder:text-ink-3 placeholder:italic px-3 py-2 outline-none focus:border-ink-3"
+      />
 
       <div className="flex flex-wrap items-center gap-2">
         {(
