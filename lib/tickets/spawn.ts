@@ -89,7 +89,6 @@ export async function spawnOccurrence(db: SupabaseClient, tpl: TemplateTicket, d
     series_id: tpl.id,
     source: "recurrence",
     owner: tpl.owner,
-    urgency: "this_week",
     priority_score: 0.5,
     steps_definition: tpl.steps_definition ?? null,
     meta: { spawned_from: tpl.id },

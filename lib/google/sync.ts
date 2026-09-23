@@ -42,6 +42,9 @@ export type TicketForCalendar = {
   scheduled_at?: string | null;
   /** dated (tickets spec §4.4): an all-day event */
   scheduled_on?: string | null;
+  /** a weekend pick (spec §18 R6) spans Saturday–Sunday: deadline_on is the Sunday */
+  deadline_on?: string | null;
+  due_window?: string | null;
   google_event_id?: string | null;
   category?: string | null;
   completed_at?: string | null;
@@ -60,7 +63,11 @@ export function ticketCalendarEvent(t: TicketForCalendar): GoogleCalendarEvent |
   const closed = t.category === "done" || t.category === "cancelled" || !!t.completed_at || !!t.cancelled_at;
   if (closed) return null;
   if (t.scheduled_at) return { summary: t.title, description: t.description ?? "", start: { dateTime: t.scheduled_at, timeZone: TZ }, end: { dateTime: oneHourLater(t.scheduled_at), timeZone: TZ } };
-  if (t.scheduled_on) return { summary: t.title, description: t.description ?? "", start: { date: t.scheduled_on }, end: { date: nextDay(t.scheduled_on) } };
+  if (t.scheduled_on) {
+    // A weekend pick is one all-day event across Saturday and Sunday (end is exclusive).
+    const last = t.due_window === "weekend" && t.deadline_on && t.deadline_on > t.scheduled_on ? t.deadline_on : t.scheduled_on;
+    return { summary: t.title, description: t.description ?? "", start: { date: t.scheduled_on }, end: { date: nextDay(last) } };
+  }
   return null;
 }
 

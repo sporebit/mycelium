@@ -227,7 +227,6 @@ export async function saveHabits(
         recurrence_mode: "series",
         recurrence_rrule: "FREQ=DAILY",
         source: "ui",
-        urgency: "someday",
         priority_score: 0.5,
         owner: uid,
         sort_order: idx,

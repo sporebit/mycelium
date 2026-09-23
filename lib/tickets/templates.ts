@@ -129,7 +129,6 @@ export async function instantiateTemplate(
     template_id: tpl.id,
     source: "template",
     owner: opts.uid,
-    urgency: "this_week",
     priority_score: 0.5,
     scheduled_on: d.scheduled_in_days != null ? plusDays(d.scheduled_in_days) : null,
     deadline_on: d.deadline_in_days != null ? plusDays(d.deadline_in_days) : null,
@@ -159,7 +158,6 @@ export async function instantiateTemplate(
       points: s.points ?? null,
       source: "template",
       owner: opts.uid,
-      urgency: "this_week",
       priority_score: 0.5,
       sort_order: i,
     };

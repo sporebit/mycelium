@@ -138,7 +138,6 @@ export async function ticketFromIssue(
       github_issue_url: issue.html_url,
       github_synced_at: new Date().toISOString(),
       status_id: status,
-      urgency: "this_week",
       priority_score: 0.5,
     })
     .select("id")

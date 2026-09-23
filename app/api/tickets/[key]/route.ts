@@ -1,9 +1,10 @@
+import { whenFieldsFromBody } from "@/lib/tickets/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import { logTaskActivity } from "@/lib/task-activity";
 import { removeGoogleEvent, syncTicketToGoogle } from "@/lib/google/sync";
-import { TASK_STATUSES, URGENCIES } from "@/lib/types/task";
+import { TASK_STATUSES } from "@/lib/types/task";
 import { attachAssigneeNames, attachBlockers, type TicketRow } from "@/lib/tickets/query";
 import { signTicketAttachment } from "@/lib/storage/tickets";
 import { createGithubIssue } from "@/lib/tickets/github";
@@ -119,8 +120,8 @@ export async function GET(
 }
 
 /** Legacy Tasks columns the classic surfaces still edit. */
+// `urgency` left this list with spec §18 R4: the column stays one release, unwritten.
 const LEGACY_FIELDS = [
-  "urgency",
   "status",
   "priority_score",
   "due_date",
@@ -142,11 +143,11 @@ export async function PATCH(
   const body = await readJson(req);
   if (!body) return NextResponse.json({ error: "bad json" }, { status: 400 });
 
-  const update: Record<string, unknown> = ticketFieldsFromBody(body);
+  // When (spec §18): `due_window` derives the dates server-side and wins over any dates sent alongside.
+  const update: Record<string, unknown> = { ...ticketFieldsFromBody(body), ...whenFieldsFromBody(body) };
   for (const k of LEGACY_FIELDS) {
     if (!(k in body)) continue;
     const v = body[k];
-    if (k === "urgency" && v !== null && !(URGENCIES as readonly string[]).includes(String(v))) continue;
     if (k === "status" && !(TASK_STATUSES as readonly string[]).includes(String(v))) continue;
     if ((k === "priority_score" || k === "time_estimate_min") && v !== null && typeof v !== "number") continue;
     if (k === "sort_order" && typeof v !== "number") continue;
@@ -244,7 +245,7 @@ export async function PATCH(
     }
 
     // Google Calendar (MYC-40): decided from the ticket's state after the write
-    if (["scheduled_at", "scheduled_on", "title", "description", "status", "status_id", "completed_at"].some((k) => k in update) || task.category === "done" || task.category === "cancelled") {
+    if (["scheduled_at", "scheduled_on", "deadline_on", "due_window", "title", "description", "status", "status_id", "completed_at"].some((k) => k in update) || task.category === "done" || task.category === "cancelled") {
       void syncTicketToGoogle(supabase, task);
     }
 

@@ -21,10 +21,9 @@ function fmtTimeRange(start: string, end: string, allDay: boolean): string {
   return `${fmtTimeLondon(start)}–${fmtTimeLondon(end)}`;
 }
 
+// Spec §18: HOT = overdue, WARM = a key ticket due within seven days.
 function blockerTone(b: BriefingData["blockers"][number]): "HOT" | "WARM" {
-  if (b.isOverdue) return "HOT";
-  if (b.key && b.urgency === "today") return "HOT";
-  return "WARM";
+  return b.isOverdue ? "HOT" : "WARM";
 }
 
 function fmtCurrencyShort(n: number): string {

@@ -1,3 +1,4 @@
+import { whenFieldsFromBody } from "@/lib/tickets/server";
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
@@ -203,7 +204,6 @@ export async function POST(req: NextRequest) {
 
     // Sub-task validation + inheritance
     let parentTaskId: string | null = null;
-    let inheritedUrgency: TaskUrgency | null = null;
     let inheritedEntityId: string | null = null;
     let inheritedProjectId: string | null = null;
     let inheritedTags: string[] | null = null;
@@ -226,7 +226,6 @@ export async function POST(req: NextRequest) {
         );
       }
       parentTaskId = parent.id;
-      inheritedUrgency = (parent.urgency as TaskUrgency | null) ?? null;
       inheritedEntityId = (parent.entity_id as string | null) ?? null;
       inheritedProjectId = (parent.project_id as string | null) ?? null;
       inheritedTags = (parent.tags as string[] | null) ?? null;
@@ -258,12 +257,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // `urgency` is no longer written (tickets spec §18 R4); `due_window` derives the dates below.
     const insertPayload = { title,
       description: body.description ?? null,
-      urgency:
-        body.urgency && URGENCIES.includes(body.urgency)
-          ? body.urgency
-          : (inheritedUrgency ?? "today"),
       status:
         body.status && TASK_STATUSES.includes(body.status)
           ? body.status
@@ -289,6 +285,7 @@ export async function POST(req: NextRequest) {
       context_energy: suggestedEnergy,
       context_tag: suggestedTag,
       ...ticketFieldsFromBody(body as Record<string, unknown>, LEGACY_HANDLED_KEYS),
+      ...whenFieldsFromBody(body as Record<string, unknown>),
     };
 
     const inserted = await supabase

@@ -84,7 +84,6 @@ export async function listTickets(
   let cats: readonly TicketCategory[] | null = p.categories?.length ? p.categories : null;
   let postFilter: ((t: TicketRow) => boolean) | null = null;
   let order: Array<[string, { ascending: boolean; nullsFirst?: boolean }]> = [
-    ["urgent", { ascending: false }],
     ["deadline_on", { ascending: true, nullsFirst: false }],
     ["scheduled_on", { ascending: true, nullsFirst: false }],
     ["priority_score", { ascending: false, nullsFirst: false }],
@@ -149,7 +148,6 @@ export async function listTickets(
         timeWindowContains(now, t.time_window, t.time_from, t.time_to, t.days);
       order = [
         ["now_score", { ascending: false, nullsFirst: false }],
-        ["urgent", { ascending: false }],
         ["deadline_on", { ascending: true, nullsFirst: false }],
         ["scheduled_on", { ascending: true, nullsFirst: false }],
         ["priority_score", { ascending: false, nullsFirst: false }],
@@ -257,7 +255,7 @@ export async function attachBlockers(
   for (const t of tickets) t.blocked_by = byBlocked.get(t.id) ?? [];
 }
 
-export type TicketCounts = Record<Exclude<GtdList, "now"> | "backlog", number>;
+export type TicketCounts = Record<Exclude<GtdList, "now"> | "backlog" | "overdue", number>;
 
 /**
  * Tab badges for the GTD home: one light query over open top-level tickets
@@ -298,6 +296,7 @@ export async function ticketCounts(supabase: SupabaseClient, surface: Surface | 
     waiting: 0,
     someday: 0,
     backlog: 0,
+    overdue: 0,
     logbook: closed.count ?? 0,
   };
   type Row = {
@@ -314,6 +313,8 @@ export async function ticketCounts(supabase: SupabaseClient, surface: Surface | 
     if (cat === "waiting") counts.waiting += 1;
     if (cat === "next" && !r.someday) counts.next += 1;
     if (r.someday) counts.someday += 1;
+    // Overdue is a flag (spec §18 R5): a past deadline on an open ticket.
+    if (r.deadline_on && r.deadline_on < today) counts.overdue += 1;
     const anchor = [r.scheduled_on, r.deadline_on].filter((d): d is string => !!d);
     if (anchor.some((d) => d <= today)) counts.today += 1;
     else if (anchor.some((d) => d > today)) counts.upcoming += 1;

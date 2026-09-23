@@ -1,3 +1,4 @@
+import { whenFieldsFromBody } from "@/lib/tickets/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { logTaskActivity } from "@/lib/task-activity";
@@ -28,7 +29,7 @@ const BULK_FIELDS = new Set([
   "deadline_on",
   "assignee_id",
   "someday",
-  "urgent",
+  "due_window",
   "kind",
   "sprint_id",
 ]);
@@ -54,7 +55,8 @@ export async function POST(req: NextRequest) {
   const setRaw = body.set && typeof body.set === "object" ? (body.set as Record<string, unknown>) : null;
   if (!setRaw) return NextResponse.json({ error: "set required" }, { status: 400 });
 
-  const picked = ticketFieldsFromBody(setRaw);
+  // When (spec §18): a `due_window` in the set derives the dates for every ticket.
+  const picked = { ...ticketFieldsFromBody(setRaw), ...whenFieldsFromBody(setRaw) };
   const set: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(picked)) if (BULK_FIELDS.has(k)) set[k] = v;
   const category = isTicketCategory(setRaw.category) ? setRaw.category : null;

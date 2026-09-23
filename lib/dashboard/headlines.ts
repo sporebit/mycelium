@@ -141,11 +141,13 @@ export async function buildHeadlineContext(
     captureTotal,
     activePhase,
   ] = await Promise.all([
+    // Spec §18: "today" is a deadline on or before today, not an urgency label.
     supabase
       .from("tickets")
       .select("id", { count: "exact", head: true })
-      .eq("urgency", "today")
-      .is("completed_at", null),
+      .lte("deadline_on", today)
+      .is("completed_at", null)
+      .is("cancelled_at", null),
     supabase
       .from("workout_sessions")
       .select("date")

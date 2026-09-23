@@ -1,3 +1,4 @@
+import { whenFieldsFromBody } from "@/lib/tickets/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { auditListRead } from "@/lib/system/readAudit";
@@ -129,10 +130,11 @@ export async function POST(req: NextRequest) {
 
     const insert: Record<string, unknown> = {
       ...fields,
+      // When (spec §18 R4): `due_window` derives the dates here; the legacy
+      // `urgency` column is no longer written.
+      ...whenFieldsFromBody(body),
       owner: uid,
       priority_score: 0.5,
-      // legacy column, still read by the Today surface; neutral default
-      urgency: typeof body.urgency === "string" ? body.urgency : "this_week",
       source: typeof fields.source === "string" ? fields.source : "ui",
     };
     delete insert.status_id; // the 0117 trigger defaults it; `category` moves it

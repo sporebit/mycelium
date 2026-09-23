@@ -1,3 +1,4 @@
+import { todayLondon, whenFromUrgency } from "@/lib/tickets/when";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Classification } from "@/lib/router/classifyCapture";
 import { resolveEntityId } from "@/lib/router/resolveEntity";
@@ -132,7 +133,8 @@ export async function writeCapture(
       .from("tickets")
       .insert({ title: classification.title,
         description: classification.summary,
-        urgency: classification.urgency,
+        // the label becomes a When at the insert (tickets spec §18); `urgency` is no longer written
+        ...whenFromUrgency(classification.urgency, todayLondon()),
         key: classification.key,
         priority_score: 0.5,
         tags: classification.tags,

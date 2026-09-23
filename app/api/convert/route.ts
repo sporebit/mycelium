@@ -1,3 +1,4 @@
+import { todayLondon, whenFromUrgency } from "@/lib/tickets/when";
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
@@ -108,10 +109,11 @@ function buildTargetPayload(
         (overrides.description as string | null | undefined) ??
         (source.description as string | null) ??
         null,
-      urgency:
-        (overrides.urgency as string | null | undefined) ??
-        (source.urgency as string | null) ??
-        "today",
+      // the label becomes a When (tickets spec §18); `urgency` is no longer written
+      ...whenFromUrgency(
+        (overrides.urgency as string | null | undefined) ?? (source.urgency as string | null) ?? "today",
+        todayLondon(),
+      ),
       status: "new",
       key: false,
       priority_score: 0.5,

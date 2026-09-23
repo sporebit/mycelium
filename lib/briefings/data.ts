@@ -1,3 +1,4 @@
+import { addDays, todayLondon } from "@/lib/tickets/when";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { previousDateKey } from "@/lib/util/date";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
@@ -78,13 +79,16 @@ function todayEventsFromCal(
   return out;
 }
 
+/** Key tickets due within seven days, soonest first (spec §18: urgency labels are gone). */
 async function fetchTopTasks(supabase: SupabaseClient): Promise<Task[]> {
   const { data, error } = await supabase
     .from("tickets")
     .select(TASK_SELECT)
-    .eq("urgency", "today")
+    .lte("deadline_on", addDays(todayLondon(), 7))
     .eq("key", true)
     .is("completed_at", null)
+    .is("cancelled_at", null)
+    .order("deadline_on", { ascending: true })
     .order("priority_score", { ascending: false, nullsFirst: false })
     .limit(3);
   if (error) {

@@ -1,3 +1,4 @@
+import { todayLondon, whenFromUrgency } from "@/lib/tickets/when";
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
 import { headers } from "next/headers";
@@ -242,7 +243,8 @@ async function createRoutedRow(
       .from("tickets")
       .insert({ title,
         description: summary,
-        urgency,
+        // the label becomes a When at the insert (tickets spec §18); `urgency` is no longer written
+        ...whenFromUrgency(urgency, todayLondon()),
         key: keyFlag,
         priority_score: 0.5,
         tags: tags.length ? tags : null,

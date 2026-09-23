@@ -1,3 +1,4 @@
+import { todayLondon, whenFromUrgency } from "@/lib/tickets/when";
 import { createUserClient } from "@/lib/supabase/user";
 
 type ToolDef = {
@@ -200,7 +201,8 @@ export async function executeTool(
       .from("tickets")
       .insert({ title: toolInput.title as string,
         description: (toolInput.notes as string) || null,
-        urgency: (toolInput.urgency as string) || "someday",
+        // the model's label becomes a When (tickets spec §18); `urgency` is no longer written
+        ...whenFromUrgency((toolInput.urgency as string) || "someday", todayLondon()),
         due_date: (toolInput.due_date as string) || null,
         scheduled_at: (toolInput.scheduled_at as string) || null,
         status: "new",
@@ -218,7 +220,6 @@ export async function executeTool(
       description: s.notes || null,
       parent_task_id: parentId,
       status: "new",
-      urgency: "someday",
     }));
     const { data, error } = await supabase.from("tickets").insert(rows).select("id, title");
     if (error) return { ok: false, result: error.message, summary: "Subtask creation failed" };

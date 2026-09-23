@@ -53,7 +53,7 @@ async function reviewTicket(db: SupabaseClient, create: boolean): Promise<{ id: 
   if (!create) return null;
   const { data: ins, error } = await db
     .from("tickets")
-    .insert({ title: REVIEW_TITLE, kind: "audit", description: "One activity row per sealed weekly review (spec §8.4).", urgency: "someday", priority_score: 0, source: "claude", someday: true })
+    .insert({ title: REVIEW_TITLE, kind: "audit", description: "One activity row per sealed weekly review (spec §8.4).", priority_score: 0, source: "claude", someday: true })
     .select("id, ticket_key, space_id")
     .single();
   if (error || !ins) return null;

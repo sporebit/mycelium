@@ -1,12 +1,11 @@
+import { whenFieldsFromBody } from "@/lib/tickets/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import {
-  URGENCIES,
   TASK_STATUSES,
   type Task,
   type TaskStatus,
-  type TaskUrgency,
 } from "@/lib/types/task";
 import { logTaskActivity } from "@/lib/task-activity";
 
@@ -14,7 +13,6 @@ export const runtime = "nodejs";
 
 const ALLOWED_FIELDS = new Set([
   "status",
-  "urgency",
   "due_date",
   "project_id",
   "tags",
@@ -63,10 +61,10 @@ export async function POST(req: NextRequest) {
   for (const [k, v] of Object.entries(rawPatch)) {
     if (!ALLOWED_FIELDS.has(k)) continue;
     if (k === "status" && !TASK_STATUSES.includes(v as TaskStatus)) continue;
-    if (k === "urgency" && v !== null && !URGENCIES.includes(v as TaskUrgency))
-      continue;
     patch[k] = v;
   }
+  // When (tickets spec §18): a `due_window` in the patch derives the dates for the whole selection.
+  Object.assign(patch, whenFieldsFromBody(rawPatch));
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ error: "no valid patch fields" }, { status: 400 });
   }

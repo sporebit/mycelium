@@ -1,15 +1,14 @@
+import { whenFieldsFromBody } from "@/lib/tickets/server";
 import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createUserClient } from "@/lib/supabase/user";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import {
-  URGENCIES,
   TASK_STATUSES,
   type Task,
   type TaskActivity,
   type TaskComment,
   type TaskStatus,
-  type TaskUrgency,
   type LinkedCapture,
 } from "@/lib/types/task";
 import { extractNameMentions } from "@/lib/people/regex-extract";
@@ -55,10 +54,10 @@ async function rebuildTaskMentions(
 
 export const runtime = "nodejs";
 
+// `urgency` left the list with tickets spec §18 R4 (unwritten for one release).
 const ALLOWED_FIELDS = new Set([
   "title",
   "description",
-  "urgency",
   "status",
   "key",
   "priority_score",
@@ -157,15 +156,12 @@ export async function PATCH(
   const update: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(body)) {
     if (!ALLOWED_FIELDS.has(k)) continue;
-    if (k === "urgency" && v !== null && !URGENCIES.includes(v as TaskUrgency)) {
-      continue;
-    }
     if (k === "status" && !TASK_STATUSES.includes(v as TaskStatus)) {
       continue;
     }
     update[k] = v;
   }
-  Object.assign(update, ticketFieldsFromBody(body, LEGACY_HANDLED_KEYS));
+  Object.assign(update, ticketFieldsFromBody(body, LEGACY_HANDLED_KEYS), whenFieldsFromBody(body));
   update.updated_at = new Date().toISOString();
 
   // Keep status and completed_at in sync — moving a card to/from the

@@ -511,7 +511,6 @@ async function handleMessage(
           recurrence_mode: null, // re-arms in place; 'spawn' is reserved for hidden templates
           source: "telegram",
           owner: userId,
-          urgency: "this_week",
           priority_score: 0.5,
         })
         .select("id, ticket_key")
