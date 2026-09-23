@@ -6,6 +6,8 @@ import { Mono } from "@/components/dashboard/Mono";
 import { QuoteReviewEditor, type DuplicateChoice, type QuoteDraft } from "@/components/quotes/QuoteReviewEditor";
 import { PendingEntitiesList } from "./PendingEntitiesList";
 import { parseWeight } from "@/lib/health/parse-weight";
+import { useApi } from "@/lib/data/useApi";
+import { EMPTY_PERSON_UPDATE, PersonUpdateEditor, type PersonUpdateDraft } from "./PersonUpdateEditor";
 
 type Classification = {
   kind?: string;
@@ -43,6 +45,8 @@ type Toast = { kind: "ok" | "error"; text: string } | null;
 
 const KIND_OPTIONS = [
   "task",
+  "ticket",
+  "person",
   "quote",
   "journal",
   "workout",
@@ -107,6 +111,8 @@ function routedUrl(c: Capture): string | null {
       return `/organisation/purchases?focus=${c.routed_id}`;
     case "reminder":
       return `/reminders?reminder=${c.routed_id}`;
+    case "people":
+      return `/organisation/people/${c.routed_id}`;
     default:
       return null;
   }
@@ -190,6 +196,8 @@ export function CaptureReviewClient({ initialTab = "needs_review", dayId = null 
         if (draft.scheduled_at !== undefined) {
           body.scheduled_at = draft.scheduled_at;
         }
+        if (draft.project_id !== undefined) body.project_id = draft.project_id;
+        if (draft.person && typeof draft.person === "object") body.person = draft.person;
         if (draft.quote && typeof draft.quote === "object") body.quote = draft.quote;
         if (draft.duplicate) body.duplicate = draft.duplicate;
       }
@@ -345,6 +353,22 @@ function ReviewCard({
   );
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
+  // Kind "ticket" (MYC-153): the technical project it is created in.
+  const [projectId, setProjectId] = useState("");
+  const { data: projectsData } = useApi<{ projects?: Array<{ id: string; name: string; prefix?: string | null }> }>(
+    kind === "ticket" ? "/api/projects?surface=tickets" : null,
+  );
+  const ticketProjects = projectsData?.projects ?? [];
+  // Kind "person" (MYC-154): who the capture is about and what it says about them.
+  const [personDraft, setPersonDraft] = useState<PersonUpdateDraft>(EMPTY_PERSON_UPDATE);
+  const personHints = useMemo(() => {
+    const out: string[] = [];
+    for (const m of mentions) if (m.name_hint?.trim()) out.push(m.name_hint.trim());
+    for (const e of entities) if (e.trim()) out.push(e.trim());
+    if (typeof cls.entity_name === "string" && cls.entity_name.trim()) out.push(cls.entity_name.trim());
+    return Array.from(new Set(out));
+  }, [mentions, entities, cls.entity_name]);
+  const personReady = !!personDraft.id && Object.keys(personDraft.patch).length > 0;
   const [quoteDraft, setQuoteDraft] = useState<QuoteDraft>(() => {
     const q = (cls.quote as Partial<QuoteDraft> | null | undefined) ?? {};
     const pid = typeof cls.quote_person_id === "string" ? cls.quote_person_id : null;
@@ -385,8 +409,10 @@ function ReviewCard({
       date_inferred: dateInferred || null,
       scheduled_at,
       ...(kind === "quote" ? { quote: quoteDraft, duplicate } : {}),
+      ...(kind === "ticket" ? { project_id: projectId || null } : {}),
+      ...(kind === "person" ? { person: personDraft } : {}),
     };
-  }, [kind, urgency, title, entities, mentions, dateInferred, scheduledDate, scheduledTime, quoteDraft, duplicate]);
+  }, [kind, urgency, title, entities, mentions, dateInferred, scheduledDate, scheduledTime, quoteDraft, duplicate, projectId, personDraft]);
 
   const detectedWeight = useMemo(
     () => (capture.raw_text ? parseWeight(capture.raw_text) : null),
@@ -528,7 +554,28 @@ function ReviewCard({
         <QuoteReviewEditor value={quoteDraft} onChange={setQuoteDraft} candidates={quoteCandidates} duplicate={duplicate} onDuplicate={setDuplicate} />
       )}
 
-      {kind === "task" && (
+      {kind === "person" && (
+        <PersonUpdateEditor value={personDraft} onChange={setPersonDraft} hints={personHints} />
+      )}
+
+      {kind === "ticket" && (
+        <Field label="Project">
+          <select
+            value={projectId}
+            onChange={(e) => setProjectId(e.target.value)}
+            className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+          >
+            <option value="">{projectsData ? (ticketProjects.length ? "Choose a project…" : "No Tickets projects yet") : "Loading…"}</option>
+            {ticketProjects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.prefix ? `${p.prefix} · ${p.name}` : p.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+      )}
+
+      {(kind === "task" || kind === "ticket") && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Scheduled date">
             <input
@@ -573,7 +620,7 @@ function ReviewCard({
         <div className="flex-1" />
         <button
           type="button"
-          disabled={busy}
+          disabled={busy || (kind === "ticket" && !projectId) || (kind === "person" && !personReady)}
           onClick={() => onAction("reroute", draft)}
           className="px-3 py-2 rounded-sm border border-warn/40 text-warn text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-warn/15 disabled:opacity-40"
           title="Save edits and re-run routing"
@@ -582,8 +629,9 @@ function ReviewCard({
         </button>
         <button
           type="button"
-          disabled={busy}
+          disabled={busy || (kind === "ticket" && !projectId) || (kind === "person" && !personReady)}
           onClick={() => onAction("approve", draft)}
+          title={kind === "ticket" && !projectId ? "Choose a project first" : undefined}
           className="px-4 py-2 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
         >
           {busy ? "…" : "APPROVE"}

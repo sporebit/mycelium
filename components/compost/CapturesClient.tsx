@@ -81,6 +81,8 @@ const DEFAULT_SOURCE_CONFIG: Record<string, SourceConfig> = {
 const KINDS = [
   { id: "all", label: "ALL" },
   { id: "task", label: "TASK" },
+  { id: "ticket", label: "TICKET" },
+  { id: "person", label: "PERSON" },
   { id: "note", label: "NOTE" },
   { id: "decision", label: "DECISION" },
   { id: "capture", label: "CAPTURE" },
@@ -115,6 +117,10 @@ function getSourceConfig(s: string, config: Record<string, SourceConfig>): Sourc
 function kindBadge(kind: string | undefined): { label: string; className: string } {
   if (kind === "task")
     return { label: "TASK", className: "bg-accent/15 text-accent border-accent/40" };
+  if (kind === "ticket")
+    return { label: "TICKET", className: "bg-accent/15 text-accent border-accent/40" };
+  if (kind === "person")
+    return { label: "PERSON", className: "bg-[#f56db5]/15 text-[#f56db5] border-[#f56db5]/40" };
   if (kind === "decision")
     return { label: "DECISION", className: "bg-warn/15 text-warn border-warn/40" };
   if (kind === "note")

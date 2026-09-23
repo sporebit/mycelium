@@ -9,6 +9,7 @@ import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { createQuoteFromExtraction, extractionFromClassification } from "@/lib/quotes/server";
 import { researchQuote } from "@/lib/quotes/research";
 import { appendCapture } from "@/lib/daylog/engine";
+import { technicalProjectIds } from "@/lib/tickets/surface";
 
 export const runtime = "nodejs";
 
@@ -26,6 +27,10 @@ type ReviewBody = {
   mentions?: Array<{ raw: string; name_hint: string }>;
   date_inferred?: string | null; // YYYY-MM-DD
   scheduled_at?: string | null; // ISO 8601 timestamptz
+  /** Kind "ticket" (MYC-153): the technical project the ticket is created in. */
+  project_id?: string | null;
+  /** Kind "person" (MYC-154): the person to update and the fields the capture gives. */
+  person?: { id: string; patch: Record<string, unknown> };
   /** Quotes (spec §4.7): the reviewer's corrections to the extraction. */
   quote?: {
     text?: string;
@@ -42,6 +47,8 @@ type ReviewBody = {
 
 const ALLOWED_KINDS = new Set([
   "task",
+  "ticket",
+  "person",
   "note",
   "decision",
   "journal",
@@ -51,6 +58,8 @@ const ALLOWED_KINDS = new Set([
   "media",
   "quote",
 ]);
+/** Person fields a capture may set (MYC-154); names and needs_review stay with the People drawer. */
+const PERSON_PATCH_FIELDS = ["birthday", "address", "phone", "email", "relationship", "where_we_met", "mutual_interests", "notes"] as const;
 const ALLOWED_URGENCIES = new Set([
   "today",
   "this_week",
@@ -149,6 +158,8 @@ async function deleteRoutedRow(
   if (routedTo === "raw_captures") return;
   // a day-log day is append-only and shared by every capture that day
   if (routedTo === "daylog_days") return;
+  // a person row was updated by the capture, not created by it
+  if (routedTo === "people") return;
   const table = routedTo;
   const { error } = await supabase
     .from(table)
@@ -173,8 +184,31 @@ async function createRoutedRow(
   audioUrl: string | null,
   classification: Record<string, unknown>,
   scheduledAt?: string | null,
+  projectId?: string | null,
+  person?: { id: string; patch: Record<string, unknown> } | null,
 ): Promise<{ routedTo: string; routedId: string }> {
   const kind = String(classification.kind ?? "capture");
+
+  if (kind === "person") {
+    if (!person?.id) throw new Error("a person update needs a person");
+    const patch: Record<string, unknown> = {};
+    for (const k of PERSON_PATCH_FIELDS) {
+      const v = person.patch?.[k];
+      if (typeof v === "string" && v.trim()) patch[k] = v.trim();
+    }
+    if (typeof patch.birthday === "string" && !/^\d{4}-\d{2}-\d{2}$/.test(patch.birthday)) throw new Error("birthday must be YYYY-MM-DD");
+    const { data: current, error: readErr } = await supabase.from("people").select("id, notes").eq("id", person.id).maybeSingle();
+    if (readErr || !current) throw new Error("person not found");
+    if (typeof patch.notes === "string") {
+      // Notes accumulate — a capture adds a dated line rather than replacing what is there.
+      const line = `${new Date().toISOString().slice(0, 10)}: ${patch.notes}`;
+      patch.notes = current.notes ? `${current.notes}\n${line}` : line;
+    }
+    if (Object.keys(patch).length === 0) throw new Error("nothing to update on the person");
+    const { error } = await supabase.from("people").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", person.id);
+    if (error) throw new Error(`people update failed: ${error.message}`);
+    return { routedTo: "people", routedId: person.id };
+  }
   const title = String(classification.title ?? "Capture");
   const summary =
     typeof classification.summary === "string" ? classification.summary : null;
@@ -193,7 +227,16 @@ async function createRoutedRow(
       : null;
   const entityId = await resolveEntityId(supabase, entityName);
 
-  if (kind === "task") {
+  if (kind === "task" || kind === "ticket") {
+    // A ticket is a task in a technical project (the Tickets surface, 0121);
+    // the key trigger gives it the project's prefix (0135).
+    let project_id: string | null = null;
+    if (kind === "ticket") {
+      if (!projectId) throw new Error("a ticket needs a project");
+      const technical = await technicalProjectIds(supabase);
+      if (!technical.includes(projectId)) throw new Error("project is not a Tickets project");
+      project_id = projectId;
+    }
     const { data, error } = await supabase
       .from("tickets")
       .insert({ title,
@@ -205,6 +248,7 @@ async function createRoutedRow(
         entity_id: entityId,
         owner: userId,
         scheduled_at: scheduledAt ?? null,
+        project_id,
       })
       .select("id")
       .single();
@@ -417,7 +461,7 @@ export async function PATCH(
           }
           quoteRoute = { routed_to: "quotes", routed_id: dup.id };
         } else {
-          const r = await createRoutedRow(supabase, uid, id, existing.raw_text ?? "", existing.audio_url ?? null, mergedClassification, body.scheduled_at);
+          const r = await createRoutedRow(supabase, uid, id, existing.raw_text ?? "", existing.audio_url ?? null, mergedClassification, body.scheduled_at, body.project_id, body.person);
           quoteRoute = { routed_to: r.routedTo, routed_id: r.routedId };
         }
       }
@@ -470,12 +514,14 @@ export async function PATCH(
         existing.audio_url ?? null,
         mergedClassification,
         body.scheduled_at,
+        body.project_id,
+        body.person,
       );
       routedTo = result.routedTo;
       routedId = result.routedId;
 
       const mentionSource: "capture" | "task" | "journal" =
-        newKind === "task"
+        newKind === "task" || newKind === "ticket"
           ? "task"
           : newKind === "journal"
             ? "journal"
