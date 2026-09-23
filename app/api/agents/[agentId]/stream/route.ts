@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { MODEL_CHAT } from "@/lib/config/models";
 import { createUserClient } from "@/lib/supabase/user";
 import { buildAgentSystemPrompt } from "@/lib/agents/system";
+import { readAnthropicStream } from "@/lib/agents/anthropicStream";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -18,8 +19,6 @@ export const maxDuration = 60;
  * like the JSON route, for the client to confirm through `confirm-tool`.
  */
 const sse = (o: unknown) => `data: ${JSON.stringify(o)}\n\n`;
-
-type ToolBlock = { id: string; name: string; json: string };
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ agentId: string }> }) {
   const { agentId } = await ctx.params;
@@ -101,62 +100,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ agentId: s
           return;
         }
 
-        let text = "";
-        let tool: ToolBlock | null = null;
-        let inTool = false;
-        const usage: Record<string, number> = {};
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const payload = line.slice(6).trim();
-            if (!payload) continue;
-            let evt: {
-              type?: string;
-              content_block?: { type?: string; id?: string; name?: string };
-              delta?: { type?: string; text?: string; partial_json?: string };
-              message?: { usage?: Record<string, number> };
-              usage?: Record<string, number>;
-            };
-            try {
-              evt = JSON.parse(payload);
-            } catch {
-              continue;
-            }
-            switch (evt.type) {
-              case "message_start":
-                Object.assign(usage, evt.message?.usage ?? {});
-                break;
-              case "content_block_start":
-                inTool = evt.content_block?.type === "tool_use";
-                // One pending tool per turn, as the JSON route stores it.
-                if (inTool && !tool) tool = { id: evt.content_block?.id ?? "", name: evt.content_block?.name ?? "", json: "" };
-                break;
-              case "content_block_delta":
-                if (evt.delta?.type === "text_delta" && typeof evt.delta.text === "string") {
-                  text += evt.delta.text;
-                  send({ type: "token", content: evt.delta.text });
-                } else if (evt.delta?.type === "input_json_delta" && inTool && tool && typeof evt.delta.partial_json === "string") {
-                  tool.json += evt.delta.partial_json;
-                }
-                break;
-              case "content_block_stop":
-                inTool = false;
-                break;
-              case "message_delta":
-                Object.assign(usage, evt.usage ?? {});
-                break;
-            }
-          }
-        }
+        const { text, tool, usage } = await readAnthropicStream(res.body, (delta) => send({ type: "token", content: delta }));
 
         console.log(
           "[agents/stream] cache write=%d read=%d uncached=%d out=%d",
@@ -166,16 +110,9 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ agentId: s
           usage.output_tokens ?? 0,
         );
 
-        let pending: { tool_use_id: string; tool_name: string; tool_input: Record<string, unknown> } | null = null;
-        if (tool) {
-          let input: Record<string, unknown> = {};
-          try {
-            input = tool.json ? (JSON.parse(tool.json) as Record<string, unknown>) : {};
-          } catch {
-            /* a truncated tool input confirms as empty and the model re-asks */
-          }
-          pending = { tool_use_id: tool.id, tool_name: tool.name, tool_input: input };
-        }
+        // A truncated tool input is stored with empty input: confirming it
+        // fails cleanly in confirm-tool and the model re-asks.
+        const pending = tool ? { tool_use_id: tool.id, tool_name: tool.name, tool_input: tool.input } : null;
 
         if (pending) {
           await supabase.from("agent_messages").insert({
