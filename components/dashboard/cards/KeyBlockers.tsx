@@ -10,16 +10,13 @@ import type { CardWidth } from "@/lib/dashboard/card-registry";
 
 type Response = { blockers: BlockerRow[]; total: number };
 
+// Spec §18: HOT = overdue, WARM = a key ticket due within seven days.
 function tone(b: BlockerRow): "hot" | "warm" {
-  if (b.isOverdue) return "hot";
-  if (b.key && b.urgency === "today") return "hot";
-  return "warm";
+  return b.isOverdue ? "hot" : "warm";
 }
 
 function pillLabel(b: BlockerRow): string {
-  if (b.isOverdue) return "HOT";
-  if (b.key && b.urgency === "today") return "HOT";
-  return "WARM";
+  return b.isOverdue ? "OVERDUE" : "DUE SOON";
 }
 
 function Pill({ b }: { b: BlockerRow }) {

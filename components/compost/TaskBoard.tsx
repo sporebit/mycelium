@@ -20,16 +20,15 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Task, TaskUrgency } from "@/lib/types/task";
+import type { Task } from "@/lib/types/task";
+import { WHEN_BUCKETS, WHEN_BUCKET_LABEL, bucketOf, todayLondon, type WhenBucket } from "@/lib/tickets/when";
 import {
-  URGENCIES,
-  URGENCY_LABEL,
   isOverdue,
   midpointScore,
 } from "@/lib/types/task";
 import { TaskCard } from "./TaskCard";
 
-type Columns = Record<TaskUrgency, Task[]>;
+type Columns = Record<WhenBucket, Task[]>;
 
 /**
  * Display order per column: each parent immediately followed by its
@@ -39,11 +38,13 @@ type Columns = Record<TaskUrgency, Task[]>;
  * the SHOW COMPLETED toggle keeps the active work above the noise.
  * Sub-tasks ignore their own urgency and live with their parent.
  */
+// Columns are When buckets (tickets spec §18): the deadline decides, not an urgency label.
 function groupByUrgency(tasks: Task[]): Columns {
+  const today = todayLondon();
   const out: Columns = {
-    today: [],
-    this_week: [],
-    this_month: [],
+    week: [],
+    month: [],
+    later: [],
     someday: [],
   };
   const topLevel = tasks.filter((t) => !t.parent_task_id);
@@ -55,10 +56,8 @@ function groupByUrgency(tasks: Task[]): Columns {
     subsByParent.set(t.parent_task_id, list);
   }
 
-  for (const u of URGENCIES) {
-    const inBucket = topLevel.filter(
-      (t) => (t.urgency ?? "someday") === u,
-    );
+  for (const u of WHEN_BUCKETS) {
+    const inBucket = topLevel.filter((t) => bucketOf(t, today) === u);
     const openParents = inBucket
       .filter((t) => !t.completed_at)
       .sort(
@@ -80,12 +79,12 @@ function groupByUrgency(tasks: Task[]): Columns {
   return out;
 }
 
-function findColumnIn(cols: Columns, idOrCol: string): TaskUrgency | null {
+function findColumnIn(cols: Columns, idOrCol: string): WhenBucket | null {
   if (idOrCol.startsWith("column-")) {
-    const u = idOrCol.slice("column-".length) as TaskUrgency;
-    return URGENCIES.includes(u) ? u : null;
+    const u = idOrCol.slice("column-".length) as WhenBucket;
+    return WHEN_BUCKETS.includes(u) ? u : null;
   }
-  for (const u of URGENCIES) {
+  for (const u of WHEN_BUCKETS) {
     if (cols[u].some((t) => t.id === idOrCol)) return u;
   }
   return null;
@@ -156,7 +155,7 @@ function Column({
   onStatusChange,
 }: {
   pulseId: string | null;
-  urgency: TaskUrgency;
+  urgency: WhenBucket;
   tasks: Task[];
   onCardClick: (t: Task) => void;
   subStatsById: Map<string, { done: number; total: number }>;
@@ -173,7 +172,7 @@ function Column({
       {/* Column header — D3 eyebrow treatment */}
       <div className="px-1 flex flex-col gap-0.5">
         <span className="card-eyebrow">
-          {URGENCY_LABEL[urgency]}
+          {WHEN_BUCKET_LABEL[urgency]}
         </span>
         <span className="text-[11px] font-[family-name:var(--font-mono)] tabular-nums text-text-1">
           {topLevelCount} {topLevelCount === 1 ? "task" : "tasks"}
@@ -226,7 +225,7 @@ export function TaskBoard({
   onCardClick: (t: Task) => void;
   onMove: (
     id: string,
-    urgency: TaskUrgency,
+    urgency: WhenBucket,
     priorityScore: number,
     extra?: Partial<Task>
   ) => void;
@@ -442,7 +441,7 @@ export function TaskBoard({
         }}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-          {URGENCIES.map((u) => (
+          {WHEN_BUCKETS.map((u) => (
             <Column
               key={u}
               urgency={u}

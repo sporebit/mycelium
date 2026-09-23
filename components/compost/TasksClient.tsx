@@ -1,5 +1,6 @@
 "use client";
 
+import { whenForBucket, type DueWindow, type WhenBucket } from "@/lib/tickets/when";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useApi } from "@/lib/data/useApi";
@@ -9,7 +10,6 @@ import type {
   TaskComment,
   TaskDetail,
   TaskStatus,
-  TaskUrgency,
 } from "@/lib/types/task";
 import type { Project } from "@/lib/types/project";
 import { ViewSwitcher, type CrmView } from "./ViewSwitcher";
@@ -496,11 +496,12 @@ export function TasksClient() {
 
   function handleMove(
     id: string,
-    urgency: TaskUrgency,
+    bucket: WhenBucket,
     priorityScore: number,
     extra?: Partial<Task>,
   ) {
-    void patchTask(id, { urgency, priority_score: priorityScore, ...extra });
+    // A column is a When bucket (tickets spec §18): dropping writes the window; the server dates it.
+    void patchTask(id, { ...whenForBucket(bucket), priority_score: priorityScore, ...extra });
     if (extra && "parent_task_id" in extra && extra.parent_task_id === null) {
       showToast("Promoted to top-level task", "success");
     }
@@ -514,7 +515,7 @@ export function TasksClient() {
     await createTask({
       title: `${t.title} (copy)`,
       description: t.description ?? null,
-      urgency: t.urgency ?? "today",
+      due_window: t.due_window ?? null,
       status: "new",
       key: t.key,
       tags: t.tags ?? null,
@@ -591,7 +592,7 @@ export function TasksClient() {
   async function applyBulk(
     action:
       | { kind: "status"; value: TaskStatus }
-      | { kind: "urgency"; value: TaskUrgency }
+      | { kind: "when"; value: DueWindow | null }
       | { kind: "project"; value: string | null }
       | { kind: "delete" },
   ) {
@@ -619,8 +620,8 @@ export function TasksClient() {
     const patch: Partial<Task> =
       action.kind === "status"
         ? { status: action.value }
-        : action.kind === "urgency"
-          ? { urgency: action.value }
+        : action.kind === "when"
+          ? { due_window: action.value }
           : { project_id: action.value };
     setTasks((cur) =>
       (cur ?? []).map((t) =>

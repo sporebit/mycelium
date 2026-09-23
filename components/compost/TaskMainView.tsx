@@ -1,6 +1,7 @@
 "use client";
 
-import type { Task, TaskStatus, TaskUrgency } from "@/lib/types/task";
+import type { Task, TaskStatus } from "@/lib/types/task";
+import type { WhenBucket } from "@/lib/tickets/when";
 import type { Project } from "@/lib/types/project";
 import type { CrmView } from "./ViewSwitcher";
 import { TaskBoard } from "./TaskBoard";
@@ -42,7 +43,7 @@ export function TaskMainView({
   onMoveStatus: (id: string, status: TaskStatus) => void;
   onMoveUrgency: (
     id: string,
-    urgency: TaskUrgency,
+    bucket: WhenBucket,
     priorityScore: number,
     extra?: Partial<Task>,
   ) => void;

@@ -1,18 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { TaskStatus, TaskUrgency } from "@/lib/types/task";
+import type { TaskStatus } from "@/lib/types/task";
+import { DUE_WINDOW_LABEL, type DueWindow } from "@/lib/tickets/when";
 import type { Project } from "@/lib/types/project";
 import {
   TASK_STATUSES,
   TASK_STATUS_LABEL,
-  URGENCIES,
-  URGENCY_LABEL,
 } from "@/lib/types/task";
 
 type BulkAction =
   | { kind: "status"; value: TaskStatus }
-  | { kind: "urgency"; value: TaskUrgency }
+  | { kind: "when"; value: DueWindow | null }
   | { kind: "project"; value: string | null }
   | { kind: "delete" };
 
@@ -43,10 +42,13 @@ export function TaskBulkBar({
         onPick={(v) => onApply({ kind: "status", value: v as TaskStatus })}
       />
       <BulkMenu
-        label="Urgency"
-        options={URGENCIES.map((u) => ({ value: u, label: URGENCY_LABEL[u] }))}
+        label="When"
+        options={[
+          ...(["week", "month", "month_end", "someday"] as const).map((w) => ({ value: w, label: DUE_WINDOW_LABEL[w] })),
+          { value: "__clear__", label: "No deadline" },
+        ]}
         onPick={(v) =>
-          onApply({ kind: "urgency", value: v as TaskUrgency })
+          onApply({ kind: "when", value: v === "__clear__" ? null : (v as DueWindow) })
         }
       />
       <BulkMenu

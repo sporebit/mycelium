@@ -7,18 +7,18 @@ import type {
   TaskActivity,
   TaskComment,
   TaskStatus,
-  TaskUrgency,
   LinkedCapture,
 } from "@/lib/types/task";
 import type { Project } from "@/lib/types/project";
 import {
-  URGENCIES,
-  URGENCY_LABEL,
   TASK_STATUS_LABEL,
 } from "@/lib/types/task";
 import { StatusDropdown } from "./StatusDropdown";
+import { DUE_WINDOW_LABEL, type DueWindow } from "@/lib/tickets/when";
 import { ConvertSection } from "./ConvertSection";
 import type { ConvertibleKind } from "@/lib/convert/kinds";
+
+const WHEN_SELECT: readonly DueWindow[] = ["week", "month", "month_end", "someday"];
 
 function scheduledToUtc(date: string, time: string): string {
   const timePart = time || "09:00";
@@ -489,17 +489,18 @@ export function TaskDetailPane({
               )}
           </select>
         </Field>
-        <Field label="Urgency">
+        <Field label="When">
           <select
-            value={task.urgency ?? "today"}
+            value={task.due_window ?? ""}
             onChange={(e) =>
-              onPatch({ urgency: e.target.value as TaskUrgency })
+              onPatch({ due_window: (e.target.value || null) as DueWindow | null })
             }
             className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
           >
-            {URGENCIES.map((u) => (
-              <option key={u} value={u}>
-                {URGENCY_LABEL[u]}
+            <option value="">No deadline</option>
+            {WHEN_SELECT.map((w) => (
+              <option key={w} value={w}>
+                {DUE_WINDOW_LABEL[w]}
               </option>
             ))}
           </select>

@@ -1,5 +1,6 @@
 "use client";
 
+import { OverduePill } from "@/components/tickets/OverduePill";
 import { useState } from "react";
 import Link from "next/link";
 import { mutate as globalMutate } from "swr";
@@ -165,9 +166,9 @@ export function NowBlock() {
                   href={ticketHref(task)}
                   className="flex-1 min-w-0 text-sm text-text-hi hover:text-glow transition-colors truncate"
                 >
-                  {task.urgent ? <span className="text-warn mr-1">!</span> : null}
                   {task.title}
                 </Link>
+                <OverduePill t={task} />
                 {task.where_ctx && task.where_ctx !== "anywhere" && (
                   <span
                     className="shrink-0 text-[10px] uppercase tracking-[0.08em] px-1.5 py-0.5 rounded-v2-sm bg-surface-2 text-text-lo"
@@ -230,8 +231,8 @@ export function NowBlock() {
               <div className="text-text-hi">{infoTask.deadline_on ?? infoTask.due_date ?? "—"}</div>
               <div>Scheduled</div>
               <div className="text-text-hi">{infoTask.scheduled_on ?? "—"}</div>
-              <div>Urgent</div>
-              <div className="text-text-hi">{infoTask.urgent ? "yes" : "no"}</div>
+              <div>When</div>
+              <div className="text-text-hi">{infoTask.due_window ?? "—"}</div>
             </div>
             <div className="text-[12px] text-text-lo italic mt-2">
               Contexts filter first (where, tools, time window, energy); the score orders what is left.

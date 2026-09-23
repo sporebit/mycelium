@@ -1,5 +1,7 @@
 "use client";
 
+import { OverduePill } from "@/components/tickets/OverduePill";
+import { WhenPicker } from "@/components/tickets/WhenPicker";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -18,12 +20,9 @@ import {
   type TicketCategory,
 } from "@/lib/tickets/categories";
 import {
-  URGENCIES,
-  URGENCY_LABEL,
   type Task,
   type TaskComment,
   type TaskActivity,
-  type TaskUrgency,
 } from "@/lib/types/task";
 import { CategoryChip } from "@/components/tickets/CategoryChip";
 import { ContextEditor, Pill, contextOf, type ContextValue } from "@/components/tickets/ContextEditor";
@@ -184,10 +183,9 @@ export default function TicketPage() {
 
       <div className="mt-3 flex items-center gap-2">
         <CategoryChip category={cat} name={t.status_name} simple={simple} />
-        {t.urgent && <span className="text-warn" title="Urgent">!</span>}
-        {t.someday && <span className="text-[10px] uppercase tracking-[0.12em] text-ink-3">someday</span>}
+        <OverduePill t={t} window />
         {t.verified_at && (
-          <span className="text-[10px] uppercase tracking-[0.12em] text-ok" title={`Verified live ${fmtDate(t.verified_at)}`}>
+          <span className="text-[10px] uppercase tracking-[0.12em] text-ok" title={`Closed — verified live ${fmtDate(t.verified_at)}`}>
             ✓ verified
           </span>
         )}
@@ -230,9 +228,9 @@ export default function TicketPage() {
             type="button"
             onClick={() => run(() => ticketFetch(`${apiKey}/verify`, { method: "POST", body: {} }))}
             className="ml-2 rounded-sm bg-ok/15 px-2.5 py-1 text-[11px] text-ok"
-            title="Phil's live check — separate from automation's evidence-backed Done"
+            title="Verified live — moves to Closed (spec §18 R2). Done stays automation's evidence-backed step."
           >
-            Verified live
+            Close
           </button>
         )}
         {cat === "done" && t.verified_at && (
@@ -240,8 +238,9 @@ export default function TicketPage() {
             type="button"
             onClick={() => run(() => ticketFetch(`${apiKey}/verify`, { method: "POST", body: { verified: false } }))}
             className="ml-2 text-[11px] text-ink-3 hover:text-ink-4"
+            title="Back to Done, verification cleared"
           >
-            unverify
+            reopen to Done
           </button>
         )}
       </div>
@@ -333,15 +332,6 @@ export default function TicketPage() {
           />
         </label>
         <label className="flex flex-col gap-1">
-          <Label>Deadline</Label>
-          <input
-            type="date"
-            className="rounded-sm bg-ink-2 px-2 py-1 text-text-0 outline-none"
-            value={t.deadline_on ?? ""}
-            onChange={(e) => void patch({ deadline_on: e.target.value || null })}
-          />
-        </label>
-        <label className="flex flex-col gap-1">
           <Label>Kind</Label>
           <select
             className="rounded-sm bg-ink-2 px-2 py-1 text-text-0 outline-none"
@@ -357,26 +347,12 @@ export default function TicketPage() {
         </label>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        <Label>Flags</Label>
-        <Pill active={!!t.urgent} onClick={() => void patch({ urgent: !t.urgent })} title="Shown as one glyph; the score stays under the hood">
-          ! urgent
-        </Pill>
-        <Pill active={!!t.someday} onClick={() => void patch({ someday: !t.someday })}>
-          someday
-        </Pill>
-        <span className="ml-3 text-[11px] text-ink-3">classic urgency</span>
-        <select
-          className="rounded-sm bg-ink-2 px-2 py-0.5 text-[11px] text-text-0"
-          value={t.urgency ?? "someday"}
-          onChange={(e) => void patch({ urgency: e.target.value as TaskUrgency })}
-        >
-          {URGENCIES.map((u) => (
-            <option key={u} value={u}>
-              {URGENCY_LABEL[u]}
-            </option>
-          ))}
-        </select>
+      {/* When (spec §18 R4): a window that writes the deadline; replaces the urgency labels and the urgent flag */}
+      <div className="mt-3 flex flex-wrap items-start gap-1.5">
+        <Label>When</Label>
+        <div className="min-w-0 flex-1">
+          <WhenPicker value={t} onChange={(body) => void patch(body)} />
+        </div>
       </div>
 
       {/* Contexts */}

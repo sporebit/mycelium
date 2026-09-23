@@ -1,5 +1,6 @@
 "use client";
 
+import { OverduePill } from "@/components/tickets/OverduePill";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,7 +12,7 @@ import { looksLikeKey } from "@/lib/tickets/categories";
 import { CategoryChip } from "@/components/tickets/CategoryChip";
 import type { Task } from "@/lib/types/task";
 
-type TicketHit = Pick<Task, "id" | "ticket_key" | "key_aliases" | "title" | "category" | "status_name" | "project_name">;
+type TicketHit = Pick<Task, "id" | "ticket_key" | "key_aliases" | "title" | "category" | "status_name" | "project_name" | "deadline_on" | "due_date" | "due_window" | "someday" | "completed_at">;
 
 export function GlobalSearch() {
   const router = useRouter();
@@ -263,6 +264,7 @@ export function GlobalSearch() {
                       </span>
                       <CategoryChip category={t.category} name={t.status_name} />
                       <span className="min-w-0 flex-1 truncate">{t.title}</span>
+                      <OverduePill t={t} />
                       {t.project_name && (
                         <span className="hidden sm:inline shrink-0 text-[11px] text-text-lo">{t.project_name}</span>
                       )}

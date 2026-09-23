@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Task, TaskUrgency } from "@/lib/types/task";
+import type { Task } from "@/lib/types/task";
 import type { Project } from "@/lib/types/project";
 import { isOverdue, isDueToday } from "@/lib/types/task";
 import { StatusDropdown } from "./StatusDropdown";
 import { Surface } from "@/components/ui/Surface";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
-import { URGENCIES, URGENCY_LABEL } from "@/lib/types/task";
+import { DUE_WINDOW_LABEL, todayLondon, whenLabel, type DueWindow } from "@/lib/tickets/when";
+import { OverduePill } from "@/components/tickets/OverduePill";
+
+const WHEN_SELECT: readonly DueWindow[] = ["week", "month", "month_end", "someday"];
 
 type ColumnId =
   | "select"
@@ -30,7 +33,7 @@ const COLUMNS: ColumnDef[] = [
   { id: "status", label: "Status", defaultWidth: 130 },
   { id: "title", label: "Title", defaultWidth: 280 },
   { id: "project", label: "Project", defaultWidth: 140 },
-  { id: "urgency", label: "Urgency", defaultWidth: 110 },
+  { id: "urgency", label: "When", defaultWidth: 130 },
   { id: "due", label: "Due", defaultWidth: 110 },
   { id: "tags", label: "Tags", defaultWidth: 160 },
   { id: "time", label: "Time", defaultWidth: 70 },
@@ -315,7 +318,8 @@ function sortValue(t: Task, col: ColumnId): string | number | null {
     case "project":
       return t.project_name?.toLowerCase() ?? null;
     case "urgency":
-      return URGENCIES.indexOf(t.urgency ?? "someday");
+      // "When" sorts by deadline; undated last, someday after that
+      return t.someday ? "9999-99-99" : (t.deadline_on ?? t.due_date ?? "9999-12-31");
     case "due":
       return t.due_date ?? null;
     case "tags":
@@ -469,33 +473,36 @@ function Cell({
     );
   }
   if (col === "urgency") {
+    // "When" (tickets spec §18): the window, or OVERDUE once the deadline has passed.
     if (editing) {
       return (
         <select
           autoFocus
-          defaultValue={task.urgency ?? "today"}
+          defaultValue={task.due_window ?? ""}
           onChange={(e) => {
-            onPatch({ urgency: e.target.value as TaskUrgency });
+            onPatch({ due_window: (e.target.value || null) as DueWindow | null });
             onEndEdit();
           }}
           onBlur={onEndEdit}
           className="w-full bg-ink-2 rounded-sm text-xs text-text-0 px-1.5 py-1 outline-none focus:ring-2 focus:ring-glow-2/60"
         >
-          {URGENCIES.map((u) => (
-            <option key={u} value={u}>
-              {URGENCY_LABEL[u]}
+          <option value="">No deadline</option>
+          {WHEN_SELECT.map((w) => (
+            <option key={w} value={w}>
+              {DUE_WINDOW_LABEL[w]}
             </option>
           ))}
         </select>
       );
     }
+    const label = whenLabel(task, todayLondon());
     return (
       <button
         type="button"
         onClick={onStartEdit}
-        className="text-left w-full text-xs uppercase tracking-[0.12em] font-[family-name:var(--font-mono)] text-ink-3 hover:text-ink-4"
+        className="text-left w-full text-xs font-[family-name:var(--font-mono)] text-ink-3 hover:text-ink-4"
       >
-        {URGENCY_LABEL[task.urgency ?? "someday"]}
+        {label?.kind === "overdue" ? <OverduePill t={task} /> : label?.kind === "window" ? label.text : label?.kind === "someday" ? "someday" : "—"}
       </button>
     );
   }

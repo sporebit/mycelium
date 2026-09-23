@@ -1,5 +1,6 @@
 "use client";
 
+import { OverduePill } from "@/components/tickets/OverduePill";
 import { useRef } from "react";
 import Link from "next/link";
 import type { Task } from "@/lib/types/task";
@@ -132,11 +133,6 @@ export function TicketListRow({
         {showCategory && (
           <CategoryChip category={t.category} name={t.status_name} simple={simple} />
         )}
-        {t.urgent && (
-          <span className="shrink-0 text-warn" title="Urgent">
-            !
-          </span>
-        )}
         <span
           className={`min-w-0 flex-1 truncate text-sm ${closed ? "text-ink-3 line-through" : "text-ink-4"}`}
         >
@@ -171,13 +167,14 @@ export function TicketListRow({
           </span>
         )}
         <FacetStrip t={t} className="hidden md:inline-flex" />
-        {(deadline || scheduled) && (
+        {/* When (spec §18 R5): OVERDUE replaces the window label once the deadline has passed */}
+        <OverduePill t={t} window />
+        {!deadline && scheduled && (
           <span
             className="shrink-0 text-[11px] font-[family-name:var(--font-mono)] text-ink-3"
-            title={deadline ? `Deadline ${deadline}` : `Scheduled ${scheduled}`}
+            title={`Scheduled ${scheduled}`}
           >
-            {deadline ? "⚑ " : "▸ "}
-            {fmtDay(deadline ?? scheduled)}
+            ▸ {fmtDay(scheduled)}
           </span>
         )}
       </Link>

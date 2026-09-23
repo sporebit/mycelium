@@ -1,5 +1,6 @@
 "use client";
 
+import { DUE_WINDOW_LABEL } from "@/lib/tickets/when";
 import { useState } from "react";
 import Link from "next/link";
 import { mutate as globalMutate } from "swr";
@@ -148,9 +149,17 @@ function ListTab({ list, simple }: { list: Exclude<GtdList, "now">; simple: bool
                 );
               })}
             </div>
-            <Pill active={false} onClick={() => void apply({ someday: true })}>
-              Someday
-            </Pill>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] uppercase tracking-[0.14em] text-ink-3">When</span>
+              {(["week", "month", "month_end", "someday"] as const).map((w) => (
+                <Pill key={w} active={false} onClick={() => void apply({ due_window: w })}>
+                  {DUE_WINDOW_LABEL[w]}
+                </Pill>
+              ))}
+              <Pill active={false} onClick={() => void apply({ due_window: null })} title="No deadline">
+                clear
+              </Pill>
+            </div>
             <select
               className="rounded-sm bg-ink-2 px-2 py-1 text-[11px] text-text-0"
               defaultValue=""

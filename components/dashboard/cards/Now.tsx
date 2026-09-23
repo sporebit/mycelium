@@ -1,5 +1,6 @@
 "use client";
 
+import { OverduePill } from "@/components/tickets/OverduePill";
 import Link from "next/link";
 import { Panel } from "../Panel";
 import { Mono } from "../Mono";
@@ -61,9 +62,9 @@ export function Now() {
               >
                 <Mono className="text-[10px] text-glow-2 shrink-0">{task.ticket_key ?? ""}</Mono>
                 <span className="text-sm text-ink-4 flex-1 truncate">
-                  {task.urgent ? <span className="text-warn mr-1">!</span> : null}
                   {task.title}
                 </span>
+                <OverduePill t={task} />
                 {task.points != null && (
                   <Mono className="text-[10px] text-ink-3 shrink-0">{task.points}</Mono>
                 )}

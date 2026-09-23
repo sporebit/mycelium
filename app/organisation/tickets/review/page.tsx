@@ -204,8 +204,8 @@ export default function WeeklyReviewPage() {
         {step === "ahead" && (
           <Section empty="Nothing scheduled or due in the next 7 days." rows={data.weekAhead}>
             {(t) => (
-              <Pill active={false} onClick={() => void patch(t, { urgent: !t.urgent })}>
-                {t.urgent ? "unflag" : "! urgent"}
+              <Pill active={false} onClick={() => void patch(t, { due_window: "someday" })} title="Park it — no date">
+                someday
               </Pill>
             )}
           </Section>

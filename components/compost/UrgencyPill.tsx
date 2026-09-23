@@ -1,17 +1,23 @@
 import type { Task } from "@/lib/types/task";
+import { isDueWithin, isOverdue, todayLondon } from "@/lib/tickets/when";
 
+/**
+ * The classic surfaces' tone pill. Since tickets spec §18 the urgency
+ * labels are gone: HOT = overdue, WARM = due within seven days (or a key
+ * ticket), COOL = the rest.
+ */
 export type PillTone = "hot" | "warm" | "cool";
 
-export function pillToneFor(task: Task): PillTone {
-  if (task.key) return "hot";
-  if (task.urgency === "today" || task.urgency === "this_week") return "warm";
+export function pillToneFor(task: Task, today: string = todayLondon()): PillTone {
+  if (isOverdue(task, today)) return "hot";
+  if (task.key || isDueWithin(task, today, 7)) return "warm";
   return "cool";
 }
 
 const TONE_LABEL: Record<PillTone, string> = {
-  hot: "HOT",
-  warm: "WARM",
-  cool: "COOL",
+  hot: "OVERDUE",
+  warm: "DUE SOON",
+  cool: "LATER",
 };
 
 const TONE_CLASS: Record<PillTone, string> = {

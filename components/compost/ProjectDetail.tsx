@@ -10,7 +10,9 @@ import {
   type Project,
   type ProjectStatus,
 } from "@/lib/types/project";
-import { URGENCIES, URGENCY_LABEL, type Task, type TaskUrgency } from "@/lib/types/task";
+import type { Task } from "@/lib/types/task";
+import { WHEN_BUCKETS, WHEN_BUCKET_LABEL, bucketOf, todayLondon, type WhenBucket } from "@/lib/tickets/when";
+import { OverduePill } from "@/components/tickets/OverduePill";
 import {
   currencySymbol,
   type Purchase,
@@ -20,13 +22,6 @@ import { useAreas } from "@/components/tickets/pickers";
 
 type Props = {
   initialProject: Project;
-};
-
-const URGENCY_TONE: Record<TaskUrgency, string> = {
-  today: "bg-danger/15 text-danger border-danger/40",
-  this_week: "bg-warn/15 text-warn border-warn/40",
-  this_month: "bg-accent/15 text-accent border-accent/40",
-  someday: "bg-ink-2 text-ink-3 border-ink-2",
 };
 
 export function ProjectDetail({ initialProject }: Props) {
@@ -302,16 +297,10 @@ export function ProjectDetail({ initialProject }: Props) {
   }
 
   const grouped = useMemo(() => {
-    const buckets: Record<TaskUrgency, Task[]> = {
-      today: [],
-      this_week: [],
-      this_month: [],
-      someday: [],
-    };
-    for (const t of tasks ?? []) {
-      const u = (t.urgency ?? "someday") as TaskUrgency;
-      buckets[u].push(t);
-    }
+    // Grouped by When (tickets spec §18): the deadline decides the bucket, not an urgency label.
+    const today = todayLondon();
+    const buckets: Record<WhenBucket, Task[]> = { week: [], month: [], later: [], someday: [] };
+    for (const t of tasks ?? []) buckets[bucketOf(t, today)].push(t);
     return buckets;
   }, [tasks]);
 
@@ -478,14 +467,14 @@ export function ProjectDetail({ initialProject }: Props) {
         </div>
       ) : (
         <div className="flex flex-col gap-5">
-          {URGENCIES.map((u) => {
+          {WHEN_BUCKETS.map((u) => {
             const list = grouped[u];
             if (list.length === 0) return null;
             return (
               <section key={u} className="flex flex-col gap-2">
                 <div className="flex items-baseline gap-3">
                   <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-                    {URGENCY_LABEL[u]}
+                    {WHEN_BUCKET_LABEL[u]}
                   </span>
                   <Mono className="text-[10px] text-ink-3">
                     {list.length}
@@ -515,13 +504,7 @@ export function ProjectDetail({ initialProject }: Props) {
                           </span>
                         )}
                       </Link>
-                      {t.urgency && (
-                        <span
-                          className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 ${URGENCY_TONE[t.urgency]}`}
-                        >
-                          {URGENCY_LABEL[t.urgency]}
-                        </span>
-                      )}
+                      <OverduePill t={t} window />
                     </li>
                   ))}
                 </ul>

@@ -1,5 +1,6 @@
 "use client";
 
+import { WhenPicker, type WhenBody } from "@/components/tickets/WhenPicker";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { mutate as globalMutate } from "swr";
@@ -152,7 +153,8 @@ function ClarifyCard({
     }),
   );
   const [scheduledOn, setScheduledOn] = useState(t.scheduled_on ?? s.scheduled_on ?? "");
-  const [deadlineOn, setDeadlineOn] = useState(t.deadline_on ?? s.deadline_on ?? "");
+  // When (spec §18): the picker's choice, sent as-is; the server dates it in London.
+  const [when, setWhen] = useState<WhenBody | null>(null);
   const [personId, setPersonId] = useState<string>(t.waiting_on_person_id ?? "");
   const [subtasks, setSubtasks] = useState("");
 
@@ -191,8 +193,8 @@ function ClarifyCard({
           days: ctx.time_window === "custom" ? (ctx.days ?? null) : null,
           points: ctx.points,
           scheduled_on: scheduledOn || null,
-          deadline_on: deadlineOn || null,
           someday: false,
+          ...(when ?? {}),
           category,
         },
       }),
@@ -389,10 +391,16 @@ function ClarifyCard({
               ▸ scheduled
               <input type="date" className="rounded-sm bg-ink-2 px-2 py-1 text-[11px] text-text-0" value={scheduledOn} onChange={(e) => setScheduledOn(e.target.value)} />
             </label>
-            <label className="flex items-center gap-1 text-[11px] text-ink-3">
-              ⚑ deadline
-              <input type="date" className="rounded-sm bg-ink-2 px-2 py-1 text-[11px] text-text-0" value={deadlineOn} onChange={(e) => setDeadlineOn(e.target.value)} />
-            </label>
+          </div>
+          <div className="flex flex-wrap items-start gap-1.5">
+            <span className="w-14 pt-1 text-[10px] uppercase tracking-[0.14em] text-ink-3">When</span>
+            <div className="min-w-0 flex-1">
+              <WhenPicker
+                compact
+                value={when ? { ...t, ...when } : t}
+                onChange={(body) => setWhen(body)}
+              />
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <button type="button" onClick={() => defer("next")} className="rounded-sm bg-accent/20 px-3 py-1.5 text-sm text-accent" title="Ctrl+Enter">

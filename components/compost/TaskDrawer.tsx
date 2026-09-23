@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Task, TaskUrgency, Entity } from "@/lib/types/task";
+import type { Task, Entity } from "@/lib/types/task";
 import type { Project } from "@/lib/types/project";
-import { URGENCIES, URGENCY_LABEL } from "@/lib/types/task";
+import { DUE_WINDOW_LABEL, type DueWindow } from "@/lib/tickets/when";
 import { EntityPicker } from "./EntityPicker";
 import { triggerGlowPulse } from "@/lib/motion";
 import { Sheet } from "@/components/ui/Sheet";
+
+/** The drawer offers the windows that need no second pick; weekends and dates live on the ticket page. */
+const WHEN_SELECT: readonly DueWindow[] = ["week", "month", "month_end", "someday"];
 
 function formatCreatedAt(iso: string | null | undefined): string | null {
   if (!iso) return null;
@@ -80,7 +83,8 @@ export function TaskDrawer({
   // Local draft state for create mode
   const [draftTitle, setDraftTitle] = useState("");
   const [draftDesc, setDraftDesc] = useState("");
-  const [draftUrgency, setDraftUrgency] = useState<TaskUrgency>("today");
+  // When (tickets spec §18): a window instead of an urgency label; "" = no deadline.
+  const [draftWhen, setDraftWhen] = useState<DueWindow | "">("");
   const [draftKey, setDraftKey] = useState(false);
   const [draftTags, setDraftTags] = useState("");
   const [draftDue, setDraftDue] = useState("");
@@ -178,7 +182,7 @@ export function TaskDrawer({
     const payload: Partial<Task> = {
       title: draftTitle.trim(),
       description: draftDesc.trim() || null,
-      urgency: draftUrgency,
+      due_window: draftWhen || null,
       key: draftKey,
       tags: parseTagsString(draftTags).length ? parseTagsString(draftTags) : null,
       due_date: draftDue || null,
@@ -381,21 +385,22 @@ export function TaskDrawer({
             )}
           </Field>
 
-          {/* URGENCY + KEY */}
+          {/* WHEN + KEY (tickets spec §18: a window that writes a deadline) */}
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Urgency">
+            <Field label="When">
               <select
-                value={isCreate ? draftUrgency : task?.urgency ?? "today"}
+                value={isCreate ? draftWhen : (task?.due_window ?? "")}
                 onChange={(e) => {
-                  const v = e.target.value as TaskUrgency;
-                  if (isCreate) setDraftUrgency(v);
-                  else patchField("urgency", v);
+                  const v = e.target.value as DueWindow | "";
+                  if (isCreate) setDraftWhen(v);
+                  else patchField("due_window", v || null);
                 }}
                 className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
               >
-                {URGENCIES.map((u) => (
-                  <option key={u} value={u}>
-                    {URGENCY_LABEL[u]}
+                <option value="">No deadline</option>
+                {WHEN_SELECT.map((w) => (
+                  <option key={w} value={w}>
+                    {DUE_WINDOW_LABEL[w]}
                   </option>
                 ))}
               </select>
