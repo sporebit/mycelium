@@ -1,4 +1,5 @@
 import type { TicketCategory } from "@/lib/tickets/categories";
+import type { DueWindow } from "@/lib/tickets/when";
 
 export type TaskUrgency = "today" | "this_week" | "this_month" | "someday";
 
@@ -89,6 +90,8 @@ export type Task = {
   days?: number[] | null;
   scheduled_on?: string | null;
   deadline_on?: string | null;
+  /** The When choice behind the dates (spec §18 R4); null = no window. */
+  due_window?: DueWindow | null;
   remind_at?: string | null;
   assignee_id?: string | null;
   /** Display name from profiles (attached server-side; auth.users has no PostgREST embed). */

@@ -1,3 +1,4 @@
+import { NO_WHEN, datesForWhen, isDueWindow, todayLondon, weekendsFrom } from "@/lib/tickets/when";
 /**
  * Tickets — server-side helpers shared by /api/tickets/* and the
  * /api/tasks/* compatibility routes (spec Flag 6: one write path).
@@ -144,7 +145,27 @@ export async function statusIdFor(
     .eq("space_id", spaceId)
     .eq("category", category)
     .eq("ticket_workflows.is_default", true)
+    // 0137: the category default, not the lowest sort_order (which would be
+    // On Hold for backlog and Closed-adjacent oddities for done).
+    .order("is_category_default", { ascending: false })
     .order("sort_order")
+    .limit(1)
+    .maybeSingle();
+  return (data?.id as string | undefined) ?? null;
+}
+
+/** A status by name in the space's default workflow (Closed, On Hold, Testing…). */
+export async function statusIdNamed(
+  supabase: SupabaseClient,
+  spaceId: string,
+  name: string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("ticket_statuses")
+    .select("id, ticket_workflows!inner(is_default)")
+    .eq("space_id", spaceId)
+    .eq("name", name)
+    .eq("ticket_workflows.is_default", true)
     .limit(1)
     .maybeSingle();
   return (data?.id as string | undefined) ?? null;
@@ -206,7 +227,9 @@ export async function moveTicket(
 
 const STRING_FIELDS = ["title", "description", "kind", "where_ctx", "time_window", "source"] as const;
 const DATE_FIELDS = ["scheduled_on", "deadline_on"] as const;
-const BOOL_FIELDS = ["someday", "urgent", "key", "sync_to_github"] as const;
+// `urgent` left the whitelist with spec §18 R8: the column stays for one
+// release but nothing writes it, so it no longer orders Now invisibly.
+const BOOL_FIELDS = ["someday", "key", "sync_to_github"] as const;
 const UUID_FIELDS = [
   "project_id",
   "parent_task_id",
@@ -235,6 +258,29 @@ export function ticketFieldsFromBody(
   const out = pickTicketFields(body);
   for (const k of omit) delete out[k];
   return out;
+}
+
+/**
+ * The When choice (spec §18 R4): `due_window` in a body derives the dates
+ * here, in London, so no client computes them. A weekend takes the
+ * Saturday from `scheduled_on` (else the coming one); "date" takes
+ * `deadline_on`; null clears the window and its dates. Spread this after
+ * ticketFieldsFromBody so the derived dates win.
+ */
+export function whenFieldsFromBody(body: Record<string, unknown>, today: string = todayLondon()): Record<string, unknown> {
+  if (!("due_window" in body)) return {};
+  const w = body.due_window;
+  if (w === null) return { ...NO_WHEN };
+  if (!isDueWindow(w)) return {};
+  if (w === "weekend") {
+    const sat = typeof body.scheduled_on === "string" && DATE_RE.test(body.scheduled_on) ? body.scheduled_on : weekendsFrom(today, 1)[0].saturday;
+    return { ...datesForWhen({ window: "weekend", saturday: sat }, today) };
+  }
+  if (w === "date") {
+    const d = typeof body.deadline_on === "string" && DATE_RE.test(body.deadline_on) ? body.deadline_on : null;
+    return d ? { ...datesForWhen({ window: "date", date: d }, today) } : {};
+  }
+  return { ...datesForWhen({ window: w }, today) };
 }
 
 /** Keys the legacy Tasks routes compute themselves (inheritance, defaults). */
