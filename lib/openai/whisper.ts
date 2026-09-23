@@ -1,7 +1,11 @@
+const CAPTURE_PROMPT =
+  "A personal capture, possibly about tasks, ideas, meetings, reflections, or daily observations. Names of people and places may include: Phil, Sporebit, Myphelium2, Armthorpe, Doncaster.";
+
 export async function transcribeAudio(
   buffer: ArrayBuffer,
   filename = "audio.ogg",
-  contentType = "audio/ogg"
+  contentType = "audio/ogg",
+  opts: { prompt?: string } = {},
 ): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY missing");
@@ -14,10 +18,7 @@ export async function transcribeAudio(
   // English clips with accent variation as Welsh / other languages.
   form.append("language", "en");
   // Vocabulary hint — biases Whisper toward spelling of frequent terms.
-  form.append(
-    "prompt",
-    "A personal capture, possibly about tasks, ideas, meetings, reflections, or daily observations. Names of people and places may include: Phil, Sporebit, Myphelium2, Armthorpe, Doncaster."
-  );
+  form.append("prompt", opts.prompt ?? CAPTURE_PROMPT);
   // Deterministic output (default is 0, but we set it explicitly).
   form.append("temperature", "0");
 
