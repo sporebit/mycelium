@@ -466,6 +466,24 @@ export async function PATCH(
           quoteRoute = { routed_to: r.routedTo, routed_id: r.routedId };
         }
       }
+      // Tickets and person updates are materialised on approve too (MYC-153,
+      // MYC-154): the card's APPROVE is where the project or the person is
+      // chosen, so a kind change to either must act, not just be recorded.
+      const approvedKind = String(mergedClassification.kind ?? "");
+      const priorApprovedKind = typeof (existing.classification as Record<string, unknown> | null)?.kind === "string"
+        ? String((existing.classification as Record<string, unknown>).kind)
+        : null;
+      if ((approvedKind === "ticket" || approvedKind === "person") && approvedKind !== priorApprovedKind) {
+        try {
+          // Create first, then drop the old row, so a refused ticket (no
+          // project) leaves the original task in place.
+          const r = await createRoutedRow(supabase, uid, id, existing.raw_text ?? "", existing.audio_url ?? null, mergedClassification, body.scheduled_at, body.project_id, body.person);
+          await deleteRoutedRow(supabase, existing.routed_to, existing.routed_id);
+          quoteRoute = { routed_to: r.routedTo, routed_id: r.routedId };
+        } catch (err) {
+          return NextResponse.json({ error: err instanceof Error ? err.message : "approve failed" }, { status: 400 });
+        }
+      }
       const { data, error } = await supabase
         .from("raw_captures")
         .update({
