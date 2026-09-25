@@ -1,0 +1,202 @@
+{
+  "slug": "smoke-test-tasks-merge",
+  "name": "Tasks + Tickets merge smoke test",
+  "kind": "test",
+  "version": 1,
+  "definition": {
+    "title": "Tasks + Tickets merge smoke test ({{run}})",
+    "body_md": "Phil's live check of the Tasks + Tickets merge and the dates list (claude/tasks-merge-spec.md, MYC-163, migration 0139). The API path was smoke-tested from the PC; this ticket is the human half: one surface, the sticky Area chip, the sprint chip rule, the dates table, Started set once, Closed and Cancelled shown. Tick as you go; type what you saw in the answer boxes; anything that fails stays unticked with a comment naming the step id.",
+    "kind": "test",
+    "where_ctx": "anywhere",
+    "tools": ["pc", "phone"],
+    "time_window": "anytime",
+    "points": 5,
+    "steps_definition": {
+      "slug": "smoke-test-tasks-merge",
+      "kind": "test",
+      "title": "Tasks + Tickets merge smoke test",
+      "version": 1,
+      "toggles": { "device": { "label": "Device", "options": { "pc": "PC first", "phone": "Phone first" }, "default": "pc" } },
+      "values": [
+        { "key": "run", "label": "Run label", "placeholder": "2026-09-26 morning" },
+        { "key": "project", "label": "A project with an active sprint (or the one you will start one in)", "placeholder": "Mycelium" },
+        { "key": "ticket", "label": "A ticket key you can move around freely", "placeholder": "MYC-163" }
+      ],
+      "intro": {
+        "verdict_html": "<p>Five phases, about 20 minutes. Phase 1 is the one surface: navigation, the redirect, the label. Phase 2 is the Area chip and the sprint chip. Phase 3 is the dates table: sort and each filter. Phase 4 is Started: set on the first In Progress, unchanged after bouncing back. Phase 5 is Closed and Cancelled in the table. Nothing here needs Telegram.</p>",
+        "prerequisites": [
+          "Signed in on the PC",
+          "{{project}} has an active sprint, or start one on /organisation/tickets/sprints first",
+          "{{ticket}} is open and not in a sprint you care about; it will be moved around and put back"
+        ],
+        "time": ["Phase 1: 3 min", "Phase 2: 4 min", "Phase 3: 6 min", "Phase 4: 4 min", "Phase 5: 3 min"],
+        "cost": ["None — no AI calls"]
+      },
+      "phases": [
+        {
+          "id": "1",
+          "title": "One surface",
+          "lede_html": "<p>Tasks and Tickets are one page now, labelled Tasks. The old Tickets URL redirects.</p>",
+          "steps": [
+            {
+              "id": "1.1",
+              "title": "Open the Organisation section. The sidebar (or the tab bar on the phone) has ONE entry, \"Tasks\", and no \"Tickets\" entry",
+              "actor": "you",
+              "where": { "label": "/organisation", "kind": "page" }
+            },
+            {
+              "id": "1.2",
+              "title": "The Organisation index has one Tasks card and no Tickets card",
+              "actor": "you",
+              "where": { "label": "/organisation", "kind": "page" }
+            },
+            {
+              "id": "1.3",
+              "title": "Type /organisation/tickets in the address bar. You land on /organisation/tasks",
+              "actor": "you",
+              "where": { "label": "/organisation/tickets", "kind": "page" },
+              "fields": [{ "key": "redirect_url", "label": "The URL you ended on", "placeholder": "/organisation/tasks" }]
+            },
+            {
+              "id": "1.4",
+              "title": "Press ⌘K / Ctrl+K and type {{ticket}}. The group is headed \"Tasks\" and the key opens the ticket page at /organisation/tickets/{{ticket}} (ticket pages keep their URLs)",
+              "actor": "you",
+              "where": { "label": "⌘K", "kind": "page" }
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "The Area chip and the sprint chip",
+          "lede_html": "<p>Area is All · Technical · Life · a project. It sticks across reloads and devices because it lives in your settings, not the browser.</p>",
+          "steps": [
+            {
+              "id": "2.1",
+              "title": "On /organisation/tasks the Area row shows All selected. Pick Technical: the Inbox/Next/… counts and the list change to technical projects only",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks", "kind": "page" },
+              "fields": [{ "key": "counts_all_vs_technical", "label": "Next count on All vs Technical", "placeholder": "12 vs 7" }]
+            },
+            {
+              "id": "2.2",
+              "title": "Reload the page. Technical is still selected. Open the same page on the phone: Technical there too",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks", "kind": "page" }
+            },
+            {
+              "id": "2.3",
+              "title": "Pick Life. Tickets with no project appear; nothing from a technical project does",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks", "kind": "page" }
+            },
+            {
+              "id": "2.4",
+              "title": "On the Now tab with Area = All, Technical or Life there is NO ⚡ sprint chip. Pick {{project}} in the Project dropdown: the ⚡ sprint chip appears (the project has an active sprint)",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks · Now", "kind": "page" }
+            },
+            {
+              "id": "2.5",
+              "title": "Pick a project with no active sprint (or none). The ⚡ chip is gone again. Put Area back to All",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks · Now", "kind": "page" }
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "title": "The dates table",
+          "lede_html": "<p>Every ticket, done and cancelled included. Dates are London wall clock, YYYY-MM-DD HH:MM:SS.</p>",
+          "steps": [
+            {
+              "id": "3.1",
+              "title": "Open the Table tab. Columns: Key · Title · Project · Status · Raised · Started · Finished · Closed. Done and cancelled tickets are in the list",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks · Table", "kind": "page" },
+              "fields": [{ "key": "rows", "label": "How many rows it says", "placeholder": "157" }]
+            },
+            {
+              "id": "3.2",
+              "title": "Click the Raised header: oldest first; click again: newest first; a third click clears the sort. Do the same on Started, Finished and Closed — empty dates sort last",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks · Table", "kind": "page" }
+            },
+            {
+              "id": "3.3",
+              "title": "Raised from = the first of this month, to = today. Only tickets raised this month remain. Clear it",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks · Table", "kind": "page" },
+              "fields": [{ "key": "raised_this_month", "label": "Rows with Raised this month", "placeholder": "23" }]
+            },
+            {
+              "id": "3.4",
+              "title": "Started from/to, then Finished from/to, then Closed from/to — each narrows to rows whose date is in the range, and a from-only or to-only bound works too. Clear each",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks · Table", "kind": "page" }
+            },
+            {
+              "id": "3.5",
+              "title": "Type part of {{ticket}} in Search: the row is found by key. Type a word from its title: found by title. Pick a Status: only that category. Change Area to Technical: the table narrows too",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks · Table", "kind": "page" }
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "title": "Started: set once",
+          "lede_html": "<p>Started is the first time a ticket enters In Progress. Leaving and coming back never changes it.</p>",
+          "steps": [
+            {
+              "id": "4.1",
+              "title": "Open {{ticket}}. If it has a Started date already, pick another open ticket that has never been In Progress and use that from here on. Note its Started in the Table: empty",
+              "actor": "you",
+              "where": { "label": "/organisation/tickets/{{ticket}}", "kind": "page" }
+            },
+            {
+              "id": "4.2",
+              "title": "Move it to In Progress. In the Table its Started now shows the current time (London)",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks · Table", "kind": "page" },
+              "fields": [{ "key": "started_first", "label": "The Started value", "placeholder": "2026-09-26 10:14:02" }]
+            },
+            {
+              "id": "4.3",
+              "title": "Move it to Selected for Development, wait a minute, move it back to In Progress. Started is unchanged — the same value as 4.2",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks · Table", "kind": "page" },
+              "fields": [{ "key": "started_after_bounce", "label": "The Started value now", "placeholder": "same" }]
+            }
+          ]
+        },
+        {
+          "id": "5",
+          "title": "Closed and Cancelled",
+          "lede_html": "<p>Finished is Done's date; Closed is your verification; a cancelled ticket shows its date in Finished with a marker.</p>",
+          "steps": [
+            {
+              "id": "5.1",
+              "title": "Move the same ticket to Done, then press Close on its page. In the Table, Finished shows the Done time and Closed shows the Close time",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks · Table", "kind": "page" },
+              "fields": [{ "key": "closed_value", "label": "The Closed value", "placeholder": "2026-09-26 10:20:41" }]
+            },
+            {
+              "id": "5.2",
+              "title": "Find any cancelled ticket in the Table (Status filter: Cancelled). Its Finished cell shows the cancelled time with a red Cancelled marker; Closed is empty",
+              "actor": "you",
+              "where": { "label": "/organisation/tasks · Table", "kind": "page" }
+            },
+            {
+              "id": "5.3",
+              "title": "Put the ticket you used back where it was (reopen it if it was open). Verdict: anything you expected on the one surface that is not there?",
+              "actor": "you",
+              "where": { "label": "here", "kind": "page" },
+              "fields": [{ "key": "verdict", "label": "Missing / wrong", "placeholder": "nothing" }]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

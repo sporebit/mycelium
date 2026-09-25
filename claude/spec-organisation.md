@@ -2,7 +2,11 @@
 
 *Crawled 2026-08-29. The daily driver — highest-traffic surface; component dirs still named `compost/`. (?) = inferred. Quotes section added 2026-09-14; built 2026-09-18 (0126). Day-log touchpoints on People and Captures added 2026-09-14 (planned, not built — spec `claude/daylog-spec.md`).*
 
-## Tasks (`/organisation/tasks`)
+## Tasks (`/organisation/tasks`) — one surface since 2026-09-25 (MYC-163)
+
+Tasks and Tickets are one page, one sidebar entry, one org-index card and one ⌘K group, labelled **Tasks**; the code name stays `tickets` (table, `/api/tickets`, keys, `tix`, the skill, the webhooks). `/organisation/tickets` redirects here. Tabs: Now · the GTD lists · **Board** (the classic client below) · **Table** (every ticket with Raised · Started · Finished · Closed, sortable, from–to filters). The **Area chip** (All · Technical · Life · a project, `ui_prefs.tickets.area`) narrows every tab; it replaces the 0121 `surface=` split. `tickets.started_at` (0139) = the first entry into In Progress, set by the status-sync trigger and never overwritten. The `/api/tasks/*` compat routes are gone; the classic client reads `/api/tickets` (list, `[key]`, `bulk`, `smart`, `top-today`, `[key]/comments`). Spec: `claude/tasks-merge-spec.md`.
+
+### The classic client (the Board tab)
 
 Seven views (list, smart, category, kanban, table, calendar, +1) via SegmentedControl in a scroll wrapper; split-pane detail (Sheet), TaskDrawer (bottom sheet on mobile), comments + activity log, subtasks (0004), task quality (0027), status machine (0024), keyboard shortcuts (TaskShortcutHelp lists them — FROZEN), URL param sync (wins over ui_prefs hydration), drag-to-schedule, NOW filter (`lib/compost/now-filter.ts` — FROZEN scoring), bulk actions via `/api/tasks/bulk` (whitelists status/urgency/due_date/project_id, all-or-nothing, logs activity). Mobile: swipe right = done, swipe left = reschedule Sheet, long-press = bulk. Routes: `/api/tasks` (+`[id]`, `[id]/comments`, `bulk`, `smart`, `top-today`). `rebuildTaskMentions()` maintains people-mentions.
 
@@ -45,4 +49,4 @@ Card grid ("Everything" view) with dnd + size picker, layout in `ui_prefs.dashbo
 
 ## Tickets (replaces Tasks; Habits and Reminders folded) — 2026-09-17
 
-Tasks, Habits and Reminders are now one `tickets` table (migrations 0116–0120). The full model, routes and pages are in `claude/tickets-spec.md` and the build notes in `docs/tickets/README.md`. Habits = `kind = habit` series tickets with `ticket_completions` (the tile, heatmap and streak read those); Reminders = `kind = reminder` with `remind_at` (the `/reminders` page and `/api/reminders` keep their shape over tickets). `/api/tasks/*` remain as compatibility routes for one release.
+Tasks, Habits and Reminders are now one `tickets` table (migrations 0116–0120). The full model, routes and pages are in `claude/tickets-spec.md` and the build notes in `docs/tickets/README.md`. Habits = `kind = habit` series tickets with `ticket_completions` (the tile, heatmap and streak read those); Reminders = `kind = reminder` with `remind_at` (the `/reminders` page and `/api/reminders` keep their shape over tickets). ~~`/api/tasks/*` remain as compatibility routes for one release.~~ Retired 2026-09-25 with the merge (MYC-163).

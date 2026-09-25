@@ -367,7 +367,7 @@ Tickets are `organisation.tickets`, grantable by team role and section toggle li
 
 | Route | Verb | Does |
 |---|---|---|
-| `/api/tickets` | GET | List with filters: `project`, `area`, `category`, `list=inbox|next|waiting|someday|today|upcoming|logbook`, `now=1` (+ `where`, `tools`, `max_points` overrides), `assignee`, `q`, `updated_since`; paginated. |
+| `/api/tickets` | GET | List with filters: `project`, `area=technical|life|<area id>` (the Area chip, MYC-163 — replaces the 0121 `surface=`), `category`, `status_id`, `list=inbox|next|waiting|someday|today|upcoming|logbook|now|all` (`all` = every ticket, done and cancelled included, sub-tasks too), `now=1` (+ `where`, `tools`, `max_points` overrides), `assignee`, `q`, `updated_since`, `created_from/to` · `started_from/to` · `completed_from/to` · `closed_from/to` (Raised / Started / Finished / Closed; a bare date is a London day; Finished spans `completed_at` and `cancelled_at`), `sort=<created_at|started_at|completed_at|verified_at|cancelled_at|updated_at|deadline_on|scheduled_on|title|ticket_key|seq|points|priority_score>&dir=asc|desc`; paginated. |
 | `/api/tickets` | POST | Create (title required); `template`, `parent`, `project`, contexts, dates; returns the key. |
 | `/api/tickets/[key]` | GET / PATCH / DELETE | Full row + links + completions summary + sub-tasks; PATCH any field; DELETE = cancel (soft). |
 | `/api/tickets/[key]/move` | POST `{status|category, evidence?}` | Transition; automation callers pass `evidence` (links written first). |
@@ -378,13 +378,16 @@ Tickets are `organisation.tickets`, grantable by team role and section toggle li
 | `/api/tickets/[key]/complete` | POST `{on?}` | Series completion (habits) or done for the rest. |
 | `/api/tickets/[key]/verify` | POST | Sets `verified_by/at` (Phil's live check). |
 | `/api/tickets/bulk` | POST | Whitelisted fields (status, project, contexts, dates, assignee), all-or-nothing, activity logged. |
-| `/api/tickets/clarify` | GET | Inbox queue with suggestions. |
+| `/api/tickets/clarify` | GET | Inbox queue with suggestions; `area` / `project` narrow it like the lists. |
 | `/api/tickets/review` | GET / POST | Weekly-review payload; POST seals it. |
 | `/api/tickets/templates` (+`[slug]`) | GET / POST / PATCH | Templates. |
 | `/api/tickets/export` | GET `?project=MYC&format=backlog-md|json` | Backlog export (§16). |
 | `/api/tickets/github` · `/api/tickets/vercel` | POST | Webhooks (§7.1, §14.3). Public prefix, signature-verified. |
 | `/api/projects` (+`[id]`), `/api/areas` | CRUD | Prefix, workflow, GitHub settings; area ordering. |
-| `/api/tasks/*` | * | Thin re-exports of the above for one release (Flag 6). |
+| `/api/tickets/counts` | GET | Tab badges; `area` / `project` as above. |
+| `/api/tickets/smart` · `/api/tickets/top-today` | POST · GET | The classic smart search and the Session card's top three (moved from `/api/tasks/*`). |
+| `/api/tickets/[key]/comments/[commentId]` | DELETE | Remove one comment. |
+| ~~`/api/tasks/*`~~ | — | **Retired 2026-09-25 (MYC-163).** Every caller reads `/api/tickets`; POST and PATCH there accept the classic views' legacy columns (`status`, `due_date`, `scheduled_at`, `time_estimate_min`, `owner`, `context_*`, `priority_score`, `sort_order`); bulk accepts a legacy `status` and `due_date`. |
 | `/api/cron/tickets-nightly` · `/api/cron/tickets-checkins` | GET | Bearer `CRON_SECRET`. |
 
 Rate limiting via `lib/system/rateLimit` on writes. All routes honour `Authorization: Bearer mtk_…` (§14.4) as a user principal with scope checks, in addition to the session cookie and `API_SECRET` (acts as Phil).
@@ -393,8 +396,8 @@ Rate limiting via `lib/system/rateLimit` on writes. All routes honour `Authoriza
 
 ## 12. Pages
 
-- `/organisation/tickets` — **Now** (home tab; chip row: Where · Tool · Energy · Include backlog), then GTD tabs: Inbox (clarify stack) · Today · Upcoming · Next · Waiting · Someday · Logbook. Kanban / table / calendar opt-in (Settings → Tickets), preserved from the seven views. Habits strip on Today.
-- `/organisation/tickets/[key]` — ticket page: header (key, project breadcrumb, status, assignee, waiting-on, dates, contexts, points, urgent), rundown, steps (house style for run-book kinds), sub-tasks, dependencies, links/evidence, comments, activity. Keyboard shortcuts (FROZEN list) unchanged; new: `c` contexts, `p` plan.
+- `/organisation/tasks` — **the one surface, labelled "Tasks"** (MYC-163, `claude/tasks-merge-spec.md`; the 0121 Tasks/Tickets split into two pages is **reversed** — `areas.kind` stays and drives the Area chip). **Area chip** on every tab: All · Technical · Life · a project, sticky in `ui_prefs.tickets.area`. Tabs: **Now** (chip row: Where · Tool · Energy · Include backlog · ⚡ sprint — the sprint chip only when the Area chip is a project with an active sprint), Inbox (clarify stack) · Today · Upcoming · Next · Waiting · Someday · Logbook · **Board** (the classic kanban / calendar client; `?task=` `?focus=` `?view=` `?filter=` links open it) · **Table** (the dates list: Key · Title · Project · Status · Raised · Started · Finished · Closed, London `YYYY-MM-DD HH:MM:SS`, server sort, from–to on each date, search, status; Finished shows `cancelled_at` with a Cancelled marker; Closed = `verified_at`). `/organisation/tickets` redirects here; ticket pages, sprints, review and templates keep their `/organisation/tickets/...` URLs. Habits strip on Today.
+- `/organisation/tickets/[key]` — ticket page (URL unchanged by the merge): header (key, project breadcrumb, status, assignee, waiting-on, dates, contexts, points, urgent), rundown, steps (house style for run-book kinds), sub-tasks, dependencies, links/evidence, comments, activity. Keyboard shortcuts (FROZEN list) unchanged; new: `c` contexts, `p` plan.
 - `/organisation/tickets/review` — Weekly Review wizard (§8.4); a block on `/review/[isoWeek]`.
 - `/organisation/projects` — areas as groups, projects as cards (progress, next action, prefix); `/organisation/projects/[id]` — board (columns = workflow statuses), sub-projects, templates, GitHub settings.
 - Settings → Tickets: workflows (rename/add statuses within categories), default views, check-in time, review day, Where presets, AI rundown cap. Settings → Security → API tokens (§14.4).
