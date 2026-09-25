@@ -1,6 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useMemo, useState } from "react";
+import { EntityForm } from "@/components/forms/EntityForm";
+import { ENTITY_REGISTRY, emptyValues, type FieldErrors, type FieldValues } from "@/lib/capture/registry";
+
+const REMINDER_DEF = ENTITY_REGISTRY.reminder;
+const ADD_FIELDS = ["message", "date", "time", "recurrence"] as const;
 
 type Reminder = {
   id: string;
@@ -88,10 +93,9 @@ export function RemindersClient({ focusId }: { focusId: string | null }) {
   const [error, setError] = useState<string | null>(null);
   const scrolledRef = useRef(false);
 
-  const [msg, setMsg] = useState("");
-  const [date, setDate] = useState(() => nowLondonDate());
-  const [time, setTime] = useState(() => nowLondonTime());
-  const [recurrence, setRecurrence] = useState("");
+  // The add form is the registry's reminder form (MYC-161), seeded with now (London).
+  const [draft, setDraft] = useState<FieldValues>(() => emptyValues(REMINDER_DEF, { date: nowLondonDate(), time: nowLondonTime() }));
+  const [draftErrors, setDraftErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -144,26 +148,20 @@ export function RemindersClient({ focusId }: { focusId: string | null }) {
     });
   }, [focusId, loading]);
 
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    if (!msg.trim() || !date || !time) return;
+  async function handleAdd(e?: React.FormEvent) {
+    e?.preventDefault();
+    const errors = REMINDER_DEF.validate(draft);
+    setDraftErrors(errors);
+    if (Object.keys(errors).length || submitting) return;
     setSubmitting(true);
     try {
-      const due_at = londonToUTC(date, time);
       const res = await fetch("/api/reminders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: msg.trim(),
-          due_at,
-          recurrence: recurrence || null,
-        }),
+        body: JSON.stringify(REMINDER_DEF.toPostBody!(draft)),
       });
       if (!res.ok) throw new Error("create failed");
-      setMsg("");
-      setDate(nowLondonDate());
-      setTime(nowLondonTime());
-      setRecurrence("");
+      setDraft(emptyValues(REMINDER_DEF, { date: nowLondonDate(), time: nowLondonTime() }));
       await fetchReminders();
     } catch {
       setError("Failed to create reminder");
@@ -245,55 +243,12 @@ export function RemindersClient({ focusId }: { focusId: string | null }) {
         <label className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1 block">
           New reminder
         </label>
-        <input
-          type="text"
-          value={msg}
-          onChange={(e) => setMsg(e.target.value)}
-          placeholder="Reminder message"
-          className="w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
-        />
+        <EntityForm def={REMINDER_DEF} only={ADD_FIELDS} values={draft} onChange={setDraft} errors={draftErrors} disabled={submitting} onSubmit={() => void handleAdd()} />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div>
-            <label className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1 block">
-              Date
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1 block">
-              Time
-            </label>
-            <input
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1 block">
-              Repeat
-            </label>
-            <select
-              value={recurrence}
-              onChange={(e) => setRecurrence(e.target.value)}
-              className="w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
-            >
-              <option value="">None</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </div>
           <div className="flex items-end">
             <button
               type="submit"
-              disabled={submitting || !msg.trim()}
+              disabled={submitting || !String(draft.message ?? "").trim()}
               className="w-full bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase px-4 py-2 rounded-md disabled:opacity-40"
             >
               {submitting ? "Adding..." : "Add"}

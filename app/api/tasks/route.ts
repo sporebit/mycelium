@@ -1,5 +1,6 @@
 import { legacyDueDateSync, whenFieldsFromBody } from "@/lib/tickets/server";
 import { NextRequest, NextResponse } from "next/server";
+import { pickPostBody } from "@/lib/capture/registry";
 import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -190,7 +191,8 @@ export async function POST(req: NextRequest) {
 
   let body: CreateBody;
   try {
-    body = (await req.json()) as CreateBody;
+    // MYC-161: the registry's whitelist is the body — unknown keys never reach the insert.
+    body = pickPostBody("task", await req.json()) as CreateBody;
   } catch {
     return NextResponse.json({ error: "bad json" }, { status: 400 });
   }

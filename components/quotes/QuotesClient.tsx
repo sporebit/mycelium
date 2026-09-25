@@ -8,6 +8,11 @@ import { Pill } from "@/components/tickets/ContextEditor";
 import type { QuoteRow } from "@/lib/quotes/server";
 import { QuoteCard, quotePersonName } from "./QuoteCard";
 import { QuoteSheet, type PersonOption } from "./QuoteSheet";
+import { EntityForm } from "@/components/forms/EntityForm";
+import { ENTITY_REGISTRY, emptyValues, type FieldErrors, type FieldValues } from "@/lib/capture/registry";
+
+const QUOTE_DEF = ENTITY_REGISTRY.quote;
+const ADD_FIELDS = ["text", "said_by_person_id", "context"] as const;
 
 type View = "list" | "person" | "month";
 type PeopleApiRow = { id: string; display_name?: string | null; first_name?: string | null; last_name?: string | null };
@@ -36,7 +41,9 @@ export function QuotesClient() {
   const [view, setView] = useState<View>("list");
   const [openId, setOpenId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
-  const [addDraft, setAddDraft] = useState({ text: "", who: "__me", context: "" });
+  // The add form is the registry's quote form (MYC-161); "Me" is the default speaker.
+  const [addDraft, setAddDraft] = useState<FieldValues>(() => emptyValues(QUOTE_DEF, { said_by_person_id: "__me" }));
+  const [addErrors, setAddErrors] = useState<FieldErrors>({});
   const [addErr, setAddErr] = useState<string | null>(null);
   const [dupes, setDupes] = useState<Array<{ id: string; text: string; score: number }>>([]);
 
@@ -75,19 +82,14 @@ export function QuotesClient() {
 
   const add = async (force = false) => {
     setAddErr(null);
-    const text = addDraft.text.trim();
-    if (!text) return;
+    const errors = QUOTE_DEF.validate(addDraft);
+    setAddErrors(errors);
+    if (Object.keys(errors).length) return;
     try {
       const res = await fetch("/api/quotes", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          text,
-          is_own: addDraft.who === "__me",
-          said_by_person_id: addDraft.who === "__me" || addDraft.who === "" ? null : addDraft.who,
-          context: addDraft.context || null,
-          force,
-        }),
+        body: JSON.stringify(QUOTE_DEF.toPostBody!({ ...addDraft, force })),
       });
       const j = (await res.json()) as { quote?: QuoteRow; error?: string; similar?: Array<{ id: string; text: string; score: number }> };
       if (res.status === 409 && j.similar) {
@@ -96,7 +98,7 @@ export function QuotesClient() {
       }
       if (!res.ok || !j.quote) throw new Error(j.error ?? `${res.status}`);
       setAdding(false);
-      setAddDraft({ text: "", who: "__me", context: "" });
+      setAddDraft(emptyValues(QUOTE_DEF, { said_by_person_id: "__me" }));
       setDupes([]);
       await mutate();
     } catch (e) {
@@ -143,19 +145,7 @@ export function QuotesClient() {
 
       {adding && (
         <div className="rounded-md bg-ink-1 p-4 flex flex-col gap-3">
-          <textarea rows={2} value={addDraft.text} onChange={(e) => setAddDraft({ ...addDraft, text: e.target.value })} placeholder="The quote, as said" className={`${input} w-full resize-y`} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <select value={addDraft.who} onChange={(e) => setAddDraft({ ...addDraft, who: e.target.value })} className={input}>
-              <option value="__me">Me</option>
-              <option value="">Unknown</option>
-              {people.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-            <input value={addDraft.context} onChange={(e) => setAddDraft({ ...addDraft, context: e.target.value })} placeholder="context (optional)" className={input} />
-          </div>
+          <EntityForm def={QUOTE_DEF} only={ADD_FIELDS} values={addDraft} onChange={setAddDraft} errors={addErrors} autoFocus onSubmit={() => void add(false)} />
           {dupes.length > 0 && (
             <div className="rounded-sm border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-text-1 flex flex-col gap-1">
               <div className="text-warn">Looks like a quote you already have:</div>
@@ -175,7 +165,7 @@ export function QuotesClient() {
             </div>
           )}
           <div className="flex items-center gap-2">
-            <button type="button" className={btn} onClick={() => void add(false)} disabled={!addDraft.text.trim()}>
+            <button type="button" className={btn} onClick={() => void add(false)} disabled={!String(addDraft.text ?? "").trim()}>
               SAVE
             </button>
             {addErr && <span className="text-xs text-error">{addErr}</span>}

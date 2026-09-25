@@ -9,6 +9,11 @@ import Link from "next/link";
 
 const ACTIVE_PROJECTS_KEY = "/api/projects?status=active";
 import { Mono } from "@/components/dashboard/Mono";
+import { EntityForm } from "@/components/forms/EntityForm";
+import { ENTITY_REGISTRY, emptyValues, type FieldValues } from "@/lib/capture/registry";
+
+const PURCHASE_DEF = ENTITY_REGISTRY.purchase;
+const QUICK_ADD_FIELDS = ["title", "list_type"] as const;
 import type { Project } from "@/lib/types/project";
 import {
   PURCHASE_CATEGORIES,
@@ -79,9 +84,8 @@ export function PurchasesClient({
   initialProjectId?: string;
 } = {}) {
   const [filter, setFilter] = useState<Filter>("all");
-  const [draft, setDraft] = useState("");
-  const [draftListType, setDraftListType] =
-    useState<PurchaseListType>("shopping");
+  // The quick-add strip is the registry's purchase form (MYC-161).
+  const [draft, setDraft] = useState<FieldValues>(() => emptyValues(PURCHASE_DEF, { list_type: "shopping" }));
   const [categoryFilter, setCategoryFilter] = useState<PurchaseCategory | "all">("all");
   const [adding, setAdding] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -121,19 +125,14 @@ export function PurchasesClient({
   async function addPurchase(e: React.FormEvent) {
     e.preventDefault();
     if (adding) return;
-    const title = draft.trim();
-    if (!title) return;
+    if (Object.keys(PURCHASE_DEF.validate(draft)).length) return;
     setAdding(true);
     try {
       let created: Purchase | undefined;
       try {
         const j = await apiWrite<{ purchase?: Purchase }>("/api/purchases", {
           method: "POST",
-          ...jsonBody({
-            title,
-            list_type: draftListType,
-            project_id: initialProjectId ?? null,
-          }),
+          ...jsonBody(PURCHASE_DEF.toPostBody!({ ...draft, project_id: initialProjectId ?? "" })),
         });
         created = j.purchase;
       } catch (e) {
@@ -150,7 +149,7 @@ export function PurchasesClient({
         (cur) => ({ ...cur, purchases: [purchase, ...(cur?.purchases ?? [])] }),
         { revalidate: false },
       );
-      setDraft("");
+      setDraft((cur) => ({ ...emptyValues(PURCHASE_DEF), list_type: cur.list_type }));
     } finally {
       setAdding(false);
     }
@@ -288,22 +287,10 @@ export function PurchasesClient({
         <span aria-hidden className="text-accent text-sm">
           🛍
         </span>
-        <input
-          type="text"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          disabled={adding}
-          placeholder={
-            draftListType === "wishlist"
-              ? "Add to wishlist (e.g. Sony XM5, leather jacket)"
-              : "Add a purchase (e.g. milk, batteries, keyboard)"
-          }
-          className="flex-1 min-w-[140px] bg-transparent outline-none text-sm text-text-0 placeholder:text-text-3"
-        />
-        <ListTypeToggle value={draftListType} onChange={setDraftListType} />
+        <EntityForm def={PURCHASE_DEF} only={QUICK_ADD_FIELDS} values={draft} onChange={setDraft} inline disabled={adding} />
         <button
           type="submit"
-          disabled={!draft.trim() || adding}
+          disabled={!String(draft.title ?? "").trim() || adding}
           className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 disabled:opacity-40 disabled:cursor-not-allowed font-[family-name:var(--font-mono)]"
         >
           {adding ? "…" : "ADD ↵"}
@@ -454,36 +441,6 @@ export function PurchasesClient({
           {toast.text}
         </div>
       )}
-    </div>
-  );
-}
-
-function ListTypeToggle({
-  value,
-  onChange,
-}: {
-  value: PurchaseListType;
-  onChange: (next: PurchaseListType) => void;
-}) {
-  return (
-    <div className="inline-flex rounded-sm border border-ink-2 overflow-hidden text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em]">
-      {(["shopping", "wishlist"] as const).map((v) => {
-        const active = value === v;
-        return (
-          <button
-            key={v}
-            type="button"
-            onClick={() => onChange(v)}
-            className={`px-2 py-1 transition-colors ${
-              active
-                ? "bg-accent/15 text-accent"
-                : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/40"
-            }`}
-          >
-            {v === "shopping" ? "SHOPPING" : "WISHLIST"}
-          </button>
-        );
-      })}
     </div>
   );
 }

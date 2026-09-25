@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Mono } from "@/components/dashboard/Mono";
+import { EntityForm } from "@/components/forms/EntityForm";
+import { ENTITY_REGISTRY, emptyValues, type FieldValues } from "@/lib/capture/registry";
+
+const MEDIA_DEF = ENTITY_REGISTRY.media;
+const QUICK_ADD_FIELDS = ["title", "creator"] as const;
 import type {
   MediaItem,
   MediaType,
@@ -112,8 +117,8 @@ export function MediaClient() {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<Toast>(null);
-  const [draftTitle, setDraftTitle] = useState("");
-  const [draftCreator, setDraftCreator] = useState("");
+  // The add strip is the registry's media form (MYC-161); the tab supplies media_type.
+  const [draft, setDraft] = useState<FieldValues>(() => emptyValues(MEDIA_DEF));
   const [adding, setAdding] = useState(false);
   const [ownedFilter, setOwnedFilter] = useState<OwnedFilter>("all");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
@@ -159,17 +164,14 @@ export function MediaClient() {
   }
 
   async function addItem() {
-    if (!draftTitle.trim() || adding) return;
+    const values = { ...draft, media_type: tab };
+    if (adding || Object.keys(MEDIA_DEF.validate(values)).length) return;
     setAdding(true);
     try {
       const r = await fetch("/api/media", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: draftTitle.trim(),
-          creator: draftCreator.trim() || null,
-          media_type: tab,
-        }),
+        body: JSON.stringify(MEDIA_DEF.toPostBody!(values)),
       });
       const j = (await r.json().catch(() => ({}))) as {
         item?: MediaItem;
@@ -180,8 +182,7 @@ export function MediaClient() {
         return;
       }
       setItems((cur) => [j.item!, ...cur]);
-      setDraftTitle("");
-      setDraftCreator("");
+      setDraft(emptyValues(MEDIA_DEF));
       show("ok", "Added");
     } finally {
       setAdding(false);
@@ -344,23 +345,12 @@ export function MediaClient() {
         }}
         className="flex items-center gap-2"
       >
-        <input
-          type="text"
-          value={draftTitle}
-          onChange={(e) => setDraftTitle(e.target.value)}
-          placeholder={`Add to ${MEDIA_TYPE_LABEL[tab].toLowerCase()} list…`}
-          className="flex-1 bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 placeholder:text-ink-3 placeholder:italic px-3 py-2 outline-none focus:border-ink-3"
-        />
-        <input
-          type="text"
-          value={draftCreator}
-          onChange={(e) => setDraftCreator(e.target.value)}
-          placeholder="Creator"
-          className="w-32 bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 placeholder:text-ink-3 placeholder:italic px-3 py-2 outline-none focus:border-ink-3"
-        />
+        <div className="flex-1 bg-ink-1 border border-ink-2 rounded-md px-3 py-2 focus-within:border-ink-3">
+          <EntityForm def={MEDIA_DEF} only={QUICK_ADD_FIELDS} values={draft} onChange={setDraft} inline disabled={adding} onSubmit={addItem} />
+        </div>
         <button
           type="submit"
-          disabled={!draftTitle.trim() || adding}
+          disabled={!String(draft.title ?? "").trim() || adding}
           className="px-4 py-2 rounded-md bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
         >
           {adding ? "…" : "ADD"}

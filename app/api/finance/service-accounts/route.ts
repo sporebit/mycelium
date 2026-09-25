@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { pickPostBody } from "@/lib/capture/registry";
 import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
@@ -49,7 +50,7 @@ type CreateBody = {
 export async function POST(req: NextRequest) {
   let body: CreateBody;
   try {
-    body = (await req.json()) as CreateBody;
+    body = pickPostBody("account", await req.json()) as CreateBody;
   } catch {
     return NextResponse.json({ error: "bad json" }, { status: 400 });
   }

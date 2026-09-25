@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { pickPostBody } from "@/lib/capture/registry";
 import { createUserClient } from "@/lib/supabase/user";
 import { auditListRead } from "@/lib/system/readAudit";
 import { moveTicket, principalUid, ticketWriteGate } from "@/lib/tickets/server";
@@ -35,7 +36,7 @@ type CreatePayload = { message: string; due_at: string; recurrence?: string | nu
 export async function POST(req: NextRequest) {
   let body: CreatePayload;
   try {
-    body = (await req.json()) as CreatePayload;
+    body = pickPostBody("reminder", await req.json()) as CreatePayload;
   } catch {
     return NextResponse.json({ error: "bad json" }, { status: 400 });
   }

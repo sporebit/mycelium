@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Task, Entity } from "@/lib/types/task";
+import type { Task } from "@/lib/types/task";
 import type { Project } from "@/lib/types/project";
 import { DUE_WINDOW_LABEL, type DueWindow } from "@/lib/tickets/when";
 import { EntityPicker } from "./EntityPicker";
 import { triggerGlowPulse } from "@/lib/motion";
 import { Sheet } from "@/components/ui/Sheet";
+import { EntityForm } from "@/components/forms/EntityForm";
+import { ENTITY_REGISTRY, emptyValues, type FieldErrors, type FieldValues } from "@/lib/capture/registry";
+
+/** Create mode is the registry's task form (MYC-161); edit mode keeps its inline field editors. */
+const TASK_DEF = ENTITY_REGISTRY.task;
+const CREATE_FIELDS = ["title", "description", "due_window", "deadline_on", "key", "tags", "scheduled_at", "time_estimate_min", "owner", "entity_id", "project_id"] as const;
 
 /** The drawer offers the windows that need no second pick; weekends and dates live on the ticket page. */
 const WHEN_SELECT: readonly DueWindow[] = ["week", "month", "month_end", "someday"];
@@ -80,20 +86,9 @@ export function TaskDrawer({
   const isCreate = mode.kind === "create";
   const initialTask = mode.kind === "edit" ? mode.task : null;
 
-  // Local draft state for create mode
-  const [draftTitle, setDraftTitle] = useState("");
-  const [draftDesc, setDraftDesc] = useState("");
-  // When (tickets spec §18): a window instead of an urgency label; "" = no deadline.
-  const [draftWhen, setDraftWhen] = useState<DueWindow | "">("");
-  const [draftKey, setDraftKey] = useState(false);
-  const [draftTags, setDraftTags] = useState("");
-  const [draftDue, setDraftDue] = useState("");
-  const [draftScheduledDate, setDraftScheduledDate] = useState("");
-  const [draftScheduledTime, setDraftScheduledTime] = useState("");
-  const [draftEst, setDraftEst] = useState<string>("");
-  const [draftOwner, setDraftOwner] = useState<string>("");
-  const [draftEntity, setDraftEntity] = useState<Entity | null>(null);
-  const [draftProjectId, setDraftProjectId] = useState<string>("");
+  // Create mode: the registry form's values (MYC-161).
+  const [draft, setDraft] = useState<FieldValues>(() => emptyValues(TASK_DEF));
+  const [draftErrors, setDraftErrors] = useState<FieldErrors>({});
   const [creating, setCreating] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -177,23 +172,12 @@ export function TaskDrawer({
   }
 
   async function handleCreate() {
-    if (!draftTitle.trim() || creating) return;
+    if (creating) return;
+    const errors = TASK_DEF.validate(draft);
+    setDraftErrors(errors);
+    if (Object.keys(errors).length) return;
     setCreating(true);
-    const payload: Partial<Task> = {
-      title: draftTitle.trim(),
-      description: draftDesc.trim() || null,
-      due_window: draftWhen || null,
-      key: draftKey,
-      tags: parseTagsString(draftTags).length ? parseTagsString(draftTags) : null,
-      due_date: draftDue || null,
-      scheduled_at: draftScheduledDate
-        ? scheduledToUtc(draftScheduledDate, draftScheduledTime)
-        : null,
-      time_estimate_min: draftEst ? Number(draftEst) || null : null,
-      owner: draftOwner.trim() || null,
-      entity_id: draftEntity?.id ?? null,
-      project_id: draftProjectId || null,
-    };
+    const payload = TASK_DEF.toPostBody!(draft) as Partial<Task>;
     try {
       const created = await onCreate(payload);
       if (!created) onError("Failed to create task");
@@ -289,8 +273,12 @@ export function TaskDrawer({
         </div>
 
         <div className="flex-1 overflow-y-auto px-8 pb-6 flex flex-col gap-6">
+          {isCreate ? (
+            <EntityForm def={TASK_DEF} only={CREATE_FIELDS} values={draft} onChange={setDraft} errors={draftErrors} disabled={creating} autoFocus onSubmit={handleCreate} />
+          ) : (
+          <>
           {/* PARENT REFERENCE (when editing a sub-task) */}
-          {!isCreate && parent && (
+          {parent && (
             <button
               type="button"
               onClick={() => onJumpToTask?.(parent.id)}
@@ -303,16 +291,7 @@ export function TaskDrawer({
 
           {/* TITLE */}
           <Field label="Title">
-            {isCreate ? (
-              <input
-                autoFocus
-                type="text"
-                value={draftTitle}
-                onChange={(e) => setDraftTitle(e.target.value)}
-                placeholder="What needs doing?"
-                className="w-full bg-transparent outline-none text-base text-ink-4 placeholder:text-ink-3 border-b border-ink-2 focus:border-accent pb-1.5 transition-colors"
-              />
-            ) : editingTitle ? (
+            {editingTitle ? (
               <input
                 ref={titleInputRef}
                 type="text"
@@ -347,15 +326,7 @@ export function TaskDrawer({
 
           {/* DESCRIPTION */}
           <Field label="Description (markdown)">
-            {isCreate ? (
-              <textarea
-                value={draftDesc}
-                onChange={(e) => setDraftDesc(e.target.value)}
-                placeholder="Details, links, notes…"
-                rows={4}
-                className="w-full bg-ink-0/40 border border-ink-2 rounded-md outline-none text-sm text-ink-4 placeholder:text-ink-3 p-2 resize-y focus:border-ink-3"
-              />
-            ) : editingDesc ? (
+            {editingDesc ? (
               <textarea
                 ref={descInputRef}
                 value={editDesc}
@@ -389,11 +360,10 @@ export function TaskDrawer({
           <div className="grid grid-cols-2 gap-3">
             <Field label="When">
               <select
-                value={isCreate ? draftWhen : (task?.due_window ?? "")}
+                value={task?.due_window ?? ""}
                 onChange={(e) => {
                   const v = e.target.value as DueWindow | "";
-                  if (isCreate) setDraftWhen(v);
-                  else patchField("due_window", v || null);
+                  patchField("due_window", v || null);
                 }}
                 className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
               >
@@ -409,31 +379,22 @@ export function TaskDrawer({
               <button
                 type="button"
                 onClick={() => {
-                  if (isCreate) setDraftKey((v) => !v);
-                  else patchField("key", !task?.key);
+                  patchField("key", !task?.key);
                 }}
                 className={`w-full px-2 py-1.5 rounded-md border text-sm font-[family-name:var(--font-mono)] transition-colors ${
-                  (isCreate ? draftKey : task?.key)
+                  task?.key
                     ? "bg-danger/15 border-danger/40 text-danger"
                     : "bg-ink-0/40 border-ink-2 text-ink-3 hover:border-ink-3"
                 }`}
               >
-                {(isCreate ? draftKey : task?.key) ? "★ KEY" : "☆ NOT KEY"}
+                {task?.key ? "★ KEY" : "☆ NOT KEY"}
               </button>
             </Field>
           </div>
 
           {/* TAGS */}
           <Field label="Tags (comma-separated)">
-            {isCreate ? (
-              <input
-                type="text"
-                value={draftTags}
-                onChange={(e) => setDraftTags(e.target.value)}
-                placeholder="work, personal, q3…"
-                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
-              />
-            ) : (
+            {(
               <input
                 type="text"
                 value={editTagsStr}
@@ -455,11 +416,10 @@ export function TaskDrawer({
             <Field label="Due date">
               <input
                 type="date"
-                value={isCreate ? draftDue : task?.due_date ?? ""}
+                value={task?.due_date ?? ""}
                 onChange={(e) => {
                   const v = e.target.value || null;
-                  if (isCreate) setDraftDue(e.target.value);
-                  else patchField("due_date", v);
+                  patchField("due_date", v);
                 }}
                 className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
               />
@@ -469,18 +429,13 @@ export function TaskDrawer({
                 type="number"
                 min={0}
                 value={
-                  isCreate
-                    ? draftEst
-                    : task?.time_estimate_min !== null && task?.time_estimate_min !== undefined
-                      ? String(task.time_estimate_min)
-                      : ""
+                  task?.time_estimate_min !== null && task?.time_estimate_min !== undefined
+                    ? String(task.time_estimate_min)
+                    : ""
                 }
                 onChange={(e) => {
-                  if (isCreate) setDraftEst(e.target.value);
-                  else {
-                    const n = e.target.value ? Number(e.target.value) : null;
-                    patchField("time_estimate_min", n);
-                  }
+                  const n = e.target.value ? Number(e.target.value) : null;
+                  patchField("time_estimate_min", n);
                 }}
                 placeholder="30"
                 className="w-full bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
@@ -494,26 +449,21 @@ export function TaskDrawer({
               <input
                 type="date"
                 value={
-                  isCreate
-                    ? draftScheduledDate
-                    : task?.scheduled_at
-                      ? scheduledFromUtc(task.scheduled_at).date
-                      : ""
+                  task?.scheduled_at
+                    ? scheduledFromUtc(task.scheduled_at).date
+                    : ""
                 }
                 onChange={(e) => {
-                  if (isCreate) setDraftScheduledDate(e.target.value);
-                  else {
-                    if (!e.target.value) {
-                      patchField("scheduled_at", null);
-                    } else {
-                      const curTime = task?.scheduled_at
-                        ? scheduledFromUtc(task.scheduled_at).time
-                        : "09:00";
-                      patchField(
-                        "scheduled_at",
-                        scheduledToUtc(e.target.value, curTime),
-                      );
-                    }
+                  if (!e.target.value) {
+                    patchField("scheduled_at", null);
+                  } else {
+                    const curTime = task?.scheduled_at
+                      ? scheduledFromUtc(task.scheduled_at).time
+                      : "09:00";
+                    patchField(
+                      "scheduled_at",
+                      scheduledToUtc(e.target.value, curTime),
+                    );
                   }
                 }}
                 className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
@@ -523,15 +473,12 @@ export function TaskDrawer({
               <input
                 type="time"
                 value={
-                  isCreate
-                    ? draftScheduledTime
-                    : task?.scheduled_at
-                      ? scheduledFromUtc(task.scheduled_at).time
-                      : ""
+                  task?.scheduled_at
+                    ? scheduledFromUtc(task.scheduled_at).time
+                    : ""
                 }
                 onChange={(e) => {
-                  if (isCreate) setDraftScheduledTime(e.target.value);
-                  else if (task?.scheduled_at) {
+                  if (task?.scheduled_at) {
                     const curDate = scheduledFromUtc(task.scheduled_at).date;
                     patchField(
                       "scheduled_at",
@@ -548,10 +495,9 @@ export function TaskDrawer({
           <Field label="Owner">
             <input
               type="text"
-              value={isCreate ? draftOwner : task?.owner ?? ""}
+              value={task?.owner ?? ""}
               onChange={(e) => {
-                if (isCreate) setDraftOwner(e.target.value);
-                else patchField("owner", e.target.value || null);
+                patchField("owner", e.target.value || null);
               }}
               placeholder={process.env.NEXT_PUBLIC_USER_ID ?? "phil"}
               className="w-full bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
@@ -561,11 +507,10 @@ export function TaskDrawer({
           {/* ENTITY */}
           <Field label="Entity">
             <EntityPicker
-              value={isCreate ? draftEntity?.id ?? null : task?.entity_id ?? null}
-              valueName={isCreate ? draftEntity?.name ?? null : task?.entity_name ?? null}
+              value={task?.entity_id ?? null}
+              valueName={task?.entity_name ?? null}
               onChange={(ent) => {
-                if (isCreate) setDraftEntity(ent);
-                else patchField("entity_id", ent?.id ?? null);
+                patchField("entity_id", ent?.id ?? null);
               }}
               onError={onError}
             />
@@ -574,13 +519,10 @@ export function TaskDrawer({
           {/* PROJECT */}
           <Field label="Project">
             <select
-              value={
-                isCreate ? draftProjectId : task?.project_id ?? ""
-              }
+              value={task?.project_id ?? ""}
               onChange={(e) => {
                 const v = e.target.value || null;
-                if (isCreate) setDraftProjectId(e.target.value);
-                else patchField("project_id", v);
+                patchField("project_id", v);
               }}
               className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
             >
@@ -592,8 +534,7 @@ export function TaskDrawer({
               ))}
               {/* When editing, show the current project even if it's not
                   in the active list (e.g. archived or completed). */}
-              {!isCreate &&
-                task?.project_id &&
+              {task?.project_id &&
                 !projects.some((p) => p.id === task.project_id) &&
                 task.project_name && (
                   <option value={task.project_id}>
@@ -604,7 +545,7 @@ export function TaskDrawer({
           </Field>
 
           {/* SUB-TASKS (only for top-level tasks being edited) */}
-          {!isCreate && canHaveChildren && (
+          {canHaveChildren && (
             <Field
               label={`Sub-tasks${
                 childTasks && childTasks.length > 0
@@ -672,6 +613,8 @@ export function TaskDrawer({
               </form>
             </Field>
           )}
+          </>
+          )}
         </div>
 
         <footer className="px-8 py-5 flex items-center gap-3 border-t border-ink-3/60">
@@ -686,7 +629,7 @@ export function TaskDrawer({
               </button>
               <button
                 type="button"
-                disabled={!draftTitle.trim() || creating}
+                disabled={creating}
                 onClick={(e) => {
                   triggerGlowPulse(e.currentTarget);
                   handleCreate();

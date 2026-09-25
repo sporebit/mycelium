@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { pickPostBody } from "@/lib/capture/registry";
 import { after } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { auditListRead } from "@/lib/system/readAudit";
@@ -75,7 +76,7 @@ type CreateBody = {
 /** POST — manual create (bypasses review). 409 with the matches when a near-duplicate exists and `force` is not set. */
 export async function POST(req: NextRequest) {
   const uid = await principalUid();
-  const body = await readJson<CreateBody>(req);
+  const body = pickPostBody("quote", await readJson(req)) as CreateBody;
   const text = body?.text?.trim();
   if (!text) return NextResponse.json({ error: "text required" }, { status: 400 });
   try {
