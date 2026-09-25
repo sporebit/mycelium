@@ -100,6 +100,8 @@ export type Task = {
   waiting_on_name?: string | null;
   verified_by?: string | null;
   verified_at?: string | null;
+  /** 0139: the first time the category entered doing; never overwritten (tasks-merge M5). */
+  started_at?: string | null;
   cancelled_at?: string | null;
   source?: string;
   suggested?: Record<string, unknown> | null;
@@ -180,11 +182,12 @@ export type LinkedCapture = {
   created_at: string;
 };
 
+/** The shape of GET /api/tickets/[key] as the classic client reads it. */
 export type TaskDetail = {
   task: Task;
   comments: TaskComment[];
   activity: TaskActivity[];
-  subtasks: Task[];
+  sub_tasks: Task[];
   linked_captures: LinkedCapture[];
 };
 

@@ -10,7 +10,7 @@ import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { createQuoteFromExtraction, extractionFromClassification } from "@/lib/quotes/server";
 import { researchQuote } from "@/lib/quotes/research";
 import { appendCapture } from "@/lib/daylog/engine";
-import { technicalProjectIds } from "@/lib/tickets/surface";
+import { technicalProjectIds } from "@/lib/tickets/area";
 import { moveTicket } from "@/lib/tickets/server";
 import { rruleFromRecurrence } from "@/lib/tickets/reminderShape";
 import { getEntityDef, isTypedKind, londonToUtcIso, type FieldValues } from "@/lib/capture/registry";

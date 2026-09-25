@@ -12,10 +12,13 @@ import {
   type TicketCategory,
 } from "@/lib/tickets/categories";
 import { listTickets, type NowContext } from "@/lib/tickets/query";
-import { parseSurface } from "@/lib/tickets/surface";
+import { parseArea } from "@/lib/tickets/area";
+import { parseDateRanges, parseSort } from "@/lib/tickets/dateFilters";
+import { pickPostBody } from "@/lib/capture/registry";
 import { TEMPLATE_SELECT, instantiateTemplate, type TemplateRow } from "@/lib/tickets/templates";
 import {
   isTicketCategory,
+  legacyFieldsFromBody,
   moveTicket,
   principalUid,
   readJson,
@@ -27,16 +30,25 @@ import {
 export const runtime = "nodejs";
 
 /**
- * GET /api/tickets — the list endpoint behind every GTD tab and the Now view
- * (spec §11). Filters: list=now|inbox|today|upcoming|next|waiting|someday|
- * logbook, category=csv, project=<id|null>, assignee=me|<uid>, q, updated_since,
- * limit, subtasks=1; Now overrides: where, place, tools=csv, max_points,
- * include_backlog=1.
+ * GET /api/tickets — the list endpoint behind every GTD tab, the Now view and
+ * the dates list (spec §11, tasks-merge M2/M4). Filters: list=now|inbox|today|
+ * upcoming|next|waiting|someday|logbook|all (all = every ticket, done and
+ * cancelled included), category=csv, status_id=csv, area=technical|life|<area id>,
+ * project=<id|null>, assignee=me|<uid>, q, updated_since, limit, subtasks=1,
+ * created_from/to, started_from/to, completed_from/to, closed_from/to (a bare
+ * date is a London day), sort=<whitelisted column>&dir=asc|desc; Now
+ * overrides: where, place, tools=csv, max_points, include_backlog=1.
  */
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
   const listRaw = sp.get("list");
+  const all = listRaw === "all";
   const list = listRaw && (GTD_LISTS as readonly string[]).includes(listRaw) ? (listRaw as GtdList) : null;
+  const area = parseArea(sp.get("area"));
+  const statusIds = (sp.get("status_id") ?? "")
+    .split(",")
+    .map((x) => x.trim())
+    .filter((x) => /^[0-9a-f-]{36}$/i.test(x));
   const categories = (sp.get("category") ?? "")
     .split(",")
     .map((s) => s.trim())
@@ -65,10 +77,15 @@ export async function GET(req: NextRequest) {
       list,
       categories,
       projectId: sp.get("project"),
+      areaKind: area.kind,
+      areaId: area.areaId,
+      all,
+      dates: parseDateRanges((k) => sp.get(k)),
+      sort: parseSort(sp.get("sort"), sp.get("dir")),
+      statusIds,
       assignee,
       q: sp.get("q"),
       kind: sp.get("kind"),
-      surface: parseSurface(sp.get("surface")),
       sprint: sp.get("sprint"),
       updatedSince: sp.get("updated_since"),
       limit: sp.get("limit") ? Number(sp.get("limit")) : undefined,
@@ -77,7 +94,7 @@ export async function GET(req: NextRequest) {
       includeSubtasks: sp.get("subtasks") === "1",
     });
     auditListRead(req, tickets, "organisation", "tickets");
-    return NextResponse.json({ tickets, today, list: list ?? "all" });
+    return NextResponse.json({ tickets, today, list: all ? "all" : (list ?? "open") });
   } catch (err) {
     console.error("[/api/tickets GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });
@@ -91,10 +108,13 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const uid = await principalUid();
   if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const body = await readJson(req);
-  if (!body) return NextResponse.json({ error: "bad json" }, { status: 400 });
+  const raw = await readJson(req);
+  if (!raw) return NextResponse.json({ error: "bad json" }, { status: 400 });
+  // The registry's whitelist is the body (MYC-161): unknown keys never reach the insert.
+  const body = pickPostBody("task", raw);
 
-  const fields = ticketFieldsFromBody(body);
+  // Tickets-native fields plus the classic views' legacy columns (MYC-163).
+  const fields = { ...legacyFieldsFromBody(body), ...ticketFieldsFromBody(body) };
   const templateSlug = typeof body.template === "string" ? body.template.trim() : "";
   if (typeof fields.title !== "string" && !templateSlug) {
     return NextResponse.json({ error: "title required" }, { status: 400 });
@@ -133,11 +153,13 @@ export async function POST(req: NextRequest) {
       // When (spec §18 R4): `due_window` derives the dates here; the legacy
       // `urgency` column is no longer written.
       ...whenFieldsFromBody(body),
-      owner: uid,
-      priority_score: 0.5,
+      owner: typeof fields.owner === "string" && fields.owner.trim() ? fields.owner.trim() : uid,
+      priority_score: typeof fields.priority_score === "number" ? fields.priority_score : 0.5,
       source: typeof fields.source === "string" ? fields.source : "ui",
     };
     delete insert.status_id; // the 0117 trigger defaults it; `category` moves it
+    // A legacy status on create keeps completed_at coherent (the trigger derives the category).
+    if (typeof insert.status === "string" && insert.status === "completed") insert.completed_at = new Date().toISOString();
 
     const { data, error } = await supabase
       .from("tickets")

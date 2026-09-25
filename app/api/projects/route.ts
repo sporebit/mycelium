@@ -7,7 +7,7 @@ import {
   type ProjectStatus,
 } from "@/lib/types/project";
 import { PROJECT_SELECT_TICKETS, projectTicketFields } from "@/lib/tickets/projects";
-import { parseSurface, technicalProjectIds } from "@/lib/tickets/surface";
+import { parseAreaKind, technicalProjectIds } from "@/lib/tickets/area";
 
 export const runtime = "nodejs";
 
@@ -26,12 +26,11 @@ export async function GET(req: NextRequest) {
     if (status && PROJECT_STATUSES.includes(status as ProjectStatus)) {
       q = q.eq("status", status);
     }
-    // Tickets / Tasks partition (0121): `surface=tickets` = projects in a
-    // technical area, `surface=tasks` = the rest. Used by pickers (MYC-153).
-    const surface = parseSurface(url.searchParams.get("surface"));
-    if (surface) {
+    // `area=technical|life` (tasks-merge M2; was surface=tickets|tasks). Used by pickers (MYC-153).
+    const areaKind = parseAreaKind(url.searchParams.get("area"));
+    if (areaKind) {
       const ids = await technicalProjectIds(supabase);
-      if (surface === "tickets") q = q.in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+      if (areaKind === "technical") q = q.in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
       else if (ids.length) q = q.not("id", "in", `(${ids.join(",")})`);
     }
     const { data, error } = await q;

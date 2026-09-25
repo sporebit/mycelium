@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { ticketCounts } from "@/lib/tickets/query";
-import { parseSurface } from "@/lib/tickets/surface";
+import { parseArea } from "@/lib/tickets/area";
 
 export const runtime = "nodejs";
 
-/** GET /api/tickets/counts?surface=tickets|tasks — tab badges for the GTD home, per surface. */
+/** GET /api/tickets/counts?area=technical|life|<area id>&project=<id> — tab badges for the Tasks home under the Area chip (tasks-merge M2). */
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createUserClient();
-    const counts = await ticketCounts(supabase, parseSurface(req.nextUrl.searchParams.get("surface")));
+    const sp = req.nextUrl.searchParams;
+    const area = parseArea(sp.get("area"));
+    const counts = await ticketCounts(supabase, { areaKind: area.kind, areaId: area.areaId, projectId: sp.get("project") });
     return NextResponse.json({ counts });
   } catch (err) {
     console.error("[/api/tickets/counts GET]", err);
