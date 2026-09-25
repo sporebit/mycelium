@@ -6,6 +6,8 @@ import { triggerFieldPulse } from "@/lib/motion";
 
 type Toast = { kind: "success" | "error"; text: string } | null;
 
+const ADD_ANOTHER_KEY = "mycelium.capture.addAnother";
+
 const FAB_ROUTES = new Set([
   "/",
   "/organisation",
@@ -23,7 +25,27 @@ export function FloatingCapture() {
   const [value, setValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
+  // "Add another": keep the modal open after a successful capture so a run
+  // of thoughts can be entered without reopening. Remembered per browser.
+  const [addAnother, setAddAnother] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  function readAddAnother(): boolean {
+    try {
+      return localStorage.getItem(ADD_ANOTHER_KEY) === "1";
+    } catch {
+      return false; // localStorage unavailable (private mode etc.)
+    }
+  }
+
+  function toggleAddAnother(next: boolean) {
+    setAddAnother(next);
+    try {
+      localStorage.setItem(ADD_ANOTHER_KEY, next ? "1" : "0");
+    } catch {
+      // ignore — preference just won't persist.
+    }
+  }
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -39,11 +61,8 @@ export function FloatingCapture() {
   // External trigger: Sidebar / TabBar dispatch "open-capture" to open the
   // same capture modal without needing a shared React context.
   useEffect(() => {
-    function onOpen() {
-      setOpen(true);
-    }
-    window.addEventListener("open-capture", onOpen);
-    return () => window.removeEventListener("open-capture", onOpen);
+    window.addEventListener("open-capture", openModal);
+    return () => window.removeEventListener("open-capture", openModal);
   }, []);
 
   useEffect(() => {
@@ -55,6 +74,13 @@ export function FloatingCapture() {
     const t = setTimeout(() => setToast(null), 2000);
     return () => clearTimeout(t);
   }, [toast]);
+
+  // The stored preference is read at open time (an event, not render) so
+  // the server-rendered markup never disagrees with the browser's value.
+  function openModal() {
+    setAddAnother(readAddAnother());
+    setOpen(true);
+  }
 
   function closeModal() {
     setOpen(false);
@@ -78,7 +104,12 @@ export function FloatingCapture() {
         setToast({ kind: "error", text: json.error ?? `Failed (${res.status})` });
       } else {
         setToast({ kind: "success", text: "✓ Captured" });
-        closeModal();
+        if (addAnother) {
+          setValue("");
+          requestAnimationFrame(() => textareaRef.current?.focus());
+        } else {
+          closeModal();
+        }
         // Ripple emanates from bottom-centre — works for both desktop
         // FloatingCapture (bottom-right) and mobile TabBar FAB (bottom
         // -centre); slight offset for FloatingCapture is imperceptible
@@ -128,7 +159,7 @@ export function FloatingCapture() {
       {showFab && !open && (
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={openModal}
           aria-label="Capture"
           className="hidden lg:flex fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-accent text-ink-0 shadow-2xl hover:bg-accent/90 transition-transform hover:scale-105 items-center justify-center text-xl font-[family-name:var(--font-mono)]"
         >
@@ -178,8 +209,17 @@ export function FloatingCapture() {
                 disabled={submitting}
                 className="w-full bg-ink-0/40 border border-ink-2 rounded-md outline-none text-sm text-ink-4 placeholder:text-ink-3 p-3 resize-y focus:border-ink-3"
               />
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-                <span>⌘/Ctrl+Enter to submit · Esc to close</span>
+              <div className="flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                <span className="hidden sm:inline">⌘/Ctrl+Enter to submit · Esc to close</span>
+                <label className="flex items-center gap-1.5 cursor-pointer select-none hover:text-ink-4">
+                  <input
+                    type="checkbox"
+                    checked={addAnother}
+                    onChange={(e) => toggleAddAnother(e.target.checked)}
+                    className="accent-accent h-3 w-3"
+                  />
+                  Add another
+                </label>
                 <button
                   type="button"
                   onClick={submit}
