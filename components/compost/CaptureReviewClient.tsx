@@ -8,6 +8,8 @@ import { PendingEntitiesList } from "./PendingEntitiesList";
 import { parseWeight } from "@/lib/health/parse-weight";
 import { useApi } from "@/lib/data/useApi";
 import { EMPTY_PERSON_UPDATE, PersonUpdateEditor, type PersonUpdateDraft } from "./PersonUpdateEditor";
+import { EntityForm } from "@/components/forms/EntityForm";
+import { ENTITY_REGISTRY, TYPED_KINDS, emptyValues, getEntityDef, type FieldErrors, type FieldValues } from "@/lib/capture/registry";
 
 type Classification = {
   kind?: string;
@@ -201,6 +203,8 @@ export function CaptureReviewClient({ initialTab = "needs_review", dayId = null 
         if (draft.person && typeof draft.person === "object") body.person = draft.person;
         if (draft.quote && typeof draft.quote === "object") body.quote = draft.quote;
         if (draft.duplicate) body.duplicate = draft.duplicate;
+        // MYC-161: a typed capture's registry form travels as `fields`.
+        if (draft.fields && typeof draft.fields === "object") body.fields = draft.fields;
       }
       const r = await fetch(`/api/captures/${capture.id}/review`, {
         method: "PATCH",
@@ -387,7 +391,39 @@ function ReviewCard({
   const [duplicate, setDuplicate] = useState<DuplicateChoice>(null);
   const quoteCandidates: string[] = Array.isArray(cls.quote_person_candidates) ? (cls.quote_person_candidates as string[]) : [];
 
-  const draft: Classification = useMemo(() => {
+  // MYC-161: a typed capture shows its registry form, pre-filled, so APPROVE
+  // is one tap. Changing the kind re-seeds the new kind's form from the text.
+  // Pinned at mount: a capture is typed or not for the life of the card.
+  const [typed] = useState(cls.typed === true);
+  const typedDef = typed ? getEntityDef(kind) : null;
+  const [typedFields, setTypedFields] = useState<FieldValues>(() => {
+    const d = getEntityDef(typeof cls.typed_kind === "string" ? cls.typed_kind : kind);
+    if (!d) return {};
+    const stored = cls.typed_fields && typeof cls.typed_fields === "object" ? (cls.typed_fields as FieldValues) : {};
+    return emptyValues(d, { [d.primary]: capture.raw_text ?? "", ...stored });
+  });
+  const [typedErrors, setTypedErrors] = useState<FieldErrors>({});
+  function changeKind(next: string) {
+    setKind(next);
+    if (!typed) return;
+    const d = getEntityDef(next);
+    if (!d) return;
+    const stored = next === cls.typed_kind && cls.typed_fields && typeof cls.typed_fields === "object" ? (cls.typed_fields as FieldValues) : {};
+    setTypedFields(emptyValues(d, { [d.primary]: capture.raw_text ?? "", ...stored }));
+    setTypedErrors({});
+  }
+  function typedAction(action: "approve" | "reroute") {
+    if (typedDef) {
+      const errs = typedDef.validate(typedFields);
+      setTypedErrors(errs);
+      if (Object.keys(errs).length) return;
+    }
+    onAction(action, draft);
+  }
+
+  // Not manually memoised: the compiler handles it, and the typed form's
+  // values (MYC-161) change too often for a dependency list to stay honest.
+  const draft: Classification = (() => {
     let scheduled_at: string | null = null;
     if (scheduledDate) {
       const timePart = scheduledTime || "09:00";
@@ -412,8 +448,9 @@ function ReviewCard({
       ...(kind === "quote" ? { quote: quoteDraft, duplicate } : {}),
       ...(kind === "ticket" ? { project_id: projectId || null } : {}),
       ...(kind === "person" ? { person: personDraft } : {}),
+      ...(typed && getEntityDef(kind) ? { fields: typedFields, title: typeof typedFields[getEntityDef(kind)!.primary] === "string" ? (typedFields[getEntityDef(kind)!.primary] as string) : title } : {}),
     };
-  }, [kind, urgency, title, entities, mentions, dateInferred, scheduledDate, scheduledTime, quoteDraft, duplicate, projectId, personDraft]);
+  })();
 
   const detectedWeight = useMemo(
     () => (capture.raw_text ? parseWeight(capture.raw_text) : null),
@@ -476,6 +513,42 @@ function ReviewCard({
         )}
       </div>
 
+      {typed && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Field label="Kind">
+              <select
+                value={kind}
+                onChange={(e) => changeKind(e.target.value)}
+                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+              >
+                {TYPED_KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {ENTITY_REGISTRY[k].label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Routed to">
+              {routedUrl(capture) ? (
+                <Link
+                  href={routedUrl(capture)!}
+                  className="text-sm text-accent px-3 py-2 rounded-sm bg-ink-0/40 border border-accent/30 font-[family-name:var(--font-mono)] truncate block hover:bg-accent/10 transition-colors"
+                >
+                  {routedTarget(capture)} →
+                </Link>
+              ) : (
+                <div className="text-sm text-text-1 px-3 py-2 rounded-sm bg-ink-0/40 border border-ink-2 font-[family-name:var(--font-mono)] truncate">
+                  {isReviewed ? routedTarget(capture) : "waiting for approve"}
+                </div>
+              )}
+            </Field>
+          </div>
+          {typedDef && <EntityForm def={typedDef} values={typedFields} onChange={setTypedFields} errors={typedErrors} disabled={busy} />}
+        </>
+      )}
+
+      {!typed && (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Kind">
           <select
@@ -504,7 +577,9 @@ function ReviewCard({
           </select>
         </Field>
       </div>
+      )}
 
+      {!typed && (
       <Field label="Title">
         <input
           type="text"
@@ -513,7 +588,9 @@ function ReviewCard({
           className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
         />
       </Field>
+      )}
 
+      {!typed && (
       <Field label="Entities">
         <TagInput
           values={entities}
@@ -522,10 +599,15 @@ function ReviewCard({
         />
       </Field>
 
+      )}
+
+      {!typed && (
       <Field label="People mentioned">
         <MentionInput values={mentions} onChange={setMentions} />
       </Field>
+      )}
 
+      {!typed && (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Date inferred">
           <input
@@ -550,16 +632,17 @@ function ReviewCard({
           )}
         </Field>
       </div>
+      )}
 
-      {kind === "quote" && (
+      {!typed && kind === "quote" && (
         <QuoteReviewEditor value={quoteDraft} onChange={setQuoteDraft} candidates={quoteCandidates} duplicate={duplicate} onDuplicate={setDuplicate} />
       )}
 
-      {kind === "person" && (
+      {!typed && kind === "person" && (
         <PersonUpdateEditor value={personDraft} onChange={setPersonDraft} hints={personHints} />
       )}
 
-      {kind === "ticket" && (
+      {!typed && kind === "ticket" && (
         <Field label="Project">
           <select
             value={projectId}
@@ -576,7 +659,7 @@ function ReviewCard({
         </Field>
       )}
 
-      {(kind === "task" || kind === "ticket") && (
+      {!typed && (kind === "task" || kind === "ticket") && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Scheduled date">
             <input
@@ -621,8 +704,8 @@ function ReviewCard({
         <div className="flex-1" />
         <button
           type="button"
-          disabled={busy || (kind === "ticket" && !projectId) || (kind === "person" && !personReady)}
-          onClick={() => onAction("reroute", draft)}
+          disabled={busy || (!typed && ((kind === "ticket" && !projectId) || (kind === "person" && !personReady)))}
+          onClick={() => (typed ? typedAction("reroute") : onAction("reroute", draft))}
           className="px-3 py-2 rounded-sm border border-warn/40 text-warn text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-warn/15 disabled:opacity-40"
           title="Save edits and re-run routing"
         >
@@ -630,9 +713,9 @@ function ReviewCard({
         </button>
         <button
           type="button"
-          disabled={busy || (kind === "ticket" && !projectId) || (kind === "person" && !personReady)}
-          onClick={() => onAction("approve", draft)}
-          title={kind === "ticket" && !projectId ? "Choose a project first" : undefined}
+          disabled={busy || (!typed && ((kind === "ticket" && !projectId) || (kind === "person" && !personReady)))}
+          onClick={() => (typed ? typedAction("approve") : onAction("approve", draft))}
+          title={!typed && kind === "ticket" && !projectId ? "Choose a project first" : undefined}
           className="px-4 py-2 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
         >
           {busy ? "…" : "APPROVE"}

@@ -7,6 +7,7 @@ import { suggestContexts } from "@/lib/tickets/suggest";
 import { resolveSpeaker } from "@/lib/quotes/server";
 import { applySpeakerRules, readBack } from "@/lib/quotes/text";
 import { appendCapture } from "@/lib/daylog/engine";
+import { fieldsFromClassification, recordCaptureLearning } from "@/lib/capture/learning";
 
 export type WriteCaptureInput = {
   /** Auth uid of the capturing user — written as the task owner. */
@@ -21,6 +22,21 @@ export type WriteCaptureInput = {
   classification: Classification;
   llmSource: "anthropic" | "openai" | "regex";
   clientUuid?: string;
+  /**
+   * Typed capture (MYC-161): the user picked the kind on the form. Every
+   * typed submit goes to review — a task/ticket lands in the Tickets Inbox
+   * with `suggested` extended by the typed fields (and `projectId` for a
+   * ticket); every other kind stays a capture (`reviewOnly`) for the review
+   * queue to materialise on APPROVE. Mentions are never resolved on this
+   * path, so no person is ever created from a typed form.
+   */
+  typed?: {
+    kind: string;
+    fields: Record<string, unknown>;
+    reviewOnly: boolean;
+    projectId?: string | null;
+    suggested?: Record<string, unknown> | null;
+  };
 };
 
 export type WriteCaptureResult = {
@@ -113,7 +129,11 @@ export async function writeCapture(
   let memorySourceType: "capture" | "journal" = "capture";
   let memorySourceId: string = rawCapture.id;
 
-  if (classification.kind === "task") {
+  if (input.typed?.reviewOnly) {
+    // MYC-161: a typed non-task capture waits for review; APPROVE materialises it.
+    routedTo = "raw_captures";
+    routedId = rawCapture.id;
+  } else if (classification.kind === "task") {
     // Tickets spec §8.1: a capture lands in Inbox (0117 default) with
     // Claude's guesses in `suggested` for the Clarify card to accept or
     // adjust. Cheap heuristic here; the classifier's context fields win.
@@ -128,6 +148,16 @@ export async function writeCapture(
     if (ctx.context_where === "home" || ctx.context_where === "out") suggested.where_ctx = ctx.context_where;
     if (ctx.context_device === "pc" || ctx.context_device === "phone") suggested.tools = [ctx.context_device];
     if (heuristic.reasons.length) suggested.reasons = heuristic.reasons;
+    // MYC-161: the typed form's fields are the strongest suggestion there is.
+    if (input.typed?.suggested) {
+      for (const [k, v] of Object.entries(input.typed.suggested)) if (v !== undefined && v !== null && v !== "") suggested[k] = v;
+      suggested.typed = input.typed.fields;
+    }
+    const typedExtra: Record<string, unknown> = {};
+    if (input.typed?.projectId) typedExtra.project_id = input.typed.projectId;
+    const extra = classification as unknown as Record<string, unknown>;
+    if (typeof extra.scheduled_at === "string" && extra.scheduled_at) typedExtra.scheduled_at = extra.scheduled_at;
+    if (typeof extra.entity_id === "string" && extra.entity_id) typedExtra.entity_id = extra.entity_id;
 
     const { data: task, error: taskErr } = await supabase
       .from("tickets")
@@ -143,6 +173,7 @@ export async function writeCapture(
         source: source === "telegram" ? "telegram" : source === "api" ? "shortcut" : "ui",
         suggested,
         ...ctx,
+        ...typedExtra,
       })
       .select("id, ticket_key")
       .single();
@@ -304,9 +335,24 @@ export async function writeCapture(
     console.error("[writeCapture] audit_log insert failed:", auditErr);
   }
 
+  // d2. Learning row (MYC-161): what was predicted and, on a typed form, what
+  //     was chosen. A typed capture's prediction arrives later from the
+  //     shadow classification; the row exists from here so it has a home.
+  await recordCaptureLearning(supabase, {
+    captureId: rawCapture.id,
+    text: rawText,
+    source,
+    predictedKind: input.typed ? null : classification.kind,
+    predictedFields: input.typed ? null : fieldsFromClassification(classification as unknown as Record<string, unknown>),
+    predictedLlmSource: input.typed ? null : llmSource,
+    chosenKind: input.typed?.kind ?? null,
+    chosenFields: input.typed?.fields ?? null,
+  });
+
   // e. People mentions — resolve and record each. Soft failure mode: any
   //    error here is logged inside recordMention and doesn't block the write.
-  if (classification.mentions && classification.mentions.length > 0) {
+  //    Never on a typed form (MYC-161): nothing typed can create a person.
+  if (!input.typed && classification.mentions && classification.mentions.length > 0) {
     // Tasks and journal entries get task/journal source_type; everything
     // else (decision/note/capture/workout) gets capture source_type with
     // the raw_capture id.

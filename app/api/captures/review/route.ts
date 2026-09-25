@@ -15,6 +15,7 @@ export const runtime = "nodejs";
  *   - classification->>'session_intent'  = 'ambiguous'
  *   - classification->>'kind'            = 'ambiguous'
  *   - reviewed_at IS NULL AND created_at < now() - interval '1 hour'
+ *   - classification->>'typed' = 'true' AND reviewed_at IS NULL   (MYC-161)
  * discarded_at IS NULL is always required.
  *
  * "all" lists every non-discarded capture, newest first.
@@ -58,6 +59,8 @@ export async function GET(req: NextRequest) {
           `classification->>confidence.in.(low,ambiguous)`,
           `classification->>kind.eq.ambiguous`,
           `and(reviewed_at.is.null,created_at.lt.${oneHourAgo})`,
+          // a typed capture (MYC-161) is review-first: it waits here from the moment it lands
+          `and(classification->>typed.eq.true,reviewed_at.is.null)`,
         ].join(","),
       );
     }

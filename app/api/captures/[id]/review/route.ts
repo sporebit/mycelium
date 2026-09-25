@@ -11,6 +11,10 @@ import { createQuoteFromExtraction, extractionFromClassification } from "@/lib/q
 import { researchQuote } from "@/lib/quotes/research";
 import { appendCapture } from "@/lib/daylog/engine";
 import { technicalProjectIds } from "@/lib/tickets/surface";
+import { moveTicket } from "@/lib/tickets/server";
+import { rruleFromRecurrence } from "@/lib/tickets/reminderShape";
+import { getEntityDef, isTypedKind, londonToUtcIso, type FieldValues } from "@/lib/capture/registry";
+import { recordApproval } from "@/lib/capture/learning";
 
 export const runtime = "nodejs";
 
@@ -44,6 +48,8 @@ type ReviewBody = {
   };
   /** Near-duplicate merge: keep the existing quote (discard this one) or replace its text. */
   duplicate?: { id: string; action: "keep" | "replace" };
+  /** MYC-161: the registry form's values for `kind` — validated and mapped by the registry. */
+  fields?: FieldValues;
 };
 
 const ALLOWED_KINDS = new Set([
@@ -59,6 +65,9 @@ const ALLOWED_KINDS = new Set([
   "purchase",
   "media",
   "quote",
+  "reminder",
+  "account",
+  "pain_log",
 ]);
 /** Person fields a capture may set (MYC-154); names and needs_review stay with the People drawer. */
 const PERSON_PATCH_FIELDS = ["birthday", "address", "phone", "email", "relationship", "where_we_met", "mutual_interests", "notes"] as const;
@@ -137,6 +146,19 @@ function mergeClassification(
     if (b.said_by_person_id !== undefined) merged.quote_person_id = q.is_own === true ? null : b.said_by_person_id;
     if (typeof q.text === "string") merged.title = q.text;
   }
+  // MYC-161: a registry form's values become the classification for that
+  // kind, and stay on the capture as typed_fields for the next edit.
+  const fieldsKind = typeof merged.kind === "string" ? merged.kind : null;
+  if (body.fields && typeof body.fields === "object" && isTypedKind(fieldsKind)) {
+    const def = getEntityDef(fieldsKind);
+    if (def) {
+      Object.assign(merged, def.toClassification(body.fields, typeof merged.raw_text === "string" ? merged.raw_text : ""));
+      merged.kind = fieldsKind;
+      merged.typed = true;
+      merged.typed_kind = fieldsKind;
+      merged.typed_fields = body.fields;
+    }
+  }
   if (body.date_inferred === null) {
     delete merged.date_inferred;
   } else if (
@@ -192,6 +214,10 @@ async function createRoutedRow(
   const kind = String(classification.kind ?? "capture");
 
   if (kind === "person") {
+    if (!person?.id) {
+      const pu = classification.person_update as { id?: string; patch?: Record<string, unknown> } | undefined;
+      if (pu?.id) person = { id: pu.id, patch: pu.patch ?? {} };
+    }
     if (!person?.id) throw new Error("a person update needs a person");
     const patch: Record<string, unknown> = {};
     for (const k of PERSON_PATCH_FIELDS) {
@@ -327,13 +353,16 @@ async function createRoutedRow(
       typeof mediaObj.creator === "string" && mediaObj.creator.trim()
         ? mediaObj.creator.trim()
         : null;
+    const mediaExtra = (classification.media_extra as Record<string, unknown> | undefined) ?? {};
     const { data, error } = await supabase
       .from("media_items")
       .insert({ title,
         creator,
         media_type: mediaType,
-        media_status: "backlog",
+        media_status: typeof mediaExtra.media_status === "string" ? mediaExtra.media_status : "backlog",
         tags: tags.length ? tags : null,
+        url: typeof mediaExtra.url === "string" ? mediaExtra.url : null,
+        notes: typeof mediaExtra.notes === "string" ? mediaExtra.notes : null,
         raw_capture_id: rawCaptureId,
       })
       .select("id")
@@ -342,6 +371,88 @@ async function createRoutedRow(
       throw new Error(`media_items insert failed: ${error?.message ?? "no row"}`);
     }
     return { routedTo: "media_items", routedId: data.id };
+  }
+
+  if (kind === "reminder") {
+    // A reminder is a ticket of kind reminder (0125): the typed form or the
+    // classifier gives a London date + time; the row goes straight to Next.
+    const r = (classification.reminder as Record<string, unknown> | undefined) ?? {};
+    let dueIso = typeof classification.due_at === "string" && !Number.isNaN(Date.parse(classification.due_at)) ? new Date(classification.due_at).toISOString() : null;
+    if (!dueIso && typeof r.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.date)) {
+      dueIso = londonToUtcIso(r.date, typeof r.time === "string" && /^\d{2}:\d{2}$/.test(r.time) ? r.time : "09:00");
+    }
+    if (!dueIso) throw new Error("a reminder needs a date and time");
+    const message = (typeof r.reminder_message === "string" && r.reminder_message.trim()) || title;
+    const due = new Date(dueIso);
+    const { data, error } = await supabase
+      .from("tickets")
+      .insert({
+        title: message,
+        kind: "reminder",
+        remind_at: due.toISOString(),
+        scheduled_on: due.toLocaleDateString("en-CA", { timeZone: "Europe/London" }),
+        recurrence_rrule: rruleFromRecurrence(typeof r.recurrence === "string" ? r.recurrence : null),
+        recurrence_mode: null,
+        source: "ui",
+        owner: userId,
+        urgency: "this_week",
+        priority_score: 0.5,
+        meta: { legacy_recurrence: typeof r.recurrence === "string" && r.recurrence ? r.recurrence : null, capture_id: rawCaptureId },
+      })
+      .select("id")
+      .single();
+    if (error || !data) throw new Error(`reminder insert failed: ${error?.message ?? "no row"}`);
+    await moveTicket(supabase, data.id, "next");
+    return { routedTo: "tickets", routedId: data.id };
+  }
+
+  if (kind === "pain_log") {
+    // Standalone pain log (no session), the same row writeCapture makes on the auto path.
+    const pain = (classification.pain as Record<string, unknown> | undefined) ?? {};
+    const regions = Array.isArray(pain.pain_regions) ? (pain.pain_regions as unknown[]).filter((x): x is string => typeof x === "string") : [];
+    const severity = typeof pain.severity === "number" ? pain.severity : 0;
+    const feel = typeof pain.feel_rating === "string" ? pain.feel_rating : null;
+    const { data, error } = await supabase
+      .from("exercise_pain_logs")
+      .insert({
+        session_id: null,
+        session_exercise_id: null,
+        exercise_name: "standalone",
+        severity,
+        feel_rating: feel,
+        pain_regions: regions,
+        notes: (summary ?? rawText).trim() || null,
+        logged_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+    if (error || !data) throw new Error(`pain log insert failed: ${error?.message ?? "no row"}`);
+    return { routedTo: "exercise_pain_logs", routedId: data.id };
+  }
+
+  if (kind === "account") {
+    const acct = (classification.account as Record<string, unknown> | undefined) ?? {};
+    const extra = (classification.account_extra as Record<string, unknown> | undefined) ?? {};
+    const { data, error } = await supabase
+      .from("accounts")
+      .insert({
+        name: title,
+        status: typeof acct.status === "string" ? acct.status : "active",
+        cost_amount: typeof acct.cost_amount === "number" ? acct.cost_amount : null,
+        cost_currency: typeof extra.cost_currency === "string" ? extra.cost_currency : "GBP",
+        cost_period: typeof acct.cost_period === "string" ? acct.cost_period : null,
+        category: typeof extra.category === "string" ? extra.category : "Other",
+        email: typeof extra.email === "string" ? extra.email : null,
+        url: typeof extra.url === "string" ? extra.url : null,
+        renewal_date: typeof extra.renewal_date === "string" ? extra.renewal_date : null,
+        payment_method: typeof extra.payment_method === "string" ? extra.payment_method : null,
+        opened_date: typeof extra.opened_date === "string" ? extra.opened_date : null,
+        notes: typeof extra.notes === "string" ? extra.notes : rawText.trim() || null,
+      })
+      .select("id")
+      .single();
+    if (error || !data) throw new Error(`accounts insert failed: ${error?.message ?? "no row"}`);
+    return { routedTo: "accounts", routedId: data.id };
   }
 
   if (kind === "quote") {
@@ -443,6 +554,26 @@ export async function PATCH(
       return NextResponse.json({ ok: true, action: "discard", capture: data });
     }
 
+    // MYC-161: the registry validates a typed form before anything is written,
+    // and the person / project it names are what the create needs.
+    const typedKind = typeof body.kind === "string" ? body.kind : (existing.classification as Record<string, unknown> | null)?.kind;
+    if (body.fields && typeof body.fields === "object" && isTypedKind(typedKind)) {
+      const def = getEntityDef(typedKind);
+      const errors = def ? def.validate(body.fields) : {};
+      if (Object.keys(errors).length) {
+        return NextResponse.json({ error: Object.values(errors)[0], errors }, { status: 400 });
+      }
+      if (typedKind === "person" && !body.person) {
+        const patch: Record<string, unknown> = {};
+        for (const k of PERSON_PATCH_FIELDS) if (typeof body.fields[k] === "string" && (body.fields[k] as string).trim()) patch[k] = (body.fields[k] as string).trim();
+        body.person = { id: String(body.fields.person_id ?? ""), patch };
+      }
+      if (typedKind === "ticket" && !body.project_id && typeof body.fields.project_id === "string") body.project_id = body.fields.project_id;
+      if (typeof body.fields.scheduled_at === "string" && body.fields.scheduled_at && body.scheduled_at === undefined) {
+        body.scheduled_at = new Date(body.fields.scheduled_at).toISOString();
+      }
+    }
+
     const mergedClassification = mergeClassification(
       existing.classification as Record<string, unknown> | null,
       body,
@@ -451,7 +582,21 @@ export async function PATCH(
     if (action === "approve") {
       // Quotes are materialised on approve (spec §4 step 7), not at capture.
       let quoteRoute: { routed_to: string; routed_id: string } | null = null;
-      if (mergedClassification.kind === "quote" && existing.routed_to !== "quotes") {
+      // MYC-161: a typed capture was never materialised; APPROVE is where its
+      // row is created, whatever the kind. Runs first so the older branches
+      // below see it as done.
+      const approvedTypedKind = String(mergedClassification.kind ?? "");
+      const typedDef = mergedClassification.typed === true ? getEntityDef(mergedClassification.typed_kind ?? approvedTypedKind) : null;
+      const notYetMaterialised = (existing.routed_to ?? "raw_captures") === "raw_captures";
+      if (typedDef && typedDef.materialises && notYetMaterialised) {
+        try {
+          const r = await createRoutedRow(supabase, uid, id, existing.raw_text ?? "", existing.audio_url ?? null, mergedClassification, body.scheduled_at, body.project_id, body.person);
+          quoteRoute = { routed_to: r.routedTo, routed_id: r.routedId };
+          if (r.routedTo === "tickets") await recordMentions(supabase, mergedClassification, "task", r.routedId);
+        } catch (err) {
+          return NextResponse.json({ error: err instanceof Error ? err.message : "approve failed" }, { status: 400 });
+        }
+      } else if (mergedClassification.kind === "quote" && existing.routed_to !== "quotes") {
         const dup = body.duplicate;
         if (dup && typeof dup.id === "string" && (dup.action === "keep" || dup.action === "replace")) {
           if (dup.action === "replace") {
@@ -475,7 +620,7 @@ export async function PATCH(
       const priorApprovedKind = typeof (existing.classification as Record<string, unknown> | null)?.kind === "string"
         ? String((existing.classification as Record<string, unknown>).kind)
         : null;
-      if ((approvedKind === "ticket" || approvedKind === "person") && approvedKind !== priorApprovedKind) {
+      if (!quoteRoute && (approvedKind === "ticket" || approvedKind === "person") && approvedKind !== priorApprovedKind) {
         try {
           // Create first, then drop the old row, so a refused ticket (no
           // project) leaves the original task in place.
@@ -504,6 +649,13 @@ export async function PATCH(
           { status: 500 },
         );
       }
+      // MYC-161: the approval is the learning signal.
+      await recordApproval(
+        supabase,
+        id,
+        String(mergedClassification.kind ?? "capture"),
+        (mergedClassification.typed_fields as Record<string, unknown> | undefined) ?? { title: mergedClassification.title, urgency: mergedClassification.urgency },
+      );
       return NextResponse.json({ ok: true, action: "approve", capture: data });
     }
 
@@ -576,6 +728,12 @@ export async function PATCH(
         { status: 500 },
       );
     }
+    await recordApproval(
+      supabase,
+      id,
+      newKind,
+      (mergedClassification.typed_fields as Record<string, unknown> | undefined) ?? { title: mergedClassification.title, urgency: mergedClassification.urgency },
+    );
     return NextResponse.json({ ok: true, action: "reroute", capture: data });
   } catch (err) {
     console.error("[/api/captures/:id/review PATCH]", err);
