@@ -15,6 +15,7 @@ import { moveTicket } from "@/lib/tickets/server";
 import { rruleFromRecurrence } from "@/lib/tickets/reminderShape";
 import { getEntityDef, isTypedKind, londonToUtcIso, type FieldValues } from "@/lib/capture/registry";
 import { recordApproval } from "@/lib/capture/learning";
+import { applyPersonPatch } from "@/lib/people/contacts";
 
 export const runtime = "nodejs";
 
@@ -225,7 +226,7 @@ async function createRoutedRow(
       if (typeof v === "string" && v.trim()) patch[k] = v.trim();
     }
     if (typeof patch.birthday === "string" && !/^\d{4}-\d{2}-\d{2}$/.test(patch.birthday)) throw new Error("birthday must be YYYY-MM-DD");
-    const { data: current, error: readErr } = await supabase.from("people").select("id, notes").eq("id", person.id).maybeSingle();
+    const { data: current, error: readErr } = await supabase.from("people").select("id, notes").eq("id", person.id).is("deleted_at", null).maybeSingle();
     if (readErr || !current) throw new Error("person not found");
     if (typeof patch.notes === "string") {
       // Notes accumulate — a capture adds a dated line rather than replacing what is there.
@@ -233,8 +234,9 @@ async function createRoutedRow(
       patch.notes = current.notes ? `${current.notes}\n${line}` : line;
     }
     if (Object.keys(patch).length === 0) throw new Error("nothing to update on the person");
-    const { error } = await supabase.from("people").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", person.id);
-    if (error) throw new Error(`people update failed: ${error.message}`);
+    // phone / email land in person_phones / person_emails (0140); the rest on the row
+    const updated = await applyPersonPatch(supabase, person.id, patch);
+    if (!updated) throw new Error("people update failed");
     return { routedTo: "people", routedId: person.id };
   }
   const title = String(classification.title ?? "Capture");

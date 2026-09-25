@@ -1,23 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { normaliseAlias } from "@/lib/people/normalise";
+import { applyPersonPatch, attachContactPoints, PERSON_SELECT, resolvePersonId, softDeletePerson } from "@/lib/people/contacts";
 import type { Person, PersonAlias, PersonWithAliases } from "@/lib/people/types";
 
 export const runtime = "nodejs";
 
-const PERSON_FIELDS =
-  "id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at";
-
+/**
+ * GET /api/people/[id] — the person with aliases, numbers and emails. An id
+ * that was merged away resolves to the survivor (people-contacts C3) and
+ * the response says so in `resolved_from`; a deleted one is 404 (C4).
+ */
 export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await ctx.params;
+  const { id: rawId } = await ctx.params;
   try {
     const supabase = await createUserClient();
+    const ref = await resolvePersonId(supabase, rawId);
+    if (!ref) return NextResponse.json({ error: "not found" }, { status: 404 });
+    const id = ref.id;
     const { data: person } = await supabase
       .from("people")
-      .select(PERSON_FIELDS)
+      .select(PERSON_SELECT)
       .eq("id", id)
       .maybeSingle();
     if (!person) return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -27,11 +33,12 @@ export async function GET(
       .eq("person_id", id)
       .order("is_primary", { ascending: false })
       .order("created_at", { ascending: true });
+    const [withPoints] = await attachContactPoints(supabase, [person as Person]);
     const detail: PersonWithAliases = {
-      ...(person as Person),
+      ...withPoints,
       aliases: (aliases ?? []) as PersonAlias[],
     };
-    return NextResponse.json({ person: detail });
+    return NextResponse.json({ person: detail, resolved_from: ref.resolvedFrom });
   } catch (err) {
     console.error("[/api/people/:id GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });
@@ -43,6 +50,7 @@ type PatchBody = Partial<{
   last_name: string | null;
   display_name: string | null;
   relationship: string | null;
+  /** Legacy single values: become contact points (0140). */
   phone: string | null;
   email: string | null;
   birthday: string | null;
@@ -57,32 +65,11 @@ type PatchBody = Partial<{
   aliases: string[];
 }>;
 
-// Allow-list of column names the PATCH may write directly to the
-// people row. The PersonDrawer also sends `aliases`, which is a
-// separate table and handled in the alias block below — passing
-// `aliases` through to the people update would fail with "column
-// not found" on Supabase, which was the root cause of the visible
-// "update failed" toast.
-const PEOPLE_COLUMNS: ReadonlyArray<keyof PatchBody> = [
-  "first_name",
-  "last_name",
-  "display_name",
-  "relationship",
-  "phone",
-  "email",
-  "birthday",
-  "address",
-  "where_we_met",
-  "mutual_interests",
-  "notes",
-  "needs_review",
-];
-
 export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await ctx.params;
+  const { id: rawId } = await ctx.params;
   let body: PatchBody;
   try {
     body = (await req.json()) as PatchBody;
@@ -90,37 +77,24 @@ export async function PATCH(
     return NextResponse.json({ error: "bad json" }, { status: 400 });
   }
 
-  const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  for (const key of PEOPLE_COLUMNS) {
-    if (body[key] !== undefined) update[key] = body[key];
-  }
-
   try {
     const supabase = await createUserClient();
-    const { data: existing } = await supabase
-      .from("people")
-      .select("id, first_name, display_name")
-      .eq("id", id)
-      .maybeSingle();
-    if (!existing) return NextResponse.json({ error: "not found" }, { status: 404 });
+    const ref = await resolvePersonId(supabase, rawId);
+    if (!ref) return NextResponse.json({ error: "not found" }, { status: 404 });
+    const id = ref.id;
 
-    const { data, error } = await supabase
-      .from("people")
-      .update(update)
-      .eq("id", id)
-      .select(PERSON_FIELDS)
-      .single();
-    if (error || !data) {
-      console.error("[/api/people/:id PATCH]", error);
+    const data = await applyPersonPatch(supabase, id, body as Record<string, unknown>);
+    if (!data) {
+      console.error("[/api/people/:id PATCH] update failed");
       return NextResponse.json({ error: "update failed" }, { status: 500 });
     }
 
     // If first_name or display_name changed, update the primary alias to match.
     const newPrimary = normaliseAlias(
       (body.display_name as string | null | undefined) ??
-        (data as Person).display_name ??
+        data.display_name ??
         (body.first_name as string | undefined) ??
-        (data as Person).first_name
+        data.first_name
     );
     if (newPrimary) {
       const { data: primary } = await supabase
@@ -203,26 +177,31 @@ export async function PATCH(
       }
     }
 
-    return NextResponse.json({ person: data as Person });
+    const [person] = await attachContactPoints(supabase, [data]);
+    return NextResponse.json({ person });
   } catch (err) {
     console.error("[/api/people/:id PATCH]", err);
     return NextResponse.json({ error: "update failed" }, { status: 500 });
   }
 }
 
+/** DELETE — soft (the bin, people-contacts C4). `?hard=1` removes the row for good. */
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
   const { id } = await ctx.params;
+  const hard = req.nextUrl.searchParams.get("hard") === "1";
   try {
     const supabase = await createUserClient();
-    const { error } = await supabase
-      .from("people")
-      .delete()
-      .eq("id", id);
-    if (error) throw error;
-    return NextResponse.json({ ok: true });
+    if (hard) {
+      const { error } = await supabase.from("people").delete().eq("id", id);
+      if (error) throw error;
+      return NextResponse.json({ ok: true, hard: true });
+    }
+    const ok = await softDeletePerson(supabase, id);
+    if (!ok) return NextResponse.json({ error: "delete failed" }, { status: 500 });
+    return NextResponse.json({ ok: true, deleted_at: new Date().toISOString() });
   } catch (err) {
     console.error("[/api/people/:id DELETE]", err);
     return NextResponse.json({ error: "delete failed" }, { status: 500 });

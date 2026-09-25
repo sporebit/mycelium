@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { matchesBearer } from "@/lib/auth/gate";
 import { boundUser } from "@/lib/system/bindings";
 import { withUser } from "@/lib/system/withUser";
+import { purgeDeletedPeople } from "@/lib/people/contacts";
 import { londonNow } from "@/lib/tickets/categories";
 import { spawnDue } from "@/lib/tickets/spawn";
 import { syncRepoTemplates } from "@/lib/tickets/templates";
@@ -29,7 +30,9 @@ export async function GET(req: NextRequest) {
       const spawned = await spawnDue(db, today, 7);
       const templates = await syncRepoTemplates(db);
       const rundowns = await generateMissingRundowns(db, { forDate: today, dry });
-      return { spawned, templates, rundowns };
+      // people-contacts C4: the bin empties itself after 30 days
+      const purgedPeople = dry ? 0 : await purgeDeletedPeople(db, 30);
+      return { spawned, templates, rundowns, purgedPeople };
     });
     return NextResponse.json({ ok: true, today, ...result });
   } catch (err) {

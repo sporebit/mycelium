@@ -44,7 +44,13 @@ export function personName(p: QuoteRow["person"]): string | null {
 export async function resolveSpeaker(db: SupabaseClient, speaker: string | null): Promise<{ person_id: string | null; candidates: string[] }> {
   const alias = normaliseAlias(speaker ?? "");
   if (!alias) return { person_id: null, candidates: [] };
-  const { data } = await db.from("people_aliases").select("person_id").ilike("alias", alias);
+  // live persons only (people-contacts C1, C4): a contact or a deleted person is never a speaker match
+  const { data } = await db
+    .from("people_aliases")
+    .select("person_id, people!inner(tier, deleted_at)")
+    .eq("people.tier", "person")
+    .is("people.deleted_at", null)
+    .ilike("alias", alias);
   const ids = Array.from(new Set((data ?? []).map((r) => (r as { person_id: string }).person_id)));
   return { person_id: ids.length === 1 ? ids[0] : null, candidates: ids };
 }

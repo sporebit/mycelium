@@ -9,8 +9,7 @@ import type {
 
 export const runtime = "nodejs";
 
-const PERSON_FIELDS =
-  "id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at, space_id";
+import { PERSON_SELECT as PERSON_FIELDS } from "@/lib/people/contacts";
 
 export async function GET(req: NextRequest) {
 
@@ -96,6 +95,7 @@ export async function GET(req: NextRequest) {
     const { data: peopleRows } = await supabase
       .from("people")
       .select(PERSON_FIELDS)
+      .is("deleted_at", null)
       .eq("needs_review", true)
       .order("created_at", { ascending: false });
     const people = (peopleRows ?? []) as Person[];

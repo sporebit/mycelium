@@ -39,10 +39,13 @@ export async function resolveMention(
 
   const key = aliasKey(rawAlias);
 
-  // 1. Exact match
+  // 1. Exact match — among live persons only: a contact (people-contacts
+  //    C1) or a deleted person (C4) never matches a mention.
   const { data: exact } = await supabase
     .from("people_aliases")
-    .select("person_id, alias")
+    .select("person_id, alias, people!inner(tier, deleted_at)")
+    .eq("people.tier", "person")
+    .is("people.deleted_at", null)
     .ilike("alias", rawAlias);
   type Row = {
     person_id: string;
@@ -76,7 +79,9 @@ export async function resolveMention(
   // 2. Fuzzy. Pull all aliases for this user and Levenshtein them.
   const { data: allAliases } = await supabase
     .from("people_aliases")
-    .select("person_id, alias");
+    .select("person_id, alias, people!inner(tier, deleted_at)")
+    .eq("people.tier", "person")
+    .is("people.deleted_at", null);
   const allRows: Row[] = (allAliases ?? []) as Row[];
 
   const fuzzyHits = new Map<string, number>(); // person_id → best distance

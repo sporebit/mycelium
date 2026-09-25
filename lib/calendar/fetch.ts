@@ -144,6 +144,7 @@ async function fetchBirthdays(
     const { data, error } = await supabase
       .from("people")
       .select("id, first_name, last_name, display_name, birthday")
+      .is("deleted_at", null)
       .not("birthday", "is", null);
     if (error || !data) return [];
 

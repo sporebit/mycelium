@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { normaliseAlias } from "@/lib/people/normalise";
+import { addEmail, addPhone } from "@/lib/people/contacts";
 import type { ImportResult, PersonImport } from "@/lib/people/types";
 
 export const runtime = "nodejs";
@@ -37,7 +38,8 @@ export async function POST(req: NextRequest) {
       // Match by first + last (last_name nullable)
       let q = supabase
         .from("people")
-        .select("id, last_name, phone, email, birthday, address, relationship, notes")
+        .select("id, last_name, birthday, address, relationship, notes")
+        .is("deleted_at", null)
         .ilike("first_name", first);
       q = last ? q.ilike("last_name", last) : q.is("last_name", null);
       const { data: existing } = await q.maybeSingle();
@@ -56,8 +58,8 @@ export async function POST(req: NextRequest) {
       if (row?.id) {
         // Merge — only fill blanks, don't overwrite
         const update: Record<string, unknown> = {};
-        if (!row.phone && p.phone) update.phone = p.phone;
-        if (!row.email && p.email) update.email = p.email;
+        if (p.phone) await addPhone(supabase, row.id, { number_raw: p.phone });
+        if (p.email) await addEmail(supabase, row.id, { email: p.email });
         if (!row.birthday && p.birthday) update.birthday = p.birthday;
         if (!row.address && p.address) update.address = p.address;
         if (!row.relationship && p.relationship) update.relationship = p.relationship;
@@ -77,8 +79,6 @@ export async function POST(req: NextRequest) {
         .from("people")
         .insert({ first_name: first,
           last_name: last,
-          phone: p.phone ?? null,
-          email: p.email ?? null,
           birthday: p.birthday ?? null,
           address: p.address ?? null,
           relationship: p.relationship ?? null,
@@ -93,6 +93,8 @@ export async function POST(req: NextRequest) {
         continue;
       }
       const personId = created.id as string;
+      if (p.phone) await addPhone(supabase, personId, { number_raw: p.phone });
+      if (p.email) await addEmail(supabase, personId, { email: p.email });
 
       // Aliases: first, "first last", last (last as non-primary)
       const aliases = new Set<string>();

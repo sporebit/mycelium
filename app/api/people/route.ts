@@ -2,23 +2,28 @@ import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { auditListRead } from "@/lib/system/readAudit";
 import { normaliseAlias } from "@/lib/people/normalise";
+import { addEmail, addPhone, attachContactPoints, parseTier, PERSON_SELECT } from "@/lib/people/contacts";
 import type { Person, PersonAlias, PersonWithAliases } from "@/lib/people/types";
 
 export const runtime = "nodejs";
 
-const PERSON_FIELDS =
-  "id, first_name, last_name, display_name, relationship, phone, email, birthday, address, where_we_met, mutual_interests, notes, needs_review, created_at, updated_at, space_id";
-
-/** GET — list people, optionally filtered to the review queue. */
+/**
+ * GET /api/people?tier=person|contact|all&needs_review=true — live people
+ * (deleted hidden, people-contacts C4). Contacts (C1) only when asked for:
+ * the pickers and the default list see persons.
+ */
 export async function GET(req: NextRequest) {
   const needsReview = req.nextUrl.searchParams.get("needs_review") === "true";
+  const tier = parseTier(req.nextUrl.searchParams.get("tier"), "person");
 
   try {
     const supabase = await createUserClient();
     let q = supabase
       .from("people")
-      .select(PERSON_FIELDS)
+      .select(PERSON_SELECT)
+      .is("deleted_at", null)
       .order("updated_at", { ascending: false });
+    if (tier !== "all") q = q.eq("tier", tier);
     if (needsReview) q = q.eq("needs_review", true);
     const { data: peopleRows, error } = await q;
     if (error) {
@@ -26,7 +31,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "fetch failed" }, { status: 500 });
     }
     auditListRead(req, peopleRows, "organisation", "people");
-    const people = (peopleRows ?? []) as Person[];
+    const people = await attachContactPoints(supabase, (peopleRows ?? []) as Person[]);
 
     // Attach aliases + mention counts in a couple of batched queries
     const ids = people.map((p) => p.id);
@@ -87,7 +92,7 @@ export async function GET(req: NextRequest) {
     // Review-count for the UI badge
     const reviewCount = withAliases.filter((p) => p.needs_review).length;
 
-    return NextResponse.json({ people: withAliases, review_count: reviewCount });
+    return NextResponse.json({ people: withAliases, review_count: reviewCount, tier });
   } catch (err) {
     console.error("[/api/people GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });
@@ -99,14 +104,18 @@ type CreateBody = {
   last_name?: string | null;
   display_name?: string | null;
   relationship?: string | null;
+  /** One number / address on create; more on the person page. */
   phone?: string | null;
   email?: string | null;
+  phones?: Array<{ number_raw: string; label?: string | null }>;
+  emails?: Array<{ email: string; label?: string | null }>;
   birthday?: string | null;
   address?: string | null;
   where_we_met?: string | null;
   mutual_interests?: string | null;
   notes?: string | null;
   aliases?: string[];
+  tier?: "person" | "contact";
 };
 
 /** POST — create a person + at least one primary alias. */
@@ -132,6 +141,7 @@ export async function POST(req: NextRequest) {
     const { data: dup } = await supabase
       .from("people")
       .select("id, display_name")
+      .is("deleted_at", null)
       .ilike("first_name", firstName)
       .is("last_name", lastName)
       .maybeSingle();
@@ -151,21 +161,29 @@ export async function POST(req: NextRequest) {
         last_name: lastName,
         display_name: displayName,
         relationship: body.relationship ?? null,
-        phone: body.phone ?? null,
-        email: body.email ?? null,
         birthday: body.birthday ?? null,
         address: body.address ?? null,
         where_we_met: body.where_we_met ?? null,
         mutual_interests: body.mutual_interests ?? null,
         notes: body.notes ?? null,
+        tier: body.tier === "contact" ? "contact" : "person",
         needs_review: false,
       })
-      .select(PERSON_FIELDS)
+      .select(PERSON_SELECT)
       .single();
     if (error || !created) {
       console.error("[/api/people POST]", error);
       return NextResponse.json({ error: "create failed" }, { status: 500 });
     }
+    const personId = (created as Person).id;
+
+    // Numbers and emails live in their own tables (0140)
+    const phones = [...(body.phone?.trim() ? [{ number_raw: body.phone }] : []), ...(Array.isArray(body.phones) ? body.phones : [])];
+    const emails = [...(body.email?.trim() ? [{ email: body.email }] : []), ...(Array.isArray(body.emails) ? body.emails : [])];
+    let i = 0;
+    for (const p of phones) if (p?.number_raw) await addPhone(supabase, personId, { number_raw: p.number_raw, label: p.label ?? null, sort_order: i++ });
+    i = 0;
+    for (const e of emails) if (e?.email) await addEmail(supabase, personId, { email: e.email, label: e.label ?? null, sort_order: i++ });
 
     // Primary alias — display_name if present, else first_name
     const primary = normaliseAlias(displayName || firstName);
@@ -173,16 +191,17 @@ export async function POST(req: NextRequest) {
       .map((a) => normaliseAlias(a))
       .filter((a) => a && a !== primary);
     const aliasRows: { person_id: string; alias: string; is_primary: boolean }[] = [
-      { person_id: created.id, alias: primary, is_primary: true },
+      { person_id: personId, alias: primary, is_primary: true },
       ...Array.from(new Set(extras)).map((alias) => ({
-        person_id: created.id,
+        person_id: personId,
         alias,
         is_primary: false,
       })),
     ];
     await supabase.from("people_aliases").insert(aliasRows);
 
-    return NextResponse.json({ person: created as Person });
+    const [person] = await attachContactPoints(supabase, [created as Person]);
+    return NextResponse.json({ person });
   } catch (err) {
     console.error("[/api/people POST]", err);
     return NextResponse.json({ error: "create failed" }, { status: 500 });

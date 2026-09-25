@@ -31,7 +31,7 @@ export async function personCards(db: SupabaseClient, known: Map<string, string>
   const ids = Array.from(new Set(known.values()));
   if (!ids.length) return [];
   const [{ data }, { data: seen }] = await Promise.all([
-    db.from("people").select("id, display_name, first_name, last_name, relationship, notes").in("id", ids),
+    db.from("people").select("id, display_name, first_name, last_name, relationship, notes").in("id", ids).is("deleted_at", null).eq("tier", "person"),
     db.from("people_daylog_stats").select("person_id, last_seen").in("person_id", ids),
   ]);
   const lastSeen = new Map(((seen ?? []) as Array<{ person_id: string; last_seen: string }>).map((r) => [r.person_id, r.last_seen]));

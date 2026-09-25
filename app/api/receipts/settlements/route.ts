@@ -95,6 +95,7 @@ export async function POST(req: NextRequest) {
       .from("people")
       .select("id")
       .eq("id", personId)
+      .is("deleted_at", null)
       .maybeSingle();
     if (!person) {
       return NextResponse.json({ error: "person not found" }, { status: 404 });
