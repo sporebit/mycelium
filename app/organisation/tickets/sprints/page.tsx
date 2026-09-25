@@ -77,8 +77,8 @@ export default function SprintsPage() {
               </option>
             ))}
           </select>
-          <Link href="/organisation/tickets" className="text-glow-2 hover:underline">
-            ← Tickets
+          <Link href="/organisation/tasks" className="text-glow-2 hover:underline">
+            ← Tasks
           </Link>
         </div>
       </div>

@@ -78,8 +78,8 @@ export default function WeeklyReviewPage() {
         </h1>
         <div className="flex items-center gap-3 text-xs">
           {sealed && <span className="text-ok">sealed {new Date(data.sealed_at!).toLocaleDateString("en-GB")}</span>}
-          <Link href="/organisation/tickets" className="text-glow-2 hover:underline">
-            ← Tickets
+          <Link href="/organisation/tasks" className="text-glow-2 hover:underline">
+            ← Tasks
           </Link>
         </div>
       </div>
@@ -143,7 +143,7 @@ export default function WeeklyReviewPage() {
                       {p.name}
                     </Link>
                     <span className="text-[11px] text-ink-3">{p.open} open, none in Next or Doing</span>
-                    <Link href={`/organisation/tickets`} className="text-[11px] text-glow-2 hover:underline">
+                    <Link href={`/organisation/tasks`} className="text-[11px] text-glow-2 hover:underline">
                       triage backlog
                     </Link>
                   </li>

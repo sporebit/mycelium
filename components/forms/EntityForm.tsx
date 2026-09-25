@@ -54,7 +54,7 @@ export function EntityForm({
   const needsProjects = fields.some((f) => f.type === "project");
   const technical = fields.some((f) => f.type === "project" && f.technicalOnly);
   const { data: peopleData } = useApi<{ people: PeopleRow[] }>(needsPeople ? "/api/people" : null);
-  const { data: projectData } = useApi<{ projects: ProjectRow[] }>(needsProjects ? (technical ? "/api/projects?surface=tickets" : "/api/projects") : null);
+  const { data: projectData } = useApi<{ projects: ProjectRow[] }>(needsProjects ? (technical ? "/api/projects?area=technical" : "/api/projects") : null);
   const people = peopleData?.people ?? [];
   const projects = projectData?.projects ?? [];
 

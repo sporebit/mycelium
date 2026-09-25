@@ -361,7 +361,7 @@ function ReviewCard({
   // Kind "ticket" (MYC-153): the technical project it is created in.
   const [projectId, setProjectId] = useState("");
   const { data: projectsData } = useApi<{ projects?: Array<{ id: string; name: string; prefix?: string | null }> }>(
-    kind === "ticket" ? "/api/projects?surface=tickets" : null,
+    kind === "ticket" ? "/api/projects?area=technical" : null,
   );
   const ticketProjects = projectsData?.projects ?? [];
   // Kind "person" (MYC-154): who the capture is about and what it says about them.

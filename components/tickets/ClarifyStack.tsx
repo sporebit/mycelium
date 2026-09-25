@@ -40,15 +40,15 @@ function revalidateClarify() {
 export function ClarifyStack({
   simple,
   source = "inbox",
-  surface = null,
+  areaQuery = "",
 }: {
   simple: boolean;
   /** "backlog" = triage mode: the same stack over un-parked Backlog tickets, contexts first. */
   source?: ClarifySource;
-  /** Tickets / Tasks partition: limit the stack to one surface (0121). */
-  surface?: "tickets" | "tasks" | null;
+  /** The Area chip (tasks-merge M2), as "&area=…" or "&project=…"; "" = All. */
+  areaQuery?: string;
 }) {
-  const key = surface ? `${KEY_FOR[source]}${source === "inbox" ? "?" : "&"}surface=${surface}` : KEY_FOR[source];
+  const key = areaQuery ? `${KEY_FOR[source]}${source === "inbox" ? `?${areaQuery.slice(1)}` : areaQuery}` : KEY_FOR[source];
   const { data, error, isLoading } = useApi<Payload>(key);
   const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [handled, setHandled] = useState<Set<string>>(new Set());

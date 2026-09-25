@@ -226,7 +226,7 @@ export function GlobalSearch() {
           {query.trim() && (tickets.length > 0 || looksLikeKey(query)) && (
             <div className="mb-3">
               <div className="px-1 pb-1 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
-                Tickets
+                Tasks
               </div>
               <ul className="flex flex-col">
                 {looksLikeKey(query) &&

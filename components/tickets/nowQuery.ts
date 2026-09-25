@@ -6,6 +6,7 @@ import { toolsForDevice } from "@/lib/tickets/categories";
 import type { CurrentContext } from "@/lib/types/context";
 import type { Task } from "@/lib/types/task";
 import type { DeviceClass } from "./useDevice";
+import { withArea } from "@/lib/tickets/areaChip";
 
 /**
  * One place builds the Now query so the Today block, the Now card and the
@@ -20,13 +21,15 @@ import type { DeviceClass } from "./useDevice";
 export function nowQueryUrl(tp: UiPrefs["tickets"]): string {
   const sp = new URLSearchParams({ list: "now", where: "any", tools: "*" });
   if (tp.now_include_backlog) sp.set("include_backlog", "1");
-  return `/api/tickets?${sp.toString()}`;
+  // The Area chip (tasks-merge M2) narrows Now like every other tab.
+  return withArea(`/api/tickets?${sp.toString()}`, tp.area);
 }
 
 export type NowChips = { where: "anywhere" | "home" | "out"; tools: string[]; maxPoints: number | null; sprintOnly: boolean };
 
 export function chipsFor(tp: UiPrefs["tickets"], device: DeviceClass, toolOverride: string[] | null = null): NowChips {
-  return { where: tp.now_where, tools: toolOverride ?? toolsForDevice(device), maxPoints: tp.now_max_points, sprintOnly: tp.now_sprint_only };
+  // The sprint chip only exists when the Area chip is a project (M3), so the preference only bites then.
+  return { where: tp.now_where, tools: toolOverride ?? toolsForDevice(device), maxPoints: tp.now_max_points, sprintOnly: tp.now_sprint_only && tp.area.kind === "project" };
 }
 
 /** The spec §5 predicates, applied client-side (same semantics as the server's). */

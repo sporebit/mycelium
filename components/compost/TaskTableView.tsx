@@ -9,6 +9,7 @@ import { Surface } from "@/components/ui/Surface";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { DUE_WINDOW_LABEL, todayLondon, whenLabel, type DueWindow } from "@/lib/tickets/when";
 import { OverduePill } from "@/components/tickets/OverduePill";
+import { formatLondonDateTime, type SortColumn, type SortDir as ServerSortDir } from "@/lib/tickets/dateFilters";
 
 const WHEN_SELECT: readonly DueWindow[] = ["week", "month", "month_end", "someday"];
 
@@ -23,7 +24,25 @@ type ColumnId =
   | "tags"
   | "time"
   | "created"
+  | "started"
+  | "finished"
+  | "closed"
   | "updated";
+
+export type TableColumnId = ColumnId;
+
+/** Columns the server can sort (tasks-merge M4); the rest sort on the client. */
+const SERVER_SORT: Partial<Record<ColumnId, SortColumn>> = {
+  key: "seq",
+  title: "title",
+  urgency: "deadline_on",
+  due: "deadline_on",
+  created: "created_at",
+  started: "started_at",
+  finished: "completed_at",
+  closed: "verified_at",
+  updated: "updated_at",
+};
 
 type ColumnDef = { id: ColumnId; label: string; defaultWidth: number };
 
@@ -37,22 +56,26 @@ const COLUMNS: ColumnDef[] = [
   { id: "due", label: "Due", defaultWidth: 110 },
   { id: "tags", label: "Tags", defaultWidth: 160 },
   { id: "time", label: "Time", defaultWidth: 70 },
-  { id: "created", label: "Created", defaultWidth: 110 },
+  // The dates list (tasks-merge M4–M6): Raised · Started · Finished · Closed, London wall clock.
+  { id: "created", label: "Raised", defaultWidth: 160 },
+  { id: "started", label: "Started", defaultWidth: 160 },
+  { id: "finished", label: "Finished", defaultWidth: 180 },
+  { id: "closed", label: "Closed", defaultWidth: 160 },
   { id: "updated", label: "Updated", defaultWidth: 110 },
 ];
 
-const STORAGE_KEY = "mycelium:task-table-v1";
+const DEFAULT_STORAGE_KEY = "mycelium:task-table-v2";
 
 type SortDir = "asc" | "desc";
 type SortState = { col: ColumnId; dir: SortDir } | null;
 
-function loadPersisted(): {
+function loadPersisted(storageKey: string): {
   order?: ColumnId[];
   widths?: Partial<Record<ColumnId, number>>;
 } {
   if (typeof window === "undefined") return {};
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey);
     if (!raw) return {};
     return JSON.parse(raw) as ReturnType<typeof loadPersisted>;
   } catch {
@@ -60,13 +83,13 @@ function loadPersisted(): {
   }
 }
 
-function savePersisted(state: {
+function savePersisted(storageKey: string, state: {
   order: ColumnId[];
   widths: Partial<Record<ColumnId, number>>;
 }) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(storageKey, JSON.stringify(state));
   } catch {
     /* quota exceeded — non-fatal */
   }
@@ -91,6 +114,11 @@ export function TaskTableView({
   onOpen,
   onToggleSelect,
   onPatch,
+  columns,
+  includeSubtasks = false,
+  storageKey = DEFAULT_STORAGE_KEY,
+  sort: serverSort,
+  onSortChange,
 }: {
   tasks: Task[];
   selected: Set<string>;
@@ -98,15 +126,24 @@ export function TaskTableView({
   onOpen: (t: Task) => void;
   onToggleSelect: (id: string, e?: React.MouseEvent) => void;
   onPatch: (id: string, patch: Partial<Task>) => void;
+  /** Which columns, in what order (default: all). Column drag still reorders within this set. */
+  columns?: ColumnId[];
+  /** The dates list shows sub-tasks as rows of their own (M4: every ticket). */
+  includeSubtasks?: boolean;
+  /** localStorage key for column order and widths (layout only; never a filter). */
+  storageKey?: string;
+  /** Server-side sort (M4): when `onSortChange` is given, a sortable column's header asks the server instead of sorting here. */
+  sort?: { column: SortColumn; dir: ServerSortDir } | null;
+  onSortChange?: (sort: { column: SortColumn; dir: ServerSortDir } | null) => void;
 }) {
   const { prefs } = useUiPrefs();
-  const persisted = useMemo(() => loadPersisted(), []);
-  const [order, setOrder] = useState<ColumnId[]>(
-    () =>
-      persisted.order && persisted.order.length === COLUMNS.length
-        ? persisted.order
-        : COLUMNS.map((c) => c.id),
-  );
+  const baseCols = useMemo(() => columns ?? COLUMNS.map((c) => c.id), [columns]);
+  const persisted = useMemo(() => loadPersisted(storageKey), [storageKey]);
+  const [order, setOrder] = useState<ColumnId[]>(() => {
+    const p = persisted.order;
+    const sameSet = p && p.length === baseCols.length && baseCols.every((c) => p.includes(c));
+    return sameSet ? p : baseCols;
+  });
   const [widths, setWidths] = useState<Partial<Record<ColumnId, number>>>(
     () => persisted.widths ?? {},
   );
@@ -117,8 +154,8 @@ export function TaskTableView({
   } | null>(null);
 
   useEffect(() => {
-    savePersisted({ order, widths });
-  }, [order, widths]);
+    savePersisted(storageKey, { order, widths });
+  }, [storageKey, order, widths]);
 
   const orderedCols = useMemo(
     () =>
@@ -129,7 +166,7 @@ export function TaskTableView({
   );
 
   const sortedTasks = useMemo(() => {
-    const arr = tasks.filter((t) => !t.parent_task_id).slice();
+    const arr = (includeSubtasks ? tasks : tasks.filter((t) => !t.parent_task_id)).slice();
     if (!sort) return arr;
     const { col, dir } = sort;
     const sign = dir === "asc" ? 1 : -1;
@@ -142,15 +179,31 @@ export function TaskTableView({
       return av > bv ? sign : -sign;
     });
     return arr;
-  }, [tasks, sort]);
+  }, [tasks, sort, includeSubtasks]);
 
   function toggleSort(col: ColumnId) {
     if (col === "select") return;
+    const serverCol = onSortChange ? SERVER_SORT[col] : undefined;
+    if (serverCol && onSortChange) {
+      // asc → desc → none, on the server; a client sort on another column is cleared
+      setSort(null);
+      if (!serverSort || serverSort.column !== serverCol) onSortChange({ column: serverCol, dir: "asc" });
+      else if (serverSort.dir === "asc") onSortChange({ column: serverCol, dir: "desc" });
+      else onSortChange(null);
+      return;
+    }
     setSort((cur) => {
       if (!cur || cur.col !== col) return { col, dir: "asc" };
       if (cur.dir === "asc") return { col, dir: "desc" };
       return null;
     });
+  }
+
+  function sortIndicator(col: ColumnId): string {
+    const serverCol = onSortChange ? SERVER_SORT[col] : undefined;
+    if (serverCol && serverSort?.column === serverCol) return serverSort.dir === "asc" ? " ▲" : " ▼";
+    if (sort?.col === col) return sort.dir === "asc" ? " ▲" : " ▼";
+    return "";
   }
 
   // Column drag-reorder
@@ -258,7 +311,7 @@ export function TaskTableView({
                     className="text-left hover:text-ink-4 transition-colors cursor-pointer"
                   >
                     {col.label}
-                    {sort?.col === col.id ? (sort.dir === "asc" ? " ▲" : " ▼") : ""}
+                    {sortIndicator(col.id)}
                   </button>
                 )}
                 <span
@@ -328,6 +381,12 @@ function sortValue(t: Task, col: ColumnId): string | number | null {
       return t.time_estimate_min ?? null;
     case "created":
       return t.created_at;
+    case "started":
+      return t.started_at ?? null;
+    case "finished":
+      return t.completed_at ?? t.cancelled_at ?? null;
+    case "closed":
+      return t.verified_at ?? null;
     case "updated":
       return t.updated_at;
     default:
@@ -604,11 +663,25 @@ function Cell({
     );
   }
   if (col === "created") {
-    return (
-      <span className="text-xs text-ink-3 font-[family-name:var(--font-mono)]">
-        {fmtDate(task.created_at)}
-      </span>
-    );
+    return <span className="text-xs text-ink-3 font-[family-name:var(--font-mono)]">{formatLondonDateTime(task.created_at)}</span>;
+  }
+  if (col === "started") {
+    return <span className="text-xs text-ink-3 font-[family-name:var(--font-mono)]">{formatLondonDateTime(task.started_at) || "—"}</span>;
+  }
+  if (col === "finished") {
+    // Finished = Done's completed_at; a cancelled ticket shows cancelled_at with a marker (M6)
+    if (task.completed_at) return <span className="text-xs text-ink-3 font-[family-name:var(--font-mono)]">{formatLondonDateTime(task.completed_at)}</span>;
+    if (task.cancelled_at)
+      return (
+        <span className="text-xs font-[family-name:var(--font-mono)] text-ink-3">
+          {formatLondonDateTime(task.cancelled_at)}{" "}
+          <span className="rounded-sm border border-danger/40 bg-danger/10 px-1 text-[10px] uppercase tracking-[0.12em] text-danger">Cancelled</span>
+        </span>
+      );
+    return <span className="text-ink-3">—</span>;
+  }
+  if (col === "closed") {
+    return <span className="text-xs text-ink-3 font-[family-name:var(--font-mono)]">{formatLondonDateTime(task.verified_at) || "—"}</span>;
   }
   if (col === "updated") {
     return (

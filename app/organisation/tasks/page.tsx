@@ -1,10 +1,11 @@
 import { Suspense } from "react";
-import { TasksClient } from "@/components/compost/TasksClient";
+import { TasksHome } from "@/components/tickets/TasksHome";
 
-export default function CRMTasksPage() {
+/** The one Tasks surface (tasks-merge M1). /organisation/tickets redirects here. */
+export default function TasksPage() {
   return (
     <Suspense fallback={null}>
-      <TasksClient />
+      <TasksHome />
     </Suspense>
   );
 }

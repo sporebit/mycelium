@@ -32,7 +32,7 @@ export function Now() {
       title="NOW"
       topRight={
         <Link
-          href="/organisation/tickets"
+          href="/organisation/tasks"
           className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
         >
           OPEN →

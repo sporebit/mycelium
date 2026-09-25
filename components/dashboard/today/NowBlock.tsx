@@ -119,7 +119,7 @@ export function NowBlock() {
             ))}
           </select>
           <Link
-            href="/organisation/tickets"
+            href="/organisation/tasks"
             className="ml-1 text-[10px] uppercase tracking-[0.08em] text-text-lo hover:text-text-hi font-[family-name:var(--font-jetbrains-mono)]"
           >
             Open →
@@ -140,10 +140,10 @@ export function NowBlock() {
           <div className="text-sm text-text-mid">
             Nothing fits right now.{" "}
             <Link
-              href="/organisation/tickets"
+              href="/organisation/tasks"
               className="text-text-hi underline underline-offset-2 hover:text-glow"
             >
-              Open Tickets
+              Open Tasks
             </Link>{" "}
             to widen a chip or clarify the Inbox.
           </div>

@@ -30,8 +30,10 @@ export type UiPrefs = {
     now_include_backlog: boolean;
     /** Energy chip: max points (2 = Low, 5 = Normal, null = All). */
     now_max_points: number | null;
-    /** Sprint chip: limit Now to tickets in an active sprint (0123). */
+    /** Sprint chip: limit Now to tickets in an active sprint (0123). Only offered when the Area chip is a project (tasks-merge M3). */
     now_sprint_only: boolean;
+    /** The Area chip (tasks-merge M2): All · Technical · Life · a project. Sticky, never localStorage. */
+    area: { kind: "all" | "technical" | "life" | "project"; project_id: string | null };
     /** Collapse the eight categories to Todo / Doing / Waiting / Done. */
     simple_statuses: boolean;
     checkin_time: string; // "HH:MM" Europe/London
@@ -63,6 +65,7 @@ export const UI_PREFS_DEFAULTS: UiPrefs = {
     now_include_backlog: false,
     now_max_points: 5,
     now_sprint_only: false,
+    area: { kind: "all", project_id: null },
     simple_statuses: false,
     checkin_time: "18:00",
     review_day: 7,

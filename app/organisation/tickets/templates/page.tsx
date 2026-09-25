@@ -80,8 +80,8 @@ export default function TemplatesPage() {
           <button type="button" onClick={() => void sync()} disabled={busy === "sync"} className="text-ink-3 hover:text-ink-4">
             Sync repo templates
           </button>
-          <Link href="/organisation/tickets" className="text-glow-2 hover:underline">
-            ← Tickets
+          <Link href="/organisation/tasks" className="text-glow-2 hover:underline">
+            ← Tasks
           </Link>
         </div>
       </div>

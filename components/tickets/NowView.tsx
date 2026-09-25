@@ -74,6 +74,9 @@ export function NowView({ simple }: { simple: boolean }) {
   const { data, error, isLoading } = useApi<{ tickets: TicketRowData[] }>(
     prefsLoading ? null : query,
   );
+  // The sprint chip (tasks-merge M3): only when the Area chip is a project
+  // that has an active sprint — i.e. the candidate set carries one.
+  const sprintChip = tp.area.kind === "project" && (data?.tickets ?? []).some((t) => t.sprint_status === "active");
   // Chips filter the cached candidate set on the client (instant); the
   // FROZEN scorer then orders the pre-filtered set, as on the Today block.
   const tickets = orderForContext(
@@ -161,13 +164,15 @@ export function NowView({ simple }: { simple: boolean }) {
         >
           + backlog
         </Chip>
-        <Chip
-          active={tp.now_sprint_only}
-          onClick={() => void setPrefs({ tickets: { ...tp, now_sprint_only: !tp.now_sprint_only } })}
-          title="Only tickets committed to an active sprint"
-        >
-          ⚡ sprint
-        </Chip>
+        {sprintChip && (
+          <Chip
+            active={tp.now_sprint_only}
+            onClick={() => void setPrefs({ tickets: { ...tp, now_sprint_only: !tp.now_sprint_only } })}
+            title="Only tickets committed to this project's active sprint"
+          >
+            ⚡ sprint
+          </Chip>
+        )}
       </div>
 
       <p className="mt-2 text-[11px] text-ink-3">

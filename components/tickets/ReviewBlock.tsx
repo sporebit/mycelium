@@ -23,7 +23,7 @@ export function ReviewBlock({ locked = false }: { locked?: boolean }) {
   return (
     <div className="rounded-v2-md border border-hairline bg-surface-1 p-3">
       <div className="flex items-baseline justify-between">
-        <span className="text-[10px] uppercase tracking-[0.14em] text-ink-3">Tickets · {data.week}</span>
+        <span className="text-[10px] uppercase tracking-[0.14em] text-ink-3">Tasks · {data.week}</span>
         {data.sealed_at ? (
           <span className="text-[11px] text-ok">review sealed</span>
         ) : (
