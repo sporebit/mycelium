@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { syncTicketToGoogle } from "@/lib/google/sync";
+import { recordTicketApproval } from "@/lib/capture/learning";
 import {
   isLinkKind,
   isTicketCategory,
@@ -61,6 +62,8 @@ export async function POST(
 
     const moved = await moveTicket(supabase, key, body.category, { forwardOnly, extra });
     if (!moved.ok) return NextResponse.json({ error: moved.error }, { status: moved.status });
+    // MYC-161: leaving the Inbox is the Clarify accept — the capture that made this ticket learns from it.
+    if (moved.from === "inbox" && moved.to !== "inbox") void recordTicketApproval(supabase, moved.task.id);
 
     if (evidence && /^https?:\/\//i.test(evidence)) {
       await supabase.from("ticket_links").insert({

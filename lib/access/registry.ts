@@ -80,6 +80,7 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
     group: "captures",
     tables: [
       "raw_captures",
+      "capture_learning",
       "pending_entities",
       "routing_rules",
       "entity_review_rules",

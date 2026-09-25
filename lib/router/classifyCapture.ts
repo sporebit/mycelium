@@ -7,7 +7,12 @@ import { MODEL_FAST } from "@/lib/config/models";
 export type ClassifyRulesContext = {
   supabase: SupabaseClient;
   userId: string;
+  /** When set, the call's tokens are written to api_usage under this tag (MYC-161: `capture.shadow`). */
+  usageTag?: string;
 };
+
+type LlmUsage = { input: number; output: number; model: string | null };
+type LlmAttempt = { classification: Classification | null; usage: LlmUsage };
 
 export type CaptureKind =
   | "task"
@@ -588,11 +593,12 @@ function extractJson(text: string): unknown {
 async function classifyAnthropic(
   text: string,
   systemPrompt: string,
-): Promise<Classification | null> {
+): Promise<LlmAttempt> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   // Classification is a fixed-shape JSON task — the fast model is enough.
   const model = MODEL_FAST;
-  if (!apiKey) return null;
+  const none: LlmAttempt = { classification: null, usage: { input: 0, output: 0, model } };
+  if (!apiKey) return none;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -609,24 +615,27 @@ async function classifyAnthropic(
     }),
   });
 
-  if (!res.ok) return null;
+  if (!res.ok) return none;
   const json = (await res.json()) as {
     content?: { type: string; text?: string }[];
+    usage?: { input_tokens?: number; output_tokens?: number };
   };
+  const usage: LlmUsage = { input: json.usage?.input_tokens ?? 0, output: json.usage?.output_tokens ?? 0, model };
   const block = json.content?.find((c) => c.type === "text");
   const raw = block?.text;
-  if (!raw) return null;
+  if (!raw) return { classification: null, usage };
 
-  return validate(extractJson(raw));
+  return { classification: validate(extractJson(raw)), usage };
 }
 
 async function classifyOpenAI(
   text: string,
   systemPrompt: string,
-): Promise<Classification | null> {
+): Promise<LlmAttempt> {
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.OPENAI_CLASSIFIER_MODEL;
-  if (!apiKey || !model) return null;
+  const none: LlmAttempt = { classification: null, usage: { input: 0, output: 0, model: model ?? null } };
+  if (!apiKey || !model) return none;
 
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -644,14 +653,16 @@ async function classifyOpenAI(
     }),
   });
 
-  if (!res.ok) return null;
+  if (!res.ok) return none;
   const json = (await res.json()) as {
     choices?: { message?: { content?: string } }[];
+    usage?: { prompt_tokens?: number; completion_tokens?: number };
   };
+  const usage: LlmUsage = { input: json.usage?.prompt_tokens ?? 0, output: json.usage?.completion_tokens ?? 0, model };
   const raw = json.choices?.[0]?.message?.content;
-  if (!raw) return null;
+  if (!raw) return { classification: null, usage };
 
-  return validate(extractJson(raw));
+  return { classification: validate(extractJson(raw)), usage };
 }
 
 function extractPurchaseFromText(text: string): PurchaseDetails {
@@ -1020,10 +1031,14 @@ export async function buildClassifierSystemPrompt(
   // (which can pull this file back in via the writeCapture chain during
   // test imports).
   const { buildCaptureRulesBlock } = await import("./rules");
-  const rulesBlock = await buildCaptureRulesBlock(rules.supabase, rules.userId);
-  return rulesBlock
-    ? `${rulesBlock}\n\n${CLASSIFIER_SYSTEM_PROMPT}`
-    : CLASSIFIER_SYSTEM_PROMPT;
+  const { buildFewShotBlock } = await import("@/lib/capture/learning");
+  const [rulesBlock, fewShot] = await Promise.all([
+    buildCaptureRulesBlock(rules.supabase, rules.userId),
+    // MYC-161: the user's recent corrections, as few-shot examples.
+    buildFewShotBlock(rules.supabase, rules.userId),
+  ]);
+  const parts = [rulesBlock, CLASSIFIER_SYSTEM_PROMPT, fewShot].filter(Boolean);
+  return parts.join("\n\n");
 }
 
 export function detectShoppingListItem(text: string): string | null {
@@ -1047,16 +1062,36 @@ export async function classifyCapture(
 ): Promise<ClassifyResult> {
   const systemPrompt = await buildClassifierSystemPrompt(rules);
 
+  // Soft: a usage row is bookkeeping, never a reason to fail a capture.
+  async function account(provider: "anthropic" | "openai", usage: LlmUsage): Promise<void> {
+    if (!rules?.usageTag || (usage.input === 0 && usage.output === 0)) return;
+    try {
+      const { costPence, recordUsage } = await import("@/lib/ai/usage");
+      await recordUsage(rules.supabase, {
+        provider,
+        tag: rules.usageTag,
+        model: usage.model,
+        input_tokens: usage.input,
+        output_tokens: usage.output,
+        cost_pence: costPence(usage.model, usage.input, usage.output),
+      });
+    } catch (err) {
+      console.error("[classifier] usage soft-fail:", err);
+    }
+  }
+
   try {
     const anthropic = await classifyAnthropic(text, systemPrompt);
-    if (anthropic) return { classification: anthropic, llm_source: "anthropic" };
+    await account("anthropic", anthropic.usage);
+    if (anthropic.classification) return { classification: anthropic.classification, llm_source: "anthropic" };
   } catch (err) {
     console.error("[classifier] anthropic error:", err);
   }
 
   try {
     const openai = await classifyOpenAI(text, systemPrompt);
-    if (openai) return { classification: openai, llm_source: "openai" };
+    await account("openai", openai.usage);
+    if (openai.classification) return { classification: openai.classification, llm_source: "openai" };
   } catch (err) {
     console.error("[classifier] openai error:", err);
   }
