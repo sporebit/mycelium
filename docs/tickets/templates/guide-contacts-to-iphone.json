@@ -1,0 +1,82 @@
+{
+  "slug": "guide-contacts-to-iphone",
+  "name": "Put the Mycelium contacts on the iPhone",
+  "kind": "guide",
+  "version": 1,
+  "definition": {
+    "title": "Put the Mycelium contacts on the iPhone ({{run}})",
+    "body_md": "Replace the iPhone's contacts with the Mycelium export (claude/people-contacts-spec.md C7). Five steps on icloud.com and the phone, about 15 minutes. Do the backup first — step 3 deletes everything on iCloud.",
+    "kind": "guide",
+    "where_ctx": "home",
+    "tools": ["pc", "phone"],
+    "time_window": "anytime",
+    "points": 3,
+    "steps_definition": {
+      "slug": "guide-contacts-to-iphone",
+      "kind": "guide",
+      "title": "Put the Mycelium contacts on the iPhone",
+      "version": 1,
+      "toggles": {},
+      "values": [
+        { "key": "run", "label": "Run label", "placeholder": "2026-09-27" },
+        { "key": "five", "label": "Five names to check on the phone afterwards", "placeholder": "Mum, Kirsty, …" }
+      ],
+      "intro": {
+        "verdict_html": "<p><strong>Why delete first:</strong> iCloud <em>adds</em> on import and does not merge. Importing over the existing contacts would give every person two cards — one old, one from Mycelium. So: back up, empty iCloud, import once.</p>",
+        "prerequisites": [
+          "The People contacts smoke test passed (the export has the right numbers and no old ones)",
+          "Signed in to icloud.com on the PC with the same Apple ID as the iPhone",
+          "The iPhone is on Wi-Fi with iCloud Contacts turned on (Settings → your name → iCloud → Contacts)"
+        ],
+        "time": ["Step 1: 3 min", "Step 2: 1 min", "Step 3: 2 min", "Step 4: 3 min", "Step 5: 5 min"],
+        "cost": ["None"]
+      },
+      "phases": [
+        {
+          "id": "1",
+          "title": "Back up, export, replace",
+          "lede_html": "<p>Keep the backup file until the phone looks right for a week.</p>",
+          "steps": [
+            {
+              "id": "1.1",
+              "title": "Export the current contacts from icloud.com/contacts as a backup vCard: open icloud.com/contacts, click any contact, ⌘A / Ctrl+A to select all, the gear (⚙) → Export vCard…, save as icloud-backup-{{run}}.vcf somewhere safe (not in the repo)",
+              "actor": "you",
+              "where": { "label": "icloud.com/contacts", "kind": "page" },
+              "fields": [{ "key": "backup_count", "label": "How many contacts iCloud said it exported", "placeholder": "180" }]
+            },
+            {
+              "id": "1.2",
+              "title": "Download the Mycelium export: People → EXPORT .VCF (this is tier=all: people and contacts, current numbers and emails only, deleted people excluded)",
+              "actor": "you",
+              "where": { "label": "/organisation/people", "kind": "page" },
+              "fields": [{ "key": "export_count", "label": "Cards in the Mycelium file (search the file for BEGIN:VCARD)", "placeholder": "179" }]
+            },
+            {
+              "id": "1.3",
+              "title": "Delete all contacts on icloud.com: with all still selected, gear (⚙) → Delete, confirm. The list empties. (Why: iCloud adds on import and does not merge — importing over the old set would double everyone.)",
+              "actor": "you",
+              "where": { "label": "icloud.com/contacts", "kind": "page" }
+            },
+            {
+              "id": "1.4",
+              "title": "Import the Mycelium .vcf on icloud.com: gear (⚙) → Import vCard…, pick the file from 1.2. iCloud reports how many it imported",
+              "actor": "you",
+              "where": { "label": "icloud.com/contacts", "kind": "page" },
+              "fields": [{ "key": "imported_count", "label": "How many iCloud said it imported", "placeholder": "179" }]
+            },
+            {
+              "id": "1.5",
+              "title": "On the iPhone open Contacts, pull to refresh, wait a minute. The count at the bottom of the list matches 1.4. Open each of {{five}}: the right numbers, with their labels (a custom label like \"Office direct\" shows as typed), and no old numbers",
+              "actor": "you",
+              "where": { "label": "iPhone → Contacts", "kind": "page" },
+              "fields": [
+                { "key": "phone_count", "label": "The count on the phone", "placeholder": "179" },
+                { "key": "five_ok", "label": "All five right?", "placeholder": "yes" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

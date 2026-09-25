@@ -1,0 +1,189 @@
+{
+  "slug": "smoke-test-people-contacts",
+  "name": "People contacts smoke test",
+  "kind": "test",
+  "version": 1,
+  "definition": {
+    "title": "People contacts smoke test ({{run}})",
+    "body_md": "Phil's live check of People contacts (claude/people-contacts-spec.md, MYC-165, migration 0140): review a match, merge two people and see a quote or day follow the survivor, delete + restore, edit a number label, mark a number old, promote a contact, export and check the old number is absent. The API path was smoke-tested with a synthetic 3-card file; this is the human half. Tick as you go; type what you saw in the answer boxes; anything that fails stays unticked with a comment naming the step id.",
+    "kind": "test",
+    "where_ctx": "anywhere",
+    "tools": ["pc"],
+    "time_window": "anytime",
+    "points": 5,
+    "steps_definition": {
+      "slug": "smoke-test-people-contacts",
+      "kind": "test",
+      "title": "People contacts smoke test",
+      "version": 1,
+      "toggles": {},
+      "values": [
+        { "key": "run", "label": "Run label", "placeholder": "2026-09-26" },
+        { "key": "dup", "label": "Someone in People who also came in as a contact (a name you know is in both)", "placeholder": "a friend's name" },
+        { "key": "quoted", "label": "A person who has a quote or a day-log day", "placeholder": "a friend's name" }
+      ],
+      "intro": {
+        "verdict_html": "<p>Six phases, about 25 minutes, all on the PC. Nothing here touches iCloud; that is the separate guide ticket. No AI calls.</p>",
+        "prerequisites": [
+          "Signed in on the PC",
+          "The real contacts import has run (People → Contacts chip shows them; /organisation/people/import shows the batch with rows waiting)",
+          "{{dup}} appears both under People and in the import review list",
+          "{{quoted}} has at least one quote or one day-log day"
+        ],
+        "time": ["Phase 1: 4 min", "Phase 2: 5 min", "Phase 3: 4 min", "Phase 4: 4 min", "Phase 5: 3 min", "Phase 6: 5 min"],
+        "cost": ["None"]
+      },
+      "phases": [
+        {
+          "id": "1",
+          "title": "The review list",
+          "lede_html": "<p>Cards that matched someone on a number, an email or a close name wait for you. Nothing merged by itself.</p>",
+          "steps": [
+            {
+              "id": "1.1",
+              "title": "Open /organisation/people/import and the batch. Each waiting row shows the card and the matched person side by side, and says what it matched on",
+              "actor": "you",
+              "where": { "label": "/organisation/people/import", "kind": "page" },
+              "fields": [{ "key": "waiting", "label": "How many rows are waiting", "placeholder": "9" }]
+            },
+            {
+              "id": "1.2",
+              "title": "Find {{dup}}. Press MERGE INTO {{dup}}. The row leaves the list; {{dup}}'s page now shows the card's number(s) under Numbers and the card's name as an alias",
+              "actor": "you",
+              "where": { "label": "/organisation/people/import", "kind": "page" }
+            },
+            {
+              "id": "1.3",
+              "title": "Pick another waiting row that is a different person with a similar name: KEEP SEPARATE. It appears under the Contacts chip. Pick one you do not want at all: SKIP",
+              "actor": "you",
+              "where": { "label": "/organisation/people/import", "kind": "page" }
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "Merge two people",
+          "lede_html": "<p>Merge from the list (Select → two cards → Merge) or from a person page (Merge…). Links follow the survivor.</p>",
+          "steps": [
+            {
+              "id": "2.1",
+              "title": "Open {{quoted}}'s page and note the quote (or the day under Days). Press + ADD PERSON and create a throwaway person called \"Merge Test\" with a made-up number",
+              "actor": "you",
+              "where": { "label": "/organisation/people", "kind": "page" }
+            },
+            {
+              "id": "2.2",
+              "title": "On \"Merge Test\"'s page press MERGE…, pick {{quoted}}, choose {{quoted}} as the survivor, keep {{quoted}}'s values, MERGE",
+              "actor": "you",
+              "where": { "label": "/organisation/people/<id>", "kind": "page" }
+            },
+            {
+              "id": "2.3",
+              "title": "You land on {{quoted}}'s page: the quote (or day) is still there, the made-up number is now under Numbers, \"Merge Test\" is gone from People. Paste the old \"Merge Test\" URL: it opens {{quoted}}",
+              "actor": "you",
+              "where": { "label": "/organisation/people/<id>", "kind": "page" },
+              "fields": [{ "key": "followed", "label": "What followed the survivor", "placeholder": "quote + number" }]
+            }
+          ]
+        },
+        {
+          "id": "3",
+          "title": "Delete and restore",
+          "lede_html": "<p>Delete is soft: the bin keeps people 30 days.</p>",
+          "steps": [
+            {
+              "id": "3.1",
+              "title": "Create another throwaway person \"Bin Test\". Press DELETE: the dialog says nothing links to them and offers MERGE INSTEAD…. Press DELETE TO BIN",
+              "actor": "you",
+              "where": { "label": "/organisation/people/<id>", "kind": "page" }
+            },
+            {
+              "id": "3.2",
+              "title": "\"Bin Test\" is gone from People and from ⌘K. Settings → People & teams → Bin lists them with a \"gone on\" date. Press RESTORE: back in People",
+              "actor": "you",
+              "where": { "label": "/other/settings/people", "kind": "page" }
+            },
+            {
+              "id": "3.3",
+              "title": "Delete \"Bin Test\" again and leave it in the bin (the nightly run removes it after 30 days)",
+              "actor": "you",
+              "where": { "label": "/organisation/people/<id>", "kind": "page" }
+            }
+          ]
+        },
+        {
+          "id": "4",
+          "title": "Numbers",
+          "lede_html": "<p>Every number has an editable label, a current/old state and an export toggle.</p>",
+          "steps": [
+            {
+              "id": "4.1",
+              "title": "On {{quoted}}'s page, click a number's label box, type \"Old mobile\", press Enter. Reload: the label stuck",
+              "actor": "you",
+              "where": { "label": "/organisation/people/<id>", "kind": "page" }
+            },
+            {
+              "id": "4.2",
+              "title": "Press that number's \"current\" pill: it reads \"old\", the number is struck through, and its export box unticks itself",
+              "actor": "you",
+              "where": { "label": "/organisation/people/<id>", "kind": "page" }
+            },
+            {
+              "id": "4.3",
+              "title": "Tick the export box back on, then off again. Add a new number with label \"Test\" and remove it with ×. Use ↑↓ to reorder two numbers; reload: the order stuck",
+              "actor": "you",
+              "where": { "label": "/organisation/people/<id>", "kind": "page" }
+            }
+          ]
+        },
+        {
+          "id": "5",
+          "title": "Promote",
+          "lede_html": "<p>A contact becomes a person with one tap, or the first time anything links to it.</p>",
+          "steps": [
+            {
+              "id": "5.1",
+              "title": "People → Contacts chip. Press \"promote\" on one card: it leaves Contacts and appears under People",
+              "actor": "you",
+              "where": { "label": "/organisation/people", "kind": "page" }
+            },
+            {
+              "id": "5.2",
+              "title": "Pick another contact. On /organisation/quotes add a quote and choose that contact as Who. Back on People it is now under the People chip (promoted by the link). Delete the test quote",
+              "actor": "you",
+              "where": { "label": "/organisation/quotes", "kind": "page" },
+              "fields": [{ "key": "promoted_by_link", "label": "Did the link promote it?", "placeholder": "yes" }]
+            }
+          ]
+        },
+        {
+          "id": "6",
+          "title": "Export",
+          "lede_html": "<p>The .vcf is what the iPhone guide uses. Old numbers stay out unless you re-tick them.</p>",
+          "steps": [
+            {
+              "id": "6.1",
+              "title": "People → EXPORT .VCF. A file downloads. Open it in a text editor: {{quoted}}'s card is there with UID and the current numbers, and the \"Old mobile\" number from 4.2 is absent",
+              "actor": "you",
+              "where": { "label": "/organisation/people", "kind": "page" },
+              "fields": [{ "key": "old_absent", "label": "Old number absent?", "placeholder": "yes" }]
+            },
+            {
+              "id": "6.2",
+              "title": "Re-tick that number's export box, export again: now it is in the file. Set it back the way you want it",
+              "actor": "you",
+              "where": { "label": "/organisation/people", "kind": "page" }
+            },
+            {
+              "id": "6.3",
+              "title": "Verdict: anything you expected from a contacts app that is missing?",
+              "actor": "you",
+              "where": { "label": "here", "kind": "page" },
+              "fields": [{ "key": "verdict", "label": "Missing / wrong", "placeholder": "nothing" }]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
