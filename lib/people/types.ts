@@ -7,14 +7,50 @@ export type MentionConfidence =
 
 export type MentionSourceType = "capture" | "task" | "journal";
 
+export type PersonTier = "person" | "contact";
+
+export type PersonPhone = {
+  id: string;
+  person_id: string;
+  number_raw: string;
+  number_e164: string | null;
+  label: string | null;
+  is_current: boolean;
+  include_in_export: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PersonEmail = {
+  id: string;
+  person_id: string;
+  email: string;
+  label: string | null;
+  is_current: boolean;
+  include_in_export: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Person = {
   id: string;
   first_name: string;
   last_name: string | null;
   display_name: string | null;
   relationship: string | null;
-  phone: string | null;
-  email: string | null;
+  /** Derived (0140): the first current number / address, for screens that show one. The lists are `phones` / `emails`. */
+  phone?: string | null;
+  email?: string | null;
+  phones?: PersonPhone[];
+  emails?: PersonEmail[];
+  /** people-contacts C1: a contact is an imported card that nothing has linked to yet. */
+  tier?: PersonTier;
+  deleted_at?: string | null;
+  merged_into_id?: string | null;
+  promoted_at?: string | null;
+  linked_user_id?: string | null;
   birthday: string | null;
   address: string | null;
   where_we_met: string | null;
