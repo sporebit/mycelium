@@ -52,6 +52,7 @@ function Card({ title, lines }: { title: string; lines: Array<[string, string | 
 export function ImportClient() {
   const [open, setOpen] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -66,13 +67,22 @@ export function ImportClient() {
     setUploading(true);
     setError(null);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const r = await fetch("/api/people/import/vcf", { method: "POST", body: fd });
-      const j = (await r.json().catch(() => ({}))) as { error?: string; batch_id?: string };
-      if (!r.ok) throw new Error(j.error ?? `${r.status}`);
-      await loadBatches();
-      if (j.batch_id) setOpen(j.batch_id);
+      // a large file runs in time-budgeted passes: keep sending it with the batch id until done
+      let batchId: string | null = null;
+      for (let pass = 0; pass < 40; pass++) {
+        const fd = new FormData();
+        fd.append("file", file);
+        if (batchId) fd.append("batch_id", batchId);
+        const r = await fetch("/api/people/import/vcf", { method: "POST", body: fd });
+        const j = (await r.json().catch(() => ({}))) as { error?: string; batch_id?: string; done?: boolean; imported?: number; review?: number; card_count?: number };
+        if (!r.ok) throw new Error(j.error ?? `${r.status}`);
+        batchId = j.batch_id ?? batchId;
+        setProgress(`${(j.imported ?? 0) + (j.review ?? 0)} of ${j.card_count ?? "?"} handled…`);
+        await loadBatches();
+        if (batchId) setOpen(batchId);
+        if (j.done !== false) break;
+      }
+      setProgress(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "import failed");
     } finally {
@@ -110,7 +120,7 @@ export function ImportClient() {
 
       <label className={`rounded-md border border-dashed border-ink-3 bg-ink-1 p-6 text-center cursor-pointer hover:border-glow-2/60 ${uploading ? "opacity-60" : ""}`}>
         <input type="file" accept=".vcf,text/vcard,text/x-vcard" className="hidden" disabled={uploading} onChange={(e) => e.target.files?.[0] && void upload(e.target.files[0])} />
-        <div className="font-[family-name:var(--font-display)] text-lg text-text-0">{uploading ? "Importing…" : "Drop a .vcf here or click to choose"}</div>
+        <div className="font-[family-name:var(--font-display)] text-lg text-text-0">{uploading ? (progress ?? "Importing…") : "Drop a .vcf here or click to choose"}</div>
         <div className="text-[11px] text-ink-3 mt-1">
           Cards that match someone you already have (same number, same email, or a close name) wait below for your decision. Everyone else comes in as a contact. Re-importing the same file never duplicates anyone.
         </div>

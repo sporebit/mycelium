@@ -85,7 +85,7 @@ export type EmailInput = { email: string; label?: string | null; is_current?: bo
 export async function addPhone(db: SupabaseClient, personId: string, input: PhoneInput): Promise<PersonPhone | null> {
   const { raw, e164 } = normalisePhone(input.number_raw);
   if (!raw) return null;
-  const { count } = await db.from("person_phones").select("id", { count: "exact", head: true }).eq("person_id", personId);
+  const count = input.sort_order === undefined ? (await db.from("person_phones").select("id", { count: "exact", head: true }).eq("person_id", personId)).count : null;
   const { data, error } = await db
     .from("person_phones")
     .upsert(
@@ -111,7 +111,7 @@ export async function addPhone(db: SupabaseClient, personId: string, input: Phon
 export async function addEmail(db: SupabaseClient, personId: string, input: EmailInput): Promise<PersonEmail | null> {
   const email = input.email.trim();
   if (!email || !email.includes("@")) return null;
-  const { count } = await db.from("person_emails").select("id", { count: "exact", head: true }).eq("person_id", personId);
+  const count = input.sort_order === undefined ? (await db.from("person_emails").select("id", { count: "exact", head: true }).eq("person_id", personId)).count : null;
   const { data, error } = await db
     .from("person_emails")
     .upsert(

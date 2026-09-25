@@ -5,6 +5,7 @@ import { mintUserJwt } from "@/lib/system/jwt";
 import { PHIL_AUTH_UID } from "@/lib/system/identity";
 import { resolveMention } from "./resolve-mention";
 import { resolveSpeaker } from "@/lib/quotes/server";
+import { importVcf } from "./import";
 
 /**
  * People contacts on the LOCAL stack (0140): the merge walk with a
@@ -37,8 +38,14 @@ afterAll(() => cleanup());
 
 function cleanup() {
   localSql(`delete from public.quotes where text like 'contacts-test:%'`);
-  localSql(`delete from public.people where first_name like 'contacts-test:%'`);
+  localSql(`delete from public.people where first_name like 'contacts-test:%' or last_name = 'Importfixture'`);
+  localSql(`delete from public.people_import_batches where filename like 'contacts-test%'`);
 }
+
+const TWO_CARDS = [
+  "BEGIN:VCARD", "VERSION:3.0", "N:Importfixture;One;;;", "FN:One Importfixture", "TEL;TYPE=CELL:07700 900501", "UID:contacts-test-uid-1", "END:VCARD",
+  "BEGIN:VCARD", "VERSION:3.0", "N:Importfixture;Two;;;", "FN:Two Importfixture", "TEL;TYPE=CELL:07700 900502", "END:VCARD",
+].join("\r\n");
 
 function person(first: string, tier: "person" | "contact" = "person"): string {
   const id = one(
@@ -146,5 +153,37 @@ describe("the bin (C4)", () => {
     expect(Number(data)).toBeGreaterThanOrEqual(1);
     expect(count(`select count(*) from public.people where id = '${old}'`)).toBe(0);
     expect(count(`select count(*) from public.people where id = '${fresh}'`)).toBe(1);
+  });
+});
+
+
+describe("import (C2)", () => {
+  it("imports contacts, resumes under a time budget, and re-imports as skipped", async () => {
+    // budget 0: the first pass opens the batch and stops before any card
+    const first = await importVcf(db, { filename: "contacts-test.vcf", text: TWO_CARDS, budgetMs: 0 });
+    expect(first.done).toBe(false);
+    expect(first.processed).toBe(0);
+    expect(first.imported).toBe(0);
+    const second = await importVcf(db, { filename: "contacts-test.vcf", text: TWO_CARDS, batchId: first.batch_id });
+    expect(second.done).toBe(true);
+    expect(second.imported).toBe(2);
+    expect(second.review).toBe(0);
+    expect(second.skipped).toBe(0);
+    expect(one(`select tier from public.people where last_name = 'Importfixture' and first_name = 'One'`)).toBe("contact");
+    expect(count(`select count(*) from public.person_vcards where batch_id = '${first.batch_id}'`)).toBe(2);
+    expect(one(`select status from public.people_import_batches where id = '${first.batch_id}'`)).toBe("done");
+    // the same file again: nothing new, both skipped (UID and content-hash UID)
+    const again = await importVcf(db, { filename: "contacts-test-again.vcf", text: TWO_CARDS });
+    expect(again.imported).toBe(0);
+    expect(again.skipped).toBe(2);
+    expect(count(`select count(*) from public.people where last_name = 'Importfixture' and deleted_at is null`)).toBe(2);
+    // a third card sharing One's number waits for review; re-import leaves it waiting, not duplicated
+    const third = TWO_CARDS + "\r\nBEGIN:VCARD\r\nVERSION:3.0\r\nN:Importfixture;Three;;;\r\nFN:Three Importfixture\r\nTEL:+44 7700 900501\r\nEND:VCARD";
+    const r3 = await importVcf(db, { filename: "contacts-test-3.vcf", text: third });
+    expect(r3.review).toBe(1);
+    const r4 = await importVcf(db, { filename: "contacts-test-4.vcf", text: third });
+    expect(r4.review).toBe(0);
+    expect(r4.skipped).toBe(3);
+    expect(count(`select count(*) from public.people_import_candidates c join public.people_import_batches b on b.id = c.batch_id where b.filename like 'contacts-test%'`)).toBe(1);
   });
 });

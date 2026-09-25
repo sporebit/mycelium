@@ -21,23 +21,34 @@ export type ImportSummary = {
   skipped: number;
   failed: number;
   unparseable: number;
+  /** false when the time budget ran out first: call again with the same file and `batch_id` to continue. */
+  done: boolean;
+  /** cards handled in this call */
+  processed: number;
 };
+
+/** Vercel's function limit is the wall; stop well inside it and let the caller resume. */
+export const DEFAULT_BUDGET_MS = 45_000;
 
 type Live = { id: string; name: string; first_name: string; last_name: string | null; display_name: string | null };
 
 type Index = {
   byUid: Set<string>;
+  /** uids this batch itself has already handled (for a resumed run) */
+  thisBatch: Set<string>;
   byPhone: Map<string, string>;
   byEmail: Map<string, string>;
   people: Live[];
 };
 
-async function loadIndex(db: SupabaseClient): Promise<Index> {
-  const [{ data: people }, { data: phones }, { data: emails }, { data: vcards }] = await Promise.all([
+async function loadIndex(db: SupabaseClient, batchId: string | null = null): Promise<Index> {
+  const [{ data: people }, { data: phones }, { data: emails }, { data: vcards }, { data: candidates }] = await Promise.all([
     db.from("people").select("id, first_name, last_name, display_name").is("deleted_at", null),
     db.from("person_phones").select("person_id, number_e164").not("number_e164", "is", null),
     db.from("person_emails").select("person_id, email_key"),
     db.from("person_vcards").select("uid"),
+    // a card already waiting for (or given) a decision is handled too — re-importing never re-offers it
+    db.from("people_import_candidates").select("uid").not("uid", "is", null),
   ]);
   const live = ((people ?? []) as Array<{ id: string; first_name: string; last_name: string | null; display_name: string | null }>).map((p) => ({ ...p, name: personName(p) }));
   const liveIds = new Set(live.map((p) => p.id));
@@ -45,7 +56,17 @@ async function loadIndex(db: SupabaseClient): Promise<Index> {
   for (const r of (phones ?? []) as Array<{ person_id: string; number_e164: string }>) if (liveIds.has(r.person_id) && !byPhone.has(r.number_e164)) byPhone.set(r.number_e164, r.person_id);
   const byEmail = new Map<string, string>();
   for (const r of (emails ?? []) as Array<{ person_id: string; email_key: string }>) if (liveIds.has(r.person_id) && !byEmail.has(r.email_key)) byEmail.set(r.email_key, r.person_id);
-  return { byUid: new Set(((vcards ?? []) as Array<{ uid: string }>).map((v) => v.uid)), byPhone, byEmail, people: live };
+  const byUid = new Set(((vcards ?? []) as Array<{ uid: string }>).map((v) => v.uid));
+  for (const c of (candidates ?? []) as Array<{ uid: string | null }>) if (c.uid) byUid.add(c.uid);
+  const thisBatch = new Set<string>();
+  if (batchId) {
+    const [{ data: v2 }, { data: c2 }] = await Promise.all([
+      db.from("person_vcards").select("uid").eq("batch_id", batchId),
+      db.from("people_import_candidates").select("uid").eq("batch_id", batchId),
+    ]);
+    for (const r of [...((v2 ?? []) as Array<{ uid: string | null }>), ...((c2 ?? []) as Array<{ uid: string | null }>)]) if (r.uid) thisBatch.add(r.uid);
+  }
+  return { byUid, thisBatch, byPhone, byEmail, people: live };
 }
 
 export type Match = { person_id: string; reason: "phone" | "email" | "name"; score: number };
@@ -122,23 +143,72 @@ export async function materialiseCard(db: SupabaseClient, card: ParsedCard, opts
   return personId;
 }
 
-export async function importVcf(db: SupabaseClient, input: { filename: string | null; text: string }): Promise<ImportSummary> {
-  const { cards, unparseable } = parseVcf(input.text);
-  const { data: batchRow, error: batchErr } = await db
+/**
+ * The batch's imported / review counts are derived from rows (a decided
+ * candidate writes one vCard row with the batch id), skipped / failed are
+ * accumulated across runs, so an interrupted or resumed run never loses or
+ * double-counts anything.
+ */
+async function finishBatch(db: SupabaseClient, batchId: string, run: { skipped: number; failed: number }, done: boolean): Promise<{ imported: number; review: number; skipped: number; failed: number }> {
+  const [{ count: vcards }, { count: candidates }, { count: decided }, { data: cur }] = await Promise.all([
+    db.from("person_vcards").select("id", { count: "exact", head: true }).eq("batch_id", batchId),
+    db.from("people_import_candidates").select("id", { count: "exact", head: true }).eq("batch_id", batchId),
+    db.from("people_import_candidates").select("id", { count: "exact", head: true }).eq("batch_id", batchId).in("decision", ["merged", "separate"]),
+    db.from("people_import_batches").select("skipped, failed").eq("id", batchId).maybeSingle(),
+  ]);
+  const prev = (cur as { skipped: number; failed: number } | null) ?? { skipped: 0, failed: 0 };
+  const counts = {
+    imported: Math.max(0, (vcards ?? 0) - (decided ?? 0)),
+    review: candidates ?? 0,
+    skipped: prev.skipped + run.skipped,
+    failed: prev.failed + run.failed,
+  };
+  await db
     .from("people_import_batches")
-    .insert({ filename: input.filename, card_count: cards.length + unparseable, failed: unparseable })
-    .select("id")
-    .single();
-  if (batchErr || !batchRow) throw new Error(batchErr?.message ?? "batch insert failed");
-  const batchId = (batchRow as { id: string }).id;
-  const index = await loadIndex(db);
-  const summary: ImportSummary = { batch_id: batchId, card_count: cards.length + unparseable, imported: 0, review: 0, skipped: 0, failed: unparseable, unparseable };
+    .update({ ...counts, status: done ? "done" : "running", finished_at: done ? new Date().toISOString() : null })
+    .eq("id", batchId);
+  return counts;
+}
+
+export async function importVcf(
+  db: SupabaseClient,
+  input: { filename: string | null; text: string; batchId?: string | null; budgetMs?: number },
+): Promise<ImportSummary> {
+  const started = Date.now();
+  const budget = input.budgetMs ?? DEFAULT_BUDGET_MS;
+  const { cards, unparseable } = parseVcf(input.text);
+  let batchId = input.batchId ?? null;
+  let runFailed = 0;
+  if (batchId) {
+    const { data: existing } = await db.from("people_import_batches").select("id").eq("id", batchId).maybeSingle();
+    if (!existing) throw new Error("batch not found");
+  } else {
+    const { data: batchRow, error: batchErr } = await db
+      .from("people_import_batches")
+      .insert({ filename: input.filename, card_count: cards.length + unparseable })
+      .select("id")
+      .single();
+    if (batchErr || !batchRow) throw new Error(batchErr?.message ?? "batch insert failed");
+    batchId = (batchRow as { id: string }).id;
+    runFailed += unparseable; // counted once, on the run that opened the batch
+  }
+  const index = await loadIndex(db, input.batchId ?? null);
   const seenThisRun = new Set<string>();
+  let runSkipped = 0;
+  let processed = 0;
+  let done = true;
   for (let i = 0; i < cards.length; i++) {
+    if (Date.now() - started > budget) {
+      done = false;
+      break;
+    }
     const card = cards[i];
+    processed += 1;
     try {
       if (index.byUid.has(card.uid) || seenThisRun.has(card.uid)) {
-        summary.skipped += 1; // already imported (idempotent on UID, C2)
+        // already imported or waiting for a decision (idempotent on UID, C2);
+        // on a resumed batch the cards this batch already handled are not "skipped"
+        if (!input.batchId || !index.thisBatch.has(card.uid)) runSkipped += 1;
         continue;
       }
       seenThisRun.add(card.uid);
@@ -155,7 +225,6 @@ export async function importVcf(db: SupabaseClient, input: { filename: string | 
           match_score: match.score,
         });
         if (error) throw error;
-        summary.review += 1;
         continue;
       }
       const id = await materialiseCard(db, card, { batchId, tier: "contact" });
@@ -163,17 +232,13 @@ export async function importVcf(db: SupabaseClient, input: { filename: string | 
       for (const p of card.phones) if (p.e164 && !index.byPhone.has(p.e164)) index.byPhone.set(p.e164, id);
       for (const e of card.emails) index.byEmail.set(e.value.trim().toLowerCase(), id);
       index.people.push({ id, name: card.fn, first_name: card.n.given || card.fn, last_name: card.n.family || null, display_name: null });
-      summary.imported += 1;
     } catch (err) {
       console.error("[people import] card failed:", err instanceof Error ? err.message : err);
-      summary.failed += 1;
+      runFailed += 1;
     }
   }
-  await db
-    .from("people_import_batches")
-    .update({ imported: summary.imported, review: summary.review, skipped: summary.skipped, failed: summary.failed, status: "done", finished_at: new Date().toISOString() })
-    .eq("id", batchId);
-  return summary;
+  const counts = await finishBatch(db, batchId, { skipped: runSkipped, failed: runFailed }, done);
+  return { batch_id: batchId, card_count: cards.length + unparseable, ...counts, unparseable, done, processed };
 }
 
 export type Decision = "merge" | "separate" | "skip";
