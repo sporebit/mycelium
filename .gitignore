@@ -67,3 +67,6 @@ screenshots/
 
 # Local scratch from the cutover rehearsal (Phil), never committed
 Claude outputs/
+
+# private imports (contacts etc.) — never committed
+imports/private/
