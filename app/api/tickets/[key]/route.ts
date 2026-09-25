@@ -1,10 +1,12 @@
-import { whenFieldsFromBody } from "@/lib/tickets/server";
+import {
+  legacyFieldsFromBody,
+  whenFieldsFromBody,
+} from "@/lib/tickets/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import { logTaskActivity } from "@/lib/task-activity";
 import { removeGoogleEvent, syncTicketToGoogle } from "@/lib/google/sync";
-import { TASK_STATUSES } from "@/lib/types/task";
 import { attachAssigneeNames, attachBlockers, type TicketRow } from "@/lib/tickets/query";
 import { signTicketAttachment } from "@/lib/storage/tickets";
 import { createGithubIssue } from "@/lib/tickets/github";
@@ -55,7 +57,7 @@ export async function GET(
     if (error || !row) return NextResponse.json({ error: "not found" }, { status: 404 });
     const task: TicketRow = serializeTask(row as unknown as Raw);
 
-    const [comments, activity, subs, links, completions] = await Promise.all([
+    const [comments, activity, subs, links, completions, captures] = await Promise.all([
       supabase
         .from("ticket_comments")
         .select("id, task_id:ticket_id, body, created_at, updated_at")
@@ -83,6 +85,14 @@ export async function GET(
         .eq("ticket_id", task.id)
         .order("completed_on", { ascending: false })
         .limit(60),
+      // the captures that made or were routed to this ticket (the classic detail pane shows them)
+      supabase
+        .from("raw_captures")
+        .select("id, source, raw_text, created_at")
+        .is("deleted_at", null)
+        .in("routed_to", ["tickets", "task"])
+        .eq("routed_id", task.id)
+        .order("created_at", { ascending: false }),
     ]);
 
     const sub_tasks: TicketRow[] = ((subs.data ?? []) as unknown as Raw[]).map((r) =>
@@ -112,27 +122,13 @@ export async function GET(
       ),
       comments: comments.data ?? [],
       activity: activity.data ?? [],
+      linked_captures: captures.data ?? [],
     });
   } catch (err) {
     console.error("[/api/tickets/:key GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });
   }
 }
-
-/** Legacy Tasks columns the classic surfaces still edit. */
-// `urgency` left this list with spec §18 R4: the column stays one release, unwritten.
-const LEGACY_FIELDS = [
-  "status",
-  "priority_score",
-  "due_date",
-  "scheduled_at",
-  "time_estimate_min",
-  "context_where",
-  "context_device",
-  "context_energy",
-  "context_tag",
-  "sort_order",
-] as const;
 
 export async function PATCH(
   req: NextRequest,
@@ -144,15 +140,8 @@ export async function PATCH(
   if (!body) return NextResponse.json({ error: "bad json" }, { status: 400 });
 
   // When (spec §18): `due_window` derives the dates server-side and wins over any dates sent alongside.
-  const update: Record<string, unknown> = { ...ticketFieldsFromBody(body), ...whenFieldsFromBody(body) };
-  for (const k of LEGACY_FIELDS) {
-    if (!(k in body)) continue;
-    const v = body[k];
-    if (k === "status" && !(TASK_STATUSES as readonly string[]).includes(String(v))) continue;
-    if ((k === "priority_score" || k === "time_estimate_min") && v !== null && typeof v !== "number") continue;
-    if (k === "sort_order" && typeof v !== "number") continue;
-    update[k] = v;
-  }
+  // The classic views' legacy columns (lib/tickets/server LEGACY_FIELDS) ride along; `urgency` left with spec §18 R4.
+  const update: Record<string, unknown> = { ...legacyFieldsFromBody(body), ...ticketFieldsFromBody(body), ...whenFieldsFromBody(body) };
   // A legacy status write keeps completed_at coherent on the way in (the
   // trigger does too, but the response should already reflect it).
   if ("status" in update && !("completed_at" in update)) {

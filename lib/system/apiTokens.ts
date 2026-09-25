@@ -16,7 +16,7 @@ export const TOKEN_PREFIX = "mtk_";
 
 /** Route families a token may be limited to; the path prefixes each covers. */
 export const TOKEN_ROUTES: Record<string, string[]> = {
-  tickets: ["/api/tickets", "/api/tasks", "/api/projects", "/api/habits", "/api/reminders"],
+  tickets: ["/api/tickets", "/api/projects", "/api/habits", "/api/reminders"],
   people: ["/api/people"],
   capture: ["/api/capture"],
 };

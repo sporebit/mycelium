@@ -29,6 +29,8 @@ import { useCurrentDevice } from "@/lib/hooks/useCurrentDevice";
 import { scoreTaskForContext } from "@/lib/compost/now-filter";
 import { triggerFieldPulse } from "@/lib/motion";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
+import { ticketPrefs } from "@/lib/settings/uiPrefs";
+import { withArea } from "@/lib/tickets/areaChip";
 
 const VIEW_STORAGE_KEY = "miles-crm-view";
 const SHOW_COMPLETED_STORAGE_KEY = "mycelium:showCompleted";
@@ -139,7 +141,7 @@ export function TasksClient() {
   // paints instantly and a second surface reading the same task shares it.
   // "new" has nothing to fetch, and a null key is how useApi says "not yet".
   const detailKey =
-    focusId && focusId !== "new" ? `/api/tasks/${focusId}` : null;
+    focusId && focusId !== "new" ? `/api/tickets/${focusId}` : null;
   const {
     data: detailData,
     isLoading: detailLoading,
@@ -240,18 +242,16 @@ export function TasksClient() {
   // The SWR key is the raw path, so this list is the same cache entry the
   // dashboard and NowBlock read — a task completed here updates them without
   // a round trip, which local component state could never do.
-  // Tickets / Tasks partition (0121): the classic view is the Tasks surface —
-  // life work and anything not under a Technical-area project.
-  const tasksKey = showCompleted
-    ? "/api/tasks?status=open&include_completed=true&surface=tasks"
-    : "/api/tasks?status=open&surface=tasks";
+  // One surface (tasks-merge M1): the board reads /api/tickets under the Area
+  // chip (M2); "show completed" widens to every ticket (list=all).
+  const tasksKey = withArea(showCompleted ? "/api/tickets?list=all&limit=1000" : "/api/tickets?limit=1000", ticketPrefs(uiPrefs).area);
   const { data: tasksData, error: tasksError, mutate: mutateTasks } = useApi<{
-    tasks?: Task[];
+    tickets?: Task[];
   }>(tasksKey);
   const tasks = useMemo<Task[] | null>(() => {
     if (tasksError) return [];
     if (!tasksData) return null;
-    return Array.isArray(tasksData.tasks) ? tasksData.tasks : [];
+    return Array.isArray(tasksData.tickets) ? tasksData.tickets : [];
   }, [tasksData, tasksError]);
 
   // Writes the SWR cache with the same signature the old useState setter had,
@@ -261,9 +261,9 @@ export function TasksClient() {
       void mutateTasks(
         (cur) => ({
           ...cur,
-          tasks:
+          tickets:
             typeof updater === "function"
-              ? updater(cur?.tasks ?? [])
+              ? updater(cur?.tickets ?? [])
               : updater,
         }),
         { revalidate: false },
@@ -428,7 +428,7 @@ export function TasksClient() {
           : cur,
       );
       try {
-        const res = await fetch(`/api/tasks/${id}`, {
+        const res = await fetch(`/api/tickets/${id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(patch),
@@ -463,19 +463,19 @@ export function TasksClient() {
 
   async function createTask(payload: Partial<Task>): Promise<Task | null> {
     try {
-      const res = await fetch("/api/tasks", {
+      const res = await fetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const j = (await res.json()) as { task?: Task; error?: string };
-      if (!res.ok || !j.task) {
+      const j = (await res.json()) as { ticket?: Task; error?: string };
+      if (!res.ok || !j.ticket) {
         showToast(j.error ?? `Create failed (${res.status})`);
         return null;
       }
-      setTasks((cur) => [j.task!, ...(cur ?? [])]);
+      setTasks((cur) => [j.ticket!, ...(cur ?? [])]);
       showToast("Task created", "success");
-      return j.task;
+      return j.ticket;
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Create failed");
       return null;
@@ -488,7 +488,7 @@ export function TasksClient() {
       setTasks((cur) => (cur ?? []).filter((t) => t.id !== id));
       if (focusId === id) setUrl({ task: null });
       try {
-        const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+        const res = await fetch(`/api/tickets/${id}?hard=1`, { method: "DELETE" });
         if (!res.ok) {
           setTasks(prev);
           showToast("Delete failed");
@@ -581,21 +581,14 @@ export function TasksClient() {
       ),
     );
     try {
-      const r = await fetch("/api/tasks/bulk", {
+      const r = await fetch("/api/tickets/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids, patch: { due_date: dueDate } }),
+        body: JSON.stringify({ keys: ids, set: { due_date: dueDate } }),
       });
       if (!r.ok) throw new Error("bulk failed");
-      const j = (await r.json().catch(() => ({}))) as { tasks?: Task[] };
-      // Reconcile with the server snapshot so any side-effects (e.g.
-      // updated_at) flow through.
-      if (Array.isArray(j.tasks)) {
-        const byId = new Map(j.tasks.map((t) => [t.id, t] as const));
-        setTasks((cur) =>
-          (cur ?? []).map((t) => byId.get(t.id) ?? t),
-        );
-      }
+      // Reconcile with the server so side-effects (deadline_on, updated_at) flow through.
+      void mutateTasks();
       showToast(
         dueDate
           ? `Scheduled ${ids.length} for ${dueDate}`
@@ -623,7 +616,7 @@ export function TasksClient() {
       clearSelection();
       try {
         const results = await Promise.all(
-          ids.map((id) => fetch(`/api/tasks/${id}`, { method: "DELETE" })),
+          ids.map((id) => fetch(`/api/tickets/${id}?hard=1`, { method: "DELETE" })),
         );
         // fetch only rejects on a network failure — a 4xx/5xx resolves
         // normally, so the responses must be checked explicitly or a
@@ -648,21 +641,17 @@ export function TasksClient() {
       ),
     );
     try {
-      // /api/tasks/bulk applies the patch in one statement: a single round
-      // trip instead of N, and the whole selection lands or none of it does.
-      const r = await fetch("/api/tasks/bulk", {
+      // /api/tickets/bulk applies the set in one statement per space: a single
+      // round trip instead of N, and the whole selection lands or none of it does.
+      const r = await fetch("/api/tickets/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids, patch }),
+        body: JSON.stringify({ keys: ids, set: patch }),
       });
       if (!r.ok) throw new Error("bulk rejected");
-      const j = (await r.json().catch(() => ({}))) as { tasks?: Task[] };
-      // Reconcile with the server snapshot so the endpoint's side-effects
-      // (completed_at coupling, updated_at) flow back into the list.
-      if (Array.isArray(j.tasks)) {
-        const byId = new Map(j.tasks.map((t) => [t.id, t] as const));
-        setTasks((cur) => (cur ?? []).map((t) => byId.get(t.id) ?? t));
-      }
+      // Reconcile with the server so the trigger's side-effects (completed_at
+      // coupling, updated_at) flow back into the list.
+      void mutateTasks();
       showToast(`Updated ${ids.length} tasks`, "success");
     } catch {
       setTasks(prev);
@@ -676,7 +665,7 @@ export function TasksClient() {
     const taskId = detail.task.id;
     try {
       const j = await apiWrite<{ comment?: TaskComment }>(
-        `/api/tasks/${taskId}/comments`,
+        `/api/tickets/${taskId}/comments`,
         { method: "POST", ...jsonBody({ body }) },
       );
       if (!j.comment) {
@@ -700,7 +689,7 @@ export function TasksClient() {
       cur ? { ...cur, comments: cur.comments.filter((c) => c.id !== commentId) } : cur,
     );
     try {
-      await apiWrite(`/api/tasks/${taskId}/comments/${commentId}`, {
+      await apiWrite(`/api/tickets/${taskId}/comments/${commentId}`, {
         method: "DELETE",
       });
     } catch {
@@ -717,7 +706,7 @@ export function TasksClient() {
     });
     if (created) {
       setDetailState((cur) =>
-        cur ? { ...cur, subtasks: [...cur.subtasks, created] } : cur,
+        cur ? { ...cur, sub_tasks: [...cur.sub_tasks, created] } : cur,
       );
     }
   }

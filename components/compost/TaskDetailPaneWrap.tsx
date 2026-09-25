@@ -39,7 +39,7 @@ export function TaskDetailPaneWrap({
       task={detail.task}
       comments={detail.comments}
       activity={detail.activity}
-      subtasks={detail.subtasks}
+      subtasks={detail.sub_tasks}
       linkedCaptures={detail.linked_captures}
       projects={projects}
       onClose={onClose}

@@ -154,7 +154,7 @@ async function callClaude(
     if (!text) return null;
     return validateLLM(extractJson(text));
   } catch (err) {
-    console.error("[/api/tasks/smart] claude failed:", err);
+    console.error("[/api/tickets/smart] claude failed:", err);
     return null;
   } finally {
     clearTimeout(timer);
@@ -209,7 +209,7 @@ export async function POST(req: NextRequest) {
       fallback,
     });
   } catch (err) {
-    console.error("[/api/tasks/smart POST]", err);
+    console.error("[/api/tickets/smart POST]", err);
     return NextResponse.json({ error: "smart search failed" }, { status: 500 });
   }
 }

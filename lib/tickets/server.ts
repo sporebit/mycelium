@@ -16,6 +16,7 @@ import { extractNameMentions } from "@/lib/people/regex-extract";
 import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
 import { LIMITS, takeToken } from "@/lib/system/rateLimit";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
+import { TASK_STATUSES } from "@/lib/types/task";
 import { logTaskActivity } from "@/lib/task-activity";
 import type { Task } from "@/lib/types/task";
 import {
@@ -298,6 +299,40 @@ export function legacyDueDateSync(body: Record<string, unknown>, derived: Record
   if (v === null || v === "") return { due_date: null, deadline_on: null, due_window: null };
   if (typeof v === "string" && DATE_RE.test(v)) return { due_date: v, deadline_on: v, due_window: "date", someday: false };
   return {};
+}
+
+/**
+ * Legacy Tasks columns the classic views still write (the drawer's create
+ * form, the board's status drag). Accepted by POST and PATCH /api/tickets
+ * since the /api/tasks compat routes were retired (MYC-163).
+ */
+export const LEGACY_FIELDS = [
+  "status",
+  "priority_score",
+  "due_date",
+  "scheduled_at",
+  "time_estimate_min",
+  "owner",
+  "context_where",
+  "context_device",
+  "context_energy",
+  "context_tag",
+  "sort_order",
+] as const;
+
+export function legacyFieldsFromBody(body: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const k of LEGACY_FIELDS) {
+    if (!(k in body)) continue;
+    const v = body[k];
+    if (k === "status" && !(TASK_STATUSES as readonly string[]).includes(String(v))) continue;
+    if ((k === "priority_score" || k === "time_estimate_min") && v !== null && typeof v !== "number") continue;
+    if (k === "sort_order" && typeof v !== "number") continue;
+    if (k === "scheduled_at" && v !== null && (typeof v !== "string" || Number.isNaN(Date.parse(v)))) continue;
+    if ((k === "owner" || k.startsWith("context_")) && v !== null && typeof v !== "string") continue;
+    out[k] = k === "scheduled_at" && typeof v === "string" ? new Date(v).toISOString() : v;
+  }
+  return out;
 }
 
 /** Keys the legacy Tasks routes compute themselves (inheritance, defaults). */

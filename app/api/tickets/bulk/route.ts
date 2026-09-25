@@ -1,4 +1,4 @@
-import { whenFieldsFromBody } from "@/lib/tickets/server";
+import { legacyDueDateSync, legacyFieldsFromBody, whenFieldsFromBody } from "@/lib/tickets/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { logTaskActivity } from "@/lib/task-activity";
@@ -32,6 +32,11 @@ const BULK_FIELDS = new Set([
   "due_window",
   "kind",
   "sprint_id",
+  // the classic board and calendar (MYC-163): a legacy status drop, a drag-to-schedule date
+  "status",
+  "due_date",
+  "deadline_on",
+  "completed_at",
 ]);
 
 const MAX = 200;
@@ -56,9 +61,13 @@ export async function POST(req: NextRequest) {
   if (!setRaw) return NextResponse.json({ error: "set required" }, { status: 400 });
 
   // When (spec §18): a `due_window` in the set derives the dates for every ticket.
-  const picked = { ...ticketFieldsFromBody(setRaw), ...whenFieldsFromBody(setRaw) };
+  const legacy = legacyFieldsFromBody(setRaw);
+  const derived = { ...ticketFieldsFromBody(setRaw), ...whenFieldsFromBody(setRaw) };
+  const picked = { ...legacy, ...derived, ...legacyDueDateSync(setRaw, derived) };
   const set: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(picked)) if (BULK_FIELDS.has(k)) set[k] = v;
+  // A legacy status write keeps completed_at coherent (the trigger does too).
+  if ("status" in set && !("completed_at" in set)) set.completed_at = set.status === "completed" ? new Date().toISOString() : null;
   const category = isTicketCategory(setRaw.category) ? setRaw.category : null;
   if (Object.keys(set).length === 0 && !category) {
     return NextResponse.json({ error: "no valid fields in set" }, { status: 400 });

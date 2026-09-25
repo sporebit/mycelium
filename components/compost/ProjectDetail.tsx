@@ -44,11 +44,11 @@ export function ProjectDetail({ initialProject }: Props) {
 
   useEffect(() => {
     let mounted = true;
-    fetch(`/api/tasks?status=open&project_id=${project.id}`)
+    fetch(`/api/tickets?project=${project.id}&limit=500`)
       .then((r) => r.json())
-      .then((j: { tasks?: Task[] }) => {
+      .then((j: { tickets?: Task[] }) => {
         if (!mounted) return;
-        setTasks(Array.isArray(j?.tasks) ? j.tasks : []);
+        setTasks(Array.isArray(j?.tickets) ? j.tickets : []);
       })
       .catch(() => mounted && setTasks([]));
     fetch(`/api/purchases?project_id=${project.id}`)
@@ -152,17 +152,17 @@ export function ProjectDetail({ initialProject }: Props) {
     if (!title) return;
     setAdding(true);
     try {
-      const res = await fetch("/api/tasks", {
+      const res = await fetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, project_id: project.id }),
       });
-      const j = (await res.json()) as { task?: Task; error?: string };
-      if (!res.ok || !j.task) {
+      const j = (await res.json()) as { ticket?: Task; error?: string };
+      if (!res.ok || !j.ticket) {
         setError(j.error ?? "Create failed");
         return;
       }
-      setTasks((cur) => [j.task!, ...(cur ?? [])]);
+      setTasks((cur) => [j.ticket!, ...(cur ?? [])]);
       setAddDraft("");
     } finally {
       setAdding(false);
@@ -271,7 +271,7 @@ export function ProjectDetail({ initialProject }: Props) {
       (cur ?? []).map((x) => (x.id === t.id ? { ...x, completed_at } : x)),
     );
     try {
-      const res = await fetch(`/api/tasks/${t.id}`, {
+      const res = await fetch(`/api/tickets/${t.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ completed_at }),

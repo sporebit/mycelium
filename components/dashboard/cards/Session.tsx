@@ -72,7 +72,7 @@ export function Session({ width = 1 }: { width?: CardWidth } = {}) {
       })
       .catch(() => mounted && setOneThingLoaded(true));
 
-    fetch("/api/tasks/top-today")
+    fetch("/api/tickets/top-today")
       .then((r) => r.json())
       .then((j: { tasks?: TopTask[] }) => {
         if (!mounted) return;

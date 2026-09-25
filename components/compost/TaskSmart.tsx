@@ -35,7 +35,7 @@ export function TaskSmart({
     setSubmitting(true);
     setQuery(text);
     try {
-      const res = await fetch("/api/tasks/smart", {
+      const res = await fetch("/api/tickets/smart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: text }),

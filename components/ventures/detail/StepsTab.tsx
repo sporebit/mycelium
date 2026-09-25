@@ -117,18 +117,18 @@ export function StepsTab({
     } catch {
       /* non-fatal */
     }
-    const taskRes = await fetch("/api/tasks", {
+    const taskRes = await fetch("/api/tickets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: `[${ventureName}] ${step.title}`,
         description: step.description || undefined,
-        urgency: "someday",
+        due_window: "someday",
       }),
     });
     if (!taskRes.ok) return;
-    const taskData = (await taskRes.json()) as { task?: { id?: string }; id?: string };
-    const taskId = taskData.task?.id ?? taskData.id;
+    const taskData = (await taskRes.json()) as { ticket?: { id?: string }; id?: string };
+    const taskId = taskData.ticket?.id ?? taskData.id;
     if (!taskId) return;
     await mutateApi<StepsPayload>(
       stepsKey,

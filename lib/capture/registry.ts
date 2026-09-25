@@ -168,40 +168,56 @@ function opts(values: readonly string[]): FieldOption[] {
 
 const WHEN_OPTIONS: FieldOption[] = [{ value: "", label: "No deadline" }, ...DUE_WINDOWS.map((w) => ({ value: w, label: DUE_WINDOW_LABEL[w] }))];
 
-/** Every key `/api/tasks` POST accepts (its CreateBody plus `due_window`, read by whenFieldsFromBody). */
+/**
+ * Every key `POST /api/tickets` accepts (MYC-163, the /api/tasks compat routes
+ * are gone): ticketFieldsFromBody's whitelist, whenFieldsFromBody's
+ * `due_window`, the classic views' legacy columns (legacyFieldsFromBody), and
+ * the create-only `category`, `template`, `vars`.
+ */
 const TASK_POST_FIELDS = [
   "title",
   "description",
-  "urgency",
-  "status",
-  "key",
-  "priority_score",
-  "tags",
-  "due_date",
+  "kind",
+  "where_ctx",
+  "time_window",
+  "source",
+  "scheduled_on",
+  "deadline_on",
   "due_window",
+  "someday",
+  "key",
+  "sync_to_github",
+  "project_id",
+  "parent_task_id",
+  "entity_id",
+  "place_id",
+  "assignee_id",
+  "waiting_on_person_id",
+  "status_id",
+  "sprint_id",
+  "points",
+  "tools",
+  "tags",
+  "time_from",
+  "time_to",
+  "days",
+  "remind_at",
+  "suggested",
+  "category",
+  "template",
+  "vars",
+  // legacy Tasks columns the drawer and board still write
+  "status",
+  "priority_score",
+  "due_date",
   "scheduled_at",
   "time_estimate_min",
   "owner",
-  "entity_id",
-  "project_id",
-  "parent_task_id",
   "context_where",
   "context_device",
   "context_energy",
   "context_tag",
-  "category",
-  "kind",
-  "someday",
-  "urgent",
-  "points",
-  "where_ctx",
-  "tools",
-  "time_window",
-  "scheduled_on",
-  "deadline_on",
-  "waiting_on_person_id",
-  "assignee_id",
-  "source",
+  "sort_order",
 ] as const;
 
 function taskFields(opts: { ticket: boolean }): FieldDef[] {
@@ -220,8 +236,9 @@ function taskFields(opts: { ticket: boolean }): FieldDef[] {
     { name: "owner", label: "Owner", type: "text" },
     { name: "entity_id", label: "Entity", type: "entity" },
     // accepted by the route, set by callers or derived server-side
-    { name: "urgency", label: "Urgency", type: "select", hidden: true },
-    { name: "status", label: "Status", type: "select", hidden: true },
+    { name: "status", label: "Status (legacy)", type: "select", hidden: true },
+    { name: "status_id", label: "Status", type: "text", hidden: true },
+    { name: "category", label: "Category", type: "text", hidden: true },
     { name: "priority_score", label: "Priority score", type: "number", hidden: true },
     { name: "due_date", label: "Due date (legacy)", type: "date", hidden: true },
     { name: "parent_task_id", label: "Parent task", type: "text", hidden: true },
@@ -229,17 +246,26 @@ function taskFields(opts: { ticket: boolean }): FieldDef[] {
     { name: "context_device", label: "Context: device", type: "text", hidden: true },
     { name: "context_energy", label: "Context: energy", type: "select", hidden: true },
     { name: "context_tag", label: "Context: tag", type: "text", hidden: true },
-    { name: "category", label: "Category", type: "text", hidden: true },
+    { name: "sort_order", label: "Sort order", type: "number", hidden: true },
     { name: "kind", label: "Kind", type: "text", hidden: true },
     { name: "someday", label: "Someday", type: "boolean", hidden: true },
-    { name: "urgent", label: "Urgent (legacy)", type: "boolean", hidden: true },
     { name: "points", label: "Points", type: "number", hidden: true },
     { name: "where_ctx", label: "Where", type: "text", hidden: true },
+    { name: "place_id", label: "Place", type: "text", hidden: true },
     { name: "tools", label: "Tools", type: "tags", hidden: true },
     { name: "time_window", label: "Time window", type: "text", hidden: true },
+    { name: "time_from", label: "Time from", type: "time", hidden: true },
+    { name: "time_to", label: "Time to", type: "time", hidden: true },
+    { name: "days", label: "Days", type: "tags", hidden: true },
     { name: "scheduled_on", label: "Scheduled on", type: "date", hidden: true },
+    { name: "remind_at", label: "Remind at", type: "datetime", hidden: true },
     { name: "waiting_on_person_id", label: "Waiting on", type: "person", hidden: true },
     { name: "assignee_id", label: "Assignee", type: "text", hidden: true },
+    { name: "sprint_id", label: "Sprint", type: "text", hidden: true },
+    { name: "sync_to_github", label: "Sync to GitHub", type: "boolean", hidden: true },
+    { name: "suggested", label: "Suggested", type: "text", hidden: true },
+    { name: "template", label: "Template", type: "text", hidden: true },
+    { name: "vars", label: "Template vars", type: "text", hidden: true },
     { name: "source", label: "Source", type: "text", hidden: true },
   ];
 }
@@ -270,7 +296,7 @@ function taskPostBody(values: FieldValues): Record<string, unknown> {
   body.owner = strOrNull(values.owner);
   body.entity_id = strOrNull(values.entity_id);
   body.project_id = strOrNull(values.project_id);
-  for (const k of ["parent_task_id", "status", "urgency", "where_ctx", "time_window", "points", "tools", "someday", "source", "kind", "category"] as const) {
+  for (const k of ["parent_task_id", "status", "where_ctx", "time_window", "points", "tools", "someday", "source", "kind", "category"] as const) {
     if (values[k] !== undefined && values[k] !== "") body[k] = values[k];
   }
   return body;
@@ -302,9 +328,9 @@ function taskClassification(values: FieldValues, ticket: boolean): Record<string
 const TASK: EntityDef = {
   kind: "task",
   label: "Task",
-  description: "Something to do. Lands in the Tickets Inbox for Clarify.",
+  description: "Something to do. Lands in the Inbox for Clarify.",
   primary: "title",
-  route: "/api/tasks",
+  route: "/api/tickets",
   postFields: TASK_POST_FIELDS,
   fields: taskFields({ ticket: false }),
   materialises: true,
@@ -316,9 +342,9 @@ const TASK: EntityDef = {
 const TICKET: EntityDef = {
   kind: "ticket",
   label: "Ticket",
-  description: "A task in a Tickets project. Gets the project's key.",
+  description: "A task in a technical project. Gets the project's key.",
   primary: "title",
-  route: "/api/tasks",
+  route: "/api/tickets",
   postFields: TASK_POST_FIELDS,
   fields: taskFields({ ticket: true }),
   materialises: true,

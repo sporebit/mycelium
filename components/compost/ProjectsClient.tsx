@@ -17,7 +17,7 @@ import { TaskStatusBoard } from "./TaskStatusBoard";
 import { useAreas } from "@/components/tickets/pickers";
 
 const PROJECTS_KEY = "/api/projects";
-const KANBAN_TASKS_KEY = "/api/tasks?status=open&include_completed=true";
+const KANBAN_TASKS_KEY = "/api/tickets?list=all&limit=1000";
 
 type Filter = ProjectStatus | "all";
 type View = "list" | "kanban";
@@ -104,13 +104,13 @@ export function ProjectsClient() {
     return Array.isArray(projectsData.projects) ? projectsData.projects : [];
   }, [projectsData, projectsError]);
 
-  const { data: kanbanData, error: kanbanError } = useApi<{ tasks?: Task[] }>(
+  const { data: kanbanData, error: kanbanError } = useApi<{ tickets?: Task[] }>(
     view === "kanban" ? KANBAN_TASKS_KEY : null,
   );
   const kanbanTasks = useMemo<Task[] | null>(() => {
     if (kanbanError) return [];
     if (!kanbanData) return null;
-    return Array.isArray(kanbanData.tasks) ? kanbanData.tasks : [];
+    return Array.isArray(kanbanData.tickets) ? kanbanData.tickets : [];
   }, [kanbanData, kanbanError]);
 
   // Effective filter: explicit user selection wins; otherwise default
@@ -134,16 +134,16 @@ export function ProjectsClient() {
   async function patchKanbanTask(id: string, status: TaskStatus) {
     // mutateApi rolls the cache back itself if the PATCH is refused, so the
     // hand-written prev/restore dance this used to do is no longer needed.
-    await mutateApi<{ tasks?: Task[] }>(
+    await mutateApi<{ tickets?: Task[] }>(
       KANBAN_TASKS_KEY,
       (cur) => ({
         ...cur,
-        tasks: (cur?.tasks ?? []).map((t) =>
+        tickets: (cur?.tickets ?? []).map((t) =>
           t.id === id ? { ...t, status } : t,
         ),
       }),
       () =>
-        apiWrite(`/api/tasks/${id}`, {
+        apiWrite(`/api/tickets/${id}`, {
           method: "PATCH",
           ...jsonBody({ status }),
         }),
@@ -306,7 +306,7 @@ export function ProjectsClient() {
               <option value="">— none (Tasks) —</option>
               {areas.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.name} · {a.kind === "technical" ? "Tickets" : "Tasks"}
+                  {a.name} · {a.kind === "technical" ? "Technical" : "Life"}
                 </option>
               ))}
             </select>
