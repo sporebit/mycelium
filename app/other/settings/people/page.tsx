@@ -14,6 +14,7 @@ import {
   type TeamRole,
 } from "@/lib/access/teams";
 import { createBrowserClient } from "@/lib/supabase/client";
+import { PeopleBin } from "@/components/people/PeopleBin";
 
 type TeamRow = { id: string; name: string; slug: string; owner_user_id: string; my_role: TeamRole | null };
 
@@ -127,6 +128,10 @@ export default function PeopleAndTeamsPage() {
       </header>
 
       {msg && <Note tone={msg.tone}>{msg.text}</Note>}
+
+      <Card title="BIN — DELETED PEOPLE">
+        <PeopleBin />
+      </Card>
 
       <TeamsCard
         teams={teams}

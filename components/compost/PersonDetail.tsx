@@ -13,6 +13,10 @@ import type {
   MentionWithSnippet,
   PersonWithAliases,
 } from "@/lib/people/types";
+import { ContactPointsEditor } from "@/components/people/ContactPointsEditor";
+import { MergeDialog } from "@/components/people/MergeDialog";
+import { DeleteDialog } from "@/components/people/DeleteDialog";
+import { PersonPicker } from "@/components/people/PersonPicker";
 
 function relativeDate(iso: string | null): string {
   if (!iso) return "—";
@@ -54,19 +58,29 @@ export function PersonDetail({ id }: { id: string }) {
   const [aliasDraft, setAliasDraft] = useState("");
   const [notesDraft, setNotesDraft] = useState("");
   const [editing, setEditing] = useState(false);
+  // people-contacts C3 / C4: merge with someone, delete to the bin
+  const [picking, setPicking] = useState(false);
+  const [mergeWith, setMergeWith] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [promoting, setPromoting] = useState(false);
   const notesTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadPerson = useCallback(async () => {
     try {
       const r = await fetch(`/api/people/${id}`, { cache: "no-store" });
       if (!r.ok) return;
-      const j = (await r.json()) as { person: PersonWithAliases };
+      const j = (await r.json()) as { person: PersonWithAliases; resolved_from?: string | null };
+      // a merged-away id resolves to the survivor (C3): move to its URL
+      if (j.resolved_from && j.person.id !== id) {
+        router.replace(`/organisation/people/${j.person.id}`);
+        return;
+      }
       setPerson(j.person);
       setNotesDraft(j.person.notes ?? "");
     } catch {
       /* ignore */
     }
-  }, [id]);
+  }, [id, router]);
 
   useEffect(() => {
     let mounted = true;
@@ -85,8 +99,12 @@ export function PersonDetail({ id }: { id: string }) {
           setQuotes([]);
         }
         if (pRes.ok) {
-          const j = (await pRes.json()) as { person: PersonWithAliases };
+          const j = (await pRes.json()) as { person: PersonWithAliases; resolved_from?: string | null };
           if (mounted) {
+            if (j.resolved_from && j.person.id !== id) {
+              router.replace(`/organisation/people/${j.person.id}`);
+              return;
+            }
             setPerson(j.person);
             setNotesDraft(j.person.notes ?? "");
           }
@@ -104,7 +122,18 @@ export function PersonDetail({ id }: { id: string }) {
     return () => {
       mounted = false;
     };
-  }, [id]);
+  }, [id, router]);
+
+  async function promote() {
+    if (promoting) return;
+    setPromoting(true);
+    try {
+      const r = await fetch(`/api/people/${id}/promote`, { method: "POST" });
+      if (r.ok) await loadPerson();
+    } finally {
+      setPromoting(false);
+    }
+  }
 
   async function addAlias() {
     const alias = aliasDraft.trim();
@@ -139,21 +168,6 @@ export function PersonDetail({ id }: { id: string }) {
     }, 600);
   }
 
-  async function deletePerson() {
-    if (!person) return;
-    const name =
-      person.display_name ||
-      [person.first_name, person.last_name].filter(Boolean).join(" ");
-    const mentionCount = mentions?.length ?? 0;
-    const ok = window.confirm(
-      `Delete ${name}? This will also remove ${mentionCount} linked mention${
-        mentionCount === 1 ? "" : "s"
-      }.`
-    );
-    if (!ok) return;
-    const r = await fetch(`/api/people/${id}`, { method: "DELETE" });
-    if (r.ok) router.push("/organisation/people");
-  }
 
   if (!person) {
     return (
@@ -206,8 +220,16 @@ export function PersonDetail({ id }: { id: string }) {
                   ⚠ needs review
                 </div>
               )}
+              {person.tier === "contact" && (
+                <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-2" title="An imported card nothing has linked to yet. The day log, quotes and captures do not match contacts.">
+                  contact ·{" "}
+                  <button type="button" disabled={promoting} onClick={() => void promote()} className="text-glow-2 hover:underline disabled:opacity-50">
+                    {promoting ? "…" : "promote to person"}
+                  </button>
+                </div>
+              )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap justify-center">
               <button
                 type="button"
                 onClick={() => setEditing(true)}
@@ -217,7 +239,15 @@ export function PersonDetail({ id }: { id: string }) {
               </button>
               <button
                 type="button"
-                onClick={() => void deletePerson()}
+                onClick={() => setPicking(true)}
+                className="px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                title="Merge with another person or contact"
+              >
+                MERGE…
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeleting(true)}
                 className="px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-1 hover:border-error/60 hover:text-error font-[family-name:var(--font-mono)] tracking-[0.1em]"
               >
                 DELETE
@@ -225,8 +255,8 @@ export function PersonDetail({ id }: { id: string }) {
             </div>
           </div>
 
-          <ContactField label="Phone" value={person.phone} />
-          <ContactField label="Email" value={person.email} />
+          <ContactPointsEditor personId={id} kind="phones" rows={person.phones ?? []} onChanged={() => void loadPerson()} />
+          <ContactPointsEditor personId={id} kind="emails" rows={person.emails ?? []} onChanged={() => void loadPerson()} />
           <ContactField label="Birthday" value={person.birthday} />
           <ContactField label="Address" value={person.address} multiline />
           <ContactField label="Where we met" value={person.where_we_met} />
@@ -379,6 +409,30 @@ export function PersonDetail({ id }: { id: string }) {
           onSaved={() => {
             setEditing(false);
             void loadPerson();
+          }}
+        />
+      )}
+
+      {picking && (
+        <PersonPicker
+          excludeId={id}
+          onClose={() => setPicking(false)}
+          onPick={(other) => {
+            setPicking(false);
+            setMergeWith(other);
+          }}
+        />
+      )}
+      {mergeWith && <MergeDialog aId={id} bId={mergeWith} onClose={() => setMergeWith(null)} />}
+      {deleting && (
+        <DeleteDialog
+          personId={id}
+          name={name}
+          onClose={() => setDeleting(false)}
+          onDeleted={() => router.push("/organisation/people")}
+          onMergeInstead={() => {
+            setDeleting(false);
+            setPicking(true);
           }}
         />
       )}

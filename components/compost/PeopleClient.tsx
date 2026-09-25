@@ -8,8 +8,11 @@ import { PersonDrawer } from "./PersonDrawer";
 import { ReviewQueue } from "./ReviewQueue";
 import { triggerGlowPulse } from "@/lib/motion";
 import type { PersonWithAliases } from "@/lib/people/types";
+import { MergeDialog } from "@/components/people/MergeDialog";
 
 type Filter = "all" | "recent" | "review";
+/** People (the default) or the imported Contacts (people-contacts C1). */
+type Tier = "person" | "contact";
 
 function relativeDate(iso: string | null): string {
   if (!iso) return "never";
@@ -63,8 +66,14 @@ function daysUntilBirthday(iso: string): number {
 
 export function PeopleClient() {
   const [filter, setFilter] = useState<Filter>("all");
+  const [tier, setTier] = useState<Tier>("person");
   const [relationship, setRelationship] = useState<string>("all");
   const [q, setQ] = useState("");
+  // Select → Merge (C3): exactly two cards, then the dialog.
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [mergePair, setMergePair] = useState<[string, string] | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [drawerMode, setDrawerMode] = useState<
     { kind: "create" } | { kind: "edit"; person: PersonWithAliases } | null
   >(null);
@@ -75,7 +84,7 @@ export function PeopleClient() {
   const { data, error, mutate } = useApi<{
     people: PersonWithAliases[];
     review_count: number;
-  }>("/api/people");
+  }>(`/api/people?tier=${tier}`);
   const people = useMemo<PersonWithAliases[] | null>(() => {
     if (error) return [];
     if (!data) return null;
@@ -112,8 +121,8 @@ export function PeopleClient() {
           p.last_name,
           ...(p.aliases ?? []).map((a) => a.alias),
           p.relationship,
-          p.email,
-          p.phone,
+          ...(p.emails ?? []).map((e) => e.email),
+          ...(p.phones ?? []).flatMap((x) => [x.number_raw, x.number_e164 ?? ""]),
           p.notes,
           p.where_we_met,
         ]
@@ -134,6 +143,19 @@ export function PeopleClient() {
       .slice(0, 8);
   }, [people]);
 
+  const toggleSelect = (id: string) =>
+    setSelected((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : cur.length >= 2 ? [cur[1], id] : [...cur, id]));
+
+  async function promote(id: string) {
+    setBusyId(id);
+    try {
+      const r = await fetch(`/api/people/${id}/promote`, { method: "POST" });
+      if (r.ok) await mutate();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
@@ -143,7 +165,9 @@ export function PeopleClient() {
             <span className="font-[family-name:var(--font-display)] text-2xl text-text-0">
               {people === null
                 ? "…"
-                : `${people.length} ${people.length === 1 ? "person" : "people"}`}
+                : tier === "contact"
+                  ? `${people.length} ${people.length === 1 ? "contact" : "contacts"}`
+                  : `${people.length} ${people.length === 1 ? "person" : "people"}`}
             </span>
             {reviewCount > 0 && (
               <span className="text-xs text-warn">
@@ -152,9 +176,38 @@ export function PeopleClient() {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => {
+              setSelecting((v) => !v);
+              setSelected([]);
+            }}
+            aria-pressed={selecting}
+            className={`px-3 py-2 rounded-sm border text-xs font-[family-name:var(--font-mono)] tracking-[0.1em] ${selecting ? "border-glow-2/50 bg-glow-2/15 text-glow-2" : "border-ink-4 text-text-1 hover:text-text-0 hover:bg-ink-2"}`}
+            title="Pick two people to merge"
+          >
+            {selecting ? "DONE" : "SELECT"}
+          </button>
+          {selecting && (
+            <button
+              type="button"
+              disabled={selected.length !== 2}
+              onClick={() => selected.length === 2 && setMergePair([selected[0], selected[1]])}
+              className="px-3 py-2 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]"
+            >
+              MERGE {selected.length}/2
+            </button>
+          )}
+          <a
+            href={`/api/people/export.vcf?tier=${tier === "contact" ? "contact" : "all"}`}
+            className="px-3 py-2 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+            title="Download a .vcf for iPhone / iCloud"
+          >
+            EXPORT .VCF
+          </a>
           <Link
-            href="/organisation/people/import-setup"
+            href="/organisation/people/import"
             className="px-3 py-2 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
           >
             IMPORT
@@ -182,6 +235,34 @@ export function PeopleClient() {
       />
 
       <div className="flex flex-wrap items-center gap-2">
+        {(
+          [
+            { id: "person", label: "PEOPLE" },
+            { id: "contact", label: "CONTACTS" },
+          ] as Array<{ id: Tier; label: string }>
+        ).map((t) => {
+          const active = tier === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => {
+                setTier(t.id);
+                setSelected([]);
+              }}
+              aria-pressed={active}
+              title={t.id === "contact" ? "Imported cards nothing has linked to yet — promote one, or link it from anywhere" : "People the day log, quotes and captures can match"}
+              className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] border transition-colors ${
+                active
+                  ? "border-glow-2/50 bg-glow-2/15 text-glow-2"
+                  : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+              }`}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+        <span className="w-px h-4 bg-ink-2 mx-1" aria-hidden />
         {(
           [
             { id: "all", label: "ALL" },
@@ -272,7 +353,9 @@ export function PeopleClient() {
       ) : visible.length === 0 ? (
         <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
           {(people?.length ?? 0) === 0
-            ? "No people yet. Add one above, or mention someone in a capture — Myphelium2 will auto-create them here."
+            ? tier === "contact"
+              ? "No contacts. Import a .vcf above; cards that match no one become contacts here."
+              : "No people yet. Add one above, or mention someone in a capture — Myphelium2 will auto-create them here."
             : "No people match these filters."}
         </div>
       ) : (
@@ -280,9 +363,19 @@ export function PeopleClient() {
           {visible.map((p) => (
             <Link
               key={p.id}
-              href={`/organisation/people/${p.id}`}
-              className="growth-in rounded-md bg-ink-1 hover:bg-ink-2 transition-colors p-4 flex items-start gap-3"
+              href={selecting ? "#" : `/organisation/people/${p.id}`}
+              onClick={(e) => {
+                if (selecting) {
+                  e.preventDefault();
+                  toggleSelect(p.id);
+                }
+              }}
+              aria-selected={selecting ? selected.includes(p.id) : undefined}
+              className={`growth-in rounded-md bg-ink-1 hover:bg-ink-2 transition-colors p-4 flex items-start gap-3 ${selecting && selected.includes(p.id) ? "outline outline-2 outline-glow-2/60" : ""}`}
             >
+              {selecting && (
+                <input type="checkbox" readOnly checked={selected.includes(p.id)} className="mt-3 accent-accent h-3.5 w-3.5" aria-label={`Select ${displayName(p)}`} />
+              )}
               <span
                 className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center text-sm font-[family-name:var(--font-display)] ${avatarColor(displayName(p))}`}
               >
@@ -297,6 +390,21 @@ export function PeopleClient() {
                     <span className="text-[10px] uppercase tracking-[0.15em] text-warn font-[family-name:var(--font-mono)]">
                       ⚠ review
                     </span>
+                  )}
+                  {p.tier === "contact" && (
+                    <button
+                      type="button"
+                      disabled={busyId === p.id}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        void promote(p.id);
+                      }}
+                      className="ml-auto text-[10px] uppercase tracking-[0.15em] text-glow-2 hover:underline font-[family-name:var(--font-mono)] disabled:opacity-50"
+                      title="Make this contact a person: the day log, quotes and captures can then match them"
+                    >
+                      {busyId === p.id ? "…" : "promote"}
+                    </button>
                   )}
                 </div>
                 <div className="text-[11px] text-text-2 font-[family-name:var(--font-mono)] tracking-[0.08em] mt-0.5">
@@ -324,9 +432,11 @@ export function PeopleClient() {
                   {p.days_together
                     ? `${p.days_together} day${p.days_together === 1 ? "" : "s"} together · `
                     : ""}
-                  {p.last_mention_at
-                    ? `last ${relativeDate(p.last_mention_at)}`
-                    : "no mentions"}
+                  {p.tier === "contact"
+                    ? [p.phone, p.email].filter(Boolean).join(" · ") || "no number or email"
+                    : p.last_mention_at
+                      ? `last ${relativeDate(p.last_mention_at)}`
+                      : "no mentions"}
                 </div>
                 {p.aliases.length > 1 && (
                   <div className="flex flex-wrap gap-1 mt-2">
@@ -357,6 +467,20 @@ export function PeopleClient() {
           onClose={() => setDrawerMode(null)}
           onSaved={() => {
             setDrawerMode(null);
+            void load();
+          }}
+        />
+      )}
+
+      {mergePair && (
+        <MergeDialog
+          aId={mergePair[0]}
+          bId={mergePair[1]}
+          onClose={() => setMergePair(null)}
+          onMerged={() => {
+            setMergePair(null);
+            setSelecting(false);
+            setSelected([]);
             void load();
           }}
         />

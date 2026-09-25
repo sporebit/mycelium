@@ -40,8 +40,10 @@ export function PersonDrawer({
   const [lastName, setLastName] = useState(() => initial?.last_name ?? "");
   const [displayName, setDisplayName] = useState(() => initial?.display_name ?? "");
   const [relationship, setRelationship] = useState(() => initial?.relationship ?? "");
-  const [phone, setPhone] = useState(() => initial?.phone ?? "");
-  const [email, setEmail] = useState(() => initial?.email ?? "");
+  // On create, one number and one email travel with the person; on edit
+  // the person page's Numbers / Emails editors own them (0140).
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [birthday, setBirthday] = useState(() => initial?.birthday ?? "");
   const [address, setAddress] = useState(() => initial?.address ?? "");
   const [whereMet, setWhereMet] = useState(() => initial?.where_we_met ?? "");
@@ -88,8 +90,7 @@ export function PersonDrawer({
         last_name: lastName.trim() || null,
         display_name: displayName.trim() || null,
         relationship: relationship || null,
-        phone: phone.trim() || null,
-        email: email.trim() || null,
+        ...(mode.kind === "create" ? { phone: phone.trim() || null, email: email.trim() || null } : {}),
         birthday: birthday || null,
         address: address.trim() || null,
         where_we_met: whereMet.trim() || null,
@@ -193,24 +194,26 @@ export function PersonDrawer({
             </select>
           </Field>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Phone">
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-            <Field label="Email">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-          </div>
+          {mode.kind === "create" && (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Phone">
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Email">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Birthday">
