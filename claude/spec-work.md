@@ -23,7 +23,7 @@ Derived from `claude/work-redesign-spec.md` (decisions W1–W16 + the JQL gramma
 
 ## 2. Data model — diff against the chain at 0140
 
-### 2.1 Statuses and workflows (W4) — `0141_work_statuses.sql`
+### 2.1 Statuses and workflows (W4) — `0142_work_statuses.sql`
 
 - `ticket_statuses.status_category text not null check (status_category in ('todo','in_progress','done'))`, backfilled from `category`: inbox / backlog / next → `todo`; doing / waiting / verify → `in_progress`; done / cancelled → `done`.
 - `ticket_statuses.resolution text check (resolution in ('done','cancelled','duplicate','wont_do'))` — only on `done`-category statuses. Done + Closed → `done`; Cancelled → `cancelled`.
@@ -32,10 +32,10 @@ Derived from `claude/work-redesign-spec.md` (decisions W1–W16 + the JQL gramma
 - `ticket_workflows.description text`, `ticket_workflows.archived_at timestamptz`.
 - **`ticket_workflow_map`** — which workflow applies: `(id, project_id null, issue_type_id null, workflow_id not null)`, unique on `(space_id, project_id, issue_type_id)` with nulls treated as values. `project_id null` = space level; `issue_type_id null` = every type. Resolution order for a ticket: project + type → project + any type → space + type → space default (`ticket_workflows.is_default`). Seeded empty: every type uses the space default until someone overrides it. A non-null `projects.workflow_id` (unused until now) is copied in as a project-level row.
 - Functions: `ticket_workflow_for(p_space, p_project, p_type) returns uuid`; `ticket_status_in(p_workflow, p_status_category, p_legacy_category default null) returns uuid` (category default first, then sort order); `ticket_status_for` and `ticket_status_for_legacy` stay for the old paths.
-- The sync trigger additionally re-homes a ticket's status when its workflow changes (type or project change): same name in the new workflow, else the new workflow's default status for the same `status_category`.
+- The sync trigger additionally **re-homes** a ticket's status into the ticket's own workflow: same name there, else that workflow's status for the same `status_category` (the legacy category narrowing the choice). It runs on every status write and on a type, kind, parent or project change. This is what lets `tix`, the webhooks and every other old path go on resolving statuses in the space default workflow: the database lands the ticket on the counterpart. An edit that does not change the status never touches `started_at`, `completed_at`, `cancelled_at` or `resolved_at`.
 - `tickets_seed_workflow` writes both category columns and the resolutions.
 
-### 2.2 Issue types and hierarchy (W5, W6) — `0142_work_issue_types.sql`
+### 2.2 Issue types and hierarchy (W5, W6) — `0141_work_issue_types.sql` (first, because the workflow map and the status trigger refer to types)
 
 - **`issue_types`**: `id, name, slug, level smallint check (level in (1, 0, -1))` (1 = Epic, 0 = standard, −1 = Sub-task), `legacy_kind text` (the `tickets.kind` it carries, null for the new ones), `has_steps boolean`, `icon text, colour text, sort_order int, archived_at`; unique `(space_id, slug)`.
 - Seed per space (function `work_seed_types(p_space)`, called by a trigger on `spaces` insert and once for existing spaces):
@@ -79,9 +79,9 @@ Derived from `claude/work-redesign-spec.md` (decisions W1–W16 + the JQL gramma
 
 ### 2.5 Watchers, saved filters, notifications, rich text — `0145_work_collab.sql`
 
-- **`ticket_watchers`** `(ticket_id, user_id references auth.users on delete cascade, created_at)`, primary key on the pair. Auto-watch: reporter, assignee, every commenter, everyone mentioned.
+- **`ticket_watchers`** `(ticket_id, watcher_id references auth.users on delete cascade, created_at)`, primary key on the pair. Auto-watch: reporter, assignee, every commenter, everyone mentioned.
 - **`saved_filters`** `(id, name, slug, description, jql text not null, query jsonb not null, shared boolean not null default true, is_system boolean not null default false, sort_order, created_at, updated_at)`; unique `(space_id, slug)`. Shared filters are visible to the space; unshared ones to their creator only (restrictive policy). Seeded per space: **Now** (`location = home AND tool = pc AND statusCategory != Done`), **My open work**, **Inbox**, **Due this week**, **Recently resolved**.
-- **`notifications`** `(id, user_id not null, actor_id, event text check (event in ('mention','assignment','status_change','comment')), ticket_id, doc_page_id, comment_id, title, body, url, read_at, delivered jsonb not null default '{}', created_at)`. Space policies from the loop **plus** a restrictive policy so only the recipient reads, updates or deletes a row.
+- **`notifications`** `(id, recipient_id not null, actor_id, event text check (event in ('mention','assignment','status_change','comment')), ticket_id, doc_page_id, comment_id, title, body, url, read_at, delivered jsonb not null default '{}', created_at)`. Space policies from the loop **plus** a restrictive policy so only the recipient reads, updates or deletes a row.
 - `user_settings.notification_prefs jsonb not null default '{}'` — per user: `{in_app, telegram, email, push}` × event, plus `quiet` hours. Defaults: in-app on for all; Telegram on for the instance owner; email on for everyone else; push on where a subscription exists.
 - `push_subscriptions` already exists (0039) with `lib/push.ts`; reused as is.
 - Rich text: `tickets.description_doc jsonb`, `ticket_comments.body_doc jsonb` (Tiptap JSON). The plain `description` / `body` columns stay the searchable, exportable text and are written alongside. An old-path write to the text column alone clears the stale `_doc` (trigger), and the editor then opens from the text.
@@ -93,11 +93,15 @@ Derived from `claude/work-redesign-spec.md` (decisions W1–W16 + the JQL gramma
 - **`doc_pages`** `(id, doc_space_id not null, parent_id references doc_pages on delete set null, title, body jsonb not null default '{}', body_text text not null default '', position int, version int not null default 1, restricted boolean not null default false, archived_at, updated_by, created_at, updated_at)`. Tree order = `position` within a parent. Trigram index on `title`, and `body_text` for search.
 - **`doc_page_versions`** `(id, page_id, version, title, body, body_text, note, created_at)`, unique `(page_id, version)`. Written by a trigger on every change of title or body, so a version can never be skipped by a caller. Restore = write an old version's content as a new version.
 - **`doc_page_links`** `(page_id, ticket_id, source text check (source in ('manual','mention')))`, primary key on the pair. One row serves both directions.
-- **`doc_page_restrictions`** `(page_id, user_id, can_edit boolean)`. When `doc_pages.restricted` is true the page and its descendants are visible only to the creator and the listed users; `app.doc_page_visible(page)` / `app.doc_page_editable(page)` (security definer, to avoid the 0130 policy recursion) back restrictive policies on pages, versions, links and restrictions.
+- **`doc_page_restrictions`** `(page_id, grantee_id, can_edit boolean)`. When `doc_pages.restricted` is true the page and its descendants are visible only to the creator and the listed users; `app.doc_page_visible(page)` / `app.doc_page_editable(page)` (security definer, to avoid the 0130 policy recursion) back restrictive policies on pages, versions, links and restrictions.
 - **`doc_templates`** `(id, slug, name, description, body jsonb, origin text check (origin in ('ui','repo')), version, shared)`, unique `(space_id, slug)`. Repo JSON in `docs/docs/templates/*.json`, synced like ticket templates.
 - Entity group: **`organisation.docs`** (see deviation D5).
 
+A column that names a person is never called `user_id` in a registered table: `app.adopt_table` reads that name as the pre-P12 ownership column and drops it. Hence `watcher_id`, `recipient_id`, `grantee_id`.
+
 ### 2.7 Registry
+
+New tables go through **`app.register_table(table, section, group, parent, parent_col)`** (0141): adopt, enable RLS, deny-all, `service_role` grant, entity group row and the policy + grant loop in one call. 0146 ends with a self-check over all seventeen tables (RLS on, the four space policies present and permissive, no `deny all` left, registered, granted) and fails the migration otherwise.
 
 `lib/access/registry.ts` — `organisation.tickets` gains `ticket_workflow_map, issue_types, project_issue_types, components, ticket_components, label_fields, labels, ticket_labels, ticket_watchers, saved_filters, notifications`; new group `organisation.docs` = `doc_spaces, doc_pages, doc_page_versions, doc_page_links, doc_page_restrictions, doc_templates`. The same rows go into `entity_groups` in each migration.
 
@@ -177,7 +181,7 @@ Keywords and field names are case-insensitive. No functions in v1. Two value con
 | `/api/work/notifications/settings` | GET, PATCH | channel settings |
 | `/api/work/docs/spaces`, `/pages`, `/pages/[id]`, `/pages/[id]/versions`, `/pages/[id]/links`, `/templates` | — | §7 |
 
-`/api/tickets/*` is unchanged in shape. Two behaviour changes behind it: `moveTicket` resolves the status inside the ticket's own workflow, and the webhooks are re-pointed (GitHub → the In Progress status named **In Review**; Vercel → **Done**), both falling back to the category lookup when a workflow has no status of that name.
+`/api/tickets/*` is unchanged in shape. Two behaviour changes behind it: a status resolved in the default workflow is re-homed into the ticket's own workflow by the database (§2.1), and the webhooks are re-pointed (GitHub → the In Progress status named **In Review**; Vercel → **Done**), both falling back to the category lookup when a workflow has no status of that name.
 
 ## 5. Pages
 
@@ -216,7 +220,7 @@ Redirects: `/organisation/tasks` and `/organisation/tickets` → `/work`; `/orga
 
 Every step runs inside its migration, replayed from zero and then rehearsed on a restore of the hosted dump before `db push`. Each prints counts with `raise notice` and asserts its own invariant.
 
-1. **Status categories** (0141): the twelve statuses map as below. No ticket changes status.
+1. **Status categories** (0142): the twelve statuses map as below. No ticket changes status.
 
 | Status | legacy category | status_category | resolution |
 |---|---|---|---|
@@ -233,19 +237,19 @@ Every step runs inside its migration, replayed from zero and then rehearsed on a
 | Closed | done | Done | done |
 | Cancelled | cancelled | Done | cancelled |
 
-2. **Types** (0142): every non-habit ticket gets a `type_id` from its `kind`; a `task` with a parent becomes a Sub-task. Asserts no non-habit ticket is left without a type. Inverse: `update tickets set type_id = null`.
+2. **Types** (0141): every non-habit ticket gets a `type_id` from its `kind`; a `task` with a parent becomes a Sub-task. Asserts no non-habit ticket is left without a type. Inverse: `update tickets set type_id = null`.
 3. **Sub-projects → components** (0143): for each project with a parent — a component of the same name on the parent (`migrated_from_project_id` set), its tickets attached to that component and moved to the parent, its sprints moved to the parent (an active sprint that would collide becomes planned), the sub-project archived (row kept, `parent_id` kept). The re-key trigger is disabled for the statement, and the migration asserts that no `ticket_key` changed. Hosted has no sub-projects, so this moves nothing there. Inverse: `migrated_from_project_id` names the project each ticket came from.
 4. **Default project** (0143): General is created; every non-habit ticket with no project moves into it (hosted: about 104). Keys do not change (the project has no prefix; asserted). Inverse: `update tickets set project_id = null where project_id = <General>`.
-5. **Someday → Backlog** (0143): an open ticket with `someday = true` moves to the Backlog status; one `ticket_activity` row each records it. `someday` itself is left as it was, which is also the inverse.
+5. **Someday → Backlog** (0143): a ticket with `someday = true` that is still in a To Do status moves to the Backlog status; one `ticket_activity` row each records it (and names the status it left, which is the inverse). A someday ticket already In Progress or In Review stays where it is. `someday` itself is left as it was.
 6. **Labels** (0144): Location from `where_ctx` (`home` → Home, `out` → Out, `place` → the place's name; `anywhere` is the absence of a label), Tool from each element of `tools` except `none`, Labels from `tags`. Habits are skipped. Inverse: truncate `ticket_labels`.
-7. **Resolution** (0141): `resolution` / `resolved_at` backfilled for tickets already in a Done-category status.
+7. **Resolution** (0142): `resolution` / `resolved_at` backfilled for tickets already in a Done-category status.
 
 ## 9. Build parts (one commit + push + `db push` per part)
 
 | Part | Scope |
 |---|---|
 | **A** | Migrations 0141–0146, registry + entity groups, replay from zero, rehearsal on the hosted restore, `db push` |
-| **B** | `lib/work/*` (query object, JQL parser, serialisers), `work_search`, `/api/work/*`; `moveTicket` workflow-aware; webhooks re-pointed |
+| **B** | `lib/work/*` (query object, JQL parser, serialisers), `work_search` (0147), `/api/work/*`; webhooks re-pointed |
 | **C** | Tiptap editor component with @person and ticket-key chips; doc ↔ text helpers |
 | **D** | Work pages, redirects, nav / ⌘K / dashboard re-point, Clarify removed |
 | **E** | Notification writer, delivery, bell + inbox, settings panel |
@@ -268,3 +272,13 @@ Not in this run: work logging and estimates (W7, v1.1); `claude/*.md` into Docs 
 | D8 | Tags are backfilled into the Labels field | the decisions seed a Labels field and name no source for it | truncate those rows |
 | D9 | The issue opens as a full page only | the merge's centred dialog never shipped (§0) | — |
 | D10 | Storage objects were not re-dumped | these migrations touch no bucket; the 2026-09-15 storage copy stands | — |
+
+## 11. As built
+
+### Part A — schema (2026-09-29)
+
+- **Migrations 0141–0146**, in this order: `0141_work_issue_types`, `0142_work_statuses`, `0143_work_projects`, `0144_work_labels`, `0145_work_collab`, `0146_docs`. Seventeen new tables; `app.register_table`; registry groups `organisation.tickets` (+11) and `organisation.docs` (6).
+- **Replay from zero:** the whole chain 0001 → 0146 plus the seed applied to an empty database. It ran on a **separate throwaway stack** (`MyceliumReplayA`, its own ports), because `supabase db reset` on the main local stack was refused by the session's permissions; nothing on the main stack was wiped.
+- **Rehearsal on production data:** the public rows of the hosted dump loaded into a second throwaway stack at 0140, then 0141–0146 applied. Result over 176 tickets: **0 keys changed, 0 `updated_at` changed, 0 start / finish timestamps changed, 0 old columns changed, 0 habits touched**; 104 unprojected tickets moved into General; 15 someday tickets moved Selected for Development → Backlog (8 were already in Backlog); 164 tickets typed (126 Task, 27 Sub-task, 10 Test, 1 Guide); Location on 47 tickets (Home), Tool on 59 (PC 53, Phone 21, Stickers 1), Labels on 72 (81 labels); resolution stamped on 89 (79 done, 10 cancelled).
+- **Two faults the rehearsal caught, fixed before the push:** (1) the restrictive policies on `doc_page_restrictions` were named `<table>_select` … `_delete`, the same names as the loop's permissive policies, so they replaced them and the table was closed to everyone — renamed `…_owner_*`, and the 0146 self-check now fails the migration on any such collision; (2) a someday ticket in In Review was pulled back to Backlog — the move now applies to To Do statuses only.
+- **Tests:** `lib/work/schema.test.ts` (18, on the local stack): seeds per space, old-path inserts (default project, type from kind, Inbox, space key), label mirroring by delta, stale-document clearing, habits untouched, type → kind, epic rules, the 0135 re-key still working, resolution, no invented start date, status category ↔ legacy category, workflow re-homing, the project guard, doc versions and tree integrity.
