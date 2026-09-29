@@ -1,0 +1,267 @@
+{
+	"slug": "how-to",
+	"name": "How-to",
+	"description": "A task, step by step: what you need first, the steps in order, how to check it worked.",
+	"version": 1,
+	"title": "How to",
+	"body": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "paragraph",
+				"content": [
+					{
+						"type": "text",
+						"text": "One or two sentences on what this achieves and when you would do it."
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Before you start"
+					}
+				]
+			},
+			{
+				"type": "taskList",
+				"content": [
+					{
+						"type": "taskItem",
+						"attrs": {
+							"checked": false
+						},
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Access or permissions you need"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "taskItem",
+						"attrs": {
+							"checked": false
+						},
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Tools or software to have to hand"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "taskItem",
+						"attrs": {
+							"checked": false
+						},
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Anything to back up first"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Steps"
+					}
+				]
+			},
+			{
+				"type": "orderedList",
+				"attrs": {
+					"start": 1
+				},
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "The first thing to do, as an instruction"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "The next thing, with the exact name of any button or command"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Carry on until the task is done"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Check it worked"
+					}
+				]
+			},
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "What you should now see"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "How to tell if something went wrong"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "If it goes wrong"
+					}
+				]
+			},
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "The usual cause, and how to put it right"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Who to ask when that does not help"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "horizontalRule"
+			},
+			{
+				"type": "paragraph",
+				"content": [
+					{
+						"type": "text",
+						"text": "Last checked: ",
+						"marks": [
+							{
+								"type": "bold"
+							}
+						]
+					},
+					{
+						"type": "text",
+						"text": "add the date this was last followed from start to finish",
+						"marks": [
+							{
+								"type": "italic"
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}

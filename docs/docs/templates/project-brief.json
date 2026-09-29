@@ -1,0 +1,400 @@
+{
+	"slug": "project-brief",
+	"name": "Project brief",
+	"description": "A project on one page: the goal, what is in and out of scope, the milestones, the risks and the people.",
+	"version": 1,
+	"title": "Project brief",
+	"body": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "paragraph",
+				"content": [
+					{
+						"type": "text",
+						"text": "Lead: ",
+						"marks": [
+							{
+								"type": "bold"
+							}
+						]
+					},
+					{
+						"type": "text",
+						"text": "name"
+					},
+					{
+						"type": "text",
+						"text": "  ·  "
+					},
+					{
+						"type": "text",
+						"text": "Start: ",
+						"marks": [
+							{
+								"type": "bold"
+							}
+						]
+					},
+					{
+						"type": "text",
+						"text": "date"
+					},
+					{
+						"type": "text",
+						"text": "  ·  "
+					},
+					{
+						"type": "text",
+						"text": "Target: ",
+						"marks": [
+							{
+								"type": "bold"
+							}
+						]
+					},
+					{
+						"type": "text",
+						"text": "date"
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Goal"
+					}
+				]
+			},
+			{
+				"type": "paragraph",
+				"content": [
+					{
+						"type": "text",
+						"text": "What will be true when this is finished that is not true today?"
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Why now"
+					}
+				]
+			},
+			{
+				"type": "paragraph",
+				"content": [
+					{
+						"type": "text",
+						"text": "The problem this solves, and what it costs to leave it."
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Scope"
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 3
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "In scope"
+					}
+				]
+			},
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "What this project will deliver"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 3
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Out of scope"
+					}
+				]
+			},
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "What it will not, so nobody is surprised later"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Milestones"
+					}
+				]
+			},
+			{
+				"type": "orderedList",
+				"attrs": {
+					"start": 1
+				},
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "First milestone and its date"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Second milestone and its date"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Finished: how we will know"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Risks"
+					}
+				]
+			},
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "What could go wrong, how likely it is, and what we would do about it"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "People"
+					}
+				]
+			},
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Who is doing the work"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Who needs to be kept informed"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Who signs it off"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "First steps"
+					}
+				]
+			},
+			{
+				"type": "taskList",
+				"content": [
+					{
+						"type": "taskItem",
+						"attrs": {
+							"checked": false
+						},
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Create the project and its first tickets"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "taskItem",
+						"attrs": {
+							"checked": false
+						},
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Link the tickets to this page"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "taskItem",
+						"attrs": {
+							"checked": false
+						},
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Agree a date to review progress"
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}

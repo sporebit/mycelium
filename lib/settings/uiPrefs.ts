@@ -40,6 +40,17 @@ export type UiPrefs = {
     review_day: number; // ISO day, 7 = Sunday
     review_time: string;
   };
+  // Work (claude/spec-work.md §2.5): recently viewed is a preference, not a
+  // table; so are the issue navigator's last query and each board's filters.
+  work: {
+    /** Last 20 issue keys opened, newest first. */
+    recent: string[];
+    issues_jql: string;
+    issues_mode: "bar" | "jql";
+    board: Record<string, { assignee?: string; swimlane?: "none" | "epic" | "assignee" }>;
+    /** The doc space last opened. */
+    doc_space: string | null;
+  };
 };
 
 export const UI_PREFS_DEFAULTS: UiPrefs = {
@@ -71,11 +82,29 @@ export const UI_PREFS_DEFAULTS: UiPrefs = {
     review_day: 7,
     review_time: "18:00",
   },
+  work: {
+    recent: [],
+    issues_jql: "",
+    issues_mode: "bar",
+    board: {},
+    doc_space: null,
+  },
 };
 
 /** Defaults-merge one level deep for the nested tickets bag. */
 export function ticketPrefs(p: Partial<UiPrefs> | null | undefined): UiPrefs["tickets"] {
   return { ...UI_PREFS_DEFAULTS.tickets, ...(p?.tickets ?? {}) };
+}
+
+/** Defaults-merge one level deep for the nested work bag. */
+export function workPrefs(p: Partial<UiPrefs> | null | undefined): UiPrefs["work"] {
+  const w = p?.work ?? {};
+  return {
+    ...UI_PREFS_DEFAULTS.work,
+    ...w,
+    recent: Array.isArray((w as UiPrefs["work"]).recent) ? (w as UiPrefs["work"]).recent : [],
+    board: { ...((w as UiPrefs["work"]).board ?? {}) },
+  };
 }
 
 /**

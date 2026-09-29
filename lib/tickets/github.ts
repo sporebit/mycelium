@@ -3,8 +3,9 @@
  *
  * - Keys in commit messages / PR titles: `MYC-142: …` or `[MYC-142]`.
  * - push to the default branch and merged PRs → ticket_links commit/pr and
- *   category doing/next/backlog/inbox → Verify (forward only).
- * - Vercel deployment.succeeded (production) → tickets in Verify with code
+ *   the ticket → the In Progress status named In Review (forward only;
+ *   Work redesign W16, lib/work/automation).
+ * - Vercel deployment.succeeded (production) → tickets In Review with code
  *   evidence → smoke (GET smoke_url expecting 200 + ok:true) → Done with
  *   deploy + smoke links; verified_by stays null until Phil taps.
  * - Step-driven kinds (RUNBOOK_KINDS) get the link but never the move, on
@@ -15,8 +16,9 @@
  *   already carrying github_synced_at within 30 s.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { advanceTicket, TARGET_IN_REVIEW } from "@/lib/work/automation";
 import { RUNBOOK_KINDS, TICKET_KEY_RE } from "./categories";
-import { moveTicket, resolveTicketRef, statusIdFor } from "./server";
+import { resolveTicketRef, statusIdFor } from "./server";
 
 export function keysIn(text: string | null | undefined): string[] {
   if (!text) return [];
@@ -62,7 +64,11 @@ export function isStepDriven(kind: string | null | undefined): boolean {
   return (RUNBOOK_KINDS as readonly string[]).includes(kind ?? "");
 }
 
-/** Attach evidence and move the ticket to Verify (automation: forward only). */
+/**
+ * Attach evidence and move the ticket to In Review (automation: forward
+ * only). Work redesign W16: the status is looked up by name in the ticket's
+ * own workflow (lib/work/automation), not by the legacy verify category.
+ */
 export async function applyCodeEvidence(db: SupabaseClient, ev: CodeEvidence): Promise<{ key: string; moved: boolean; reason?: string }> {
   const ref = await resolveTicketRef(db, ev.key);
   if (!ref) return { key: ev.key, moved: false, reason: "unknown key" };
@@ -71,9 +77,8 @@ export async function applyCodeEvidence(db: SupabaseClient, ev: CodeEvidence): P
     await db.from("ticket_links").insert({ ticket_id: ref.id, kind: ev.kind, ref: ev.ref, url: ev.url, label: ev.label, meta: { via: "github" } });
   }
   if (isStepDriven(ref.kind)) return { key: ev.key, moved: false, reason: `${ref.kind} tickets close by their steps` };
-  if (ref.category === "done" || ref.category === "cancelled" || ref.category === "verify") return { key: ev.key, moved: false, reason: `already ${ref.category}` };
-  const moved = await moveTicket(db, ref.id, "verify", { forwardOnly: true });
-  return { key: ev.key, moved: moved.ok, reason: moved.ok ? undefined : moved.error };
+  const moved = await advanceTicket(db, ref.id, TARGET_IN_REVIEW);
+  return { key: ev.key, moved: moved.moved, reason: moved.moved ? undefined : moved.reason };
 }
 
 /** GET the project's smoke URL; ok when 200 and (no JSON or ok !== false). */

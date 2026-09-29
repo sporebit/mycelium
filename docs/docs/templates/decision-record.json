@@ -1,0 +1,288 @@
+{
+	"slug": "decision-record",
+	"name": "Decision record",
+	"description": "One decision: the context, the options weighed, what was chosen and what follows from it.",
+	"version": 1,
+	"title": "Decision record",
+	"body": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "paragraph",
+				"content": [
+					{
+						"type": "text",
+						"text": "Status: ",
+						"marks": [
+							{
+								"type": "bold"
+							}
+						]
+					},
+					{
+						"type": "text",
+						"text": "Proposed",
+						"marks": [
+							{
+								"type": "italic"
+							}
+						]
+					},
+					{
+						"type": "text",
+						"text": "  ·  "
+					},
+					{
+						"type": "text",
+						"text": "Decided by: ",
+						"marks": [
+							{
+								"type": "bold"
+							}
+						]
+					},
+					{
+						"type": "text",
+						"text": "name"
+					},
+					{
+						"type": "text",
+						"text": "  ·  "
+					},
+					{
+						"type": "text",
+						"text": "Date: ",
+						"marks": [
+							{
+								"type": "bold"
+							}
+						]
+					},
+					{
+						"type": "text",
+						"text": "add the date"
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Context"
+					}
+				]
+			},
+			{
+				"type": "paragraph",
+				"content": [
+					{
+						"type": "text",
+						"text": "What is the situation, and why does a decision have to be made now?"
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Options considered"
+					}
+				]
+			},
+			{
+				"type": "orderedList",
+				"attrs": {
+					"start": 1
+				},
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Option one: what it is, what it costs, what it risks"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Option two: what it is, what it costs, what it risks"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Do nothing: what happens if this is left alone"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Decision"
+					}
+				]
+			},
+			{
+				"type": "blockquote",
+				"content": [
+					{
+						"type": "paragraph",
+						"content": [
+							{
+								"type": "text",
+								"text": "We will … because …"
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Consequences"
+					}
+				]
+			},
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "What becomes easier"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "What becomes harder"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "What has to be revisited, and when"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Follow-up"
+					}
+				]
+			},
+			{
+				"type": "taskList",
+				"content": [
+					{
+						"type": "taskItem",
+						"attrs": {
+							"checked": false
+						},
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Tell the people this affects"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "taskItem",
+						"attrs": {
+							"checked": false
+						},
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Raise the tickets that carry the decision out and link them here"
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}

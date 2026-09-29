@@ -233,6 +233,41 @@ describe("workflows", () => {
 		localSql(`update public.tickets set type_id = '${typeId("task")}' where id = '${t}'`);
 		expect(localSql(`select st.name, w.is_default from public.tickets t join public.ticket_statuses st on st.id = t.status_id join public.ticket_workflows w on w.id = st.workflow_id where t.id = '${t}'`)[0]).toEqual(["Done", "t"]);
 	});
+
+	it("work_rehome moves tickets at once when the map changes (0148)", () => {
+		const wf = one(`select id from public.ticket_workflows where name = '${TAG} bugs'`);
+		const t = insertTicket("story", ", type_id", `, '${typeId("story")}'`);
+		expect(one(`select st.name from public.tickets t join public.ticket_statuses st on st.id = t.status_id where t.id = '${t}'`)).toBe("Inbox");
+		localSql(
+			`insert into public.ticket_workflow_map (space_id, created_by, issue_type_id, workflow_id) values ('${space}', '${PHIL_AUTH_UID}', '${typeId("story")}', '${wf}')`,
+		);
+		// nothing moves until someone asks, or the ticket is next written
+		expect(one(`select st.name from public.tickets t join public.ticket_statuses st on st.id = t.status_id where t.id = '${t}'`)).toBe("Inbox");
+		expect(Number(one(`select public.work_rehome('${space}')`))).toBeGreaterThanOrEqual(1);
+		expect(localSql(`select st.name, st.workflow_id = '${wf}' from public.tickets t join public.ticket_statuses st on st.id = t.status_id where t.id = '${t}'`)[0]).toEqual(["Reported", "t"]);
+		expect(one(`select public.work_rehome('${space}')`)).toBe("0");
+	});
+
+	it("a status that changes category takes its tickets with it, without inventing a start (0148)", () => {
+		const wf = one(`select id from public.ticket_workflows where name = '${TAG} bugs'`);
+		const fixing = one(`select id from public.ticket_statuses where workflow_id = '${wf}' and name = 'Fixing'`);
+		const t = insertTicket("recategorised", ", type_id", `, '${typeId("bug")}'`);
+		localSql(`update public.tickets set status_id = '${fixing}' where id = '${t}'`);
+		const started = one(`select started_at::text from public.tickets where id = '${t}'`);
+		expect(started).not.toBe("");
+
+		localSql(`update public.ticket_statuses set status_category = 'done' where id = '${fixing}'`);
+		expect(localSql(`select resolution, resolved_at is not null, completed_at is not null, status, started_at::text from public.tickets where id = '${t}'`)[0]).toEqual(["done", "t", "t", "completed", started]);
+
+		localSql(`update public.ticket_statuses set status_category = 'todo' where id = '${fixing}'`);
+		expect(localSql(`select coalesce(resolution, '-'), resolved_at is null, completed_at is null, status, started_at::text from public.tickets where id = '${t}'`)[0]).toEqual(["-", "t", "t", "new", started]);
+	});
+
+	it("a new ticket gets a status even when its workflow has no Inbox (0148)", () => {
+		// the bug workflow has no inbox-category status: Reported is its first To Do
+		expect(one(`select st.name from public.ticket_statuses st where st.id = public.ticket_default_status('${space}', null, '${typeId("bug")}')`)).toBe("Reported");
+		expect(one(`select st.name from public.ticket_statuses st where st.id = public.ticket_default_status('${space}', null, '${typeId("task")}')`)).toBe("Inbox");
+	});
 });
 
 describe("projects", () => {

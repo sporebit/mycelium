@@ -1,0 +1,278 @@
+{
+	"slug": "meeting-notes",
+	"name": "Meeting notes",
+	"description": "Who was there, what was discussed, what was decided and who does what next.",
+	"version": 1,
+	"title": "Meeting notes",
+	"body": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "paragraph",
+				"content": [
+					{
+						"type": "text",
+						"text": "Date: ",
+						"marks": [
+							{
+								"type": "bold"
+							}
+						]
+					},
+					{
+						"type": "text",
+						"text": "add the date"
+					},
+					{
+						"type": "text",
+						"text": "  ·  "
+					},
+					{
+						"type": "text",
+						"text": "Present: ",
+						"marks": [
+							{
+								"type": "bold"
+							}
+						]
+					},
+					{
+						"type": "text",
+						"text": "@mention everyone who was there"
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Purpose"
+					}
+				]
+			},
+			{
+				"type": "paragraph",
+				"content": [
+					{
+						"type": "text",
+						"text": "One sentence on why this meeting was held."
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Agenda"
+					}
+				]
+			},
+			{
+				"type": "orderedList",
+				"attrs": {
+					"start": 1
+				},
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "First item"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Second item"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Any other business"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Notes"
+					}
+				]
+			},
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "What was said, under the agenda item it belongs to"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Keep it to what someone who was not there needs to know"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Decisions"
+					}
+				]
+			},
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "What was agreed, and by whom"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "heading",
+				"attrs": {
+					"level": 2
+				},
+				"content": [
+					{
+						"type": "text",
+						"text": "Actions"
+					}
+				]
+			},
+			{
+				"type": "taskList",
+				"content": [
+					{
+						"type": "taskItem",
+						"attrs": {
+							"checked": false
+						},
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Action, owner and the date it is due"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "taskItem",
+						"attrs": {
+							"checked": false
+						},
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Raise a ticket for anything that takes more than a day and link it here"
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"type": "horizontalRule"
+			},
+			{
+				"type": "paragraph",
+				"content": [
+					{
+						"type": "text",
+						"text": "Next meeting: ",
+						"marks": [
+							{
+								"type": "bold"
+							}
+						]
+					},
+					{
+						"type": "text",
+						"text": "date and time"
+					}
+				]
+			}
+		]
+	}
+}
