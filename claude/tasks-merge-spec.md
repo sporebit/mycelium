@@ -37,3 +37,10 @@ Build the Tasks + Tickets merge and the dates list in the Mycelium repo. Do this
 - **Sprint chip (M3):** shown only when the Area chip is a project and the Now candidate set carries a ticket in an active sprint; the `now_sprint_only` preference only applies then.
 - **Tests:** `lib/tickets/dateFilters.test.ts` (parsing, London day bounds incl. the clocks-change days, sort whitelist, formatting) and `lib/tickets/startedAt.test.ts` (trigger on the local stack: first entry sets it, leave-and-return keeps it, a legacy `in_progress` write also sets it). `npm test` 296/296; isolation test result in the ticket comment.
 - **Deviations:** the ordering clause ("before 0137") could not apply; `ContextSwitcherGate` (the classic NOW bar) still keyed on the `/organisation/tasks` path, so it showed above every tab, not only the Board (since 2026-09-29 the shell strip is gone; its pickers live in the Board's NOW banner); the `ideas`/`decisions` and dashboard links that pointed at `/organisation/tasks?task=` were already right and were left alone.
+
+## State verified 2026-09-29 (before the Work redesign, MYC-174)
+
+- **Shipped as recorded above:** the single surface at `/organisation/tasks`, the Area chip (`ui_prefs.tickets.area`), the dates Table tab, `tickets.started_at` (0139), the retired `/api/tasks/*` routes. Chain ends at **0140** (People contacts), local and hosted.
+- **Line 3 of this file is wrong as history:** the merge was built *after* 0137, not before it — 0137 (spec §18) went live on 2026-09-23, two days before this brief was written.
+- **"Part 2" — the centred issue dialog and the right-click menu — was never built.** This file's Build list has no such part and no commit carries one. The issue view is the full page at `/organisation/tickets/[key]`; the only context menu is the classic Board's (`components/compost/TaskRowList.tsx`), and `TicketListRow`'s `onContextMenu` only suppresses the browser menu for long-press.
+- **Superseded by `claude/spec-work.md`:** the surface moves to `/work`, the Area chip becomes project categories, the GTD tabs and Clarify go, and the classic Board is replaced by per-project boards.
