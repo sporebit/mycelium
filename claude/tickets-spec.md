@@ -300,6 +300,8 @@ order by now_score desc, urgent desc, deadline_on nulls last, scheduled_on nulls
 
 The Now tab is the home tab for every user (Q21). A "Why is this here?" popover names the matching facets.
 
+**Where the controls live (2026-09-29).** The context controls (Where / Tool / Energy, plus + backlog and ⚡ sprint) live in the Now view itself, above the list — not in the global header. The app shell renders no context strip on any page, so the sidebar sits flush at the top. Tool still auto-detects from the device class with no UI touched. The classic Board tab keeps its own device / where / energy / context-tag pickers (the old localStorage context the FROZEN scorer reads) inside its NOW banner, shown only while NOW is on.
+
 ---
 
 ## 6. Statuses and workflows (Q8)

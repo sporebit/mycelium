@@ -25,6 +25,7 @@ import { ProjectFilterDropdown } from "./ProjectFilterDropdown";
 import { isBlocker } from "@/lib/blockers";
 import { localDateKey } from "@/lib/util/date";
 import { useCurrentContext } from "@/lib/hooks/useCurrentContext";
+import { ContextSwitcher } from "./ContextSwitcher";
 import { useCurrentDevice } from "@/lib/hooks/useCurrentDevice";
 import { scoreTaskForContext } from "@/lib/compost/now-filter";
 import { triggerFieldPulse } from "@/lib/motion";
@@ -134,7 +135,7 @@ export function TasksClient() {
   const [nowActive, setNowActive] = useState(
     () => searchParams.get("filter") === "now",
   );
-  const [currentCtx] = useCurrentContext();
+  const [currentCtx, setCurrentCtx] = useCurrentContext();
   const detectedDevice = useCurrentDevice();
 
   // Detail data keyed by task id, so opening a task that is already cached
@@ -961,12 +962,10 @@ export function TasksClient() {
 
       {nowActive && (
         <div className="flex items-center justify-between rounded-md border border-glow-2/40 bg-glow-2/5 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-glow-2 font-[family-name:var(--font-mono)]">
-          <span>
-            NOW · {detectedDevice}
-            {currentCtx.where ? ` · ${currentCtx.where}` : ""}
-            {currentCtx.energy ? ` · ${currentCtx.energy} energy` : ""}
-            {currentCtx.context_tag ? ` · ${currentCtx.context_tag}` : ""}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span>NOW</span>
+            <ContextSwitcher ctx={currentCtx} setCtx={setCurrentCtx} detectedDevice={detectedDevice} />
+          </div>
           <button
             type="button"
             onClick={() => setNowActive(false)}

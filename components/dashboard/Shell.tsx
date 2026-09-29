@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { GlobalSearch } from "./GlobalSearch";
 import { FloatingCapture } from "./FloatingCapture";
-import { ContextSwitcherGate } from "./ContextSwitcherGate";
 import { ApiErrorToast } from "@/components/ui";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { TabBar } from "@/components/shell/TabBar";
@@ -32,8 +31,6 @@ export function Shell({
   void _active;
   return (
     <div className="min-h-screen flex flex-col">
-      <ContextSwitcherGate />
-
       <div className="flex-1 flex flex-col lg:flex-row min-w-0">
         <Sidebar />
         {/* No max-width — the kanban view alone needs 10 columns wide,

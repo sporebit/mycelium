@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ContextPicker } from "@/components/compost/ContextPicker";
-import { useCurrentContext } from "@/lib/hooks/useCurrentContext";
-import { useCurrentDevice } from "@/lib/hooks/useCurrentDevice";
-import type { ContextEnergy, ContextOption } from "@/lib/types/context";
+import type { ContextEnergy, ContextOption, CurrentContext } from "@/lib/types/context";
 
 const ENERGY_LABEL: Record<ContextEnergy, string> = {
   low: "Low",
@@ -13,14 +11,20 @@ const ENERGY_LABEL: Record<ContextEnergy, string> = {
 };
 
 /**
- * Compact context strip rendered under the top of the shell. Shows the
- * auto-detected device, then user-settable where/energy/context dropdowns.
- * Stored in localStorage via useCurrentContext so all surfaces see the
- * same selection.
+ * Compact context controls for the Board's NOW filter: the auto-detected
+ * device, then user-settable where/energy/context dropdowns. The caller
+ * owns the useCurrentContext state so a change re-filters at once; it
+ * still persists in localStorage for the other surfaces that read it.
  */
-export function ContextSwitcher() {
-  const detectedDevice = useCurrentDevice();
-  const [ctx, setCtx] = useCurrentContext();
+export function ContextSwitcher({
+  ctx,
+  setCtx,
+  detectedDevice,
+}: {
+  ctx: CurrentContext;
+  setCtx: (patch: Partial<CurrentContext>) => void;
+  detectedDevice: string;
+}) {
   const [deviceLocked, setDeviceLocked] = useState(true);
   const [wheres, setWheres] = useState<ContextOption[]>([]);
   const [devices, setDevices] = useState<ContextOption[]>([]);
@@ -60,14 +64,7 @@ export function ContextSwitcher() {
   }
 
   return (
-    <div className="flex items-center gap-1.5 flex-wrap text-xs px-4 sm:px-6 py-1.5">
-      <span
-        title="Filter tasks by your current context. Click NOW on the task list to apply."
-        className="text-[9px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mr-1 cursor-help"
-      >
-        NOW
-      </span>
-
+    <div className="flex items-center gap-1.5 flex-wrap text-xs normal-case tracking-normal">
       {/* Device pill — auto-detected; clicking flips into manual override */}
       <button
         type="button"
