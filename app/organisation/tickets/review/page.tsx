@@ -6,7 +6,6 @@ import { mutate as globalMutate } from "swr";
 import { useApi } from "@/lib/data/useApi";
 import type { ReviewPayload } from "@/lib/tickets/review";
 import type { TicketRow } from "@/lib/tickets/query";
-import { ClarifyStack } from "@/components/tickets/ClarifyStack";
 import { Pill } from "@/components/tickets/ContextEditor";
 import { TicketListRow } from "@/components/tickets/TicketListRow";
 import { ticketFetch } from "@/components/tickets/pickers";
@@ -105,8 +104,20 @@ export default function WeeklyReviewPage() {
       <div className="mt-4">
         {step === "inbox" && (
           <div>
-            <p className="mb-2 text-[11px] text-ink-3">Clarify everything that came in. Same cards as the Inbox tab.</p>
-            <ClarifyStack simple={false} />
+            <p className="mb-2 text-[11px] text-ink-3">
+              Decide what each new thing is. Open one to type it, place it and move it on, or work the{" "}
+              <Link href="/work/issues?filter=inbox" className="text-glow-2 hover:underline">
+                Inbox filter
+              </Link>{" "}
+              in Work.
+            </p>
+            <Section empty="Inbox is empty." rows={data.inbox}>
+              {(t) => (
+                <Link href={`/work/browse/${encodeURIComponent(t.ticket_key ?? t.id)}`} className="text-[11px] text-glow-2 hover:underline">
+                  open
+                </Link>
+              )}
+            </Section>
           </div>
         )}
 
