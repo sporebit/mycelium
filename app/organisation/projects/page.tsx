@@ -1,7 +1,6 @@
-import { ProjectsClient } from "@/components/compost/ProjectsClient";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default function ProjectsPage() {
-  return <ProjectsClient />;
+/** Projects moved to Work (claude/spec-work.md §5, MYC-174). */
+export default function ProjectsRedirect() {
+	redirect("/work/projects");
 }

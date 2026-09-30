@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Home as HomeIcon, Plus, MoreHorizontal, Pin, PinOff } from "lucide-react";
-import { SECTIONS, type SectionConfig } from "@/lib/nav/sections";
+import { SECTIONS, sectionForPath, type SectionConfig } from "@/lib/nav/sections";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { Sheet, Label } from "@/components/ui";
 import { SECTION_ICONS } from "./sectionIcons";
@@ -37,7 +37,7 @@ function tabForKey(key: string): TabDef | null {
     label: s.label,
     href: s.baseRoute,
     Icon: SECTION_ICONS[s.key] ?? MoreHorizontal,
-    match: (p) => p === s.baseRoute || p.startsWith(s.baseRoute + "/"),
+    match: (p) => sectionForPath(p)?.key === s.key,
   };
 }
 

@@ -217,7 +217,7 @@ export function StepsTab({
               )}
               {s.linked_task_id && (
                 <Link
-                  href={`/organisation/tasks?task=${s.linked_task_id}`}
+                  href={`/work/browse/${s.linked_task_id}`}
                   className="text-[9px] text-ok hover:underline font-[family-name:var(--font-mono)] tracking-[0.1em] px-1.5 py-0.5"
                 >
                   LINKED →

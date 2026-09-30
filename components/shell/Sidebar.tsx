@@ -11,18 +11,11 @@ import {
   PlusCircle,
   MoreHorizontal,
 } from "lucide-react";
-import { SECTIONS, type SectionConfig, type SubPage } from "@/lib/nav/sections";
+import { SECTIONS, sectionForPath, type SubPage } from "@/lib/nav/sections";
 import { Wordmark } from "@/components/dashboard/Wordmark";
 import { PrivacyToggle } from "@/components/dashboard/PrivacyToggle";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { SECTION_ICONS } from "./sectionIcons";
-
-function isSectionActive(pathname: string, section: SectionConfig): boolean {
-  return (
-    pathname === section.baseRoute ||
-    pathname.startsWith(section.baseRoute + "/")
-  );
-}
 
 function isSubActive(pathname: string, sp: SubPage): boolean {
   return pathname === sp.href || pathname.startsWith(sp.href + "/");
@@ -43,8 +36,7 @@ export function Sidebar() {
     void setPrefs({ sidebar_collapsed: !collapsed });
   }, [collapsed, setPrefs]);
 
-  const activeKey =
-    SECTIONS.find((s) => isSectionActive(pathname, s))?.key ?? null;
+  const activeKey = sectionForPath(pathname)?.key ?? null;
 
   return (
     <aside

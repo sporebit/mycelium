@@ -20,7 +20,7 @@ export function telegramChatId(): string | null {
 }
 
 export function ticketUrl(key: string): string {
-  return `${APP_URL}/organisation/tickets/${encodeURIComponent(key)}`;
+  return `${APP_URL}/work/browse/${encodeURIComponent(key)}`;
 }
 
 /** "HOME-31 · 🏠 home · 📱 phone · office hours" */
@@ -44,7 +44,7 @@ export function captureKeyboard(ticketId: string, key: string): InlineKeyboardMa
         { text: "💤 Someday", callback_data: `m|t|${ticketId}|someday` },
         { text: "✕ Bin", callback_data: `m|t|${ticketId}|cancelled` },
       ],
-      [{ text: "Clarify in the app", url: `${APP_URL}/organisation/tickets` }, { text: key, url: ticketUrl(key) }],
+      [{ text: "Open Work", url: `${APP_URL}/work` }, { text: key, url: ticketUrl(key) }],
     ],
   };
 }

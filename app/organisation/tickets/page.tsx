@@ -1,10 +1,6 @@
 import { redirect } from "next/navigation";
 
-/**
- * Tasks and Tickets are one surface at /organisation/tasks (tasks-merge M1,
- * MYC-163). This index redirects; ticket pages, sprints, review and
- * templates keep their /organisation/tickets/... URLs.
- */
+/** Tickets became Work (claude/spec-work.md §5, MYC-174). Templates and review keep their URLs. */
 export default function TicketsIndexRedirect() {
-  redirect("/organisation/tasks");
+	redirect("/work");
 }

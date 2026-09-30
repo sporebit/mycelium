@@ -1,11 +1,6 @@
-import { Suspense } from "react";
-import { TasksHome } from "@/components/tickets/TasksHome";
+import { redirect } from "next/navigation";
 
-/** The one Tasks surface (tasks-merge M1). /organisation/tickets redirects here. */
-export default function TasksPage() {
-  return (
-    <Suspense fallback={null}>
-      <TasksHome />
-    </Suspense>
-  );
+/** The Tasks surface became Work (claude/spec-work.md §5, MYC-174). */
+export default function TasksRedirect() {
+	redirect("/work");
 }

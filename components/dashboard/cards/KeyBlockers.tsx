@@ -84,7 +84,7 @@ export function KeyBlockers({ width = 2 }: { width?: CardWidth } = {}) {
   }
 
   function open(id: string) {
-    router.push(`/organisation/tasks?focus=${encodeURIComponent(id)}`);
+    router.push(`/work/browse/${encodeURIComponent(id)}`);
   }
 
   return (
@@ -93,7 +93,7 @@ export function KeyBlockers({ width = 2 }: { width?: CardWidth } = {}) {
       title="KEY BLOCKERS"
       topRight={
         <Link
-          href="/organisation/tasks?filter=blockers"
+          href="/work/issues?jql=statusCategory%20%3D%20%22In%20Progress%22%20ORDER%20BY%20due%20ASC"
           className="flex items-center gap-2 hover:text-ink-4 transition-colors"
         >
           <Mono>{total} ACTIVE</Mono>
@@ -103,7 +103,7 @@ export function KeyBlockers({ width = 2 }: { width?: CardWidth } = {}) {
       bottomCTA={
         total > shown.length ? (
           <Link
-            href="/organisation/tasks?filter=blockers"
+            href="/work/issues?jql=statusCategory%20%3D%20%22In%20Progress%22%20ORDER%20BY%20due%20ASC"
             className="cursor-pointer hover:text-ink-4"
           >
             + {total - shown.length} MORE · VIEW ALL →

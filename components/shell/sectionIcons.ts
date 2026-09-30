@@ -1,5 +1,6 @@
 import {
   Inbox,
+  KanbanSquare,
   Dumbbell,
   HeartPulse,
   PoundSterling,
@@ -13,6 +14,7 @@ import {
 
 // Section key → Lucide icon. Keeps Sidebar and TabBar in visual lockstep.
 export const SECTION_ICONS: Record<string, LucideIcon> = {
+  work: KanbanSquare,
   organisation: Inbox,
   fitness: Dumbbell,
   health: HeartPulse,

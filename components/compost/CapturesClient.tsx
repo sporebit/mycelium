@@ -21,7 +21,7 @@ function routedToLink(
   switch (routedTo) {
     case "tasks":
       return {
-        href: `/organisation/tasks?task=${routedId}`,
+        href: `/work/browse/${routedId}`,
         label: "Task",
         title: clsTitle ?? "open",
       };

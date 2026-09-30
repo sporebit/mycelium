@@ -17,7 +17,7 @@ import { CategoryChip } from "./CategoryChip";
 export type TicketRowData = Task & { blocked_by?: string[] };
 
 export function ticketHref(t: Pick<Task, "id" | "ticket_key">): string {
-  return t.ticket_key ? `/organisation/tickets/${t.ticket_key}` : `/organisation/tasks?task=${t.id}`;
+  return `/work/browse/${encodeURIComponent(t.ticket_key ?? t.id)}`;
 }
 
 export function fmtDay(d: string | null | undefined): string {

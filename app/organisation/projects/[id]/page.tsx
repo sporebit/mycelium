@@ -1,27 +1,7 @@
-import { notFound } from "next/navigation";
-import { createUserClient } from "@/lib/supabase/user";
-import { ProjectDetail } from "@/components/compost/ProjectDetail";
-import type { Project } from "@/lib/types/project";
+import { redirect } from "next/navigation";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-export default async function ProjectDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-
-  const supabase = await createUserClient();
-  const { data } = await supabase
-    .from("projects")
-    .select(
-      "id, name, description, status, colour, created_at, updated_at",
-    )
-    .eq("id", id)
-    .maybeSingle();
-  if (!data) notFound();
-
-  return <ProjectDetail initialProject={data as Project} />;
+/** A project's overview answers to its id as well as its key. */
+export default async function ProjectRedirect({ params }: { params: Promise<{ id: string }> }) {
+	const { id } = await params;
+	redirect(`/work/projects/${encodeURIComponent(id)}`);
 }

@@ -364,7 +364,7 @@ export function PersonDetail({ id }: { id: string }) {
                 // detail expanded.
                 const href =
                   m.source_type === "task"
-                    ? `/organisation/tasks?task=${m.source_id}`
+                    ? `/work/browse/${m.source_id}`
                     : m.source_type === "capture"
                     ? `/organisation/captures?focus=${m.source_id}`
                     : m.source_type === "journal"

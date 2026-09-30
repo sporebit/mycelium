@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SECTIONS } from "@/lib/nav/sections";
+import { sectionForPath } from "@/lib/nav/sections";
 
 /**
  * Mobile-only sub-navigation. Derives the active section from the current
@@ -11,10 +11,7 @@ import { SECTIONS } from "@/lib/nav/sections";
  */
 export function SubChips() {
   const pathname = usePathname();
-  const section = SECTIONS.find(
-    (s) =>
-      pathname === s.baseRoute || pathname.startsWith(s.baseRoute + "/"),
-  );
+  const section = sectionForPath(pathname);
   if (!section) return null;
 
   return (

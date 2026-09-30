@@ -10,16 +10,29 @@ export type SectionConfig = {
 
 export const SECTIONS: SectionConfig[] = [
   {
+    key: "work",
+    label: "WORK",
+    colour: "#84f5b8",
+    baseRoute: "/work",
+    subPages: [
+      { label: "Your work", href: "/work", primary: true },
+      { label: "Issues", href: "/work/issues", primary: true },
+      { label: "Projects", href: "/work/projects", primary: true },
+      { label: "Docs", href: "/docs", primary: true },
+      { label: "Notifications", href: "/work/notifications", primary: false },
+      { label: "Templates", href: "/organisation/tickets/templates", primary: false },
+      { label: "Weekly review", href: "/organisation/tickets/review", primary: false },
+    ],
+  },
+  {
     key: "organisation",
     label: "ORGANISATION",
     colour: "#f5b56d",
     baseRoute: "/organisation",
     subPages: [
-      { label: "Tasks", href: "/organisation/tasks", primary: true },
       { label: "Captures", href: "/organisation/captures", primary: true },
       { label: "People", href: "/organisation/people", primary: true },
       { label: "Calendar", href: "/organisation/calendar", primary: true },
-      { label: "Projects", href: "/organisation/projects", primary: false },
       { label: "Decisions", href: "/organisation/decisions", primary: false },
       { label: "Ideas", href: "/organisation/ideas", primary: false },
       { label: "Purchases", href: "/organisation/purchases", primary: false },
@@ -145,3 +158,23 @@ export const SECTIONS: SectionConfig[] = [
 ];
 
 export const SECTION_BASE_ROUTES = SECTIONS.map((s) => s.baseRoute);
+
+function under(pathname: string, base: string): boolean {
+  return pathname === base || pathname.startsWith(base + "/");
+}
+
+/**
+ * The section a path belongs to. A sub-page may live outside its section's
+ * base route (Docs under Work, the ticket templates under Organisation), so
+ * an exact sub-page match wins over the base-route prefix.
+ */
+export function sectionForPath(pathname: string): SectionConfig | null {
+  let best: { section: SectionConfig; len: number } | null = null;
+  for (const s of SECTIONS) {
+    for (const sp of s.subPages) {
+      if (under(pathname, sp.href) && (!best || sp.href.length > best.len)) best = { section: s, len: sp.href.length };
+    }
+  }
+  if (best) return best.section;
+  return SECTIONS.find((s) => under(pathname, s.baseRoute)) ?? null;
+}

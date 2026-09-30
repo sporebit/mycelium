@@ -237,7 +237,7 @@ export function GlobalSearch() {
                       onClick={() => {
                         const k = query.trim().toUpperCase();
                         closeModal();
-                        router.push(`/organisation/tickets/${encodeURIComponent(k)}`);
+                        router.push(`/work/browse/${encodeURIComponent(k)}`);
                       }}
                       className="w-full text-left px-2 py-1.5 rounded-v2-sm text-sm text-text-mid hover:bg-surface-2 hover:text-text-hi transition-colors"
                     >
@@ -252,9 +252,7 @@ export function GlobalSearch() {
                       onClick={() => {
                         closeModal();
                         router.push(
-                          t.ticket_key
-                            ? `/organisation/tickets/${encodeURIComponent(t.ticket_key)}`
-                            : `/organisation/tasks?task=${t.id}`,
+                          `/work/browse/${encodeURIComponent(t.ticket_key ?? t.id)}`,
                         );
                       }}
                       className="w-full flex items-center gap-2 text-left px-2 py-1.5 rounded-v2-sm text-sm text-text-mid hover:bg-surface-2 hover:text-text-hi transition-colors"
