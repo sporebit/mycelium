@@ -16,6 +16,7 @@ import { Wordmark } from "@/components/dashboard/Wordmark";
 import { PrivacyToggle } from "@/components/dashboard/PrivacyToggle";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { SECTION_ICONS } from "./sectionIcons";
+import { NotificationBell } from "@/components/work/NotificationBell";
 
 function isSubActive(pathname: string, sp: SubPage): boolean {
   return pathname === sp.href || pathname.startsWith(sp.href + "/");
@@ -149,6 +150,7 @@ export function Sidebar() {
             >
               <PlusCircle size={18} />
             </button>
+            <NotificationBell collapsed />
             <Link
               href="/other/settings"
               title="Settings"
@@ -180,6 +182,7 @@ export function Sidebar() {
               <PlusCircle size={16} />
               Capture
             </button>
+            <NotificationBell />
             <Link
               href="/other/settings"
               title="Settings"

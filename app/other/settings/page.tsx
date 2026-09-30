@@ -8,6 +8,7 @@ import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { SECTIONS } from "@/lib/nav/sections";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
+import { NotificationSettings } from "@/components/work/NotificationSettings";
 
 type Settings = Record<string, unknown>;
 type Stats = Record<string, { label: string; count: number }>;
@@ -537,6 +538,10 @@ function SectionsSection() {
 
 function NotificationsSection({ settings, onPatch }: { settings: Settings; onPatch: (f: Record<string, unknown>) => void }) {
   return (
+    <div className="flex flex-col gap-4">
+    <SectionCard title="WORK — MENTIONS, ASSIGNMENTS, STATUS, COMMENTS">
+      <NotificationSettings />
+    </SectionCard>
     <SectionCard title="NOTIFICATIONS">
       <ToggleSetting
         label="Telegram notifications"
@@ -587,6 +592,7 @@ function NotificationsSection({ settings, onPatch }: { settings: Settings; onPat
         </div>
       </div>
     </SectionCard>
+    </div>
   );
 }
 
