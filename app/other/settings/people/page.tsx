@@ -15,6 +15,7 @@ import {
 } from "@/lib/access/teams";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { PeopleBin } from "@/components/people/PeopleBin";
+import { IgnoredTerms } from "@/components/people/IgnoredTerms";
 
 type TeamRow = { id: string; name: string; slug: string; owner_user_id: string; my_role: TeamRole | null };
 
@@ -131,6 +132,10 @@ export default function PeopleAndTeamsPage() {
 
       <Card title="BIN — DELETED PEOPLE">
         <PeopleBin />
+      </Card>
+
+      <Card title="IGNORED WORDS — NEVER PEOPLE">
+        <IgnoredTerms />
       </Card>
 
       <TeamsCard

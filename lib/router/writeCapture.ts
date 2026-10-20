@@ -2,7 +2,8 @@ import { todayLondon, whenFromUrgency } from "@/lib/tickets/when";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Classification } from "@/lib/router/classifyCapture";
 import { resolveEntityId } from "@/lib/router/resolveEntity";
-import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
+import { queuePendingPerson, recordMention, resolveMention } from "@/lib/people/resolve-mention";
+import { filterIgnored, ignoredTermKeys } from "@/lib/people/ignored";
 import { suggestContexts } from "@/lib/tickets/suggest";
 import { resolveSpeaker } from "@/lib/quotes/server";
 import { applySpeakerRules, readBack } from "@/lib/quotes/text";
@@ -366,47 +367,24 @@ export async function writeCapture(
       mentionSourceId = routedId;
     }
 
-    // For voice/Telegram captures, check whether new-person mentions
-    // should be diverted to /organisation/review rather than silently
-    // auto-created. UI-created captures (source = 'web' / 'api') skip
-    // this — those are explicit by definition.
-    const isVoiceLike = source === "telegram";
-    let deferIfNew = false;
-    if (isVoiceLike) {
-      const { data: rule } = await supabase
-        .from("entity_review_rules")
-        .select("review_new")
-        .eq("entity_type", "person")
-        .maybeSingle();
-      deferIfNew = rule?.review_new === true;
-    }
-
-    for (const m of classification.mentions) {
+    // No path creates a person (people-review R1): a mention that matches
+    // nobody becomes a pending_entities row on /organisation/review, for
+    // every source — the per-kind `entity_review_rules.review_new` toggle
+    // used to gate this for Telegram only. Ignored terms are dropped first.
+    const ignored = await ignoredTermKeys(supabase);
+    for (const m of filterIgnored(classification.mentions, ignored)) {
       try {
-        const res = await resolveMention(
-          supabase,
-          m.name_hint || m.raw,
-          { deferIfNew },
-        );
+        const res = await resolveMention(supabase, m.name_hint || m.raw);
         await recordMention(supabase, res, {
           type: mentionSourceType,
           id: mentionSourceId,
         });
-        // When the mention was deferred (would have auto-created a
-        // brand-new person), queue a pending_entities row so the user
-        // can resolve it on /organisation/review.
-        if (
-          deferIfNew &&
-          !res.person_id &&
-          res.confidence === "unresolved" &&
-          !res.auto_created
-        ) {
-          await supabase.from("pending_entities").insert({ capture_id: rawCapture.id,
-            entity_type: "person",
-            entity_name: res.raw_alias,
-            additional_data: { source_kind: classification.kind },
-          });
-        }
+        await queuePendingPerson(supabase, res, {
+          captureId: rawCapture.id,
+          sourceKind: classification.kind,
+          snippet: rawText,
+          ticketId: mentionSourceType === "task" ? mentionSourceId : null,
+        });
       } catch (err) {
         console.error("[writeCapture] mention pipeline soft-fail:", err);
       }

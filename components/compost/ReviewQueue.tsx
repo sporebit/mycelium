@@ -7,8 +7,15 @@ import { PersonDrawer } from "./PersonDrawer";
 import { triggerGlowPulse } from "@/lib/motion";
 import type { ReviewQueueItem } from "@/lib/people/types";
 
-export function ReviewQueue({ onResolved }: { onResolved: () => void }) {
+/**
+ * The People review queue: ambiguous mentions (pick a person or create one)
+ * and auto-created people (Keep / Archive / Reject, people-review R6).
+ * `hidePeople` leaves the people to the caller's card grid, which can
+ * select them in bulk; only the mentions render here.
+ */
+export function ReviewQueue({ onResolved, hidePeople = false }: { onResolved: () => void; hidePeople?: boolean }) {
   const [items, setItems] = useState<ReviewQueueItem[] | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   /** When set, render the create-person drawer with first_name pre-filled
    *  from the ambiguous mention's raw_alias. On save, the new person's id
    *  is fed back to the resolve endpoint and the mention disappears. */
@@ -75,26 +82,39 @@ export function ReviewQueue({ onResolved }: { onResolved: () => void }) {
     }
   }
 
-  async function dismissPerson(personId: string) {
-    const r = await fetch(`/api/people/${personId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ needs_review: false }),
-    });
-    if (r.ok) {
-      await load();
-      onResolved();
+  /** Keep clears the flag; Archive hides and stops matching; Reject bins and ignores the words (R6). */
+  async function act(personId: string, action: "keep" | "archive" | "reject") {
+    if (action === "reject" && !window.confirm("Reject this person? They go to the bin and their name is ignored from now on.")) return;
+    setBusyId(personId);
+    try {
+      const r =
+        action === "reject"
+          ? await fetch(`/api/people/${personId}?reject=1`, { method: "DELETE" })
+          : await fetch(`/api/people/${personId}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(action === "keep" ? { needs_review: false } : { archived: true }),
+            });
+      if (r.ok) {
+        await load();
+        onResolved();
+      }
+    } finally {
+      setBusyId(null);
     }
   }
 
   if (items === null) {
+    if (hidePeople) return null;
     return (
       <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
   }
-  if (items.length === 0) {
+  const visible = hidePeople ? items.filter((it) => it.kind === "ambiguous_mention") : items;
+  if (visible.length === 0) {
+    if (hidePeople) return null;
     return (
       <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
         Nothing in the review queue. 🌱
@@ -105,7 +125,7 @@ export function ReviewQueue({ onResolved }: { onResolved: () => void }) {
   return (
     <>
       <ul className="flex flex-col gap-3">
-        {items.map((it, i) => {
+        {visible.map((it, i) => {
           if (it.kind === "ambiguous_mention") {
             return (
               <li
@@ -171,10 +191,12 @@ export function ReviewQueue({ onResolved }: { onResolved: () => void }) {
           const name =
             it.person.display_name ||
             [it.person.first_name, it.person.last_name].filter(Boolean).join(" ");
+          const busy = busyId === it.person.id;
+          const btn = "px-3 py-1.5 rounded-sm border border-ink-4 text-text-1 hover:text-text-0 hover:bg-ink-2 disabled:opacity-50 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]";
           return (
             <li
               key={`p:${it.person.id}:${i}`}
-              className="growth-in rounded-md bg-ink-1 p-4 flex items-center gap-4"
+              className="growth-in rounded-md bg-ink-1 p-4 flex flex-wrap items-center gap-4"
             >
               <div className="flex-1 min-w-0">
                 <div className="text-base text-text-0 font-[family-name:var(--font-display)]">
@@ -184,20 +206,30 @@ export function ReviewQueue({ onResolved }: { onResolved: () => void }) {
                   Auto-created — {it.mention_count} mention
                   {it.mention_count === 1 ? "" : "s"} so far
                 </div>
+                {it.snippet && (
+                  <p className="text-xs text-text-1 italic font-[family-name:var(--font-display)] leading-snug mt-1 truncate" title={it.snippet}>
+                    &ldquo;{it.snippet.slice(0, 160)}
+                    {it.snippet.length > 160 ? "…" : ""}&rdquo;
+                  </p>
+                )}
               </div>
-              <Link
-                href={`/organisation/people/${it.person.id}`}
-                className="px-3 py-1.5 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]"
-              >
-                OPEN
-              </Link>
-              <button
-                type="button"
-                onClick={() => void dismissPerson(it.person.id)}
-                className="px-3 py-1.5 rounded-sm border border-ink-4 text-text-1 hover:text-text-0 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]"
-              >
-                LOOKS FINE
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Link
+                  href={`/organisation/people/${it.person.id}`}
+                  className="px-3 py-1.5 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                >
+                  OPEN
+                </Link>
+                <button type="button" disabled={busy} onClick={() => void act(it.person.id, "keep")} className={btn} title="A real person — clear the review flag">
+                  KEEP
+                </button>
+                <button type="button" disabled={busy} onClick={() => void act(it.person.id, "archive")} className={btn} title="Hide and stop matching; history stays">
+                  ARCHIVE
+                </button>
+                <button type="button" disabled={busy} onClick={() => void act(it.person.id, "reject")} className={`${btn} hover:border-error/60 hover:text-error`} title="Not a person — bin it and ignore the words">
+                  REJECT
+                </button>
+              </div>
             </li>
           );
         })}

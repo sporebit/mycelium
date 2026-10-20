@@ -48,6 +48,8 @@ export type Person = {
   /** people-contacts C1: a contact is an imported card that nothing has linked to yet. */
   tier?: PersonTier;
   deleted_at?: string | null;
+  /** people-review R3: hidden from the default list and never matched; history and links stay. */
+  archived_at?: string | null;
   merged_into_id?: string | null;
   promoted_at?: string | null;
   linked_user_id?: string | null;
@@ -76,6 +78,8 @@ export type PersonWithAliases = Person & {
   /** distinct day-log days they were in a reviewed scene of (people_daylog_stats) */
   days_together?: number;
   last_mention_at?: string | null;
+  /** Review Needed cards (people-review R6): the ticket / capture text that produced this person. */
+  snippet?: string | null;
 };
 
 export type PersonMention = {
@@ -97,8 +101,11 @@ export type MentionResolution = {
   person_id: string | null;
   candidate_person_ids: string[];
   confidence: MentionConfidence;
+  /** Always false since people-review R1: no path creates a person. Kept so older readers compile. */
   auto_created: boolean;
   needs_review: boolean;
+  /** people-review R3/R4: the term is on the ignore list, or an archived person's alias — record nothing, queue nothing. */
+  suppressed?: "ignored" | "archived";
 };
 
 /** Snippet attached to a mention when listing on the person detail page. */
@@ -121,6 +128,8 @@ export type ReviewQueueItem =
       person: Person;
       mention_count: number;
       first_seen_at: string;
+      /** The ticket / capture text that produced this person (people-review R6). */
+      snippet: string | null;
     };
 
 export type PersonImport = {

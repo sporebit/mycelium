@@ -232,7 +232,7 @@ export function PendingEntitiesList({ dayId }: { dayId?: string | null }) {
                     </Mono>
                   </div>
 
-                  {p.capture && (
+                  {p.capture ? (
                     <Link
                       href={`/organisation/captures?focus=${p.capture.id}`}
                       className="block rounded-md bg-ink-0/40 border border-ink-2/60 px-2 py-1.5 text-xs text-ink-3 italic font-[family-name:var(--font-display)] hover:border-ink-3 transition-colors"
@@ -242,7 +242,18 @@ export function PendingEntitiesList({ dayId }: { dayId?: string | null }) {
                         · {p.capture.source}
                       </span>
                     </Link>
-                  )}
+                  ) : ad(p, "snippet") ? (
+                    // A name from a ticket (people-review R1): the ticket's title, linking to it when the key is known.
+                    <Link
+                      href={`/work/browse/${encodeURIComponent(ad(p, "ticket_key") ?? ad(p, "ticket_id") ?? "")}`}
+                      className="block rounded-md bg-ink-0/40 border border-ink-2/60 px-2 py-1.5 text-xs text-ink-3 italic font-[family-name:var(--font-display)] hover:border-ink-3 transition-colors"
+                    >
+                      {ad(p, "snippet")}
+                      <span className="ml-2 not-italic text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                        · {ad(p, "source_kind") ?? "ticket"}
+                      </span>
+                    </Link>
+                  ) : null}
 
                   {isDaylog(p.entity_type) ? (
                     <DaylogActions p={p} people={peopleOptions} places={placeOptions} busy={busyId !== null} onResolve={(action, extra) => void resolve(p, action, extra)} />

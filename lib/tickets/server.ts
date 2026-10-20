@@ -13,7 +13,8 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { extractNameMentions } from "@/lib/people/regex-extract";
-import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
+import { queuePendingPerson, recordMention, resolveMention } from "@/lib/people/resolve-mention";
+import { filterIgnored, ignoredTermKeys } from "@/lib/people/ignored";
 import { LIMITS, takeToken } from "@/lib/system/rateLimit";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import { TASK_STATUSES } from "@/lib/types/task";
@@ -41,8 +42,11 @@ export async function principalUid(): Promise<string | null> {
 }
 
 /**
- * Re-extract People mentions from a ticket's title + description (soft-fail;
- * mirrors the Tasks PATCH route). Never creates a Person.
+ * Re-extract People mentions from a ticket's title + description (soft-fail).
+ * Links existing people only. An unknown Title Case phrase that is not on
+ * the ignore list becomes one pending_entities row for the review queue
+ * (people-review R1) — until MYC-175 this auto-created a person per phrase,
+ * which is where the 62 "need review" ticket fragments came from.
  */
 export async function rebuildTicketMentions(
   supabase: SupabaseClient,
@@ -58,10 +62,12 @@ export async function rebuildTicketMentions(
       .eq("source_id", ticketId);
     const text = `${title} ${description ?? ""}`.trim();
     if (!text) return;
-    for (const e of extractNameMentions(text)) {
+    const ignored = await ignoredTermKeys(supabase);
+    for (const e of filterIgnored(extractNameMentions(text), ignored)) {
       try {
         const res = await resolveMention(supabase, e.name_hint);
         await recordMention(supabase, res, { type: "task", id: ticketId });
+        await queuePendingPerson(supabase, res, { sourceKind: "ticket", snippet: title, ticketId });
       } catch (err) {
         console.error("[tickets] mention soft-fail per-extraction:", err);
       }

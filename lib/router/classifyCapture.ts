@@ -1032,13 +1032,34 @@ export async function buildClassifierSystemPrompt(
   // test imports).
   const { buildCaptureRulesBlock } = await import("./rules");
   const { buildFewShotBlock } = await import("@/lib/capture/learning");
-  const [rulesBlock, fewShot] = await Promise.all([
+  const { ignoredForClassifier } = await import("@/lib/people/ignored");
+  const [rulesBlock, fewShot, ignored] = await Promise.all([
     buildCaptureRulesBlock(rules.supabase, rules.userId),
     // MYC-161: the user's recent corrections, as few-shot examples.
     buildFewShotBlock(rules.supabase, rules.userId),
+    // MYC-175 (people-review R5): the words that are never people.
+    ignoredForClassifier(rules.supabase, rules.userId),
   ]);
-  const parts = [rulesBlock, CLASSIFIER_SYSTEM_PROMPT, fewShot].filter(Boolean);
+  const parts = [rulesBlock, CLASSIFIER_SYSTEM_PROMPT, fewShot, ignored.block].filter(Boolean);
   return parts.join("\n\n");
+}
+
+/**
+ * The guarantee behind the prompt hint (people-review R5): any mention the
+ * model still returns whose key is on the ignore list is dropped.
+ */
+async function dropIgnoredMentions(result: ClassifyResult, rules?: ClassifyRulesContext): Promise<ClassifyResult> {
+  if (!rules || result.classification.mentions.length === 0) return result;
+  try {
+    const { ignoredForClassifier, filterIgnored } = await import("@/lib/people/ignored");
+    const { keys } = await ignoredForClassifier(rules.supabase, rules.userId);
+    const mentions = filterIgnored(result.classification.mentions, keys);
+    if (mentions.length === result.classification.mentions.length) return result;
+    return { ...result, classification: { ...result.classification, mentions } };
+  } catch (err) {
+    console.error("[classifier] ignored-mention filter soft-fail:", err);
+    return result;
+  }
 }
 
 export function detectShoppingListItem(text: string): string | null {
@@ -1083,7 +1104,7 @@ export async function classifyCapture(
   try {
     const anthropic = await classifyAnthropic(text, systemPrompt);
     await account("anthropic", anthropic.usage);
-    if (anthropic.classification) return { classification: anthropic.classification, llm_source: "anthropic" };
+    if (anthropic.classification) return dropIgnoredMentions({ classification: anthropic.classification, llm_source: "anthropic" }, rules);
   } catch (err) {
     console.error("[classifier] anthropic error:", err);
   }
@@ -1091,10 +1112,10 @@ export async function classifyCapture(
   try {
     const openai = await classifyOpenAI(text, systemPrompt);
     await account("openai", openai.usage);
-    if (openai.classification) return { classification: openai.classification, llm_source: "openai" };
+    if (openai.classification) return dropIgnoredMentions({ classification: openai.classification, llm_source: "openai" }, rules);
   } catch (err) {
     console.error("[classifier] openai error:", err);
   }
 
-  return { classification: classifyRegex(text), llm_source: "regex" };
+  return dropIgnoredMentions({ classification: classifyRegex(text), llm_source: "regex" }, rules);
 }

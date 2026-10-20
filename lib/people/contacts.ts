@@ -6,12 +6,13 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalisePhone } from "./phones";
+import { addIgnoredTerms, removeIgnoredForPerson } from "./ignored";
 import type { Person, PersonEmail, PersonPhone, PersonWithAliases } from "./types";
 import { buildVcf, type ExportPerson } from "./vcard";
 
 /** Every column a people read returns (phone/email left the table in 0140). */
 export const PERSON_SELECT =
-  "id, first_name, last_name, display_name, relationship, birthday, address, where_we_met, mutual_interests, notes, needs_review, tier, deleted_at, merged_into_id, promoted_at, linked_user_id, created_at, updated_at, space_id";
+  "id, first_name, last_name, display_name, relationship, birthday, address, where_we_met, mutual_interests, notes, needs_review, tier, deleted_at, archived_at, merged_into_id, promoted_at, linked_user_id, created_at, updated_at, space_id";
 
 export const PERSON_COLUMNS = ["first_name", "last_name", "display_name", "relationship", "birthday", "address", "where_we_met", "mutual_interests", "notes", "needs_review"] as const;
 
@@ -162,9 +163,37 @@ export async function softDeletePerson(db: SupabaseClient, id: string): Promise<
   return !error;
 }
 
+/**
+ * Reject (people-review R2): "this was never a person". The bin as for a
+ * delete, plus every alias goes on the ignore list tagged with the person,
+ * so a restore from the bin can take them off again. Returns the number
+ * of words that were new to the list.
+ */
+export async function rejectPerson(db: SupabaseClient, id: string): Promise<{ ok: boolean; ignored: number }> {
+  const { data: aliases } = await db.from("people_aliases").select("alias").eq("person_id", id);
+  const { data: p } = await db.from("people").select("first_name, last_name, display_name").eq("id", id).maybeSingle();
+  const words = ((aliases ?? []) as Array<{ alias: string }>).map((a) => a.alias);
+  if (p) words.push(personName(p as { display_name: string | null; first_name: string | null; last_name: string | null }));
+  const ok = await softDeletePerson(db, id);
+  if (!ok) return { ok: false, ignored: 0 };
+  const ignored = await addIgnoredTerms(db, words, "reject", id);
+  return { ok: true, ignored };
+}
+
 export async function restorePerson(db: SupabaseClient, id: string): Promise<boolean> {
   // a merged loser cannot come back on its own: its links now belong to the survivor
   const { error } = await db.from("people").update({ deleted_at: null, updated_at: new Date().toISOString() }).eq("id", id).is("merged_into_id", null);
+  if (error) return false;
+  // a rejected person coming back takes their words off the ignore list (R2)
+  await removeIgnoredForPerson(db, id);
+  return true;
+}
+
+/** Archive (people-review R3): off the default list, never matched; history and links stay. Unarchive restores both. */
+export async function setPersonArchived(db: SupabaseClient, id: string, archived: boolean): Promise<boolean> {
+  const update: Record<string, unknown> = { archived_at: archived ? new Date().toISOString() : null, updated_at: new Date().toISOString() };
+  if (archived) update.needs_review = false; // archiving is the review decision
+  const { error } = await db.from("people").update(update).eq("id", id).is("deleted_at", null);
   return !error;
 }
 

@@ -82,12 +82,12 @@ describe("matching paths see live persons only (C1, C4)", () => {
     person("shadow", "contact");
     const gone = person("ghost", "person");
     localSql(`update public.people set deleted_at = now() where id = '${gone}'`);
-    const r1 = await resolveMention(db, "Contacts-Test:shadow", { deferIfNew: true });
+    const r1 = await resolveMention(db, "Contacts-Test:shadow");
     expect(r1.person_id).toBeNull();
-    const r2 = await resolveMention(db, "Contacts-Test:ghost", { deferIfNew: true });
+    const r2 = await resolveMention(db, "Contacts-Test:ghost");
     expect(r2.person_id).toBeNull();
     const live = person("present", "person");
-    const r3 = await resolveMention(db, "Contacts-Test:present", { deferIfNew: true });
+    const r3 = await resolveMention(db, "Contacts-Test:present");
     expect(r3.person_id).toBe(live);
     expect((await resolveSpeaker(db, "Contacts-Test:shadow")).person_id).toBeNull();
     expect((await resolveSpeaker(db, "Contacts-Test:present")).person_id).toBe(live);

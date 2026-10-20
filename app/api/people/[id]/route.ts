@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { normaliseAlias } from "@/lib/people/normalise";
-import { applyPersonPatch, attachContactPoints, PERSON_SELECT, resolvePersonId, softDeletePerson } from "@/lib/people/contacts";
+import { applyPersonPatch, attachContactPoints, PERSON_SELECT, rejectPerson, resolvePersonId, setPersonArchived, softDeletePerson } from "@/lib/people/contacts";
 import type { Person, PersonAlias, PersonWithAliases } from "@/lib/people/types";
 
 export const runtime = "nodejs";
@@ -59,6 +59,8 @@ type PatchBody = Partial<{
   mutual_interests: string | null;
   notes: string | null;
   needs_review: boolean;
+  /** people-review R3: true archives (hidden, never matched), false unarchives. */
+  archived: boolean;
   /** Optional secondary aliases — primary alias is auto-managed
    *  from first_name / display_name below. Setting an empty array
    *  clears every non-primary alias. */
@@ -83,6 +85,10 @@ export async function PATCH(
     if (!ref) return NextResponse.json({ error: "not found" }, { status: 404 });
     const id = ref.id;
 
+    if (typeof body.archived === "boolean") {
+      const ok = await setPersonArchived(supabase, id, body.archived);
+      if (!ok) return NextResponse.json({ error: "archive failed" }, { status: 500 });
+    }
     const data = await applyPersonPatch(supabase, id, body as Record<string, unknown>);
     if (!data) {
       console.error("[/api/people/:id PATCH] update failed");
@@ -185,19 +191,30 @@ export async function PATCH(
   }
 }
 
-/** DELETE — soft (the bin, people-contacts C4). `?hard=1` removes the row for good. */
+/**
+ * DELETE — soft (the bin, people-contacts C4). `?hard=1` removes the row
+ * for good. `?reject=1` is "this was never a person" (people-review R2):
+ * the bin as usual, plus every alias goes on the ignore list; a restore
+ * from the bin takes them off again.
+ */
 export async function DELETE(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
   const { id } = await ctx.params;
   const hard = req.nextUrl.searchParams.get("hard") === "1";
+  const reject = req.nextUrl.searchParams.get("reject") === "1";
   try {
     const supabase = await createUserClient();
     if (hard) {
       const { error } = await supabase.from("people").delete().eq("id", id);
       if (error) throw error;
       return NextResponse.json({ ok: true, hard: true });
+    }
+    if (reject) {
+      const r = await rejectPerson(supabase, id);
+      if (!r.ok) return NextResponse.json({ error: "reject failed" }, { status: 500 });
+      return NextResponse.json({ ok: true, rejected: true, ignored: r.ignored, deleted_at: new Date().toISOString() });
     }
     const ok = await softDeletePerson(supabase, id);
     if (!ok) return NextResponse.json({ error: "delete failed" }, { status: 500 });

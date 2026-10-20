@@ -63,6 +63,7 @@ export function PersonDetail({ id }: { id: string }) {
   const [mergeWith, setMergeWith] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [promoting, setPromoting] = useState(false);
+  const [archiving, setArchiving] = useState(false);
   const notesTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadPerson = useCallback(async () => {
@@ -123,6 +124,22 @@ export function PersonDetail({ id }: { id: string }) {
       mounted = false;
     };
   }, [id, router]);
+
+  /** Archive (people-review R3): hidden from the list, never matched; history stays. Unarchive restores both. */
+  async function setArchived(flag: boolean) {
+    if (archiving) return;
+    setArchiving(true);
+    try {
+      const r = await fetch(`/api/people/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived: flag }),
+      });
+      if (r.ok) await loadPerson();
+    } finally {
+      setArchiving(false);
+    }
+  }
 
   async function promote() {
     if (promoting) return;
@@ -220,6 +237,14 @@ export function PersonDetail({ id }: { id: string }) {
                   ⚠ needs review
                 </div>
               )}
+              {person.archived_at && (
+                <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-2" title="Off the People list and never matched by the day log, quotes or captures. History and links stay.">
+                  archived ·{" "}
+                  <button type="button" disabled={archiving} onClick={() => void setArchived(false)} className="text-glow-2 hover:underline disabled:opacity-50">
+                    {archiving ? "…" : "unarchive"}
+                  </button>
+                </div>
+              )}
               {person.tier === "contact" && (
                 <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-2" title="An imported card nothing has linked to yet. The day log, quotes and captures do not match contacts.">
                   contact ·{" "}
@@ -245,6 +270,17 @@ export function PersonDetail({ id }: { id: string }) {
               >
                 MERGE…
               </button>
+              {!person.archived_at && (
+                <button
+                  type="button"
+                  disabled={archiving}
+                  onClick={() => void setArchived(true)}
+                  className="px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 disabled:opacity-50 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                  title="Hide from the list and stop matching; history and links stay"
+                >
+                  {archiving ? "…" : "ARCHIVE"}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setDeleting(true)}

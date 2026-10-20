@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { normaliseAlias } from "@/lib/people/normalise";
+import { addIgnoredTerms } from "@/lib/people/ignored";
 import { approveDaylogPending, type DaylogPendingRow } from "@/lib/daylog/approve";
 import { isDaylogPending } from "@/lib/daylog/materialise";
 
@@ -119,6 +120,12 @@ export async function POST(
             );
         }
       }
+    }
+
+    // "Not a person" (people-review R2): the wording goes on the ignore
+    // list so it is never suggested again. Exact match only.
+    if (action === "reject" && row.entity_type === "person") {
+      await addIgnoredTerms(supabase, [row.entity_name], "pending");
     }
 
     // Re-bind orphaned mention rows from the same capture to the

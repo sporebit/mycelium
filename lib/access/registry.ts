@@ -91,8 +91,8 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
   {
     section: "organisation",
     group: "people",
-    tables: ["people", "people_mentions", "people_aliases", "entities", "person_phones", "person_emails", "person_vcards", "people_import_batches", "people_import_candidates"],
-    note: "People contacts (0140): numbers, emails and raw vCards per person; import batches with a review list. people.tier / deleted_at / merged_into_id live on people.",
+    tables: ["people", "people_mentions", "people_aliases", "entities", "person_phones", "person_emails", "person_vcards", "people_import_batches", "people_import_candidates", "people_ignored_terms"],
+    note: "People contacts (0140): numbers, emails and raw vCards per person; import batches with a review list. people.tier / deleted_at / merged_into_id / archived_at live on people. people_ignored_terms (0149): terms that are never people.",
   },
   {
     section: "organisation",

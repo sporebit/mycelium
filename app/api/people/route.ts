@@ -3,18 +3,23 @@ import { createUserClient } from "@/lib/supabase/user";
 import { auditListRead } from "@/lib/system/readAudit";
 import { normaliseAlias } from "@/lib/people/normalise";
 import { addEmail, addPhone, attachContactPoints, parseTier, PERSON_SELECT } from "@/lib/people/contacts";
+import { mentionSnippets } from "@/lib/people/snippets";
 import type { Person, PersonAlias, PersonWithAliases } from "@/lib/people/types";
 
 export const runtime = "nodejs";
 
 /**
- * GET /api/people?tier=person|contact|all&needs_review=true — live people
- * (deleted hidden, people-contacts C4). Contacts (C1) only when asked for:
- * the pickers and the default list see persons.
+ * GET /api/people?tier=person|contact|all&needs_review=true&archived=false|true|all
+ * — live people (deleted hidden, people-contacts C4). Contacts (C1) only
+ * when asked for: the pickers and the default list see persons. Archived
+ * people (people-review R3) only when asked for: `archived=true` is the
+ * Archived chip, `all` both.
  */
 export async function GET(req: NextRequest) {
   const needsReview = req.nextUrl.searchParams.get("needs_review") === "true";
   const tier = parseTier(req.nextUrl.searchParams.get("tier"), "person");
+  const archivedParam = req.nextUrl.searchParams.get("archived");
+  const archived: "true" | "false" | "all" = archivedParam === "true" || archivedParam === "all" ? archivedParam : "false";
 
   try {
     const supabase = await createUserClient();
@@ -24,6 +29,8 @@ export async function GET(req: NextRequest) {
       .is("deleted_at", null)
       .order("updated_at", { ascending: false });
     if (tier !== "all") q = q.eq("tier", tier);
+    if (archived === "false") q = q.is("archived_at", null);
+    else if (archived === "true") q = q.not("archived_at", "is", null);
     if (needsReview) q = q.eq("needs_review", true);
     const { data: peopleRows, error } = await q;
     if (error) {
@@ -40,6 +47,7 @@ export async function GET(req: NextRequest) {
     const quoteCountByPerson = new Map<string, number>();
     const daysByPerson = new Map<string, number>();
     const lastMentionByPerson = new Map<string, string>();
+    const snippetByPerson = new Map<string, string | null>();
     if (ids.length > 0) {
       const [aliasRes, mentionRes, quoteRes, daysRes] = await Promise.all([
         supabase
@@ -48,7 +56,7 @@ export async function GET(req: NextRequest) {
           .in("person_id", ids),
         supabase
           .from("people_mentions")
-          .select("person_id, created_at")
+          .select("person_id, source_type, source_id, created_at")
           .in("person_id", ids),
         supabase.from("quotes").select("said_by_person_id").in("said_by_person_id", ids),
         supabase.from("people_daylog_stats").select("person_id, days_together").in("person_id", ids),
@@ -62,7 +70,9 @@ export async function GET(req: NextRequest) {
         list.push(a);
         aliasByPerson.set(a.person_id, list);
       }
-      type MentionAgg = { person_id: string; created_at: string };
+      type MentionAgg = { person_id: string; source_type: string; source_id: string; created_at: string };
+      const needsReviewIds = new Set(people.filter((p) => p.needs_review).map((p) => p.id));
+      const firstMention = new Map<string, MentionAgg>();
       for (const m of (mentionRes.data ?? []) as MentionAgg[]) {
         mentionCountByPerson.set(
           m.person_id,
@@ -70,6 +80,15 @@ export async function GET(req: NextRequest) {
         );
         const prev = lastMentionByPerson.get(m.person_id);
         if (!prev || m.created_at > prev) lastMentionByPerson.set(m.person_id, m.created_at);
+        if (needsReviewIds.has(m.person_id)) {
+          const first = firstMention.get(m.person_id);
+          if (!first || m.created_at < first.created_at) firstMention.set(m.person_id, m);
+        }
+      }
+      // Review Needed cards show the words that produced the person (people-review R6).
+      if (firstMention.size > 0) {
+        const snippets = await mentionSnippets(supabase, Array.from(firstMention.values()));
+        for (const [pid, m] of firstMention) snippetByPerson.set(pid, snippets.get(`${m.source_type}:${m.source_id}`) ?? null);
       }
       // Sort aliases — primary first, then by created_at
       for (const list of aliasByPerson.values()) {
@@ -87,6 +106,7 @@ export async function GET(req: NextRequest) {
       quote_count: quoteCountByPerson.get(p.id) ?? 0,
       days_together: daysByPerson.get(p.id) ?? 0,
       last_mention_at: lastMentionByPerson.get(p.id) ?? null,
+      snippet: snippetByPerson.get(p.id) ?? null,
     }));
 
     // Review-count for the UI badge

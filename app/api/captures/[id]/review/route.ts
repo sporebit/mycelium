@@ -6,7 +6,9 @@ import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createUserClient } from "@/lib/supabase/user";
 import { resolveEntityId } from "@/lib/router/resolveEntity";
-import { recordMention, resolveMention } from "@/lib/people/resolve-mention";
+import { queuePendingPerson, recordMention, resolveMention } from "@/lib/people/resolve-mention";
+import { ignoredTermKeys } from "@/lib/people/ignored";
+import { aliasKey } from "@/lib/people/normalise";
 import { createQuoteFromExtraction, extractionFromClassification } from "@/lib/quotes/server";
 import { researchQuote } from "@/lib/quotes/research";
 import { appendCapture } from "@/lib/daylog/engine";
@@ -475,21 +477,26 @@ async function recordMentions(
   classification: Record<string, unknown>,
   sourceType: "capture" | "task" | "journal",
   sourceId: string,
+  captureId: string,
+  snippet: string | null,
 ): Promise<void> {
   const mentions = classification.mentions;
   if (!Array.isArray(mentions)) return;
+  const ignored = await ignoredTermKeys(supabase);
   for (const m of mentions as Array<Record<string, unknown>>) {
     const hint =
       (typeof m?.name_hint === "string" && m.name_hint.trim()) ||
       (typeof m?.raw === "string" && m.raw.trim()) ||
       "";
-    if (!hint) continue;
+    if (!hint || ignored.has(aliasKey(hint))) continue;
     try {
       const res = await resolveMention(supabase, hint);
       await recordMention(supabase, res, {
         type: sourceType,
         id: sourceId,
       });
+      // An unknown name goes to the review queue, never straight to People (people-review R1).
+      await queuePendingPerson(supabase, res, { captureId, sourceKind: String(classification.kind ?? sourceType), snippet, ticketId: sourceType === "task" ? sourceId : null });
     } catch (err) {
       console.error("[review reroute] mention soft-fail:", err);
     }
@@ -594,7 +601,7 @@ export async function PATCH(
         try {
           const r = await createRoutedRow(supabase, uid, id, existing.raw_text ?? "", existing.audio_url ?? null, mergedClassification, body.scheduled_at, body.project_id, body.person);
           quoteRoute = { routed_to: r.routedTo, routed_id: r.routedId };
-          if (r.routedTo === "tickets") await recordMentions(supabase, mergedClassification, "task", r.routedId);
+          if (r.routedTo === "tickets") await recordMentions(supabase, mergedClassification, "task", r.routedId, id, existing.raw_text ?? null);
         } catch (err) {
           return NextResponse.json({ error: err instanceof Error ? err.message : "approve failed" }, { status: 400 });
         }
@@ -708,6 +715,8 @@ export async function PATCH(
         mergedClassification,
         mentionSource,
         mentionSourceId,
+        id,
+        existing.raw_text ?? null,
       );
     }
 

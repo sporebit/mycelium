@@ -1,8 +1,24 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { aliasKey, boundedLevenshtein, normaliseAlias } from "./normalise";
+import { isIgnoredTerm } from "./ignored";
 import type { MentionResolution } from "./types";
 
 type Supabase = SupabaseClient;
+
+/** Only live, unarchived persons match a mention: never a contact (people-contacts C1), a deleted person (C4) or an archived one (people-review R3). */
+const LIVE_ALIAS_SELECT = "person_id, alias, people!inner(tier, deleted_at, archived_at)";
+
+function unresolved(rawAlias: string, extra: Partial<MentionResolution> = {}): MentionResolution {
+  return {
+    raw_alias: rawAlias,
+    person_id: null,
+    candidate_person_ids: [],
+    confidence: "unresolved",
+    auto_created: false,
+    needs_review: false,
+    ...extra,
+  };
+}
 
 /**
  * Resolve a raw alias (e.g. "Luke", "my mum") to a person.
@@ -11,41 +27,31 @@ type Supabase = SupabaseClient;
  *  1. Exact case-insensitive match against people_aliases.alias
  *     - 1 hit → high confidence
  *     - 2+ hits → ambiguous, needs_review
- *  2. Fuzzy (Levenshtein ≤ 2) against all aliases for this user
+ *  2. The term is on the ignore list, or is an archived person's alias →
+ *     unresolved and `suppressed` (callers queue nothing)
+ *  3. Fuzzy (Levenshtein ≤ 2) against all live aliases
  *     - 1 hit → medium
  *     - 2+ hits → low (and treated as ambiguous in practice)
- *  3. No match → auto-create a new person with needs_review, primary alias = raw
+ *  4. No match → unresolved. **No path creates a person** (people-review
+ *     R1): the caller queues a pending_entities row with
+ *     `queuePendingPerson()` and the review queue decides.
  */
 export async function resolveMention(
   supabase: Supabase,
   rawAliasIn: string,
-  /** When set, skip the no-match auto-create branch and return an
-   *  unresolved result. Callers (voice/Telegram capture pipeline)
-   *  use this to enqueue a pending_entities row for human review
-   *  instead of silently creating a new person. */
-  opts: { deferIfNew?: boolean } = {},
 ): Promise<MentionResolution> {
   const rawAlias = normaliseAlias(rawAliasIn);
-  if (!rawAlias) {
-    return {
-      raw_alias: rawAliasIn,
-      person_id: null,
-      candidate_person_ids: [],
-      confidence: "unresolved",
-      auto_created: false,
-      needs_review: false,
-    };
-  }
+  if (!rawAlias) return unresolved(rawAliasIn);
 
   const key = aliasKey(rawAlias);
 
-  // 1. Exact match — among live persons only: a contact (people-contacts
-  //    C1) or a deleted person (C4) never matches a mention.
+  // 1. Exact match among live, unarchived persons.
   const { data: exact } = await supabase
     .from("people_aliases")
-    .select("person_id, alias, people!inner(tier, deleted_at)")
+    .select(LIVE_ALIAS_SELECT)
     .eq("people.tier", "person")
     .is("people.deleted_at", null)
+    .is("people.archived_at", null)
     .ilike("alias", rawAlias);
   type Row = {
     person_id: string;
@@ -76,12 +82,27 @@ export async function resolveMention(
     };
   }
 
-  // 2. Fuzzy. Pull all aliases for this user and Levenshtein them.
+  // 2. Suppressed: on the ignore list (R4), or the alias of an archived
+  //    person (R3's flag: "Nath" archived must not come back as a new
+  //    suggestion on the next mention). Checked before the fuzzy step so
+  //    an ignored "Smoke" still lets "Smokey" fuzzy-match.
+  if (await isIgnoredTerm(supabase, key)) return unresolved(rawAlias, { suppressed: "ignored" });
+  const { data: archived } = await supabase
+    .from("people_aliases")
+    .select("person_id, people!inner(archived_at, deleted_at)")
+    .not("people.archived_at", "is", null)
+    .is("people.deleted_at", null)
+    .ilike("alias", rawAlias)
+    .limit(1);
+  if ((archived ?? []).length > 0) return unresolved(rawAlias, { suppressed: "archived" });
+
+  // 3. Fuzzy. Pull all live aliases for this user and Levenshtein them.
   const { data: allAliases } = await supabase
     .from("people_aliases")
-    .select("person_id, alias, people!inner(tier, deleted_at)")
+    .select(LIVE_ALIAS_SELECT)
     .eq("people.tier", "person")
-    .is("people.deleted_at", null);
+    .is("people.deleted_at", null)
+    .is("people.archived_at", null);
   const allRows: Row[] = (allAliases ?? []) as Row[];
 
   const fuzzyHits = new Map<string, number>(); // person_id → best distance
@@ -114,56 +135,75 @@ export async function resolveMention(
     };
   }
 
-  // 3. No match — auto-create, unless the caller asked to defer
-  // (voice/Telegram captures route through pending_entities instead).
-  if (opts.deferIfNew) {
-    return {
-      raw_alias: rawAlias,
-      person_id: null,
-      candidate_person_ids: [],
-      confidence: "unresolved",
-      auto_created: false,
-      needs_review: true,
-    };
-  }
-  const { data: created, error: createErr } = await supabase
-    .from("people")
-    .insert({ first_name: rawAlias,
-      needs_review: true,
-    })
-    .select("id")
-    .single();
-  if (createErr || !created) {
-    return {
-      raw_alias: rawAlias,
-      person_id: null,
-      candidate_person_ids: [],
-      confidence: "unresolved",
-      auto_created: false,
-      needs_review: false,
-    };
-  }
-  await supabase.from("people_aliases").insert({
-    person_id: created.id,
-    alias: rawAlias,
-    is_primary: true,
-  });
-  return {
-    raw_alias: rawAlias,
-    person_id: created.id as string,
-    candidate_person_ids: [created.id as string],
-    confidence: "unresolved",
-    auto_created: true,
-    needs_review: true,
-  };
+  // 4. No match. The pending_entities row is the review item, so the
+  //    mention row itself is not flagged (needs_review false): one queue
+  //    entry per unknown name, not two.
+  return unresolved(rawAlias);
 }
 
-/** Insert a people_mentions row from a resolution + source identifiers. */
+/**
+ * An unknown name becomes one `pending_entities` row (kind person) for
+ * the review queue — never a person (R1). Nothing is queued when the
+ * resolution matched, was suppressed, or an unresolved row for the same
+ * wording is already waiting (a ticket rebuilds its mentions on every
+ * save). Returns the pending row id when one was written.
+ */
+export async function queuePendingPerson(
+  supabase: Supabase,
+  resolution: MentionResolution,
+  source: {
+    /** The capture the name came from, when there is one. */
+    captureId?: string | null;
+    /** What produced it, and the words around it, for the review card. */
+    sourceKind: string;
+    snippet?: string | null;
+    ticketId?: string | null;
+    ticketKey?: string | null;
+  },
+): Promise<string | null> {
+  if (resolution.person_id || resolution.suppressed) return null;
+  if (resolution.confidence !== "unresolved" || resolution.candidate_person_ids.length > 0) return null;
+  const name = resolution.raw_alias;
+  if (!name) return null;
+  try {
+    const { data: existing } = await supabase
+      .from("pending_entities")
+      .select("id")
+      .eq("entity_type", "person")
+      .is("resolved_at", null)
+      .ilike("entity_name", name)
+      .limit(1)
+      .maybeSingle();
+    if (existing?.id) return null;
+    const additional: Record<string, unknown> = { source_kind: source.sourceKind };
+    if (source.snippet) additional.snippet = source.snippet.slice(0, 240);
+    if (source.ticketId) additional.ticket_id = source.ticketId;
+    if (source.ticketKey) additional.ticket_key = source.ticketKey;
+    const { data, error } = await supabase
+      .from("pending_entities")
+      .insert({
+        capture_id: source.captureId ?? null,
+        entity_type: "person",
+        entity_name: name,
+        additional_data: additional,
+      })
+      .select("id")
+      .single();
+    if (error) throw error;
+    return (data?.id as string) ?? null;
+  } catch (err) {
+    console.error("[queuePendingPerson]", err);
+    return null;
+  }
+}
+
+/** Insert a people_mentions row from a resolution + source identifiers. A suppressed resolution records nothing. */
 export async function recordMention(
   supabase: Supabase,
   resolution: MentionResolution,
   source: { type: "capture" | "task" | "journal"; id: string }
 ): Promise<void> {
+  if (resolution.suppressed) return;
   try {
     await supabase.from("people_mentions").insert({ person_id: resolution.person_id,
       source_type: source.type,

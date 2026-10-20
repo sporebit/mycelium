@@ -10,6 +10,7 @@ import type {
 export const runtime = "nodejs";
 
 import { PERSON_SELECT as PERSON_FIELDS } from "@/lib/people/contacts";
+import { mentionSnippets } from "@/lib/people/snippets";
 
 export async function GET(req: NextRequest) {
 
@@ -40,46 +41,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Snippet pull
-    const captureIds = mentions
-      .filter((m) => m.source_type === "capture")
-      .map((m) => m.source_id);
-    const taskIds = mentions
-      .filter((m) => m.source_type === "task")
-      .map((m) => m.source_id);
-    const journalIds = mentions
-      .filter((m) => m.source_type === "journal")
-      .map((m) => m.source_id);
-    const snippetByKey = new Map<string, string | null>();
-    if (captureIds.length > 0) {
-      const { data } = await supabase
-        .from("raw_captures")
-        .select("id, raw_text")
-        .in("id", captureIds);
-      for (const r of (data ?? []) as Array<{ id: string; raw_text: string | null }>) {
-        snippetByKey.set(`capture:${r.id}`, r.raw_text);
-      }
-    }
-    if (taskIds.length > 0) {
-      const { data } = await supabase
-        .from("tickets")
-        .select("id, title")
-        .in("id", taskIds);
-      for (const r of (data ?? []) as Array<{ id: string; title: string }>) {
-        snippetByKey.set(`task:${r.id}`, r.title);
-      }
-    }
-    if (journalIds.length > 0) {
-      const [{ data: legacy }, { data: days }] = await Promise.all([
-        supabase.from("journal_entries").select("id, raw_text").in("id", journalIds),
-        supabase.from("daylog_days").select("id, summary, transcript").in("id", journalIds),
-      ]);
-      for (const r of (legacy ?? []) as Array<{ id: string; raw_text: string | null }>) {
-        snippetByKey.set(`journal:${r.id}`, r.raw_text);
-      }
-      for (const r of (days ?? []) as Array<{ id: string; summary: string | null; transcript: Array<{ role: string; text: string }> }>) {
-        snippetByKey.set(`journal:${r.id}`, r.summary ?? (r.transcript ?? []).find((e) => e.role === "user")?.text ?? null);
-      }
-    }
+    const snippetByKey = await mentionSnippets(supabase, mentions);
 
     const ambiguousItems: ReviewQueueItem[] = mentions.map((m) => ({
       kind: "ambiguous_mention",
@@ -91,34 +53,44 @@ export async function GET(req: NextRequest) {
       created_at: m.created_at,
     }));
 
-    // 2. Auto-created people who still need review.
+    // 2. Auto-created people who still need review (archived ones made their decision, R3).
     const { data: peopleRows } = await supabase
       .from("people")
       .select(PERSON_FIELDS)
       .is("deleted_at", null)
+      .is("archived_at", null)
       .eq("needs_review", true)
       .order("created_at", { ascending: false });
     const people = (peopleRows ?? []) as Person[];
     auditListRead(req, [...(mentionRows ?? []), ...(peopleRows ?? [])], "organisation", "people");
-    // Mention counts per person — for the "Auto-created from capture on …" subtitle.
+    // Mention counts per person — for the "Auto-created from capture on …" subtitle —
+    // and the first mention's source text, so the Keep / Archive / Reject call is quick (R6).
     const countByPerson = new Map<string, number>();
     const firstSeenByPerson = new Map<string, string>();
+    const snippetByPerson = new Map<string, string | null>();
     if (people.length > 0) {
       const { data: cnt } = await supabase
         .from("people_mentions")
-        .select("person_id, created_at")
+        .select("person_id, source_type, source_id, created_at")
         .in("person_id", people.map((p) => p.id));
-      for (const r of (cnt ?? []) as Array<{ person_id: string; created_at: string }>) {
+      const firstMention = new Map<string, { source_type: string; source_id: string; created_at: string }>();
+      for (const r of (cnt ?? []) as Array<{ person_id: string; source_type: string; source_id: string; created_at: string }>) {
         countByPerson.set(r.person_id, (countByPerson.get(r.person_id) ?? 0) + 1);
         const prev = firstSeenByPerson.get(r.person_id);
-        if (!prev || r.created_at < prev) firstSeenByPerson.set(r.person_id, r.created_at);
+        if (!prev || r.created_at < prev) {
+          firstSeenByPerson.set(r.person_id, r.created_at);
+          firstMention.set(r.person_id, r);
+        }
       }
+      const snippets = await mentionSnippets(supabase, Array.from(firstMention.values()));
+      for (const [pid, m] of firstMention) snippetByPerson.set(pid, snippets.get(`${m.source_type}:${m.source_id}`) ?? null);
     }
     const personItems: ReviewQueueItem[] = people.map((p) => ({
       kind: "auto_created_person",
       person: p,
       mention_count: countByPerson.get(p.id) ?? 0,
       first_seen_at: firstSeenByPerson.get(p.id) ?? p.created_at,
+      snippet: snippetByPerson.get(p.id) ?? null,
     }));
 
     const items = [...ambiguousItems, ...personItems];
