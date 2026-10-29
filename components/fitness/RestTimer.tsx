@@ -2,6 +2,29 @@
 
 import { useEffect, useRef, useState } from "react";
 
+// The minimised choice outlives one rest: once you have tucked the timer
+// into the bottom bar it stays there for every rest after, in this session
+// and the next, until you expand it. It used to pop back to full screen on
+// every new rest.
+const MINIMISED_KEY = "mycelium.fitness.rest.minimised";
+
+function readMinimised(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(MINIMISED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeMinimised(v: boolean) {
+  try {
+    localStorage.setItem(MINIMISED_KEY, v ? "1" : "0");
+  } catch {
+    /* private mode */
+  }
+}
+
 function fmt(s: number): string {
   const m = Math.floor(Math.max(0, s) / 60);
   const r = Math.max(0, s) % 60;
@@ -62,7 +85,11 @@ export function RestTimer({
   onAdjust: (deltaSec: number) => void;
 }) {
   const [now, setNow] = useState<number>(() => Date.now());
-  const [isMinimised, setIsMinimised] = useState(false);
+  const [isMinimised, setIsMinimisedState] = useState<boolean>(readMinimised);
+  const setIsMinimised = (v: boolean) => {
+    setIsMinimisedState(v);
+    writeMinimised(v);
+  };
   const [totalDur, setTotalDur] = useState(0);
   const beepDone = useRef<number | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -76,7 +103,6 @@ export function RestTimer({
 
     if (endsAt === null) return;
     if (wasNull) {
-      setIsMinimised(false);
       setTotalDur(Math.max(1, Math.ceil((endsAt - Date.now()) / 1000)));
     } else {
       setTotalDur((prev) => {
