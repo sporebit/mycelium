@@ -68,6 +68,7 @@ export async function POST() {
           default_weight_unit: null,
           rest_seconds: m.rest_seconds,
           default_duration_min: m.default_duration_min,
+          default_hold_seconds: m.default_hold_seconds,
           default_distance_km: null,
           default_intensity: m.default_intensity,
           data_shape: m.data_shape,
