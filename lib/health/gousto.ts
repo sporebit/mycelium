@@ -3,27 +3,18 @@
  * cookbook pages read from, the row shapes we keep, and the conversion
  * into the app's own `recipes` row when one is saved.
  *
- * Unofficial. Gousto could change or close it; every caller treats a
- * failure as "not synced", never as data.
+ * Unofficial. Gousto's edge answers a bare nginx 502 to requests from
+ * cloud egress (Vercel, US and London alike) and sends no CORS headers, so
+ * neither the server nor the browser can call it from production. The PC
+ * script `scripts/gousto-sync.mjs` fetches from a residential connection
+ * and posts the raw payloads to /api/health/gousto/ingest and
+ * /api/health/gousto/[slug]/detail; everything here is pure shaping.
  */
 
 export const GOUSTO_API = "https://production-api.gousto.co.uk/cmsreadbroker/v1";
 export const GOUSTO_SITE = "https://www.gousto.co.uk/cookbook";
 /** The API accepts up to 200 per page. */
 export const GOUSTO_PAGE = 200;
-/** Re-fetch a cached detail after this long. */
-export const DETAIL_TTL_MS = 30 * 86400_000;
-
-// Browser-shaped headers: the API is what gousto.co.uk's own pages call.
-const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
-const HEADERS = {
-	accept: "application/json, text/plain, */*",
-	"accept-language": "en-GB,en;q=0.9",
-	"user-agent": UA,
-	origin: "https://www.gousto.co.uk",
-	referer: "https://www.gousto.co.uk/cookbook/recipes",
-};
-
 type GoustoImage = { image: string; width: number };
 type GoustoMedia = { images?: GoustoImage[] };
 
@@ -230,31 +221,4 @@ export function toRecipeRow(row: Pick<GoustoRow, "title" | "url" | "image_large_
 		cuisine: detail.cuisine ?? row.cuisine,
 		notes: [detail.description, detail.allergens.length > 0 ? `Allergens: ${detail.allergens.join(", ")}` : null].filter(Boolean).join("\n\n") || null,
 	};
-}
-
-// ---------------------------------------------------------------------
-// Network
-// ---------------------------------------------------------------------
-
-async function goustoFetch<T>(path: string): Promise<T | null> {
-	const res = await fetch(`${GOUSTO_API}${path}`, { headers: HEADERS, cache: "no-store" });
-	if (res.status === 404) return null;
-	if (!res.ok) {
-		const snippet = (await res.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 160);
-		throw new Error(`Gousto ${res.status} on ${path}${snippet ? ` — ${snippet}` : ""}`);
-	}
-	const json = (await res.json()) as { status?: string; data?: T };
-	if (json.status !== "ok" || !json.data) throw new Error(`Gousto answered "${json.status ?? "?"}" on ${path}`);
-	return json.data;
-}
-
-export async function fetchListingPage(offset: number, limit = GOUSTO_PAGE): Promise<{ count: number; entries: GoustoListingEntry[] }> {
-	const data = await goustoFetch<{ count: number; entries: GoustoListingEntry[] }>(`/recipes?limit=${limit}&offset=${offset}`);
-	if (!data) return { count: 0, entries: [] };
-	return { count: data.count ?? 0, entries: Array.isArray(data.entries) ? data.entries : [] };
-}
-
-export async function fetchDetail(slug: string): Promise<GoustoDetailEntry | null> {
-	const data = await goustoFetch<{ entry: GoustoDetailEntry }>(`/recipe/${encodeURIComponent(slug)}`);
-	return data?.entry ?? null;
 }

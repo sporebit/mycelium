@@ -2,7 +2,8 @@
 
 /**
  * The Gousto cookbook (0151): every Gousto recipe, searchable, with a
- * heart per card and a sync that pulls the whole listing in slices. The
+ * heart per card. The index is filled by `npm run gousto:sync` on the PC
+ * (Gousto refuses cloud egress, so there is no sync button here). The
  * detail page is GoustoRecipePage.
  */
 import Link from "next/link";
@@ -88,32 +89,21 @@ export function GoustoCookbook() {
 	const [cuisine, setCuisine] = useState("");
 	const [sort, setSort] = useState<(typeof SORTS)[number]["value"]>("popular");
 	const [offset, setOffset] = useState(0);
-	useEffect(() => setOffset(0), [q, favourites, cuisine, sort]);
+	// a filter change starts again from the first page
+	const withReset =
+		<T,>(set: (v: T) => void) =>
+		(v: T) => {
+			set(v);
+			setOffset(0);
+		};
+	const changeSearch = withReset(setSearch);
+	const changeFavourites = withReset(setFavourites);
+	const changeCuisine = withReset(setCuisine);
+	const changeSort = withReset(setSort);
 
 	const key = listKey({ q, favourites, cuisine, sort, offset });
 	const { data, isLoading, mutate } = useApi<Payload>(key);
 	const recipes = data?.recipes ?? [];
-
-	// sync: slices of the listing until the API says done
-	const [sync, setSync] = useState<{ running: boolean; offset: number; total: number; error: string | null }>({ running: false, offset: 0, total: 0, error: null });
-	async function runSync() {
-		if (sync.running) return;
-		setSync({ running: true, offset: 0, total: 0, error: null });
-		let next = 0;
-		try {
-			for (let guard = 0; guard < 200; guard += 1) {
-				const res = await apiWrite<{ next_offset: number; total: number; done: boolean }>("/api/health/gousto/sync", { method: "POST", ...jsonBody({ offset: next }) });
-				next = res.next_offset;
-				setSync({ running: true, offset: res.next_offset, total: res.total, error: null });
-				if (res.done) break;
-			}
-			setSync((s) => ({ ...s, running: false }));
-			await mutate();
-		} catch (e) {
-			setSync((s) => ({ ...s, running: false, error: e instanceof Error ? e.message : "Sync failed" }));
-			reportApiError(e, "Gousto sync failed");
-		}
-	}
 
 	async function toggle(r: GoustoRow) {
 		const next = !r.is_favourite;
@@ -142,44 +132,30 @@ export function GoustoCookbook() {
 						{data?.last_synced_at ? ` · SYNCED ${new Date(data.last_synced_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}
 					</p>
 				</div>
-				<div className="flex items-center gap-2">
-					<Link href="/health/recipes" className="text-[10px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em]">
-						MY RECIPES
-					</Link>
-					<button
-						type="button"
-						onClick={() => void runSync()}
-						disabled={sync.running}
-						className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors disabled:opacity-60"
-					>
-						{sync.running ? `SYNCING ${sync.total ? `${Math.min(100, Math.round((sync.offset / sync.total) * 100))}%` : "…"}` : data?.total ? "SYNC AGAIN" : "SYNC FROM GOUSTO"}
-					</button>
-				</div>
+				<Link href="/health/recipes" className="text-[10px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em]">
+					MY RECIPES
+				</Link>
 			</div>
-			{sync.running && (
-				<div className="h-1 w-full rounded-full bg-ink-1 overflow-hidden mb-4" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={sync.total ? Math.round((sync.offset / sync.total) * 100) : 0}>
-					<div className="h-full bg-accent transition-[width] duration-300" style={{ width: `${sync.total ? Math.min(100, (sync.offset / sync.total) * 100) : 5}%` }} />
-				</div>
-			)}
-			{sync.error && <p className="text-xs text-danger mb-3">{sync.error}</p>}
 
 			{empty ? (
 				<div className="text-center py-16">
 					<p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">Nothing here yet.</p>
-					<p className="text-xs text-ink-3 mt-1">Sync pulls every recipe Gousto lists (about 12,000) in under a minute.</p>
+					<p className="text-xs text-ink-3 mt-1">
+						Gousto refuses requests from cloud servers, so the cookbook is pulled from the PC: <code className="font-[family-name:var(--font-mono)] text-ink-4">npm run gousto:sync</code> in the Mycelium repo fills the index in about a minute and the recipe details after it.
+					</p>
 				</div>
 			) : (
 				<>
-					<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search Gousto recipes…" className={`${RECIPES_INPUT_CLS} mb-3`} aria-label="Search Gousto recipes" />
+					<input value={search} onChange={(e) => changeSearch(e.target.value)} placeholder="Search Gousto recipes…" className={`${RECIPES_INPUT_CLS} mb-3`} aria-label="Search Gousto recipes" />
 					<div className="flex flex-wrap items-center gap-1 mb-4">
-						<button type="button" onClick={() => setFavourites(false)} className={`px-2 py-1 rounded-full text-[10px] font-[family-name:var(--font-mono)] border transition-colors ${!favourites ? "border-accent bg-accent/10 text-accent" : "border-hairline text-ink-3"}`}>
+						<button type="button" onClick={() => changeFavourites(false)} className={`px-2 py-1 rounded-full text-[10px] font-[family-name:var(--font-mono)] border transition-colors ${!favourites ? "border-accent bg-accent/10 text-accent" : "border-hairline text-ink-3"}`}>
 							All
 						</button>
-						<button type="button" onClick={() => setFavourites(true)} className={`px-2 py-1 rounded-full text-[10px] font-[family-name:var(--font-mono)] border transition-colors ${favourites ? "border-[#f5b56d] bg-[#f5b56d]/10 text-[#f5b56d]" : "border-hairline text-ink-3"}`}>
+						<button type="button" onClick={() => changeFavourites(true)} className={`px-2 py-1 rounded-full text-[10px] font-[family-name:var(--font-mono)] border transition-colors ${favourites ? "border-[#f5b56d] bg-[#f5b56d]/10 text-[#f5b56d]" : "border-hairline text-ink-3"}`}>
 							♥ Favourites{data ? ` ${data.favourites}` : ""}
 						</button>
 						<span className="mx-1 h-4 w-px bg-hairline" aria-hidden />
-						<select value={cuisine} onChange={(e) => setCuisine(e.target.value)} aria-label="Cuisine" className="bg-ink-0/40 border border-ink-2 rounded-full text-[10px] text-ink-4 px-2 py-1 font-[family-name:var(--font-mono)] outline-none">
+						<select value={cuisine} onChange={(e) => changeCuisine(e.target.value)} aria-label="Cuisine" className="bg-ink-0/40 border border-ink-2 rounded-full text-[10px] text-ink-4 px-2 py-1 font-[family-name:var(--font-mono)] outline-none">
 							<option value="">Any cuisine</option>
 							{cuisines.map((c) => (
 								<option key={c.name} value={c.name}>
@@ -187,7 +163,7 @@ export function GoustoCookbook() {
 								</option>
 							))}
 						</select>
-						<select value={sort} onChange={(e) => setSort(e.target.value as (typeof SORTS)[number]["value"])} aria-label="Sort" className="bg-ink-0/40 border border-ink-2 rounded-full text-[10px] text-ink-4 px-2 py-1 font-[family-name:var(--font-mono)] outline-none">
+						<select value={sort} onChange={(e) => changeSort(e.target.value as (typeof SORTS)[number]["value"])} aria-label="Sort" className="bg-ink-0/40 border border-ink-2 rounded-full text-[10px] text-ink-4 px-2 py-1 font-[family-name:var(--font-mono)] outline-none">
 							{SORTS.map((s) => (
 								<option key={s.value} value={s.value}>
 									{s.label}

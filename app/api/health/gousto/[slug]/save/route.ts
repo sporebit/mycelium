@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
-import { DETAIL_SELECT, fetchDetail, toDetail, toRecipeRow, type GoustoRow } from "@/lib/health/gousto";
+import { DETAIL_SELECT, toRecipeRow, type GoustoRow } from "@/lib/health/gousto";
 
 export const runtime = "nodejs";
-// Gousto answers 502 to Vercel's default US region; London is where its site is served from.
-export const preferredRegion = "lhr1";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
@@ -15,6 +13,7 @@ const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,200}$/i;
  * the app's own `recipes` table (ingredients by pack, steps as text, tags
  * from Gousto's categories) so the meal planner and shopping lists can use
  * it. Idempotent: a recipe already saved answers with the existing copy.
+ * Needs the cached detail (409 without it): the server cannot reach Gousto.
  */
 export async function POST(_req: NextRequest, ctx: Ctx) {
 	const { slug } = await ctx.params;
@@ -32,13 +31,8 @@ export async function POST(_req: NextRequest, ctx: Ctx) {
 			// the copy was deleted: fall through and make a new one
 		}
 
-		let detail = row.detail;
-		if (!detail) {
-			const entry = await fetchDetail(slug);
-			if (!entry) return NextResponse.json({ error: "Gousto did not answer for this recipe." }, { status: 502 });
-			detail = toDetail(entry);
-			await supabase.from("gousto_recipes").update({ detail, detail_fetched_at: new Date().toISOString() }).eq("id", row.id);
-		}
+		const detail = row.detail;
+		if (!detail) return NextResponse.json({ error: "This recipe's detail has not been synced yet. Run the Gousto sync on the PC first." }, { status: 409 });
 
 		const { data: made, error: insErr } = await supabase.from("recipes").insert(toRecipeRow(row, detail)).select("id").single();
 		if (insErr || !made) throw insErr ?? new Error("insert failed");

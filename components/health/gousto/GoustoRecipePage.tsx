@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * One Gousto recipe (0151): the cached detail (fetched on first open),
+ * One Gousto recipe (0151): the cached detail (filled by the PC sync),
  * the heart, and "save to my recipes", which copies it into the app's own
  * recipes table and sends you there.
  */
@@ -13,7 +13,7 @@ import { apiWrite, jsonBody, reportApiError } from "@/lib/data/apiWrite";
 import { mgToG, type GoustoRow } from "@/lib/health/gousto";
 import { Heart, Stars } from "./GoustoCookbook";
 
-type Payload = { recipe: GoustoRow; stale?: boolean; error?: string };
+type Payload = { recipe: GoustoRow; needs_detail?: boolean; error?: string };
 
 const NUTRITION: Array<{ key: string; label: string; unit: "kcal" | "g" }> = [
 	{ key: "energy_kcal", label: "Energy", unit: "kcal" },
@@ -69,7 +69,7 @@ export function GoustoRecipePage({ slug }: { slug: string }) {
 				<Link href="/health/recipes/gousto" className="text-[10px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em]">
 					← GOUSTO COOKBOOK
 				</Link>
-				<p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">{status === 404 ? "No such recipe. Sync from Gousto first." : "Gousto did not answer for this recipe. Try again in a moment."}</p>
+				<p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">{status === 404 ? "No such recipe. Run the Gousto sync on the PC first." : "Could not load this recipe."}</p>
 			</div>
 		);
 	}
@@ -86,7 +86,7 @@ export function GoustoRecipePage({ slug }: { slug: string }) {
 				</Link>
 				<div className="flex items-center gap-2">
 					<Heart on={r.is_favourite} onToggle={() => void toggle()} size={18} />
-					{r.saved_recipe_id ? (
+					{!d ? null : r.saved_recipe_id ? (
 						<Link href={`/health/recipes/${r.saved_recipe_id}`} className="px-3 py-1.5 rounded-v2-md border border-[#5de8e0]/40 bg-[#5de8e0]/10 text-[#5de8e0] text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em]">
 							OPEN SAVED COPY
 						</Link>
@@ -109,8 +109,12 @@ export function GoustoRecipePage({ slug }: { slug: string }) {
 				<a href={d?.canonical ?? r.url} target="_blank" rel="noreferrer" className="text-accent hover:underline">
 					gousto.co.uk ↗
 				</a>
-				{data?.stale && <span className="text-[#f5b56d]">cached copy</span>}
 			</div>
+			{!d && (
+				<p className="text-xs text-[#f5b56d] mt-3">
+					The ingredients and method for this recipe have not been pulled yet. Run <code className="font-[family-name:var(--font-mono)]">npm run gousto:sync</code> on the PC (favourites are fetched first), or read it on gousto.co.uk.
+				</p>
+			)}
 			{(d?.description ?? r.description) && <p className="text-sm text-ink-4 mt-3 leading-relaxed">{d?.description ?? r.description}</p>}
 			{d && d.categories.length > 0 && (
 				<div className="flex flex-wrap gap-1 mt-3">
