@@ -14,7 +14,7 @@ Phil's personal life-OS at **mycelium.sporebit.com**. Next.js 15 (App Router) + 
 
 | Doc | Covers |
 |---|---|
-| `claude/spec-platform.md` | Stack, auth/middleware (now a pointer to `spec-access.md`), capture pipeline, agents (The Boys; prompt builder + live context as of 2026-10-29), integrations, design system, PWA/offline, cron. **Spec debt:** capture intents (`ticket`/`quote`/`idea`/`person`), typed capture + capture learning (0138), webhooks, the crons added since 0119, notification delivery channels |
+| `claude/spec-platform.md` | Stack, auth/middleware (pointer to `spec-access.md`), capture pipeline (classifier kinds, typed capture + learning 0138, review), agents (prompt builder + live context), integrations + inbound webhooks, cron table as of 2026-10-29, Work notifications + channels (0145), design system, PWA/offline. Spec debt cleared 2026-10-29 |
 | `claude/spec-access.md` | **Identity & access as built (written 2026-10-29)**: Supabase Auth, spaces + entity registry + `register_table`, `accessible_spaces()` policies, clients, the gate order incl. the 2026-10-29 `/api/health` prefix fix, teams/grants/invites, audit, rate limits, export/delete, rundowns |
 | `claude/spec-organisation.md` | Tasks (as merged 09-25), projects, people (contacts tier), captures, decisions, purchases, receipts, habits, media, quotes, calendar, review. Tasks/Tickets sections now point at `/work` and `claude/spec-work.md` (2026-10-29) |
 | `claude/spec-work.md` | **Work + Docs — BUILT (MYC-174, 0141–0148, 2026-09-29/30).** State verified before build (§0), data model, query object + JQL, `/api/work/*`, pages, notifications, Docs, migration plan, build parts, deviations, **as built (§11)**. Awaiting Phil's live check |
