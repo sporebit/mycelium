@@ -2,13 +2,13 @@
 
 /**
  * The inbox behind the bell (claude/spec-work.md §6): the caller's
- * notifications, newest first, mark read one by one or all at once, and
- * a page at a time (`before=`).
+ * notifications, newest first, mark read one by one or all at once,
+ * delete one, and a page at a time (`before=`).
  */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { AtSign, CheckCheck, MessageSquare, Shuffle, UserCheck } from "lucide-react";
+import { AtSign, CheckCheck, MessageSquare, Shuffle, UserCheck, X } from "lucide-react";
 import { mutate as globalMutate } from "swr";
 import { Button, Skeleton } from "@/components/ui";
 import { useApi } from "@/lib/data/useApi";
@@ -39,6 +39,8 @@ export function NotificationsInbox() {
 	// SWR hooks cannot be called in a loop with a varying count, so older pages are loaded one at a time
 	const older = useApi<Payload>(pages.length > 0 ? pages[pages.length - 1] : null);
 	const [loaded, setLoaded] = useState<WorkNotification[]>([]);
+	// deleted here; hides a row until the first page has refetched without it
+	const [gone, setGone] = useState<Set<string>>(new Set());
 	const [seenOlderKey, setSeenOlderKey] = useState<string | null>(null);
 	const olderKey = pages.length > 0 ? pages[pages.length - 1] : null;
 	if (older.data && olderKey && seenOlderKey !== olderKey) {
@@ -47,8 +49,8 @@ export function NotificationsInbox() {
 	}
 	const all = useMemo(() => {
 		const seen = new Set<string>();
-		return [...(first.data?.notifications ?? []), ...loaded].filter((n) => (seen.has(n.id) ? false : (seen.add(n.id), true)));
-	}, [first.data, loaded]);
+		return [...(first.data?.notifications ?? []), ...loaded].filter((n) => (gone.has(n.id) || seen.has(n.id) ? false : (seen.add(n.id), true)));
+	}, [first.data, loaded, gone]);
 	const lastPageFull = (older.data?.notifications.length ?? first.data?.notifications.length ?? 0) >= PAGE;
 
 	async function markRead(ids: string[], read = true) {
@@ -59,6 +61,17 @@ export function NotificationsInbox() {
 			setLoaded((l) => l.map((n) => (ids.includes(n.id) ? { ...n, read_at: read ? new Date().toISOString() : null } : n)));
 		} catch (e) {
 			setErr(e instanceof WorkError ? e.message : "Could not update.");
+		}
+	}
+	async function remove(id: string) {
+		setErr(null);
+		try {
+			await workFetch(`/api/work/notifications?id=${encodeURIComponent(id)}`, "DELETE");
+			setLoaded((l) => l.filter((n) => n.id !== id));
+			setGone((g) => new Set([...g, id]));
+			refreshBell();
+		} catch (e) {
+			setErr(e instanceof WorkError ? e.message : "Could not delete.");
 		}
 	}
 	async function markAll() {
@@ -135,6 +148,9 @@ export function NotificationsInbox() {
 								</button>
 								<button type="button" onClick={() => void markRead([n.id], !n.read_at)} className="shrink-0 text-[11px] text-text-lo hover:text-text-hi" title={n.read_at ? "Mark unread" : "Mark read"}>
 									{n.read_at ? "Unread" : "Read"}
+								</button>
+								<button type="button" onClick={() => void remove(n.id)} className="shrink-0 p-0.5 text-text-lo hover:text-danger" title="Delete" aria-label="Delete notification">
+									<X size={12} aria-hidden />
 								</button>
 							</div>
 						</li>
