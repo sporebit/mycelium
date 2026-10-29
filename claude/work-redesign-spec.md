@@ -1,39 +1,43 @@
-# Work redesign — decisions (Phil, 2026-09-29)
+# Work section redesign — Jira-style tickets, projects, docs
 
-Jira-style Work section + Docs. These decisions stand; earlier chat decisions do not. The build spec derived from them is `claude/spec-work.md`; the as-built notes and deviations are recorded there and in the ticket comment.
+*Decision record, 2026-09-29 (Cowork, Phil, four multiple-choice rounds). Status: **v1 Parts A–F built and pushed 2026-09-29/30 (MYC-174, migrations 0141–0148), awaiting Phil's live check**; build spec + as-built notes in `claude/spec-work.md` (repo-verified 2026-10-20). Supersedes: the "deliberately not Jira" framing in `claude/tickets-spec.md` §0, any further building on §18, and the "idea = a Tickets project at an idea stage" rule in `claude/ideas-spec.md`. Phil's standing instruction for this stream: earlier chat decisions do not stand by default — question them, don't assume.*
 
-Migration 0137 (12 statuses + When picker, tickets-spec §18) is dead: do not build it. *(Note added by the build session: 0137 had already shipped to hosted on 2026-09-23 — see spec-work §0.)*
+## Why
+
+Phil hates how Tasks looks and feels. He uses Jira daily and wants the full Jira experience, not a Things-3-style list. The three weeks before this (split 09-17 → merge 09-25 → 12-status revision 09-23) showed the model moving under a half-built UI; this time: one spec, a fenced v1, increments after.
 
 ## Decisions
 
-- **W1** Own top-level **Work** section at `/work`; `/organisation/tickets` and `/organisation/tasks` redirect to it. Nav, ⌘K, dashboard cards re-pointed.
-- **W2** Projects live inside Work. No separate Projects section. Each project: Overview (description, links, key dates, progress), Board, Backlog, Settings.
-- **W3** Multi-user on the P12 spaces + roles from day one.
-- **W4** Workflows customisable per space, per project and per issue type. Boards, automation, reports and the API bind to **three status categories: To Do / In Progress / Done**. The eight GTD categories go. Space-level default workflow per issue type; a project overrides only when it wants to. Map existing statuses: inbox/backlog/next → To Do; doing/waiting/verify → In Progress; done/cancelled → Done (Cancelled stays a status with a `resolution`).
-- **W5** Issue types, editable per space: Epic, Story, Task, Bug, Sub-task, plus Run-book, Test, Guide, Setup (current `kind` values; these carry the existing steps page). Each project picks its types.
-- **W6** Hierarchy Epic → Story/Task/Bug → Sub-task within a project. `areas` become **project categories** (grouping/filter only). **Sub-projects removed**: migrate each to a component of its parent; keys unchanged.
-- **W7** v1 = labels + components; @mentions + notifications; Docs; Kanban + Scrum boards per project on the existing 0123 sprints (backlog, sprint planning, burndown); filters = structured bar + saved filters (shared per space) + JQL. **Work logging + estimates are v1.1 — do not build.**
-- **W8** Notifications: one `notifications` table → in-app bell/inbox, Telegram (Phil), email via Resend (others), web push (service worker + subscription table), per-user channel settings. Events: mention, assignment, status change on watched/assigned, comment on watched.
-- **W9** **Docs**: separate top-level section at `/docs`, Confluence-style page tree per space; page ↔ ticket links both ways; versions + history (diff, restore); per-space permissions on P12 roles with per-page restriction; page templates (UI + repo JSON like ticket templates). One rich editor (Tiptap) shared by ticket description, comments and docs, with @person and ticket-key chips.
-- **W10** `claude/*.md` moving into Docs is **last** and depends on the MCP connector — not this run.
-- **W11** Capture → an Inbox status (category To Do) in a per-space default project. Clarify stack removed.
-- **W12** Now view → a saved filter (`Location = home AND Tool = pc`). Home = "Your work" (assigned to me, recently viewed, due soon, mentions).
-- **W13** Fields: keep `points`. Drop `where_ctx`, `tools`, `time_window`, `someday`, `urgent`, `urgency` (`someday` → a Backlog status). New generic label-field type: `label_fields` (per space) → `labels` → `ticket_labels`, seeded with **Labels, Location, Tool**; backfill Location from `where_ctx`, Tool from `tools`. Keep the old columns unwritten for one release.
-- **W14** Habits stay as they are in data; hidden from every Work view (already excluded). Not touched.
-- **W15** Ideas are not projects and not tickets; nothing in this run.
-- **W16** Untouched: keys + aliases, `tix` + skill, GitHub/Vercel webhooks (re-point Verify → an In Progress status named In Review, Done → Done), `mtk_` tokens, steps engine + templates, capture pipeline minus Clarify, Google Calendar sync.
-- **JQL grammar:** `field op value` with `= != IN NOT IN ~ < > <= >= IS EMPTY / IS NOT EMPTY`, AND/OR/NOT, parentheses, `ORDER BY field ASC|DESC`. Fields: project, type, status, statusCategory, assignee, reporter, label, location, tool, component, epic, sprint, points, created, updated, started, resolved, due, text. Compiles to the same query object the filter bar emits; `/api/work/tickets` accepts either. No functions in v1.
+| # | Decision |
+|---|---|
+| W1 | **Section name: Work**, route `/work`, its own top-level nav entry out of Organisation. `/organisation/tickets` and `/organisation/tasks` redirect to it. |
+| W2 | **Projects live inside Work** (Jira model: a project is the container for its issues). No separate Projects section. Each project gets an Overview page (description, links, key dates, progress) as well as board and backlog, so non-code projects (trips, board game) still make sense there. |
+| W3 | **Multi-user / teams from day one**, on the P12 spaces + roles. |
+| W4 | **Statuses and workflows customisable per space, per project and per issue type**, Jira-style. Automation, boards and reports bind to Jira's three status **categories** (To Do / In Progress / Done); names and transitions are free. The eight GTD categories go. Mitigation for config sprawl: a default workflow per issue type at space level; a project overrides only when it wants to. |
+| W5 | **Issue types: Jira default set, editable per space** — Epic · Story · Task · Bug · Sub-task, plus Run-book · Test · Guide · Setup (the current `kind` values) which carry the house-style steps page. Each project picks the types it uses. |
+| W6 | **Hierarchy: Epic → Story/Task/Bug → Sub-task inside a project.** Areas become **project categories** (Mycelium, Side projects, Home…) used only to group and filter the project list. **Sub-projects are removed** (hosted had none at build time). |
+| W7 | **v1 must include:** labels + components, @mentions + notifications, Docs, boards (Kanban + Scrum per project, sprints kept on 0123), filters (structured bar + saved filters + the JQL grammar in flag 2). **Work logging + estimates = v1.1** (wanted, not first). |
+| W8 | **Notifications: everything** — one `notifications` table drives an in-app bell/inbox, Telegram for Phil, email (Resend) for others, and web push, with per-user channel settings. |
+| W9 | **Docs: a separate top-level Confluence-style section** (space tree), not a tab inside each project. Projects link into it; pages and tickets link both ways. Same rich editor (Tiptap) for ticket descriptions, comments and docs, with @person and ticket-key chips. Docs get **page versions + history (diff, restore), per-space permissions on the P12 role model with per-page restriction, and page templates** (UI + repo JSON). |
+| W10 | **`claude/*.md` project docs move into Docs** and Claude reads/writes them there through the API/MCP instead of the Claude project. Depends on the Mycelium MCP connector (Ideas stream, auth question open); until it exists the Claude project stays canonical. **Not built.** |
+| W11 | **Capture: Inbox status, no Clarify.** Captures land in an Inbox status (category To Do) in a default project (General); triage happens on the board. Clarify is removed (built). |
+| W12 | **Now view demoted** to a saved filter; home = a Jira-style "Your work" page. |
+| W13 | **Fields: keep story points; drop `where_ctx`, `tools`, `time_window`, `someday`, `urgent`.** `someday` → a Backlog-category status. Replaced by **multiple label-type fields**: `label_fields` per space → `labels` → `ticket_labels`, seeded with **Labels**, **Location** and **Tool**; old values backfilled (old columns mirrored by delta). |
+| W14 | **Habits are not tickets.** Leave the 0118 data in place (habit tickets excluded from every list); rebuild Habits as its own feature in a later stream. **Not started.** |
+| W15 | **Ideas stay their own place.** An idea is *not* a project: it graduates to a project when building starts and the planned steps become that project's first tickets. |
+| W16 | **Kept:** keys + aliases, `tix` + skill, GitHub/Vercel evidence webhooks (re-pointed to In Review / Done by status name), `mtk_` tokens; the steps engine + ticket templates; the capture pipeline minus Clarify; Google Calendar sync on scheduled dates (blocked on the Google reconnect, MYC-147). |
+| W17 | **Merge state — repo-verified 2026-09-29 by the build session:** the Tasks+Tickets merge (MYC-163, 0139) shipped as one surface at `/organisation/tasks`; its "Part 2" (centred dialog, right-click menu) **never shipped**; **0137 had already gone live on 2026-09-23 (MYC-158)**, so "do not build 0137" became "build no further on §18" and the twelve statuses were mapped to the three categories. See `claude/tasks-merge-spec.md` and `claude/spec-work.md` §0. |
 
-## Build order (one commit + push + db push per part)
+## Flags raised (comply unless reopened)
 
-- **A** Schema: issue types, workflows/statuses with categories + per-type defaults, components, label fields/labels/ticket_labels + backfill, sub-project → component migration, watchers, saved filters, notifications + push subscriptions, docs tables (spaces, pages, versions, links, templates). Registry + entity groups. Replay from zero locally, then push.
-- **B** Query object + JQL parser (`lib/work/query.ts`) + `/api/work/*` routes (tickets, projects, boards, sprints, filters, notifications, docs). Old `/api/tickets/*` routes keep working over the same rows (`tix` and the webhooks depend on them).
-- **C** Rich editor (Tiptap) component with mention/key chips, used by description, comments, docs.
-- **D** Pages: `/work` (Your work), project list by category, project Overview/Board (Kanban + Scrum)/Backlog/Settings, issue view (full page + the merged dialog if it exists), filter bar + JQL input + saved filters. Redirects. Nav/⌘K/dashboard re-point. Clarify removed.
-- **E** Notifications: writer on the events above, bell/inbox UI, Telegram + Resend + web push senders, settings panel.
-- **F** Docs section: tree, page editor, versions/diff/restore, templates, ticket links.
-- **G** Docs: update claude/spec-organisation.md, claude/spec-platform.md, claude/spec-index.md, docs/tickets/README.md, claude/backlog.md (Work redesign stream, status per part), claude/context.md.
+1. "Full Jira" is a multi-release programme; v1 was fenced by W7 and ordered into gated parts.
+2. JQL in v1 — accepted: `field op value`, AND/OR/NOT, parentheses, `ORDER BY`; operators `= != IN NOT IN ~ < > <= >= IS EMPTY`; compiles to the same query object as the filter bar. Functions (`currentUser()`, `startOfWeek()`) are v1.1.
+3. Notifications and the rich editor were the two new subsystems — both built (Parts C, E).
+4. Reverting habits later costs a migration back to own tables plus re-pointing tile, heatmap, briefing and streak code. Recorded, not scheduled.
+5. Moving `claude/*.md` into Docs changes how every Claude session starts. Last part of v1, after the MCP connector.
+6. Dropping the GTD fields loses the clock-based time window of the old Now filter. Accepted.
 
-## Run rules
+## Where it stands (2026-10-20)
 
-Work on `main`; push after every part; `supabase db push` right after each part's push; fresh hosted dump before the first `db push`. Clean build before every push. Every new table: RLS + deny-all restrictive policy + service_role grant + the 0111/0124 policy+grant loop; no unfiltered `.update()`; replay migrations from zero locally before pushing. API GETs stay behind the gate. No secrets in files. No test tickets or live-check gates. Undecidable → the reversible choice, recorded as a deviation.
+- **Built:** Parts A (schema 0141–0146), B (query object, JQL, `/api/work/*`, 0147–0148; 615 tests, isolation 0 leaks over 221 endpoints), C (Tiptap editor), D (Work pages + redirects + Clarify removed), E (notifications UI), F (Docs), G (as-built notes). Details and "not done in this run" list: `claude/spec-work.md` §11.
+- **Open:** Phil's live check of the Work surface; mockups were skipped (built straight from the spec); W10 docs move; W14 Habits out; v1.1 (work logging, estimates, JQL functions).
