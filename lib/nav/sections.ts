@@ -75,6 +75,7 @@ export const SECTIONS: SectionConfig[] = [
       { label: "Gut health", href: "/health/gut-health", primary: false },
       { label: "Blood tests", href: "/health/blood-tests", primary: false },
       { label: "Recipes", href: "/health/recipes", primary: false },
+      { label: "Gousto", href: "/health/recipes/gousto", primary: false },
       { label: "Shopping lists", href: "/health/shopping-lists", primary: false },
       { label: "Vision", href: "/health/eye-prescription", primary: false },
       { label: "Pain", href: "/health/pain", primary: false },

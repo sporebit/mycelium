@@ -177,6 +177,7 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
       "meal_groups",
       "nutrition_logs",
       "recipes",
+      "gousto_recipes",
       "shopping_lists",
       "meal_plan",
       "nutrition_targets",

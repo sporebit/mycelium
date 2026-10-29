@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { useApi } from "@/lib/data/useApi";
 import { mutateApi } from "@/lib/data/mutateApi";
@@ -118,12 +119,17 @@ export default function RecipesPage() {
           Recipes
         </h1>
         {tab === "recipes" && (
+          <div className="flex items-center gap-3">
+          <Link href="/health/recipes/gousto" className="text-[10px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em]">
+            GOUSTO COOKBOOK
+          </Link>
           <button
             onClick={() => setShowAddModal(true)}
             className="px-3 py-1.5 rounded-v2-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-accent/25 transition-colors"
           >
             ADD RECIPE
           </button>
+          </div>
         )}
       </div>
 
