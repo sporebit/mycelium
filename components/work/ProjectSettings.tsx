@@ -5,6 +5,7 @@
  * project offers, which workflow its tickets use (the map), components,
  * and the board's type and columns.
  */
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Trash2 } from "lucide-react";
@@ -243,6 +244,11 @@ function Workflows({ data }: { data: ProjectPayload }) {
 
 	return (
 		<Section title="Workflows" hint="Which statuses a ticket moves through: a project-wide choice, and an override per type. Empty means the space default.">
+			<p className="mb-3 text-xs text-text-lo">
+				<Link href="/work/workflows" className="text-text-mid hover:text-glow">
+					Edit the workflows and their statuses →
+				</Link>
+			</p>
 			<div className="flex flex-col gap-2">
 				<div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[10rem_16rem_minmax(0,1fr)]">
 					<span className="text-sm text-text-hi">Whole project</span>

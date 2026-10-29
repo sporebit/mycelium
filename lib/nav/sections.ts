@@ -20,6 +20,7 @@ export const SECTIONS: SectionConfig[] = [
       { label: "Projects", href: "/work/projects", primary: true },
       { label: "Docs", href: "/docs", primary: true },
       { label: "Notifications", href: "/work/notifications", primary: false },
+      { label: "Workflows", href: "/work/workflows", primary: false },
       { label: "Templates", href: "/organisation/tickets/templates", primary: false },
       { label: "Weekly review", href: "/organisation/tickets/review", primary: false },
     ],

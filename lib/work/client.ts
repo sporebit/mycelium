@@ -22,11 +22,14 @@ export function useWorkMeta() {
 export class WorkError extends Error {
 	readonly status: number;
 	readonly pos: number | null;
-	constructor(message: string, status: number, pos: number | null = null) {
+	/** The whole error body, for the extras some routes add (`tickets`, `problems`). */
+	readonly body: Record<string, unknown> | null;
+	constructor(message: string, status: number, pos: number | null = null, body: Record<string, unknown> | null = null) {
 		super(message);
 		this.name = "WorkError";
 		this.status = status;
 		this.pos = pos;
+		this.body = body;
 	}
 }
 
@@ -45,7 +48,7 @@ export async function workFetch<T = unknown>(path: string, method: "GET" | "POST
 	}
 	if (!res.ok) {
 		const j = (json ?? {}) as { error?: string; pos?: number };
-		throw new WorkError(j.error ?? `Request failed (${res.status})`, res.status, typeof j.pos === "number" ? j.pos : null);
+		throw new WorkError(j.error ?? `Request failed (${res.status})`, res.status, typeof j.pos === "number" ? j.pos : null, json && typeof json === "object" ? (json as Record<string, unknown>) : null);
 	}
 	return json as T;
 }
