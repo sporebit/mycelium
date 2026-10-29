@@ -9,7 +9,8 @@
  * which shapes and stores them (lib/health/gousto.ts).
  *
  *   node scripts/gousto-sync.mjs                 listing + every missing detail
- *   node scripts/gousto-sync.mjs --listing-only  the 12k-row index only (~30 s)
+ *   node scripts/gousto-sync.mjs --listing-only  the 12k-row index only (~6 min)
+ *   node scripts/gousto-sync.mjs --details-only  skip the listing; details only
  *   node scripts/gousto-sync.mjs --details 500   listing, then at most 500 details
  *   node scripts/gousto-sync.mjs --stale-days 30 also refresh details older than 30 days
  *   node scripts/gousto-sync.mjs --concurrency 3 parallel detail fetches (default 3)
@@ -40,6 +41,7 @@ if (!secret) {
 	process.exit(2);
 }
 const listingOnly = flag("--listing-only");
+const detailsOnly = flag("--details-only");
 const detailsCap = Number(opt("--details", "0")) || 0; // 0 = all missing
 const staleDays = Number(opt("--stale-days", "0")) || 0;
 const concurrency = Math.max(1, Math.min(6, Number(opt("--concurrency", "3")) || 3));
@@ -143,7 +145,7 @@ async function syncDetails() {
 
 (async () => {
 	console.log(`Gousto → ${base}`);
-	await syncListing();
+	if (!detailsOnly) await syncListing();
 	if (!listingOnly) await syncDetails();
 })().catch((err) => {
 	console.error(`\n${err.message}`);
