@@ -8,7 +8,11 @@ import {
   type ParsedReceiptLine,
 } from "@/lib/types/receipt";
 
-export const PARSE_PROMPT = `You are reading photographs of a single till receipt. Return ONLY valid JSON, no markdown fences, matching exactly this shape:
+export const PARSE_PROMPT = `You are reading photographs of a single till receipt. Return ONLY valid JSON, no markdown fences.
+
+First decide whether the photographs actually show a till receipt (line items and a total). If they do not — blank or tiny images, photos of something else — return exactly {"no_receipt": true} and nothing else. Never invent a retailer, lines or a total that are not in the photographs.
+
+Otherwise match exactly this shape:
 
 {
   "retailer": "string | null",
@@ -163,6 +167,10 @@ async function callVision(images: ImageInput[]): Promise<{
   };
   const text = json.content?.find((b) => b.type === "text")?.text ?? "";
   const raw = extractJson(text);
+  // the model saw nothing to extract — refuse rather than hand back an invented one (same guard as recipes/parse)
+  if (raw && typeof raw === "object" && (raw as { no_receipt?: unknown }).no_receipt === true) {
+    return { parsed: null, raw };
+  }
   return { parsed: normaliseParsed(raw), raw: raw ?? text };
 }
 

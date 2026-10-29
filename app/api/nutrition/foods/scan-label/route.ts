@@ -34,6 +34,8 @@ const SYSTEM_PROMPT = `You read photos of food nutrition labels (UK / EU
 
 Extract the nutritional information and return a single JSON object.
 
+First decide whether the photo actually shows a nutrition label (a table of energy, fat, carbohydrate, protein values). If it does not — a blank or tiny image, a photo of something else, packaging with no nutrition table visible — return exactly {"no_label": true} and nothing else. Never invent values that are not on the label.
+
 Schema (every key must be present; use null when unreadable):
 {
   "product_name": string,
@@ -196,7 +198,12 @@ export async function POST(req: NextRequest) {
     };
     const block = j.content?.find((c) => c.type === "text");
     const raw = block?.text ?? "";
-    const parsed = coerce(extractJsonBlock(raw));
+    const extracted = extractJsonBlock(raw);
+    // the model saw nothing to extract — refuse rather than hand back an invented one (same guard as recipes/parse)
+    if (extracted && typeof extracted === "object" && (extracted as { no_label?: unknown }).no_label === true) {
+      return NextResponse.json({ error: "No nutrition label found in this photo" }, { status: 422 });
+    }
+    const parsed = coerce(extracted);
     if (!parsed) {
       return NextResponse.json(
         { error: "could not parse extracted JSON", raw },

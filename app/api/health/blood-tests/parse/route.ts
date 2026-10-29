@@ -16,6 +16,8 @@ const KNOWN_MARKERS = [
 
 const SYSTEM_PROMPT = `You are extracting blood test results from a PDF. Return ONLY valid JSON, no markdown, no explanation.
 
+First decide whether the document actually is a blood test report with marker values. If it is not — an empty or unrelated document, a letter with no results table — return exactly {"no_results": true} and nothing else. Never invent markers or values that are not in the document.
+
 Extract:
 {
   "sampled_at": "YYYY-MM-DD",
@@ -139,6 +141,10 @@ export async function POST(req: NextRequest) {
         { error: "could not parse extracted JSON", raw },
         { status: 502 },
       );
+    }
+    // the model saw nothing to extract — refuse rather than hand back an invented one (same guard as recipes/parse)
+    if ((parsed as { no_results?: unknown }).no_results === true) {
+      return NextResponse.json({ error: "No blood test results found in this document" }, { status: 422 });
     }
 
     return NextResponse.json({ parsed });

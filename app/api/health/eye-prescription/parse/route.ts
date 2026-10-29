@@ -4,7 +4,11 @@ import { MODEL_VISION } from "@/lib/config/models";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const SYSTEM_PROMPT = `Extract the optical prescription from this image. This may be a printed prescription form, optician letter, or handwritten prescription. Return ONLY valid JSON, no markdown:
+const SYSTEM_PROMPT = `Extract the optical prescription from this image. This may be a printed prescription form, optician letter, or handwritten prescription. Return ONLY valid JSON, no markdown.
+
+First decide whether the image actually shows an optical prescription (sphere / cylinder / axis values, or contact lens powers). If it does not — a blank or tiny image, a photo of something else, a page with no prescription values visible — return exactly {"no_prescription": true} and nothing else. Never invent values that are not in the image.
+
+Otherwise return:
 {
   "prescribed_at": "YYYY-MM-DD or null if not found",
   "optician": "string or null",
@@ -98,6 +102,10 @@ export async function POST(req: NextRequest) {
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
+    // the model saw nothing to extract — refuse rather than hand back an invented one (same guard as recipes/parse)
+    if (parsed && typeof parsed === "object" && parsed.no_prescription === true) {
+      return NextResponse.json({ error: "No prescription found in this image" }, { status: 422 });
+    }
     return NextResponse.json({ ok: true, prescription: parsed });
   } catch (err) {
     console.error("[eye-prescription/parse POST]", err);
