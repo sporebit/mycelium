@@ -14,6 +14,7 @@ import { DA_BOI_DOMAINS, relevantDomains, type DaBoiDomain } from "./relevance";
 import { toolsForAgent } from "./tools";
 import { agentVoice } from "./voice";
 import { recentDaysContext } from "@/lib/daylog/afterClose";
+import { liveContextFor } from "./live-context";
 import { getDaylogSettings } from "@/lib/daylog/settings";
 
 export const TOOL_CAPABILITY_SUFFIX =
@@ -110,6 +111,15 @@ export async function buildAgentSystemPrompt(
   }
 
   if (opts.userMessage) {
+    // Live context for the fitness and nutrition agents (today's plan,
+    // recent sessions and pain; targets, today's intake, gut, recipes).
+    // Read here, never written into agent_memory. Da Boi has its own.
+    try {
+      const live = await liveContextFor(supabase, agentId);
+      if (live) system += `\n\n${live}`;
+    } catch (err) {
+      console.error("[agents] live context failed:", err instanceof Error ? err.message : err);
+    }
     // Day log context diet (daylog spec §4.4 step 5, flag 6): the last three
     // day summaries for Da Boi and the persona agent only — read here, never
     // written into agent_memory.
