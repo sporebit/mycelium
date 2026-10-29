@@ -5,7 +5,7 @@
 ## Work + Docs — Jira-style Work section (decisions `claude/work-redesign-spec.md`; build spec `claude/spec-work.md`)
 
 - **built (2026-09-29/30, MYC-174, 0141–0148) — awaiting Phil's live check** — Parts A schema · B query object + JQL + `/api/work/*` · C Tiptap editor · D Work pages, redirects, Clarify + old Tasks surface removed · E notifications UI · F Docs · G as-built notes. 615 tests, isolation 0 leaks.
-- **committed** `[claude]` — Work gaps left by the build: per-row delete on `/work/notifications`; sibling reorder in the Docs tree; a space-level workflow/status editing page (routes exist); a second-user browser pass.
+- **done 2026-10-29** `[claude]` — the three Work gaps: per-row delete on `/work/notifications` (`eac26b4`), sibling reorder in the Docs tree (`3163374`), `/work/workflows` status editing page (`64e90c9`). **open (Phil)** — a second-user browser pass.
 - **committed (last part of v1, after the MCP connector)** — W10: move `claude/*.md` into Docs; Claude sessions and the weekly run read/write them via the API.
 - **committed — later stream** — W14 Habits out of Tickets: own tables; migrate `ticket_completions` history; re-point tile, heatmap, briefing and streak code.
 - **v1.1 (decided, not scheduled)** — work logging + estimates; JQL functions (`currentUser()`, `startOfWeek()`).
@@ -32,7 +32,7 @@
 ## Ideas (decision record `claude/ideas-spec.md`, 21 decisions; W15: an idea graduates to a Work project when building starts)
 
 - **committed — full spec** — own surface, stages, versioned brief, dumps + media, Mycelium MCP connector, "Where was I", nudges.
-- **committed** `[claude]` — verify which auth claude.ai custom connectors accept (scoped `mtk_` bearer vs OAuth). Gates the connector and W10.
+- **done 2026-10-29 (finding)** `[claude]` — claude.ai custom connectors accept both: OAuth (Claude's published client identity, Dynamic Client Registration, or your own client id/secret) **and** fixed **Request headers** (`authorization`, `x-api-key`, `x-auth-token`; the value is sent verbatim, so enter `Bearer mtk_…`), chosen as "No sign-in + Request headers". Request-header auth is **beta, limited to some organisations** — if the Add custom connector dialog shows no Request headers section, Phil's org does not have it yet and the connector needs OAuth. Auth settings cannot be edited after adding (remove and re-add). Source: claude.com/docs/connectors/custom. So: a scoped `mtk_` token works if the section is there; otherwise the Mycelium MCP server needs an OAuth authorization server. Phil to check the dialog once.
 - **idea** — Ventures expansion spec (venture dashboard).
 
 ## Quotes (`claude/quotes-spec.md`)
@@ -73,14 +73,14 @@
 
 - **done (found 2026-10-29: already in `.github/workflows/ci.yml`)** — CI replays the whole migration chain from empty plus `seed.sql` by booting the local stack, runs `npm test` against it, then a cold `next build` and an `/api/health` boot smoke. The backlog had carried it as open.
 - **committed — next after the replay** — DB backup system: nightly pg_dump off-site, 7d/4w/12m, restore test.
-- **committed** — correct `0032_workouts_library.sql` header comment; decide `exercise_pain_logs` SET NULL vs cascade; `.select()` lint rule or shared field lists.
+- **done 2026-10-29** `[claude]` — `0032_workouts_library.sql` header corrected (the cut-over to `workouts` never happened; `workout_programme_exercises` is the live programme table). `exercise_pain_logs`: **SET NULL** (0153) — pain is a health record, a session is bookkeeping; deleting a session now leaves its logs as standalone entries. **committed** — `.select()` lint rule or shared field lists.
 - **done 2026-10-29 (`41c5035`)** `[claude]` — **auth gate hole closed**: `/api/health` (the deploy smoke check) sat in `PUBLIC_PREFIXES`, matched by `startsWith`, so every `/api/health/*` route (the whole health module: recipes, blood tests, prescriptions, nutrition…) skipped the gate. Browsers still worked because the user client falls back to session cookies (RLS held), but `x-api-secret` was never honoured there and unauthenticated calls got 500s from the anon role rather than 401. Now `PUBLIC_EXACT = ["/api/health"]`; `/api/health/gousto` answers 401 without auth. Found by the Gousto ingest ("permission denied for table").
 - **done 2026-10-29** `[claude]` — `seed-mobility` now writes `default_hold_seconds` (`0ccb99e`). graphify is set up (`.graphify/`, `npx graphify update .` after code changes).
 
 ## PTP import (`claude/ptp-import-prompt.md`)
 
 - **open (Phil)** — the 09-15 cutover recorded PTP Today verified live, but the item was never closed; week-3 review reminder fired 09-28, outcome unrecorded. Confirm and close.
-- **committed** — `docs/ptp-report.md`; agent live context (`getFitnessContext()` / `getNutritionContext()`, deferred).
+- **done 2026-10-29** `[claude]` — agent live context: `lib/agents/live-context.ts` appends a five-line block to the fitness agent (programme + week of phase, today's plan, last 7 days' sessions, pain last 14 days) and the nutritionist (targets with review date, today's intake, 7-day average, gut last 7 days, recipe library) on every fresh turn; read-only, never written to memory; smoke-built against prod. **committed** — `docs/ptp-report.md`.
 - **idea** — water tracking; phase-gate readiness UI; exercise-library dedup.
 
 ## App — Loam & Glow v2 (`MYCELIUM_ALL_PROMPTS.md`)
