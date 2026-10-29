@@ -3,13 +3,13 @@
 /**
  * A doc space (claude/spec-work.md §7): the page tree on the left, one page
  * on the right. With no page in the URL the space's home page shows. The
- * page itself is DocPageView; the tree is where pages are made, moved and
- * found.
+ * page itself is DocPageView; the tree is where pages are made, moved,
+ * reordered among their siblings and found.
  */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, Lock, Plus } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, Lock, Plus } from "lucide-react";
 import { Button, Skeleton } from "@/components/ui";
 import { useApi } from "@/lib/data/useApi";
 import type { DocPage, DocSpace, DocTemplate, DocTreeNode } from "@/lib/work/docs";
@@ -23,7 +23,30 @@ type SpacePayload = { space: DocSpace; tree: DocTreeNode[] };
 export const spaceKeyOf = (key: string) => `/api/work/docs/spaces/${encodeURIComponent(key)}`;
 export const pageKeyOf = (id: string) => `/api/work/docs/pages/${encodeURIComponent(id)}`;
 
-function TreeNode({ node, spaceKey, activeId, depth, open, toggle }: { node: DocTreeNode; spaceKey: string; activeId: string | null; depth: number; open: Set<string>; toggle: (id: string) => void }) {
+function TreeNode({
+	node,
+	spaceKey,
+	activeId,
+	depth,
+	open,
+	toggle,
+	index,
+	count,
+	onMove,
+	moving,
+}: {
+	node: DocTreeNode;
+	spaceKey: string;
+	activeId: string | null;
+	depth: number;
+	open: Set<string>;
+	toggle: (id: string) => void;
+	/** The node's place among its siblings, and how many there are. */
+	index: number;
+	count: number;
+	onMove: (node: DocTreeNode, index: number) => void;
+	moving: boolean;
+}) {
 	const isOpen = open.has(node.id);
 	const active = node.id === activeId;
 	return (
@@ -40,11 +63,21 @@ function TreeNode({ node, spaceKey, activeId, depth, open, toggle }: { node: Doc
 					<span className="truncate">{node.title || "Untitled"}</span>
 					{node.restricted && <Lock size={10} aria-label="Restricted" className="shrink-0 text-text-lo" />}
 				</Link>
+				{active && count > 1 && (
+					<span className="flex shrink-0 items-center">
+						<button type="button" onClick={() => onMove(node, index - 1)} disabled={moving || index === 0} aria-label="Move up" title="Move up" className="p-0.5 text-text-lo hover:text-text-hi disabled:opacity-30">
+							<ArrowUp size={11} aria-hidden />
+						</button>
+						<button type="button" onClick={() => onMove(node, index + 1)} disabled={moving || index === count - 1} aria-label="Move down" title="Move down" className="p-0.5 text-text-lo hover:text-text-hi disabled:opacity-30">
+							<ArrowDown size={11} aria-hidden />
+						</button>
+					</span>
+				)}
 			</div>
 			{isOpen && node.children.length > 0 && (
 				<ul>
-					{node.children.map((c) => (
-						<TreeNode key={c.id} node={c} spaceKey={spaceKey} activeId={activeId} depth={depth + 1} open={open} toggle={toggle} />
+					{node.children.map((c, i) => (
+						<TreeNode key={c.id} node={c} spaceKey={spaceKey} activeId={activeId} depth={depth + 1} open={open} toggle={toggle} index={i} count={node.children.length} onMove={onMove} moving={moving} />
 					))}
 				</ul>
 			)}
@@ -101,6 +134,23 @@ export function DocSpaceView({ spaceKey, pageId }: { spaceKey: string; pageId: s
 	const templates = useApi<{ templates: DocTemplate[] }>(create ? "/api/work/docs/templates" : null);
 	const [busy, setBusy] = useState(false);
 	const [err, setErr] = useState<string | null>(null);
+	const [moving, setMoving] = useState(false);
+	const [moveErr, setMoveErr] = useState<string | null>(null);
+
+	// up or down one place among the page's siblings: the route renumbers 0..n
+	async function movePage(node: DocTreeNode, index: number) {
+		if (moving) return;
+		setMoving(true);
+		setMoveErr(null);
+		try {
+			await workFetch(pageKeyOf(node.id), "PATCH", { position: index });
+			await mutate();
+		} catch (e) {
+			setMoveErr(e instanceof WorkError ? e.message : "Could not move the page.");
+		} finally {
+			setMoving(false);
+		}
+	}
 
 	async function createPage() {
 		if (!create || busy || !data) return;
@@ -165,11 +215,12 @@ export function DocSpaceView({ spaceKey, pageId }: { spaceKey: string; pageId: s
 							<p className="px-2 py-2 text-xs text-text-lo">No pages yet.</p>
 						) : (
 							<ul className="flex flex-col gap-0.5">
-								{data.tree.map((n) => (
-									<TreeNode key={n.id} node={n} spaceKey={data.space.key} activeId={activeId} depth={0} open={open} toggle={toggle} />
+								{data.tree.map((n, i) => (
+									<TreeNode key={n.id} node={n} spaceKey={data.space.key} activeId={activeId} depth={0} open={open} toggle={toggle} index={i} count={data.tree.length} onMove={(node, index) => void movePage(node, index)} moving={moving} />
 								))}
 							</ul>
 						)}
+						{moveErr && <p className="px-2 pt-1 text-xs text-danger">{moveErr}</p>}
 						<button type="button" onClick={() => setCreate({ parent: null })} className="mt-1 flex w-full items-center gap-1 rounded-v2-sm px-2 py-1.5 text-left text-xs text-text-lo hover:bg-surface-2 hover:text-text-hi">
 							<Plus size={12} aria-hidden /> Top-level page
 						</button>
