@@ -19,6 +19,8 @@ type Payload = {
 	total: number;
 	favourites: number;
 	cuisines: Array<{ name: string; count: number }>;
+	/** Gousto's categories, filled as the PC sync pulls details (0154). */
+	categories: Array<{ name: string; count: number }>;
 	last_synced_at: string | null;
 };
 
@@ -39,11 +41,12 @@ function useDebounced<T>(value: T, ms: number): T {
 	return v;
 }
 
-export function listKey(opts: { q: string; favourites: boolean; cuisine: string; sort: string; offset: number }) {
+export function listKey(opts: { q: string; favourites: boolean; cuisine: string; category: string; sort: string; offset: number }) {
 	const sp = new URLSearchParams();
 	if (opts.q) sp.set("q", opts.q);
 	if (opts.favourites) sp.set("favourites", "1");
 	if (opts.cuisine) sp.set("cuisine", opts.cuisine);
+	if (opts.category) sp.set("category", opts.category);
 	if (opts.sort !== "popular") sp.set("sort", opts.sort);
 	sp.set("limit", String(PAGE));
 	if (opts.offset) sp.set("offset", String(opts.offset));
@@ -87,6 +90,7 @@ export function GoustoCookbook() {
 	const q = useDebounced(search.trim(), 250);
 	const [favourites, setFavourites] = useState(false);
 	const [cuisine, setCuisine] = useState("");
+	const [category, setCategory] = useState("");
 	const [sort, setSort] = useState<(typeof SORTS)[number]["value"]>("popular");
 	const [offset, setOffset] = useState(0);
 	// a filter change starts again from the first page
@@ -99,9 +103,10 @@ export function GoustoCookbook() {
 	const changeSearch = withReset(setSearch);
 	const changeFavourites = withReset(setFavourites);
 	const changeCuisine = withReset(setCuisine);
+	const changeCategory = withReset(setCategory);
 	const changeSort = withReset(setSort);
 
-	const key = listKey({ q, favourites, cuisine, sort, offset });
+	const key = listKey({ q, favourites, cuisine, category, sort, offset });
 	const { data, isLoading, mutate } = useApi<Payload>(key);
 	const recipes = data?.recipes ?? [];
 
@@ -118,6 +123,7 @@ export function GoustoCookbook() {
 	}
 
 	const cuisines = useMemo(() => data?.cuisines ?? [], [data]);
+	const categories = useMemo(() => data?.categories ?? [], [data]);
 	const empty = !isLoading && data && data.total === 0;
 	const pages = data ? Math.max(1, Math.ceil(data.matched / PAGE)) : 1;
 	const page = Math.floor(offset / PAGE) + 1;
@@ -163,6 +169,16 @@ export function GoustoCookbook() {
 								</option>
 							))}
 						</select>
+						{categories.length > 0 && (
+							<select value={category} onChange={(e) => changeCategory(e.target.value)} aria-label="Category" className="bg-ink-0/40 border border-ink-2 rounded-full text-[10px] text-ink-4 px-2 py-1 font-[family-name:var(--font-mono)] outline-none max-w-[12rem]">
+								<option value="">Any category</option>
+								{categories.map((c) => (
+									<option key={c.name} value={c.name}>
+										{c.name} ({c.count})
+									</option>
+								))}
+							</select>
+						)}
 						<select value={sort} onChange={(e) => changeSort(e.target.value as (typeof SORTS)[number]["value"])} aria-label="Sort" className="bg-ink-0/40 border border-ink-2 rounded-full text-[10px] text-ink-4 px-2 py-1 font-[family-name:var(--font-mono)] outline-none">
 							{SORTS.map((s) => (
 								<option key={s.value} value={s.value}>

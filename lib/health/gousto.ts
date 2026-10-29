@@ -173,7 +173,10 @@ export function toDetail(e: GoustoDetailEntry): GoustoDetail {
 			text: stripHtml(s.instruction ?? ""),
 			image: pickImage(s.media, 400),
 		}));
-	const categories = (e.categories ?? []).map((c) => (c.title ?? "").trim()).filter((t) => t && t !== "All Gousto Recipes");
+	// "Chicken" and "Chicken Recipes" are one category (0155): keep the short form, once
+	const categories = Array.from(
+		new Set((e.categories ?? []).map((c) => (c.title ?? "").trim().replace(/\s+Recipes$/i, "")).filter((t) => t && t !== "All Gousto")),
+	);
 	return {
 		description: (e.description ?? e.seo?.description ?? "").trim() || null,
 		cuisine: (e.cuisine?.title ?? "").trim() || null,

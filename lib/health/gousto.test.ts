@@ -60,7 +60,7 @@ describe("gousto helpers", () => {
 		});
 		expect(detail.steps.map((s) => s.text)).toEqual(["First step", "Second"]);
 		expect(detail.ingredients).toEqual([{ label: "Tomato", image: "x200.jpg" }]);
-		expect(detail.categories).toEqual(["Chicken Recipes", "Curry Recipes"]);
+		expect(detail.categories).toEqual(["Chicken", "Curry"]);
 		expect(detail.allergens).toEqual(["Mustard", "Celery"]);
 		expect(detail.portions).toEqual([2]);
 
