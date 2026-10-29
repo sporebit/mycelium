@@ -27,7 +27,7 @@
 ## The Boys — agents
 
 - **built (2026-09-23, MYC-148/149, 0136)** — per-agent voice + manner (ElevenLabs incl. clone, or OpenAI); streamed SSE replies with sentence-pipelined TTS; transcription-only route. Production smoke 11/13 — the stream route hit **Anthropic "no credit"**.
-- **done 2026-10-29** — the Anthropic account has credit again: the vision model answered directly and the production stream route streamed `pong` for the fitness agent (the two smoke messages were deleted from that conversation afterwards). ElevenLabs key on Vercel still unconfirmed.
+- **done 2026-10-29** — the Anthropic account has credit again: the vision model answered directly and the production stream route streamed `pong` for the fitness agent (the two smoke messages were deleted from that conversation afterwards). **`ELEVENLABS_API_KEY` is not on Vercel** (`vercel env ls production`, 2026-10-29) — OpenAI voices work, ElevenLabs voices and cloning need Phil to add it.
 
 ## Ideas (decision record `claude/ideas-spec.md`, 21 decisions; W15: an idea graduates to a Work project when building starts)
 
@@ -56,8 +56,8 @@
 
 - **committed** — retire `USER_ID` / `DASHBOARD_PASSWORD` / `AUTH_SECRET` from Vercel after a final sign-in; then `verified_by` Phil.
 - **open (Phil)** — decision 0.2: `platform` owner-only.
-- **committed** `[claude]` — token hygiene: revoke cutover tokens (run-book 4.10); `docs/tokens.md` names only.
-- **committed** `[claude]` — never rotate the legacy JWT secret (`withUser()` mints HS256 with it); record in `docs/multi-user-handoff.md`.
+- **committed (Phil)** `[claude]` — token hygiene: revoke cutover tokens (run-book 4.10). `docs/tokens.md` exists (names only) — done.
+- **done** `[claude]` — never rotate the legacy JWT secret: already recorded in `docs/multi-user-handoff.md` ("Never rotate or migrate the legacy JWT secret"), checked 2026-10-29.
 - **committed** — onboarding how-to for new users (invitee re-opens the invite link after email confirm).
 - **done 2026-10-29** `[claude]` — `.env.example` already had the P12 names; the legacy auth-gate block and `USER_ID` are now marked retired.
 - **half done 2026-10-29** — anon-key re-probe: the hosted REST API answers 401 `42501` for the anon key on people, tickets, user_settings, raw_captures, profiles, spaces, notifications, doc_pages (no grants, not merely RLS). Security Advisor review still to do in the dashboard.
