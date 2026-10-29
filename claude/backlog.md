@@ -64,6 +64,7 @@
 - **committed** — retire `USER_ID` / `DASHBOARD_PASSWORD` / `AUTH_SECRET` from Vercel after a final sign-in; then `verified_by` Phil.
 - **open (Phil)** — decision 0.2: `platform` owner-only.
 - **committed (Phil)** `[claude]` — token hygiene: revoke cutover tokens (run-book 4.10). `docs/tokens.md` exists (names only) — done.
+- **finding 2026-10-29** `[claude]` — `supabase db lint --linked --level warning` runs without Docker (Management API) and is clean apart from three cosmetic warnings in 0147 (`work_query_sql`, `work_leaf_sql`, `work_order_sql`: `v_parts text[] := '{}'` is an untyped literal the checker reports as a text→text[] cast) and two "OUT variable maybe unmodified" notes in `work_search` (dynamic SQL). No runtime effect; fix only when 0147's functions are next touched (`array[]::text[]`). The dashboard Security Advisor still needs Phil's eyes.
 - **done** `[claude]` — never rotate the legacy JWT secret: already recorded in `docs/multi-user-handoff.md` ("Never rotate or migrate the legacy JWT secret"), checked 2026-10-29.
 - **done 2026-10-29** `[claude]` — `docs/onboarding.md`: inviting, joining (incl. re-opening the invite link after email confirm), first-run defaults, roles, sharing, security, export/leave/delete, and a what-went-wrong table.
 - **done 2026-10-29** `[claude]` — `.env.example` already had the P12 names; the legacy auth-gate block and `USER_ID` are now marked retired.
