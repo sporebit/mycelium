@@ -71,21 +71,33 @@ async function mycelium(method, path, body) {
 	return json;
 }
 
+const slugOf = (e) => (e.url ?? "").split("/").filter(Boolean).pop() ?? "";
+
 async function syncListing() {
 	let offset = 0;
 	let total = null;
 	let seen = 0;
+	// a re-issued recipe appears under two uids with the same slug; the
+	// most-rated entry is the live page, whichever page of the listing it is on
+	const best = new Map();
 	const t0 = Date.now();
 	for (;;) {
 		const data = await gousto(`/recipes?limit=${PAGE}&offset=${offset}`);
-		const entries = data?.entries ?? [];
+		const all = data?.entries ?? [];
 		total = data?.count ?? total ?? 0;
-		if (entries.length === 0) break;
-		const out = await mycelium("POST", "/api/health/gousto/ingest", { entries });
-		seen += entries.length;
-		offset += entries.length;
+		if (all.length === 0) break;
+		const entries = all.filter((e) => {
+			const s = slugOf(e);
+			const n = e.rating?.count ?? 0;
+			if (best.has(s) && best.get(s) >= n) return false;
+			best.set(s, n);
+			return true;
+		});
+		const out = entries.length ? await mycelium("POST", "/api/health/gousto/ingest", { entries }) : { total: "-" };
+		seen += all.length;
+		offset += all.length;
 		process.stdout.write(`\rlisting ${Math.min(seen, total)}/${total} (stored ${out.total})   `);
-		if (entries.length < PAGE || offset >= total) break;
+		if (all.length < PAGE || offset >= total) break;
 	}
 	console.log(`\nlisting done: ${seen} entries in ${((Date.now() - t0) / 1000).toFixed(0)}s`);
 }

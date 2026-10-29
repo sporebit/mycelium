@@ -24,10 +24,17 @@ export async function POST(req: NextRequest) {
 		const rows = entries
 			.filter((e): e is GoustoListingEntry => !!e && typeof e === "object" && typeof (e as GoustoListingEntry).gousto_uid === "string" && typeof (e as GoustoListingEntry).url === "string" && typeof (e as GoustoListingEntry).title === "string")
 			.map((e) => summariseEntry(e));
-		// a listing can carry a recipe twice (two category urls); one per uid
-		const unique = [...new Map(rows.map((r) => [r.gousto_uid, r])).values()].filter((r) => r.slug);
+		// The slug is the identity (0152): a re-issued recipe appears under two
+		// uids with the same url; the most-rated one is the live page.
+		const bySlug = new Map<string, (typeof rows)[number]>();
+		for (const r of rows) {
+			if (!r.slug) continue;
+			const cur = bySlug.get(r.slug);
+			if (!cur || (r.rating_count ?? 0) > (cur.rating_count ?? 0)) bySlug.set(r.slug, r);
+		}
+		const unique = [...bySlug.values()];
 		for (let i = 0; i < unique.length; i += 500) {
-			const { error } = await supabase.from("gousto_recipes").upsert(unique.slice(i, i + 500), { onConflict: "space_id,gousto_uid" });
+			const { error } = await supabase.from("gousto_recipes").upsert(unique.slice(i, i + 500), { onConflict: "space_id,slug" });
 			if (error) throw error;
 		}
 		const { count } = await supabase.from("gousto_recipes").select("id", { count: "exact", head: true });
