@@ -65,7 +65,7 @@
 - **open (Phil)** — decision 0.2: `platform` owner-only.
 - **committed (Phil)** `[claude]` — token hygiene: revoke cutover tokens (run-book 4.10). `docs/tokens.md` exists (names only) — done.
 - **done** `[claude]` — never rotate the legacy JWT secret: already recorded in `docs/multi-user-handoff.md` ("Never rotate or migrate the legacy JWT secret"), checked 2026-10-29.
-- **committed** — onboarding how-to for new users (invitee re-opens the invite link after email confirm).
+- **done 2026-10-29** `[claude]` — `docs/onboarding.md`: inviting, joining (incl. re-opening the invite link after email confirm), first-run defaults, roles, sharing, security, export/leave/delete, and a what-went-wrong table.
 - **done 2026-10-29** `[claude]` — `.env.example` already had the P12 names; the legacy auth-gate block and `USER_ID` are now marked retired.
 - **half done 2026-10-29** — anon-key re-probe: the hosted REST API answers 401 `42501` for the anon key on people, tickets, user_settings, raw_captures, profiles, spaces, notifications, doc_pages (no grants, not merely RLS). Security Advisor review still to do in the dashboard.
 - **idea** `[claude]` — `scripts/verify-identity.mjs` (generateLink → callback → Playwright).
