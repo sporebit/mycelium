@@ -27,13 +27,23 @@
 #   powershell -ExecutionPolicy Bypass -File scripts\db-backup.ps1 -Register
 # Remove:  Unregister-ScheduledTask -TaskName "Mycelium DB backup" -Confirm:$false
 # Run now: powershell -ExecutionPolicy Bypass -File scripts\db-backup.ps1
-# Restore one table from a dump (into the local stack or a fresh project):
-#   pg_restore -d "<url>" --data-only -t workout_sets data.dump
+# Restore one table from a dump (into the local stack or a fresh project that
+# already has the migration chain). --disable-triggers is needed: pg_dump warns
+# that people, projects, tickets, ventures, teams/spaces and doc_spaces/doc_pages
+# have circular foreign keys, so a data-only restore must load them with
+# constraint triggers off (the table owner may do that).
+#   pg_restore -d "<url>" --data-only --disable-triggers -t workout_sets data.dump
+# Whole data set: the same without -t. Dry run against the local stack:
+#   scripts\db-backup.ps1 -DbUrl postgresql://postgres:postgres@127.0.0.1:54322/postgres -BackupRoot <scratch dir>
+# (verified 2026-10-29: 177 tables, exit 0).
 
 param(
     [switch]$Register,
     [string]$BackupRoot = "A:\Backups\mycelium\nightly",
-    [string]$PgBin = "C:\Program Files\PostgreSQL\18\bin"
+    [string]$PgBin = "C:\Program Files\PostgreSQL\18\bin",
+    # Override the connection, e.g. a dry run against the local stack:
+    #   -DbUrl postgresql://postgres:postgres@127.0.0.1:54322/postgres -BackupRoot <scratch dir>
+    [string]$DbUrl = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -63,8 +73,8 @@ function Log([string]$msg) { "$(Get-Date -Format s) $msg" | Out-File -Append -Fi
 try {
     # ---- 1. connection -------------------------------------------------------
     $envFile = Join-Path $repo ".env.local"
-    $url = $null
-    if (Test-Path $envFile) {
+    $url = if ($DbUrl) { $DbUrl } else { $null }
+    if (-not $url -and (Test-Path $envFile)) {
         $line = Get-Content $envFile | Where-Object { $_ -match '^SUPABASE_DB_URL=' } | Select-Object -First 1
         if ($line) { $url = ($line -replace '^SUPABASE_DB_URL=', '').Trim().Trim('"') }
     }
@@ -78,7 +88,7 @@ try {
     $stamp = Get-Date -Format "yyyy-MM-dd"
     $dir = Join-Path $BackupRoot $stamp
     New-Item -ItemType Directory -Force -Path $dir | Out-Null
-    Log "start $stamp -> $dir"
+    Log "start $stamp -> $dir ($(if ($DbUrl) { 'DbUrl override' } else { '.env.local' }))"
 
     $common = @("--no-owner", "--no-privileges", "--no-password", "-d", $url)
     & $pgDump @common --schema-only -n public -n app -f (Join-Path $dir "schema.sql")
