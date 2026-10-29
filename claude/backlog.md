@@ -59,14 +59,14 @@
 - **committed** `[claude]` — token hygiene: revoke cutover tokens (run-book 4.10); `docs/tokens.md` names only.
 - **committed** `[claude]` — never rotate the legacy JWT secret (`withUser()` mints HS256 with it); record in `docs/multi-user-handoff.md`.
 - **committed** — onboarding how-to for new users (invitee re-opens the invite link after email confirm).
-- **committed** `[claude]` — `.env.example` gains the P12 names.
+- **done 2026-10-29** `[claude]` — `.env.example` already had the P12 names; the legacy auth-gate block and `USER_ID` are now marked retired.
 - **committed** — Security Advisor + anon-key re-probe.
 - **idea** `[claude]` — `scripts/verify-identity.mjs` (generateLink → callback → Playwright).
 
 ## Security / schema integrity
 
-- **committed — highest value** — CI: replay migrations from zero into a scratch DB and boot the app (Part A of Work did this by hand on a throwaway stack).
-- **committed** — DB backup system: nightly pg_dump off-site, 7d/4w/12m, restore test — after the CI replay.
+- **done (found 2026-10-29: already in `.github/workflows/ci.yml`)** — CI replays the whole migration chain from empty plus `seed.sql` by booting the local stack, runs `npm test` against it, then a cold `next build` and an `/api/health` boot smoke. The backlog had carried it as open.
+- **committed — next after the replay** — DB backup system: nightly pg_dump off-site, 7d/4w/12m, restore test.
 - **committed** — correct `0032_workouts_library.sql` header comment; decide `exercise_pain_logs` SET NULL vs cascade; `.select()` lint rule or shared field lists.
 - **idea** `[claude]` — `seed-mobility` never writes `default_hold_seconds`; graphify not set up (`CLAUDE.md` rule inert).
 
@@ -83,8 +83,8 @@
 ## App — Bugs (queue items, don't gate new work)
 
 - **committed** — Vision-scan regression on recipe add.
-- **committed** — rest-timer minimise state not persisting.
-- **committed** `[claude]` — archiving a programme does nothing (`today/route.ts` has no `archived_at` filter).
+- **built 2026-10-29** — rest-timer minimise state: the choice is kept in localStorage (`mycelium.fitness.rest.minimised`) and no longer resets on every new rest; expand to undo.
+- **built 2026-10-29** `[claude]` — archiving a programme does nothing: every active-phase lookup (Today, swap, week summary, calendar, voice route, dashboard headline) now goes through `lib/fitness/active-phase.ts`, which joins the programme and drops archived ones.
 - **committed** — Google token refresh 400: Phil reconnects in Settings → Integrations; `MYC-147` panel should say "reconnect". Calendar sync (W16) unproven until then.
 
 ## PC Monitoring (`docs/pc-monitoring-plan.md`)
@@ -105,7 +105,7 @@
 ## Meta
 
 - **committed** — **recreate the weekly scheduled task with a device binding** from the desktop app on the PC; delete the unbound one; correct `claude/instructions.md`. Seven docs-only runs missed eight days of shipped work.
-- **committed** `[claude]` — **repo sessions must update the Claude project docs** (context + backlog via the Projects tool) when they change state — add the rule to repo `AGENTS.md`/`CLAUDE.md`. Root cause of the 09-22 → 10-20 drift.
+- **done 2026-10-29** `[claude]` — the rule is in repo `AGENTS.md` ("Project docs"): repo sessions update both copies, or say in the report that they could not. The project-side copies still need the 10-29 changes synced by a Cowork session.
 - **committed** `[claude]` — spec debt: `spec-platform.md` Identity & access + capture/agents/notifications; new `spec-access.md`; `spec-studio-drops-ventures.md` journal → Day log; `spec-fitness.md` supersets; `spec-organisation.md` Tasks/Projects → Work.
 - **committed** — Phil's global Claude-settings rewrite incl. the Tickets/Work paragraph.
 - **committed** — harvest old-chat context (desk device) and a ticket harvest in every other Claude project before those backlogs import into Work.

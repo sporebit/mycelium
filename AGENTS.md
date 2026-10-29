@@ -56,6 +56,10 @@ For read-only diagnostic queries (e.g. `SELECT conname FROM pg_constraint...`), 
 - Don't rewrite git history without asking
 - Don't push to branches other than `main` without explicit instruction
 
+## Project docs
+
+`claude/context.md` and `claude/backlog.md` are the canonical state documents, and the Claude project (Cowork / the weekly scheduled run) carries its own copy of each. A session that changes state — a migration applied, a feature shipped, a spec written — updates the repo copies **and** the project copies (Projects tool, when the session has it). Seven docs-only weekly runs between 2026-09-22 and 2026-10-20 believed the repo was at 0134 while it stood at 0148, because repo sessions only ever updated the repo copies. When the session cannot reach the project (a plain Claude Code terminal), say so in the final report so the next Cowork session syncs.
+
 ## Reporting
 
 Reports contain findings, file paths, commit hashes and deviations. Never reproduce code in a report.
