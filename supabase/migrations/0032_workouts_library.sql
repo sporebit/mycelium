@@ -8,8 +8,16 @@
 --
 -- Existing programme sessions are backfilled into workouts in a DO
 -- block at the end so /fitness/programmes keeps rendering through the
--- transition. The legacy workout_programme_exercises table stays
--- around for now (read-only) until the UI fully cuts over.
+-- transition.
+--
+-- Correction (2026-10-29): the cut-over never happened. Programme
+-- sessions still hold their exercise rows in workout_programme_exercises,
+-- which is read and written by the programme routes, the voice route and
+-- session detail, was adopted into spaces in 0106 and gained superset
+-- columns in 0134. The `workouts` / `workout_exercises` tables are the
+-- reusable library that ad-hoc sessions and "save as workout" use;
+-- workout_programme_sessions.workout_id is an optional pointer, not the
+-- source of a session's exercises.
 
 CREATE TABLE IF NOT EXISTS workouts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
