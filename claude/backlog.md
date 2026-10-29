@@ -47,6 +47,12 @@
 - **open (Phil)** — spec §10 defaults (agent, prompt time, slots, score keys, Quick days in `days_together`).
 - **idea** — Today card "3 weeks since you saw Alex"; transactions as seeds.
 
+## Health — Recipes / Gousto cookbook
+
+- **built 2026-10-29** `[claude]` (Phil: "is there an API we can call and store all recipes? with the ability to favourite?") — yes: Gousto's unofficial `cmsreadbroker/v1/recipes` (listing, 12,162 entries) and `/recipe/<slug>` (detail). `gousto_recipes` (0151, 0152) holds the index per space; `/health/recipes/gousto` lists it (search, All/Favourites, cuisine, sort, paging, heart per card); `/health/recipes/gousto/<slug>` shows the cached detail (ingredients with pack images, method, allergens, per-portion nutrition), heart, SAVE TO MY RECIPES (copies into `recipes`, idempotent via `saved_recipe_id`, link back when the copy exists); nav entry + GOUSTO COOKBOOK link on Recipes. Commits `8e0effe` → `7569c45`. Smoke on prod: 11,977 recipe pages stored (12,162 entries; the rest are re-issues of the same page), `q=curry` 767 matches, detail/favourite/save/re-save/delete all exercised.
+- **The sync runs on the PC, not in the cloud** — `npm run gousto:sync` (`scripts/gousto-sync.mjs`, needs `API_SECRET` from `.env.local` in the env, `MYCELIUM_URL` optional). Gousto's edge answers a bare nginx 502 to every request from Vercel (US and `lhr1` alike) and sends no CORS headers, so neither the server nor the browser can fetch it; the script fetches from the PC and posts raw payloads to `/api/health/gousto/ingest` and `/api/health/gousto/<slug>/detail`, and the server only shapes and stores. Listing pages above ~50 entries (~1 MB) also 502, so the script pages at 50 (~6 min for the index). Flags: `--listing-only`, `--details-only`, `--details N`, `--stale-days N`, `--concurrency N`. Re-run any time; details are fetched only for rows that lack one (favourites and saved copies first), so it resumes.
+- **open** — `[claude]` schedule the sync (Windows Task Scheduler on the PC, weekly `--stale-days 30`) once Phil has run it by hand once; a cuisine/category facet beyond Gousto's 9 cuisines; shopping-list hand-off from a Gousto recipe (the saved copy already carries ingredients by pack).
+
 ## Fitness
 
 - **done (2026-09-22)** — MYC-30 supersets (0134); MYC-31 rename on tap; MYC-41 project list order.
@@ -68,6 +74,7 @@
 - **done (found 2026-10-29: already in `.github/workflows/ci.yml`)** — CI replays the whole migration chain from empty plus `seed.sql` by booting the local stack, runs `npm test` against it, then a cold `next build` and an `/api/health` boot smoke. The backlog had carried it as open.
 - **committed — next after the replay** — DB backup system: nightly pg_dump off-site, 7d/4w/12m, restore test.
 - **committed** — correct `0032_workouts_library.sql` header comment; decide `exercise_pain_logs` SET NULL vs cascade; `.select()` lint rule or shared field lists.
+- **done 2026-10-29 (`41c5035`)** `[claude]` — **auth gate hole closed**: `/api/health` (the deploy smoke check) sat in `PUBLIC_PREFIXES`, matched by `startsWith`, so every `/api/health/*` route (the whole health module: recipes, blood tests, prescriptions, nutrition…) skipped the gate. Browsers still worked because the user client falls back to session cookies (RLS held), but `x-api-secret` was never honoured there and unauthenticated calls got 500s from the anon role rather than 401. Now `PUBLIC_EXACT = ["/api/health"]`; `/api/health/gousto` answers 401 without auth. Found by the Gousto ingest ("permission denied for table").
 - **done 2026-10-29** `[claude]` — `seed-mobility` now writes `default_hold_seconds` (`0ccb99e`). graphify is set up (`.graphify/`, `npx graphify update .` after code changes).
 
 ## PTP import (`claude/ptp-import-prompt.md`)

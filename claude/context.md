@@ -8,7 +8,7 @@ The project docs said: repo at 0134, Tasks+Tickets merge unverified (W17), 0137 
 
 ## Repo state — verified 2026-10-20
 
-`A:\Projects\Mycelium`, `main` = production (Vercel auto-deploy). Last commit `0ccb99e` (2026-10-29). **Migrations through 0150 (`google_sync_error`), local and hosted identical.** 2026-10-29 session (Claude Code, Phil "go ahead, I'll test later"): MYC-174 UI leftovers (`/work/workflows`, notification delete, Docs reorder), programme-archive bug, rest-timer minimise, MYC-147 reconnect, recipe-parser no-recipe guard, seed-mobility hold seconds; Anthropic credit confirmed back; anon key probed 401 on eight tables. Details in `claude/backlog.md`. No commits 10-01 → 10-19. Latest hosted dump `A:\Backups\mycelium\2026-09-29` (before 0141). Working tree carries unrelated local edits under `.claude/` (skills, settings) — uncommitted.
+`A:\Projects\Mycelium`, `main` = production (Vercel auto-deploy). Last commit `7569c45` (2026-10-29). **Migrations through 0152 (`gousto_recipes` + slug identity), local and hosted identical.** 2026-10-29 session (Claude Code, Phil "go ahead, I'll test later"): MYC-174 UI leftovers (`/work/workflows`, notification delete, Docs reorder), programme-archive bug, rest-timer minimise, MYC-147 reconnect, recipe-parser no-recipe guard, seed-mobility hold seconds; photo-extractor guards; **Gousto cookbook** (0151/0152, PC-side sync — see backlog); **auth-gate fix** (`/api/health/*` had been public); Anthropic credit confirmed back; anon key probed 401 on eight tables. Details in `claude/backlog.md`. No commits 10-01 → 10-19. Latest hosted dump `A:\Backups\mycelium\2026-09-29` (before 0141). Working tree carries unrelated local edits under `.claude/` (skills, settings) — uncommitted.
 
 **Possibly still running:** Docker Desktop + the local Supabase stack, used by every build session.
 
@@ -52,6 +52,8 @@ The project docs said: repo at 0134, Tasks+Tickets merge unverified (W17), 0137 
 14. Apple sign-in (deferred); onboarding how-to for new users.
 
 ## Since last run
+
+**2026-10-29 (Claude Code on the PC, Phil "no live checking today, go ahead"):** backlog items that needed nothing from Phil, then the Gousto cookbook on request. The project-side copies of this file and `claude/backlog.md` were **not** synced (no Projects tool in the terminal) — a Cowork session must copy them over. Phil's queue: live-check MYC-174/175 and today's work; RECONNECT Google in Settings → Integrations; add `ELEVENLABS_API_KEY` on Vercel; run `npm run gousto:sync` once by hand (the index is already loaded).
 
 **2026-10-20 (Cowork, PC reachable):** Phil asked for delete/archive on People review + learning from bad words. Repo read found the root cause (ticket-title regex auto-creating people) → `claude/people-review-spec.md` (R1–R6), built the same day as `1b525f1` + 0149. Then this reconciliation: project docs synced to the repo — `spec-work.md` added; `tasks-merge-spec.md`, `people-contacts-spec.md`, `spec-organisation.md` replaced with the repo's as-built versions; `work-redesign-spec.md`, `spec-index.md`, this file and `claude/backlog.md` rewritten. The backlog was condensed: done items are one line each; their detail lives in the spec docs and git history.
 
