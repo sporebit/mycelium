@@ -28,7 +28,7 @@ The project docs said: repo at 0134, Tasks+Tickets merge unverified (W17), 0137 
 
 **Multi-user (P12)** — live since 09-15. Tail: retire legacy env vars; decision 0.2 (`platform` owner-only); Security Advisor + anon-key re-probe; token revocation (run-book 4.10).
 
-**Security / RLS** — 0101 + 0111; loop re-run rule (0124) and policy-name collision check (0146). DB backups still only manual dumps.
+**Security / RLS** — 0101 + 0111; loop re-run rule (0124) and policy-name collision check (0146). DB backups: nightly `scripts/db-backup.ps1` task on the PC since 2026-10-29, inert until `SUPABASE_DB_URL` is in `.env.local` (see backlog).
 
 **Loam & Glow v2, PC monitoring (M4 checkpoint), Receipts (never runtime-exercised), Desk device (parked), Worktrees (partial)** — unchanged.
 
@@ -44,7 +44,7 @@ The project docs said: repo at 0134, Tasks+Tickets merge unverified (W17), 0137 
 6. **Google reconnect** (Settings → Integrations now says "Reconnect needed" with the reason; MYC-147 built, token expired 2026-06-24) — Phil clicks RECONNECT.
 7. ~~Anthropic API credit~~ — confirmed 2026-10-29.
 8. `platform` owner-only (0.2); legacy env-var retirement; token revocation 4.10.
-9. Migration-replay CI step, then DB backups.
+9. Migration-replay CI step; DB backups wait only on `SUPABASE_DB_URL` in `.env.local` (then an off-site copy + restore test).
 10. Ideas MCP connector auth (`mtk_` bearer vs OAuth) — gates Ideas and W10.
 11. Habits out of Tickets (W14) — scheduling.
 12. `MYC-33` meaning; `exercise_pain_logs` SET NULL vs cascade; `.select()` lint rule.
