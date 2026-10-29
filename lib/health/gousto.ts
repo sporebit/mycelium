@@ -14,7 +14,15 @@ export const GOUSTO_PAGE = 200;
 /** Re-fetch a cached detail after this long. */
 export const DETAIL_TTL_MS = 30 * 86400_000;
 
-const UA = "Mozilla/5.0 (compatible; Mycelium/1.0; +https://mycelium.sporebit.com)";
+// Browser-shaped headers: the API is what gousto.co.uk's own pages call.
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
+const HEADERS = {
+	accept: "application/json, text/plain, */*",
+	"accept-language": "en-GB,en;q=0.9",
+	"user-agent": UA,
+	origin: "https://www.gousto.co.uk",
+	referer: "https://www.gousto.co.uk/cookbook/recipes",
+};
 
 type GoustoImage = { image: string; width: number };
 type GoustoMedia = { images?: GoustoImage[] };
@@ -229,12 +237,12 @@ export function toRecipeRow(row: Pick<GoustoRow, "title" | "url" | "image_large_
 // ---------------------------------------------------------------------
 
 async function goustoFetch<T>(path: string): Promise<T | null> {
-	const res = await fetch(`${GOUSTO_API}${path}`, {
-		headers: { accept: "application/json", "user-agent": UA },
-		cache: "no-store",
-	});
+	const res = await fetch(`${GOUSTO_API}${path}`, { headers: HEADERS, cache: "no-store" });
 	if (res.status === 404) return null;
-	if (!res.ok) throw new Error(`Gousto ${res.status} on ${path}`);
+	if (!res.ok) {
+		const snippet = (await res.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 160);
+		throw new Error(`Gousto ${res.status} on ${path}${snippet ? ` — ${snippet}` : ""}`);
+	}
 	const json = (await res.json()) as { status?: string; data?: T };
 	if (json.status !== "ok" || !json.data) throw new Error(`Gousto answered "${json.status ?? "?"}" on ${path}`);
 	return json.data;

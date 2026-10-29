@@ -3,6 +3,8 @@ import { createUserClient } from "@/lib/supabase/user";
 import { DETAIL_SELECT, DETAIL_TTL_MS, fetchDetail, largestImage, pickImage, toDetail, type GoustoRow } from "@/lib/health/gousto";
 
 export const runtime = "nodejs";
+// Gousto answers 502 to Vercel's default US region; London is where its site is served from.
+export const preferredRegion = "lhr1";
 
 type Ctx = { params: Promise<{ slug: string }> };
 

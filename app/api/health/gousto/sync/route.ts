@@ -3,6 +3,8 @@ import { createUserClient } from "@/lib/supabase/user";
 import { fetchListingPage, GOUSTO_PAGE, summariseEntry } from "@/lib/health/gousto";
 
 export const runtime = "nodejs";
+// Gousto answers 502 to Vercel's default US region; London is where its site is served from.
+export const preferredRegion = "lhr1";
 export const maxDuration = 60;
 
 /** Listing pages fetched per call; the client loops on `next_offset`. */
