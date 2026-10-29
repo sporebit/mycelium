@@ -21,6 +21,15 @@ describe("route classification", () => {
     expect(isPublicPath("/api/auth/break-glass")).toBe(true);
     expect(isPublicPath("/api/telegram/webhook")).toBe(true);
     expect(isPublicPath("/api/health-import")).toBe(true);
+    expect(isPublicPath("/api/health")).toBe(true);
+    expect(isPublicPath("/api/health/")).toBe(true);
+  });
+
+  it("the health check is exact: the health module beneath it is gated", () => {
+    expect(isPublicPath("/api/health/gousto")).toBe(false);
+    expect(isPublicPath("/api/health/gousto/ingest")).toBe(false);
+    expect(isPublicPath("/api/health/recipes")).toBe(false);
+    expect(isPublicPath("/api/healthz")).toBe(false);
   });
 
   it("everything else is gated", () => {

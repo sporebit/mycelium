@@ -23,8 +23,16 @@ export const PUBLIC_PREFIXES: readonly string[] = [
   // smoke check the Vercel webhook runs before it closes a ticket.
   "/api/tickets/github",
   "/api/tickets/vercel",
-  "/api/health",
 ];
+
+/**
+ * Public paths matched exactly, not as prefixes. `/api/health` is the
+ * deploy smoke check; as a prefix it also opened every `/api/health/*`
+ * route (the health module) — the gate was skipped there, so a system
+ * principal was never set and the anon role did the work (0151 found it:
+ * Gousto ingest with x-api-secret hit "permission denied").
+ */
+export const PUBLIC_EXACT: readonly string[] = ["/api/health"];
 
 /** Reachable with PC_METRICS_SECRET as a bearer token, this path only. */
 export const PC_METRICS_PREFIX = "/api/studio/pc-metrics";
@@ -67,6 +75,7 @@ export type Principal = "system" | "user" | "break_glass";
 export type AssuranceLevel = "aal1" | "aal2";
 
 export function isPublicPath(pathname: string): boolean {
+  if (PUBLIC_EXACT.includes(pathname.replace(/\/+$/, "") || "/")) return true;
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
