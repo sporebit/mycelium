@@ -21,7 +21,9 @@
  */
 
 const GOUSTO = "https://production-api.gousto.co.uk/cmsreadbroker/v1";
-const PAGE = 200;
+// Pages above ~50 entries (~1 MB) come back as a bare nginx 502 from Gousto's
+// edge — an upstream buffer limit, not a block. 50 is the safe size.
+const PAGE = 50;
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
 
 const args = process.argv.slice(2);

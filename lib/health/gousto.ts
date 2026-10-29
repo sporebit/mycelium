@@ -13,8 +13,8 @@
 
 export const GOUSTO_API = "https://production-api.gousto.co.uk/cmsreadbroker/v1";
 export const GOUSTO_SITE = "https://www.gousto.co.uk/cookbook";
-/** The API accepts up to 200 per page. */
-export const GOUSTO_PAGE = 200;
+/** Pages above ~50 entries (~1 MB) get a bare nginx 502 from Gousto's edge. */
+export const GOUSTO_PAGE = 50;
 type GoustoImage = { image: string; width: number };
 type GoustoMedia = { images?: GoustoImage[] };
 
