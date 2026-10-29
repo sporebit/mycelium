@@ -6,7 +6,7 @@
 
 Phil's personal life-OS at **mycelium.sporebit.com**. Next.js 15 (App Router) + React 19, Supabase (hosted Postgres, Free plan, CLI-managed migrations), Tailwind v4, Vercel (**Pro**; auto-deploy from `main`), PWA via Serwist. Route/page counts from 08-29 (233 / 97) are very stale — `/api/work/*` alone added 39 route files.
 
-**Migration chain (repo-verified 2026-10-20): ends at 0148, local and hosted identical.** 0097–0100 PTP · 0101 RLS everywhere · 0102–0115 P12 multi-user · 0116–0120 Tickets A–H · 0121 area kind · 0122 per-project keys · 0123 sprints · 0124 policy/grant fix · 0125 reminders dropped · 0126 Quotes · 0127–0133 Day log A–E · 0134 supersets · **0135** re-key on first project (MYC-150) · **0136** agent voices (MYC-149) · **0137** 12 statuses + When (MYC-158, §18 — live; build no further on it) · **0138** capture learning (MYC-161) · **0139** `tickets.started_at` (MYC-163 merge) · **0140** People contacts (MYC-165) · **0141–0146** Work schema · **0147** `work_search` · **0148** Work status guards (MYC-174). Next free: **0149** (taken by the People review build, in progress 2026-10-20).
+**Migration chain (repo-verified 2026-10-29): ends at 0155, local and hosted identical** (0149 people review · 0150 google_sync_error · 0151–0152 Gousto · 0153 pain logs SET NULL · 0154–0155 Gousto facets). Earlier: 0097–0100 PTP · 0101 RLS everywhere · 0102–0115 P12 multi-user · 0116–0120 Tickets A–H · 0121 area kind · 0122 per-project keys · 0123 sprints · 0124 policy/grant fix · 0125 reminders dropped · 0126 Quotes · 0127–0133 Day log A–E · 0134 supersets · **0135** re-key on first project (MYC-150) · **0136** agent voices (MYC-149) · **0137** 12 statuses + When (MYC-158, §18 — live; build no further on it) · **0138** capture learning (MYC-161) · **0139** `tickets.started_at` (MYC-163 merge) · **0140** People contacts (MYC-165) · **0141–0146** Work schema · **0147** `work_search` · **0148** Work status guards (MYC-174). Next free: **0149** (taken by the People review build, in progress 2026-10-20).
 
 **Multi-user (P12) live since 2026-09-15**: Supabase Auth (asymmetric JWT signing keys; legacy HS256 secret retained for `withUser()` — never rotate it). Legacy env vars (`USER_ID`/`DASHBOARD_PASSWORD`/`AUTH_SECRET`) await retirement.
 
@@ -14,8 +14,9 @@ Phil's personal life-OS at **mycelium.sporebit.com**. Next.js 15 (App Router) + 
 
 | Doc | Covers |
 |---|---|
-| `claude/spec-platform.md` | Stack, auth/middleware, capture pipeline, agents (The Boys), integrations, design system, PWA/offline, cron. **Spec debt:** "Identity & access" (P12), capture intents (`ticket`/`quote`/`idea`/`person`), typed capture + capture learning (0138), agent voices + streaming (0136), api_tokens, webhooks, the crons added since 0119, notification delivery channels |
-| `claude/spec-organisation.md` | Tasks (as merged 09-25), projects, people (contacts tier), captures, decisions, purchases, receipts, habits, media, quotes, calendar, review. **Spec debt:** Tasks/Tickets/Projects sections are superseded by `/work` — point them at `claude/spec-work.md` |
+| `claude/spec-platform.md` | Stack, auth/middleware (now a pointer to `spec-access.md`), capture pipeline, agents (The Boys; prompt builder + live context as of 2026-10-29), integrations, design system, PWA/offline, cron. **Spec debt:** capture intents (`ticket`/`quote`/`idea`/`person`), typed capture + capture learning (0138), webhooks, the crons added since 0119, notification delivery channels |
+| `claude/spec-access.md` | **Identity & access as built (written 2026-10-29)**: Supabase Auth, spaces + entity registry + `register_table`, `accessible_spaces()` policies, clients, the gate order incl. the 2026-10-29 `/api/health` prefix fix, teams/grants/invites, audit, rate limits, export/delete, rundowns |
+| `claude/spec-organisation.md` | Tasks (as merged 09-25), projects, people (contacts tier), captures, decisions, purchases, receipts, habits, media, quotes, calendar, review. Tasks/Tickets sections now point at `/work` and `claude/spec-work.md` (2026-10-29) |
 | `claude/spec-work.md` | **Work + Docs — BUILT (MYC-174, 0141–0148, 2026-09-29/30).** State verified before build (§0), data model, query object + JQL, `/api/work/*`, pages, notifications, Docs, migration plan, build parts, deviations, **as built (§11)**. Awaiting Phil's live check |
 | `claude/work-redesign-spec.md` | Work redesign decisions W1–W17 (2026-09-29) and where each stands |
 | `claude/tasks-merge-spec.md` | Tasks+Tickets merge (MYC-163, 0139) — as built + state verified 09-29 (Part 2 never shipped). Superseded by Work |
@@ -23,11 +24,11 @@ Phil's personal life-OS at **mycelium.sporebit.com**. Next.js 15 (App Router) + 
 | `claude/capture-form-spec.md` | Typed capture form + capture learning (MYC-161, 0138) |
 | `claude/people-contacts-spec.md` | People contacts — **BUILT (MYC-165, 0140)**: tier, soft delete + bin, merge, phones/emails, vCard import/export; as built + FK survey |
 | `claude/people-review-spec.md` | **People review — committed 2026-10-20, build in progress**: no path auto-creates a person, reject (bin + ignore list), archive (hidden + not matched), ignore list fed to the classifier, bulk actions |
-| `claude/spec-fitness.md` | Programmes, sessions, sets, pain, baselines, aliases, body metrics. **Spec debt:** supersets (0134), session rename-on-tap |
-| `claude/spec-health.md` | Nutrition, recipes/meal plan, supplements, blood tests, gut health, eye prescriptions, shopping lists |
+| `claude/spec-fitness.md` | Programmes, sessions, sets, pain, baselines, aliases, body metrics; supersets, rename-on-tap, archive filter, pain-log SET NULL (0153), live context — corrected 2026-10-29 |
+| `claude/spec-health.md` | Nutrition, recipes/meal plan, **Gousto cookbook (0151–0155, PC-side sync)**, supplements, blood tests, gut health, eye prescriptions, shopping lists; extractor guards |
 | `claude/spec-finance.md` | Multi-bank transactions, PayPal, categorisation, analysis, investments, service accounts |
-| `claude/spec-studio-drops-ventures.md` | PC metrics, Spotify, PC build log, drops, ventures, journal, places. **Spec debt:** journal section → Day log; reminders folded into Tickets (0125) |
-| `claude/multi-user-plan.md` | P12 plan + decision record; cut over 2026-09-15. A `claude/spec-access.md` is owed |
+| `claude/spec-studio-drops-ventures.md` | PC metrics, Spotify, PC build log, drops, ventures, journal (→ Day log), places, reminders (→ tickets) |
+| `claude/multi-user-plan.md` | P12 plan + decision record; cut over 2026-09-15. As built: `claude/spec-access.md` |
 | `claude/checklists-spec.md` | Superseded 2026-09-14 by tickets-spec §9 |
 | `claude/quotes-spec.md` | Quotes — BUILT v1 (0126). Awaiting Phil's live check |
 | `claude/daylog-spec.md` | Day log / Journal v2 — BUILT Parts A–E (0127–0133). Awaiting Phil's live checks |

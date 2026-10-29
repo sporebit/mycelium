@@ -2,7 +2,11 @@
 
 *Crawled 2026-08-29. The daily driver — highest-traffic surface; component dirs still named `compost/`. (?) = inferred. Quotes section added 2026-09-14; built 2026-09-18 (0126). Day-log touchpoints on People and Captures added 2026-09-14 (planned, not built — spec `claude/daylog-spec.md`).*
 
-## Tasks (`/organisation/tasks`) — one surface since 2026-09-25 (MYC-163)
+## Tasks — superseded by Work (2026-09-30, MYC-174)
+
+**`/organisation/tasks` and `/organisation/tickets` redirect to `/work`.** Issues, projects, docs, notifications, workflows and the weekly review live under `/work` and `/docs`; the model, query object, routes and pages are in `claude/spec-work.md`, the decisions in `claude/work-redesign-spec.md`. The `tickets` table, keys, steps engine, webhooks and `tix` are unchanged (`claude/tickets-spec.md`). The two sections below describe the surfaces as they stood before Work and are kept for history.
+
+### (Historical) Tasks (`/organisation/tasks`) — one surface from 2026-09-25 (MYC-163) to 2026-09-30
 
 Tasks and Tickets are one page, one sidebar entry, one org-index card and one ⌘K group, labelled **Tasks**; the code name stays `tickets` (table, `/api/tickets`, keys, `tix`, the skill, the webhooks). `/organisation/tickets` redirects here. Tabs: Now · the GTD lists · **Board** (the classic client below) · **Table** (every ticket with Raised · Started · Finished · Closed, sortable, from–to filters). The **Area chip** (All · Technical · Life · a project, `ui_prefs.tickets.area`) narrows every tab; it replaces the 0121 `surface=` split. `tickets.started_at` (0139) = the first entry into In Progress, set by the status-sync trigger and never overwritten. The `/api/tasks/*` compat routes are gone; the classic client reads `/api/tickets` (list, `[key]`, `bulk`, `smart`, `top-today`, `[key]/comments`). Spec: `claude/tasks-merge-spec.md`.
 
@@ -47,6 +51,6 @@ Full spec: `claude/quotes-spec.md`. As built: `quotes` table adopted into `organ
 
 Card grid ("Everything" view) with dnd + size picker, layout in `ui_prefs.dashboard_layout` (migrated off localStorage in P2); registry includes Goals, Journal, Glossary, KeyBlockers, Session, Operator, Habits, NowBlock-adjacent cards; Fuel + Tickers removed in P2. Morning briefing `/api/briefings/morning`; daily log `/api/daily-log/today`; goals `/api/goals`; blockers `/api/blockers`. **Planned (Day log):** the Journal card is re-pointed at the new day rows when 0003 is replaced.
 
-## Tickets (replaces Tasks; Habits and Reminders folded) — 2026-09-17
+## Tickets (replaces Tasks; Habits and Reminders folded) — 2026-09-17; surfaces now under `/work`
 
 Tasks, Habits and Reminders are now one `tickets` table (migrations 0116–0120). The full model, routes and pages are in `claude/tickets-spec.md` and the build notes in `docs/tickets/README.md`. Habits = `kind = habit` series tickets with `ticket_completions` (the tile, heatmap and streak read those); Reminders = `kind = reminder` with `remind_at` (the `/reminders` page and `/api/reminders` keep their shape over tickets). ~~`/api/tasks/*` remain as compatibility routes for one release.~~ Retired 2026-09-25 with the merge (MYC-163).

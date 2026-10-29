@@ -1,6 +1,6 @@
 # Spec — Fitness
 
-*Crawled 2026-08-29; reviewed with Phil same day. Corrected 2026-09-06 from a live-DB audit during the PTP import (migrations 0097–0100) — those corrections are marked **[2026-09-06]**. Set-logging is the highest-stakes mutation in the app. (?) = inferred.*
+*Crawled 2026-08-29; reviewed with Phil same day. Corrected 2026-09-06 from a live-DB audit during the PTP import (migrations 0097–0100) — those corrections are marked **[2026-09-06]**. Corrected 2026-10-29 (supersets 0134, rename-on-tap, archive filter, pain-log FKs 0153, rest timer, live context) — marked **[2026-10-29]**. Set-logging is the highest-stakes mutation in the app. (?) = inferred.*
 
 ## Data model
 
@@ -11,23 +11,25 @@ Templates are the single source of truth; programmes reference templates with li
 - `workout_programmes` — id, user_id, name, description, created_at, updated_at, archived_at, **guardrails (0099)**
 - `workout_programme_phases` — id, user_id, programme_id, start_week_iso, end_week_iso, created_at. `start_week_iso` is text NOT NULL and the phases API rejects anything that isn't `YYYY-Www`; `end_week_iso` nullable = open-ended. **A phase with dates unset is not representable.**
 - `workout_programme_sessions` — …day_of_week, slot, kind, name, notes, position, workout_id, kind_override. `kind ∈ (cardio, conditioning, resistance, mobility)`, `slot ∈ (morning, afternoon, evening, extra)`, **UNIQUE (programme_id, day_of_week, slot)** — the 0033/0035/0054 note that UNIQUE was dropped is wrong.
-- `workout_programme_exercises` — …notes, default_sets, default_reps (text, so "8-10" is valid), default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity, data_shape, with_weight, **default_hold_seconds (0097)**. There is no `default_rpe` despite `lib/fitness/types.ts:57` declaring one.
+- `workout_programme_exercises` — …notes, default_sets, default_reps (text, so "8-10" is valid), default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity, data_shape, with_weight, **default_hold_seconds (0097)**, **superset_group smallint (0134)** — also on `workout_session_exercises`, copied at session start like `rest_seconds`. There is no `default_rpe` despite `lib/fitness/types.ts:57` declaring one.
 
-**[2026-09-06] `workout_programme_exercises` is NOT deprecated.** The header comment in `0032_workouts_library.sql` describes a read-only cut-over that never happened. `today/route.ts:139`, `sessions/route.ts:130`, `session-detail.ts:55`, `sessions/[id]/swap/route.ts:115` and the voice route all read it; `workouts`/`workout_exercises` is read only when a session is started from the library. **A programme seeded only into the workouts library renders an empty session on Today.**
+**[2026-09-06] `workout_programme_exercises` is NOT deprecated.** The header comment in `0032_workouts_library.sql` described a read-only cut-over that never happened (**[2026-10-29]** the header now says so, `dc7f485`). `today/route.ts:139`, `sessions/route.ts:130`, `session-detail.ts:55`, `sessions/[id]/swap/route.ts:115` and the voice route all read it; `workouts`/`workout_exercises` is read only when a session is started from the library. **A programme seeded only into the workouts library renders an empty session on Today.**
 
 **[2026-09-06] There is no canonical exercise table.** `/api/fitness/exercises` derives the library from distinct `workout_session_exercises.name` values. `exercise_aliases` (0046) had 0 rows; `exercise_baselines` was empty until the PTP seeded 15. A name only enters the library once logged, so a typo — especially via voice — becomes a permanent duplicate. Existing duplicate clusters: Seated Leg Curl ×3, Leg Extension ×2, Bicep Curl / EZ Bar Curl.
 
-**[2026-09-06] FK delete rules, read from `pg_constraint`:** `workout_sessions.programme_session_id`, `.swapped_from_programme_session_id` and `workout_session_exercises.programme_exercise_id` are all SET NULL — deleting a template does not touch logs. `workout_programme_phases.programme_id`, `workout_session_exercises.session_id`, `workout_sets.session_exercise_id` and `exercise_pain_logs.session_id` / `.session_exercise_id` are CASCADE. **Consequence: deleting one logged session destroys its pain evidence.**
+**[2026-09-06] FK delete rules, read from `pg_constraint`:** `workout_sessions.programme_session_id`, `.swapped_from_programme_session_id` and `workout_session_exercises.programme_exercise_id` are all SET NULL — deleting a template does not touch logs. `workout_programme_phases.programme_id`, `workout_session_exercises.session_id` and `workout_sets.session_exercise_id` are CASCADE. **[2026-10-29]** `exercise_pain_logs.session_id` / `.session_exercise_id` are **SET NULL** since 0153 (verified on the hosted DB): deleting a logged session leaves its pain logs as standalone entries. The 09-06 consequence ("deleting one logged session destroys its pain evidence") no longer holds.
 
 ## Behaviour rules
 
-Weights kg | lbs | stone per exercise (stone default for body metrics); default rest 90s; auto-save 500ms; save-to-template checkbox on ad-hoc sessions; finish modal accepts a duration override and back-calculates `completed_at`; rest-timer chime/vibration logic FROZEN; template↔programme live sync FROZEN.
+Weights kg | lbs | stone per exercise (stone default for body metrics); default rest 90s; auto-save 500ms; save-to-template checkbox on ad-hoc sessions; finish modal accepts a duration override and back-calculates `completed_at`; rest-timer chime/vibration logic FROZEN; template↔programme live sync FROZEN. **[2026-10-29] Supersets (MYC-30, 0134, `acf0d47`):** pair an exercise with the previous one in the log; exercises sharing a `superset_group` show A1/A2 labels and no rest runs until the last in the group; carried from programme templates. **Rename on tap (MYC-31, `ad68feb`):** tap the session name on the log page, edit, Enter. **Rest timer:** the minimised state persists in localStorage and no longer resets to full screen on a new rest (`77f0840`).
 
 **[2026-09-06] Prescription and guardrails.** Per-exercise prescription lives on `workout_programme_exercises` (`default_sets`, free-text `default_reps`, `rest_seconds`, `default_duration_min`, `default_intensity`, `default_hold_seconds`) with conditionals in `notes`; `sessions/route.ts:189` copies template notes → `workout_session_exercises.notes` and `LogClient.tsx:1412` renders them mid-workout. Programme-level guardrails live on `workout_programmes.guardrails` (0099) and render as a pinned banner in LogClient.
 
 **[2026-09-06] Known footgun — an expired phase falls through silently.** The phase query filters `start_week_iso <= currentWeek AND (end_week_iso IS NULL OR end_week_iso >= currentWeek)`. Once the end week passes with no later phase, zero rows match, `activePhase` is null and the handler returns `programme_name: null` with empty slots. There is no "programme ended" state and nothing distinguishes finished from never-had-one. The PTP therefore runs with `end_week_iso` NULL.
 
-**[2026-09-06] Archiving a programme does nothing** — `today/route.ts:64` selects from `workout_programme_phases` alone and never filters `archived_at` on either query, so an archived programme with a live phase row still drives Today. Open bug.
+**[2026-09-06] Archiving a programme did nothing** — the today route selected from `workout_programme_phases` alone and never filtered `archived_at`. **[2026-10-29] Fixed (`191b6fd`):** `lib/fitness/active-phase.ts` is the one live-phase query (`LIVE_PHASE_SELECT` joins `workout_programmes!inner(archived_at)` and filters it null) and is used by today, swap, week-summary, the voice route, dashboard headlines and the calendar. An archived programme's phase no longer drives anything.
+
+**[2026-10-29] The fitness agent sees live state.** `lib/agents/live-context.ts` appends programme + week of phase, today's planned sessions, the last 7 days' sessions and pain logged in the last 14 days to the fitness agent's prompt on every fresh turn (read-only).
 
 ## Pages & routes
 
@@ -37,10 +39,12 @@ Pages: `/fitness` (Today, day-swap, add extra session, drag-reorder), `/fitness/
 
 Workout voice logging (0008), pain voice logging + iOS Shortcut, ambiguity → picker; `/api/fitness/pending-routes/[id]/resolve`. Body metrics via Apple Health bridge + manual fallback; iOS body shortcut setup at `/the-boys/integrations/body-shortcut`.
 
-## Current programme state (2026-09-06)
+## Current programme state (2026-09-06; re-read 2026-10-29)
+
+**2026-10-29:** still `PTP — Phase 1: Restore + Stabilise`, read as week 8 of an open-ended phase by the live-context smoke; no sessions logged in the preceding seven days; one standalone pain log on 2026-10-16. The Phase 1 → 2 procedure is in `docs/ptp-report.md`.
 
 `PTP — Phase 1: Restore + Stabilise` active from 2026-W37, `end_week_iso` NULL, five sessions Mon–Fri afternoon, 41 template exercises. `PTP — Phase 2: Rebuild` and `PTP — Phase 3: Hybrid` exist as programme records with descriptions and no phase row — visible, not schedulable; the three-programme split is forced by the NOT NULL `start_week_iso` and the day/slot UNIQUE, so "The PTP" exists only as a naming convention. All pre-PTP programmes archived and their phase rows deleted. Authoritative plan: repo `docs/ptp-plan.md`.
 
 ## Loam & Glow state
 
-P5 Parts 1 (localStorage → `ui_prefs.fitness_ui`) and 4 (restyle, 26 components, PR glow-pulse via existing `isPR`) shipped. **Pending: Part 2 (optimistic set-logging — UI advances immediately, rest timer starts on optimistic save) and Part 3 (live-session focus mode with confirm-to-exit)** — both need real in-workout verification. LogClient deliberately left on raw fetch until Part 2. Known bug: rest-timer minimise state not persisting (P5 Part 1 was supposed to migrate it — verify whether the bug predates or survived the migration).
+P5 Parts 1 (localStorage → `ui_prefs.fitness_ui`) and 4 (restyle, 26 components, PR glow-pulse via existing `isPR`) shipped. **Pending: Part 2 (optimistic set-logging — UI advances immediately, rest timer starts on optimistic save) and Part 3 (live-session focus mode with confirm-to-exit)** — both need real in-workout verification. LogClient deliberately left on raw fetch until Part 2. The rest-timer minimise bug is fixed (`77f0840`, 2026-10-29: localStorage key `mycelium.fitness.rest.minimised`, lazy init).

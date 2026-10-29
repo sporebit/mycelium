@@ -1,6 +1,6 @@
 # Spec — Studio, Drops, Ventures, Journal, Places, Reminders
 
-*Crawled 2026-08-29; reviewed with Phil same day. (?) = inferred. Journal replacement (Day log) recorded 2026-09-14 — planned, not built.*
+*Crawled 2026-08-29; reviewed with Phil same day. (?) = inferred. Journal replacement (Day log) recorded 2026-09-14; built Parts A–E 2026-09-18 → 09-22 (0127–0133). Reminders are `kind = reminder` tickets since 0125 (see `claude/tickets-spec.md`).*
 
 ## Studio — PC metrics (`/studio/pc`)
 
@@ -22,7 +22,7 @@ The live spec is `docs/pc-monitoring-plan.md` **in the repo** (newer than the pr
 
 - **Journal** — **Day log / Journal v2, Part A BUILT 2026-09-18 (0127, `a3b28b5`)**: `/journal` (day list + score strip) and `/journal/[date]` (entry, scores, transcript, composer), the Telegram nightly prompt with Talk / Quick / Skip / Snooze and the open-window routing rule (`/c ` escapes), `/api/journal/days*`, `/api/journal/scores`, `/api/cron/daylog`, Settings → Journal. The 0003 entries are migrated in as `mode = 'legacy'`; `journal_entries` and its old routes stay read-only for one release. Parts B–E (extraction + review, People Days tab, seeds/photos, linked users) follow Phil's live check. Full spec `claude/daylog-spec.md`. Summary: a nightly interview (Telegram prompt with Talk / Quick / Skip / Snooze buttons, or the in-app day page) run by one of The Boys on Sonnet; append-only transcript, editable narrative summary, a day = ordered **scenes** with place/people/facts/photos; per-turn Haiku delta extraction → pending entities in the captures review queue (never auto-creates a person) → `daylog_scene_people` / `daylog_facts` on approval; **1–5 scores every night** (mood · energy · sleep · productivity by default; keys in settings; asked even on Skip) as `daylog_days.scores`; seeds from calendar, Spotify/media, Apple Health/weather; never asserts world facts, no web search; one carry-over `open_thread`; turn cap + monthly £ alert; `people.linked_user_id` lets another Mycelium user (sharing a team) see scene basics they were part of, via RLS policies, never facts. Tables `daylog_days`, `daylog_scenes`, `daylog_scene_people`, `daylog_facts`, `daylog_media`; entity group `journal.daylog`; routes under `/api/journal/*` + `/api/cron/daylog`; pages `/journal`, `/journal/[date]`, Settings → Journal. 0003 entries migrate in as `mode = 'legacy'`; the old table is dropped in a follow-up migration; old `/api/journal/*` routes and the dashboard Journal card are re-pointed.
 - **Places** (0043): `/places`, Leaflet map. Day-log scenes link here (`daylog_scenes.place_id`); unmatched place text creates a pending place via review.
-- **Reminders** (0044): `/reminders`, NL parsing, outbound Telegram, cron pipeline (cron-job.org sub-daily).
+- **Reminders** — folded into Tickets (0125, 2026-09-17): `kind = reminder` tickets with `remind_at`; `/reminders` and `/api/reminders` keep their shape over tickets; NL parsing, outbound Telegram and the `/api/cron/reminders` pipeline (cron-job.org sub-daily) remain. The 0044 `reminders` table is history.
 - **Events** (0067): calendar events store backing Google sync. A Day-log seed source.
 
 ## Memory / search
