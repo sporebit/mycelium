@@ -8,7 +8,7 @@ The project docs said: repo at 0134, Tasks+Tickets merge unverified (W17), 0137 
 
 ## Repo state — verified 2026-10-20
 
-`A:\Projects\Mycelium`, `main` = production (Vercel auto-deploy). Last commit `1b525f1` (2026-10-20, MYC-175 People review, migration 0149). **Migrations through 0149, local and hosted identical.** No commits 10-01 → 10-19. Latest hosted dump `A:\Backups\mycelium\2026-09-29` (before 0141). Working tree carries unrelated local edits under `.claude/` (skills, settings) — uncommitted.
+`A:\Projects\Mycelium`, `main` = production (Vercel auto-deploy). Last commit `0ccb99e` (2026-10-29). **Migrations through 0150 (`google_sync_error`), local and hosted identical.** 2026-10-29 session (Claude Code, Phil "go ahead, I'll test later"): MYC-174 UI leftovers (`/work/workflows`, notification delete, Docs reorder), programme-archive bug, rest-timer minimise, MYC-147 reconnect, recipe-parser no-recipe guard, seed-mobility hold seconds; Anthropic credit confirmed back; anon key probed 401 on eight tables. Details in `claude/backlog.md`. No commits 10-01 → 10-19. Latest hosted dump `A:\Backups\mycelium\2026-09-29` (before 0141). Working tree carries unrelated local edits under `.claude/` (skills, settings) — uncommitted.
 
 **Possibly still running:** Docker Desktop + the local Supabase stack, used by every build session.
 
@@ -20,7 +20,7 @@ The project docs said: repo at 0134, Tasks+Tickets merge unverified (W17), 0137 
 
 **Capture.** Typed capture form with an entity form registry; capture learning (0138) feeds corrections back as few-shot examples; review kinds ticket / person / idea; APPROVE now materialises ticket and person kinds (it only did quotes before). `idea` is a capture kind with `/organisation/ideas` (a list, not the Ideas spec).
 
-**The Boys (agents).** Per-agent voice and manner (0136: ElevenLabs incl. own-voice clone, or OpenAI), streamed replies over SSE with sentence-pipelined TTS. On 09-23 the Anthropic API account had **no credit** (stream route 400) — unverified whether topped up since; `classifyCapture` falls back to OpenAI.
+**The Boys (agents).** Per-agent voice and manner (0136: ElevenLabs incl. own-voice clone, or OpenAI), streamed replies over SSE with sentence-pipelined TTS. The Anthropic account had no credit on 09-23; **confirmed back on 2026-10-29** (production stream route streamed a reply). `classifyCapture` still falls back to OpenAI if it ever lapses again.
 
 **Tickets underneath Work.** Re-key on first project shipped (0135; 91 non-Mycelium MYC-n re-keyed, old keys alias). §18 twelve statuses + When picker live (0137) and mapped into Work's three categories. Merge (0139) superseded by Work. Live checks recorded before Work: `MYC-111` 18/29, `MYC-136` mis-read Done 0/23, `MYC-159` (§18) — these exercise surfaces Work has since replaced; Phil to decide whether to close them.
 
@@ -41,8 +41,8 @@ The project docs said: repo at 0134, Tasks+Tickets merge unverified (W17), 0137 
 3. **Weekly scheduled task device binding** — still cloud-only; without it the Sunday run cannot see the repo. Recreate it device-bound from the desktop app on the PC.
 4. **Repo sessions write project docs** — add to the repo `AGENTS.md`/`CLAUDE.md`: after a state change, update `claude/context.md` + `claude/backlog.md` in the Claude project, not only the repo copies.
 5. Old live-check tickets (MYC-111, 136, 159, 140/142/144/146) — run, re-scope to Work, or close.
-6. Google reconnect (Settings → Integrations); MYC-147.
-7. Anthropic API credit — confirm topped up (agent streaming needs it).
+6. **Google reconnect** (Settings → Integrations now says "Reconnect needed" with the reason; MYC-147 built, token expired 2026-06-24) — Phil clicks RECONNECT.
+7. ~~Anthropic API credit~~ — confirmed 2026-10-29.
 8. `platform` owner-only (0.2); legacy env-var retirement; token revocation 4.10.
 9. Migration-replay CI step, then DB backups.
 10. Ideas MCP connector auth (`mtk_` bearer vs OAuth) — gates Ideas and W10.

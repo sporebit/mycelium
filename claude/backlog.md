@@ -27,7 +27,7 @@
 ## The Boys — agents
 
 - **built (2026-09-23, MYC-148/149, 0136)** — per-agent voice + manner (ElevenLabs incl. clone, or OpenAI); streamed SSE replies with sentence-pipelined TTS; transcription-only route. Production smoke 11/13 — the stream route hit **Anthropic "no credit"**.
-- **committed** — confirm the Anthropic API account is topped up, then re-run the stream smoke; ElevenLabs key set if not already.
+- **done 2026-10-29** — the Anthropic account has credit again: the vision model answered directly and the production stream route streamed `pong` for the fitness agent (the two smoke messages were deleted from that conversation afterwards). ElevenLabs key on Vercel still unconfirmed.
 
 ## Ideas (decision record `claude/ideas-spec.md`, 21 decisions; W15: an idea graduates to a Work project when building starts)
 
@@ -60,7 +60,7 @@
 - **committed** `[claude]` — never rotate the legacy JWT secret (`withUser()` mints HS256 with it); record in `docs/multi-user-handoff.md`.
 - **committed** — onboarding how-to for new users (invitee re-opens the invite link after email confirm).
 - **done 2026-10-29** `[claude]` — `.env.example` already had the P12 names; the legacy auth-gate block and `USER_ID` are now marked retired.
-- **committed** — Security Advisor + anon-key re-probe.
+- **half done 2026-10-29** — anon-key re-probe: the hosted REST API answers 401 `42501` for the anon key on people, tickets, user_settings, raw_captures, profiles, spaces, notifications, doc_pages (no grants, not merely RLS). Security Advisor review still to do in the dashboard.
 - **idea** `[claude]` — `scripts/verify-identity.mjs` (generateLink → callback → Playwright).
 
 ## Security / schema integrity
@@ -68,7 +68,7 @@
 - **done (found 2026-10-29: already in `.github/workflows/ci.yml`)** — CI replays the whole migration chain from empty plus `seed.sql` by booting the local stack, runs `npm test` against it, then a cold `next build` and an `/api/health` boot smoke. The backlog had carried it as open.
 - **committed — next after the replay** — DB backup system: nightly pg_dump off-site, 7d/4w/12m, restore test.
 - **committed** — correct `0032_workouts_library.sql` header comment; decide `exercise_pain_logs` SET NULL vs cascade; `.select()` lint rule or shared field lists.
-- **idea** `[claude]` — `seed-mobility` never writes `default_hold_seconds`; graphify not set up (`CLAUDE.md` rule inert).
+- **done 2026-10-29** `[claude]` — `seed-mobility` now writes `default_hold_seconds` (`0ccb99e`). graphify is set up (`.graphify/`, `npx graphify update .` after code changes).
 
 ## PTP import (`claude/ptp-import-prompt.md`)
 
@@ -82,10 +82,10 @@
 
 ## App — Bugs (queue items, don't gate new work)
 
-- **committed** — Vision-scan regression on recipe add.
+- **built 2026-10-29** — Vision-scan regression on recipe add: the route and model work now (`claude-sonnet-4-5`, live parse 200), so the regression was the September no-credit 502. Found while checking: a 1 px image came back as a complete invented Gousto recipe — the prompt now asks the model to answer `{"no_recipe": true}` when the image holds no recipe and the route turns that into a 422 (`7bed43a`).
 - **built 2026-10-29** — rest-timer minimise state: the choice is kept in localStorage (`mycelium.fitness.rest.minimised`) and no longer resets on every new rest; expand to undo.
 - **built 2026-10-29** `[claude]` — archiving a programme does nothing: every active-phase lookup (Today, swap, week summary, calendar, voice route, dashboard headline) now goes through `lib/fitness/active-phase.ts`, which joins the programme and drops archived ones.
-- **committed** — Google token refresh 400: Phil reconnects in Settings → Integrations; `MYC-147` panel should say "reconnect". Calendar sync (W16) unproven until then.
+- **built 2026-10-29 (`af385b0`, 0150)** — Google token refresh 400: the failure is recorded in `user_settings.google_sync_error`, Settings → Integrations shows "Reconnect needed" with the reason and a RECONNECT link, and a sync answers with the reason. **Phil still has to reconnect** (token expired 2026-06-24). Calendar sync (W16) unproven until then.
 
 ## PC Monitoring (`docs/pc-monitoring-plan.md`)
 
