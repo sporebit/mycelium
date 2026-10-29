@@ -110,11 +110,13 @@ async function syncDetails() {
 	let gone = 0;
 	let failed = 0;
 	const cap = detailsCap > 0 ? detailsCap : Infinity;
+	let goal = null; // the remaining count at the start of the run, so the counter does not shrink per batch
 	for (;;) {
 		const want = Math.min(500, cap - done);
 		if (want <= 0) break;
 		const q = `limit=${want}${staleDays > 0 ? `&stale_days=${staleDays}` : ""}`;
 		const { slugs, remaining } = await mycelium("GET", `/api/health/gousto/missing?${q}`);
+		if (goal === null) goal = Math.min(remaining, cap);
 		if (slugs.length === 0) break;
 		let i = 0;
 		await Promise.all(
@@ -133,7 +135,7 @@ async function syncDetails() {
 						// a detail that keeps failing would loop forever: stamp it so the next pass skips it
 						if (failed > 25) throw new Error("too many detail failures; stopping");
 					}
-					process.stdout.write(`\rdetails ${done + gone}/${Math.min(remaining, cap)} (${gone} gone, ${failed} failed)   `);
+					process.stdout.write(`\rdetails ${done + gone}/${goal} (${gone} gone, ${failed} failed)   `);
 					await sleep(120);
 				}
 			}),
