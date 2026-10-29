@@ -47,7 +47,23 @@ export async function getAccessToken(
   });
 
   if (!res.ok) {
-    console.error("[google] token refresh failed", res.status);
+    // Google answers 400 invalid_grant once a refresh token is revoked or
+    // expired; nothing short of a fresh OAuth round trip fixes that. Record
+    // it so Settings → Integrations can say "reconnect" instead of
+    // "connected" while every sync quietly does nothing (MYC-147).
+    let reason = `HTTP ${res.status}`;
+    try {
+      const body = (await res.json()) as { error?: string; error_description?: string };
+      if (body.error) reason = body.error_description ? `${body.error}: ${body.error_description}` : body.error;
+    } catch {
+      /* no JSON body */
+    }
+    console.error("[google] token refresh failed", res.status, reason);
+    await updateUserSettings(
+      supabase,
+      { google_sync_error: `${new Date().toISOString()} ${reason}`.slice(0, 300) },
+      { select: "id" },
+    );
     return null;
   }
 
@@ -61,6 +77,7 @@ export async function getAccessToken(
     {
       google_access_token: json.access_token,
       google_token_expires_at: newExpiresAt,
+      google_sync_error: null,
       ...(json.refresh_token
         ? { google_refresh_token: json.refresh_token }
         : {}),

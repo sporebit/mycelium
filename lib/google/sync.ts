@@ -241,7 +241,7 @@ export async function removeGoogleEvent(
 
 // ─── PULL: Google → Myphelium2 ──────────────────────────────────
 
-export type SyncResult = { synced: number; updated: string[] };
+export type SyncResult = { synced: number; updated: string[]; error?: string };
 
 export async function pullFromGoogle(
   supabase: SupabaseClient,
@@ -251,7 +251,7 @@ export async function pullFromGoogle(
   if (!(await isGoogleConnected(supabase))) return result;
 
   const token = await getAccessToken(supabase);
-  if (!token) return result;
+  if (!token) return { ...result, error: "Google rejected the saved token — reconnect in Settings → Integrations." };
 
   const now = new Date().toISOString();
   const future = new Date(Date.now() + 30 * 86400_000).toISOString();

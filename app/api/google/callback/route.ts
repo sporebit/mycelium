@@ -63,6 +63,7 @@ export async function GET(req: NextRequest) {
         google_refresh_token: tokens.refresh_token ?? null,
         google_access_token: tokens.access_token,
         google_token_expires_at: expiresAt,
+        google_sync_error: null,
       },
       { select: "id" },
     );

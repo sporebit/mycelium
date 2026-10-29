@@ -598,6 +598,9 @@ function NotificationsSection({ settings, onPatch }: { settings: Settings; onPat
 
 function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatch: (f: Record<string, unknown>) => void }) {
   const googleConnected = !!settings.google_refresh_token;
+  // set by lib/google/calendar.ts when Google refuses the refresh token (0150, MYC-147)
+  const googleSyncError = (settings as { google_sync_error?: string | null }).google_sync_error ?? null;
+  const needsReconnect = googleConnected && !!googleSyncError;
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
 
@@ -606,6 +609,7 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
       google_refresh_token: null,
       google_access_token: null,
       google_token_expires_at: null,
+      google_sync_error: null,
     });
   }
 
@@ -616,7 +620,8 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
       const res = await fetch("/api/google/sync", { method: "POST" });
       if (res.ok) {
         const data = await res.json();
-        setSyncResult(`✓ Synced ${data.synced} events${data.updated?.length ? `, ${data.updated.length} updated` : ""}`);
+        if (data.error) setSyncResult(String(data.error));
+        else setSyncResult(`✓ Synced ${data.synced} events${data.updated?.length ? `, ${data.updated.length} updated` : ""}`);
       } else {
         setSyncResult("Sync failed");
       }
@@ -632,12 +637,26 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
     <SectionCard title="INTEGRATIONS">
       <IntegrationRow
         name="Google Calendar"
-        description={googleConnected ? "OAuth write access — bidirectional sync" : "Reading iCal feeds"}
-        status={googleConnected ? "Connected" : "Not connected"}
-        statusOk={googleConnected}
+        description={
+          needsReconnect
+            ? `Google rejected the saved token (${googleSyncError}). Syncs do nothing until you reconnect.`
+            : googleConnected
+              ? "OAuth write access — bidirectional sync"
+              : "Reading iCal feeds"
+        }
+        status={needsReconnect ? "Reconnect needed" : googleConnected ? "Connected" : "Not connected"}
+        statusOk={googleConnected && !needsReconnect}
         action={
           googleConnected ? (
             <div className="flex items-center gap-2">
+              {needsReconnect && (
+                <Link
+                  href="/api/google/auth"
+                  className="text-[10px] text-accent hover:underline font-[family-name:var(--font-mono)]"
+                >
+                  RECONNECT
+                </Link>
+              )}
               {syncResult ? (
                 <Mono className="text-[10px] text-ok">{syncResult}</Mono>
               ) : (
