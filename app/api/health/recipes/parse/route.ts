@@ -3,7 +3,11 @@ import { MODEL_VISION } from "@/lib/config/models";
 
 export const runtime = "nodejs";
 
-const PARSE_PROMPT = `Extract a recipe from this image and return ONLY valid JSON, no markdown:
+const PARSE_PROMPT = `Extract a recipe from this image and return ONLY valid JSON, no markdown.
+
+First decide whether the image actually shows a recipe (a recipe card, a cookbook page, a screenshot of a recipe, handwritten instructions). If it does not — a blank or tiny image, a photo of something else, a page with no ingredients or method visible — return exactly {"no_recipe": true} and nothing else. Never invent a recipe that is not in the image.
+
+Otherwise return:
 {
   "title": "string",
   "source_name": "string | null",
@@ -100,6 +104,10 @@ ${PARSE_PROMPT}`
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
+    // the model saw no recipe — refuse rather than hand back an invented one
+    if (parsed && typeof parsed === "object" && (parsed.no_recipe === true || (!parsed.title && !Array.isArray(parsed.ingredients)))) {
+      return NextResponse.json({ error: "No recipe found in this image" }, { status: 422 });
+    }
     return NextResponse.json({ ok: true, recipe: parsed });
   } catch (err) {
     console.error("[recipes/parse POST]", err);
