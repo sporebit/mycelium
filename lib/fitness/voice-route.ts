@@ -13,6 +13,7 @@ import type {
   VoiceRouteResult,
   WeightUnit,
 } from "./types";
+import { activePhaseForWeek } from "@/lib/fitness/active-phase";
 
 type Supabase = SupabaseClient;
 
@@ -51,16 +52,7 @@ export async function buildVoiceContext(
   const currentWeek = isoWeekString(nowLocal);
   const dow = (nowLocal.getDay() + 6) % 7; // JS Sun=0 → programme Mon=0
 
-  const { data: phaseRows } = await supabase
-    .from("workout_programme_phases")
-    .select("programme_id, start_week_iso, end_week_iso")
-    .lte("start_week_iso", currentWeek)
-    .or(`end_week_iso.is.null,end_week_iso.gte.${currentWeek}`)
-    .order("start_week_iso", { ascending: false })
-    .limit(1);
-  const activePhase = (phaseRows ?? [])[0] as
-    | { programme_id: string }
-    | undefined;
+  const activePhase = await activePhaseForWeek(supabase, currentWeek);
 
   const sessions: VoiceContext["sessions"] = [];
 

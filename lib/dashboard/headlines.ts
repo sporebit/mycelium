@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { localDateKey, previousDateKey } from "@/lib/util/date";
 import { isoWeekString } from "@/lib/util/week";
 import { HABITS as DEFAULT_HABITS } from "@/lib/config/habits";
+import { activePhaseQuery } from "@/lib/fitness/active-phase";
 
 export type HeadlineContext = {
   todaysCriticalTaskCount: number;
@@ -176,13 +177,7 @@ export async function buildHeadlineContext(
     supabase
       .from("raw_captures")
       .select("id", { count: "exact", head: true }),
-    supabase
-      .from("workout_programme_phases")
-      .select("programme_id, start_week_iso, end_week_iso")
-      .lte("start_week_iso", currentWeek)
-      .or(`end_week_iso.is.null,end_week_iso.gte.${currentWeek}`)
-      .order("start_week_iso", { ascending: false })
-      .limit(1),
+    activePhaseQuery(supabase, currentWeek),
   ]);
 
   // Distinct workout dates (last 7 days + full streak window)

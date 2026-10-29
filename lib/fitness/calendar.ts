@@ -1,6 +1,7 @@
 import { createUserClient } from "@/lib/supabase/user";
 import { isoWeekString } from "@/lib/util/week";
 import type { SessionKind, Slot } from "./types";
+import { livePhases } from "@/lib/fitness/active-phase";
 
 export type CalendarPillState =
   | "completed"
@@ -182,12 +183,10 @@ export async function fetchMonthCalendar(
   // 2. Pull phases that touch the grid range, then their template sessions
   const gridStartWeek = isoWeekOfDateKey(gridStart);
   const gridEndWeek = isoWeekOfDateKey(gridEnd);
-  const { data: phaseRowsRaw } = await supabase
-    .from("workout_programme_phases")
-    .select("id, programme_id, start_week_iso, end_week_iso")
+  const { data: phaseRowsRaw } = await livePhases(supabase)
     .lte("start_week_iso", gridEndWeek)
     .or(`end_week_iso.is.null,end_week_iso.gte.${gridStartWeek}`);
-  const phases = (phaseRowsRaw ?? []) as PhaseRow[];
+  const phases = (phaseRowsRaw ?? []) as unknown as PhaseRow[];
 
   const programmeIds = Array.from(new Set(phases.map((p) => p.programme_id)));
   let templates: TemplateRow[] = [];

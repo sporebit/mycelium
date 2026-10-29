@@ -6,6 +6,7 @@ import { isoWeekString } from "@/lib/util/week";
 import { localDateKey } from "@/lib/util/date";
 import { SLOT_ORDER } from "@/lib/fitness/kind";
 import { markStaleSessionsAttempted } from "@/lib/fitness/mark-stale-attempted";
+import { activePhaseForWeek } from "@/lib/fitness/active-phase";
 import type {
   SessionKind,
   SessionStatus,
@@ -56,15 +57,8 @@ export async function GET(req: NextRequest) {
     // 48h to attempted before we read them back. Soft-fails on its own.
     await markStaleSessionsAttempted(supabase);
 
-    const { data: phaseRows } = await supabase
-      .from("workout_programme_phases")
-      .select("id, programme_id, start_week_iso, end_week_iso")
-      .lte("start_week_iso", currentWeek)
-      .or(`end_week_iso.is.null,end_week_iso.gte.${currentWeek}`)
-      .order("start_week_iso", { ascending: false })
-      .limit(1);
-    const activePhase =
-      Array.isArray(phaseRows) && phaseRows.length > 0 ? phaseRows[0] : null;
+    // Phases of archived programmes do not count (the archive bug)
+    const activePhase = await activePhaseForWeek(supabase, currentWeek);
 
     // All of the target day's live workout_sessions across every slot
     const { data: liveRows } = await supabase
@@ -102,7 +96,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(out);
     }
 
-    const programmeId = (activePhase as { programme_id: string }).programme_id;
+    const programmeId = activePhase.programme_id;
     const { data: programme } = await supabase
       .from("workout_programmes")
       .select("name")

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { isoWeekString } from "@/lib/util/week";
+import { activePhaseForWeek } from "@/lib/fitness/active-phase";
 
 export const runtime = "nodejs";
 
@@ -53,16 +54,7 @@ export async function GET(req: NextRequest) {
     const weekIso = isoWeekString(monday);
 
     // Active phase for that week. May be null on rest blocks.
-    const { data: phaseRows } = await supabase
-      .from("workout_programme_phases")
-      .select("programme_id, start_week_iso, end_week_iso")
-      .lte("start_week_iso", weekIso)
-      .or(`end_week_iso.is.null,end_week_iso.gte.${weekIso}`)
-      .order("start_week_iso", { ascending: false })
-      .limit(1);
-    const phase = (phaseRows ?? [])[0] as
-      | { programme_id: string }
-      | undefined;
+    const phase = await activePhaseForWeek(supabase, weekIso);
 
     // Planned-session count per dow.
     const plannedByDow = new Map<number, number>([

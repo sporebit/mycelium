@@ -3,6 +3,7 @@ import { createUserClient } from "@/lib/supabase/user";
 import { localDateKey } from "@/lib/util/date";
 import { isoWeekString } from "@/lib/util/week";
 import type { Slot, SessionKind } from "@/lib/fitness/types";
+import { activePhaseForWeek } from "@/lib/fitness/active-phase";
 
 export const runtime = "nodejs";
 
@@ -70,15 +71,8 @@ export async function POST(req: NextRequest) {
     const nowLocal = new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
     const currentWeek = isoWeekString(nowLocal);
     const dow = (nowLocal.getDay() + 6) % 7;
-    const { data: phaseRows } = await supabase
-      .from("workout_programme_phases")
-      .select("programme_id, start_week_iso, end_week_iso")
-      .lte("start_week_iso", currentWeek)
-      .or(`end_week_iso.is.null,end_week_iso.gte.${currentWeek}`)
-      .order("start_week_iso", { ascending: false })
-      .limit(1);
     let originalId: string | null = null;
-    const phase = (phaseRows ?? [])[0] as { programme_id: string } | undefined;
+    const phase = await activePhaseForWeek(supabase, currentWeek);
     if (phase) {
       const { data: orig } = await supabase
         .from("workout_programme_sessions")
