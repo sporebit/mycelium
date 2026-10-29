@@ -1,7 +1,12 @@
 # Cron migration: Vercel → cron-job.org
 
 Migrating three cron routes off Vercel's native `crons` block and onto
-cron-job.org. Two routes stay on Vercel.
+cron-job.org. Two routes stayed on Vercel at the time.
+
+> **2026-10-29:** `vercel.json` has since grown to eight daily-or-coarser
+> entries (rundowns hourly, tickets nightly and check-ins, quotes research,
+> Day log). The current table is in `claude/spec-platform.md` → Cron. The
+> three cron-job.org jobs below are unchanged.
 
 ## vercel.json diff
 
