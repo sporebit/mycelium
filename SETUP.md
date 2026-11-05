@@ -33,6 +33,17 @@ to ask you to accept the `msstore` source agreements and the install cancels.
 ```powershell
 winget install --id OpenJS.NodeJS.LTS --source winget -e
 winget install --id Git.Git --source winget -e
+winget install --id Python.Python.3.13 --source winget -e
+```
+
+**Python** is for the `PreToolUse` hooks in `.claude/settings.json`, which call
+`python3`. On a fresh Windows install `python3` is only the Microsoft Store stub,
+so the hooks silently no-op. The python.org installer creates no `python3.exe`
+either; add one so `python3` resolves to the real interpreter (the installer puts
+its folder ahead of the Store stub on the user PATH):
+
+```powershell
+Copy-Item "$env:LOCALAPPDATA\Programs\Python\Python313\python.exe" "$env:LOCALAPPDATA\Programs\Python\Python313\python3.exe"
 ```
 
 **Node version:** there is no `.nvmrc`, `.node-version`, or `engines` field in
@@ -65,9 +76,11 @@ Copy-Item "$env:TEMP\sb\*.exe" -Destination $dest -Force
 supabase --version
 ```
 
-**Copy both executables.** The archive contains `supabase.exe` *and*
-`supabase-go.exe`; the first shells out to the second, so installing only
-`supabase.exe` gives you a CLI that fails at runtime.
+**Copy every executable in the archive.** CLI v2 shipped `supabase.exe` *and*
+`supabase-go.exe` (the first shells out to the second, so installing only
+`supabase.exe` gave a CLI that failed at runtime). v3.0.0 (current as of
+2026-11-05) ships a single `supabase.exe`. The `Copy-Item *.exe` above handles
+both layouts.
 
 On an ARM machine, swap `windows_amd64` for `windows_arm64`.
 
@@ -86,6 +99,15 @@ processes keep the PATH they launched with.
 - Close and reopen PowerShell.
 - **Close and reopen Claude Code too.** Otherwise Claude inherits the old PATH
   and will report `node`/`git` as missing even though you just installed them.
+
+If you cannot restart mid-session, prefix each command with a PATH refresh:
+
+```powershell
+$env:PATH = [Environment]::GetEnvironmentVariable('PATH','Machine') + ';' + [Environment]::GetEnvironmentVariable('PATH','User')
+```
+
+The `Read`/`Glob` hooks stay broken until Claude Code restarts regardless,
+because it looks for Git Bash once at launch.
 
 Verify:
 
@@ -106,7 +128,24 @@ binaries — `sharp` (libvips) and `playwright` (browser drivers) — and a
 will leave them in place if the semver ranges still match; `ci` wipes the tree and
 rebuilds from the lockfile, which is also what Vercel does on every deploy.
 
-A green `npx next build` means you're fully set up.
+A green `npx next build` means you're fully set up for building and pushing.
+
+### Tests need the local Supabase stack
+
+`npm test` runs 49 files. 14 of them (`lib/access/*`, `lib/people/*`,
+`lib/work/*`, `lib/rundowns`, `lib/tickets/startedAt`, `lib/system/identity`)
+query a local Postgres through Docker and fail with `is the local stack up?`
+without it. Start Docker Desktop (a per-user install lives at
+`%LOCALAPPDATA%\Programs\DockerDesktop\Docker Desktop.exe`, not Program Files),
+then:
+
+```powershell
+supabase start      # first run pulls the images and replays all migrations + seed.sql
+npm test
+```
+
+The local stack does not need `supabase login`; only `db push` and
+`migration list` against the hosted project do.
 
 ---
 
@@ -207,12 +246,13 @@ Deployment is automatic — Vercel builds and ships every push to `main`.
 ## 6. Database migrations
 
 Migration files live in `supabase/migrations/`, numbered `NNNN_description.sql`.
-As of this writing the latest is `0091_ui_prefs.sql`, so the next one is `0092`.
+As of 2026-11-05 the latest is `0155_gousto_facets_merge_suffix.sql`, so the next
+one is `0156`. Check the folder rather than trusting this line.
 
 ```powershell
-# 1. write supabase/migrations/0092_your_description.sql
+# 1. write supabase/migrations/0156_your_description.sql
 supabase db push          # confirm with Y when prompted
-supabase migration list   # Local and Remote should both show 0092
+supabase migration list   # Local and Remote should both show 0156
 ```
 
 Never apply SQL by hand in the Supabase SQL editor — the CLI is the only path.
@@ -245,6 +285,14 @@ node install-service.js
 net start MyceliumPCAgent
 ```
 See `pc-agent/README.md`. Uninstall with `node uninstall-service.js` (as Admin).
+
+**Nightly DB backup** — `scripts/db-backup.ps1` is registered per machine in Task
+Scheduler, so a new PC starts without it. It needs native PostgreSQL 18
+(`pg_dump` under `C:\Program Files\PostgreSQL\18\bin`) and `SUPABASE_DB_URL` in
+`.env.local`; see the script header for both, then:
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\db-backup.ps1 -Register
+```
 
 ---
 
