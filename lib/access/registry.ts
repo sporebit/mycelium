@@ -132,6 +132,13 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
     note: "Calendar lives under Organisation in the nav. events has no user_id column; Part 2 backfills created_by from the space owner.",
   },
 
+  {
+    section: "organisation",
+    group: "hours",
+    tables: ["hours_settings", "hours_entries", "hours_absences", "hours_bank_holidays", "hours_import_runs"],
+    note: "Four-Day Week Tracker (0156, claude/four-day-week-spec.md D1): Phil's Everlight hours. Personal space only; never put this group on a team grant.",
+  },
+
   // -- fitness --------------------------------------------------------------
   {
     section: "fitness",

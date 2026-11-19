@@ -12,6 +12,13 @@
 - **open (Phil)** — old live-check tickets that exercise surfaces Work replaced: `MYC-111` (18/29), `MYC-159` (§18) — run, re-scope or close.
 - **done** — Tasks+Tickets merge (MYC-163, 0139; Part 2 never built — superseded). §18 statuses + When (MYC-158, 0137, live 09-23; mapped into Work's categories). When rules (`6cd2173`). Re-key on first project + MYC clean-up (MYC-150, 0135). Tickets Parts A–H, partition, keys, sprints, policy fix, reminders drop, CI boot check (0116–0125, 09-16 → 09-18).
 
+## Hours — Four-Day Week Tracker (`claude/four-day-week-spec.md`; MYC-176 build, MYC-177 Phil's live checks)
+
+- **in-progress (2026-11-19, part 1 built, awaiting Phil's phase-1 check)** — Phil's Everlight hours come into Mycelium at `/organisation/hours` (D1: the one exception to tickets-spec decision 3, recorded as 3a). Part 1: migration **0156** (`hours_settings`, `hours_entries`, `hours_absences`, `hours_bank_holidays`, `hours_import_runs` under `organisation.hours`; `hours_apply_import` / `hours_undo_import`), `lib/hours/` (every figure derived, import planner with dry run + conflicts + undo), `/api/hours/bundle` + `/api/hours/import`, History and Settings → Import pages, `scripts/hours-import.mjs` for the seed. Acceptance: all ten completed weeks of the private seed reproduce `data-notes.md` to the minute, through the pure calc and through the SQL path under RLS; second dry run 0 / 0 / 460. §8 answered: O1 under Organisation, O2 `Covered on Friday`, O3 mailto + `.ics`, O4 Today tile Mon–Thu, O5 Telegram later.
+- **committed — parts 2–4** — Log (fast add, inline edit, states, ticket links, Backlog chip) · Dashboard, Daily, Tickets, Settings (targets, absences, bank holidays + gov.uk refresh, block-out), Rules, Today tile · Export (.xlsx, .json) and the workbook-column paste for the parallel run. Then part 5: Phil's parallel run; the workbook retires on his say (D4).
+- **open (Phil)** — week of 2026-10-19: Mon and Tue are 0:00 with no absence (MYC-177 step 1.3). **Blocked until Phil runs `supabase login` on the PC** — the hosted push of 0156 and the seed load on production.
+- **note** — "v1.1 work logging + estimates" under Work is Mycelium's own issues and a different feature; the overlap is noted, not merged.
+
 ## People
 
 - **shipped 2026-10-20 (`1b525f1`, 0149), awaiting Phil's live check** — **People review: reject / archive / ignore list** (`claude/people-review-spec.md`): no path auto-creates a person (tickets + capture-review reroute defer to the review queue); reject = bin + ignore words; archive = hidden + not matched; ignore list fed to the classifier; bulk Keep / Archive / Reject with the source snippet. Then Phil clears the 62 live.
