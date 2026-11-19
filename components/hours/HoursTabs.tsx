@@ -7,6 +7,8 @@ export const HOURS_BASE = "/organisation/hours";
 
 /** The tracker's own pages (spec §5). Added as each build part lands. */
 export const HOURS_TABS: ReadonlyArray<{ label: string; href: string }> = [
+  { label: "Log", href: `${HOURS_BASE}/log` },
+  { label: "Backlog", href: `${HOURS_BASE}/backlog` },
   { label: "History", href: `${HOURS_BASE}/history` },
   { label: "Settings", href: `${HOURS_BASE}/settings` },
 ];
