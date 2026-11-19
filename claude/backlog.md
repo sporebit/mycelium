@@ -2,6 +2,23 @@
 
 *Canonical backlog. Statuses: idea / committed / in-progress / blocked / done. `[claude]` = Claude-suggested. No fixed priority order. Done = builds + tests + Phil verified live ("built" = shipped, Phil's check outstanding). **Rewritten 2026-10-20 (Cowork, repo-verified):** the project copy had drifted to the 09-22 state while the repo reached 0148; done items are condensed to one line each — their build detail lives in the spec docs (`claude/spec-work.md` §11, `claude/tickets-spec.md`, `claude/daylog-spec.md` §12, `claude/people-contacts-spec.md`, `claude/tasks-merge-spec.md`), repo `docs/` and git history.*
 
+## Intake 2026-11-19 — "get on top of everything" (chat; 10 answers recorded, per-section rounds in progress)
+
+Framing Phil set: Mycelium is personal, not a product — no selling consideration for now. Spend as close to zero as possible beyond the Claude plan; replicate paid services where feasible. Root problem Phil named: he doesn't use the app — capture is slow/unreliable, nothing pulls him back, it looks/feels uninspiring, and his own follow-through/distraction keeps him from it. Design consequence `[claude]`: the app must come to him (push, wall screen, Kirsty's accountability, one next action), not wait to be opened.
+
+- **committed — testing approach (decided)** — Claude Code runs automated Playwright/API checks across every built-but-unverified surface first, then generates ONE in-app checklist (house checklist format, state in the DB) containing only what needs Phil's eyes. Covers Work+Docs, Quotes, Day log B–E, People contacts/review, typed capture, multi-user, hours.
+- **committed — run autonomy (decided: full free rein)** — merge, deploy and `supabase db push` unattended when build+tests pass. Flagged once `[claude]`: keep a pg_dump before each push (the nightly task now exists; an on-demand dump before push is free).
+- **committed — Kirsty onboarding** — she gets (a) an accountability view into Phil's stuff via direct grant, (b) her own personal space, (c) a shared household/family team. `docs/onboarding.md` exists (10-29); still needs a second-user browser pass and confirming direct grants work end to end.
+- **committed — iPhone voice capture fix (decided)** — Shortcut saves audio to an iCloud "Mycelium Inbox" folder first; endpoint returns 202 in <1s and transcribes/classifies async; failures stay in the folder; a Retry shortcut resends. Clear "Saved" feedback.
+- **committed — Family section** — pregnancy timeline + scans, firsts & milestones journal, shared family calendar, household admin. Feeds a later creative piece once the baby arrives. Shared with Kirsty via the family team.
+- **committed — photo storage (decided)** — Cloudflare R2 free tier (verify current limits); originals also stay in the phone library.
+- **committed — glanceable wall screen** — target: touch-screen A3-landscape panel with built-in speakers (Phil's photo frame; model TBC). Per-person switcher, today at a glance. Survey open-source dashboards on GitHub first.
+- **in-progress — UI overhaul** — fluid, light on the eyes, non-typical; Fable 5.2 + researched UI skills. Direction round 2026-11-19.
+- **committed — Finance auto-import (free)** — bank feeds via whatever free open-banking / direct bank API still takes sign-ups (verify), Gmail receipts/statements, finish PayPal sync, plus an IONOS inbox Phil will redirect banking emails to (IMAP; credentials in env only).
+- **committed — hosting (decided: hybrid)** — Vercel + Supabase free for always-on; PC takes costed/heavy work (local Whisper transcription, photo processing, backups — backups already on the PC) with cloud fallback. Note: Vercel Hobby limits crons to daily (found 2026-11-19).
+- **committed — old-chat harvest** — sweep past chats for pending items not in this backlog.
+- **committed — master Claude Code run doc** — written after the per-section rounds.
+
 ## Work + Docs — Jira-style Work section (decisions `claude/work-redesign-spec.md`; build spec `claude/spec-work.md`)
 
 - **built (2026-09-29/30, MYC-174, 0141–0148) — awaiting Phil's live check** — Parts A schema · B query object + JQL + `/api/work/*` · C Tiptap editor · D Work pages, redirects, Clarify + old Tasks surface removed · E notifications UI · F Docs · G as-built notes. 615 tests, isolation 0 leaks.

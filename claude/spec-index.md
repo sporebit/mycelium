@@ -4,7 +4,7 @@
 
 ## What mycelium is
 
-Phil's personal life-OS at **mycelium.sporebit.com**. Next.js 15 (App Router) + React 19, Supabase (hosted Postgres, Free plan, CLI-managed migrations), Tailwind v4, Vercel (**Pro**; auto-deploy from `main`), PWA via Serwist. Route/page counts from 08-29 (233 / 97) are very stale — `/api/work/*` alone added 39 route files.
+Phil's personal life-OS at **mycelium.sporebit.com**. Next.js 15 (App Router) + React 19, Supabase (hosted Postgres, Free plan, CLI-managed migrations), Tailwind v4, Vercel (**Hobby** — daily crons only, sub-daily jobs on cron-job.org; corrected 2026-11-19, the doc said Pro; auto-deploy from `main`), PWA via Serwist. Route/page counts from 08-29 (233 / 97) are very stale — `/api/work/*` alone added 39 route files.
 
 **Migration chain (repo-verified 2026-11-19): ends at 0156 (hours), local and hosted identical** (0149 people review · 0150 google_sync_error · 0151–0152 Gousto · 0153 pain logs SET NULL · 0154–0155 Gousto facets). Earlier: 0097–0100 PTP · 0101 RLS everywhere · 0102–0115 P12 multi-user · 0116–0120 Tickets A–H · 0121 area kind · 0122 per-project keys · 0123 sprints · 0124 policy/grant fix · 0125 reminders dropped · 0126 Quotes · 0127–0133 Day log A–E · 0134 supersets · **0135** re-key on first project (MYC-150) · **0136** agent voices (MYC-149) · **0137** 12 statuses + When (MYC-158, §18 — live; build no further on it) · **0138** capture learning (MYC-161) · **0139** `tickets.started_at` (MYC-163 merge) · **0140** People contacts (MYC-165) · **0141–0146** Work schema · **0147** `work_search` · **0148** Work status guards (MYC-174). Next free: **0149** (taken by the People review build, in progress 2026-10-20).
 
