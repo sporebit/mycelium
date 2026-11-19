@@ -3,10 +3,34 @@
 Migrating three cron routes off Vercel's native `crons` block and onto
 cron-job.org. Two routes stayed on Vercel at the time.
 
-> **2026-10-29:** `vercel.json` has since grown to eight daily-or-coarser
-> entries (rundowns hourly, tickets nightly and check-ins, quotes research,
-> Day log). The current table is in `claude/spec-platform.md` → Cron. The
-> three cron-job.org jobs below are unchanged.
+> **2026-10-29:** `vercel.json` had grown to eight entries (rundowns hourly,
+> tickets nightly and check-ins, quotes research, Day log). The current table
+> is in `claude/spec-platform.md` → Cron. The three cron-job.org jobs below
+> are unchanged.
+>
+> **2026-11-19:** Vercel began rejecting the deploy at build time: "Hobby
+> accounts are limited to daily cron jobs. This cron expression (0 * * * *)
+> would run more than once per day." Every push since 2026-10-29 had failed
+> within a second, so production sat on `c5cbb75`. The four sub-daily entries
+> moved to cron-job.org (below); the four daily ones stay in `vercel.json`
+> (Hobby: 100 jobs, once per day, fires within the hour — `±59 min`).
+
+## 2026-11-19: four more routes to cron-job.org
+
+All GET, header `Authorization: Bearer $CRON_SECRET` (middleware and handler
+both accept it). Schedules are UTC — set the cron-job.org timezone to UTC so the
+hour windows match what the handlers expect.
+
+| Path                          | cron-job.org schedule (UTC) | Was in vercel.json          |
+| ----------------------------- | --------------------------- | --------------------------- |
+| `/api/cron/rundowns`          | `0 * * * *`                 | hourly                      |
+| `/api/cron/tickets-checkins`  | `*/15 15-22 * * *`          | every 15 min, 15:00–22:59   |
+| `/api/cron/quotes-research`   | `*/30 * * * *`              | every 30 min                |
+| `/api/cron/daylog`            | `*/15 18-23,0-3 * * *`      | every 15 min, 18:00–03:59   |
+
+Removed from `vercel.json` in the same change. Still there: `/api/briefings/morning`
+(06:00 Mon–Fri, 08:00 Sat–Sun), `/api/finance/paypal/sync` (07:00),
+`/api/cron/tickets-nightly` (02:00).
 
 ## vercel.json diff
 

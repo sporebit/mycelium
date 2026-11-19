@@ -39,17 +39,15 @@ Chat + voice (silence-detection loop, TTS via `/api/agents/tts`) with tool-calli
 
 ## Cron
 
-Vercel Hobby caps cron at daily, so **cron-job.org** drives the three sub-daily jobs moved off Vercel (`docs/cron-migration.md`): `/api/cron/reminders` (Bearer `REMINDERS_CRON_SECRET`, a distinct env var), `/api/cron/drops-monitor` and `/api/cron/google-sync` (Bearer `CRON_SECRET`). **`vercel.json` as of 2026-10-29** (all under `CRON_SECRET`, principal `system`, each route picking its user with `withUser()`):
+Vercel Hobby caps cron at daily (100 jobs, once per day, fires within the hour) and since 2026-11-19 **rejects the deploy** if `vercel.json` holds a sub-daily expression. **cron-job.org** therefore drives every sub-daily job (`docs/cron-migration.md`): `/api/cron/reminders` (Bearer `REMINDERS_CRON_SECRET`, a distinct env var), `/api/cron/drops-monitor`, `/api/cron/google-sync`, and from 2026-11-19 `/api/cron/rundowns`, `/api/cron/tickets-checkins`, `/api/cron/quotes-research`, `/api/cron/daylog` (all Bearer `CRON_SECRET`, GET, UTC). **`vercel.json` as of 2026-11-19** (all under `CRON_SECRET`, principal `system`, each route picking its user with `withUser()`):
 
 | Path | Schedule (UTC) | Does |
 |---|---|---|
 | `/api/briefings/morning` | 06:00 Mon–Fri, 08:00 Sat–Sun | morning briefing to Telegram |
 | `/api/finance/paypal/sync` | 07:00 daily | PayPal transactions |
-| `/api/cron/rundowns` | hourly | weekly team rundowns (P12 Part 6), per recipient under their RLS |
 | `/api/cron/tickets-nightly` | 02:00 | overdue / stale / check-in sweep (tickets spec §8.2) |
-| `/api/cron/tickets-checkins` | every 15 min, 15:00–22:59 | waiting-on check-ins (§7.2) |
-| `/api/cron/quotes-research` | every 30 min | quotes research sweeper (quotes spec §5; also `after()` on approve) |
-| `/api/cron/daylog` | every 15 min, 18:00–03:59 | Day log evening prompts (day-log spec §4.1) |
+
+On cron-job.org (UTC): `/api/cron/rundowns` hourly — weekly team rundowns (P12 Part 6), per recipient under their RLS; `/api/cron/tickets-checkins` every 15 min 15:00–22:59 — waiting-on check-ins (§7.2); `/api/cron/quotes-research` every 30 min — quotes research sweeper (quotes spec §5; also `after()` on approve); `/api/cron/daylog` every 15 min 18:00–03:59 — Day log evening prompts (day-log spec §4.1).
 
 DB-side: pg_cron (1.6.4) runs the pc_metrics rollup/prune (0095). On the PC: Task Scheduler `Mycelium Gousto sync` (Sunday 03:00, `scripts/gousto-sync-weekly.ps1`) because Gousto refuses cloud egress.
 
