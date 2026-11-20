@@ -93,6 +93,8 @@ export async function DELETE(_req: NextRequest, ctx: Ctx) {
     const paths = ((media ?? []) as Array<{ storage_path: string }>).map((m) => m.storage_path);
     if (paths.length) await supabase.storage.from(DAYLOG_BUCKET).remove(paths);
     await supabase.from("memory_chunks").delete().eq("source_type", DAYLOG_SOURCE_TYPE).eq("source_id", day.id);
+    // review items still waiting point at this day by id (no FK); left behind they sit in the queue with nothing to approve them into
+    await supabase.from("pending_entities").delete().like("entity_type", "daylog_%").eq("additional_data->>day_id", day.id).is("resolved_at", null);
     const { error, count } = await supabase.from("daylog_days").delete({ count: "exact" }).eq("id", day.id);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     if (!count) return NextResponse.json({ error: "not found" }, { status: 404 });

@@ -202,6 +202,8 @@ export function DayClient({ date }: { date: string }) {
                       key={n}
                       type="button"
                       disabled={busy}
+                      aria-label={`${k} ${n}`}
+                      aria-pressed={day.scores?.[k] === n}
                       onClick={() => void setScore(k, day.scores?.[k] === n ? null : n)}
                       className={`h-7 w-7 rounded-sm text-xs font-[family-name:var(--font-mono)] ${day.scores?.[k] === n ? "bg-glow-3 text-glow-1" : "bg-ink-2 text-text-2 hover:text-text-0"}`}
                     >

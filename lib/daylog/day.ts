@@ -42,4 +42,19 @@ export function daylogDay(now: Date = new Date(), cutoff = "03:00"): string {
   return c.minutes < hmToMinutes(cutoff, 180) ? shiftDate(c.date, -1) : c.date;
 }
 
-export const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DAY_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** A YYYY-MM-DD key that is also a day on the calendar: "2026-02-30" and "2026-13-01" are not. */
+export function isDayKey(s: string): boolean {
+  if (!DAY_SHAPE.test(s)) return false;
+  const [y, m, d] = s.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+
+/**
+ * Every Day log route and page guards its date with `DATE_RE.test(…)`. The
+ * shape alone let an impossible date through to Postgres, which answered
+ * with a 500; the guard now checks the calendar too.
+ */
+export const DATE_RE = { test: isDayKey };

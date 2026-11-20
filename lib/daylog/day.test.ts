@@ -1,5 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { daylogDay, londonClock, shiftDate } from "./day";
+import { DATE_RE, daylogDay, isDayKey, londonClock, shiftDate } from "./day";
+
+describe("day keys", () => {
+  it("accepts real calendar days, leap days included", () => {
+    expect(isDayKey("2026-11-20")).toBe(true);
+    expect(isDayKey("2024-02-29")).toBe(true);
+  });
+  it("refuses the right shape on an impossible date", () => {
+    expect(isDayKey("2026-13-01")).toBe(false);
+    expect(isDayKey("2026-02-30")).toBe(false);
+    expect(isDayKey("2025-02-29")).toBe(false);
+    expect(isDayKey("2026-00-10")).toBe(false);
+  });
+  it("refuses anything that is not YYYY-MM-DD", () => {
+    expect(isDayKey("2026-1-2")).toBe(false);
+    expect(isDayKey("today")).toBe(false);
+    expect(isDayKey("")).toBe(false);
+  });
+  it("is what the routes' DATE_RE guard runs", () => {
+    expect(DATE_RE.test("2026-02-30")).toBe(false);
+    expect(DATE_RE.test("2026-02-28")).toBe(true);
+  });
+});
 
 describe("day boundary (Europe/London, cutoff 03:00)", () => {
   it("00:30 BST belongs to the evening before", () => {
