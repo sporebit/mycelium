@@ -33,13 +33,15 @@ export function CaptureBox() {
         kind?: string;
         title?: string;
         error?: string;
+        status?: string;
       };
       if (!res.ok) {
         setToast({ kind: "error", text: json.error ?? `Failed (${res.status})` });
       } else {
         setToast({
           kind: "success",
-          text: `✓ ${json.kind ?? "captured"} — ${json.title ?? ""}`.trim(),
+          // Auto captures answer at once with "saved"; what it was filed as follows in tonight's review.
+          text: json.kind ? `✓ ${json.kind} — ${json.title ?? ""}`.trim() : "✓ Saved",
         });
         setValue("");
         textareaRef.current?.blur();

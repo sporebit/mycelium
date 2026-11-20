@@ -99,7 +99,16 @@ export async function recordTicketApproval(db: SupabaseClient, ticketId: string)
     if (!t) return;
     const fields: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(t)) if (v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0)) fields[k] = v;
-    await recordApproval(db, cap.id, t.project_id ? "ticket" : "task", fields);
+    // Every ticket gets a project on insert (General), so "has a project"
+    // says nothing: a ticket is one that sits in a technical project.
+    let kind = "task";
+    if (t.project_id) {
+      const { technicalProjectIds } = await import("@/lib/tickets/area");
+      if ((await technicalProjectIds(db)).includes(t.project_id as string)) kind = "ticket";
+    }
+    await recordApproval(db, cap.id, kind, fields);
+    // The card is answered: without this the same thing was triaged twice.
+    await db.from("raw_captures").update({ reviewed_at: new Date().toISOString() }).eq("id", cap.id).is("reviewed_at", null);
   } catch (err) {
     console.error("[capture_learning] ticket approval soft-fail:", err);
   }

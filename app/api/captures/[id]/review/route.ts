@@ -5,6 +5,7 @@ import { createUserClient } from "@/lib/supabase/user";
 import { extractionFromClassification } from "@/lib/quotes/server";
 import { getEntityDef, isTypedKind, type FieldValues } from "@/lib/capture/registry";
 import { createRoutedRow, deleteRoutedRow, PERSON_PATCH_FIELDS, recordMentions } from "@/lib/capture/materialise";
+import { acceptRoutedTicket } from "@/lib/capture/queue";
 import { recordApproval } from "@/lib/capture/learning";
 
 export const runtime = "nodejs";
@@ -239,6 +240,21 @@ export async function PATCH(
         } catch (err) {
           return NextResponse.json({ error: err instanceof Error ? err.message : "approve failed" }, { status: 400 });
         }
+      } else if (mergedClassification.held === true && notYetMaterialised) {
+        // An item out of a long dump was held as an idea with the guess
+        // attached (research rule 19). Accepting its card is what turns it
+        // into the thing the guess says. If the guess needs something the
+        // dump did not give (a reminder with no time), it stays an idea
+        // and the card is answered.
+        try {
+          const r = await createRoutedRow(supabase, uid, id, existing.raw_text ?? "", existing.audio_url ?? null, mergedClassification, body.scheduled_at, body.project_id, body.person);
+          quoteRoute = { routed_to: r.routedTo, routed_id: r.routedId };
+          if (r.routedTo === "tickets") await recordMentions(supabase, mergedClassification, "task", r.routedId, id, existing.raw_text ?? null);
+        } catch {
+          mergedClassification.suggested_kind = mergedClassification.kind;
+          mergedClassification.kind = "idea";
+        }
+        mergedClassification.held = false;
       } else if (mergedClassification.kind === "quote" && existing.routed_to !== "quotes") {
         const dup = body.duplicate;
         if (dup && typeof dup.id === "string" && (dup.action === "keep" || dup.action === "replace")) {
@@ -292,6 +308,10 @@ export async function PATCH(
           { status: 500 },
         );
       }
+      // The card and the ticket are one decision: accepting the card takes
+      // the ticket out of the Inbox with its suggestions applied.
+      const acceptedTicket = (quoteRoute?.routed_to ?? existing.routed_to) === "tickets" ? (quoteRoute?.routed_id ?? existing.routed_id) : null;
+      if (acceptedTicket) await acceptRoutedTicket(supabase, acceptedTicket);
       // MYC-161: the approval is the learning signal.
       await recordApproval(
         supabase,

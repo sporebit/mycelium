@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { auditListRead } from "@/lib/system/readAudit";
+import { QUEUE_SELECT, waitingForReview } from "@/lib/capture/queue";
 
 export const runtime = "nodejs";
 
@@ -10,13 +11,11 @@ export const runtime = "nodejs";
  *   ?limit=50                        (capped at 200)
  *   ?before=<created_at iso>         (cursor, optional)
  *
- * "needs_review" matches captures that any of:
- *   - classification->>'confidence'      = 'low'
- *   - classification->>'session_intent'  = 'ambiguous'
- *   - classification->>'kind'            = 'ambiguous'
- *   - reviewed_at IS NULL AND created_at < now() - interval '1 hour'
- *   - classification->>'typed' = 'true' AND reviewed_at IS NULL   (MYC-161)
- * discarded_at IS NULL is always required.
+ * "needs_review" is every capture waiting for review: not reviewed, not
+ * discarded, not deleted, finished processing, not filed by the seven-day
+ * rule (lib/capture/queue.ts; Phil, 2026-11-20: every capture goes to
+ * review). `?order=oldest` gives them oldest first, as the evening deck
+ * shows them.
  *
  * "all" lists every non-discarded capture, newest first.
  */
@@ -31,39 +30,21 @@ export async function GET(req: NextRequest) {
     Math.max(1, parseInt(url.searchParams.get("limit") ?? "20", 10) || 20),
   );
   const before = url.searchParams.get("before");
+  const oldestFirst = url.searchParams.get("order") === "oldest";
 
   try {
     const supabase = await createUserClient();
     let q = supabase
       .from("raw_captures")
-      .select(
-        "id, source, raw_text, audio_url, classification, llm_source, routed_to, routed_id, reviewed_at, discarded_at, created_at, space_id",
-      )
+      .select(QUEUE_SELECT)
       .is("deleted_at", null)
       .is("discarded_at", null)
-      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: oldestFirst })
       .limit(limit + 1);
 
-    if (before) q = q.lt("created_at", before);
+    if (before) q = oldestFirst ? q.gt("created_at", before) : q.lt("created_at", before);
 
-    if (tab === "needs_review") {
-      // PostgREST's .or() chains with comma-separated conditions. The
-      // jsonb-arrow operators use ->> for text comparison; the "older
-      // than an hour" branch uses created_at < now()-1h, which we encode
-      // with a server-evaluated ISO timestamp (PostgREST can't run
-      // expressions on the server). Stale captures with no reviewed_at
-      // are the bulk of the list in practice.
-      const oneHourAgo = new Date(Date.now() - 60 * 60_000).toISOString();
-      q = q.or(
-        [
-          `classification->>confidence.in.(low,ambiguous)`,
-          `classification->>kind.eq.ambiguous`,
-          `and(reviewed_at.is.null,created_at.lt.${oneHourAgo})`,
-          // a typed capture (MYC-161) is review-first: it waits here from the moment it lands
-          `and(classification->>typed.eq.true,reviewed_at.is.null)`,
-        ].join(","),
-      );
-    }
+    if (tab === "needs_review") q = waitingForReview(q);
 
     const { data, error } = await q;
     if (error) throw error;

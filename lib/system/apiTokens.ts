@@ -19,6 +19,8 @@ export const TOKEN_ROUTES: Record<string, string[]> = {
   tickets: ["/api/tickets", "/api/projects", "/api/habits", "/api/reminders"],
   people: ["/api/people"],
   capture: ["/api/capture"],
+  // the morning and evening calls an iPhone automation makes (master run §6)
+  daily: ["/api/daily"],
 };
 
 function b64url(bytes: Uint8Array): string {

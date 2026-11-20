@@ -4,3 +4,4 @@
  * handler module is listed here.
  */
 import "./handlers";
+import "@/lib/capture/jobs";

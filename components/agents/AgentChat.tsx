@@ -259,6 +259,7 @@ export function AgentChat({
           const ext = mimeType.includes("mp4") ? "mp4" : "webm";
           const fd = new FormData();
           fd.append("audio", blob, `recording.${ext}`);
+          fd.append("transcribe_only", "1");
           const res = await fetch("/api/capture-audio", { method: "POST", body: fd });
           const data = await res.json();
           if (data.transcription) {

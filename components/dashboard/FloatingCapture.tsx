@@ -170,7 +170,7 @@ export function FloatingCapture() {
         if (json.errors) setErrors(json.errors);
         setToast({ kind: "error", text: json.error ?? `Failed (${res.status})` });
       } else {
-        const where = json.review === "tickets_inbox" ? (json.ticket_key ? `→ Inbox · ${json.ticket_key}` : "→ Inbox") : json.review === "captures" ? "→ Review" : "";
+        const where = json.review === "tickets_inbox" ? (json.ticket_key ? `→ Inbox · ${json.ticket_key}` : "→ Inbox") : json.review === "captures" || !json.review ? "→ Review" : "";
         setToast({ kind: "success", text: `✓ Captured ${where}`.trim() });
         if (addAnother) {
           setValue("");
