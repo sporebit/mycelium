@@ -176,6 +176,8 @@ describe("audit rows exist for each listed action", () => {
     expect(auditCount("sign_in")).toBe(before.sign_in + 1);
 
     const bearer = { apikey: env.anonKey, authorization: `Bearer ${session.access_token}`, "content-type": "application/json" };
+    // A run that stopped half-way leaves its factor behind, and GoTrue refuses a second one of the same name.
+    sql(`delete from auth.mfa_factors where friendly_name = 'v5'`);
     const enrol = await fetch(`${env.apiUrl}/auth/v1/factors`, { method: "POST", headers: bearer, body: JSON.stringify({ factor_type: "totp", friendly_name: "v5" }) });
     expect(enrol.status).toBe(200);
     const factor = (await enrol.json()) as { id: string };
@@ -186,7 +188,9 @@ describe("audit rows exist for each listed action", () => {
     expect(auditCount("mfa_removed")).toBe(before.removed + 1);
 
     // Remote sign-out of the session through the function.
-    const [[sid]] = sql(`select id from auth.sessions where user_id = '${TESS}' order by created_at desc limit 1`);
+    // This test's own session, named in its token. Not "her newest": another suite may have signed her in since,
+    // and ending that one breaks whatever was using it.
+    const sid = (JSON.parse(Buffer.from(String(session.access_token).split(".")[1], "base64url").toString("utf8")) as { session_id: string }).session_id;
     const end = await rpc(TESS, "end_session", { p_id: sid });
     expect(ok(end), msg(end)).toBe(true);
     expect(auditCount("session_revoked")).toBe(before.revoked + 1);

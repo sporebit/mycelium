@@ -31,6 +31,7 @@ function staticRoutes(dir: string, out: string[] = []): string[] {
 
 // /login redirects a signed-in visitor; /offline is the service worker's page.
 const SKIP = new Set(["/login", "/offline"]);
+const NOT_CONFIGURED_HERE = new Set(["/api/finance/snapshot", "/api/finance/history"]);
 const ROUTES = [...new Set(staticRoutes(APP_DIR))].filter((r) => !SKIP.has(r)).sort();
 
 for (const route of ROUTES) {
@@ -44,6 +45,8 @@ for (const route of ROUTES) {
     });
     page.on("response", (res) => {
       const url = new URL(res.url());
+      // The test server has no Google sheet behind Finance: these two answer 503 "not configured" by design.
+      if (res.status() === 503 && NOT_CONFIGURED_HERE.has(url.pathname)) return;
       if (url.origin === new URL(testInfo.project.use.baseURL!).origin && res.status() >= 500) {
         serverErrors.push(`${res.status()} ${res.request().method()} ${url.pathname}`);
       }

@@ -72,7 +72,18 @@ function ensureTess() {
   for (const t of registeredTables()) {
     localSql(`delete from public."${t}" where space_id = '${space}'`);
   }
+  // …and put back what every new space is given (its workflow and statuses, areas, issue types, the General
+  // project, Docs home). Without these her captures make tickets with no status, and every other suite that
+  // signs in as Tess fails until the stack is rebuilt.
+  reseedSpace(space);
   return space;
+}
+
+/** The defaults the three "after insert on spaces" triggers give a new space, in the same order. */
+function reseedSpace(space: string): void {
+  for (const fn of ["tickets_seed_workflow", "tickets_seed_areas", "work_seed_types", "work_seed_default_project", "work_seed_label_fields", "work_seed_filters", "work_seed_docs"]) {
+    localSql(`select public.${fn}('${space}')`);
+  }
 }
 
 function philSpace(): string {
