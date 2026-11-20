@@ -91,6 +91,8 @@ export const SECTIONS: SectionConfig[] = [
     subPages: [
       { label: "Spending", href: "/finance/spending", primary: true },
       { label: "Analysis", href: "/finance/analysis", primary: true },
+      { label: "Bills", href: "/finance/bills", primary: true },
+      { label: "Budget", href: "/finance/budget", primary: true },
       { label: "Investments", href: "/finance/investments", primary: true },
       { label: "Accounts", href: "/finance/accounts", primary: false },
       { label: "Snapshot", href: "/finance/snapshot", primary: false },

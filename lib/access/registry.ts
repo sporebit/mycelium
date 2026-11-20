@@ -251,6 +251,19 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
     note: "The daily net-worth snapshot (0172). It used to live in daily_logs.notes, in the shareable journal section; a trigger on daily_logs now moves any 'finance' key written there into this table.",
   },
 
+  {
+    section: "finance",
+    group: "recurring",
+    tables: ["finance_recurring_marks"],
+    note: "What the person has said about a recurring payment (keep, cancel, not a bill), against a merchant key (0173). The payments themselves are worked out from transactions each time, never stored.",
+  },
+  {
+    section: "finance",
+    group: "budgets",
+    tables: ["finance_budgets"],
+    note: "A monthly budget per spending category (0173). The household budget in the family space is a different thing in a different section (organisation.family).",
+  },
+
   // -- studio ---------------------------------------------------------------
   {
     section: "studio",

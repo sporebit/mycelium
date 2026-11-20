@@ -20,6 +20,18 @@ const CARDS = [
     href: "/finance/analysis",
     description: "Category breakdowns, monthly trends, daily averages.",
   },
+  {
+    key: "bills",
+    label: "Bills",
+    href: "/finance/bills",
+    description: "What leaves on a rhythm: bills, subscriptions, price rises.",
+  },
+  {
+    key: "budget",
+    label: "Budget",
+    href: "/finance/budget",
+    description: "What each month is meant to cost, against what has gone.",
+  },
 ];
 
 export default function FinanceOverviewPage() {
