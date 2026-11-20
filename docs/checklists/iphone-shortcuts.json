@@ -2,7 +2,7 @@
   "slug": "iphone-shortcuts",
   "kind": "setup",
   "title": "Build the iPhone Shortcuts: capture, retry, photo, and the daily prompts",
-  "version": 1,
+  "version": 2,
   "intro": {
     "verdict_html": "A Shortcut file cannot be made or signed on a Windows PC, so each one is built once on the phone from these steps. After that its iCloud link is the backup. Nothing is lost if a step goes wrong: the recording stays in iCloud Drive until the server says <b>saved</b>.",
     "prerequisites": [
@@ -13,7 +13,7 @@
     "time": [
       "Capture: 15 minutes",
       "Retry: 5 minutes",
-      "Photo: 5 minutes",
+      "Photo, share and quick note: 10 minutes",
       "Daily prompts: 10 minutes",
       "Checks: 5 minutes"
     ],
@@ -62,7 +62,7 @@
             "label": "Files app → iCloud Drive → Shortcuts",
             "kind": "decision"
           },
-          "body_html": "In the Files app open <b>iCloud Drive</b>, then the <b>Shortcuts</b> folder, and make a new folder called exactly <b>Capture</b>.",
+          "body_html": "In the Files app open <b>iCloud Drive</b>, then the <b>Shortcuts</b> folder, and make a new folder called exactly <b>Mycelium Inbox</b>.",
           "notes": [
             {
               "kind": "warn",
@@ -114,7 +114,7 @@
           "blocks": [
             {
               "label": "Destination Path",
-              "text": "/Capture/"
+              "text": "/Mycelium Inbox/"
             }
           ],
           "notes": [
@@ -210,19 +210,19 @@
       "verify_html": [
         "Run it and say: <i>Remind me tomorrow at nine to ring the plumber.</i> The box shows your words. Press Done.",
         "Within a few seconds a notification says what it was filed as.",
-        "Files → iCloud Drive → Shortcuts → Capture is empty again."
+        "Files → iCloud Drive → Shortcuts → Mycelium Inbox is empty again."
       ]
     },
     {
       "id": "2",
       "title": "The Retry Shortcut",
-      "lede_html": "Sends anything still sitting in the Capture folder. Safe to run any number of times.",
+      "lede_html": "Sends anything still sitting in the Mycelium Inbox folder. Safe to run any number of times.",
       "steps": [
         {
           "id": "2.1",
           "title": "New Shortcut, named Capture retry",
           "actor": "you",
-          "body_html": "<ol><li><b>Get Contents of Folder</b>: Folder = Shortcuts/Capture.</li><li><b>Repeat with Each</b> item in <i>Contents of Folder</i>.</li><li>Inside: <b>Get Details of Files</b>: Get <b>Name</b> from <i>Repeat Item</i>.</li><li><b>Get Contents of URL</b>: the capture-audio URL, POST, the Authorization header, Form: <code>audio</code> (File) = <i>Repeat Item</i>, <code>client_uuid</code> (Text) = <i>Name</i>.</li><li><b>Get Dictionary Value</b>: <code>status</code>.</li><li><b>If</b> it is <code>saved</code>: <b>Delete Files</b>: <i>Repeat Item</i>, Confirm Before Deleting off. <b>End If</b>.</li><li><b>End Repeat</b>.</li></ol>",
+          "body_html": "<ol><li><b>Get Contents of Folder</b>: Folder = Shortcuts/Mycelium Inbox.</li><li><b>Repeat with Each</b> item in <i>Contents of Folder</i>.</li><li>Inside: <b>Get Details of Files</b>: Get <b>Name</b> from <i>Repeat Item</i>.</li><li><b>Get Contents of URL</b>: the capture-audio URL, POST, the Authorization header, Form: <code>audio</code> (File) = <i>Repeat Item</i>, <code>client_uuid</code> (Text) = <i>Name</i>.</li><li><b>Get Dictionary Value</b>: <code>status</code>.</li><li><b>If</b> it is <code>saved</code>: <b>Delete Files</b>: <i>Repeat Item</i>, Confirm Before Deleting off. <b>End If</b>.</li><li><b>End Repeat</b>.</li></ol>",
           "blocks": [
             {
               "label": "URL",
@@ -242,13 +242,13 @@
         },
         {
           "id": "2.2",
-          "title": "Run it by itself every morning",
+          "title": "It runs by itself when the phone goes on charge",
           "actor": "you",
           "where": {
-            "label": "Shortcuts → Automation → +",
+            "label": "Shortcuts → Automation",
             "kind": "decision"
           },
-          "body_html": "New automation: <b>Time of Day</b>, 07:30, Daily, <b>Run Immediately</b>, Notify When Run off. Action: <b>Run Shortcut</b> → Capture retry."
+          "body_html": "Nothing to build here: step 5.2 makes one automation for <b>Charger → Is Connected</b>, and its first action is <b>Run Shortcut → Capture retry</b>. So anything a bad signal left behind goes up the next time the phone is plugged in."
         }
       ]
     },
@@ -282,8 +282,8 @@
     },
     {
       "id": "4",
-      "title": "Photo and share sheet",
-      "lede_html": "A photo, a screenshot or a web page, kept with a line of your own if you want one.",
+      "title": "Photo, share sheet and quick note",
+      "lede_html": "A photo or screenshot; a link or a piece of text from any app; a note typed without opening the app.",
       "steps": [
         {
           "id": "4.1",
@@ -306,6 +306,24 @@
               "html": "No model reads the picture (that costs money). With words, the words are filed like any capture and the photo rides along; without, it waits in review as a photo and you say what it is."
             }
           ]
+        },
+        {
+          "id": "4.2",
+          "title": "New Shortcut, named Capture this (links and text from any app)",
+          "actor": "you",
+          "body_html": "Tap the <b>i</b>: turn on <b>Show in Share Sheet</b>; Share Sheet Types: <b>Text</b>, <b>URLs</b> and <b>Safari web pages</b> only. Then:<ol><li>The id, as step 1.2 (start the text with <code>sh-</code>).</li><li><b>Ask for Input</b>: Text, Prompt <code>Anything to add?</code> (Done with nothing typed skips it).</li><li><b>Text</b>: insert <i>Provided Input</i>, a new line, then <i>Shortcut Input</i>.</li><li><b>Get Contents of URL</b>: the capture URL from step 1.5, POST, the Authorization header, JSON: <code>text</code> = that <i>Text</i>, <code>client_uuid</code> = <i>id</i>, <code>source</code> = <code>shortcut</code>.</li><li><b>Get Dictionary Value</b>: <code>status</code>. <b>If</b> it is not <code>saved</code>: <b>Show Notification</b>: <code>Not saved. Share it again.</code></li></ol>",
+          "notes": [
+            {
+              "kind": "info",
+              "html": "A link is kept as the link with your words above it. It goes to review like any capture; a web page is not fetched or summarised (that would cost money)."
+            }
+          ]
+        },
+        {
+          "id": "4.3",
+          "title": "New Shortcut, named Quick note (typed, from the Home Screen)",
+          "actor": "you",
+          "body_html": "<ol><li>The id, as step 1.2 (start the text with <code>qn-</code>).</li><li><b>Ask for Input</b>: Text, Prompt <code>Note</code>, Allow Multiple Lines on.</li><li><b>Get Contents of URL</b>: the capture URL, POST, the Authorization header, JSON: <code>text</code> = <i>Provided Input</i>, <code>client_uuid</code> = <i>id</i>, <code>source</code> = <code>shortcut</code>.</li><li><b>Get Dictionary Value</b>: <code>status</code>. <b>If</b> it is not <code>saved</code>: <b>Copy to Clipboard</b>: <i>Provided Input</i>, then <b>Show Notification</b>: <code>Not saved. Your note is on the clipboard.</code></li></ol>Then long-press the Shortcut → <b>Add to Home Screen</b>, or add it as a small Shortcuts widget."
         }
       ]
     },
@@ -342,9 +360,9 @@
         },
         {
           "id": "5.2",
-          "title": "Evening: when the phone goes on charge",
+          "title": "Plugging in: send what was left, and offer the evening close",
           "actor": "you",
-          "body_html": "New automation: <b>Charger</b> → <b>Is Connected</b> → Run Immediately. Actions:<ol><li><b>Date</b>: Current Date. <b>Format Date</b>: Custom, <code>HH</code>.</li><li><b>If</b> <i>Formatted Date</i> <b>is greater than or equal to</b> 20.</li><li>Inside: <b>Get Contents of URL</b>: URL as below, POST, the Authorization header, Request Body JSON: <code>action</code> (Text) = <code>prompt</code>.</li><li><b>End If</b>.</li></ol>",
+          "body_html": "New automation: <b>Charger</b> → <b>Is Connected</b> → Run Immediately, Notify When Run off. Actions:<ol><li><b>Run Shortcut</b>: Capture retry.</li><li><b>Date</b>: Current Date. <b>Format Date</b>: Custom, <code>HH</code>.</li><li><b>If</b> <i>Formatted Date</i> <b>is greater than or equal to</b> 20.</li><li>Inside: <b>Get Contents of URL</b>: URL as below, POST, the Authorization header, Request Body JSON: <code>action</code> (Text) = <code>prompt</code>.</li><li><b>End If</b>.</li></ol>",
           "blocks": [
             {
               "label": "URL",
@@ -415,12 +433,12 @@
           "id": "6.4",
           "title": "Keep the links",
           "actor": "you",
-          "body_html": "For each Shortcut: Share → Copy iCloud Link, and paste the four links here. They are how the Shortcuts come back after a new phone. Before sharing, open each Get Contents of URL and check the token is not in a link you would give anyone else.",
+          "body_html": "For each Shortcut: Share → Copy iCloud Link, and paste the links here. They are how the Shortcuts come back after a new phone. Before sharing, open each Get Contents of URL and check the token is not in a link you would give anyone else.",
           "fields": [
             {
               "key": "icloud_links",
               "label": "iCloud links",
-              "placeholder": "Capture, Capture retry, Capture photo"
+              "placeholder": "Capture, Capture retry, Capture photo, Capture this, Quick note"
             }
           ],
           "notes": [
@@ -441,7 +459,7 @@
     },
     {
       "symptom": "Save File fails",
-      "cause": "The Capture folder does not exist inside iCloud Drive/Shortcuts, or Ask Where to Save is still on.",
+      "cause": "The Mycelium Inbox folder does not exist inside iCloud Drive/Shortcuts, or Ask Where to Save is still on.",
       "fix": "Create the folder (step 0.3); switch Ask Where to Save off."
     },
     {
