@@ -1,55 +1,53 @@
+/**
+ * The daily net-worth snapshot: where it is kept and how it is read.
+ *
+ * Kept in `finance_snapshots` (0172), a finance table: owner-only, never
+ * shareable. Until 2026-11-20 it was written into `daily_logs.notes`, which
+ * is in the journal section and can be shared; 0172 moved every snapshot
+ * out and a trigger on daily_logs keeps the key out. Nothing here reads or
+ * writes the daily log.
+ */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getOrCreateDailyLog, parseNotes } from "@/lib/dailyLog";
 import { localDateKey, previousDateKey } from "@/lib/util/date";
 import type { FinanceData, FinanceSnapshot, FinanceHistoryPoint } from "./types";
 
+type Row = { snapshot_date: string; snapshot: unknown; last_refreshed_at: string; source: string };
+const COLUMNS = "snapshot_date, snapshot, last_refreshed_at, source";
+
+function toData(row: Row): (FinanceData & { date: string }) | null {
+  if (!row.snapshot || typeof row.snapshot !== "object") return null;
+  return {
+    snapshot: row.snapshot as FinanceSnapshot,
+    last_refreshed_at: new Date(row.last_refreshed_at).toISOString(),
+    source: row.source === "cron" ? "cron" : "manual",
+    date: row.snapshot_date,
+  };
+}
+
+/** Today's snapshot, written over any earlier one from today. */
 export async function persistSnapshot(
   supabase: SupabaseClient,
   snapshot: FinanceSnapshot,
   source: "manual" | "cron"
 ): Promise<FinanceData> {
-  const dateKey = localDateKey();
-  const row = await getOrCreateDailyLog(supabase, dateKey);
-  const current = parseNotes(row.notes) as Record<string, unknown>;
-
   const finance: FinanceData = {
     snapshot,
     last_refreshed_at: new Date().toISOString(),
     source,
   };
-
-  const merged = { ...current, finance };
   const { error } = await supabase
-    .from("daily_logs")
-    .update({
-      notes: JSON.stringify(merged),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", row.id);
+    .from("finance_snapshots")
+    .upsert(
+      { snapshot_date: localDateKey(), snapshot, last_refreshed_at: finance.last_refreshed_at, source },
+      { onConflict: "space_id,snapshot_date" }
+    );
   if (error) throw error;
-
   return finance;
 }
 
-function extractFinance(notesStr: string | null | undefined): FinanceData | null {
-  const notes = parseNotes(notesStr) as { finance?: unknown };
-  const f = notes.finance;
-  if (!f || typeof f !== "object") return null;
-  const o = f as Record<string, unknown>;
-  if (
-    !o.snapshot ||
-    typeof o.snapshot !== "object" ||
-    typeof o.last_refreshed_at !== "string"
-  ) {
-    return null;
-  }
-  return o as unknown as FinanceData;
-}
-
 /**
- * Returns the latest finance snapshot — today's row if it has one, otherwise
- * walks back day-by-day until it finds one. Returns null if no row in the
- * past 400 days has a finance snapshot.
+ * Returns the latest finance snapshot — today's if there is one, otherwise
+ * the most recent in the past 400 days. Null if there is none.
  */
 export async function getLatestSnapshot(
   supabase: SupabaseClient
@@ -59,18 +57,15 @@ export async function getLatestSnapshot(
   for (let i = 0; i < 400; i++) earliest = previousDateKey(earliest);
 
   const { data, error } = await supabase
-    .from("daily_logs")
-    .select("log_date, notes")
-    .gte("log_date", earliest)
-    .lte("log_date", today)
-    .order("log_date", { ascending: false });
-
+    .from("finance_snapshots")
+    .select(COLUMNS)
+    .gte("snapshot_date", earliest)
+    .lte("snapshot_date", today)
+    .order("snapshot_date", { ascending: false })
+    .limit(1);
   if (error) throw error;
-  for (const row of (data ?? []) as Array<{ log_date: string; notes: string | null }>) {
-    const fin = extractFinance(row.notes);
-    if (fin) return { ...fin, date: row.log_date };
-  }
-  return null;
+  const row = ((data ?? []) as Row[])[0];
+  return row ? toData(row) : null;
 }
 
 /**
@@ -85,25 +80,18 @@ export async function getSnapshotHistory(
   for (let i = 0; i < months * 31; i++) earliest = previousDateKey(earliest);
 
   const { data, error } = await supabase
-    .from("daily_logs")
-    .select("log_date, notes")
-    .gte("log_date", earliest)
-    .lte("log_date", today)
-    .order("log_date", { ascending: false });
-
+    .from("finance_snapshots")
+    .select(COLUMNS)
+    .gte("snapshot_date", earliest)
+    .lte("snapshot_date", today)
+    .order("snapshot_date", { ascending: false })
+    .limit(1000);
   if (error) throw error;
 
   const out: FinanceHistoryPoint[] = [];
-  for (const row of (data ?? []) as Array<{ log_date: string; notes: string | null }>) {
-    const fin = extractFinance(row.notes);
-    if (fin) {
-      out.push({
-        date: row.log_date,
-        snapshot: fin.snapshot,
-        last_refreshed_at: fin.last_refreshed_at,
-        source: fin.source,
-      });
-    }
+  for (const row of (data ?? []) as Row[]) {
+    const fin = toData(row);
+    if (fin) out.push({ date: fin.date, snapshot: fin.snapshot, last_refreshed_at: fin.last_refreshed_at, source: fin.source });
   }
   return out;
 }

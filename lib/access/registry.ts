@@ -244,6 +244,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
     tables: ["accounts"],
     note: "accounts is the recurring-cost / subscriptions ledger (cost_amount, cost_period, renewal_date), not bank accounts.",
   },
+  {
+    section: "finance",
+    group: "snapshots",
+    tables: ["finance_snapshots"],
+    note: "The daily net-worth snapshot (0172). It used to live in daily_logs.notes, in the shareable journal section; a trigger on daily_logs now moves any 'finance' key written there into this table.",
+  },
 
   // -- studio ---------------------------------------------------------------
   {
