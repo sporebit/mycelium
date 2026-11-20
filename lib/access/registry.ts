@@ -66,6 +66,9 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
       "ticket_links",
       "ticket_completions",
       "ticket_dependencies",
+      // the daily loop (0161): a person's five for the day; whoever may see their Work sees their day
+      "day_plans",
+      "day_plan_items",
       "ticket_templates",
       "sprints",
       "issue_types",
@@ -315,6 +318,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
     group: "api_tokens",
     tables: ["api_tokens"],
     note: "Scoped bearer tokens (tickets spec §14.4); hashes only, resolved by the middleware with the service role.",
+  },
+  {
+    section: "platform",
+    group: "interruptions",
+    tables: ["interruptions"],
+    note: "Every time the app reaches for the person on its own (0161): the ledger the budget of three a day is counted from.",
   },
   {
     section: "platform",
