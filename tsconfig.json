@@ -33,12 +33,13 @@
     "**/*.mts",
     "**/*.ts",
     "**/*.tsx",
+    ".next-e2e-prod/types/**/*.ts",
     ".next-e2e/dev/types/**/*.ts",
     ".next-e2e/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-e2e-prod/types/**/*.ts"
+    ".next-e2e-prod-b/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
@@ -47,6 +48,7 @@
     ".next-e2e",
     ".claude",
     "pc-worker",
-    ".next-e2e-prod"
+    ".next-e2e-prod",
+    ".next-e2e-prod-b"
   ]
 }

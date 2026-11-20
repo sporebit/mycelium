@@ -4,7 +4,12 @@ import type { NextConfig } from "next";
 const withSerwist = withSerwistInit({
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
-  disable: process.env.NODE_ENV !== "production",
+  // Off in development, and off in the compiled end-to-end build
+  // (e2e/support/build.ts sets E2E_BUILD): that build shares public/ with
+  // the main checkout, so bundling a worker there would rewrite sw.js under
+  // a server that is still running, and a worker's cache would hand a test
+  // yesterday's page. The release build never sets the flag.
+  disable: process.env.NODE_ENV !== "production" || process.env.E2E_BUILD === "1",
 });
 
 const nextConfig: NextConfig = {
