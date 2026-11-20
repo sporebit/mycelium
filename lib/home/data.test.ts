@@ -111,10 +111,11 @@ describe("specimens", () => {
     }
   });
 
-  it("one species per section, so a section is recognisable; an item with no section gets its own", () => {
-    expect(speciesFor("Organisation", 1)).toBe(speciesFor("organisation ", 999));
-    expect(speciesFor(null, 7)).toBe(7 % SPECIES.length);
+  it("a species per item, the same one every time, whatever its section", () => {
+    expect(speciesFor("Organisation", 7)).toBe(7 % SPECIES.length);
+    expect(speciesFor(null, 7)).toBe(speciesFor("Work", 7));
     expect(speciesFor("", 8)).toBe(8 % SPECIES.length);
-    for (const name of ["Work", "Fitness", "Family", "Hours"]) expect(speciesFor(name, 0)).toBeLessThan(SPECIES.length);
+    // Five items in one project are not five of the same mushroom.
+    expect(new Set([0, 1, 2, 3, 4].map((n) => speciesFor("General", n))).size).toBe(SPECIES.length);
   });
 });

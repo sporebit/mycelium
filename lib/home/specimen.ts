@@ -10,9 +10,8 @@
  *
  * Pure and seeded: the same item always grows the same specimen.
  *
- * GENERATED in part: the SPECIES shapes are copied from the mock-up by
- * scripts kept with the run; edit the generator below by hand, not the
- * path data.
+ * The SPECIES shapes below were copied once from the mock-up file. This is
+ * now the source: edit it directly.
  */
 
 export type Species = {
@@ -318,10 +317,15 @@ export function seedOf(text: string): number {
   return h >>> 0;
 }
 
-/** Which species an item is: one per section where the section is known, else from the item itself. */
-export function speciesFor(section: string | null | undefined, itemSeed: number): number {
-  const key = (section ?? "").trim().toLowerCase();
-  return (key ? seedOf(key) : itemSeed) % SPECIES.length;
+/**
+ * Which species an item is: its own, from its seed, so a day's figures differ
+ * (claude/ui-direction.md §6: "a different species per item"). The section is
+ * taken but not used: most of a day's items share one project, and a plate
+ * of five identical mushrooms says nothing. It stays in the signature so
+ * the choice can change here without touching a view.
+ */
+export function speciesFor(_section: string | null | undefined, itemSeed: number): number {
+  return (itemSeed >>> 0) % SPECIES.length;
 }
 
 /**

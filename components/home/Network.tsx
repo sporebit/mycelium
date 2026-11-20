@@ -56,8 +56,12 @@ class Engine {
     public still: boolean,
   ) {
     this.r = seeded(seed);
-    // A new account has a small network; a long history fills the page.
-    this.maxSegs = Math.round(600 + 2200 * Math.max(0, Math.min(1, density)));
+    // A new account has a sparse network that still reaches the whole page; a long history fills it.
+    this.maxSegs = Math.round(1500 + 1700 * this.fill());
+  }
+
+  fill(): number {
+    return Math.max(0, Math.min(1, this.density));
   }
 
   seg(x1: number, y1: number, x2: number, y2: number, z: number, bt: number): void {
@@ -116,10 +120,12 @@ class Engine {
     this.w = w;
     this.h = h;
     const B: [number, number] = [w * 0.5, h * 0.56];
-    for (let i = 0; i < ENDS.length; i++) {
-      for (let k = 0; k < 2; k++) {
+    const perEnd = this.fill() < 0.5 ? 1 : 2;
+    const sprout = 0.16 + 0.44 * this.fill();
+    for (let k = 0; k < perEnd; k++) {
+      for (let i = 0; i < ENDS.length; i++) {
         const mid: [number, number] = [(B[0] + ENDS[i][0] * w) / 2 + (this.r() - 0.5) * 120, (B[1] + ENDS[i][1] * h) / 2 + (this.r() - 0.5) * 90];
-        this.trunk([B, mid, [ENDS[i][0] * w, ENDS[i][1] * h]], (i + k) % 3, i * 110 + k * 200, 0.6);
+        this.trunk([B, mid, [ENDS[i][0] * w, ENDS[i][1] * h]], (i + k) % 3, i * 110 + k * 200, sprout);
       }
     }
     for (let i = 0; i < this.sporeCount; i++) {

@@ -234,7 +234,7 @@ export function FloatingCapture() {
           type="button"
           onClick={openModal}
           aria-label="Capture"
-          className="hidden lg:flex fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-accent text-ink-0 shadow-2xl hover:bg-accent/90 transition-transform hover:scale-105 items-center justify-center text-xl font-[family-name:var(--font-mono)]"
+          className="capture-fab hidden lg:flex fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-accent text-ink-0 shadow-2xl hover:bg-accent/90 transition-transform hover:scale-105 items-center justify-center text-xl font-[family-name:var(--font-mono)]"
         >
           +
         </button>

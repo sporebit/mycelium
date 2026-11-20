@@ -905,3 +905,17 @@ a.work-chip:hover {
     animation: none;
   }
 }
+
+/* The app's global heading rule sets the display face and its own colour; on the plate, headings are the
+   serif caption face in the plate's ink. */
+.plate h1,
+.plate h2 {
+  font-family: var(--font-plate), Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  color: inherit;
+  letter-spacing: -0.01em;
+}
+/* The new shell has Capture in its menu bar: the floating button would only sit on top of Home. */
+html[data-shell="new"] .capture-fab {
+  display: none;
+}

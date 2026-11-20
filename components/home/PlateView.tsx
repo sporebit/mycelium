@@ -78,10 +78,12 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
           // The moment: colour floods in (the fill transition), new growth from the specimen, a chime.
           network.current?.burst(0.5, 0.42);
           if (chime) playChime(item.is_win);
+          // Stay on it: the finished specimen holds the centre, coloured in, until another figure is chosen.
+          setPicked(item.item_id);
         } else {
           setGone((s) => new Set(s).add(item.item_id));
+          setPicked(null);
         }
-        setPicked(null);
       } catch {
         setError("That did not save. Nothing was changed; try again.");
       } finally {
@@ -95,7 +97,7 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
   const hours = data.hours;
 
   return (
-    <div className="relative isolate min-h-[calc(100vh-76px)] overflow-hidden rounded-[6px]" style={{ background: PAPER, color: INK }} data-testid="home-plate">
+    <div className="plate relative isolate min-h-[calc(100vh-76px)] overflow-hidden rounded-[6px]" style={{ background: PAPER, color: INK }} data-testid="home-plate">
       <Network ref={network} seed={data.who.id.length * 131 + 77} density={density} className="absolute inset-0 -z-10 h-full w-full" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-3 rounded-[4px]" style={{ boxShadow: `0 0 0 1px rgba(236,230,210,0.36), 0 0 0 5px ${PAPER}, 0 0 0 6px rgba(236,230,210,0.16)` }} />
 
@@ -223,19 +225,19 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
             )}
 
             {rest.length ? (
-              <section aria-label="The rest of today" className="mt-2 grid w-full max-w-[760px] grid-cols-2 gap-3 xl:grid-cols-4 [text-shadow:none]">
+              <section aria-label="The rest of today" className="mt-2 grid w-full max-w-[700px] grid-cols-2 gap-3 [text-shadow:none]">
                 {rest.slice(0, 8).map((f, n) => (
                   <button
                     key={f.item_id}
                     type="button"
                     onClick={() => setPicked(f.item_id)}
-                    className="plate-press plate-settle flex min-h-[104px] items-center gap-2 rounded-[10px] py-1.5 pl-1 pr-2.5 text-left"
+                    className="plate-press plate-settle flex min-h-[104px] items-center gap-3 rounded-[10px] py-1.5 pl-2 pr-3 text-left"
                     style={{ background: "rgba(27,29,24,0.92)", color: INK, boxShadow: "0 0 0 1px rgba(236,230,210,0.2)", animationDelay: `${n * 80}ms` }}
                     data-testid="plate-figure"
                   >
                     <Specimen species={speciesFor(f.section, f.seed)} seed={f.seed} done={f.state === "done"} size="small" />
                     <span className="flex min-w-0 flex-col gap-0.5">
-                      <span className={`${MONO} text-[12px] tabular-nums`} style={{ color: SOFT }}>
+                      <span className={`${MONO} whitespace-nowrap text-[12px] tabular-nums`} style={{ color: SOFT }}>
                         {f.state === "done" ? "collected" : about(f.minutes)}
                       </span>
                       <span className={`${SERIF} text-[17px] leading-[1.15]`}>{f.short}</span>
