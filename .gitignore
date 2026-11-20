@@ -79,3 +79,5 @@ e2e/.results/
 # private imports (contacts etc.) — never committed
 imports/private/
 pc-worker/.venv/
+
+/.next-e2e-prod/
