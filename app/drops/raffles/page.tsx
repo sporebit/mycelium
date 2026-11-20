@@ -194,7 +194,7 @@ export default function RafflesPage() {
   function deadlineUrgency(deadline: string | null): string {
     if (!deadline || !now) return "";
     const diff = new Date(deadline).getTime() - now;
-    if (diff < 0) return "text-ink-3 line-through";
+    if (diff < 0) return "text-text-lo line-through";
     if (diff < 86_400_000) return "text-[#f56d6d]";
     if (diff < 7 * 86_400_000) return "text-[#f5b56d]";
     return "";
@@ -206,7 +206,7 @@ export default function RafflesPage() {
     <div className="flex flex-col gap-6">
       <header className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Raffles
           </h1>
         </div>
@@ -220,9 +220,9 @@ export default function RafflesPage() {
       </header>
 
       {/* Stats */}
-      <div className="flex gap-4 text-[10px] font-[family-name:var(--font-mono)] text-ink-3 tracking-[0.1em]">
+      <div className="flex gap-4 text-[10px] font-[family-name:var(--font-mono)] text-text-lo tracking-[0.1em]">
         <span>
-          <span className="text-text-0">{stats.total}</span> entered
+          <span className="text-text-hi">{stats.total}</span> entered
         </span>
         <span>
           <span className="text-[#84f5b8]">{stats.won}</span> won
@@ -246,7 +246,7 @@ export default function RafflesPage() {
             className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
               filterResult === r
                 ? "border-accent/50 bg-accent/15 text-accent"
-                : "border-hairline text-ink-3 hover:text-ink-4"
+                : "border-hairline text-text-lo hover:text-text-hi"
             }`}
           >
             {r === "all" ? "All" : RESULT_LABELS[r] ?? r}
@@ -255,11 +255,11 @@ export default function RafflesPage() {
       </div>
 
       {loading ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Loading raffles…
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           No raffle entries yet. Log one to start tracking.
         </div>
       ) : (
@@ -290,8 +290,8 @@ export default function RafflesPage() {
       {/* Log Entry modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-ink-0 border border-hairline rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
-            <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-0 mb-4">
+          <div className="bg-surface-0 border border-hairline rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+            <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-hi mb-4">
               Log Raffle Entry
             </h2>
             <div className="flex flex-col gap-3">
@@ -354,7 +354,7 @@ export default function RafflesPage() {
                 />
               </div>
               <div>
-                <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                   RESULT
                 </Mono>
                 <select
@@ -362,7 +362,7 @@ export default function RafflesPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, result: e.target.value }))
                   }
-                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                 >
                   {Object.entries(RESULT_LABELS).map(([k, v]) => (
                     <option key={k} value={k}>
@@ -373,7 +373,7 @@ export default function RafflesPage() {
               </div>
               {drops.length > 0 && (
                 <div>
-                  <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                  <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                     LINK TO DROP
                   </Mono>
                   <select
@@ -381,7 +381,7 @@ export default function RafflesPage() {
                     onChange={(e) =>
                       setForm((f) => ({ ...f, drop_id: e.target.value }))
                     }
-                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                   >
                     <option value="">None</option>
                     {drops.map((d) => (
@@ -394,7 +394,7 @@ export default function RafflesPage() {
               )}
               {wishItems.length > 0 && (
                 <div>
-                  <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                  <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                     LINK TO WISHLIST ITEM
                   </Mono>
                   <select
@@ -405,7 +405,7 @@ export default function RafflesPage() {
                         wishlist_item_id: e.target.value,
                       }))
                     }
-                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                   >
                     <option value="">None</option>
                     {wishItems.map((w) => (
@@ -417,7 +417,7 @@ export default function RafflesPage() {
                 </div>
               )}
               <div>
-                <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                   NOTES
                 </Mono>
                 <textarea
@@ -425,7 +425,7 @@ export default function RafflesPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, notes: e.target.value }))
                   }
-                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent resize-none h-20"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-accent resize-none h-20"
                 />
               </div>
             </div>
@@ -436,7 +436,7 @@ export default function RafflesPage() {
                   setShowModal(false);
                   setForm(EMPTY_MODAL);
                 }}
-                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
+                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-text-lo hover:text-text-hi"
               >
                 CANCEL
               </button>
@@ -484,22 +484,22 @@ function RaffleRow({
     >
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
         <div className="flex-1 min-w-0">
-          <span className="text-sm font-medium text-text-0">
+          <span className="text-sm font-medium text-text-hi">
             {entry.brand}
           </span>
-          <span className="text-sm text-text-1 ml-2">{entry.item_name}</span>
+          <span className="text-sm text-text-mid ml-2">{entry.item_name}</span>
           {entry.size && (
-            <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] bg-ink-2 text-ink-3">
+            <span className="ml-2 px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] bg-surface-2 text-text-lo">
               {entry.size}
             </span>
           )}
         </div>
-        <div className="text-[10px] font-[family-name:var(--font-mono)] text-ink-3">
+        <div className="text-[10px] font-[family-name:var(--font-mono)] text-text-lo">
           {entry.retailer}
         </div>
         {entry.deadline && (
           <div
-            className={`text-[10px] font-[family-name:var(--font-mono)] ${deadlineClass || "text-ink-3"}`}
+            className={`text-[10px] font-[family-name:var(--font-mono)] ${deadlineClass || "text-text-lo"}`}
           >
             {new Date(entry.deadline).toLocaleDateString("en-GB", {
               day: "numeric",
@@ -509,7 +509,7 @@ function RaffleRow({
             })}
           </div>
         )}
-        <div className="text-[10px] font-[family-name:var(--font-mono)] text-ink-3">
+        <div className="text-[10px] font-[family-name:var(--font-mono)] text-text-lo">
           {new Date(entry.entry_date).toLocaleDateString("en-GB", {
             day: "numeric",
             month: "short",
@@ -540,7 +540,7 @@ function RaffleRow({
         </div>
 
         {entry.retail_price != null && (
-          <div className="text-[10px] font-[family-name:var(--font-mono)] text-ink-3">
+          <div className="text-[10px] font-[family-name:var(--font-mono)] text-text-lo">
             £{entry.retail_price}
           </div>
         )}
@@ -556,7 +556,7 @@ function RaffleRow({
         )}
       </div>
       {entry.notes && (
-        <div className="text-[10px] text-ink-3 mt-1 truncate">
+        <div className="text-[10px] text-text-lo mt-1 truncate">
           {entry.notes}
         </div>
       )}
@@ -581,7 +581,7 @@ function RaffleField({
 }) {
   return (
     <div>
-      <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+      <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
         {label.toUpperCase()}
         {required && <span className="text-accent ml-1">*</span>}
       </Mono>
@@ -590,7 +590,7 @@ function RaffleField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         list={list}
-        className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+        className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
       />
     </div>
   );

@@ -34,11 +34,11 @@ function dayLabel(day: string): string {
 
 const STATUS_TONE: Record<string, string> = {
   closed: "text-ok border-ok/40",
-  skipped: "text-text-2 border-ink-4",
+  skipped: "text-text-lo border-text-hi",
   open: "text-glow-1 border-glow-2/50",
   closing: "text-warn border-warn/40",
   prompted: "text-warn border-warn/40",
-  pending: "text-text-2 border-ink-4",
+  pending: "text-text-lo border-text-hi",
 };
 
 /** The 30-day sparkline strip: one row per score key (spec §6). */
@@ -46,20 +46,20 @@ export function ScoreStrip({ data }: { data: Series | undefined }) {
   if (!data || !data.series.length) return null;
   const last = data.series.slice(-30);
   return (
-    <div className="rounded-md bg-ink-1 p-4 flex flex-col gap-2">
+    <div className="rounded-md bg-surface-1 p-4 flex flex-col gap-2">
       {data.keys.map((k) => {
         const vals = last.map((r) => (typeof r[k] === "number" ? (r[k] as number) : null));
         const known = vals.filter((v): v is number => v !== null);
         const avg = known.length ? (known.reduce((a, b) => a + b, 0) / known.length).toFixed(1) : "–";
         return (
           <div key={k} className="flex items-center gap-3">
-            <Mono className="w-24 text-[10px] uppercase tracking-[0.15em] text-text-2">{k}</Mono>
+            <Mono className="w-24 text-[10px] uppercase tracking-[0.15em] text-text-lo">{k}</Mono>
             <div className="flex items-end gap-[2px] h-6 flex-1">
               {vals.map((v, i) => (
-                <span key={i} title={`${last[i].day}: ${v ?? "–"}`} className={`w-[6px] rounded-sm ${v === null ? "bg-ink-2 h-1" : "bg-glow-2/70"}`} style={v === null ? undefined : { height: `${(v / 5) * 100}%` }} />
+                <span key={i} title={`${last[i].day}: ${v ?? "–"}`} className={`w-[6px] rounded-sm ${v === null ? "bg-surface-2 h-1" : "bg-glow-2/70"}`} style={v === null ? undefined : { height: `${(v / 5) * 100}%` }} />
               ))}
             </div>
-            <Mono className="w-8 text-right text-[10px] text-text-2">{avg}</Mono>
+            <Mono className="w-8 text-right text-[10px] text-text-lo">{avg}</Mono>
           </div>
         );
       })}
@@ -67,8 +67,8 @@ export function ScoreStrip({ data }: { data: Series | undefined }) {
   );
 }
 
-const input = "bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
-const btn = "px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em]";
+const input = "bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
+const btn = "px-3 py-1.5 rounded-sm border border-text-hi text-xs text-text-mid hover:text-text-hi hover:bg-surface-2 font-[family-name:var(--font-mono)] tracking-[0.1em]";
 
 export function DayListClient() {
   const { data } = useApi<{ days: DayListRow[]; today: string }>("/api/journal/days");
@@ -83,7 +83,7 @@ export function DayListClient() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
-        <h1 className="text-lg font-semibold text-text-0">Journal</h1>
+        <h1 className="text-lg font-semibold text-text-hi">Journal</h1>
         <div className="flex items-center gap-2">
           {today && (
             <Link href={`/journal/${today}`} className={btn}>
@@ -107,17 +107,17 @@ export function DayListClient() {
       <ScoreStrip data={scores} />
 
       {!data ? (
-        <div className="text-sm text-ink-3 italic">Loading…</div>
+        <div className="text-sm text-text-lo italic">Loading…</div>
       ) : days.length === 0 ? (
-        <div className="text-sm text-ink-3 italic">No days yet. The bot asks every evening; or open today and press Talk.</div>
+        <div className="text-sm text-text-lo italic">No days yet. The bot asks every evening; or open today and press Talk.</div>
       ) : (
         Array.from(groups.entries()).map(([month, rows]) => (
           <section key={month} className="flex flex-col gap-2">
             <div className="card-eyebrow pt-2">{monthLabel(rows[0].day)}</div>
             {rows.map((d) => (
-              <Link key={d.id} href={`/journal/${d.day}`} className="rounded-md bg-ink-1 p-4 flex flex-col gap-1.5 hover:bg-ink-2/60 transition-colors">
+              <Link key={d.id} href={`/journal/${d.day}`} className="rounded-md bg-surface-1 p-4 flex flex-col gap-1.5 hover:bg-surface-2/60 transition-colors">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm text-text-0 font-medium">{dayLabel(d.day)}</span>
+                  <span className="text-sm text-text-hi font-medium">{dayLabel(d.day)}</span>
                   <span className={`rounded-md border px-1.5 py-0.5 text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] ${STATUS_TONE[d.status] ?? ""}`}>
                     {d.status}
                     {d.mode && d.mode !== "talk" ? ` · ${d.mode}` : ""}
@@ -131,10 +131,10 @@ export function DayListClient() {
                     ))}
                   </div>
                   {(d.to_review ?? 0) > 0 && <span className="rounded-md bg-warn/15 border border-warn/40 px-1.5 py-0.5 text-[10px] text-warn font-[family-name:var(--font-mono)]">{d.to_review} to review</span>}
-                  {d.cost_pence > 0 && <Mono className="text-[10px] text-text-2">{d.cost_pence.toFixed(1)}p</Mono>}
+                  {d.cost_pence > 0 && <Mono className="text-[10px] text-text-lo">{d.cost_pence.toFixed(1)}p</Mono>}
                 </div>
-                {(d.scene_titles ?? []).length > 0 && <p className="text-xs text-text-2 truncate">{d.scene_titles!.join(" → ")}</p>}
-                {d.summary ? <p className="text-sm text-text-1 line-clamp-2">{d.summary.split("\n")[0]}</p> : <p className="text-xs text-text-2 italic">{d.mode === "skip" ? "scores only" : d.user_turns ? `${d.user_turns} message${d.user_turns === 1 ? "" : "s"}, no summary` : "nothing logged"}</p>}
+                {(d.scene_titles ?? []).length > 0 && <p className="text-xs text-text-lo truncate">{d.scene_titles!.join(" → ")}</p>}
+                {d.summary ? <p className="text-sm text-text-mid line-clamp-2">{d.summary.split("\n")[0]}</p> : <p className="text-xs text-text-lo italic">{d.mode === "skip" ? "scores only" : d.user_turns ? `${d.user_turns} message${d.user_turns === 1 ? "" : "s"}, no summary` : "nothing logged"}</p>}
               </Link>
             ))}
           </section>

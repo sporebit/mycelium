@@ -273,7 +273,7 @@ export function NutritionClient() {
     <div className="flex flex-col gap-4">
       <header className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Nutrition
           </h1>
           <div className="flex items-center gap-1">
@@ -287,22 +287,22 @@ export function NutritionClient() {
       {tab === "today" && (
         <>
           {/* Date nav */}
-          <div className="flex items-center justify-between rounded-md bg-ink-1 border border-ink-2 px-3 py-2">
+          <div className="flex items-center justify-between rounded-md bg-surface-1 border border-surface-2 px-3 py-2">
             <button
               type="button"
               onClick={() => setDate((d) => shiftDate(d, -1))}
-              className="text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+              className="text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
               aria-label="Previous day"
             >
               ← PREV
             </button>
             <div className="text-center">
-              <div className="text-sm text-ink-4">{formatDate(date)}</div>
+              <div className="text-sm text-text-hi">{formatDate(date)}</div>
               {date !== localDateKey() && (
                 <button
                   type="button"
                   onClick={() => setDate(localDateKey())}
-                  className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
+                  className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-hi font-[family-name:var(--font-mono)]"
                 >
                   TODAY
                 </button>
@@ -311,7 +311,7 @@ export function NutritionClient() {
             <button
               type="button"
               onClick={() => setDate((d) => shiftDate(d, 1))}
-              className="text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+              className="text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
               aria-label="Next day"
             >
               NEXT →
@@ -319,15 +319,15 @@ export function NutritionClient() {
           </div>
 
           {/* Summary */}
-          <section className="rounded-md bg-ink-1 border border-ink-2 px-4 py-4 flex flex-col gap-4">
+          <section className="rounded-md bg-surface-1 border border-surface-2 px-4 py-4 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <Mono className="block text-3xl text-ink-4 tabular-nums">
+              <Mono className="block text-3xl text-text-hi tabular-nums">
                 {Math.round(totals.kcal).toLocaleString()}{" "}
-                <span className="text-ink-3 text-lg">
+                <span className="text-text-lo text-lg">
                   / {targets.kcal.toLocaleString()} kcal
                 </span>
               </Mono>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 Eaten {Math.round(totals.kcal).toLocaleString()} · Burned{" "}
                 {burned.toLocaleString()} · Net {net.toLocaleString()}
               </div>
@@ -373,20 +373,20 @@ export function NutritionClient() {
                   e.preventDefault();
                   addMealGroup();
                 }}
-                className="flex items-center gap-2 px-3 py-2 rounded-md bg-ink-1 border border-dashed border-ink-2"
+                className="flex items-center gap-2 px-3 py-2 rounded-md bg-surface-1 border border-dashed border-surface-2"
               >
-                <span aria-hidden className="text-ink-3 text-base">+</span>
+                <span aria-hidden className="text-text-lo text-base">+</span>
                 <input
                   type="text"
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
                   placeholder="Add meal group (e.g. Pre-workout)"
-                  className="flex-1 bg-transparent outline-none text-sm text-text-0 placeholder:text-ink-3"
+                  className="flex-1 bg-transparent outline-none text-sm text-text-hi placeholder:text-text-lo"
                 />
                 <button
                   type="submit"
                   disabled={!newGroupName.trim()}
-                  className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 disabled:opacity-40 disabled:cursor-not-allowed font-[family-name:var(--font-mono)]"
+                  className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-hi disabled:opacity-40 disabled:cursor-not-allowed font-[family-name:var(--font-mono)]"
                 >
                   ADD ↵
                 </button>
@@ -436,7 +436,7 @@ export function NutritionClient() {
           onClick={() => setQuickScanOpen(true)}
           aria-label="Scan a barcode to log food"
           title="Scan a barcode"
-          className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] md:right-6 md:bottom-6 z-[90] h-14 w-14 md:h-10 md:w-10 rounded-full bg-glow-2 text-ink-0 shadow-2xl hover:bg-glow-1 transition-colors flex items-center justify-center"
+          className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)] md:right-6 md:bottom-6 z-[90] h-14 w-14 md:h-10 md:w-10 rounded-full bg-glow-2 text-surface-0 shadow-2xl hover:bg-glow-1 transition-colors flex items-center justify-center"
         >
           <FabCameraIcon />
         </button>
@@ -491,7 +491,7 @@ function TabBtn({
       type="button"
       onClick={onClick}
       className={`px-3 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] rounded-md transition-colors ${
-        active ? "bg-ink-2 text-ink-4" : "text-ink-3 hover:text-ink-4"
+        active ? "bg-surface-2 text-text-hi" : "text-text-lo hover:text-text-hi"
       }`}
     >
       {label}
@@ -505,11 +505,11 @@ function ListSkeleton() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="rounded-md bg-ink-1 border border-ink-2 px-3 py-3 animate-pulse"
+          className="rounded-md bg-surface-1 border border-surface-2 px-3 py-3 animate-pulse"
         >
-          <div className="h-3 w-24 rounded-md bg-ink-2" />
-          <div className="h-4 w-full rounded-md bg-ink-2/70 mt-3" />
-          <div className="h-4 w-3/4 rounded-md bg-ink-2/60 mt-2" />
+          <div className="h-3 w-24 rounded-md bg-surface-2" />
+          <div className="h-4 w-full rounded-md bg-surface-2/70 mt-3" />
+          <div className="h-4 w-3/4 rounded-md bg-surface-2/60 mt-2" />
         </div>
       ))}
     </div>

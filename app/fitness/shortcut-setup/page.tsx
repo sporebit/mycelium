@@ -14,10 +14,10 @@ export default function ShortcutSetupPage() {
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl">
-      <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
+      <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-text-hi">
         iOS Shortcut setup
       </h1>
-      <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
+      <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] leading-relaxed">
         One-tap voice capture from your iPhone&apos;s Action Button or Lock Screen.
         Open the Shortcuts app on iOS, create a new shortcut, and add the four
         actions below in order.
@@ -25,7 +25,7 @@ export default function ShortcutSetupPage() {
 
       <Panel title="Your API secret" topRight={<Mono>copy me</Mono>}>
         <SecretCopy value={secret} label="X-API-Secret" />
-        <p className="text-[11px] text-ink-3 mt-2 italic font-[family-name:var(--font-display)]">
+        <p className="text-[11px] text-text-lo mt-2 italic font-[family-name:var(--font-display)]">
           This header authenticates the Shortcut. Don&apos;t paste it anywhere
           public, including screenshots.
         </p>
@@ -43,10 +43,10 @@ export default function ShortcutSetupPage() {
             body={
               <>
                 Add the <Mono>Record Audio</Mono> action. Settings:
-                <ul className="mt-1 list-disc list-inside text-[13px] text-ink-3">
-                  <li>Audio Quality: <span className="text-ink-4">Normal</span></li>
-                  <li>Start Recording: <span className="text-ink-4">Immediately</span></li>
-                  <li>Stop Recording: <span className="text-ink-4">On Tap</span></li>
+                <ul className="mt-1 list-disc list-inside text-[13px] text-text-lo">
+                  <li>Audio Quality: <span className="text-text-hi">Normal</span></li>
+                  <li>Start Recording: <span className="text-text-hi">Immediately</span></li>
+                  <li>Stop Recording: <span className="text-text-hi">On Tap</span></li>
                 </ul>
               </>
             }
@@ -56,7 +56,7 @@ export default function ShortcutSetupPage() {
             title="Get Contents of URL"
             body={
               <>
-                <ul className="list-disc list-inside text-[13px] text-ink-3">
+                <ul className="list-disc list-inside text-[13px] text-text-lo">
                   <li>URL: <Mono>{url}</Mono></li>
                   <li>Method: <Mono>POST</Mono></li>
                   <li>
@@ -87,7 +87,7 @@ export default function ShortcutSetupPage() {
             body={
               <>
                 Pull the <Mono>summary</Mono> field from the response.
-                <ul className="list-disc list-inside text-[13px] text-ink-3 mt-1">
+                <ul className="list-disc list-inside text-[13px] text-text-lo mt-1">
                   <li>Get: <Mono>Value for Key</Mono></li>
                   <li>Key: <Mono>summary</Mono></li>
                   <li>From: the output of step 2 (Contents of URL)</li>
@@ -100,7 +100,7 @@ export default function ShortcutSetupPage() {
             title="Show Notification"
             body={
               <>
-                <ul className="list-disc list-inside text-[13px] text-ink-3">
+                <ul className="list-disc list-inside text-[13px] text-text-lo">
                   <li>Title: <Mono>Myphelium2</Mono></li>
                   <li>
                     Body: the Dictionary Value from step 3 (Myphelium2&apos;s
@@ -115,11 +115,11 @@ export default function ShortcutSetupPage() {
       </Panel>
 
       <Panel title="Triggers">
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] mb-2">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] mb-2">
           In iOS Settings → Action Button (or Lock Screen widgets) point the
           trigger at this Shortcut. The same Shortcut works from:
         </p>
-        <ul className="list-disc list-inside text-sm text-ink-4">
+        <ul className="list-disc list-inside text-sm text-text-hi">
           <li>Action Button (single press)</li>
           <li>Lock Screen widget</li>
           <li>Home Screen widget</li>
@@ -128,7 +128,7 @@ export default function ShortcutSetupPage() {
       </Panel>
 
       <Panel title="What gets captured">
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] leading-relaxed">
           Audio is transcribed via Whisper. The transcription is classified
           into one of: <Mono>task</Mono>, <Mono>note</Mono>, <Mono>decision</Mono>,{" "}
           <Mono>journal</Mono>, <Mono>capture</Mono>, <Mono>workout</Mono>. For
@@ -136,7 +136,7 @@ export default function ShortcutSetupPage() {
           cardio entries and pain logs — then routes them into the right
           session (active, planned, or new extra).
         </p>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed mt-2">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] leading-relaxed mt-2">
           If the workout is ambiguous (e.g. you have both a planned and an
           in-progress session), the Telegram bot will ping you with buttons to
           pick one. Type <Mono>/pending</Mono> in Telegram any time to see
@@ -145,7 +145,7 @@ export default function ShortcutSetupPage() {
       </Panel>
 
       <Panel title="Reference JSON">
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] mb-2">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] mb-2">
           A machine-readable copy of these steps lives at{" "}
           <Mono>/shortcuts/mycelium-capture.shortcut.json</Mono>.
         </p>
@@ -169,8 +169,8 @@ function Step({
         {n}
       </span>
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-ink-4 mb-1">{title}</div>
-        <div className="text-sm text-ink-3 leading-relaxed">{body}</div>
+        <div className="text-sm text-text-hi mb-1">{title}</div>
+        <div className="text-sm text-text-lo leading-relaxed">{body}</div>
       </div>
     </li>
   );

@@ -74,53 +74,53 @@ function EyeCard({ label, p }: { label: string; p: Prescription | null }) {
   if (!p) {
     return (
       <div className="flex-1 p-4 rounded-xl border border-hairline bg-surface-1 opacity-40">
-        <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
+        <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
           {label}
         </p>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">No data</p>
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">No data</p>
       </div>
     );
   }
   return (
     <div className="flex-1 p-4 rounded-xl border border-hairline bg-surface-1">
-      <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-3">
+      <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-3">
         {label}
       </p>
       <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
         <div>
-          <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">SPH</span>
-          <p className="text-ink-4 font-[family-name:var(--font-mono)]">{fmtNum(p.sphere)}</p>
+          <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">SPH</span>
+          <p className="text-text-hi font-[family-name:var(--font-mono)]">{fmtNum(p.sphere)}</p>
         </div>
         <div>
-          <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">CYL</span>
-          <p className="text-ink-4 font-[family-name:var(--font-mono)]">{fmtNum(p.cylinder)}</p>
+          <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">CYL</span>
+          <p className="text-text-hi font-[family-name:var(--font-mono)]">{fmtNum(p.cylinder)}</p>
         </div>
         <div>
-          <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">AXIS</span>
-          <p className="text-ink-4 font-[family-name:var(--font-mono)]">{p.axis !== null ? `${p.axis}°` : "—"}</p>
+          <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">AXIS</span>
+          <p className="text-text-hi font-[family-name:var(--font-mono)]">{p.axis !== null ? `${p.axis}°` : "—"}</p>
         </div>
         <div>
-          <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">ADD</span>
-          <p className="text-ink-4 font-[family-name:var(--font-mono)]">{p.add_power !== null ? fmtNum(p.add_power) : "—"}</p>
+          <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">ADD</span>
+          <p className="text-text-hi font-[family-name:var(--font-mono)]">{p.add_power !== null ? fmtNum(p.add_power) : "—"}</p>
         </div>
         <div>
-          <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">PD</span>
-          <p className="text-ink-4 font-[family-name:var(--font-mono)]">{p.pupillary_distance !== null ? `${p.pupillary_distance}mm` : "—"}</p>
+          <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">PD</span>
+          <p className="text-text-hi font-[family-name:var(--font-mono)]">{p.pupillary_distance !== null ? `${p.pupillary_distance}mm` : "—"}</p>
         </div>
         {p.is_contact_lens && (
           <>
             <div>
-              <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">BC</span>
-              <p className="text-ink-4 font-[family-name:var(--font-mono)]">{p.base_curve ?? "—"}</p>
+              <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">BC</span>
+              <p className="text-text-hi font-[family-name:var(--font-mono)]">{p.base_curve ?? "—"}</p>
             </div>
             <div>
-              <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">DIA</span>
-              <p className="text-ink-4 font-[family-name:var(--font-mono)]">{p.diameter ? `${p.diameter}mm` : "—"}</p>
+              <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">DIA</span>
+              <p className="text-text-hi font-[family-name:var(--font-mono)]">{p.diameter ? `${p.diameter}mm` : "—"}</p>
             </div>
             {p.brand && (
               <div className="col-span-2">
-                <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">BRAND</span>
-                <p className="text-ink-4 font-[family-name:var(--font-display)]">{p.brand}</p>
+                <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">BRAND</span>
+                <p className="text-text-hi font-[family-name:var(--font-display)]">{p.brand}</p>
               </div>
             )}
           </>
@@ -314,11 +314,11 @@ export default function VisionPage() {
     });
   }
 
-  const numInput = "w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3";
+  const numInput = "w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo placeholder:text-text-lo";
 
   if (loading) {
     return (
-      <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-20 text-center">
+      <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-20 text-center">
         Loading…
       </p>
     );
@@ -329,7 +329,7 @@ export default function VisionPage() {
     const history = list.slice(1);
     return (
       <div className="mt-6">
-        <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-3">
+        <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-3">
           {label} HISTORY
         </p>
         <div className="flex flex-col gap-2">
@@ -342,11 +342,11 @@ export default function VisionPage() {
                   onClick={() => toggleHistory(key)}
                   className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-surface-1/50 transition-colors"
                 >
-                  <span className="text-sm text-ink-4 font-[family-name:var(--font-display)]">
+                  <span className="text-sm text-text-hi font-[family-name:var(--font-display)]">
                     {formatDate(pair.prescribed_at)}
-                    {pair.optician && <span className="text-ink-3 ml-2">— {pair.optician}</span>}
+                    {pair.optician && <span className="text-text-lo ml-2">— {pair.optician}</span>}
                   </span>
-                  <span className="text-ink-3 text-xs">{expanded ? "▲" : "▼"}</span>
+                  <span className="text-text-lo text-xs">{expanded ? "▲" : "▼"}</span>
                 </button>
                 {expanded && (
                   <div className="px-4 pb-4 flex gap-3">
@@ -366,7 +366,7 @@ export default function VisionPage() {
     <div className="max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic">
+        <h1 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic">
           Vision
         </h1>
         <div className="flex items-center gap-2">
@@ -398,7 +398,7 @@ export default function VisionPage() {
       </div>
 
       {prescriptions.length === 0 ? (
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] text-center py-12">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] text-center py-12">
           No prescriptions recorded yet.
         </p>
       ) : (
@@ -407,11 +407,11 @@ export default function VisionPage() {
           {latestGlasses && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">
+                <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">
                   LATEST GLASSES — {formatDate(latestGlasses.prescribed_at).toUpperCase()}
                 </p>
                 {latestGlasses.optician && (
-                  <p className="text-xs text-ink-3 font-[family-name:var(--font-display)] italic">
+                  <p className="text-xs text-text-lo font-[family-name:var(--font-display)] italic">
                     {latestGlasses.optician}
                   </p>
                 )}
@@ -421,7 +421,7 @@ export default function VisionPage() {
                 <EyeCard label="RIGHT EYE (OD)" p={latestGlasses.right} />
               </div>
               {latestGlasses.notes && (
-                <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-2">
+                <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-2">
                   {latestGlasses.notes}
                 </p>
               )}
@@ -432,11 +432,11 @@ export default function VisionPage() {
           {latestContacts && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">
+                <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">
                   LATEST CONTACT LENSES — {formatDate(latestContacts.prescribed_at).toUpperCase()}
                 </p>
                 {latestContacts.optician && (
-                  <p className="text-xs text-ink-3 font-[family-name:var(--font-display)] italic">
+                  <p className="text-xs text-text-lo font-[family-name:var(--font-display)] italic">
                     {latestContacts.optician}
                   </p>
                 )}
@@ -446,7 +446,7 @@ export default function VisionPage() {
                 <EyeCard label="RIGHT EYE (OD)" p={latestContacts.right} />
               </div>
               {latestContacts.notes && (
-                <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-2">
+                <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-2">
                   {latestContacts.notes}
                 </p>
               )}
@@ -462,9 +462,9 @@ export default function VisionPage() {
       {/* Add prescription modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-ink-0 border border-hairline rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+          <div className="bg-surface-0 border border-hairline rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic">
+              <h2 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic">
                 Add Prescription
               </h2>
               {scanned && (
@@ -482,22 +482,22 @@ export default function VisionPage() {
             {/* Date + Optician */}
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
-                <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-1">DATE</p>
+                <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-1">DATE</p>
                 <input type="date" value={prescribedAt} onChange={(e) => setPrescribedAt(e.target.value)} className={numInput} />
               </div>
               <div>
-                <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-1">OPTICIAN</p>
+                <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-1">OPTICIAN</p>
                 <input value={optician} onChange={(e) => setOptician(e.target.value)} className={numInput} placeholder="e.g. Specsavers" />
               </div>
             </div>
 
             {/* Type toggle */}
-            <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">TYPE</p>
+            <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">TYPE</p>
             <div className="flex gap-1 mb-4">
               <button
                 onClick={() => setIsContactLens(false)}
                 className={`px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
-                  !isContactLens ? "border-accent bg-accent/10 text-accent" : "border-hairline text-ink-3 hover:border-ink-3"
+                  !isContactLens ? "border-accent bg-accent/10 text-accent" : "border-hairline text-text-lo hover:border-text-lo"
                 }`}
               >
                 Glasses
@@ -505,7 +505,7 @@ export default function VisionPage() {
               <button
                 onClick={() => setIsContactLens(true)}
                 className={`px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
-                  isContactLens ? "border-accent bg-accent/10 text-accent" : "border-hairline text-ink-3 hover:border-ink-3"
+                  isContactLens ? "border-accent bg-accent/10 text-accent" : "border-hairline text-text-lo hover:border-text-lo"
                 }`}
               >
                 Contact Lenses
@@ -516,40 +516,40 @@ export default function VisionPage() {
             <div className="grid grid-cols-2 gap-4 mb-4">
               {/* Left eye */}
               <div>
-                <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">LEFT EYE (OS)</p>
+                <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">LEFT EYE (OS)</p>
                 <div className="flex flex-col gap-2">
                   <div>
-                    <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Sphere</label>
+                    <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Sphere</label>
                     <input value={leftSphere} onChange={(e) => setLeftSphere(e.target.value)} className={numInput} placeholder="-2.50" />
                   </div>
                   <div>
-                    <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Cylinder</label>
+                    <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Cylinder</label>
                     <input value={leftCylinder} onChange={(e) => setLeftCylinder(e.target.value)} className={numInput} placeholder="-0.75" />
                   </div>
                   <div>
-                    <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Axis</label>
+                    <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Axis</label>
                     <input value={leftAxis} onChange={(e) => setLeftAxis(e.target.value)} className={numInput} placeholder="180" />
                   </div>
                   <div>
-                    <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Add power</label>
+                    <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Add power</label>
                     <input value={leftAdd} onChange={(e) => setLeftAdd(e.target.value)} className={numInput} placeholder="+1.00" />
                   </div>
                   <div>
-                    <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">PD</label>
+                    <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">PD</label>
                     <input value={leftPd} onChange={(e) => setLeftPd(e.target.value)} className={numInput} placeholder="31.5" />
                   </div>
                   {isContactLens && (
                     <>
                       <div>
-                        <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Base curve</label>
+                        <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Base curve</label>
                         <input value={leftBc} onChange={(e) => setLeftBc(e.target.value)} className={numInput} placeholder="8.6" />
                       </div>
                       <div>
-                        <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Diameter</label>
+                        <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Diameter</label>
                         <input value={leftDia} onChange={(e) => setLeftDia(e.target.value)} className={numInput} placeholder="14.2" />
                       </div>
                       <div>
-                        <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Brand</label>
+                        <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Brand</label>
                         <input value={leftBrand} onChange={(e) => setLeftBrand(e.target.value)} className={numInput} placeholder="Acuvue Oasys" />
                       </div>
                     </>
@@ -559,40 +559,40 @@ export default function VisionPage() {
 
               {/* Right eye */}
               <div>
-                <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">RIGHT EYE (OD)</p>
+                <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">RIGHT EYE (OD)</p>
                 <div className="flex flex-col gap-2">
                   <div>
-                    <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Sphere</label>
+                    <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Sphere</label>
                     <input value={rightSphere} onChange={(e) => setRightSphere(e.target.value)} className={numInput} placeholder="-2.50" />
                   </div>
                   <div>
-                    <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Cylinder</label>
+                    <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Cylinder</label>
                     <input value={rightCylinder} onChange={(e) => setRightCylinder(e.target.value)} className={numInput} placeholder="-0.75" />
                   </div>
                   <div>
-                    <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Axis</label>
+                    <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Axis</label>
                     <input value={rightAxis} onChange={(e) => setRightAxis(e.target.value)} className={numInput} placeholder="180" />
                   </div>
                   <div>
-                    <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Add power</label>
+                    <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Add power</label>
                     <input value={rightAdd} onChange={(e) => setRightAdd(e.target.value)} className={numInput} placeholder="+1.00" />
                   </div>
                   <div>
-                    <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">PD</label>
+                    <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">PD</label>
                     <input value={rightPd} onChange={(e) => setRightPd(e.target.value)} className={numInput} placeholder="31.5" />
                   </div>
                   {isContactLens && (
                     <>
                       <div>
-                        <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Base curve</label>
+                        <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Base curve</label>
                         <input value={rightBc} onChange={(e) => setRightBc(e.target.value)} className={numInput} placeholder="8.6" />
                       </div>
                       <div>
-                        <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Diameter</label>
+                        <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Diameter</label>
                         <input value={rightDia} onChange={(e) => setRightDia(e.target.value)} className={numInput} placeholder="14.2" />
                       </div>
                       <div>
-                        <label className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">Brand</label>
+                        <label className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">Brand</label>
                         <input value={rightBrand} onChange={(e) => setRightBrand(e.target.value)} className={numInput} placeholder="Acuvue Oasys" />
                       </div>
                     </>
@@ -602,12 +602,12 @@ export default function VisionPage() {
             </div>
 
             {/* Notes */}
-            <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-1">NOTES</p>
+            <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-1">NOTES</p>
             <textarea
               value={formNotes}
               onChange={(e) => setFormNotes(e.target.value)}
               rows={2}
-              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3 resize-y mb-4"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo placeholder:text-text-lo resize-y mb-4"
               placeholder="Any additional notes…"
             />
 
@@ -615,7 +615,7 @@ export default function VisionPage() {
             <div className="flex items-center gap-2 justify-end">
               <button
                 onClick={() => { resetForm(); setScanned(false); setScanError(null); setShowModal(false); }}
-                className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+                className="px-3 py-1.5 rounded-v2-md border border-hairline text-text-lo hover:text-text-hi hover:border-text-lo text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
               >
                 CANCEL
               </button>

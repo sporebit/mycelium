@@ -37,16 +37,16 @@ export function NutrientDetailPanel({
   ];
 
   return (
-    <section className="rounded-md bg-ink-1 border border-ink-2 overflow-hidden">
+    <section className="rounded-md bg-surface-1 border border-surface-2 overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-2 bg-ink-2/40 border-b border-ink-2"
+        className="w-full flex items-center justify-between px-3 py-2 bg-surface-2/40 border-b border-surface-2"
       >
-        <span className="text-[11px] uppercase tracking-[0.18em] text-ink-4 font-[family-name:var(--font-mono)]">
+        <span className="text-[11px] uppercase tracking-[0.18em] text-text-hi font-[family-name:var(--font-mono)]">
           Full nutrition breakdown
         </span>
-        <span aria-hidden className="text-ink-3 text-[10px]">
+        <span aria-hidden className="text-text-lo text-[10px]">
           {open ? "▼" : "▶"}
         </span>
       </button>
@@ -54,7 +54,7 @@ export function NutrientDetailPanel({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-ink-2">
+              <tr className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] border-b border-surface-2">
                 <th className="text-left py-2 px-3">Nutrient</th>
                 <th className="text-right py-2 px-3">Goal</th>
                 <th className="text-right py-2 px-3">Eaten</th>
@@ -71,16 +71,16 @@ export function NutrientDetailPanel({
                       ? "text-warn"
                       : "text-ok";
                 return (
-                  <tr key={r.label} className="border-b border-ink-2/60 last:border-b-0">
-                    <td className="text-left py-2 px-3 text-ink-4">{r.label}</td>
+                  <tr key={r.label} className="border-b border-surface-2/60 last:border-b-0">
+                    <td className="text-left py-2 px-3 text-text-hi">{r.label}</td>
                     <td className="text-right py-2 px-3">
-                      <Mono className="text-ink-3 tabular-nums">
+                      <Mono className="text-text-lo tabular-nums">
                         {r.target}
                         {r.unit}
                       </Mono>
                     </td>
                     <td className="text-right py-2 px-3">
-                      <Mono className="text-ink-4 tabular-nums">
+                      <Mono className="text-text-hi tabular-nums">
                         {r.eaten}
                         {r.unit}
                       </Mono>

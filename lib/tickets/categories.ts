@@ -93,13 +93,13 @@ export const SIMPLE_BUCKET_TARGET: Record<SimpleBucket, TicketCategory> = {
 
 export const CATEGORY_TONE: Record<TicketCategory, { fg: string; bg: string; border: string }> = {
   inbox: { fg: "text-glow-2", bg: "bg-glow-2/10", border: "border-glow-2/30" },
-  backlog: { fg: "text-ink-3", bg: "bg-ink-2/40", border: "border-ink-2" },
+  backlog: { fg: "text-text-lo", bg: "bg-surface-2/40", border: "border-surface-2" },
   next: { fg: "text-accent", bg: "bg-accent/10", border: "border-accent/30" },
   doing: { fg: "text-accent", bg: "bg-accent/15", border: "border-accent/40" },
   waiting: { fg: "text-warn", bg: "bg-warn/15", border: "border-warn/40" },
   verify: { fg: "text-glow-2", bg: "bg-glow-2/15", border: "border-glow-2/40" },
   done: { fg: "text-ok", bg: "bg-ok/15", border: "border-ok/40" },
-  cancelled: { fg: "text-ink-3", bg: "bg-ink-2/40", border: "border-ink-2" },
+  cancelled: { fg: "text-text-lo", bg: "bg-surface-2/40", border: "border-surface-2" },
 };
 
 // ---------------------------------------------------------------------

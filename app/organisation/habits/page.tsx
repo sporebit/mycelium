@@ -202,17 +202,17 @@ export default function HabitsPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-[family-name:var(--font-display)] italic text-ink-4">
+          <h1 className="text-2xl font-[family-name:var(--font-display)] italic text-text-hi">
             Habits
           </h1>
-          <p className="text-sm text-ink-3 mt-1">
+          <p className="text-sm text-text-lo mt-1">
             Daily practices tracked over time.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="shrink-0 px-3 py-1.5 rounded-md border border-ink-2 text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 font-[family-name:var(--font-mono)] transition-colors"
+          className="shrink-0 px-3 py-1.5 rounded-md border border-surface-2 text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi hover:border-text-lo font-[family-name:var(--font-mono)] transition-colors"
         >
           Edit habits
         </button>
@@ -221,10 +221,10 @@ export default function HabitsPage() {
       {/* Today section */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[11px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <h2 className="text-[11px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Today
           </h2>
-          <span className="text-[11px] font-[family-name:var(--font-mono)] text-ink-3 tabular-nums">
+          <span className="text-[11px] font-[family-name:var(--font-mono)] text-text-lo tabular-nums">
             {todayCount}/{todayTotal} · {todayPct}%
           </span>
         </div>
@@ -242,7 +242,7 @@ export default function HabitsPage() {
                 className={`text-left rounded-xl border px-4 py-3.5 min-h-[88px] flex flex-col gap-1 transition-colors ${
                   isDone
                     ? "border-accent/50 bg-accent/10 hover:bg-accent/15"
-                    : "border-ink-2 bg-ink-0/40 hover:border-ink-3"
+                    : "border-surface-2 bg-surface-0/40 hover:border-text-lo"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -250,8 +250,8 @@ export default function HabitsPage() {
                     aria-hidden
                     className={`h-4 w-4 rounded-sm border flex items-center justify-center text-[11px] leading-none transition-colors ${
                       isDone
-                        ? "border-accent bg-accent text-ink-0"
-                        : "border-ink-3"
+                        ? "border-accent bg-accent text-surface-0"
+                        : "border-text-lo"
                     }`}
                   >
                     {isDone ? "✓" : ""}
@@ -259,7 +259,7 @@ export default function HabitsPage() {
                   {h.target !== undefined && (
                     <span
                       className={`text-[10px] font-[family-name:var(--font-mono)] tabular-nums ${
-                        isDone ? "text-accent" : "text-ink-3"
+                        isDone ? "text-accent" : "text-text-lo"
                       }`}
                     >
                       {isDone ? h.target : 0}/{h.target}
@@ -267,8 +267,8 @@ export default function HabitsPage() {
                     </span>
                   )}
                 </div>
-                <div className="text-base text-ink-4">{h.name}</div>
-                <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                <div className="text-base text-text-hi">{h.name}</div>
+                <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                   {h.category}
                 </div>
               </button>
@@ -280,7 +280,7 @@ export default function HabitsPage() {
       {/* Year heatmap */}
       {history && (
         <section>
-          <h2 className="text-[11px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-3">
+          <h2 className="text-[11px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-3">
             Last year
           </h2>
           <div className="w-full">
@@ -289,7 +289,7 @@ export default function HabitsPage() {
               {monthLabels.map((ml, i) => (
                 <span
                   key={i}
-                  className="absolute text-[9px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                  className="absolute text-[9px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.1em]"
                   style={{ left: `${(ml.col / weeks.length) * 100}%`, top: 0 }}
                 >
                   {ml.label}
@@ -332,8 +332,8 @@ export default function HabitsPage() {
           </div>
           {/* Hover tooltip */}
           {hover && (
-            <div className="mt-2 text-xs text-ink-3 font-[family-name:var(--font-mono)]">
-              <span className="text-ink-4">{fmtDate(hover.date)}</span>
+            <div className="mt-2 text-xs text-text-lo font-[family-name:var(--font-mono)]">
+              <span className="text-text-hi">{fmtDate(hover.date)}</span>
               {" — "}
               {hover.completed.length === 0
                 ? "no habits logged"
@@ -343,7 +343,7 @@ export default function HabitsPage() {
             </div>
           )}
           {/* Legend */}
-          <div className="flex items-center gap-2 mt-3 text-[9px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em]">
+          <div className="flex items-center gap-2 mt-3 text-[9px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.1em]">
             <span>Less</span>
             {[0, 0.2, 0.5, 0.85].map((r) => (
               <div
@@ -359,11 +359,11 @@ export default function HabitsPage() {
       {/* Per-habit breakdown */}
       {history && habitStats.length > 0 && (
         <section>
-          <h2 className="text-[11px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-3">
+          <h2 className="text-[11px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-3">
             Per-habit breakdown
           </h2>
-          <div className="rounded-md border border-ink-2 overflow-hidden">
-            <div className="grid grid-cols-[1fr_80px_70px_70px] gap-0 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] bg-ink-0/40 px-4 py-2 border-b border-ink-2">
+          <div className="rounded-md border border-surface-2 overflow-hidden">
+            <div className="grid grid-cols-[1fr_80px_70px_70px] gap-0 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] bg-surface-0/40 px-4 py-2 border-b border-surface-2">
               <span>Habit</span>
               <span className="text-center">Streak</span>
               <span className="text-center">30d</span>
@@ -372,11 +372,11 @@ export default function HabitsPage() {
             {habitStats.map(({ habit, streak, d30Rate, d90Rate }) => (
               <div
                 key={habit.id}
-                className="grid grid-cols-[1fr_80px_70px_70px] gap-0 items-center px-4 py-3 border-b border-ink-2/40 last:border-b-0"
+                className="grid grid-cols-[1fr_80px_70px_70px] gap-0 items-center px-4 py-3 border-b border-surface-2/40 last:border-b-0"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-sm text-ink-4 truncate">{habit.name}</span>
-                  <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] shrink-0">
+                  <span className="text-sm text-text-hi truncate">{habit.name}</span>
+                  <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] shrink-0">
                     {habit.category}
                   </span>
                 </div>
@@ -384,13 +384,13 @@ export default function HabitsPage() {
                   {streak > 0 ? (
                     <span style={{ color: AMBER }}>{streak}d</span>
                   ) : (
-                    <span className="text-ink-3/40">—</span>
+                    <span className="text-text-lo/40">—</span>
                   )}
                 </div>
-                <div className="text-center font-[family-name:var(--font-mono)] tabular-nums text-sm text-ink-4">
+                <div className="text-center font-[family-name:var(--font-mono)] tabular-nums text-sm text-text-hi">
                   {Math.round(d30Rate * 100)}%
                 </div>
-                <div className="text-center font-[family-name:var(--font-mono)] tabular-nums text-sm text-ink-4">
+                <div className="text-center font-[family-name:var(--font-mono)] tabular-nums text-sm text-text-hi">
                   {Math.round(d90Rate * 100)}%
                 </div>
               </div>
@@ -401,7 +401,7 @@ export default function HabitsPage() {
 
       {/* Loading state */}
       {history === null && (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading history…
         </div>
       )}

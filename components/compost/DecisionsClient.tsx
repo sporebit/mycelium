@@ -125,7 +125,7 @@ export function DecisionsClient({
     <div className="flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-3">
         <div className="card-eyebrow">{plural[0].toUpperCase() + plural.slice(1)}</div>
-        <Mono className={`text-[10px] ${notice ? "text-danger" : "text-ink-3"}`}>
+        <Mono className={`text-[10px] ${notice ? "text-danger" : "text-text-lo"}`}>
           {notice ?? (decisions === null ? "…" : `${decisions.length} ${decisions.length === 1 ? label.toLowerCase() : plural}`)}
         </Mono>
       </div>
@@ -140,20 +140,20 @@ export function DecisionsClient({
       </div>
 
       {decisions === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : decisions.length === 0 ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           No {plural} logged yet. Capture one below — the classifier will route it as {label.toLowerCase() === "idea" ? "an" : "a"} {label.toLowerCase()}.
         </div>
       ) : (
-        <ul className="flex flex-col divide-y divide-ink-2 rounded-xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl overflow-hidden">
+        <ul className="flex flex-col divide-y divide-surface-2 rounded-xl border border-surface-2 bg-surface-1/60 backdrop-blur-xl overflow-hidden">
           {decisions.map((c) => {
             const isOpen = expanded.has(c.id);
             return (
               <li key={c.id} className="growth-in group">
-                <div className="flex items-start gap-3 px-4 py-3 hover:bg-ink-2/30 transition-colors">
+                <div className="flex items-start gap-3 px-4 py-3 hover:bg-surface-2/30 transition-colors">
                   <button
                     type="button"
                     onClick={() => toggle(c.id)}
@@ -161,21 +161,21 @@ export function DecisionsClient({
                   >
                     <span
                       aria-hidden
-                      className="text-ink-3 text-base w-5 shrink-0 mt-0.5"
+                      className="text-text-lo text-base w-5 shrink-0 mt-0.5"
                       title={c.source}
                     >
                       {sourceIcon(c.source)}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <Mono className="text-[10px] text-ink-3">
+                        <Mono className="text-[10px] text-text-lo">
                           {relativeDate(c.created_at)}
                         </Mono>
                         <span className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 ${badgeClass}`}>
                           {label.toUpperCase()}
                         </span>
                       </div>
-                      <div className="text-sm text-ink-4 mt-1 leading-snug break-words">
+                      <div className="text-sm text-text-hi mt-1 leading-snug break-words">
                         {isOpen ? c.raw_text : truncate(c.raw_text, 200)}
                       </div>
                     </div>
@@ -186,18 +186,18 @@ export function DecisionsClient({
                     disabled={deleting === c.id}
                     aria-label={`Delete ${label.toLowerCase()}`}
                     title="Delete"
-                    className="shrink-0 mt-0.5 px-2 py-1 rounded-md text-ink-3 hover:text-danger hover:bg-danger/10 disabled:opacity-40 text-xs transition-colors opacity-60 group-hover:opacity-100"
+                    className="shrink-0 mt-0.5 px-2 py-1 rounded-md text-text-lo hover:text-danger hover:bg-danger/10 disabled:opacity-40 text-xs transition-colors opacity-60 group-hover:opacity-100"
                   >
                     {deleting === c.id ? "…" : "✕"}
                   </button>
                 </div>
                 {isOpen && (
                   <div className="px-4 pb-3">
-                    <details className="rounded-md border border-ink-2 bg-ink-0/40 p-2">
-                      <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    <details className="rounded-md border border-surface-2 bg-surface-0/40 p-2">
+                      <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                         Classification JSON
                       </summary>
-                      <pre className="mt-2 text-[11px] text-ink-3 overflow-x-auto font-[family-name:var(--font-mono)]">
+                      <pre className="mt-2 text-[11px] text-text-lo overflow-x-auto font-[family-name:var(--font-mono)]">
                         {JSON.stringify(c.classification, null, 2)}
                       </pre>
                     </details>
@@ -229,10 +229,10 @@ function FilterGroup({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {label}
       </span>
-      <div className="inline-flex rounded-lg border border-ink-2 bg-ink-0/40 p-0.5">
+      <div className="inline-flex rounded-lg border border-surface-2 bg-surface-0/40 p-0.5">
         {options.map((o) => (
           <button
             key={o.id}
@@ -240,8 +240,8 @@ function FilterGroup({
             onClick={() => onChange(o.id)}
             className={`px-2 py-1 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] rounded-md transition-colors ${
               value === o.id
-                ? "bg-ink-2 text-ink-4"
-                : "text-ink-3 hover:text-ink-4"
+                ? "bg-surface-2 text-text-hi"
+                : "text-text-lo hover:text-text-hi"
             }`}
           >
             {o.label}

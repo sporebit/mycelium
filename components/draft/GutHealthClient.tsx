@@ -31,9 +31,9 @@ const SAMPLE_ENTRIES: GutEntry[] = [
 ];
 
 const inputClass =
-  "w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
+  "w-full rounded-md bg-surface-0 border border-surface-2 px-3 py-2 text-sm text-text-hi placeholder:text-text-lo/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
 const labelClass =
-  "text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1 block";
+  "text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-1 block";
 
 function formatTimestamp(ts: string): string {
   try {
@@ -76,17 +76,17 @@ export function GutHealthClient() {
   return (
     <div className="flex flex-col gap-6 max-w-[700px]">
       <header>
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Gut Health
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] mt-1">
           Daily stool and stomach log.
         </p>
       </header>
 
       {/* Log form */}
-      <section className="bg-ink-1 border border-ink-2 rounded-2xl p-4 flex flex-col gap-4">
-        <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <section className="bg-surface-1 border border-surface-2 rounded-2xl p-4 flex flex-col gap-4">
+        <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           New Entry
         </h2>
 
@@ -102,7 +102,7 @@ export function GutHealthClient() {
                 className={`w-10 h-10 rounded-md text-sm font-[family-name:var(--font-mono)] tabular-nums border transition-colors ${
                   selectedBristol === n
                     ? "bg-accent/15 border-accent/50 text-accent"
-                    : "bg-ink-0 border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                    : "bg-surface-0 border-surface-2 text-text-lo hover:text-text-hi hover:border-text-lo"
                 }`}
               >
                 {n}
@@ -110,7 +110,7 @@ export function GutHealthClient() {
             ))}
           </div>
           {selectedBristol && (
-            <span className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-1 block">
+            <span className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-1 block">
               Type {selectedBristol}: {BRISTOL_LABELS[selectedBristol]}
             </span>
           )}
@@ -139,11 +139,11 @@ export function GutHealthClient() {
 
       {/* Timeline */}
       <section>
-        <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-3">
+        <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-3">
           Timeline
         </h2>
         {entries.length === 0 ? (
-          <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
+          <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-4 text-center">
             No entries yet.
           </div>
         ) : (
@@ -151,7 +151,7 @@ export function GutHealthClient() {
             {entries.map((e) => (
               <li
                 key={e.id}
-                className="bg-ink-1 border border-ink-2 rounded-md p-3 flex items-start gap-3"
+                className="bg-surface-1 border border-surface-2 rounded-md p-3 flex items-start gap-3"
               >
                 <span
                   className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 ${bristolColor(e.bristol)}`}
@@ -160,9 +160,9 @@ export function GutHealthClient() {
                 </span>
                 <div className="flex-1 min-w-0">
                   {e.note && (
-                    <p className="text-sm text-ink-4">{e.note}</p>
+                    <p className="text-sm text-text-hi">{e.note}</p>
                   )}
-                  <span className="font-[family-name:var(--font-mono)] tabular-nums text-[10px] text-ink-3 mt-0.5 block">
+                  <span className="font-[family-name:var(--font-mono)] tabular-nums text-[10px] text-text-lo mt-0.5 block">
                     {formatTimestamp(e.timestamp)}
                   </span>
                 </div>

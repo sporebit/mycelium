@@ -23,7 +23,7 @@ export function ReviewBlock({ locked = false }: { locked?: boolean }) {
   return (
     <div className="rounded-v2-md border border-hairline bg-surface-1 p-3">
       <div className="flex items-baseline justify-between">
-        <span className="text-[10px] uppercase tracking-[0.14em] text-ink-3">Tasks · {data.week}</span>
+        <span className="text-[10px] uppercase tracking-[0.14em] text-text-lo">Tasks · {data.week}</span>
         {data.sealed_at ? (
           <span className="text-[11px] text-ok">review sealed</span>
         ) : (
@@ -37,8 +37,8 @@ export function ReviewBlock({ locked = false }: { locked?: boolean }) {
       <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[12px] sm:grid-cols-4">
         {items.map(([label, n]) => (
           <div key={label} className="flex items-center justify-between">
-            <span className="text-ink-3">{label}</span>
-            <span className={`font-[family-name:var(--font-mono)] ${n === 0 ? "text-ok" : "text-ink-4"}`}>{n}</span>
+            <span className="text-text-lo">{label}</span>
+            <span className={`font-[family-name:var(--font-mono)] ${n === 0 ? "text-ok" : "text-text-hi"}`}>{n}</span>
           </div>
         ))}
       </div>

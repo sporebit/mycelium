@@ -154,7 +154,7 @@ export function StatusDropdown({
               width: DROPDOWN_WIDTH,
               zIndex: 1000,
             }}
-            className="rounded-md bg-ink-1 border border-ink-2 shadow-2xl p-1 flex flex-col gap-0.5"
+            className="rounded-md bg-surface-1 border border-surface-2 shadow-2xl p-1 flex flex-col gap-0.5"
           >
             {TASK_STATUSES.map((s) => {
               const t = TASK_STATUS_TONE[s];
@@ -168,7 +168,7 @@ export function StatusDropdown({
                     setOpen(false);
                     if (s !== value) onChange(s);
                   }}
-                  className={`text-left text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-2 py-1.5 rounded-sm flex items-center gap-2 hover:bg-ink-2/60 transition-colors ${
+                  className={`text-left text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-2 py-1.5 rounded-sm flex items-center gap-2 hover:bg-surface-2/60 transition-colors ${
                     isActive ? "ring-1 ring-glow-2/40" : ""
                   }`}
                 >

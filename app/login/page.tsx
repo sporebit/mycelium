@@ -312,7 +312,7 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-surface-0 px-4">
       <div className="flex flex-col items-center gap-8 w-full max-w-sm">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0 tracking-tight">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi tracking-tight">
           Myphelium2
         </h1>
         <Surface level={1} radius="lg" border className="w-full p-6">

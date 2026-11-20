@@ -49,7 +49,7 @@ function statusBadgeClass(s: ItemStatus): string {
 
 function typeBadgeClass(_type: ItemType): string {
   void _type;
-  return "border-ink-2 text-ink-3 bg-ink-0";
+  return "border-surface-2 text-text-lo bg-surface-0";
 }
 
 function StarRating({ rating }: { rating: number }) {
@@ -61,9 +61,9 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 const inputClass =
-  "w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
+  "w-full rounded-md bg-surface-0 border border-surface-2 px-3 py-2 text-sm text-text-hi placeholder:text-text-lo/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
 const labelClass =
-  "text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1 block";
+  "text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-1 block";
 
 export function WatchlistClient() {
   const [items, setItems] = useState<WatchlistItem[]>(SAMPLE_ITEMS);
@@ -100,10 +100,10 @@ export function WatchlistClient() {
     <div className="flex flex-col gap-6 max-w-[800px]">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Watchlist
           </h1>
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] mt-1">
             Films, books, shows, and podcasts to consume.
           </p>
         </div>
@@ -120,7 +120,7 @@ export function WatchlistClient() {
 
       {grouped.map(([status, statusItems]) => (
         <section key={status}>
-          <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-3">
+          <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-3">
             {status === "in-progress" ? "In Progress" : status === "want" ? "Want" : "Done"}{" "}
             ({statusItems.length})
           </h2>
@@ -128,7 +128,7 @@ export function WatchlistClient() {
             {statusItems.map((item) => (
               <li
                 key={item.id}
-                className="bg-ink-1 border border-ink-2 rounded-md p-3 flex items-start gap-3"
+                className="bg-surface-1 border border-surface-2 rounded-md p-3 flex items-start gap-3"
               >
                 <span
                   className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 ${typeBadgeClass(item.type)}`}
@@ -137,11 +137,11 @@ export function WatchlistClient() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm text-ink-4 font-medium">{item.title}</span>
+                    <span className="text-sm text-text-hi font-medium">{item.title}</span>
                     {item.rating != null && <StarRating rating={item.rating} />}
                   </div>
                   {item.notes && (
-                    <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-0.5">
+                    <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-0.5">
                       {item.notes}
                     </p>
                   )}
@@ -174,7 +174,7 @@ function AddItemForm({ onSubmit }: { onSubmit: (f: { type: ItemType; title: stri
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-ink-1 border border-ink-2 rounded-md p-4 flex flex-col gap-3"
+      className="bg-surface-1 border border-surface-2 rounded-md p-4 flex flex-col gap-3"
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>

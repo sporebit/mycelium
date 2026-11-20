@@ -28,7 +28,7 @@ export function CategoryChip({
   if (!category) {
     return (
       <span
-        className={`shrink-0 rounded-sm border border-ink-2 bg-ink-2/40 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] font-[family-name:var(--font-mono)] text-ink-3 ${className}`}
+        className={`shrink-0 rounded-sm border border-surface-2 bg-surface-2/40 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] font-[family-name:var(--font-mono)] text-text-lo ${className}`}
       >
         —
       </span>

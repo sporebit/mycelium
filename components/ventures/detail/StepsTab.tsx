@@ -156,12 +156,12 @@ export function StepsTab({
       {steps.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <Mono className="text-[10px] text-ink-3">
+            <Mono className="text-[10px] text-text-lo">
               {done}/{steps.length} complete
             </Mono>
-            <Mono className="text-[10px] text-ink-3">{pct}%</Mono>
+            <Mono className="text-[10px] text-text-lo">{pct}%</Mono>
           </div>
-          <div className="h-1.5 bg-ink-2 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-surface-2 rounded-full overflow-hidden">
             <div
               className="h-full bg-ok rounded-full transition-all"
               style={{ width: `${pct}%` }}
@@ -174,7 +174,7 @@ export function StepsTab({
         {steps.map((s) => (
           <div
             key={s.id}
-            className="flex items-center gap-3 py-2 px-3 rounded-md bg-ink-1 hover:bg-ink-2/60 group transition-colors"
+            className="flex items-center gap-3 py-2 px-3 rounded-md bg-surface-1 hover:bg-surface-2/60 group transition-colors"
           >
             <button
               type="button"
@@ -184,7 +184,7 @@ export function StepsTab({
                   ? "text-ok"
                   : s.status === "in_progress"
                     ? "text-info"
-                    : "text-ink-3"
+                    : "text-text-lo"
               }`}
             >
               {STEP_STATUS_ICONS[s.status] ?? "○"}
@@ -193,14 +193,14 @@ export function StepsTab({
               <div
                 className={`text-sm ${
                   s.status === "done"
-                    ? "text-ink-3 line-through"
-                    : "text-text-0"
+                    ? "text-text-lo line-through"
+                    : "text-text-hi"
                 }`}
               >
                 {s.title}
               </div>
               {s.description && (
-                <div className="text-xs text-ink-3 mt-0.5">
+                <div className="text-xs text-text-lo mt-0.5">
                   {s.description}
                 </div>
               )}
@@ -210,7 +210,7 @@ export function StepsTab({
                 <button
                   type="button"
                   onClick={() => createAsTask(s)}
-                  className="text-[9px] text-ink-3 hover:text-accent font-[family-name:var(--font-mono)] tracking-[0.1em] px-1.5 py-0.5"
+                  className="text-[9px] text-text-lo hover:text-accent font-[family-name:var(--font-mono)] tracking-[0.1em] px-1.5 py-0.5"
                 >
                   → TASK
                 </button>
@@ -226,7 +226,7 @@ export function StepsTab({
               <button
                 type="button"
                 onClick={() => deleteStep(s.id)}
-                className="text-[9px] text-ink-3 hover:text-danger font-[family-name:var(--font-mono)] px-1.5 py-0.5"
+                className="text-[9px] text-text-lo hover:text-danger font-[family-name:var(--font-mono)] px-1.5 py-0.5"
               >
                 ✕
               </button>
@@ -241,7 +241,7 @@ export function StepsTab({
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
           placeholder="New step…"
-          className="flex-1 bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent"
+          className="flex-1 bg-surface-0 border border-surface-2 rounded-md text-sm text-text-hi px-3 py-2 outline-none focus:border-accent"
           onKeyDown={(e) => e.key === "Enter" && addStep()}
         />
         <button

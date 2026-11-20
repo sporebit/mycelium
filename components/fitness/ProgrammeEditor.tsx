@@ -257,7 +257,7 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
   }
   if (!detail) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
@@ -269,7 +269,7 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
     <div className="flex flex-col gap-4">
       <Link
         href="/fitness/programmes"
-        className="self-start text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+        className="self-start text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
       >
         ← Programmes
       </Link>
@@ -281,7 +281,7 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
           const v = e.target.value.trim();
           if (v && v !== detail.name) void patchProgramme({ name: v });
         }}
-        className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4 bg-transparent border-b border-hairline focus:border-accent outline-none pb-1"
+        className="text-2xl italic font-[family-name:var(--font-display)] text-text-hi bg-transparent border-b border-hairline focus:border-accent outline-none pb-1"
       />
 
       <textarea
@@ -294,7 +294,7 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
         }}
         rows={2}
         placeholder="Programme description…"
-        className="bg-surface-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+        className="bg-surface-2 rounded-sm text-sm text-text-hi placeholder:text-text-ghost placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
       />
 
       <DndContext
@@ -309,7 +309,7 @@ export function ProgrammeEditor({ programmeId }: { programmeId: string }) {
               key={dow}
               className="rounded-v2-md bg-surface-1 border border-hairline p-3 flex flex-col gap-2"
             >
-              <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 {dayLabel}
               </div>
               <div className="flex flex-col gap-2">
@@ -401,13 +401,13 @@ function DroppableSlot({
       ref={setNodeRef}
       className={`rounded-v2-md transition-all min-h-[40px] flex flex-col gap-1.5 ${
         isOver ? "ring-2 ring-[#84f5b8] bg-[#84f5b8]/5" : ""
-      } ${isEmpty && !isOver ? "border border-dashed border-hairline hover:border-ink-3" : ""}`}
+      } ${isEmpty && !isOver ? "border border-dashed border-hairline hover:border-text-lo" : ""}`}
     >
       {children}
       <button
         type="button"
         onClick={onAdd}
-        className={`text-left rounded-v2-md text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] transition-colors ${
+        className={`text-left rounded-v2-md text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] transition-colors ${
           isEmpty ? "px-3 py-2" : "px-3 py-1 text-[10px]"
         }`}
       >
@@ -487,14 +487,14 @@ function SessionCardContent({
         <div className="flex items-center gap-1.5">
           <button
             type="button"
-            className="cursor-grab active:cursor-grabbing text-ink-3 hover:text-ink-4 md:opacity-0 md:group-hover/card:opacity-100 transition-opacity touch-none select-none"
+            className="cursor-grab active:cursor-grabbing text-text-lo hover:text-text-hi md:opacity-0 md:group-hover/card:opacity-100 transition-opacity touch-none select-none"
             aria-label="Drag to move"
             {...(dragAttributes ?? {})}
             {...(dragListeners ?? {})}
           >
             ⠿
           </button>
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             {SLOT_LABEL[session.slot as WorkoutSlot]}
           </span>
         </div>
@@ -503,7 +503,7 @@ function SessionCardContent({
             type="button"
             onClick={onDelete}
             aria-label="Remove session"
-            className="text-ink-3 hover:text-danger text-sm"
+            className="text-text-lo hover:text-danger text-sm"
           >
             ×
           </button>
@@ -514,12 +514,12 @@ function SessionCardContent({
         {session.workout_id && !isOverlay ? (
           <Link
             href={`/fitness/workouts/${session.workout_id}`}
-            className="flex-1 text-sm text-ink-4 truncate hover:text-accent"
+            className="flex-1 text-sm text-text-hi truncate hover:text-accent"
           >
             {workout?.name ?? session.name}
           </Link>
         ) : (
-          <span className="flex-1 text-sm text-ink-4 truncate">
+          <span className="flex-1 text-sm text-text-hi truncate">
             {workout?.name ?? session.name}
           </span>
         )}
@@ -532,7 +532,7 @@ function SessionCardContent({
               kind_override: e.target.value || null,
             })
           }
-          className="bg-ink-2 rounded-sm text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] text-ink-3 px-2 py-1 outline-none focus:ring-2 focus:ring-glow-2/60"
+          className="bg-surface-2 rounded-sm text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] text-text-lo px-2 py-1 outline-none focus:ring-2 focus:ring-glow-2/60"
           title="Kind override"
         >
           <option value="">
@@ -589,14 +589,14 @@ function WorkoutPickerModal({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
-          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-0">
+          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-hi">
             Pick workout · {DAY_SHORT[day]} {SLOT_LABEL[slot]}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="text-text-2 hover:text-text-0 text-xl leading-none"
+            className="text-text-lo hover:text-text-hi text-xl leading-none"
           >
             ×
           </button>
@@ -608,12 +608,12 @@ function WorkoutPickerModal({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter workouts…"
-            className="w-full bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+            className="w-full bg-surface-2 rounded-sm text-sm text-text-hi placeholder:text-text-ghost px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
           />
         </div>
-        <ul className="flex flex-col divide-y divide-ink-2 overflow-y-auto">
+        <ul className="flex flex-col divide-y divide-surface-2 overflow-y-auto">
           {filtered.length === 0 ? (
-            <li className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] px-5 py-6 text-center">
+            <li className="text-sm text-text-lo italic font-[family-name:var(--font-display)] px-5 py-6 text-center">
               {workouts.length === 0
                 ? "No workouts in the library yet."
                 : "No matches."}
@@ -630,10 +630,10 @@ function WorkoutPickerModal({
                     {w.default_kind ? KIND_ICON[w.default_kind] : "·"}
                   </span>
                   <span className="flex-1 min-w-0">
-                    <span className="block text-sm text-ink-4 truncate">
+                    <span className="block text-sm text-text-hi truncate">
                       {w.name}
                     </span>
-                    <span className="block text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    <span className="block text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                       {w.default_kind ? KIND_LABEL[w.default_kind] : "—"} ·{" "}
                       {w.exercise_count ?? 0} ex
                     </span>

@@ -142,7 +142,7 @@ export default function MonitorPage() {
     <div className="flex flex-col gap-6">
       <header className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Restock Monitor
           </h1>
         </div>
@@ -164,11 +164,11 @@ export default function MonitorPage() {
       </div>
 
       {loading ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Loading monitors…
         </div>
       ) : monitors.length === 0 ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           No monitors yet. Add one to start tracking restocks.
         </div>
       ) : (
@@ -185,7 +185,7 @@ export default function MonitorPage() {
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-text-0">
+                    <span className="text-sm font-medium text-text-hi">
                       {m.name}
                     </span>
                     {m.in_stock ? (
@@ -198,21 +198,21 @@ export default function MonitorPage() {
                         ERROR
                       </span>
                     ) : m.last_status ? (
-                      <span className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] tracking-[0.1em] text-ink-3 bg-ink-2">
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] tracking-[0.1em] text-text-lo bg-surface-2">
                         OUT OF STOCK
                       </span>
                     ) : null}
                   </div>
-                  <div className="text-[10px] font-[family-name:var(--font-mono)] text-ink-3 truncate mt-0.5">
+                  <div className="text-[10px] font-[family-name:var(--font-mono)] text-text-lo truncate mt-0.5">
                     {m.url}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Mono className="text-[9px] text-ink-3">
+                  <Mono className="text-[9px] text-text-lo">
                     Every {m.check_interval_minutes}m
                   </Mono>
-                  <Mono className="text-[9px] text-ink-3">
+                  <Mono className="text-[9px] text-text-lo">
                     Checked {timeAgo(m.last_checked_at)}
                   </Mono>
                 </div>
@@ -224,7 +224,7 @@ export default function MonitorPage() {
                     onChange={(e) => toggleEnabled(m.id, e.target.checked)}
                     className="accent-accent"
                   />
-                  <Mono className="text-[9px] text-ink-3">
+                  <Mono className="text-[9px] text-text-lo">
                     {m.enabled ? "ON" : "OFF"}
                   </Mono>
                 </label>
@@ -233,7 +233,7 @@ export default function MonitorPage() {
                   type="button"
                   onClick={() => checkNow(m.id)}
                   disabled={checkingId === m.id}
-                  className="px-2 py-1 rounded-v2-md text-[9px] font-[family-name:var(--font-mono)] tracking-[0.1em] border border-hairline text-ink-3 hover:text-text-0 hover:border-ink-3 transition-colors disabled:opacity-40"
+                  className="px-2 py-1 rounded-v2-md text-[9px] font-[family-name:var(--font-mono)] tracking-[0.1em] border border-hairline text-text-lo hover:text-text-hi hover:border-text-lo transition-colors disabled:opacity-40"
                 >
                   {checkingId === m.id ? "CHECKING…" : "CHECK NOW"}
                 </button>
@@ -252,7 +252,7 @@ export default function MonitorPage() {
                   {m.keywords.map((k, i) => (
                     <span
                       key={i}
-                      className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] bg-ink-2 text-ink-3"
+                      className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] bg-surface-2 text-text-lo"
                     >
                       {k}
                     </span>
@@ -261,7 +261,7 @@ export default function MonitorPage() {
               )}
 
               {m.notes && (
-                <div className="text-[10px] text-ink-3 mt-1 truncate">
+                <div className="text-[10px] text-text-lo mt-1 truncate">
                   {m.notes}
                 </div>
               )}
@@ -273,13 +273,13 @@ export default function MonitorPage() {
       {/* Add Monitor modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-ink-0 border border-hairline rounded-lg w-full max-w-lg p-6">
-            <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-0 mb-4">
+          <div className="bg-surface-0 border border-hairline rounded-lg w-full max-w-lg p-6">
+            <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-hi mb-4">
               Add Monitor
             </h2>
             <div className="flex flex-col gap-3">
               <div>
-                <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                   NAME <span className="text-accent">*</span>
                 </Mono>
                 <input
@@ -289,11 +289,11 @@ export default function MonitorPage() {
                     setForm((f) => ({ ...f, name: e.target.value }))
                   }
                   placeholder='e.g. "Palace Tri-Ferg Tee Black M"'
-                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                 />
               </div>
               <div>
-                <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                   URL <span className="text-accent">*</span>
                 </Mono>
                 <input
@@ -303,11 +303,11 @@ export default function MonitorPage() {
                     setForm((f) => ({ ...f, url: e.target.value }))
                   }
                   placeholder="Product page URL"
-                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                 />
               </div>
               <div>
-                <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                   CHECK INTERVAL
                 </Mono>
                 <select
@@ -318,7 +318,7 @@ export default function MonitorPage() {
                       check_interval_minutes: e.target.value,
                     }))
                   }
-                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                 >
                   {["5", "10", "30", "60"].map((v) => (
                     <option key={v} value={v}>
@@ -328,7 +328,7 @@ export default function MonitorPage() {
                 </select>
               </div>
               <div>
-                <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                   KEYWORDS (comma-separated)
                 </Mono>
                 <input
@@ -338,7 +338,7 @@ export default function MonitorPage() {
                     setForm((f) => ({ ...f, keywords: e.target.value }))
                   }
                   placeholder='e.g. "Add to Bag, Add to Cart"'
-                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                 />
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -353,12 +353,12 @@ export default function MonitorPage() {
                   }
                   className="accent-accent"
                 />
-                <span className="text-sm text-text-1">
+                <span className="text-sm text-text-mid">
                   Notify via Telegram
                 </span>
               </label>
               <div>
-                <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                   NOTES
                 </Mono>
                 <textarea
@@ -366,7 +366,7 @@ export default function MonitorPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, notes: e.target.value }))
                   }
-                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent resize-none h-16"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-accent resize-none h-16"
                 />
               </div>
             </div>
@@ -377,7 +377,7 @@ export default function MonitorPage() {
                   setShowModal(false);
                   setForm(EMPTY_MODAL);
                 }}
-                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
+                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-text-lo hover:text-text-hi"
               >
                 CANCEL
               </button>

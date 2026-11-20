@@ -31,23 +31,23 @@ export function MealPlannerGrid({
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => setWeekStart(addDays(weekStart, -7))}
-          className="text-ink-3 hover:text-ink-4 text-sm font-[family-name:var(--font-mono)]"
+          className="text-text-lo hover:text-text-hi text-sm font-[family-name:var(--font-mono)]"
         >
           ← Prev
         </button>
-        <p className="text-sm text-ink-4 font-[family-name:var(--font-display)]">
+        <p className="text-sm text-text-hi font-[family-name:var(--font-display)]">
           {fmtWeekRange(weekStart)}
         </p>
         <button
           onClick={() => setWeekStart(addDays(weekStart, 7))}
-          className="text-ink-3 hover:text-ink-4 text-sm font-[family-name:var(--font-mono)]"
+          className="text-text-lo hover:text-text-hi text-sm font-[family-name:var(--font-mono)]"
         >
           Next →
         </button>
       </div>
 
       {loadingMeals ? (
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] text-center py-8">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] text-center py-8">
           Loading…
         </p>
       ) : (
@@ -57,13 +57,13 @@ export function MealPlannerGrid({
             <table className="w-full border-collapse text-xs">
               <thead>
                 <tr>
-                  <th className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em] text-left p-2 w-20" />
+                  <th className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.1em] text-left p-2 w-20" />
                   {Array.from({ length: 7 }, (_, i) => {
                     const d = addDays(weekStart, i);
                     return (
                       <th
                         key={i}
-                        className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em] text-center p-2"
+                        className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.1em] text-center p-2"
                       >
                         {fmtDay(d)}
                       </th>
@@ -74,7 +74,7 @@ export function MealPlannerGrid({
               <tbody>
                 {MEAL_TYPES.map((meal) => (
                   <tr key={meal} className="border-t border-hairline">
-                    <td className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em] p-2">
+                    <td className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.1em] p-2">
                       {MEAL_LABELS[meal]}
                     </td>
                     {Array.from({ length: 7 }, (_, i) => {
@@ -86,7 +86,7 @@ export function MealPlannerGrid({
                         <td key={i} className="p-1 text-center align-top">
                           {entry ? (
                             <div className="group relative px-1 py-1.5 rounded bg-[#5de8e0]/10 border border-[#5de8e0]/20">
-                              <p className="text-[10px] text-ink-4 font-[family-name:var(--font-display)] truncate">
+                              <p className="text-[10px] text-text-hi font-[family-name:var(--font-display)] truncate">
                                 {entry.recipes?.title || entry.custom_meal || "—"}
                               </p>
                               <button
@@ -99,7 +99,7 @@ export function MealPlannerGrid({
                           ) : (
                             <button
                               onClick={() => onCellClick(d, meal)}
-                              className="w-full py-1.5 rounded border border-dashed border-hairline text-ink-3 hover:border-ink-3 hover:text-ink-4 text-[10px] font-[family-name:var(--font-mono)] transition-colors"
+                              className="w-full py-1.5 rounded border border-dashed border-hairline text-text-lo hover:border-text-lo hover:text-text-hi text-[10px] font-[family-name:var(--font-mono)] transition-colors"
                             >
                               +
                             </button>

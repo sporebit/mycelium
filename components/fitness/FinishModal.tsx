@@ -85,13 +85,13 @@ export function FinishModal({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
-          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-ink-4">
+          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-hi">
             Finish session
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-ink-3 hover:text-ink-4 text-xl leading-none"
+            className="text-text-lo hover:text-text-hi text-xl leading-none"
           >
             ×
           </button>
@@ -100,7 +100,7 @@ export function FinishModal({
           <dl className="grid grid-cols-3 gap-2 text-center">
             <Stat label="Sets" value={String(totalSets)} />
             <div className="flex flex-col gap-0.5 p-2 rounded-v2-md border border-hairline bg-surface-0">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 Time
               </span>
               <div className="flex items-center gap-1 justify-center">
@@ -108,16 +108,16 @@ export function FinishModal({
                   inputMode="numeric"
                   value={durH}
                   onChange={(e) => setDurH(e.target.value.replace(/[^0-9]/g, ""))}
-                  className="w-8 text-center bg-transparent border-b border-ink-3 text-base font-[family-name:var(--font-mono)] text-ink-4 tabular-nums outline-none focus:border-accent"
+                  className="w-8 text-center bg-transparent border-b border-text-lo text-base font-[family-name:var(--font-mono)] text-text-hi tabular-nums outline-none focus:border-accent"
                 />
-                <span className="text-xs text-ink-3">h</span>
+                <span className="text-xs text-text-lo">h</span>
                 <input
                   inputMode="numeric"
                   value={durM}
                   onChange={(e) => setDurM(e.target.value.replace(/[^0-9]/g, ""))}
-                  className="w-8 text-center bg-transparent border-b border-ink-3 text-base font-[family-name:var(--font-mono)] text-ink-4 tabular-nums outline-none focus:border-accent"
+                  className="w-8 text-center bg-transparent border-b border-text-lo text-base font-[family-name:var(--font-mono)] text-text-hi tabular-nums outline-none focus:border-accent"
                 />
-                <span className="text-xs text-ink-3">m</span>
+                <span className="text-xs text-text-lo">m</span>
               </div>
             </div>
             <Stat label="Volume" value={`${totalVolKg.toFixed(0)} kg`} />
@@ -132,10 +132,10 @@ export function FinishModal({
                 className="mt-1"
               />
               <div className="flex-1 min-w-0">
-                <div className="text-sm text-ink-4">
+                <div className="text-sm text-text-hi">
                   Save changes to template ({saveToTemplate.length})
                 </div>
-                <ul className="text-[11px] text-ink-3 mt-1 font-[family-name:var(--font-mono)] tracking-[0.08em]">
+                <ul className="text-[11px] text-text-lo mt-1 font-[family-name:var(--font-mono)] tracking-[0.08em]">
                   {saveToTemplate.map((e: SessionExercise) => (
                     <li key={e.id} className="truncate">
                       · {e.name}
@@ -154,7 +154,7 @@ export function FinishModal({
                   checked={saveAsWorkout}
                   onChange={(e) => setSaveAsWorkout(e.target.checked)}
                 />
-                <span className="text-sm text-ink-4">Save as reusable workout</span>
+                <span className="text-sm text-text-hi">Save as reusable workout</span>
               </label>
               {saveAsWorkout && (
                 <input
@@ -162,14 +162,14 @@ export function FinishModal({
                   value={workoutName}
                   onChange={(e) => setWorkoutName(e.target.value)}
                   placeholder="Workout name"
-                  className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
+                  className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo font-[family-name:var(--font-mono)]"
                 />
               )}
             </div>
           )}
 
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Calories (optional)
             </span>
             <input
@@ -177,12 +177,12 @@ export function FinishModal({
               value={calories}
               onChange={(e) => setCalories(e.target.value.replace(/[^0-9]/g, ""))}
               placeholder="—"
-              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-text-hi px-3 py-2 outline-none focus:border-text-lo font-[family-name:var(--font-mono)]"
             />
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               How did it feel?
             </span>
             <textarea
@@ -190,7 +190,7 @@ export function FinishModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Optional notes…"
-              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 resize-none"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo resize-none"
             />
           </label>
         </div>
@@ -198,7 +198,7 @@ export function FinishModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-12 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] hover:text-ink-4"
+            className="flex-1 h-12 rounded-v2-md border border-hairline text-text-lo text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] hover:text-text-hi"
           >
             CANCEL
           </button>
@@ -222,10 +222,10 @@ export function FinishModal({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5 p-2 rounded-v2-md border border-hairline bg-surface-0">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {label}
       </span>
-      <span className="text-base font-[family-name:var(--font-mono)] text-ink-4 tabular-nums">
+      <span className="text-base font-[family-name:var(--font-mono)] text-text-hi tabular-nums">
         {value}
       </span>
     </div>

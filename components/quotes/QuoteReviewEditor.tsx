@@ -19,7 +19,7 @@ export type DuplicateChoice = { id: string; action: "keep" | "replace" } | null;
 type Similar = { id: string; text: string; score: number };
 type PeopleApiRow = { id: string; display_name?: string | null; first_name?: string | null; last_name?: string | null };
 
-const input = "w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
+const input = "w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
 const btn = "px-2 py-1 rounded-sm border text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)]";
 
 /**
@@ -71,7 +71,7 @@ export function QuoteReviewEditor({
   const unresolved = !value.is_own && !value.said_by_person_id;
 
   return (
-    <div className="rounded-md border border-glow-2/30 bg-ink-0/30 p-3 flex flex-col gap-3">
+    <div className="rounded-md border border-glow-2/30 bg-surface-0/30 p-3 flex flex-col gap-3">
       <label className="flex flex-col gap-1">
         <span className="card-eyebrow">Quote</span>
         <textarea rows={2} value={value.text} onChange={(e) => onChange({ ...value, text: e.target.value })} className={`${input} resize-y font-[family-name:var(--font-display)] text-base`} />
@@ -119,22 +119,22 @@ export function QuoteReviewEditor({
         </label>
       </div>
       {similar.length > 0 && (
-        <div className="rounded-sm border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-text-1 flex flex-col gap-1.5">
+        <div className="rounded-sm border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-text-mid flex flex-col gap-1.5">
           <div className="text-warn">Near-duplicate of a quote you already have:</div>
           {similar.map((s) => (
             <div key={s.id} className="flex flex-wrap items-center gap-2">
               <span className="flex-1">
-                “{s.text}” <span className="text-text-2">({Math.round(s.score * 100)}%)</span>
+                “{s.text}” <span className="text-text-lo">({Math.round(s.score * 100)}%)</span>
               </span>
-              <button type="button" onClick={() => onDuplicate(duplicate?.id === s.id && duplicate.action === "keep" ? null : { id: s.id, action: "keep" })} className={`${btn} ${duplicate?.id === s.id && duplicate.action === "keep" ? "border-glow-2 text-glow-1" : "border-ink-4 text-text-2"}`}>
+              <button type="button" onClick={() => onDuplicate(duplicate?.id === s.id && duplicate.action === "keep" ? null : { id: s.id, action: "keep" })} className={`${btn} ${duplicate?.id === s.id && duplicate.action === "keep" ? "border-glow-2 text-glow-1" : "border-text-hi text-text-lo"}`}>
                 keep existing
               </button>
-              <button type="button" onClick={() => onDuplicate(duplicate?.id === s.id && duplicate.action === "replace" ? null : { id: s.id, action: "replace" })} className={`${btn} ${duplicate?.id === s.id && duplicate.action === "replace" ? "border-glow-2 text-glow-1" : "border-ink-4 text-text-2"}`}>
+              <button type="button" onClick={() => onDuplicate(duplicate?.id === s.id && duplicate.action === "replace" ? null : { id: s.id, action: "replace" })} className={`${btn} ${duplicate?.id === s.id && duplicate.action === "replace" ? "border-glow-2 text-glow-1" : "border-text-hi text-text-lo"}`}>
                 replace its text
               </button>
             </div>
           ))}
-          <div className="text-text-2">Approve with neither selected to save it as a new quote.</div>
+          <div className="text-text-lo">Approve with neither selected to save it as a new quote.</div>
         </div>
       )}
     </div>

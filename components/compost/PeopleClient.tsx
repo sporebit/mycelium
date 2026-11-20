@@ -48,7 +48,7 @@ function avatarColor(name: string): string {
     "bg-glow-3 text-glow-1",
     "bg-warn/20 text-warn",
     "bg-info/20 text-info",
-    "bg-ink-3 text-text-1",
+    "bg-text-lo text-text-mid",
   ];
   return palette[h % palette.length];
 }
@@ -254,7 +254,7 @@ export function PeopleClient() {
   }
 
   const bulkActions: ReviewAction[] = filter === "archived" ? ["unarchive", "reject"] : ["keep", "archive", "reject"];
-  const smallBtn = "px-2 py-1 rounded-sm border border-ink-4 text-[10px] text-text-1 hover:text-text-0 hover:bg-ink-2 disabled:opacity-50 font-[family-name:var(--font-mono)] tracking-[0.12em]";
+  const smallBtn = "px-2 py-1 rounded-sm border border-text-hi text-[10px] text-text-mid hover:text-text-hi hover:bg-surface-2 disabled:opacity-50 font-[family-name:var(--font-mono)] tracking-[0.12em]";
 
   return (
     <div className="flex flex-col gap-5">
@@ -262,7 +262,7 @@ export function PeopleClient() {
         <div className="flex flex-col gap-0.5">
           <div className="card-eyebrow">People</div>
           <div className="flex items-baseline gap-3">
-            <span className="font-[family-name:var(--font-display)] text-2xl text-text-0">
+            <span className="font-[family-name:var(--font-display)] text-2xl text-text-hi">
               {people === null
                 ? "…"
                 : filter === "archived"
@@ -286,7 +286,7 @@ export function PeopleClient() {
               setSelected([]);
             }}
             aria-pressed={selecting}
-            className={`px-3 py-2 rounded-sm border text-xs font-[family-name:var(--font-mono)] tracking-[0.1em] ${selecting ? "border-glow-2/50 bg-glow-2/15 text-glow-2" : "border-ink-4 text-text-1 hover:text-text-0 hover:bg-ink-2"}`}
+            className={`px-3 py-2 rounded-sm border text-xs font-[family-name:var(--font-mono)] tracking-[0.1em] ${selecting ? "border-glow-2/50 bg-glow-2/15 text-glow-2" : "border-text-hi text-text-mid hover:text-text-hi hover:bg-surface-2"}`}
             title={bulkMode ? "Pick people for a bulk action" : "Pick two people to merge"}
           >
             {selecting ? "DONE" : "SELECT"}
@@ -296,7 +296,7 @@ export function PeopleClient() {
               type="button"
               disabled={selected.length !== 2}
               onClick={() => selected.length === 2 && setMergePair([selected[0], selected[1]])}
-              className="px-3 py-2 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]"
+              className="px-3 py-2 rounded-sm bg-glow-2 text-text-hi hover:bg-glow-1 disabled:opacity-40 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]"
             >
               MERGE {selected.length}/2
             </button>
@@ -306,7 +306,7 @@ export function PeopleClient() {
               <button
                 type="button"
                 onClick={() => setSelected(selected.length === visible.length ? [] : visible.map((p) => p.id))}
-                className="px-3 py-2 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                className="px-3 py-2 rounded-sm border border-text-hi text-xs text-text-mid hover:text-text-hi hover:bg-surface-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
               >
                 {selected.length === visible.length && visible.length > 0 ? "NONE" : "ALL"}
               </button>
@@ -318,7 +318,7 @@ export function PeopleClient() {
                   onClick={() => void bulk(a)}
                   title={ACTION_TITLE[a]}
                   className={`px-3 py-2 rounded-sm text-xs font-[family-name:var(--font-mono)] tracking-[0.1em] disabled:opacity-40 ${
-                    a === "reject" ? "border border-error/50 text-error hover:bg-error/10" : "bg-glow-2 text-text-0 hover:bg-glow-1"
+                    a === "reject" ? "border border-error/50 text-error hover:bg-error/10" : "bg-glow-2 text-text-hi hover:bg-glow-1"
                   }`}
                 >
                   {bulkBusy ? "…" : `${ACTION_LABEL[a]} ${selected.length}`}
@@ -328,14 +328,14 @@ export function PeopleClient() {
           )}
           <a
             href={`/api/people/export.vcf?tier=${tier === "contact" ? "contact" : "all"}`}
-            className="px-3 py-2 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+            className="px-3 py-2 rounded-sm border border-text-hi text-xs text-text-mid hover:text-text-hi hover:bg-surface-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
             title="Download a .vcf for iPhone / iCloud"
           >
             EXPORT .VCF
           </a>
           <Link
             href="/organisation/people/import"
-            className="px-3 py-2 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+            className="px-3 py-2 rounded-sm border border-text-hi text-xs text-text-mid hover:text-text-hi hover:bg-surface-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
           >
             IMPORT
           </Link>
@@ -345,7 +345,7 @@ export function PeopleClient() {
               triggerGlowPulse(e.currentTarget);
               setDrawerMode({ kind: "create" });
             }}
-            className="px-4 py-2 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 transition-colors text-xs font-medium font-[family-name:var(--font-mono)] tracking-[0.1em]"
+            className="px-4 py-2 rounded-sm bg-glow-2 text-text-hi hover:bg-glow-1 transition-colors text-xs font-medium font-[family-name:var(--font-mono)] tracking-[0.1em]"
           >
             + ADD PERSON
           </button>
@@ -358,7 +358,7 @@ export function PeopleClient() {
         onChange={(e) => setQ(e.target.value)}
         placeholder="Search people — name, alias, relationship, email, phone, notes…"
         aria-label="Search people"
-        className="w-full bg-ink-1 border border-ink-2 rounded-md text-sm text-text-0 placeholder:text-ink-3 placeholder:italic px-3 py-2 outline-none focus:border-ink-3"
+        className="w-full bg-surface-1 border border-surface-2 rounded-md text-sm text-text-hi placeholder:text-text-lo placeholder:italic px-3 py-2 outline-none focus:border-text-lo"
       />
 
       <div className="flex flex-wrap items-center gap-2">
@@ -382,14 +382,14 @@ export function PeopleClient() {
               className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] border transition-colors ${
                 active
                   ? "border-glow-2/50 bg-glow-2/15 text-glow-2"
-                  : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                  : "border-surface-2 text-text-lo hover:text-text-hi hover:border-text-lo"
               }`}
             >
               {t.label}
             </button>
           );
         })}
-        <span className="w-px h-4 bg-ink-2 mx-1" aria-hidden />
+        <span className="w-px h-4 bg-surface-2 mx-1" aria-hidden />
         {(
           [
             { id: "all", label: "ALL" },
@@ -408,7 +408,7 @@ export function PeopleClient() {
               className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] border transition-colors ${
                 active
                   ? "border-accent/50 bg-accent/15 text-accent"
-                  : "border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                  : "border-surface-2 text-text-lo hover:text-text-hi hover:border-text-lo"
               }`}
             >
               {f.label}
@@ -422,7 +422,7 @@ export function PeopleClient() {
           <select
             value={relationship}
             onChange={(e) => setRelationship(e.target.value)}
-            className="ml-2 bg-ink-2 rounded-sm text-[11px] text-text-1 px-3 py-1.5 outline outline-1 outline-transparent focus:outline-glow-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+            className="ml-2 bg-surface-2 rounded-sm text-[11px] text-text-mid px-3 py-1.5 outline outline-1 outline-transparent focus:outline-glow-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
           >
             <option value="all">ALL RELATIONSHIPS</option>
             {relationships.map((r) => (
@@ -435,9 +435,9 @@ export function PeopleClient() {
       </div>
 
       {notice && (
-        <div className="text-xs text-text-1 font-[family-name:var(--font-mono)] tracking-[0.05em] rounded-md bg-ink-1 px-3 py-2 flex items-center gap-3">
+        <div className="text-xs text-text-mid font-[family-name:var(--font-mono)] tracking-[0.05em] rounded-md bg-surface-1 px-3 py-2 flex items-center gap-3">
           <span className="flex-1">{notice}</span>
-          <button type="button" onClick={() => setNotice(null)} className="text-ink-3 hover:text-text-0" aria-label="Dismiss">
+          <button type="button" onClick={() => setNotice(null)} className="text-text-lo hover:text-text-hi" aria-label="Dismiss">
             ×
           </button>
         </div>
@@ -463,7 +463,7 @@ export function PeopleClient() {
                     {initialsOf(p)}
                   </span>
                   <div className="min-w-0">
-                    <div className="text-xs text-text-0 font-[family-name:var(--font-display)] truncate">
+                    <div className="text-xs text-text-hi font-[family-name:var(--font-display)] truncate">
                       {displayName(p)}
                     </div>
                     <div className="text-[10px] font-[family-name:var(--font-mono)] text-[#f56db5]">
@@ -486,11 +486,11 @@ export function PeopleClient() {
       {filter === "review" && <ReviewQueue hidePeople onResolved={() => void load()} />}
 
       {people === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : visible.length === 0 ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           {filter === "review"
             ? "No people waiting for review. 🌱"
             : filter === "archived"
@@ -516,7 +516,7 @@ export function PeopleClient() {
                 }
               }}
               aria-selected={selecting ? selected.includes(p.id) : undefined}
-              className={`growth-in group rounded-md bg-ink-1 hover:bg-ink-2 transition-colors p-4 flex items-start gap-3 ${selecting && selected.includes(p.id) ? "outline outline-2 outline-glow-2/60" : ""}`}
+              className={`growth-in group rounded-md bg-surface-1 hover:bg-surface-2 transition-colors p-4 flex items-start gap-3 ${selecting && selected.includes(p.id) ? "outline outline-2 outline-glow-2/60" : ""}`}
             >
               {selecting && (
                 <input type="checkbox" readOnly checked={selected.includes(p.id)} className="mt-3 accent-accent h-3.5 w-3.5" aria-label={`Select ${displayName(p)}`} />
@@ -528,7 +528,7 @@ export function PeopleClient() {
               </span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-[family-name:var(--font-display)] text-xl text-text-0 truncate">
+                  <span className="font-[family-name:var(--font-display)] text-xl text-text-hi truncate">
                     {displayName(p)}
                   </span>
                   {p.needs_review && (
@@ -537,7 +537,7 @@ export function PeopleClient() {
                     </span>
                   )}
                   {p.archived_at && (
-                    <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    <span className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
                       archived
                     </span>
                   )}
@@ -557,7 +557,7 @@ export function PeopleClient() {
                     </button>
                   )}
                 </div>
-                <div className="text-[11px] text-text-2 font-[family-name:var(--font-mono)] tracking-[0.08em] mt-0.5">
+                <div className="text-[11px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.08em] mt-0.5">
                   {p.relationship ? `${p.relationship} · ` : ""}
                   {p.birthday && (
                     <span>
@@ -589,7 +589,7 @@ export function PeopleClient() {
                       : "no mentions"}
                 </div>
                 {p.needs_review && p.snippet && (
-                  <p className="text-xs text-text-1 italic font-[family-name:var(--font-display)] leading-snug mt-1.5 line-clamp-2" title={p.snippet}>
+                  <p className="text-xs text-text-mid italic font-[family-name:var(--font-display)] leading-snug mt-1.5 line-clamp-2" title={p.snippet}>
                     &ldquo;{p.snippet.slice(0, 160)}
                     {p.snippet.length > 160 ? "…" : ""}&rdquo;
                   </p>
@@ -599,13 +599,13 @@ export function PeopleClient() {
                     {p.aliases.slice(1, 4).map((a) => (
                       <Mono
                         key={a.id}
-                        className="text-[10px] text-text-2 bg-ink-2/60 px-1.5 py-0.5 rounded-sm"
+                        className="text-[10px] text-text-lo bg-surface-2/60 px-1.5 py-0.5 rounded-sm"
                       >
                         {a.alias}
                       </Mono>
                     ))}
                     {p.aliases.length > 4 && (
-                      <Mono className="text-[10px] text-text-2">
+                      <Mono className="text-[10px] text-text-lo">
                         +{p.aliases.length - 4}
                       </Mono>
                     )}

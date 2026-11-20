@@ -204,7 +204,7 @@ export default function CalendarPage() {
     <div className="flex flex-col gap-6">
       <header className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Drops
           </h1>
         </div>
@@ -222,7 +222,7 @@ export default function CalendarPage() {
         <button
           type="button"
           onClick={() => shiftWeek(-1)}
-          className="text-ink-3 hover:text-text-0 text-sm px-1"
+          className="text-text-lo hover:text-text-hi text-sm px-1"
         >
           ←
         </button>
@@ -241,7 +241,7 @@ export default function CalendarPage() {
                 className={`flex-1 py-2 rounded-v2-md text-center transition-colors ${
                   isToday
                     ? "bg-accent/20 border border-accent/40 text-accent"
-                    : "bg-surface-1 border border-transparent text-ink-3 hover:text-text-0"
+                    : "bg-surface-1 border border-transparent text-text-lo hover:text-text-hi"
                 }`}
               >
                 <div className="text-[9px] font-[family-name:var(--font-mono)] tracking-[0.1em]">
@@ -258,7 +258,7 @@ export default function CalendarPage() {
         <button
           type="button"
           onClick={() => shiftWeek(1)}
-          className="text-ink-3 hover:text-text-0 text-sm px-1"
+          className="text-text-lo hover:text-text-hi text-sm px-1"
         >
           →
         </button>
@@ -274,7 +274,7 @@ export default function CalendarPage() {
             className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
               filterType === t
                 ? "border-accent/50 bg-accent/15 text-accent"
-                : "border-hairline text-ink-3 hover:text-ink-4"
+                : "border-hairline text-text-lo hover:text-text-hi"
             }`}
           >
             {t === "all" ? "All" : t}
@@ -283,7 +283,7 @@ export default function CalendarPage() {
         <select
           value={filterBrand}
           onChange={(e) => setFilterBrand(e.target.value)}
-          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-ink-3 px-2 py-1 outline-none"
+          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-text-lo px-2 py-1 outline-none"
         >
           <option value="all">All brands</option>
           {brands.map((b) => (
@@ -295,11 +295,11 @@ export default function CalendarPage() {
       </div>
 
       {loading ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Loading drops…
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           No drops yet. Add one to get started.
         </div>
       ) : (
@@ -324,7 +324,7 @@ export default function CalendarPage() {
           {/* Grouped by date */}
           {sortedDates.map((date) => (
             <div key={date}>
-              <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-2 block">
+              <Mono className="text-[11px] text-text-lo tracking-[0.18em] mb-2 block">
                 {date === "TBC"
                   ? "DATE TBC"
                   : new Date(date + "T00:00:00").toLocaleDateString("en-GB", {
@@ -346,8 +346,8 @@ export default function CalendarPage() {
       {/* Add Drop modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-ink-0 border border-hairline rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
-            <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-0 mb-4">
+          <div className="bg-surface-0 border border-hairline rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+            <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-hi mb-4">
               Add Drop
             </h2>
             <div className="flex flex-col gap-3">
@@ -399,7 +399,7 @@ export default function CalendarPage() {
                   }
                   className="accent-accent"
                 />
-                <span className="text-xs text-text-1">Date confirmed?</span>
+                <span className="text-xs text-text-mid">Date confirmed?</span>
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <Field
@@ -432,7 +432,7 @@ export default function CalendarPage() {
                 onChange={(v) => setForm((f) => ({ ...f, image_url: v }))}
               />
               <div>
-                <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                   NOTES
                 </Mono>
                 <textarea
@@ -440,7 +440,7 @@ export default function CalendarPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, notes: e.target.value }))
                   }
-                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent resize-none h-20"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-accent resize-none h-20"
                 />
               </div>
             </div>
@@ -451,7 +451,7 @@ export default function CalendarPage() {
                   setShowModal(false);
                   setForm(EMPTY_MODAL);
                 }}
-                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
+                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-text-lo hover:text-text-hi"
               >
                 CANCEL
               </button>
@@ -520,7 +520,7 @@ function DropCard({
       }`}
     >
       {drop.image_url && (
-        <div className="w-20 h-20 rounded-v2-md overflow-hidden flex-shrink-0 bg-ink-2">
+        <div className="w-20 h-20 rounded-v2-md overflow-hidden flex-shrink-0 bg-surface-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={drop.image_url}
@@ -531,7 +531,7 @@ function DropCard({
       )}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap mb-1">
-          <span className="text-sm font-medium text-text-0">{drop.brand}</span>
+          <span className="text-sm font-medium text-text-hi">{drop.brand}</span>
           <span
             className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] tracking-[0.1em] uppercase"
             style={{
@@ -542,7 +542,7 @@ function DropCard({
           >
             {drop.drop_type}
           </span>
-          <span className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] tracking-[0.1em] bg-ink-2 text-ink-3">
+          <span className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] tracking-[0.1em] bg-surface-2 text-text-lo">
             {drop.region}
           </span>
           {isLive && (
@@ -552,13 +552,13 @@ function DropCard({
             </span>
           )}
           {!isLive && (
-            <Mono className="text-[8px] text-ink-3 tracking-[0.1em]">
+            <Mono className="text-[8px] text-text-lo tracking-[0.1em]">
               {STATUS_LABELS[drop.status] ?? drop.status.toUpperCase()}
             </Mono>
           )}
         </div>
-        <div className="text-sm text-text-1">{drop.name}</div>
-        <div className="flex items-center gap-3 mt-1 text-[10px] font-[family-name:var(--font-mono)] text-ink-3">
+        <div className="text-sm text-text-mid">{drop.name}</div>
+        <div className="flex items-center gap-3 mt-1 text-[10px] font-[family-name:var(--font-mono)] text-text-lo">
           {drop.drop_date ? (
             <span>
               {drop.drop_date_confirmed ? "" : "~"}
@@ -569,13 +569,13 @@ function DropCard({
           )}
           {drop.retail_price != null && <span>£{drop.retail_price}</span>}
           {drop.resale_price != null && (
-            <span className="text-ink-4">
+            <span className="text-text-hi">
               Resale ~£{drop.resale_price}
             </span>
           )}
         </div>
         {drop.notes && (
-          <div className="text-[10px] text-ink-3 mt-1 truncate">
+          <div className="text-[10px] text-text-lo mt-1 truncate">
             {drop.notes}
           </div>
         )}
@@ -599,7 +599,7 @@ function DropCard({
               href={drop.product_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[9px] font-[family-name:var(--font-mono)] tracking-[0.1em] text-ink-3 hover:text-text-0 transition-colors"
+              className="text-[9px] font-[family-name:var(--font-mono)] tracking-[0.1em] text-text-lo hover:text-text-hi transition-colors"
             >
               OPEN →
             </a>
@@ -627,7 +627,7 @@ function Field({
 }) {
   return (
     <div>
-      <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+      <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
         {label.toUpperCase()}
         {required && <span className="text-accent ml-1">*</span>}
       </Mono>
@@ -636,7 +636,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         list={list}
-        className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+        className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
       />
     </div>
   );
@@ -655,13 +655,13 @@ function SelectField({
 }) {
   return (
     <div>
-      <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+      <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
         {label.toUpperCase()}
       </Mono>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+        className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
       >
         {options.map((o) => (
           <option key={o} value={o}>

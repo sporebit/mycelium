@@ -49,12 +49,12 @@ export function PhotoStrip({ photos, onChanged, uploadTo }: { photos: SignedMedi
           {photos.map((p) => (
             <li key={p.id} className="relative shrink-0 w-28 flex flex-col gap-1">
               {p.url ? (
-                <a href={p.url} target="_blank" rel="noreferrer" className="block h-20 w-28 overflow-hidden rounded-sm bg-ink-2">
+                <a href={p.url} target="_blank" rel="noreferrer" className="block h-20 w-28 overflow-hidden rounded-sm bg-surface-2">
                   {/* eslint-disable-next-line @next/next/no-img-element -- signed, short-lived storage URL; next/image cannot optimise it */}
                   <img src={p.url} alt={p.caption ?? "photo"} className="h-full w-full object-cover" loading="lazy" />
                 </a>
               ) : (
-                <div className="h-20 w-28 rounded-sm bg-ink-2 text-[10px] text-text-2 flex items-center justify-center">no url</div>
+                <div className="h-20 w-28 rounded-sm bg-surface-2 text-[10px] text-text-lo flex items-center justify-center">no url</div>
               )}
               {captioning?.id === p.id ? (
                 <input
@@ -68,17 +68,17 @@ export function PhotoStrip({ photos, onChanged, uploadTo }: { photos: SignedMedi
                     }
                     if (e.key === "Escape") setCaptioning(null);
                   }}
-                  className="w-full bg-ink-2 rounded-sm text-[11px] text-text-0 px-1.5 py-1 outline-none"
+                  className="w-full bg-surface-2 rounded-sm text-[11px] text-text-hi px-1.5 py-1 outline-none"
                   aria-label="Caption"
                 />
               ) : (
-                <button type="button" className="text-left text-[11px] text-text-2 hover:text-text-0 truncate" onClick={() => setCaptioning({ id: p.id, text: p.caption ?? "" })} title={p.caption ?? "Add a caption"}>
+                <button type="button" className="text-left text-[11px] text-text-lo hover:text-text-hi truncate" onClick={() => setCaptioning({ id: p.id, text: p.caption ?? "" })} title={p.caption ?? "Add a caption"}>
                   {p.caption ?? "+ caption"}
                 </button>
               )}
               <button
                 type="button"
-                className={`${tiny} absolute top-1 left-1 rounded-sm bg-ink-0/70 px-1 ${p.shareable ? "text-glow-1" : "text-text-2 hover:text-text-0"}`}
+                className={`${tiny} absolute top-1 left-1 rounded-sm bg-surface-0/70 px-1 ${p.shareable ? "text-glow-1" : "text-text-lo hover:text-text-hi"}`}
                 disabled={busy}
                 aria-label={p.shareable ? "Shared with linked people" : "Not shared with linked people"}
                 title={p.shareable ? "Anyone linked to a person in this scene can see this photo. Click to keep it to yourself." : "Only you. Click to share with anyone linked to a person in this scene."}
@@ -88,7 +88,7 @@ export function PhotoStrip({ photos, onChanged, uploadTo }: { photos: SignedMedi
               </button>
               <button
                 type="button"
-                className={`${tiny} absolute top-1 right-1 rounded-sm bg-ink-0/70 px-1 text-text-2 hover:text-warn`}
+                className={`${tiny} absolute top-1 right-1 rounded-sm bg-surface-0/70 px-1 text-text-lo hover:text-warn`}
                 disabled={busy}
                 aria-label="Remove photo"
                 onClick={() => {
@@ -114,7 +114,7 @@ export function PhotoStrip({ photos, onChanged, uploadTo }: { photos: SignedMedi
               e.target.value = "";
             }}
           />
-          <button type="button" className={`${tiny} text-text-2 hover:text-text-0`} disabled={busy} onClick={() => fileInput.current?.click()}>
+          <button type="button" className={`${tiny} text-text-lo hover:text-text-hi`} disabled={busy} onClick={() => fileInput.current?.click()}>
             {busy ? "…" : "+ PHOTO"}
           </button>
           {err && <span className="text-xs text-error">{err}</span>}

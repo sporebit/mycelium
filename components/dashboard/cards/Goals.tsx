@@ -106,10 +106,10 @@ export function Goals({ width = 1 }: { width?: CardWidth } = {}) {
         <div className="mb-4 flex flex-col gap-0.5">
           <span className="card-eyebrow">Progress</span>
           <div className="flex items-baseline gap-2 tabular-nums">
-            <span className="font-[family-name:var(--font-display)] text-3xl font-medium text-text-0 leading-none">
+            <span className="font-[family-name:var(--font-display)] text-3xl font-medium text-text-hi leading-none">
               {pctAll}%
             </span>
-            <span className="text-sm text-text-1">
+            <span className="text-sm text-text-mid">
               {doneAll} of {totalAll} {totalAll === 1 ? "goal" : "goals"}
             </span>
           </div>
@@ -145,7 +145,7 @@ export function Goals({ width = 1 }: { width?: CardWidth } = {}) {
             onToggle={(id) => toggle("week", id)}
             onRemove={(id) => remove("week", id)}
           />
-          <div className="my-4 border-t border-ink-2" />
+          <div className="my-4 border-t border-surface-2" />
           <Section
             label="This Month"
             emptyText="No monthly goals yet. Add one below."
@@ -189,11 +189,11 @@ function Section({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           {label}
         </span>
         {items !== null && total > 0 && (
-          <Mono className="text-[10px] text-ink-3">
+          <Mono className="text-[10px] text-text-lo">
             {completed}/{total}
           </Mono>
         )}
@@ -201,11 +201,11 @@ function Section({
 
       <ul className="flex flex-col">
         {items === null ? (
-          <li className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-1">
+          <li className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-1">
             Loading…
           </li>
         ) : items.length === 0 ? (
-          <li className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-1">
+          <li className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-1">
             {emptyText}
           </li>
         ) : (
@@ -220,15 +220,15 @@ function Section({
                 aria-label={g.done ? "Mark not done" : "Mark done"}
                 className={`h-4 w-4 shrink-0 rounded-sm border flex items-center justify-center text-[10px] leading-none transition-colors ${
                   g.done
-                    ? "border-accent bg-accent text-ink-0"
-                    : "border-ink-3 hover:border-ink-4"
+                    ? "border-accent bg-accent text-surface-0"
+                    : "border-text-lo hover:border-text-hi"
                 }`}
               >
                 {g.done && "✓"}
               </button>
               <span
                 className={`flex-1 text-sm leading-snug min-w-0 break-words ${
-                  g.done ? "text-ink-3 line-through" : "text-ink-4"
+                  g.done ? "text-text-lo line-through" : "text-text-hi"
                 }`}
               >
                 {g.text}
@@ -237,7 +237,7 @@ function Section({
                 type="button"
                 onClick={() => onRemove(g.id)}
                 aria-label="Delete"
-                className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-danger transition-opacity text-sm shrink-0"
+                className="opacity-0 group-hover:opacity-100 text-text-lo hover:text-danger transition-opacity text-sm shrink-0"
               >
                 ×
               </button>
@@ -247,13 +247,13 @@ function Section({
       </ul>
 
       <form onSubmit={submit} className="flex items-center gap-2 mt-1">
-        <span className="text-ink-3 text-sm shrink-0">+</span>
+        <span className="text-text-lo text-sm shrink-0">+</span>
         <input
           type="text"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="add a goal"
-          className="flex-1 bg-transparent outline-none text-sm text-ink-4 placeholder:text-ink-3 italic font-[family-name:var(--font-display)] border-b border-transparent focus:border-ink-2 transition-colors pb-0.5"
+          className="flex-1 bg-transparent outline-none text-sm text-text-hi placeholder:text-text-lo italic font-[family-name:var(--font-display)] border-b border-transparent focus:border-surface-2 transition-colors pb-0.5"
         />
       </form>
     </div>

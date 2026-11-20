@@ -85,17 +85,17 @@ export function ServingPicker({
       <button
         type="button"
         onClick={onCancel}
-        className="self-start text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+        className="self-start text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
       >
         ← Back to results
       </button>
 
       <div>
-        <h3 className="text-base text-ink-4 font-[family-name:var(--font-display)] italic">
+        <h3 className="text-base text-text-hi font-[family-name:var(--font-display)] italic">
           {food.name}
         </h3>
         {food.brand && (
-          <p className="text-[11px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-0.5">
             {food.brand}
           </p>
         )}
@@ -103,7 +103,7 @@ export function ServingPicker({
 
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Quantity (g)
           </span>
           <input
@@ -114,17 +114,17 @@ export function ServingPicker({
               const n = Number(e.target.value);
               setQuantity(Number.isFinite(n) ? n : 0);
             }}
-            className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+            className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Serving
           </span>
           <select
             value={pickedIdx}
             onChange={(e) => pickServing(Number(e.target.value))}
-            className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+            className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
           >
             {servings.map((s, idx) => (
               <option key={`${s.label}-${idx}`} value={idx}>
@@ -135,7 +135,7 @@ export function ServingPicker({
         </label>
       </div>
 
-      <div className="rounded-md bg-ink-0/40 border border-ink-2 p-3 grid grid-cols-4 gap-2 text-center">
+      <div className="rounded-md bg-surface-0/40 border border-surface-2 p-3 grid grid-cols-4 gap-2 text-center">
         <PreviewCell label="kcal" value={previewKcal} />
         <PreviewCell label="P" value={previewProtein} suffix="g" />
         <PreviewCell label="C" value={previewCarbs} suffix="g" />
@@ -143,13 +143,13 @@ export function ServingPicker({
       </div>
 
       <label className="flex flex-col gap-1">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           Meal group
         </span>
         <select
           value={mealGroupId ?? ""}
           onChange={(e) => setMealGroupId(e.target.value || null)}
-          className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+          className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
         >
           <option value="">— None —</option>
           {mealGroups.map((g) => (
@@ -164,7 +164,7 @@ export function ServingPicker({
         <button
           type="button"
           onClick={onCancel}
-          className="px-3 py-2 rounded-md border border-ink-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 transition-colors"
+          className="px-3 py-2 rounded-md border border-surface-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi transition-colors"
         >
           CANCEL
         </button>
@@ -192,10 +192,10 @@ function PreviewCell({
 }) {
   return (
     <div>
-      <div className="text-[9px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <div className="text-[9px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {label}
       </div>
-      <div className="text-sm text-ink-4 font-[family-name:var(--font-mono)] tabular-nums">
+      <div className="text-sm text-text-hi font-[family-name:var(--font-mono)] tabular-nums">
         {value === null ? "—" : `${value}${suffix ?? ""}`}
       </div>
     </div>

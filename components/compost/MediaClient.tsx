@@ -36,10 +36,10 @@ type Episode = {
 };
 
 const STATUS_TONE: Record<MediaStatus, string> = {
-  backlog: "text-ink-3 bg-ink-2/40 border-ink-2",
+  backlog: "text-text-lo bg-surface-2/40 border-surface-2",
   in_progress: "text-accent bg-accent/15 border-accent/40",
   completed: "text-ok bg-ok/15 border-ok/40",
-  dropped: "text-ink-3 bg-ink-2/40 border-ink-2",
+  dropped: "text-text-lo bg-surface-2/40 border-surface-2",
 };
 
 const STREAMING_BADGE: Record<string, { label: string; color: string }> = {
@@ -94,7 +94,7 @@ function Stars({
           key={n}
           onClick={() => onRate?.(n)}
           className={`${onRate ? "cursor-pointer hover:text-warn" : ""} ${
-            rating && n <= rating ? "text-warn" : "text-ink-2"
+            rating && n <= rating ? "text-warn" : "text-surface-2"
           }`}
         >
           {rating && n <= rating ? "★" : "☆"}
@@ -302,18 +302,18 @@ export function MediaClient() {
     {} as Record<MediaStatus, MediaItem[]>,
   );
 
-  const inputCls = "w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3";
+  const inputCls = "w-full bg-surface-0/40 border border-surface-2 rounded-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo placeholder:text-text-lo";
 
   return (
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Media
         </h1>
         <div
           role="tablist"
           aria-label="Media type"
-          className="flex rounded-md border border-ink-2 overflow-hidden text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          className="flex rounded-md border border-surface-2 overflow-hidden text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
         >
           {MEDIA_TYPES.map((t) => {
             const active = tab === t;
@@ -327,7 +327,7 @@ export function MediaClient() {
                 className={`px-3 py-2 transition-colors ${
                   active
                     ? "bg-accent/15 text-accent"
-                    : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/40"
+                    : "text-text-lo hover:text-text-hi hover:bg-surface-2/40"
                 }`}
               >
                 {MEDIA_TYPE_LABEL[t].toUpperCase()}
@@ -345,13 +345,13 @@ export function MediaClient() {
         }}
         className="flex items-center gap-2"
       >
-        <div className="flex-1 bg-ink-1 border border-ink-2 rounded-md px-3 py-2 focus-within:border-ink-3">
+        <div className="flex-1 bg-surface-1 border border-surface-2 rounded-md px-3 py-2 focus-within:border-text-lo">
           <EntityForm def={MEDIA_DEF} only={QUICK_ADD_FIELDS} values={draft} onChange={setDraft} inline disabled={adding} onSubmit={addItem} />
         </div>
         <button
           type="submit"
           disabled={!String(draft.title ?? "").trim() || adding}
-          className="px-4 py-2 rounded-md bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          className="px-4 py-2 rounded-md bg-glow-2 text-text-hi hover:bg-glow-1 disabled:opacity-40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
         >
           {adding ? "…" : "ADD"}
         </button>
@@ -370,7 +370,7 @@ export function MediaClient() {
                 className={`px-2 py-1 rounded-md transition-colors ${
                   ownedFilter === f
                     ? "bg-accent/15 text-accent"
-                    : "text-ink-3 hover:text-ink-4"
+                    : "text-text-lo hover:text-text-hi"
                 }`}
               >
                 {labels[f]}
@@ -381,12 +381,12 @@ export function MediaClient() {
       )}
 
       {loading ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : items.length === 0 ? (
-        <div className="rounded-md bg-ink-1 p-8 text-center">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="rounded-md bg-surface-1 p-8 text-center">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             No items yet — add one above.
           </p>
         </div>
@@ -398,10 +398,10 @@ export function MediaClient() {
             return (
               <section key={status}>
                 <div className="flex items-center gap-2 mb-2">
-                  <Mono className="text-[10px] text-ink-3">
+                  <Mono className="text-[10px] text-text-lo">
                     {statusLabels[status]}
                   </Mono>
-                  <Mono className="text-[10px] text-ink-3">
+                  <Mono className="text-[10px] text-text-lo">
                     {group.length}
                   </Mono>
                 </div>
@@ -432,44 +432,44 @@ export function MediaClient() {
       {/* Episode log modal */}
       {showEpisodeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-ink-0 border border-ink-2 rounded-2xl w-full max-w-md p-6">
-            <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
+          <div className="bg-surface-0 border border-surface-2 rounded-2xl w-full max-w-md p-6">
+            <h2 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic mb-4">
               Log Episode
             </h2>
             <div className="flex flex-col gap-3 mb-4">
               <div>
-                <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">TITLE</label>
+                <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">TITLE</label>
                 <input value={epTitle} onChange={(e) => setEpTitle(e.target.value)} className={inputCls} placeholder="Episode title" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">EPISODE #</label>
+                  <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">EPISODE #</label>
                   <input type="number" value={epNumber} onChange={(e) => setEpNumber(e.target.value)} className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">SEASON #</label>
+                  <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">SEASON #</label>
                   <input type="number" value={epSeason} onChange={(e) => setEpSeason(e.target.value)} className={inputCls} />
                 </div>
               </div>
               <div>
-                <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">DURATION (min)</label>
+                <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">DURATION (min)</label>
                 <input type="number" value={epDuration} onChange={(e) => setEpDuration(e.target.value)} className={inputCls} />
               </div>
               <div>
-                <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">RATING</label>
+                <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">RATING</label>
                 <div className="mt-1">
                   <Stars rating={epRating || null} onRate={setEpRating} size="text-xl" />
                 </div>
               </div>
               <div>
-                <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">COMMENTS</label>
+                <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">COMMENTS</label>
                 <textarea value={epComments} onChange={(e) => setEpComments(e.target.value)} rows={2} className={`${inputCls} resize-y`} />
               </div>
             </div>
             <div className="flex items-center gap-2 justify-end">
               <button
                 onClick={() => { resetEpisodeForm(); setShowEpisodeModal(null); }}
-                className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+                className="px-3 py-1.5 rounded-md border border-surface-2 text-text-lo hover:text-text-hi text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
               >
                 CANCEL
               </button>
@@ -528,14 +528,14 @@ function WatchLinks({ item, onRefresh }: { item: MediaItem; onRefresh: () => voi
         href={youtubeUrl(item.title)}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+        className="text-[9px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
       >
         ▶ YouTube
       </a>
       <button
         type="button"
         onClick={onRefresh}
-        className="text-[9px] text-ink-3 hover:text-accent font-[family-name:var(--font-mono)] transition-colors"
+        className="text-[9px] text-text-lo hover:text-accent font-[family-name:var(--font-mono)] transition-colors"
         title="Refresh streaming availability"
       >
         ↻ Refresh
@@ -552,7 +552,7 @@ function ListenLinks({ item }: { item: MediaItem }) {
         href={spotifyUrl(item.title, item.creator)}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+        className="text-[9px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
       >
         {isPodcast ? "🎙" : "🎵"} Spotify
       </a>
@@ -560,7 +560,7 @@ function ListenLinks({ item }: { item: MediaItem }) {
         href={youtubeMusicUrl(item.title, item.creator)}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+        className="text-[9px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
       >
         ▶ YouTube Music
       </a>
@@ -569,7 +569,7 @@ function ListenLinks({ item }: { item: MediaItem }) {
           href={`https://www.youtube.com/results?search_query=${encodeURIComponent(item.title + " podcast")}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+          className="text-[9px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
         >
           ▶ YouTube
         </a>
@@ -585,7 +585,7 @@ function ReadLinks({ item }: { item: MediaItem }) {
         href={amazonUrl(item.title, item.creator)}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+        className="text-[9px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
       >
         🛒 Amazon
       </a>
@@ -616,14 +616,14 @@ function ReviewForm({
   }
 
   return (
-    <div className="mt-2 p-2 rounded-lg bg-ink-0/60 border border-ink-2/50">
+    <div className="mt-2 p-2 rounded-lg bg-surface-0/60 border border-surface-2/50">
       <div className="flex items-center gap-2 mb-1">
         <Stars
           rating={reviewRating || null}
           onRate={(r) => { setReviewRating(r); setDirty(true); }}
           size="text-sm"
         />
-        <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">
+        <span className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">
           {item.reviewed_at ? `Reviewed ${daysAgo(item.reviewed_at)}` : "Rate & review"}
         </span>
       </div>
@@ -632,7 +632,7 @@ function ReviewForm({
         onChange={(e) => { setReviewText(e.target.value); setDirty(true); }}
         placeholder="What did you think?"
         rows={2}
-        className="w-full bg-transparent border border-ink-2/40 rounded text-xs text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 placeholder:text-ink-3 resize-y"
+        className="w-full bg-transparent border border-surface-2/40 rounded text-xs text-text-hi px-2 py-1.5 outline-none focus:border-text-lo placeholder:text-text-lo resize-y"
       />
       {dirty && (
         <button
@@ -663,8 +663,8 @@ function EditForm({
   const [notes, setNotes] = useState(item.notes ?? "");
   const [tags, setTags] = useState((item.tags ?? []).join(", "));
 
-  const field = "w-full bg-transparent border border-ink-2/40 rounded text-xs text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 placeholder:text-ink-3";
-  const label = "text-[9px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]";
+  const field = "w-full bg-transparent border border-surface-2/40 rounded text-xs text-text-hi px-2 py-1.5 outline-none focus:border-text-lo placeholder:text-text-lo";
+  const label = "text-[9px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]";
 
   function save() {
     const t = title.trim();
@@ -682,7 +682,7 @@ function EditForm({
   return (
     <form
       onSubmit={(e) => { e.preventDefault(); save(); }}
-      className="mt-2 p-2 rounded-lg bg-ink-0/60 border border-ink-2/50 flex flex-col gap-2"
+      className="mt-2 p-2 rounded-lg bg-surface-0/60 border border-surface-2/50 flex flex-col gap-2"
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <div>
@@ -710,7 +710,7 @@ function EditForm({
         <button
           type="button"
           onClick={onClose}
-          className="px-2 py-0.5 rounded text-[9px] font-[family-name:var(--font-mono)] border border-ink-2 text-ink-3 hover:text-ink-4 transition-colors"
+          className="px-2 py-0.5 rounded text-[9px] font-[family-name:var(--font-mono)] border border-surface-2 text-text-lo hover:text-text-hi transition-colors"
         >
           CANCEL
         </button>
@@ -760,7 +760,7 @@ function MediaRow({
 
   return (
     <li
-      className={`group bg-ink-1 hover:bg-ink-2/60 rounded-md px-3 py-2 transition-colors ${
+      className={`group bg-surface-1 hover:bg-surface-2/60 rounded-md px-3 py-2 transition-colors ${
         isCompleted ? "opacity-60" : ""
       }`}
     >
@@ -770,16 +770,16 @@ function MediaRow({
             {tab === "read" && item.owned && (
               <span className="text-[10px] shrink-0" title="Owned">📚</span>
             )}
-            <span className={`text-sm ${isCompleted ? "text-ink-3 line-through" : "text-ink-4"}`}>
+            <span className={`text-sm ${isCompleted ? "text-text-lo line-through" : "text-text-hi"}`}>
               {item.title}
             </span>
             {item.creator && (
-              <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] truncate">
+              <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] truncate">
                 {item.creator}
               </span>
             )}
             {isPodcast && episodes.length > 0 && (
-              <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">
+              <span className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">
                 {episodes.length} ep{episodes.length !== 1 ? "s" : ""}
               </span>
             )}
@@ -795,7 +795,7 @@ function MediaRow({
                 onChange={(e) => onPatch(item.id, { owned: e.target.checked })}
                 className="accent-accent w-3 h-3"
               />
-              <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">OWN</span>
+              <span className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">OWN</span>
             </label>
           )}
 
@@ -807,7 +807,7 @@ function MediaRow({
             <button
               type="button"
               onClick={onToggleExpand}
-              className="text-[9px] text-ink-3 hover:text-accent font-[family-name:var(--font-mono)] transition-colors"
+              className="text-[9px] text-text-lo hover:text-accent font-[family-name:var(--font-mono)] transition-colors"
             >
               {expanded ? "▲" : "▼"}
             </button>
@@ -831,7 +831,7 @@ function MediaRow({
           <button
             type="button"
             onClick={() => setEditing((v) => !v)}
-            className={`text-xs transition-opacity ${editing ? "text-accent" : "opacity-0 group-hover:opacity-100 text-ink-3 hover:text-accent"}`}
+            className={`text-xs transition-opacity ${editing ? "text-accent" : "opacity-0 group-hover:opacity-100 text-text-lo hover:text-accent"}`}
             aria-label="Edit"
             title="Edit"
           >
@@ -841,7 +841,7 @@ function MediaRow({
           <button
             type="button"
             onClick={() => onDelete(item.id)}
-            className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-danger text-xs transition-opacity"
+            className="opacity-0 group-hover:opacity-100 text-text-lo hover:text-danger text-xs transition-opacity"
             aria-label="Delete"
           >
             ✕
@@ -861,16 +861,16 @@ function MediaRow({
 
       {/* Review text for non-completed items that have been reviewed */}
       {!isCompleted && item.review && (
-        <p className="mt-1 text-xs text-ink-3 italic font-[family-name:var(--font-display)] truncate">
+        <p className="mt-1 text-xs text-text-lo italic font-[family-name:var(--font-display)] truncate">
           {item.review}
         </p>
       )}
 
       {/* Podcast episodes section */}
       {isPodcast && expanded && (
-        <div className="mt-2 border-t border-ink-2/40 pt-2">
+        <div className="mt-2 border-t border-surface-2/40 pt-2">
           <div className="flex items-center justify-between mb-2">
-            <Mono className="text-[10px] text-ink-3">EPISODES</Mono>
+            <Mono className="text-[10px] text-text-lo">EPISODES</Mono>
             <button
               type="button"
               onClick={onLogEpisode}
@@ -880,7 +880,7 @@ function MediaRow({
             </button>
           </div>
           {episodes.length === 0 ? (
-            <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+            <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
               No episodes logged yet.
             </p>
           ) : (
@@ -888,21 +888,21 @@ function MediaRow({
               {episodes.map((ep) => (
                 <div key={ep.id} className="flex items-center gap-2 py-1 group/ep">
                   {ep.episode_number != null && (
-                    <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)] w-8 shrink-0">
+                    <span className="text-[9px] text-text-lo font-[family-name:var(--font-mono)] w-8 shrink-0">
                       {ep.season_number ? `S${ep.season_number}E${ep.episode_number}` : `#${ep.episode_number}`}
                     </span>
                   )}
-                  <span className="text-xs text-ink-4 flex-1 truncate">{ep.title}</span>
+                  <span className="text-xs text-text-hi flex-1 truncate">{ep.title}</span>
                   {ep.rating && <Stars rating={ep.rating} size="text-[8px]" />}
                   {ep.listened_at && (
-                    <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">
+                    <span className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">
                       {daysAgo(ep.listened_at)}
                     </span>
                   )}
                   <button
                     type="button"
                     onClick={() => onDeleteEpisode(ep.id)}
-                    className="opacity-0 group-hover/ep:opacity-100 text-ink-3 hover:text-danger text-[9px] transition-opacity"
+                    className="opacity-0 group-hover/ep:opacity-100 text-text-lo hover:text-danger text-[9px] transition-opacity"
                   >
                     ✕
                   </button>

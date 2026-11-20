@@ -152,11 +152,11 @@ export default function ApiUsagePage() {
     return (
       <div className="flex flex-col gap-6">
         <header className="flex flex-col gap-1">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             API Usage &amp; Credits
           </h1>
         </header>
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Loading usage data…
         </div>
       </div>
@@ -167,7 +167,7 @@ export default function ApiUsagePage() {
     return (
       <div className="flex flex-col gap-6">
         <header className="flex flex-col gap-1">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             API Usage &amp; Credits
           </h1>
         </header>
@@ -212,10 +212,10 @@ export default function ApiUsagePage() {
     <div className="flex flex-col gap-6">
       <header className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             API Usage &amp; Credits
           </h1>
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             Monitor token usage, costs, and rate limits across all connected
             services.
           </p>
@@ -224,7 +224,7 @@ export default function ApiUsagePage() {
           type="button"
           onClick={handleRefresh}
           disabled={loading}
-          className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors disabled:opacity-40"
+          className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border border-hairline text-text-lo hover:text-text-hi hover:border-text-lo transition-colors disabled:opacity-40"
         >
           {loading ? "REFRESHING…" : "REFRESH"}
         </button>
@@ -249,7 +249,7 @@ export default function ApiUsagePage() {
             highlight
           />
         </div>
-        <Mono className="text-[9px] text-ink-3 mt-3 block">
+        <Mono className="text-[9px] text-text-lo mt-3 block">
           USD→GBP rate: {data.cost_summary.usd_to_gbp} · Auto-refreshes every
           5 min · Last fetched{" "}
           {new Date(data.fetched_at).toLocaleTimeString()}
@@ -259,7 +259,7 @@ export default function ApiUsagePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* SECTION 1 — Anthropic */}
         <div className="rounded-v2-md bg-surface-1 p-5 flex flex-col gap-4">
-          <Mono className="text-[11px] text-ink-3 tracking-[0.18em]">
+          <Mono className="text-[11px] text-text-lo tracking-[0.18em]">
             ANTHROPIC
           </Mono>
           {data.anthropic.available ? (
@@ -274,16 +274,16 @@ export default function ApiUsagePage() {
                   value={formatTokens(data.anthropic.total_output ?? 0)}
                 />
               </div>
-              <div className="text-xs text-ink-3">
+              <div className="text-xs text-text-lo">
                 Est. cost:{" "}
-                <span className="text-text-1">
+                <span className="text-text-mid">
                   {usd(data.anthropic.total_cost_usd ?? 0)}
                 </span>
               </div>
 
               {anthropicBarData.length > 0 && (
                 <div>
-                  <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-2 block">
+                  <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-2 block">
                     TOKENS BY MODEL
                   </Mono>
                   <div className="h-40">
@@ -327,7 +327,7 @@ export default function ApiUsagePage() {
 
               {dailyData.length > 0 && (
                 <div>
-                  <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-2 block">
+                  <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-2 block">
                     DAILY USAGE (30 DAYS)
                   </Mono>
                   <div className="h-24">
@@ -367,12 +367,12 @@ export default function ApiUsagePage() {
 
               {(data.anthropic.models ?? []).length > 0 && (
                 <div>
-                  <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-2 block">
+                  <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-2 block">
                     MODEL BREAKDOWN
                   </Mono>
                   <table className="w-full text-[10px] font-[family-name:var(--font-mono)]">
                     <thead>
-                      <tr className="text-ink-3 text-left">
+                      <tr className="text-text-lo text-left">
                         <th className="pb-1 font-normal">Model</th>
                         <th className="pb-1 font-normal text-right">
                           Input
@@ -389,7 +389,7 @@ export default function ApiUsagePage() {
                       {(data.anthropic.models ?? []).map((m) => (
                         <tr
                           key={m.model}
-                          className="text-text-1 border-t border-hairline"
+                          className="text-text-mid border-t border-hairline"
                         >
                           <td className="py-1">{shortModel(m.model)}</td>
                           <td className="py-1 text-right">
@@ -422,7 +422,7 @@ export default function ApiUsagePage() {
 
         {/* SECTION 2 — OpenAI */}
         <div className="rounded-v2-md bg-surface-1 p-5 flex flex-col gap-4">
-          <Mono className="text-[11px] text-ink-3 tracking-[0.18em]">
+          <Mono className="text-[11px] text-text-lo tracking-[0.18em]">
             OPENAI
           </Mono>
           {data.openai.available ? (
@@ -431,7 +431,7 @@ export default function ApiUsagePage() {
                 <div>
                   <table className="w-full text-[10px] font-[family-name:var(--font-mono)]">
                     <thead>
-                      <tr className="text-ink-3 text-left">
+                      <tr className="text-text-lo text-left">
                         <th className="pb-1 font-normal">Model</th>
                         <th className="pb-1 font-normal text-right">
                           Input
@@ -448,7 +448,7 @@ export default function ApiUsagePage() {
                       {(data.openai.models ?? []).map((m) => (
                         <tr
                           key={m.model}
-                          className="text-text-1 border-t border-hairline"
+                          className="text-text-mid border-t border-hairline"
                         >
                           <td className="py-1">{shortModel(m.model)}</td>
                           <td className="py-1 text-right">
@@ -466,13 +466,13 @@ export default function ApiUsagePage() {
                   </table>
                 </div>
               )}
-              <div className="text-xs text-ink-3">
+              <div className="text-xs text-text-lo">
                 Total est. cost:{" "}
-                <span className="text-text-1">
+                <span className="text-text-mid">
                   {usd(data.openai.total_cost_usd ?? 0)}
                 </span>
               </div>
-              <Mono className="text-[9px] text-ink-3 block">
+              <Mono className="text-[9px] text-text-lo block">
                 Whisper: $0.006/min · GPT-4o-mini: $0.15/MTok input
               </Mono>
             </>
@@ -489,7 +489,7 @@ export default function ApiUsagePage() {
 
         {/* SECTION 3 — RapidAPI */}
         <div className="rounded-v2-md bg-surface-1 p-5 flex flex-col gap-4">
-          <Mono className="text-[11px] text-ink-3 tracking-[0.18em]">
+          <Mono className="text-[11px] text-text-lo tracking-[0.18em]">
             RAPIDAPI — STREAMING AVAILABILITY
           </Mono>
           <div className="grid grid-cols-3 gap-3">
@@ -503,7 +503,7 @@ export default function ApiUsagePage() {
               value={String(data.rapidapi.estimated_today)}
             />
           </div>
-          <div className="w-full bg-ink-2 rounded-full h-1.5 overflow-hidden">
+          <div className="w-full bg-surface-2 rounded-full h-1.5 overflow-hidden">
             <div
               className="h-full bg-accent rounded-full transition-all"
               style={{
@@ -511,7 +511,7 @@ export default function ApiUsagePage() {
               }}
             />
           </div>
-          <Mono className="text-[9px] text-ink-3 block">
+          <Mono className="text-[9px] text-text-lo block">
             Each watch-list item ≈ 1–2 API calls. No programmatic usage API —
             check dashboard for exact numbers.
           </Mono>
@@ -527,15 +527,15 @@ export default function ApiUsagePage() {
 
         {/* SECTION 4 — Internal Myphelium2 API calls */}
         <div className="rounded-v2-md bg-surface-1 p-5 flex flex-col gap-4">
-          <Mono className="text-[11px] text-ink-3 tracking-[0.18em]">
+          <Mono className="text-[11px] text-text-lo tracking-[0.18em]">
             INTERNAL MYPHELIUM2 USAGE
           </Mono>
-          <Mono className="text-[9px] text-ink-3 block">
+          <Mono className="text-[9px] text-text-lo block">
             Estimated Anthropic token spend by feature this month
           </Mono>
           <table className="w-full text-[10px] font-[family-name:var(--font-mono)]">
             <thead>
-              <tr className="text-ink-3 text-left">
+              <tr className="text-text-lo text-left">
                 <th className="pb-1 font-normal">Feature</th>
                 <th className="pb-1 font-normal text-right">Calls</th>
                 <th className="pb-1 font-normal text-right">Est. tokens</th>
@@ -546,7 +546,7 @@ export default function ApiUsagePage() {
               {internalRows.map((r) => (
                 <tr
                   key={r.feature}
-                  className="text-text-1 border-t border-hairline"
+                  className="text-text-mid border-t border-hairline"
                 >
                   <td className="py-1">{r.feature}</td>
                   <td className="py-1 text-right">{r.calls}</td>
@@ -554,7 +554,7 @@ export default function ApiUsagePage() {
                   <td className="py-1 text-right">{usd(r.cost_usd)}</td>
                 </tr>
               ))}
-              <tr className="text-text-0 border-t border-ink-3 font-medium">
+              <tr className="text-text-hi border-t border-text-lo font-medium">
                 <td className="py-1">Total</td>
                 <td className="py-1 text-right">
                   {internalRows.reduce((s, r) => s + r.calls, 0)}
@@ -571,14 +571,14 @@ export default function ApiUsagePage() {
 
           {data.internal.agent_breakdown.length > 0 && (
             <div>
-              <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-2 block">
+              <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-2 block">
                 AGENT MESSAGE BREAKDOWN
               </Mono>
               <div className="flex flex-col gap-1">
                 {data.internal.agent_breakdown.map((a) => (
                   <div
                     key={a.agent_id}
-                    className="flex justify-between text-[10px] font-[family-name:var(--font-mono)] text-text-1"
+                    className="flex justify-between text-[10px] font-[family-name:var(--font-mono)] text-text-mid"
                   >
                     <span className="capitalize">
                       {a.agent_id.replace(/-/g, " ")}
@@ -610,16 +610,16 @@ function CostCell({
 }) {
   return (
     <div className="flex flex-col">
-      <Mono className="text-[9px] text-ink-3 tracking-[0.12em]">
+      <Mono className="text-[9px] text-text-lo tracking-[0.12em]">
         {label}
       </Mono>
       <span
-        className={`text-lg font-[family-name:var(--font-display)] ${highlight ? "text-accent" : "text-text-0"}`}
+        className={`text-lg font-[family-name:var(--font-display)] ${highlight ? "text-accent" : "text-text-hi"}`}
       >
         {value}
       </span>
       {note && (
-        <Mono className="text-[8px] text-ink-3">{note}</Mono>
+        <Mono className="text-[8px] text-text-lo">{note}</Mono>
       )}
     </div>
   );
@@ -628,10 +628,10 @@ function CostCell({
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col">
-      <Mono className="text-[9px] text-ink-3 tracking-[0.12em]">
+      <Mono className="text-[9px] text-text-lo tracking-[0.12em]">
         {label}
       </Mono>
-      <span className="text-sm text-text-0">{value}</span>
+      <span className="text-sm text-text-hi">{value}</span>
     </div>
   );
 }
@@ -646,11 +646,11 @@ function UnavailableCard({
   href: string;
 }) {
   return (
-    <div className="rounded-v2-md bg-ink-0 border border-hairline p-4 flex flex-col gap-2">
-      <div className="text-xs text-text-1 italic font-[family-name:var(--font-display)]">
+    <div className="rounded-v2-md bg-surface-0 border border-hairline p-4 flex flex-col gap-2">
+      <div className="text-xs text-text-mid italic font-[family-name:var(--font-display)]">
         {message}
       </div>
-      <div className="text-[10px] text-ink-3 font-[family-name:var(--font-display)]">
+      <div className="text-[10px] text-text-lo font-[family-name:var(--font-display)]">
         {hint}
       </div>
       <a

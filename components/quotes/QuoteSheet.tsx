@@ -17,9 +17,9 @@ function toLocalInput(iso: string | null): string {
 }
 
 const input =
-  "w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
+  "w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
 const btn =
-  "px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em] disabled:opacity-50";
+  "px-3 py-1.5 rounded-sm border border-text-hi text-xs text-text-mid hover:text-text-hi hover:bg-surface-2 font-[family-name:var(--font-mono)] tracking-[0.1em] disabled:opacity-50";
 
 function fromQuote(q: QuoteRow) {
   return {
@@ -154,7 +154,7 @@ function QuoteSheetBody({
       {quote.raw_text && (
         <div>
           <div className="card-eyebrow mb-1">As captured</div>
-          <div className="rounded-sm border border-ink-2 bg-ink-0/40 px-3 py-2 text-xs text-text-2 whitespace-pre-wrap">
+          <div className="rounded-sm border border-surface-2 bg-surface-0/40 px-3 py-2 text-xs text-text-lo whitespace-pre-wrap">
             {quote.raw_text}
           </div>
         </div>
@@ -253,7 +253,7 @@ function QuoteSheetBody({
       </div>
       {err && <div className="text-xs text-error">{err}</div>}
 
-      <div className="rounded-md border border-ink-2 p-3 flex flex-col gap-3">
+      <div className="rounded-md border border-surface-2 p-3 flex flex-col gap-3">
         <div className="flex items-center justify-between gap-2">
           <span className="card-eyebrow">Research</span>
           <ResearchBadge q={quote} off={researchOff} />
@@ -315,7 +315,7 @@ function QuoteSheetBody({
           >
             THEIR OWN
           </button>
-          <Mono className="text-[10px] text-ink-3 ml-auto">
+          <Mono className="text-[10px] text-text-lo ml-auto">
             {quote.research_status}
           </Mono>
         </div>

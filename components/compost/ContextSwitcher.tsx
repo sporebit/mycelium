@@ -76,7 +76,7 @@ export function ContextSwitcher({
         }
         className={`px-1.5 py-0.5 text-[10px] rounded-md border inline-flex items-center gap-1 font-[family-name:var(--font-mono)] tracking-[0.12em] transition-colors ${
           deviceLocked
-            ? "border-ink-2 bg-ink-0/40 text-ink-3"
+            ? "border-surface-2 bg-surface-0/40 text-text-lo"
             : "border-glow-2/40 bg-glow-2/10 text-glow-2"
         }`}
       >
@@ -107,7 +107,7 @@ export function ContextSwitcher({
       />
 
       {/* Energy: 3-state pill toggle */}
-      <div className="inline-flex rounded-md border border-ink-2 bg-ink-0/40 overflow-hidden">
+      <div className="inline-flex rounded-md border border-surface-2 bg-surface-0/40 overflow-hidden">
         {(["low", "medium", "high"] as const).map((e) => (
           <button
             key={e}
@@ -116,7 +116,7 @@ export function ContextSwitcher({
             className={`px-1.5 py-0.5 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] transition-colors ${
               ctx.energy === e
                 ? "bg-accent/15 text-accent"
-                : "text-ink-3 hover:text-ink-4"
+                : "text-text-lo hover:text-text-hi"
             }`}
           >
             {ENERGY_LABEL[e].toUpperCase()}

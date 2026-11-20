@@ -15,12 +15,12 @@ export function SectionLabel({
       : statusTone === "danger"
         ? "text-danger"
         : statusTone === "muted"
-          ? "text-ink-3"
+          ? "text-text-lo"
           : "text-ok";
 
   return (
-    <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
-      <span className="text-ink-4">{title}</span>
+    <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
+      <span className="text-text-hi">{title}</span>
       {status && (
         <span className={`flex items-center gap-1 ${toneClass}`}>
           <span aria-hidden>●</span>

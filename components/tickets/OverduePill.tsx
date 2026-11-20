@@ -31,10 +31,10 @@ export function OverduePill({
   }
   if (!window) return null;
   if (label.kind === "someday") {
-    return <span className={`${base} border-ink-2 bg-ink-2 text-ink-3 ${className}`}>someday</span>;
+    return <span className={`${base} border-surface-2 bg-surface-2 text-text-lo ${className}`}>someday</span>;
   }
   return (
-    <span className={`${base} border-hairline bg-surface-2 text-ink-3 normal-case tracking-normal ${className}`} title={`Deadline ${label.date}`}>
+    <span className={`${base} border-hairline bg-surface-2 text-text-lo normal-case tracking-normal ${className}`} title={`Deadline ${label.date}`}>
       {label.text}
     </span>
   );

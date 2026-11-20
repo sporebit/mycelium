@@ -103,7 +103,7 @@ export function WorkoutDetailClient({ id }: { id: string }) {
   }
   if (!workout) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
@@ -113,23 +113,23 @@ export function WorkoutDetailClient({ id }: { id: string }) {
     <div className="flex flex-col gap-4">
       <Link
         href="/fitness/workouts"
-        className="self-start text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+        className="self-start text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
       >
         ← ALL WORKOUTS
       </Link>
 
       <header>
-        <h1 className="text-2xl text-text-0 font-[family-name:var(--font-display)] italic">
+        <h1 className="text-2xl text-text-hi font-[family-name:var(--font-display)] italic">
           {workout.name}
         </h1>
         <div className="flex items-center gap-2 mt-1">
           {workout.default_kind && (
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] px-2 py-0.5 rounded border border-hairline">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] px-2 py-0.5 rounded border border-hairline">
               {KIND_LABEL[workout.default_kind]}
             </span>
           )}
           {workout.notes && (
-            <span className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+            <span className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
               {workout.notes}
             </span>
           )}
@@ -140,34 +140,34 @@ export function WorkoutDetailClient({ id }: { id: string }) {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Panel borderless>
             <div className="text-center">
-              <div className="text-xl text-text-0 font-[family-name:var(--font-mono)] tabular-nums">
+              <div className="text-xl text-text-hi font-[family-name:var(--font-mono)] tabular-nums">
                 {stats.totalSessions}
               </div>
-              <Mono className="text-[10px] text-ink-3">SESSIONS</Mono>
+              <Mono className="text-[10px] text-text-lo">SESSIONS</Mono>
             </div>
           </Panel>
           <Panel borderless>
             <div className="text-center">
-              <div className="text-xl text-text-0 font-[family-name:var(--font-mono)] tabular-nums">
+              <div className="text-xl text-text-hi font-[family-name:var(--font-mono)] tabular-nums">
                 {stats.lastPerformed ?? "—"}
               </div>
-              <Mono className="text-[10px] text-ink-3">LAST PERFORMED</Mono>
+              <Mono className="text-[10px] text-text-lo">LAST PERFORMED</Mono>
             </div>
           </Panel>
           <Panel borderless>
             <div className="text-center">
-              <div className="text-xl text-text-0 font-[family-name:var(--font-mono)] tabular-nums">
+              <div className="text-xl text-text-hi font-[family-name:var(--font-mono)] tabular-nums">
                 {stats.bestVolume > 0 ? `${Math.round(stats.bestVolume)}kg` : "—"}
               </div>
-              <Mono className="text-[10px] text-ink-3">BEST VOLUME</Mono>
+              <Mono className="text-[10px] text-text-lo">BEST VOLUME</Mono>
             </div>
           </Panel>
           <Panel borderless>
             <div className="text-center">
-              <div className="text-xl text-text-0 font-[family-name:var(--font-mono)] tabular-nums">
+              <div className="text-xl text-text-hi font-[family-name:var(--font-mono)] tabular-nums">
                 {stats.streak}w
               </div>
-              <Mono className="text-[10px] text-ink-3">STREAK</Mono>
+              <Mono className="text-[10px] text-text-lo">STREAK</Mono>
             </div>
           </Panel>
         </div>
@@ -220,7 +220,7 @@ export function WorkoutDetailClient({ id }: { id: string }) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-hairline">
+                <tr className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] border-b border-hairline">
                   <th className="text-left py-2 pr-3">Date</th>
                   <th className="text-right py-2 px-3">Sets</th>
                   <th className="text-right py-2 px-3">Volume</th>
@@ -230,19 +230,19 @@ export function WorkoutDetailClient({ id }: { id: string }) {
               <tbody>
                 {sessions.map((s) => (
                   <tr key={s.session_id} className="border-b border-hairline">
-                    <td className="py-2 pr-3 text-ink-4">{s.date}</td>
+                    <td className="py-2 pr-3 text-text-hi">{s.date}</td>
                     <td className="text-right py-2 px-3">
-                      <Mono className="text-ink-3">{s.set_count}</Mono>
+                      <Mono className="text-text-lo">{s.set_count}</Mono>
                     </td>
                     <td className="text-right py-2 px-3">
-                      <Mono className="text-ink-4">
+                      <Mono className="text-text-hi">
                         {s.total_volume_kg > 0
                           ? `${Math.round(s.total_volume_kg)}kg`
                           : "—"}
                       </Mono>
                     </td>
                     <td className="text-right py-2 pl-3">
-                      <Mono className="text-ink-3">
+                      <Mono className="text-text-lo">
                         {s.duration_minutes != null
                           ? `${s.duration_minutes}min`
                           : "—"}

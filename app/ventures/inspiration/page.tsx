@@ -38,7 +38,7 @@ const CATEGORY_COLOURS: Record<string, string> = {
   marketing: "bg-accent/20 text-accent",
   workflow: "bg-[#6db8f5]/20 text-[#6db8f5]",
   pricing: "bg-[#f5b56d]/20 text-[#f5b56d]",
-  other: "bg-ink-3/20 text-ink-3",
+  other: "bg-text-lo/20 text-text-lo",
 };
 
 function categoryLabel(cat: string): string {
@@ -94,10 +94,10 @@ export default function InspirationPage() {
     <div className="flex flex-col gap-5">
       <header className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex flex-col gap-1">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Inspiration
           </h1>
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             Companies and ideas worth stealing from.
           </p>
         </div>
@@ -107,7 +107,7 @@ export default function InspirationPage() {
             setEditing(null);
             setShowModal(true);
           }}
-          className="px-4 py-2 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 transition-colors text-xs font-medium font-[family-name:var(--font-mono)] tracking-[0.1em]"
+          className="px-4 py-2 rounded-sm bg-glow-2 text-text-hi hover:bg-glow-1 transition-colors text-xs font-medium font-[family-name:var(--font-mono)] tracking-[0.1em]"
         >
           + ADD
         </button>
@@ -122,7 +122,7 @@ export default function InspirationPage() {
             className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
               categoryFilter === c
                 ? "border-accent/50 bg-accent/15 text-accent"
-                : "border-hairline text-ink-3 hover:text-ink-4"
+                : "border-hairline text-text-lo hover:text-text-hi"
             }`}
           >
             {c === "all" ? "ALL" : categoryLabel(c)}
@@ -135,15 +135,15 @@ export default function InspirationPage() {
         value={tagSearch}
         onChange={(e) => setTagSearch(e.target.value)}
         placeholder="Search by tag, company, or content…"
-        className="bg-ink-0/40 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3 max-w-sm"
+        className="bg-surface-0/40 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo placeholder:text-text-lo max-w-sm"
       />
 
       {items === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           {items.length === 0
             ? "No inspiration yet. Add your first above."
             : "Nothing matches these filters."}
@@ -157,7 +157,7 @@ export default function InspirationPage() {
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="min-w-0">
-                  <div className="font-[family-name:var(--font-display)] text-lg text-text-0">
+                  <div className="font-[family-name:var(--font-display)] text-lg text-text-hi">
                     {item.company_name}
                   </div>
                   {item.website_url && (
@@ -180,7 +180,7 @@ export default function InspirationPage() {
                 )}
               </div>
 
-              <p className="text-sm text-text-1 whitespace-pre-wrap mb-3">
+              <p className="text-sm text-text-mid whitespace-pre-wrap mb-3">
                 {item.what_i_like}
               </p>
 
@@ -204,7 +204,7 @@ export default function InspirationPage() {
                   {item.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="px-1.5 py-0.5 rounded-sm bg-surface-2 text-[9px] text-ink-3 font-[family-name:var(--font-mono)]"
+                      className="px-1.5 py-0.5 rounded-sm bg-surface-2 text-[9px] text-text-lo font-[family-name:var(--font-mono)]"
                     >
                       {tag}
                     </span>
@@ -219,14 +219,14 @@ export default function InspirationPage() {
                     setEditing(item);
                     setShowModal(true);
                   }}
-                  className="text-[9px] text-ink-3 hover:text-accent font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                  className="text-[9px] text-text-lo hover:text-accent font-[family-name:var(--font-mono)] tracking-[0.1em]"
                 >
                   EDIT
                 </button>
                 <button
                   type="button"
                   onClick={() => deleteItem(item.id)}
-                  className="text-[9px] text-ink-3 hover:text-danger font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                  className="text-[9px] text-text-lo hover:text-danger font-[family-name:var(--font-mono)] tracking-[0.1em]"
                 >
                   DELETE
                 </button>
@@ -249,7 +249,7 @@ export default function InspirationPage() {
 
       {expandedImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink-0/80 backdrop-blur-sm cursor-pointer"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-surface-0/80 backdrop-blur-sm cursor-pointer"
           onClick={() => setExpandedImage(null)}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -322,17 +322,17 @@ function InspirationModal({
   }
 
   const inputCls =
-    "w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent";
+    "w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-accent";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-0/60 backdrop-blur-sm overflow-y-auto py-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-0/60 backdrop-blur-sm overflow-y-auto py-8">
       <div className="bg-surface-1 border border-hairline rounded-lg p-6 w-full max-w-lg">
-        <div className="text-base text-text-0 font-[family-name:var(--font-display)] mb-4">
+        <div className="text-base text-text-hi font-[family-name:var(--font-display)] mb-4">
           {existing ? "Edit Inspiration" : "Add Inspiration"}
         </div>
         <div className="flex flex-col gap-3">
           <div>
-            <Mono className="text-[10px] text-ink-3 mb-1">COMPANY NAME *</Mono>
+            <Mono className="text-[10px] text-text-lo mb-1">COMPANY NAME *</Mono>
             <input
               className={inputCls}
               value={form.company_name}
@@ -341,7 +341,7 @@ function InspirationModal({
             />
           </div>
           <div>
-            <Mono className="text-[10px] text-ink-3 mb-1">WEBSITE URL</Mono>
+            <Mono className="text-[10px] text-text-lo mb-1">WEBSITE URL</Mono>
             <input
               className={inputCls}
               value={form.website_url}
@@ -349,7 +349,7 @@ function InspirationModal({
             />
           </div>
           <div>
-            <Mono className="text-[10px] text-ink-3 mb-1">CATEGORY</Mono>
+            <Mono className="text-[10px] text-text-lo mb-1">CATEGORY</Mono>
             <select
               value={form.category}
               onChange={(e) => set("category", e.target.value)}
@@ -364,7 +364,7 @@ function InspirationModal({
             </select>
           </div>
           <div>
-            <Mono className="text-[10px] text-ink-3 mb-1">
+            <Mono className="text-[10px] text-text-lo mb-1">
               WHAT I LIKE *
             </Mono>
             <textarea
@@ -375,7 +375,7 @@ function InspirationModal({
             />
           </div>
           <div>
-            <Mono className="text-[10px] text-ink-3 mb-1">IMAGE URL</Mono>
+            <Mono className="text-[10px] text-text-lo mb-1">IMAGE URL</Mono>
             <input
               className={inputCls}
               value={form.image_url}
@@ -383,7 +383,7 @@ function InspirationModal({
             />
           </div>
           <div>
-            <Mono className="text-[10px] text-ink-3 mb-1">
+            <Mono className="text-[10px] text-text-lo mb-1">
               TAGS (comma separated)
             </Mono>
             <input
@@ -398,7 +398,7 @@ function InspirationModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 text-xs text-ink-3 hover:text-text-0"
+            className="px-3 py-1.5 text-xs text-text-lo hover:text-text-hi"
           >
             Cancel
           </button>

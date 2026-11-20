@@ -189,11 +189,11 @@ export function GlobalSearch() {
       }}
     >
       <div
-        className="absolute inset-0 bg-ink-0/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-surface-0/70 backdrop-blur-sm"
         onClick={closeModal}
       />
       <div
-        className="relative w-full max-w-2xl rounded-2xl border border-ink-2 bg-ink-1 shadow-2xl overflow-hidden"
+        className="relative w-full max-w-2xl rounded-2xl border border-surface-2 bg-surface-1 shadow-2xl overflow-hidden"
         role="dialog"
         aria-label="Search memory"
       >
@@ -202,9 +202,9 @@ export function GlobalSearch() {
             e.preventDefault();
             openInBrain();
           }}
-          className="px-4 py-3 border-b border-ink-2 flex items-center gap-3"
+          className="px-4 py-3 border-b border-surface-2 flex items-center gap-3"
         >
-          <span className="text-[11px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] shrink-0">
+          <span className="text-[11px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] shrink-0">
             ⌘K
           </span>
           <input
@@ -213,10 +213,10 @@ export function GlobalSearch() {
             value={query}
             onChange={onInputChange}
             placeholder="Search your memory…"
-            className="flex-1 bg-transparent outline-none text-base text-ink-4 placeholder:text-ink-3 italic font-[family-name:var(--font-display)]"
+            className="flex-1 bg-transparent outline-none text-base text-text-hi placeholder:text-text-lo italic font-[family-name:var(--font-display)]"
           />
           {loading && (
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               …
             </span>
           )}
@@ -300,12 +300,12 @@ export function GlobalSearch() {
               ⚠ {error}
             </div>
           ) : !query.trim() ? (
-            <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] px-1 py-3">
+            <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] px-1 py-3">
               Type to search across all captures, tasks, and notes.
             </div>
           ) : matches === null ? null : matches.length === 0 ? (
             navResults.length === 0 ? (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] px-1 py-3">
+              <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] px-1 py-3">
                 No matches.
               </div>
             ) : null
@@ -320,12 +320,12 @@ export function GlobalSearch() {
           )}
         </div>
 
-        <footer className="px-4 py-2 border-t border-ink-2 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <footer className="px-4 py-2 border-t border-surface-2 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           <span>Esc to close · Enter to open in Brain</span>
           <Link
             href={query.trim() ? `/brain?q=${encodeURIComponent(query.trim())}` : "/brain"}
             onClick={closeModal}
-            className="hover:text-ink-4 transition-colors"
+            className="hover:text-text-hi transition-colors"
           >
             Open in Brain →
           </Link>

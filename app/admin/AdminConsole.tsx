@@ -47,7 +47,7 @@ const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefin
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-v2-md bg-surface-1 p-5">
-      <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-4 block">{title}</Mono>
+      <Mono className="text-[11px] text-text-lo tracking-[0.18em] mb-4 block">{title}</Mono>
       <div className="flex flex-col gap-3">{children}</div>
     </div>
   );
@@ -119,8 +119,8 @@ export function AdminConsole({ me }: { me: string }) {
   return (
     <div className="flex flex-col gap-6 max-w-6xl">
       <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">Admin</h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">Admin</h1>
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Access, not content. Nothing here reads anyone&apos;s data.
         </p>
       </header>
@@ -140,7 +140,7 @@ export function AdminConsole({ me }: { me: string }) {
                   <td className="py-2 text-text-mid">{u.email ?? "—"}</td>
                   <td className="py-2"><Mono>{u.teams}</Mono></td>
                   <td className="py-2"><Mono>{u.grants_given}↑ {u.grants_received}↓</Mono></td>
-                  <td className="py-2"><Mono className="text-[11px] text-ink-3">{when(u.last_sign_in_at)}</Mono></td>
+                  <td className="py-2"><Mono className="text-[11px] text-text-lo">{when(u.last_sign_in_at)}</Mono></td>
                   <td className="py-2">{u.disabled_at ? <span className="text-v2-error">disabled</span> : <span className="text-ok">active</span>}</td>
                   <td className="py-2 text-right">
                     {u.id !== me && (
@@ -165,10 +165,10 @@ export function AdminConsole({ me }: { me: string }) {
               <div key={t.id} className="py-2 border-t border-hairline first:border-t-0 flex flex-col gap-1">
                 <div className="flex items-center gap-3">
                   <span className="text-text-hi">{t.name}</span>
-                  <Mono className="text-[11px] text-ink-3">{t.slug} · owner {name(t.owner_user_id)}{t.successor_user_id ? ` · successor ${name(t.successor_user_id)}` : ""}</Mono>
+                  <Mono className="text-[11px] text-text-lo">{t.slug} · owner {name(t.owner_user_id)}{t.successor_user_id ? ` · successor ${name(t.successor_user_id)}` : ""}</Mono>
                   {ownerGone && <span className="text-[10px] uppercase tracking-[0.08em] text-v2-error">owner gone</span>}
                 </div>
-                <Mono className="text-[11px] text-ink-3">{members.map((m) => `${name(m.user_id)} (${m.role})`).join(", ") || "no members"}</Mono>
+                <Mono className="text-[11px] text-text-lo">{members.map((m) => `${name(m.user_id)} (${m.role})`).join(", ") || "no members"}</Mono>
                 {ownerGone && members.filter((m) => m.user_id !== t.owner_user_id).length > 0 && (
                   <div className="flex items-center gap-2">
                     <Label>Appoint successor</Label>
@@ -188,7 +188,7 @@ export function AdminConsole({ me }: { me: string }) {
       {tab === "grants" && (
         <Card title="DIRECT GRANTS">
           {grants.map((g) => (
-            <Mono key={g.id} className="text-[11px] text-ink-3 block py-1 border-t border-hairline first:border-t-0">
+            <Mono key={g.id} className="text-[11px] text-text-lo block py-1 border-t border-hairline first:border-t-0">
               {name(g.grantor_id)} → {name(g.grantee_id)} · {g.section}{g.entity_groups.length ? ` (${g.entity_groups.join(", ")})` : ""} · {g.verbs.join(", ")}
               {g.expires_at ? ` · until ${when(g.expires_at)}` : ""}{g.revoked_at ? ` · revoked ${when(g.revoked_at)}` : ""}
             </Mono>
@@ -200,7 +200,7 @@ export function AdminConsole({ me }: { me: string }) {
       {tab === "invites" && (
         <Card title="INVITES">
           {invites.map((i) => (
-            <Mono key={i.id} className="text-[11px] text-ink-3 block py-1 border-t border-hairline first:border-t-0">
+            <Mono key={i.id} className="text-[11px] text-text-lo block py-1 border-t border-hairline first:border-t-0">
               {i.email} · {i.team_id ? teamNames.get(i.team_id) ?? i.team_id.slice(0, 8) : "no team"} · {i.role} · by {name(i.invited_by)} ·{" "}
               {i.accepted_at ? `accepted ${when(i.accepted_at)}` : new Date(i.expires_at) < new Date() ? "expired" : `expires ${when(i.expires_at)}`}
             </Mono>
@@ -252,7 +252,7 @@ export function AdminConsole({ me }: { me: string }) {
                     <td className="py-1 pr-2">{name(e.subject_user_id)}</td>
                     <td className="py-1 pr-2">{e.section ?? ""}{e.entity_group ? `.${e.entity_group}` : ""}</td>
                     <td className="py-1 pr-2">{e.team_id ? teamNames.get(e.team_id) ?? e.team_id.slice(0, 8) : ""}</td>
-                    <td className="py-1 text-ink-3"><Mono className="text-[10px] break-all">{JSON.stringify(e.meta)}</Mono></td>
+                    <td className="py-1 text-text-lo"><Mono className="text-[10px] break-all">{JSON.stringify(e.meta)}</Mono></td>
                   </tr>
                 ))}
               </tbody>

@@ -40,7 +40,7 @@ const URGENCY_TONE: Record<PurchaseUrgency, string> = {
   today: "bg-danger/15 text-danger border-danger/40",
   this_week: "bg-warn/15 text-warn border-warn/40",
   this_month: "bg-accent/15 text-accent border-accent/40",
-  someday: "bg-ink-2 text-ink-3 border-ink-2",
+  someday: "bg-surface-2 text-text-lo border-surface-2",
 };
 
 const URGENCY_LABEL: Record<PurchaseUrgency, string> = {
@@ -53,7 +53,7 @@ const URGENCY_LABEL: Record<PurchaseUrgency, string> = {
 function wantOrNeedTone(v: PurchaseWantOrNeed | null): string {
   if (v === "need") return "bg-danger/15 text-danger border-danger/40";
   if (v === "want") return "bg-accent/15 text-accent border-accent/40";
-  return "bg-ink-2 text-ink-3 border-ink-2";
+  return "bg-surface-2 text-text-lo border-surface-2";
 }
 
 function wantOrNeedLabel(v: PurchaseWantOrNeed | null): string {
@@ -260,11 +260,11 @@ export function PurchasesClient({
   return (
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           {projectName ? `Purchases · ${projectName}` : "Purchases"}
         </h1>
         {purchases !== null && (
-          <Mono className="text-[10px] text-ink-3">
+          <Mono className="text-[10px] text-text-lo">
             {shopping.length} SHOPPING · {wishlist.length} WISHLIST ·{" "}
             {purchased.length} PURCHASED
           </Mono>
@@ -274,7 +274,7 @@ export function PurchasesClient({
       {initialProjectId && (
         <Link
           href="/organisation/purchases"
-          className="text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] inline-flex items-center gap-1 self-start"
+          className="text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] inline-flex items-center gap-1 self-start"
         >
           ← All purchases
         </Link>
@@ -282,7 +282,7 @@ export function PurchasesClient({
 
       <form
         onSubmit={addPurchase}
-        className="flex flex-wrap items-center gap-2 bg-ink-1 rounded-md px-3 py-2"
+        className="flex flex-wrap items-center gap-2 bg-surface-1 rounded-md px-3 py-2"
       >
         <span aria-hidden className="text-accent text-sm">
           🛍
@@ -291,14 +291,14 @@ export function PurchasesClient({
         <button
           type="submit"
           disabled={!String(draft.title ?? "").trim() || adding}
-          className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 disabled:opacity-40 disabled:cursor-not-allowed font-[family-name:var(--font-mono)]"
+          className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-hi disabled:opacity-40 disabled:cursor-not-allowed font-[family-name:var(--font-mono)]"
         >
           {adding ? "…" : "ADD ↵"}
         </button>
       </form>
 
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-1 rounded-md border border-ink-2 overflow-hidden">
+        <div className="flex items-center gap-1 rounded-md border border-surface-2 overflow-hidden">
           {FILTERS.map((f) => {
             const active = filter === f.value;
             return (
@@ -309,7 +309,7 @@ export function PurchasesClient({
                 className={`px-3 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
                   active
                     ? "bg-accent/15 text-accent"
-                    : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/40"
+                    : "text-text-lo hover:text-text-hi hover:bg-surface-2/40"
                 }`}
               >
                 {f.label}
@@ -323,7 +323,7 @@ export function PurchasesClient({
           className={`text-[11px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-2 py-1.5 rounded-md border cursor-pointer ${
             categoryFilter !== "all"
               ? "bg-accent/15 text-accent border-accent/40"
-              : "bg-ink-0/40 border-ink-2 text-ink-3"
+              : "bg-surface-0/40 border-surface-2 text-text-lo"
           }`}
         >
           <option value="all">ALL CATEGORIES</option>
@@ -336,7 +336,7 @@ export function PurchasesClient({
       </div>
 
       {purchases === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading purchases…
         </div>
       ) : (
@@ -481,20 +481,20 @@ function Section({
   if (sectionTotal === 0 && !emptyAll) return null;
   return (
     <section className="flex flex-col gap-2 mt-2 first:mt-0">
-      <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {heading}
         {sectionTotal > 0 && ` (${sectionTotal})`}
       </h2>
       {sectionTotal === 0 ? (
-        <div className="rounded-md bg-ink-1 p-8 text-center">
+        <div className="rounded-md bg-surface-1 p-8 text-center">
           <p
-            className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]"
+            className="text-sm text-text-lo italic font-[family-name:var(--font-display)]"
             dangerouslySetInnerHTML={{ __html: emptyAll }}
           />
         </div>
       ) : visible.length === 0 ? (
-        <div className="rounded-md bg-ink-1 p-6 text-center">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="rounded-md bg-surface-1 p-6 text-center">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             {emptyFiltered}
           </p>
         </div>
@@ -548,7 +548,7 @@ function PurchaseRow({
   const amount = fmtAmount(purchase);
   return (
     <li
-      className={`group flex flex-wrap items-center gap-2 sm:gap-3 bg-ink-1 rounded-md px-3 py-2.5 ${
+      className={`group flex flex-wrap items-center gap-2 sm:gap-3 bg-surface-1 rounded-md px-3 py-2.5 ${
         purchased ? "opacity-60" : ""
       }`}
     >
@@ -559,8 +559,8 @@ function PurchaseRow({
         aria-label={purchased ? "Mark as not purchased" : "Mark as purchased"}
         className={`h-5 w-5 shrink-0 rounded-sm border flex items-center justify-center text-[11px] leading-none transition-colors ${
           purchased
-            ? "border-ok bg-ok text-ink-0"
-            : "border-ink-3 hover:border-accent"
+            ? "border-ok bg-ok text-surface-0"
+            : "border-text-lo hover:border-accent"
         }`}
       >
         {purchased ? "✓" : ""}
@@ -587,7 +587,7 @@ function PurchaseRow({
       <div className="flex-1 min-w-[120px]">
         <div
           className={`text-sm leading-snug truncate ${
-            purchased ? "text-ink-3 line-through" : "text-text-0"
+            purchased ? "text-text-lo line-through" : "text-text-hi"
           }`}
         >
           {purchase.title}
@@ -605,7 +605,7 @@ function PurchaseRow({
       )}
 
       {amount && (
-        <Mono className="text-[11px] text-ink-3 shrink-0 tabular-nums">
+        <Mono className="text-[11px] text-text-lo shrink-0 tabular-nums">
           {amount}
         </Mono>
       )}
@@ -614,7 +614,7 @@ function PurchaseRow({
         value={purchase.project_id ?? ""}
         onChange={(e) => onChangeProject(e.target.value || null)}
         disabled={busy}
-        className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-ink-0/40 border-ink-2 text-ink-3 cursor-pointer max-w-[120px]"
+        className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-surface-0/40 border-surface-2 text-text-lo cursor-pointer max-w-[120px]"
         title="Project"
       >
         <option value="">— PROJECT —</option>
@@ -639,7 +639,7 @@ function PurchaseRow({
           onChangeCategory((e.target.value || null) as PurchaseCategory | null)
         }
         disabled={busy}
-        className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-ink-0/40 border-ink-2 text-ink-3 cursor-pointer max-w-[120px]"
+        className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-surface-0/40 border-surface-2 text-text-lo cursor-pointer max-w-[120px]"
         title="Category"
       >
         <option value="">— CATEGORY —</option>
@@ -656,7 +656,7 @@ function PurchaseRow({
           onChangeListType(e.target.value as PurchaseListType)
         }
         disabled={busy}
-        className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-ink-0/40 border-ink-2 text-ink-3 cursor-pointer"
+        className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border shrink-0 bg-surface-0/40 border-surface-2 text-text-lo cursor-pointer"
         title="List"
       >
         <option value="shopping">SHOPPING</option>
@@ -687,7 +687,7 @@ function PurchaseRow({
         disabled={busy}
         aria-label="Delete purchase"
         title="Delete purchase"
-        className="text-ink-3 hover:text-danger disabled:opacity-40 transition-colors text-base shrink-0"
+        className="text-text-lo hover:text-danger disabled:opacity-40 transition-colors text-base shrink-0"
       >
         🗑
       </button>

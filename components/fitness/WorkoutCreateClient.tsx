@@ -55,15 +55,15 @@ export function WorkoutCreateClient() {
 
   return (
     <div className="flex flex-col gap-4 max-w-xl">
-      <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+      <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
         New workout
       </h1>
-      <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+      <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
         Build the template; you&apos;ll add exercises on the next screen.
       </p>
 
       <label className="flex flex-col gap-1">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           Name *
         </span>
         <input
@@ -72,19 +72,19 @@ export function WorkoutCreateClient() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Push Day A"
-          className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+          className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
         />
       </label>
 
       <div className="grid grid-cols-2 gap-3">
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Default kind
           </span>
           <select
             value={kind}
             onChange={(e) => setKind(e.target.value as WorkoutKind | "")}
-            className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+            className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
           >
             <option value="">— None —</option>
             {WORKOUT_KINDS.map((k) => (
@@ -95,13 +95,13 @@ export function WorkoutCreateClient() {
           </select>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Default slot
           </span>
           <select
             value={slot}
             onChange={(e) => setSlot(e.target.value as WorkoutSlot | "")}
-            className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+            className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
           >
             <option value="">— None —</option>
             {WORKOUT_SLOTS.map((s) => (
@@ -114,7 +114,7 @@ export function WorkoutCreateClient() {
       </div>
 
       <label className="flex flex-col gap-1">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           Notes
         </span>
         <textarea
@@ -122,7 +122,7 @@ export function WorkoutCreateClient() {
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
           placeholder="(optional)"
-          className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+          className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
         />
       </label>
 
@@ -136,7 +136,7 @@ export function WorkoutCreateClient() {
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4"
+          className="px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi"
         >
           CANCEL
         </button>

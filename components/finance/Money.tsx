@@ -73,7 +73,7 @@ export function PrivateText({
   if (financeHidden) {
     return (
       <span
-        className={`inline-block select-none text-ink-3 ${className}`}
+        className={`inline-block select-none text-text-lo ${className}`}
         aria-label="Hidden text"
       >
         {placeholder}
@@ -100,7 +100,7 @@ export function Money({
   if (financeHidden) {
     return (
       <span
-        className="inline-block tabular-nums select-none text-ink-3"
+        className="inline-block tabular-nums select-none text-text-lo"
         style={{ minWidth: "6ch" }}
         aria-label="Hidden value"
       >

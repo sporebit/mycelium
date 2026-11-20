@@ -47,8 +47,8 @@ export function StepsSection({ apiKey, kind, title }: { apiKey: string; kind: st
     setBusy(false);
   };
 
-  if (error) return <p className="text-sm text-ink-3">Could not load steps.</p>;
-  if (!data) return <p className="text-sm text-ink-3">Loading steps…</p>;
+  if (error) return <p className="text-sm text-text-lo">Could not load steps.</p>;
+  if (!data) return <p className="text-sm text-text-lo">Loading steps…</p>;
 
   if (data.definition) {
     return (
@@ -63,7 +63,7 @@ export function StepsSection({ apiKey, kind, title }: { apiKey: string; kind: st
                 void patch({ definition: null });
               }
             }}
-            className="text-[11px] text-ink-3 hover:text-danger"
+            className="text-[11px] text-text-lo hover:text-danger"
           >
             remove checklist
           </button>
@@ -73,14 +73,14 @@ export function StepsSection({ apiKey, kind, title }: { apiKey: string; kind: st
   }
 
   return (
-    <div className="rounded-v2-md border border-dashed border-ink-2 p-3">
-      <p className="text-[11px] text-ink-3">
+    <div className="rounded-v2-md border border-dashed border-surface-2 p-3">
+      <p className="text-[11px] text-text-lo">
         {isRunbook
           ? "No run-book definition yet. Paste the definition JSON (checklists spec §3.1) or start from a template."
           : "No checklist yet. One step per line."}
       </p>
       <textarea
-        className="mt-2 min-h-[80px] w-full rounded-sm bg-ink-2 px-3 py-2 font-[family-name:var(--font-mono)] text-[12px] text-text-0 outline-none"
+        className="mt-2 min-h-[80px] w-full rounded-sm bg-surface-2 px-3 py-2 font-[family-name:var(--font-mono)] text-[12px] text-text-hi outline-none"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         placeholder={isRunbook ? '{ "phases": [ { "id": "1", "title": "…", "steps": [ … ] } ] }' : "Find the receipt\nPrint the return label\nDrop at the post office"}

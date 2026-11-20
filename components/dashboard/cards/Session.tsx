@@ -142,33 +142,33 @@ export function Session({ width = 1 }: { width?: CardWidth } = {}) {
       <div className="flex items-start justify-between gap-6">
         <div className="flex-1 min-w-0">
           <h1
-            className="font-[family-name:var(--font-display)] italic text-ink-4 leading-tight"
+            className="font-[family-name:var(--font-display)] italic text-text-hi leading-tight"
             style={{ fontSize: "clamp(28px, 3.4vw, 44px)" }}
             suppressHydrationWarning
           >
             {greeting(now)}, {OPERATOR.firstName}
           </h1>
-          <p className="mt-1 text-sm text-ink-3">
+          <p className="mt-1 text-sm text-text-lo">
             Session opened. Capture anything below.
           </p>
         </div>
 
         <div className="text-right">
           <div
-            className="font-[family-name:var(--font-mono)] tabular-nums text-ink-4 leading-none"
+            className="font-[family-name:var(--font-mono)] tabular-nums text-text-hi leading-none"
             style={{ fontSize: "clamp(28px, 3vw, 40px)" }}
             suppressHydrationWarning
           >
             {fmtTime(now)}
           </div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-1">
             Local · {OPERATOR.timezone}
           </div>
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl border border-ink-2 bg-ink-0/30 px-4 py-3 flex items-center gap-3">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] shrink-0">
+      <div className="mt-5 rounded-xl border border-surface-2 bg-surface-0/30 px-4 py-3 flex items-center gap-3">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] shrink-0">
           Today I will
         </span>
         {editingOneThing ? (
@@ -180,7 +180,7 @@ export function Session({ width = 1 }: { width?: CardWidth } = {}) {
             onKeyDown={onKeyOneThing}
             onBlur={saveOneThing}
             placeholder="Set today's one thing…"
-            className="flex-1 bg-transparent outline-none text-sm text-ink-4 placeholder:text-ink-3 italic font-[family-name:var(--font-display)]"
+            className="flex-1 bg-transparent outline-none text-sm text-text-hi placeholder:text-text-lo italic font-[family-name:var(--font-display)]"
             disabled={savingOneThing}
           />
         ) : (
@@ -191,9 +191,9 @@ export function Session({ width = 1 }: { width?: CardWidth } = {}) {
             title="Click to edit"
           >
             {oneThingLoaded && oneThing ? (
-              <span className="text-ink-4">{oneThing}</span>
+              <span className="text-text-hi">{oneThing}</span>
             ) : (
-              <span className="text-ink-3">Set today&apos;s one thing…</span>
+              <span className="text-text-lo">Set today&apos;s one thing…</span>
             )}
           </button>
         )}
@@ -201,21 +201,21 @@ export function Session({ width = 1 }: { width?: CardWidth } = {}) {
 
       <div className="mt-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Top Tasks Today
           </span>
           {topTasks && topTasks.length > 0 && (
-            <Mono className="text-[10px] text-ink-3">
+            <Mono className="text-[10px] text-text-lo">
               {topTasks.length} CRITICAL
             </Mono>
           )}
         </div>
         {topTasks === null ? (
-          <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+          <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
             Loading…
           </div>
         ) : topTasks.length === 0 ? (
-          <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+          <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
             No critical tasks for today
           </div>
         ) : (
@@ -223,14 +223,14 @@ export function Session({ width = 1 }: { width?: CardWidth } = {}) {
             className={
               width >= 3
                 ? "grid grid-cols-2 gap-x-6"
-                : "flex flex-col divide-y divide-ink-2"
+                : "flex flex-col divide-y divide-surface-2"
             }
           >
             {topTasks.map((t) => (
               <li
                 key={t.id}
                 className={`py-2 flex items-center gap-3 ${
-                  width >= 3 ? "border-b border-ink-2 last:border-b-0" : ""
+                  width >= 3 ? "border-b border-surface-2 last:border-b-0" : ""
                 }`}
               >
                 <span
@@ -238,9 +238,9 @@ export function Session({ width = 1 }: { width?: CardWidth } = {}) {
                   className="h-1.5 w-1.5 rounded-full bg-danger shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-ink-4 truncate">{t.title}</div>
+                  <div className="text-sm text-text-hi truncate">{t.title}</div>
                   {(t.timeEstimateMin !== null || t.entityName) && (
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5 flex items-center gap-2">
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-0.5 flex items-center gap-2">
                       {t.timeEstimateMin !== null && (
                         <Mono>{t.timeEstimateMin}M</Mono>
                       )}
@@ -251,7 +251,7 @@ export function Session({ width = 1 }: { width?: CardWidth } = {}) {
                 </div>
                 <Link
                   href="/organisation"
-                  className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] shrink-0"
+                  className="text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] shrink-0"
                 >
                   → TASKS
                 </Link>

@@ -23,7 +23,7 @@ const TONE_LABEL: Record<PillTone, string> = {
 const TONE_CLASS: Record<PillTone, string> = {
   hot: "bg-danger/15 text-danger border-danger/40",
   warm: "bg-warn/15 text-warn border-warn/40",
-  cool: "bg-ink-2 text-ink-3 border-ink-2",
+  cool: "bg-surface-2 text-text-lo border-surface-2",
 };
 
 export function UrgencyPill({

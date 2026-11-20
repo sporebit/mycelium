@@ -208,7 +208,7 @@ export function RestTimer({
           {fmt(remaining)}
         </span>
         {exerciseName ? (
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] truncate flex-1 min-w-0">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] truncate flex-1 min-w-0">
             {exerciseName}
             {setNumber && totalSets ? ` · ${setNumber}/${totalSets}` : ""}
           </span>
@@ -225,7 +225,7 @@ export function RestTimer({
         <button
           type="button"
           onClick={() => setIsMinimised(false)}
-          className="h-8 w-8 rounded-full flex items-center justify-center text-ink-3 hover:text-ink-4 hover:bg-surface-2 transition-colors shrink-0"
+          className="h-8 w-8 rounded-full flex items-center justify-center text-text-lo hover:text-text-hi hover:bg-surface-2 transition-colors shrink-0"
           aria-label="Expand timer"
         >
           <svg
@@ -259,7 +259,7 @@ export function RestTimer({
       <button
         type="button"
         onClick={() => setIsMinimised(true)}
-        className="absolute top-4 right-4 h-10 w-10 rounded-full flex items-center justify-center text-ink-3 hover:text-ink-4 hover:bg-white/10 transition-colors"
+        className="absolute top-4 right-4 h-10 w-10 rounded-full flex items-center justify-center text-text-lo hover:text-text-hi hover:bg-white/10 transition-colors"
         aria-label="Minimise timer"
       >
         <svg
@@ -279,14 +279,14 @@ export function RestTimer({
       <div className="w-full max-w-md flex flex-col items-center gap-6 text-center">
         {exerciseName && (
           <div className="flex flex-col items-center gap-1">
-            <span className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.22em] text-text-lo font-[family-name:var(--font-mono)]">
               Resting after
             </span>
-            <span className="text-xl text-ink-4 italic font-[family-name:var(--font-display)]">
+            <span className="text-xl text-text-hi italic font-[family-name:var(--font-display)]">
               {exerciseName}
             </span>
             {setNumber && totalSets ? (
-              <span className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
+              <span className="text-[10px] uppercase tracking-[0.22em] text-text-lo font-[family-name:var(--font-mono)] mt-1">
                 Set {setNumber} of {totalSets}
               </span>
             ) : null}
@@ -306,7 +306,7 @@ export function RestTimer({
             type="button"
             onClick={() => onAdjust(-15)}
             disabled={done}
-            className="flex-1 h-14 rounded-v2-md border border-hairline text-ink-4 text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:border-ink-3 disabled:opacity-40"
+            className="flex-1 h-14 rounded-v2-md border border-hairline text-text-hi text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:border-text-lo disabled:opacity-40"
           >
             −15s
           </button>
@@ -314,7 +314,7 @@ export function RestTimer({
             type="button"
             onClick={() => onAdjust(15)}
             disabled={done}
-            className="flex-1 h-14 rounded-v2-md border border-hairline text-ink-4 text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:border-ink-3 disabled:opacity-40"
+            className="flex-1 h-14 rounded-v2-md border border-hairline text-text-hi text-sm font-[family-name:var(--font-mono)] tracking-[0.15em] hover:border-text-lo disabled:opacity-40"
           >
             +15s
           </button>

@@ -38,12 +38,12 @@ export function Panel({
   // `!` prefix guarantees these win over Surface's baseline utilities.
   const surfaceClass = borderless
     ? "relative rounded-md"
-    : "relative !bg-ink-1/60 !border-ink-2 rounded-2xl backdrop-blur-xl shadow-[0_1px_0_0_var(--ink-2)_inset]";
+    : "relative !bg-surface-1/60 !border-surface-2 rounded-2xl backdrop-blur-xl shadow-[0_1px_0_0_var(--ink-2)_inset]";
   const headerPad = borderless ? "px-6 pt-6 pb-3" : "px-5 pt-4 pb-3";
   const bodyPad = borderless ? "px-6 pb-6" : "px-5 pb-5";
   const footerPad = borderless
-    ? "px-6 py-3 border-t border-ink-2/60"
-    : "px-5 py-3 border-t border-ink-2";
+    ? "px-6 py-3 border-t border-surface-2/60"
+    : "px-5 py-3 border-t border-surface-2";
 
   return (
     <Surface
@@ -65,7 +65,7 @@ export function Panel({
             <span />
           )}
           {topRight && (
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               {topRight}
             </div>
           )}
@@ -74,7 +74,7 @@ export function Panel({
       <div className={`${bodyPad} ${bodyClassName}`}>{children}</div>
       {bottomCTA && (
         <footer
-          className={`flex items-center justify-end gap-3 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] ${footerPad}`}
+          className={`flex items-center justify-end gap-3 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] ${footerPad}`}
         >
           {bottomCTA}
         </footer>

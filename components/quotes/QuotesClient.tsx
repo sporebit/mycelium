@@ -25,8 +25,8 @@ function monthLabel(key: string): string {
   return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
 }
 
-const input = "bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
-const btn = "px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em] disabled:opacity-50";
+const input = "bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
+const btn = "px-3 py-1.5 rounded-sm border border-text-hi text-xs text-text-mid hover:text-text-hi hover:bg-surface-2 font-[family-name:var(--font-mono)] tracking-[0.1em] disabled:opacity-50";
 
 /**
  * /organisation/quotes (spec §7): newest first; search, person chips (incl.
@@ -133,7 +133,7 @@ export function QuotesClient() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
-        <h1 className="text-lg font-semibold text-text-0">Quotes</h1>
+        <h1 className="text-lg font-semibold text-text-hi">Quotes</h1>
         <div className="flex items-center gap-2">
           <a href={exportHref} className={btn}>
             EXPORT
@@ -145,14 +145,14 @@ export function QuotesClient() {
       </div>
 
       {adding && (
-        <div className="rounded-md bg-ink-1 p-4 flex flex-col gap-3">
+        <div className="rounded-md bg-surface-1 p-4 flex flex-col gap-3">
           <EntityForm def={QUOTE_DEF} only={ADD_FIELDS} values={addDraft} onChange={setAddDraft} errors={addErrors} autoFocus onSubmit={() => void add(false)} />
           {dupes.length > 0 && (
-            <div className="rounded-sm border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-text-1 flex flex-col gap-1">
+            <div className="rounded-sm border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-text-mid flex flex-col gap-1">
               <div className="text-warn">Looks like a quote you already have:</div>
               {dupes.map((d) => (
                 <div key={d.id}>
-                  “{d.text}” <span className="text-text-2">({Math.round(d.score * 100)}%)</span>
+                  “{d.text}” <span className="text-text-lo">({Math.round(d.score * 100)}%)</span>
                 </div>
               ))}
               <div className="flex gap-2 pt-1">
@@ -192,7 +192,7 @@ export function QuotesClient() {
           <Pill active={merch} onClick={() => setMerch((v) => !v)} tone="accent">
             Merch
           </Pill>
-          <select value={view} onChange={(e) => setView(e.target.value as View)} className="rounded-sm bg-ink-2 px-2 py-1 text-xs text-text-0">
+          <select value={view} onChange={(e) => setView(e.target.value as View)} className="rounded-sm bg-surface-2 px-2 py-1 text-xs text-text-hi">
             <option value="list">List</option>
             <option value="person">By person</option>
             <option value="month">By month</option>
@@ -201,9 +201,9 @@ export function QuotesClient() {
       </div>
 
       {!data ? (
-        <div className="text-sm text-ink-3 italic">Loading…</div>
+        <div className="text-sm text-text-lo italic">Loading…</div>
       ) : quotes.length === 0 ? (
-        <div className="text-sm text-ink-3 italic">No quotes yet. Say “quote from Jake: …” to the bot, or add one.</div>
+        <div className="text-sm text-text-lo italic">No quotes yet. Say “quote from Jake: …” to the bot, or add one.</div>
       ) : (
         groups.map((g) => (
           <section key={g.key} className="flex flex-col gap-2">

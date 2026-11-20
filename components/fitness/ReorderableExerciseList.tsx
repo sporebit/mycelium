@@ -136,12 +136,12 @@ function SortableRow({
     ? "▶"
     : "▢";
   const tone = ex.skipped
-    ? "text-ink-3"
+    ? "text-text-lo"
     : completed
     ? "text-ok"
     : isActive
     ? "text-accent"
-    : "text-ink-3";
+    : "text-text-lo";
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -166,7 +166,7 @@ function SortableRow({
             {...attributes}
             {...listeners}
             aria-label="Drag to reorder"
-            className="h-8 w-6 shrink-0 flex items-center justify-center text-ink-3 hover:text-ink-4 cursor-grab active:cursor-grabbing select-none touch-none"
+            className="h-8 w-6 shrink-0 flex items-center justify-center text-text-lo hover:text-text-hi cursor-grab active:cursor-grabbing select-none touch-none"
             // Stop the inner click from also opening the row
             onClick={(e) => e.stopPropagation()}
           >
@@ -183,17 +183,17 @@ function SortableRow({
               {icon}
             </span>
             <div className="flex-1 min-w-0">
-              <div className={`text-sm truncate ${completed ? "text-ink-3" : "text-ink-4"}`}>
+              <div className={`text-sm truncate ${completed ? "text-text-lo" : "text-text-hi"}`}>
                 {ex.name}
               </div>
-              <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <div className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
                 {target ? `${loggedSets}/${target} sets` : `${loggedSets} sets`}
                 {ex.rest_seconds ? ` · ${ex.rest_seconds}s rest` : ""}
                 {ex.save_to_template ? " · → tpl" : ""}
               </div>
             </div>
             <span
-              className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] shrink-0"
+              className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)] shrink-0"
               aria-hidden
             >
               →
@@ -209,10 +209,10 @@ function SortableRow({
               {icon}
             </span>
             <div className="flex-1 min-w-0">
-              <div className={`text-sm truncate ${completed ? "text-ink-3" : "text-ink-4"}`}>
+              <div className={`text-sm truncate ${completed ? "text-text-lo" : "text-text-hi"}`}>
                 {ex.name}
               </div>
-              <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <div className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
                 {target ? `${loggedSets}/${target} sets` : `${loggedSets} sets`}
                 {ex.rest_seconds ? ` · ${ex.rest_seconds}s rest` : ""}
                 {ex.save_to_template ? " · → tpl" : ""}
@@ -226,7 +226,7 @@ function SortableRow({
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Row actions"
-            className="h-8 w-7 shrink-0 flex items-center justify-center text-ink-3 hover:text-ink-4"
+            className="h-8 w-7 shrink-0 flex items-center justify-center text-text-lo hover:text-text-hi"
           >
             ⋮
           </button>

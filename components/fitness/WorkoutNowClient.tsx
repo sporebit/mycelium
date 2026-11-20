@@ -151,12 +151,12 @@ export function WorkoutNowClient() {
     return (
       <div className="flex flex-col gap-6 max-w-lg mx-auto">
         <div className="flex items-center justify-between">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Workout Now
           </h1>
           <SyncStatus />
         </div>
-        <p className="text-sm text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.04em]">
+        <p className="text-sm text-text-lo font-[family-name:var(--font-mono)] tracking-[0.04em]">
           What kind of session?
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -191,12 +191,12 @@ export function WorkoutNowClient() {
         <button
           type="button"
           onClick={() => setStep("kind")}
-          className="text-ink-3 hover:text-text-0 text-sm"
+          className="text-text-lo hover:text-text-hi text-sm"
           aria-label="Back"
         >
           ← Back
         </button>
-        <h1 className="font-[family-name:var(--font-display)] italic text-xl text-text-0 flex-1">
+        <h1 className="font-[family-name:var(--font-display)] italic text-xl text-text-hi flex-1">
           {selectedKind && KIND_VISUALS[selectedKind].icon}{" "}
           {selectedKind && KIND_VISUALS[selectedKind].label}
         </h1>
@@ -214,19 +214,19 @@ export function WorkoutNowClient() {
           triggerGlowPulse(e.currentTarget);
           void createSession({});
         }}
-        className="w-full flex items-center gap-3 bg-surface-1 rounded-xl border border-dashed border-ink-3 px-4 min-h-[56px] hover:bg-surface-2 transition-colors"
+        className="w-full flex items-center gap-3 bg-surface-1 rounded-xl border border-dashed border-text-lo px-4 min-h-[56px] hover:bg-surface-2 transition-colors"
       >
-        <span className="text-lg text-ink-3">+</span>
+        <span className="text-lg text-text-lo">+</span>
         <div className="flex-1 text-left">
-          <div className="text-sm text-text-0">Start blank</div>
-          <div className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] uppercase tracking-[0.12em]">
+          <div className="text-sm text-text-hi">Start blank</div>
+          <div className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] uppercase tracking-[0.12em]">
             Add exercises as you go
           </div>
         </div>
       </button>
 
       {loading ? (
-        <p className="text-xs text-ink-3 font-[family-name:var(--font-mono)] text-center py-8">
+        <p className="text-xs text-text-lo font-[family-name:var(--font-mono)] text-center py-8">
           Loading templates…
         </p>
       ) : (
@@ -247,10 +247,10 @@ export function WorkoutNowClient() {
                     }}
                     className="w-full flex items-center gap-3 bg-surface-1 rounded-xl border border-hairline px-4 min-h-[56px] hover:bg-surface-2 transition-colors text-left"
                   >
-                    <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] w-8">
+                    <span className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)] w-8">
                       {t.dayLabel}
                     </span>
-                    <span className="flex-1 text-sm text-text-0 truncate">{t.name}</span>
+                    <span className="flex-1 text-sm text-text-hi truncate">{t.name}</span>
                     <Chevron />
                   </button>
                 ))}
@@ -274,8 +274,8 @@ export function WorkoutNowClient() {
                     }}
                     className="w-full flex items-center gap-3 bg-surface-1 rounded-xl border border-hairline px-4 min-h-[56px] hover:bg-surface-2 transition-colors text-left"
                   >
-                    <span className="flex-1 text-sm text-text-0 truncate">{t.name}</span>
-                    <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] uppercase tracking-[0.12em]">
+                    <span className="flex-1 text-sm text-text-hi truncate">{t.name}</span>
+                    <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] uppercase tracking-[0.12em]">
                       {t.exerciseCount} ex
                     </span>
                     <Chevron />
@@ -286,7 +286,7 @@ export function WorkoutNowClient() {
           )}
 
           {programmeTemplates.length === 0 && libraryTemplates.length === 0 && (
-            <p className="text-xs text-ink-3 font-[family-name:var(--font-mono)] text-center py-4 italic">
+            <p className="text-xs text-text-lo font-[family-name:var(--font-mono)] text-center py-4 italic">
               No saved {selectedKind} workouts yet — start blank and build one
             </p>
           )}
@@ -304,7 +304,7 @@ export function WorkoutNowClient() {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-2 px-1">
+    <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-2 px-1">
       {children}
     </h2>
   );
@@ -322,7 +322,7 @@ function Chevron() {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden
-      className="text-ink-3"
+      className="text-text-lo"
     >
       <path d="M5 3 L9 7 L5 11" />
     </svg>

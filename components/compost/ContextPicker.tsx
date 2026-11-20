@@ -86,7 +86,7 @@ export function ContextPicker({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`${triggerCls} rounded-md border border-ink-2 bg-ink-0/40 hover:border-ink-3 text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.12em] inline-flex items-center gap-1 transition-colors`}
+        className={`${triggerCls} rounded-md border border-surface-2 bg-surface-0/40 hover:border-text-lo text-text-hi font-[family-name:var(--font-mono)] tracking-[0.12em] inline-flex items-center gap-1 transition-colors`}
       >
         {current ? (
           <>
@@ -94,20 +94,20 @@ export function ContextPicker({
             <span className="truncate max-w-[10rem]">{current.label}</span>
           </>
         ) : (
-          <span className="text-ink-3 italic">{placeholder ?? "Any"}</span>
+          <span className="text-text-lo italic">{placeholder ?? "Any"}</span>
         )}
-        <span aria-hidden className="text-ink-3">▾</span>
+        <span aria-hidden className="text-text-lo">▾</span>
       </button>
 
       {open && (
-        <div className="absolute z-50 left-0 top-full mt-1 w-64 max-h-[60vh] overflow-y-auto rounded-md bg-ink-1 border border-ink-2 shadow-2xl p-2 flex flex-col gap-1">
+        <div className="absolute z-50 left-0 top-full mt-1 w-64 max-h-[60vh] overflow-y-auto rounded-md bg-surface-1 border border-surface-2 shadow-2xl p-2 flex flex-col gap-1">
           <input
             autoFocus
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search…"
-            className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1 outline-none focus:ring-2 focus:ring-glow-2/60"
+            className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1 outline-none focus:ring-2 focus:ring-glow-2/60"
           />
           <button
             type="button"
@@ -115,7 +115,7 @@ export function ContextPicker({
               onChange(null);
               setOpen(false);
             }}
-            className="text-left text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 px-2 py-1 font-[family-name:var(--font-mono)]"
+            className="text-left text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi px-2 py-1 font-[family-name:var(--font-mono)]"
           >
             — Any —
           </button>
@@ -127,16 +127,16 @@ export function ContextPicker({
                 onChange(o.value);
                 setOpen(false);
               }}
-              className={`text-left text-sm px-2 py-1.5 rounded-sm flex items-center gap-2 hover:bg-ink-2/60 transition-colors ${
-                o.value === value ? "ring-1 ring-glow-2/40 bg-ink-2/30" : ""
+              className={`text-left text-sm px-2 py-1.5 rounded-sm flex items-center gap-2 hover:bg-surface-2/60 transition-colors ${
+                o.value === value ? "ring-1 ring-glow-2/40 bg-surface-2/30" : ""
               }`}
             >
               {o.icon && <span aria-hidden>{o.icon}</span>}
-              <span className="text-ink-4">{o.label}</span>
+              <span className="text-text-hi">{o.label}</span>
             </button>
           ))}
-          <div className="border-t border-ink-2/60 mt-1 pt-2 flex flex-col gap-1.5">
-            <span className="text-[9px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <div className="border-t border-surface-2/60 mt-1 pt-2 flex flex-col gap-1.5">
+            <span className="text-[9px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               + Add new
             </span>
             <input
@@ -144,7 +144,7 @@ export function ContextPicker({
               value={creatingLabel}
               onChange={(e) => setCreatingLabel(e.target.value)}
               placeholder="Label"
-              className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1 outline-none focus:ring-2 focus:ring-glow-2/60"
             />
             <div className="flex items-center gap-1.5">
               <input
@@ -153,7 +153,7 @@ export function ContextPicker({
                 onChange={(e) => setCreatingIcon(e.target.value)}
                 placeholder="Icon (emoji)"
                 maxLength={3}
-                className="w-20 bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1 outline-none focus:ring-2 focus:ring-glow-2/60"
+                className="w-20 bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1 outline-none focus:ring-2 focus:ring-glow-2/60"
               />
               <button
                 type="button"

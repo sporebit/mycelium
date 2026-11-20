@@ -184,8 +184,8 @@ export function QuickBarcodeLog({
   if (missedBarcode) {
     if (labelScanning) {
       return (
-        <div className="fixed inset-0 z-[200] bg-ink-0/95 backdrop-blur-sm flex items-center justify-center">
-          <span className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="fixed inset-0 z-[200] bg-surface-0/95 backdrop-blur-sm flex items-center justify-center">
+          <span className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             Reading label…
           </span>
         </div>
@@ -231,16 +231,16 @@ export function QuickBarcodeLog({
             setMissedBarcode(null);
             onClose();
           }}
-          className="absolute inset-0 bg-ink-0/60 backdrop-blur-sm cursor-default"
+          className="absolute inset-0 bg-surface-0/60 backdrop-blur-sm cursor-default"
         />
         <div
           role="dialog"
           aria-label="Barcode not found"
-          className="relative w-full max-w-md rounded-t-xl md:rounded-xl bg-ink-1 border border-ink-2 shadow-2xl flex flex-col items-center gap-4 p-6"
+          className="relative w-full max-w-md rounded-t-xl md:rounded-xl bg-surface-1 border border-surface-2 shadow-2xl flex flex-col items-center gap-4 p-6"
         >
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] text-center">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] text-center">
             Barcode{" "}
-            <span className="text-ink-4 font-[family-name:var(--font-mono)] not-italic">
+            <span className="text-text-hi font-[family-name:var(--font-mono)] not-italic">
               {missedBarcode}
             </span>{" "}
             not found
@@ -255,7 +255,7 @@ export function QuickBarcodeLog({
           <button
             type="button"
             onClick={() => setWantsManual(true)}
-            className="text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+            className="text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
           >
             Enter manually →
           </button>
@@ -281,22 +281,22 @@ export function QuickBarcodeLog({
           type="button"
           aria-label="Close"
           onClick={onClose}
-          className="absolute inset-0 bg-ink-0/60 backdrop-blur-sm cursor-default"
+          className="absolute inset-0 bg-surface-0/60 backdrop-blur-sm cursor-default"
         />
         <div
           role="dialog"
           aria-label="Confirm log"
-          className="relative w-full max-w-md rounded-t-xl md:rounded-xl bg-ink-1 border border-ink-2 shadow-2xl flex flex-col overflow-hidden"
+          className="relative w-full max-w-md rounded-t-xl md:rounded-xl bg-surface-1 border border-surface-2 shadow-2xl flex flex-col overflow-hidden"
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-ink-2">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-surface-2">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Confirm
             </span>
             <button
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="text-ink-3 hover:text-ink-4"
+              className="text-text-lo hover:text-text-hi"
             >
               ✕
             </button>
@@ -316,8 +316,8 @@ export function QuickBarcodeLog({
 
   if (looking) {
     return (
-      <div className="fixed inset-0 z-[200] bg-ink-0/95 backdrop-blur-sm flex items-center justify-center">
-        <span className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+      <div className="fixed inset-0 z-[200] bg-surface-0/95 backdrop-blur-sm flex items-center justify-center">
+        <span className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Looking up barcode…
         </span>
       </div>

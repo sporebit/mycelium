@@ -44,17 +44,17 @@ export const KIND_VISUALS: Record<SessionKind, KindVisual> = {
     icon: "🧘",
     label: "Mobility",
     color: "var(--text-1)",
-    bgClass: "bg-ink-2",
-    textClass: "text-text-1",
-    borderClass: "border-ink-3",
+    bgClass: "bg-surface-2",
+    textClass: "text-text-mid",
+    borderClass: "border-text-lo",
   },
   other: {
     icon: "➕",
     label: "Other",
     color: "var(--text-2)",
-    bgClass: "bg-ink-2",
-    textClass: "text-text-2",
-    borderClass: "border-ink-3",
+    bgClass: "bg-surface-2",
+    textClass: "text-text-lo",
+    borderClass: "border-text-lo",
   },
 };
 

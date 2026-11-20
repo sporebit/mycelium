@@ -75,9 +75,9 @@ export default function TemplatesPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <div className="flex items-baseline justify-between gap-3">
-        <h1 className="text-lg font-semibold text-text-0">Templates</h1>
+        <h1 className="text-lg font-semibold text-text-hi">Templates</h1>
         <div className="flex items-center gap-3 text-xs">
-          <button type="button" onClick={() => void sync()} disabled={busy === "sync"} className="text-ink-3 hover:text-ink-4">
+          <button type="button" onClick={() => void sync()} disabled={busy === "sync"} className="text-text-lo hover:text-text-hi">
             Sync repo templates
           </button>
           <Link href="/organisation/tasks" className="text-glow-2 hover:underline">
@@ -85,19 +85,19 @@ export default function TemplatesPage() {
           </Link>
         </div>
       </div>
-      <p className="mt-1 text-[11px] text-ink-3">
+      <p className="mt-1 text-[11px] text-text-lo">
         Save any ticket as a template from its page. Repo templates come from docs/tickets/templates.
       </p>
-      {msg && <p className="mt-2 text-[11px] text-ink-3">{msg}</p>}
+      {msg && <p className="mt-2 text-[11px] text-text-lo">{msg}</p>}
 
       <div className="mt-4">
         {error ? (
-          <p className="text-sm text-ink-3">Could not load templates.</p>
+          <p className="text-sm text-text-lo">Could not load templates.</p>
         ) : !data ? (
-          <p className="text-sm text-ink-3">Loading…</p>
+          <p className="text-sm text-text-lo">Loading…</p>
         ) : templates.length === 0 ? (
           <div className="rounded-v2-lg border border-hairline bg-surface-1 p-10 text-center">
-            <p className="text-sm italic text-ink-3">No templates yet. Sync the repo templates to start.</p>
+            <p className="text-sm italic text-text-lo">No templates yet. Sync the repo templates to start.</p>
           </div>
         ) : (
           <ul className="flex flex-col gap-1.5">
@@ -105,14 +105,14 @@ export default function TemplatesPage() {
               <li key={t.id} className="flex items-center gap-3 rounded-v2-md border border-hairline bg-surface-1 px-3 py-2">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-text-0">{t.name}</span>
-                    <span className="rounded-sm border border-ink-2 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-ink-3">{t.kind}</span>
-                    <span className="text-[10px] text-ink-3">
+                    <span className="text-sm text-text-hi">{t.name}</span>
+                    <span className="rounded-sm border border-surface-2 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-text-lo">{t.kind}</span>
+                    <span className="text-[10px] text-text-lo">
                       {t.origin} · v{t.version}
                       {t.shared ? " · shared" : ""}
                     </span>
                   </div>
-                  <div className="truncate text-[11px] text-ink-3">
+                  <div className="truncate text-[11px] text-text-lo">
                     {t.definition.title}
                     {t.definition.sub_tasks?.length ? ` · ${t.definition.sub_tasks.length} sub-tasks` : ""}
                     {t.definition.steps_definition ? " · steps" : ""}
@@ -126,7 +126,7 @@ export default function TemplatesPage() {
                 >
                   New from template
                 </button>
-                <button type="button" onClick={() => void remove(t)} className="text-[11px] text-ink-3 hover:text-danger">
+                <button type="button" onClick={() => void remove(t)} className="text-[11px] text-text-lo hover:text-danger">
                   ×
                 </button>
               </li>

@@ -96,7 +96,7 @@ export function NowBlock() {
               className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${
                 tp.now_where === w
                   ? "border-glow-2/50 bg-glow-2/15 text-glow-2"
-                  : "border-ink-2 text-ink-3 hover:text-ink-4"
+                  : "border-surface-2 text-text-lo hover:text-text-hi"
               }`}
             >
               {WHERE_GLYPH[w]}
@@ -104,7 +104,7 @@ export function NowBlock() {
           ))}
           <select
             aria-label="Energy"
-            className="rounded-full border border-ink-2 bg-transparent px-1.5 py-0.5 text-[10px] text-ink-3"
+            className="rounded-full border border-surface-2 bg-transparent px-1.5 py-0.5 text-[10px] text-text-lo"
             value={tp.now_max_points == null ? "all" : String(tp.now_max_points)}
             onChange={(e) =>
               void setPrefs({

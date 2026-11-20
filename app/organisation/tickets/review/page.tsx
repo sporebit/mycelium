@@ -54,8 +54,8 @@ export default function WeeklyReviewPage() {
   const patch = (t: TicketRow, fields: Record<string, unknown>) =>
     act(t.id, () => ticketFetch(`/api/tickets/${encodeURIComponent(t.ticket_key ?? t.id)}`, { method: "PATCH", body: fields }));
 
-  if (error) return <div className="mx-auto max-w-4xl px-4 py-10 text-sm text-ink-3">Could not load the review.</div>;
-  if (!data) return <div className="mx-auto max-w-4xl px-4 py-10 text-sm text-ink-3">Loading…</div>;
+  if (error) return <div className="mx-auto max-w-4xl px-4 py-10 text-sm text-text-lo">Could not load the review.</div>;
+  if (!data) return <div className="mx-auto max-w-4xl px-4 py-10 text-sm text-text-lo">Loading…</div>;
 
   const counts: Record<StepId, number> = {
     inbox: data.inbox.length,
@@ -72,8 +72,8 @@ export default function WeeklyReviewPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <div className="flex items-baseline justify-between gap-3">
-        <h1 className="text-lg font-semibold text-text-0">
-          Weekly review <span className="ml-2 font-[family-name:var(--font-mono)] text-xs text-ink-3">{data.week}</span>
+        <h1 className="text-lg font-semibold text-text-hi">
+          Weekly review <span className="ml-2 font-[family-name:var(--font-mono)] text-xs text-text-lo">{data.week}</span>
         </h1>
         <div className="flex items-center gap-3 text-xs">
           {sealed && <span className="text-ok">sealed {new Date(data.sealed_at!).toLocaleDateString("en-GB")}</span>}
@@ -91,11 +91,11 @@ export default function WeeklyReviewPage() {
               onClick={() => setStep(s.id)}
               aria-pressed={s.id === step}
               className={`rounded-md border px-2.5 py-1 text-[11px] font-[family-name:var(--font-mono)] uppercase tracking-[0.12em] ${
-                s.id === step ? "border-glow-2/50 bg-glow-2/15 text-glow-2" : "border-ink-2 text-ink-3 hover:text-ink-4"
+                s.id === step ? "border-glow-2/50 bg-glow-2/15 text-glow-2" : "border-surface-2 text-text-lo hover:text-text-hi"
               }`}
             >
               {i + 1}. {s.title}
-              <span className={`ml-1.5 ${counts[s.id] === 0 ? "text-ok" : "text-ink-3"}`}>{counts[s.id]}</span>
+              <span className={`ml-1.5 ${counts[s.id] === 0 ? "text-ok" : "text-text-lo"}`}>{counts[s.id]}</span>
             </button>
           </li>
         ))}
@@ -104,7 +104,7 @@ export default function WeeklyReviewPage() {
       <div className="mt-4">
         {step === "inbox" && (
           <div>
-            <p className="mb-2 text-[11px] text-ink-3">
+            <p className="mb-2 text-[11px] text-text-lo">
               Decide what each new thing is. Open one to type it, place it and move it on, or work the{" "}
               <Link href="/work/issues?filter=inbox" className="text-glow-2 hover:underline">
                 Inbox filter
@@ -150,10 +150,10 @@ export default function WeeklyReviewPage() {
                 {data.projectsWithoutNext.map((p) => (
                   <li key={p.id} className="flex items-center gap-3 rounded-v2-md border border-hairline bg-surface-1 px-3 py-2 text-sm">
                     <span className="h-2 w-2 rounded-full" style={{ background: p.colour ?? "#888" }} />
-                    <Link href={`/organisation/projects/${p.id}`} className="flex-1 text-text-0 hover:underline">
+                    <Link href={`/organisation/projects/${p.id}`} className="flex-1 text-text-hi hover:underline">
                       {p.name}
                     </Link>
-                    <span className="text-[11px] text-ink-3">{p.open} open, none in Next or Doing</span>
+                    <span className="text-[11px] text-text-lo">{p.open} open, none in Next or Doing</span>
                     <Link href={`/organisation/tasks`} className="text-[11px] text-glow-2 hover:underline">
                       triage backlog
                     </Link>
@@ -229,7 +229,7 @@ export default function WeeklyReviewPage() {
             type="button"
             disabled={idx === 0}
             onClick={() => setStep(STEPS[Math.max(0, idx - 1)].id)}
-            className="rounded-sm bg-ink-2 px-3 py-1 text-sm text-ink-4 disabled:opacity-40"
+            className="rounded-sm bg-surface-2 px-3 py-1 text-sm text-text-hi disabled:opacity-40"
           >
             ← back
           </button>
@@ -237,14 +237,14 @@ export default function WeeklyReviewPage() {
             type="button"
             disabled={idx === STEPS.length - 1}
             onClick={() => setStep(STEPS[Math.min(STEPS.length - 1, idx + 1)].id)}
-            className="rounded-sm bg-ink-2 px-3 py-1 text-sm text-ink-4 disabled:opacity-40"
+            className="rounded-sm bg-surface-2 px-3 py-1 text-sm text-text-hi disabled:opacity-40"
           >
             next →
           </button>
         </div>
         <div className="flex flex-1 items-center gap-2">
           <input
-            className="min-w-[160px] flex-1 rounded-sm bg-ink-2 px-3 py-1.5 text-sm text-text-0 outline-none"
+            className="min-w-[160px] flex-1 rounded-sm bg-surface-2 px-3 py-1.5 text-sm text-text-hi outline-none"
             placeholder="one line for the record (optional)"
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -262,7 +262,7 @@ export default function WeeklyReviewPage() {
         </div>
       </div>
       {data.review_ticket_key && (
-        <p className="mt-2 text-[11px] text-ink-3">
+        <p className="mt-2 text-[11px] text-text-lo">
           Record: <Link href={`/organisation/tickets/${data.review_ticket_key}`} className="text-glow-2 hover:underline">{data.review_ticket_key}</Link>
         </p>
       )}
@@ -273,7 +273,7 @@ export default function WeeklyReviewPage() {
 function Empty({ text }: { text: string }) {
   return (
     <div className="rounded-v2-lg border border-hairline bg-surface-1 p-10 text-center">
-      <p className="text-sm italic text-ink-3">{text}</p>
+      <p className="text-sm italic text-text-lo">{text}</p>
     </div>
   );
 }

@@ -149,13 +149,13 @@ export function AddResultsModal({
       <div className="bg-surface-1 border border-hairline rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
         {/* Modal header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-hairline">
-          <h2 className="text-lg font-[family-name:var(--font-display)] italic text-ink-4">
+          <h2 className="text-lg font-[family-name:var(--font-display)] italic text-text-hi">
             Add Results
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-ink-3 hover:text-ink-4 text-lg"
+            className="text-text-lo hover:text-text-hi text-lg"
           >
             ✕
           </button>
@@ -170,8 +170,8 @@ export function AddResultsModal({
               onClick={() => { setMode(m); setError(null); }}
               className={`px-3 py-2 text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors border-b-2 -mb-px ${
                 mode === m
-                  ? "text-ink-4 border-current"
-                  : "text-ink-3 border-transparent hover:text-ink-4"
+                  ? "text-text-hi border-current"
+                  : "text-text-lo border-transparent hover:text-text-hi"
               }`}
               style={mode === m ? { borderColor: ACCENT } : undefined}
             >
@@ -191,16 +191,16 @@ export function AddResultsModal({
           {mode === "pdf" && !parsedResults && (
             <div className="flex flex-col items-center gap-4 py-8">
               {uploading ? (
-                <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+                <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
                   Parsing PDF…
                 </p>
               ) : (
                 <>
-                  <p className="text-sm text-ink-3">
+                  <p className="text-sm text-text-lo">
                     Upload a blood test results PDF to extract markers
                     automatically.
                   </p>
-                  <label className="cursor-pointer px-4 py-2 rounded-v2-md border border-hairline text-sm text-ink-4 hover:border-ink-3 transition-colors font-[family-name:var(--font-mono)]">
+                  <label className="cursor-pointer px-4 py-2 rounded-v2-md border border-hairline text-sm text-text-hi hover:border-text-lo transition-colors font-[family-name:var(--font-mono)]">
                     Choose PDF
                     <input
                       type="file"
@@ -221,33 +221,33 @@ export function AddResultsModal({
             <div className="flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <label className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                     Date
                   </label>
                   <input
                     type="date"
                     value={parsedDate}
                     onChange={(e) => setParsedDate(e.target.value)}
-                    className="mt-1 w-full bg-ink-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
+                    className="mt-1 w-full bg-surface-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-text-hi font-[family-name:var(--font-mono)]"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <label className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                     Provider
                   </label>
                   <input
                     type="text"
                     value={parsedProvider}
                     onChange={(e) => setParsedProvider(e.target.value)}
-                    className="mt-1 w-full bg-ink-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
+                    className="mt-1 w-full bg-surface-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-text-hi font-[family-name:var(--font-mono)]"
                   />
                 </div>
               </div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-2">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-2">
                 {parsedResults.length} markers extracted — review before saving
               </div>
               <div className="rounded-v2-md border border-hairline overflow-hidden max-h-[40vh] overflow-y-auto">
-                <div className="grid grid-cols-[1fr_80px_80px] gap-0 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] bg-surface-0 px-3 py-2 border-b border-hairline sticky top-0">
+                <div className="grid grid-cols-[1fr_80px_80px] gap-0 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] bg-surface-0 px-3 py-2 border-b border-hairline sticky top-0">
                   <span>Marker</span>
                   <span className="text-right">Value</span>
                   <span className="text-right">Unit</span>
@@ -257,7 +257,7 @@ export function AddResultsModal({
                     key={i}
                     className="grid grid-cols-[1fr_80px_80px] gap-0 items-center px-3 py-2 border-b border-hairline last:border-b-0"
                   >
-                    <span className="text-sm text-ink-4 truncate">
+                    <span className="text-sm text-text-hi truncate">
                       {r.display_name}
                     </span>
                     <input
@@ -280,9 +280,9 @@ export function AddResultsModal({
                         next[i].value_prefix = prefix;
                         setParsedResults(next);
                       }}
-                      className="bg-ink-0 border border-hairline rounded px-1.5 py-1 text-sm text-ink-4 font-[family-name:var(--font-mono)] tabular-nums text-right"
+                      className="bg-surface-0 border border-hairline rounded px-1.5 py-1 text-sm text-text-hi font-[family-name:var(--font-mono)] tabular-nums text-right"
                     />
-                    <span className="text-xs text-ink-3 text-right font-[family-name:var(--font-mono)]">
+                    <span className="text-xs text-text-lo text-right font-[family-name:var(--font-mono)]">
                       {r.unit}
                     </span>
                   </div>
@@ -295,35 +295,35 @@ export function AddResultsModal({
             <div className="flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <label className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                     Date
                   </label>
                   <input
                     type="date"
                     value={manualDate}
                     onChange={(e) => setManualDate(e.target.value)}
-                    className="mt-1 w-full bg-ink-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
+                    className="mt-1 w-full bg-surface-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-text-hi font-[family-name:var(--font-mono)]"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <label className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                     Provider
                   </label>
                   <input
                     type="text"
                     value={manualProvider}
                     onChange={(e) => setManualProvider(e.target.value)}
-                    className="mt-1 w-full bg-ink-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
+                    className="mt-1 w-full bg-surface-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-text-hi font-[family-name:var(--font-mono)]"
                   />
                 </div>
               </div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-2">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-2">
                 Enter values — leave blank to skip
               </div>
               <div className="rounded-v2-md border border-hairline overflow-hidden max-h-[40vh] overflow-y-auto">
                 {PANEL_ORDER.map((panel) => (
                   <div key={panel}>
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3/60 font-[family-name:var(--font-mono)] bg-surface-0 px-3 py-1.5 border-b border-hairline sticky top-0">
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo/60 font-[family-name:var(--font-mono)] bg-surface-0 px-3 py-1.5 border-b border-hairline sticky top-0">
                       {panel}
                     </div>
                     {ALL_MARKERS.filter((m) => m.panel === panel).map((m) => (
@@ -331,7 +331,7 @@ export function AddResultsModal({
                         key={m.key}
                         className="grid grid-cols-[1fr_100px] gap-2 items-center px-3 py-1.5 border-b border-hairline last:border-b-0"
                       >
-                        <span className="text-sm text-ink-4">{m.name}</span>
+                        <span className="text-sm text-text-hi">{m.name}</span>
                         <input
                           type="text"
                           inputMode="decimal"
@@ -343,7 +343,7 @@ export function AddResultsModal({
                               [m.key]: e.target.value,
                             }))
                           }
-                          className="bg-ink-0 border border-hairline rounded px-1.5 py-1 text-sm text-ink-4 font-[family-name:var(--font-mono)] tabular-nums text-right"
+                          className="bg-surface-0 border border-hairline rounded px-1.5 py-1 text-sm text-text-hi font-[family-name:var(--font-mono)] tabular-nums text-right"
                         />
                       </div>
                     ))}
@@ -359,7 +359,7 @@ export function AddResultsModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 rounded-v2-md border border-hairline text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] transition-colors"
+            className="px-3 py-1.5 rounded-v2-md border border-hairline text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] transition-colors"
           >
             Cancel
           </button>

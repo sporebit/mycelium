@@ -12,7 +12,7 @@ import type { PersonEmail, PersonPhone } from "@/lib/people/types";
 type Kind = "phones" | "emails";
 type Row = PersonPhone | PersonEmail;
 
-const input = "bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 px-2 py-1 outline outline-1 outline-transparent focus:outline-glow-2";
+const input = "bg-surface-2 rounded-sm text-sm text-text-hi placeholder:text-text-ghost px-2 py-1 outline outline-1 outline-transparent focus:outline-glow-2";
 const tiny = "text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase";
 
 function valueOf(kind: Kind, r: Row): string {
@@ -70,11 +70,11 @@ export function ContactPointsEditor({ personId, kind, rows, onChanged }: { perso
   return (
     <div className="flex flex-col gap-2">
       <div className="card-eyebrow">{kind === "phones" ? "Numbers" : "Emails"}</div>
-      {rows.length === 0 && <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">None yet.</div>}
+      {rows.length === 0 && <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">None yet.</div>}
       <ul className="flex flex-col gap-1.5">
         {rows.map((r, i) => (
-          <li key={r.id} className={`flex flex-wrap items-center gap-2 rounded-sm px-2 py-1.5 ${r.is_current ? "bg-ink-2/40" : "bg-ink-0/30 opacity-80"}`}>
-            <span className={`text-sm font-[family-name:var(--font-mono)] ${r.is_current ? "text-text-0" : "text-ink-3 line-through"}`} title={kind === "phones" ? (r as PersonPhone).number_raw : undefined}>
+          <li key={r.id} className={`flex flex-wrap items-center gap-2 rounded-sm px-2 py-1.5 ${r.is_current ? "bg-surface-2/40" : "bg-surface-0/30 opacity-80"}`}>
+            <span className={`text-sm font-[family-name:var(--font-mono)] ${r.is_current ? "text-text-hi" : "text-text-lo line-through"}`} title={kind === "phones" ? (r as PersonPhone).number_raw : undefined}>
               {valueOf(kind, r)}
             </span>
             <input
@@ -91,17 +91,17 @@ export function ContactPointsEditor({ personId, kind, rows, onChanged }: { perso
               }}
               className={`${input} w-28 text-xs`}
             />
-            <button type="button" disabled={busy === r.id} onClick={() => void patch(r.id, { is_current: !r.is_current })} className={`${tiny} rounded-sm border px-1.5 py-0.5 ${r.is_current ? "border-ok/40 text-ok" : "border-ink-3 text-ink-3"}`} title={r.is_current ? "Mark as old" : "Mark as current"}>
+            <button type="button" disabled={busy === r.id} onClick={() => void patch(r.id, { is_current: !r.is_current })} className={`${tiny} rounded-sm border px-1.5 py-0.5 ${r.is_current ? "border-ok/40 text-ok" : "border-text-lo text-text-lo"}`} title={r.is_current ? "Mark as old" : "Mark as current"}>
               {r.is_current ? "current" : "old"}
             </button>
-            <label className={`${tiny} flex items-center gap-1 text-ink-3 cursor-pointer`} title="Include in the .vcf export">
+            <label className={`${tiny} flex items-center gap-1 text-text-lo cursor-pointer`} title="Include in the .vcf export">
               <input type="checkbox" checked={r.include_in_export} disabled={busy === r.id} onChange={(e) => void patch(r.id, { include_in_export: e.target.checked })} className="accent-accent h-3 w-3" />
               export
             </label>
             <span className="ml-auto flex items-center gap-1">
-              <button type="button" disabled={i === 0 || !!busy} onClick={() => void move(i, -1)} className="text-ink-3 hover:text-ink-4 disabled:opacity-30" aria-label="Move up">↑</button>
-              <button type="button" disabled={i === rows.length - 1 || !!busy} onClick={() => void move(i, 1)} className="text-ink-3 hover:text-ink-4 disabled:opacity-30" aria-label="Move down">↓</button>
-              <button type="button" disabled={busy === r.id} onClick={() => void remove(r.id)} className="text-ink-3 hover:text-danger" aria-label="Remove">×</button>
+              <button type="button" disabled={i === 0 || !!busy} onClick={() => void move(i, -1)} className="text-text-lo hover:text-text-hi disabled:opacity-30" aria-label="Move up">↑</button>
+              <button type="button" disabled={i === rows.length - 1 || !!busy} onClick={() => void move(i, 1)} className="text-text-lo hover:text-text-hi disabled:opacity-30" aria-label="Move down">↓</button>
+              <button type="button" disabled={busy === r.id} onClick={() => void remove(r.id)} className="text-text-lo hover:text-danger" aria-label="Remove">×</button>
             </span>
           </li>
         ))}
@@ -121,7 +121,7 @@ export function ContactPointsEditor({ personId, kind, rows, onChanged }: { perso
           className={`${input} flex-1 min-w-0`}
         />
         <input type="text" value={draftLabel} onChange={(e) => setDraftLabel(e.target.value)} placeholder="label" className={`${input} w-24 text-xs`} />
-        <button type="button" disabled={!draft.trim() || busy === "add"} onClick={() => void add()} className={`${tiny} rounded-sm border border-ink-4 px-2 py-1 text-text-1 hover:text-text-0 hover:bg-ink-2 disabled:opacity-40`}>
+        <button type="button" disabled={!draft.trim() || busy === "add"} onClick={() => void add()} className={`${tiny} rounded-sm border border-text-hi px-2 py-1 text-text-mid hover:text-text-hi hover:bg-surface-2 disabled:opacity-40`}>
           add
         </button>
       </div>

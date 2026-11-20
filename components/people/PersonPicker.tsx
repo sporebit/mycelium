@@ -21,26 +21,26 @@ export function PersonPicker({ excludeId, onPick, onClose }: { excludeId: string
   }, [data, q, excludeId]);
   return (
     <div className="fixed inset-0 z-[140] flex items-center justify-center px-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="absolute inset-0 bg-ink-0/70 backdrop-blur-sm" onClick={onClose} />
-      <div role="dialog" aria-label="Merge with" className="relative w-full max-w-md max-h-[80vh] overflow-y-auto rounded-2xl border border-ink-2 bg-ink-1 p-4 shadow-2xl flex flex-col gap-3">
+      <div className="absolute inset-0 bg-surface-0/70 backdrop-blur-sm" onClick={onClose} />
+      <div role="dialog" aria-label="Merge with" className="relative w-full max-w-md max-h-[80vh] overflow-y-auto rounded-2xl border border-surface-2 bg-surface-1 p-4 shadow-2xl flex flex-col gap-3">
         <div className="flex items-baseline justify-between">
-          <h2 className="font-[family-name:var(--font-display)] text-lg text-text-0">Merge with…</h2>
-          <button type="button" onClick={onClose} className="text-ink-3 hover:text-ink-4" aria-label="Close">✕</button>
+          <h2 className="font-[family-name:var(--font-display)] text-lg text-text-hi">Merge with…</h2>
+          <button type="button" onClick={onClose} className="text-text-lo hover:text-text-hi" aria-label="Close">✕</button>
         </div>
-        <input autoFocus type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search people and contacts" className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2" />
-        <ul className="flex flex-col divide-y divide-ink-2">
+        <input autoFocus type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search people and contacts" className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2" />
+        <ul className="flex flex-col divide-y divide-surface-2">
           {list.map((p) => (
             <li key={p.id}>
               <button type="button" onClick={() => onPick(p.id)} className="w-full text-left py-2 hover:text-glow-2">
-                <span className="text-sm text-text-0">{p.display_name || [p.first_name, p.last_name].filter(Boolean).join(" ")}</span>
-                <span className="ml-2 text-[11px] text-ink-3 font-[family-name:var(--font-mono)]">
+                <span className="text-sm text-text-hi">{p.display_name || [p.first_name, p.last_name].filter(Boolean).join(" ")}</span>
+                <span className="ml-2 text-[11px] text-text-lo font-[family-name:var(--font-mono)]">
                   {p.tier === "contact" ? "contact · " : ""}
                   {p.phone ?? p.email ?? ""}
                 </span>
               </button>
             </li>
           ))}
-          {data && list.length === 0 && <li className="py-3 text-xs text-ink-3 italic">No one matches.</li>}
+          {data && list.length === 0 && <li className="py-3 text-xs text-text-lo italic">No one matches.</li>}
         </ul>
       </div>
     </div>

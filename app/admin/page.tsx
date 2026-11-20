@@ -14,8 +14,8 @@ export default async function AdminPage() {
   if (!profile?.is_instance_owner) {
     return (
       <div className="flex flex-col gap-2 max-w-xl">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">Admin</h1>
-        <p className="text-sm text-ink-3">Only the instance owner can open this page.</p>
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">Admin</h1>
+        <p className="text-sm text-text-lo">Only the instance owner can open this page.</p>
       </div>
     );
   }

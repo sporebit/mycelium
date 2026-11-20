@@ -46,7 +46,7 @@ const PERIODS = ["monthly", "annual", "one_off"];
 const STATUS_STYLE: Record<string, string> = {
   active: "text-ok bg-ok/15 border-ok/40",
   trial: "text-warn bg-warn/15 border-warn/40",
-  paused: "text-ink-3 bg-surface-2 border-hairline",
+  paused: "text-text-lo bg-surface-2 border-hairline",
   cancelled: "text-danger bg-danger/15 border-danger/40",
 };
 
@@ -238,10 +238,10 @@ export function AccountsClient() {
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Accounts
           </h1>
-          <Mono className="text-sm text-ink-3">
+          <Mono className="text-sm text-text-lo">
             <PrivateText>
               <Money value={totalMonthly} format="balance" />/mo
             </PrivateText>
@@ -250,7 +250,7 @@ export function AccountsClient() {
         <button
           type="button"
           onClick={openAdd}
-          className="px-4 py-2 rounded-v2-md bg-glow-2 text-text-0 hover:bg-glow-1 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          className="px-4 py-2 rounded-v2-md bg-glow-2 text-text-hi hover:bg-glow-1 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
         >
           ADD ACCOUNT
         </button>
@@ -267,7 +267,7 @@ export function AccountsClient() {
               className={`px-2 py-1 rounded-v2-md transition-colors ${
                 statusFilter === s
                   ? "bg-accent/15 text-accent"
-                  : "text-ink-3 hover:text-ink-4"
+                  : "text-text-lo hover:text-text-hi"
               }`}
             >
               {s.toUpperCase()}
@@ -277,7 +277,7 @@ export function AccountsClient() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-2 py-1 rounded-v2-md border border-hairline bg-transparent text-ink-3 cursor-pointer outline-none"
+          className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-2 py-1 rounded-v2-md border border-hairline bg-transparent text-text-lo cursor-pointer outline-none"
         >
           <option value="all">ALL CATEGORIES</option>
           {CATEGORIES.map((c) => (
@@ -288,12 +288,12 @@ export function AccountsClient() {
 
       {/* Grid */}
       {loading ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-v2-md bg-surface-1 p-8 text-center">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             {accounts.length === 0 ? "No accounts yet — add one above." : "No accounts match filters."}
           </p>
         </div>
@@ -382,26 +382,26 @@ function AccountCard({
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <span className={`text-sm font-medium ${isCancelled ? "text-ink-3 line-through" : "text-ink-4"}`}>
+          <span className={`text-sm font-medium ${isCancelled ? "text-text-lo line-through" : "text-text-hi"}`}>
             {a.name}
           </span>
         </div>
         <span
           className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-v2-md border shrink-0 ${
-            STATUS_STYLE[a.status] ?? "text-ink-3 bg-surface-2 border-hairline"
+            STATUS_STYLE[a.status] ?? "text-text-lo bg-surface-2 border-hairline"
           }`}
         >
           {a.status}
         </span>
-        <span className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-v2-md border border-hairline bg-surface-2 text-ink-3 shrink-0">
+        <span className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-v2-md border border-hairline bg-surface-2 text-text-lo shrink-0">
           {a.category}
         </span>
       </div>
 
       {/* Details */}
-      <div className="flex flex-col gap-1 text-[11px] text-ink-3 font-[family-name:var(--font-mono)]">
+      <div className="flex flex-col gap-1 text-[11px] text-text-lo font-[family-name:var(--font-mono)]">
         {cost && (
-          <div className="text-ink-4">
+          <div className="text-text-hi">
             <PrivateText>{cost}</PrivateText>
           </div>
         )}
@@ -422,7 +422,7 @@ function AccountCard({
       <div className="flex items-center gap-2 mt-auto">
         <Link
           href={`/finance/spending?q=${encodeURIComponent(a.name)}`}
-          className="text-[9px] text-ink-3 hover:text-accent font-[family-name:var(--font-mono)] tracking-wide transition-colors"
+          className="text-[9px] text-text-lo hover:text-accent font-[family-name:var(--font-mono)] tracking-wide transition-colors"
         >
           VIEW TRANSACTIONS →
         </Link>
@@ -430,14 +430,14 @@ function AccountCard({
         <button
           type="button"
           onClick={onEdit}
-          className="opacity-0 group-hover:opacity-100 text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-wide transition-opacity"
+          className="opacity-0 group-hover:opacity-100 text-[9px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] tracking-wide transition-opacity"
         >
           EDIT
         </button>
         <button
           type="button"
           onClick={onDelete}
-          className="opacity-0 group-hover:opacity-100 text-[9px] text-ink-3 hover:text-danger font-[family-name:var(--font-mono)] tracking-wide transition-opacity"
+          className="opacity-0 group-hover:opacity-100 text-[9px] text-text-lo hover:text-danger font-[family-name:var(--font-mono)] tracking-wide transition-opacity"
         >
           DELETE
         </button>
@@ -471,11 +471,11 @@ function AccountModal({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-ink-0/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-surface-0/80 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="bg-surface-1 border border-hairline rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col gap-4">
-        <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-0">
+        <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-hi">
           {editing ? "Edit Account" : "Add Account"}
         </h2>
 
@@ -484,7 +484,7 @@ function AccountModal({
             type="text"
             value={draft.name}
             onChange={(e) => set("name", e.target.value)}
-            className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+            className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
             placeholder="Netflix"
           />
         </Field>
@@ -494,7 +494,7 @@ function AccountModal({
             type="text"
             value={draft.url ?? ""}
             onChange={(e) => set("url", e.target.value || null)}
-            className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+            className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
             placeholder="https://netflix.com"
           />
         </Field>
@@ -504,7 +504,7 @@ function AccountModal({
             type="email"
             value={draft.email ?? ""}
             onChange={(e) => set("email", e.target.value || null)}
-            className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+            className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
             placeholder="you@email.com"
           />
         </Field>
@@ -513,7 +513,7 @@ function AccountModal({
           <select
             value={draft.category}
             onChange={(e) => set("category", e.target.value)}
-            className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+            className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
           >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>{c}</option>
@@ -525,7 +525,7 @@ function AccountModal({
           <select
             value={draft.status}
             onChange={(e) => set("status", e.target.value)}
-            className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+            className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
           >
             {STATUSES.map((s) => (
               <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
@@ -540,7 +540,7 @@ function AccountModal({
               step="0.01"
               value={draft.cost_amount ?? ""}
               onChange={(e) => set("cost_amount", e.target.value ? Number(e.target.value) : null)}
-              className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
               placeholder="10.99"
             />
           </Field>
@@ -549,7 +549,7 @@ function AccountModal({
               type="text"
               value={draft.cost_currency}
               onChange={(e) => set("cost_currency", e.target.value.toUpperCase())}
-              className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
               maxLength={3}
             />
           </Field>
@@ -557,7 +557,7 @@ function AccountModal({
             <select
               value={draft.cost_period ?? ""}
               onChange={(e) => set("cost_period", e.target.value || null)}
-              className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
             >
               <option value="">—</option>
               {PERIODS.map((p) => (
@@ -572,7 +572,7 @@ function AccountModal({
             type="date"
             value={draft.renewal_date ?? ""}
             onChange={(e) => set("renewal_date", e.target.value || null)}
-            className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+            className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
           />
         </Field>
 
@@ -581,7 +581,7 @@ function AccountModal({
             type="text"
             value={draft.payment_method ?? ""}
             onChange={(e) => set("payment_method", e.target.value || null)}
-            className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+            className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
             placeholder="Visa ending 4242"
           />
         </Field>
@@ -591,7 +591,7 @@ function AccountModal({
             type="date"
             value={draft.opened_date ?? ""}
             onChange={(e) => set("opened_date", e.target.value || null)}
-            className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+            className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
           />
         </Field>
 
@@ -599,7 +599,7 @@ function AccountModal({
           <textarea
             value={draft.notes ?? ""}
             onChange={(e) => set("notes", e.target.value || null)}
-            className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3 min-h-[60px] resize-y"
+            className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo min-h-[60px] resize-y"
             placeholder="Any notes…"
           />
         </Field>
@@ -608,7 +608,7 @@ function AccountModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 border border-hairline hover:border-ink-3 transition-colors"
+            className="px-4 py-2 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi border border-hairline hover:border-text-lo transition-colors"
           >
             CANCEL
           </button>
@@ -616,7 +616,7 @@ function AccountModal({
             type="button"
             onClick={onSave}
             disabled={!draft.name.trim() || saving}
-            className="px-4 py-2 rounded-v2-md bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+            className="px-4 py-2 rounded-v2-md bg-glow-2 text-text-hi hover:bg-glow-1 disabled:opacity-40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
           >
             {saving ? "…" : editing ? "SAVE" : "ADD"}
           </button>
@@ -637,7 +637,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <Mono className="text-[10px] text-ink-3">
+      <Mono className="text-[10px] text-text-lo">
         {label.toUpperCase()}
         {required && <span className="text-accent ml-0.5">*</span>}
       </Mono>

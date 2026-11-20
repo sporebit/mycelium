@@ -149,10 +149,10 @@ export default function ExportPage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Export Your Data
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Select what to export, choose your format, and download your data.
         </p>
       </header>
@@ -160,7 +160,7 @@ export default function ExportPage() {
       <div className="rounded-v2-md bg-surface-1 p-5 flex flex-wrap items-center gap-4">
         <div className="flex-1 min-w-[240px]">
           <p className="text-sm text-text-hi">Everything in your personal space</p>
-          <p className="text-xs text-ink-3">
+          <p className="text-xs text-text-lo">
             Every entity group as JSON and CSV in one zip. Team data and anything shared with you is not included.
           </p>
         </div>
@@ -178,7 +178,7 @@ export default function ExportPage() {
           {/* Sections */}
           <div className="rounded-v2-md bg-surface-1 p-5">
             <div className="flex items-center justify-between mb-3">
-              <Mono className="text-[11px] text-ink-3 tracking-[0.18em]">
+              <Mono className="text-[11px] text-text-lo tracking-[0.18em]">
                 SECTIONS
               </Mono>
               <div className="flex gap-2">
@@ -192,7 +192,7 @@ export default function ExportPage() {
                 <button
                   type="button"
                   onClick={deselectAll}
-                  className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]"
+                  className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]"
                 >
                   Deselect all
                 </button>
@@ -211,8 +211,8 @@ export default function ExportPage() {
                     className="mt-0.5 accent-accent"
                   />
                   <div className="min-w-0">
-                    <div className="text-sm text-text-0">{s.label}</div>
-                    <div className="text-xs text-ink-3">{s.sub}</div>
+                    <div className="text-sm text-text-hi">{s.label}</div>
+                    <div className="text-xs text-text-lo">{s.sub}</div>
                   </div>
                 </label>
               ))}
@@ -221,7 +221,7 @@ export default function ExportPage() {
 
           {/* Format */}
           <div className="rounded-v2-md bg-surface-1 p-5">
-            <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-3">
+            <Mono className="text-[11px] text-text-lo tracking-[0.18em] mb-3">
               FORMAT
             </Mono>
             <div className="flex gap-2">
@@ -233,7 +233,7 @@ export default function ExportPage() {
                   className={`px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
                     format === f
                       ? "border-accent/50 bg-accent/15 text-accent"
-                      : "border-hairline text-ink-3 hover:text-ink-4"
+                      : "border-hairline text-text-lo hover:text-text-hi"
                   }`}
                 >
                   {f}
@@ -249,7 +249,7 @@ export default function ExportPage() {
 
           {/* Date range */}
           <div className="rounded-v2-md bg-surface-1 p-5">
-            <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-3">
+            <Mono className="text-[11px] text-text-lo tracking-[0.18em] mb-3">
               DATE RANGE
             </Mono>
             <div className="flex flex-wrap gap-2">
@@ -269,7 +269,7 @@ export default function ExportPage() {
                   className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] border transition-colors ${
                     dateRange === d.id
                       ? "border-accent/50 bg-accent/15 text-accent"
-                      : "border-hairline text-ink-3 hover:text-ink-4"
+                      : "border-hairline text-text-lo hover:text-text-hi"
                   }`}
                 >
                   {d.label}
@@ -282,13 +282,13 @@ export default function ExportPage() {
                   type="date"
                   value={customFrom}
                   onChange={(e) => setCustomFrom(e.target.value)}
-                  className="bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                 />
                 <input
                   type="date"
                   value={customTo}
                   onChange={(e) => setCustomTo(e.target.value)}
-                  className="bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                 />
               </div>
             )}
@@ -296,7 +296,7 @@ export default function ExportPage() {
 
           {/* Options */}
           <div className="rounded-v2-md bg-surface-1 p-5">
-            <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-3">
+            <Mono className="text-[11px] text-text-lo tracking-[0.18em] mb-3">
               OPTIONS
             </Mono>
             <div className="flex flex-col gap-2">
@@ -307,7 +307,7 @@ export default function ExportPage() {
                   onChange={(e) => setIncludeMeta(e.target.checked)}
                   className="accent-accent"
                 />
-                <span className="text-sm text-text-1">
+                <span className="text-sm text-text-mid">
                   Include metadata (IDs, timestamps)
                 </span>
               </label>
@@ -318,7 +318,7 @@ export default function ExportPage() {
                   onChange={(e) => setAnonymise(e.target.checked)}
                   className="accent-accent"
                 />
-                <span className="text-sm text-text-1">
+                <span className="text-sm text-text-mid">
                   Anonymise personal data
                 </span>
               </label>
@@ -329,24 +329,24 @@ export default function ExportPage() {
         {/* Right: preview */}
         <div className="flex flex-col gap-4">
           <div className="rounded-v2-md bg-surface-1 p-5 sticky top-20">
-            <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-3">
+            <Mono className="text-[11px] text-text-lo tracking-[0.18em] mb-3">
               SUMMARY
             </Mono>
             {selected.size === 0 ? (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+              <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
                 Select at least one section.
               </div>
             ) : counts ? (
               <div className="flex flex-col gap-2">
                 {Object.entries(counts).map(([section, tables]) => (
                   <div key={section}>
-                    <div className="text-xs text-text-1 capitalize">
+                    <div className="text-xs text-text-mid capitalize">
                       {section.replace("-", " ")}
                     </div>
                     {tables.map((t) => (
                       <div
                         key={t.label}
-                        className="flex justify-between text-[10px] font-[family-name:var(--font-mono)] text-ink-3 ml-2"
+                        className="flex justify-between text-[10px] font-[family-name:var(--font-mono)] text-text-lo ml-2"
                       >
                         <span>{t.label}</span>
                         <span>{t.count.toLocaleString()}</span>
@@ -354,16 +354,16 @@ export default function ExportPage() {
                     ))}
                   </div>
                 ))}
-                <div className="border-t border-hairline pt-2 mt-1 flex justify-between text-xs text-text-0">
+                <div className="border-t border-hairline pt-2 mt-1 flex justify-between text-xs text-text-hi">
                   <span>Total rows</span>
                   <span>{totalRows.toLocaleString()}</span>
                 </div>
-                <Mono className="text-[9px] text-ink-3 mt-1">
+                <Mono className="text-[9px] text-text-lo mt-1">
                   Est. ~{Math.max(1, Math.round(totalRows * 0.3))} KB
                 </Mono>
               </div>
             ) : (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+              <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
                 Loading preview…
               </div>
             )}

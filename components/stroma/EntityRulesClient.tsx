@@ -88,10 +88,10 @@ export function EntityRulesClient() {
   return (
     <div className="flex flex-col gap-4 max-w-2xl">
       <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Entity review rules
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           When a voice or Telegram capture mentions something new, decide
           whether to pause for review or auto-create on the spot.
         </p>
@@ -107,21 +107,21 @@ export function EntityRulesClient() {
         {merged.map((r) => (
           <li
             key={r.entity_type}
-            className="rounded-md bg-ink-1 border border-ink-2 px-4 py-3 flex flex-col gap-2"
+            className="rounded-md bg-surface-1 border border-surface-2 px-4 py-3 flex flex-col gap-2"
           >
             <div className="flex items-baseline justify-between">
-              <span className="text-base text-ink-4">
+              <span className="text-base text-text-hi">
                 {TYPE_LABEL[r.entity_type]}
               </span>
-              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 {r.entity_type}
               </span>
             </div>
-            <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+            <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
               {TYPE_DESCRIPTION[r.entity_type]}
             </p>
             <div className="flex items-center gap-4 flex-wrap mt-1">
-              <label className="flex items-center gap-2 text-sm text-ink-4 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-text-hi cursor-pointer">
                 <input
                   type="checkbox"
                   checked={r.review_new}
@@ -132,7 +132,7 @@ export function EntityRulesClient() {
                 />
                 Review when new
               </label>
-              <label className="flex items-center gap-2 text-sm text-ink-4 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-text-hi cursor-pointer">
                 <input
                   type="checkbox"
                   checked={r.review_low_confidence}
@@ -145,7 +145,7 @@ export function EntityRulesClient() {
                 />
                 Review on low confidence
               </label>
-              <label className="flex items-center gap-2 text-sm text-ink-4">
+              <label className="flex items-center gap-2 text-sm text-text-hi">
                 Auto-create after
                 <input
                   type="number"
@@ -156,7 +156,7 @@ export function EntityRulesClient() {
                       auto_create_threshold: Number(e.target.value) || 0,
                     })
                   }
-                  className="w-16 bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1 outline-none focus:ring-2 focus:ring-glow-2/60 tabular-nums"
+                  className="w-16 bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1 outline-none focus:ring-2 focus:ring-glow-2/60 tabular-nums"
                 />
                 mentions
               </label>

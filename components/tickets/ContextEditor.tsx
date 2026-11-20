@@ -48,7 +48,7 @@ export function Pill({
       aria-pressed={active}
       title={title}
       className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
-        active ? on : "border-ink-2 bg-ink-0/40 text-ink-3 hover:border-ink-3 hover:text-ink-4"
+        active ? on : "border-surface-2 bg-surface-0/40 text-text-lo hover:border-text-lo hover:text-text-hi"
       }`}
     >
       {children}
@@ -92,7 +92,7 @@ export function ContextEditor({
   return (
     <div className={row}>
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="w-14 text-[10px] uppercase tracking-[0.14em] text-ink-3">Where</span>
+        <span className="w-14 text-[10px] uppercase tracking-[0.14em] text-text-lo">Where</span>
         {WHERE_CTX.filter((w) => w !== "place").map((w) => (
           <Pill key={w} active={value.where_ctx === w} onClick={() => onChange({ ...value, where_ctx: w })}>
             {WHERE_GLYPH[w]} {WHERE_LABEL[w]}
@@ -102,7 +102,7 @@ export function ContextEditor({
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="w-14 text-[10px] uppercase tracking-[0.14em] text-ink-3">Tool</span>
+        <span className="w-14 text-[10px] uppercase tracking-[0.14em] text-text-lo">Tool</span>
         <Pill active={tools.length === 0} onClick={() => setTools([])} title="No particular tool">
           {TOOL_GLYPH.none} none
         </Pill>
@@ -117,7 +117,7 @@ export function ContextEditor({
           </Pill>
         ))}
         <input
-          className="w-24 rounded-full border border-ink-2 bg-ink-0/40 px-2.5 py-1 text-[11px] text-ink-4 outline-none placeholder:text-ink-3 focus:border-glow-2/50"
+          className="w-24 rounded-full border border-surface-2 bg-surface-0/40 px-2.5 py-1 text-[11px] text-text-hi outline-none placeholder:text-text-lo focus:border-glow-2/50"
           placeholder="+ tool"
           value={toolDraft}
           onChange={(e) => setToolDraft(e.target.value)}
@@ -132,7 +132,7 @@ export function ContextEditor({
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="w-14 text-[10px] uppercase tracking-[0.14em] text-ink-3">When</span>
+        <span className="w-14 text-[10px] uppercase tracking-[0.14em] text-text-lo">When</span>
         {TIME_WINDOWS.map((w) => (
           <Pill key={w} active={value.time_window === w} onClick={() => onChange({ ...value, time_window: w })}>
             {TIME_WINDOW_LABEL[w]}
@@ -143,14 +143,14 @@ export function ContextEditor({
         <div className="flex flex-wrap items-center gap-1.5 pl-14">
           <input
             type="time"
-            className="rounded-sm bg-ink-2 px-2 py-1 text-[11px] text-text-0"
+            className="rounded-sm bg-surface-2 px-2 py-1 text-[11px] text-text-hi"
             value={value.time_from ?? ""}
             onChange={(e) => onChange({ ...value, time_from: e.target.value || null })}
           />
-          <span className="text-[11px] text-ink-3">to</span>
+          <span className="text-[11px] text-text-lo">to</span>
           <input
             type="time"
-            className="rounded-sm bg-ink-2 px-2 py-1 text-[11px] text-text-0"
+            className="rounded-sm bg-surface-2 px-2 py-1 text-[11px] text-text-hi"
             value={value.time_to ?? ""}
             onChange={(e) => onChange({ ...value, time_to: e.target.value || null })}
           />
@@ -174,7 +174,7 @@ export function ContextEditor({
       )}
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="w-14 text-[10px] uppercase tracking-[0.14em] text-ink-3">Points</span>
+        <span className="w-14 text-[10px] uppercase tracking-[0.14em] text-text-lo">Points</span>
         {POINTS.map((p) => (
           <Pill
             key={p}

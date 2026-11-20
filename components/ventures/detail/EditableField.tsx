@@ -27,16 +27,16 @@ export function EditableField({
   if (!editing) {
     return (
       <div className="group">
-        <Mono className="text-[10px] text-ink-3 mb-1">{label}</Mono>
+        <Mono className="text-[10px] text-text-lo mb-1">{label}</Mono>
         <div
           onClick={() => {
             setDraft(String(value ?? ""));
             setEditing(true);
           }}
-          className="text-sm text-text-1 cursor-pointer hover:text-text-0 min-h-[1.5rem] whitespace-pre-wrap"
+          className="text-sm text-text-mid cursor-pointer hover:text-text-hi min-h-[1.5rem] whitespace-pre-wrap"
         >
           {value || (
-            <span className="text-ink-3 italic text-xs">Click to edit</span>
+            <span className="text-text-lo italic text-xs">Click to edit</span>
           )}
         </div>
       </div>
@@ -46,14 +46,14 @@ export function EditableField({
   if (multiline) {
     return (
       <div>
-        <Mono className="text-[10px] text-ink-3 mb-1">{label}</Mono>
+        <Mono className="text-[10px] text-text-lo mb-1">{label}</Mono>
         <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={commit}
           rows={4}
           autoFocus
-          className="w-full bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent resize-y"
+          className="w-full bg-surface-0 border border-surface-2 rounded-md text-sm text-text-hi px-3 py-2 outline-none focus:border-accent resize-y"
         />
       </div>
     );
@@ -61,7 +61,7 @@ export function EditableField({
 
   return (
     <div>
-      <Mono className="text-[10px] text-ink-3 mb-1">{label}</Mono>
+      <Mono className="text-[10px] text-text-lo mb-1">{label}</Mono>
       <input
         type={type}
         value={draft}
@@ -69,7 +69,7 @@ export function EditableField({
         onBlur={commit}
         onKeyDown={(e) => e.key === "Enter" && commit()}
         autoFocus
-        className="w-full bg-ink-0 border border-ink-2 rounded-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent"
+        className="w-full bg-surface-0 border border-surface-2 rounded-md text-sm text-text-hi px-3 py-2 outline-none focus:border-accent"
       />
     </div>
   );

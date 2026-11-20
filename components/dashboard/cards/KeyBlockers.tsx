@@ -94,7 +94,7 @@ export function KeyBlockers({ width = 2 }: { width?: CardWidth } = {}) {
       topRight={
         <Link
           href="/work/issues?jql=statusCategory%20%3D%20%22In%20Progress%22%20ORDER%20BY%20due%20ASC"
-          className="flex items-center gap-2 hover:text-ink-4 transition-colors"
+          className="flex items-center gap-2 hover:text-text-hi transition-colors"
         >
           <Mono>{total} ACTIVE</Mono>
           <span>VIEW ALL →</span>
@@ -104,7 +104,7 @@ export function KeyBlockers({ width = 2 }: { width?: CardWidth } = {}) {
         total > shown.length ? (
           <Link
             href="/work/issues?jql=statusCategory%20%3D%20%22In%20Progress%22%20ORDER%20BY%20due%20ASC"
-            className="cursor-pointer hover:text-ink-4"
+            className="cursor-pointer hover:text-text-hi"
           >
             + {total - shown.length} MORE · VIEW ALL →
           </Link>
@@ -116,21 +116,21 @@ export function KeyBlockers({ width = 2 }: { width?: CardWidth } = {}) {
           {[0, 1, 2].map((i) => (
             <li
               key={i}
-              className="h-10 rounded-md bg-ink-2/30 animate-pulse"
+              className="h-10 rounded-md bg-surface-2/30 animate-pulse"
             />
           ))}
         </ul>
       ) : shown.length === 0 ? (
-        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-3 text-center">
+        <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-3 text-center">
           Nothing blocking — nice.
         </div>
       ) : (
         <>
           <div className="mb-3 flex items-baseline gap-2 tabular-nums">
-            <span className="font-[family-name:var(--font-display)] text-3xl font-medium text-text-0 leading-none">
+            <span className="font-[family-name:var(--font-display)] text-3xl font-medium text-text-hi leading-none">
               {total}
             </span>
-            <span className="text-sm text-text-1">
+            <span className="text-sm text-text-mid">
               active {total === 1 ? "blocker" : "blockers"}
             </span>
           </div>
@@ -138,31 +138,31 @@ export function KeyBlockers({ width = 2 }: { width?: CardWidth } = {}) {
           className={
             width >= 3
               ? "grid grid-cols-2 gap-x-6"
-              : "flex flex-col divide-y divide-ink-2"
+              : "flex flex-col divide-y divide-surface-2"
           }
         >
           {shown.map((b) => (
             <li
               key={b.id}
-              className={width >= 3 ? "border-b border-ink-2 last:border-b-0" : ""}
+              className={width >= 3 ? "border-b border-surface-2 last:border-b-0" : ""}
             >
               <button
                 type="button"
                 onClick={() => open(b.id)}
                 className={`w-full text-left flex items-start gap-3 py-2.5 ${
                   width >= 3 ? "" : "first:pt-0 last:pb-0"
-                } hover:bg-ink-2/30 transition-colors px-1 -mx-1 rounded-md`}
+                } hover:bg-surface-2/30 transition-colors px-1 -mx-1 rounded-md`}
               >
                 <div className="flex-1 min-w-0">
                   {b.parent_title && (
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-0.5 truncate">
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-0.5 truncate">
                       ↑ {b.parent_title}
                     </div>
                   )}
-                  <div className="text-sm text-ink-4 break-words leading-snug">
+                  <div className="text-sm text-text-hi break-words leading-snug">
                     {b.title}
                   </div>
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5">
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-0.5">
                     {ownerLabel(b.owner)} · {stuckLabel(b.stuckDays)}
                   </div>
                 </div>

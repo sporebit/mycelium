@@ -223,7 +223,7 @@ export default function GutHealthPage() {
 
   if (loading) {
     return (
-      <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-20 text-center">
+      <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-20 text-center">
         Loading…
       </p>
     );
@@ -233,7 +233,7 @@ export default function GutHealthPage() {
     <div className="max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic">
+        <h1 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic">
           Gut Health
         </h1>
         <button
@@ -246,7 +246,7 @@ export default function GutHealthPage() {
 
       {/* 30-day overview strip */}
       <div className="mb-6 p-4 rounded-xl border border-hairline bg-surface-1">
-        <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-3">
+        <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-3">
           30-DAY OVERVIEW
         </p>
         <div className="flex items-center gap-1">
@@ -262,7 +262,7 @@ export default function GutHealthPage() {
             />
           ))}
         </div>
-        <div className="flex items-center gap-4 mt-2 text-[9px] font-[family-name:var(--font-mono)] text-ink-3">
+        <div className="flex items-center gap-4 mt-2 text-[9px] font-[family-name:var(--font-mono)] text-text-lo">
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: "#f59e0b" }} /> Hard (1-2)</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: "#22c55e" }} /> Normal (3-4)</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: "#3b82f6" }} /> Loose (5-7)</span>
@@ -271,14 +271,14 @@ export default function GutHealthPage() {
 
       {/* Entries grouped by date */}
       {entries.length === 0 ? (
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] text-center py-12">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] text-center py-12">
           No entries yet. Log your first one.
         </p>
       ) : (
         <div className="flex flex-col gap-6">
           {grouped.map(([date, dayEntries]) => (
             <div key={date}>
-              <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
+              <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
                 {formatDate(dayEntries[0].logged_at).toUpperCase()}
               </p>
               <div className="flex flex-col gap-2">
@@ -299,10 +299,10 @@ export default function GutHealthPage() {
                             {b.icon}
                           </div>
                           <div>
-                            <p className="text-sm text-ink-4 font-[family-name:var(--font-display)]">
+                            <p className="text-sm text-text-hi font-[family-name:var(--font-display)]">
                               Type {b.type}: {b.name}
                             </p>
-                            <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">
+                            <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">
                               {e.time_of_day ? TOD_LABELS[e.time_of_day] : ""}{e.time_of_day ? " · " : ""}{formatTime(e.logged_at)}
                             </p>
                           </div>
@@ -318,7 +318,7 @@ export default function GutHealthPage() {
                           )}
                           <button
                             onClick={() => startEdit(e)}
-                            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 text-ink-3 hover:text-accent text-xs transition-opacity"
+                            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 text-text-lo hover:text-accent text-xs transition-opacity"
                             title="Edit"
                           >
                             ✎
@@ -328,7 +328,7 @@ export default function GutHealthPage() {
                             className={`text-xs transition-all ${
                               isConfirming
                                 ? "text-danger text-[10px] font-[family-name:var(--font-mono)]"
-                                : "opacity-100 md:opacity-0 md:group-hover:opacity-100 text-ink-3 hover:text-danger"
+                                : "opacity-100 md:opacity-0 md:group-hover:opacity-100 text-text-lo hover:text-danger"
                             }`}
                           >
                             {isConfirming ? "Tap again" : "✕"}
@@ -348,12 +348,12 @@ export default function GutHealthPage() {
                       {/* Wipe type + notes */}
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
                         {e.wipe_type && (
-                          <span className="px-2 py-0.5 rounded-full bg-ink-2 text-ink-3 text-[10px] font-[family-name:var(--font-mono)]">
+                          <span className="px-2 py-0.5 rounded-full bg-surface-2 text-text-lo text-[10px] font-[family-name:var(--font-mono)]">
                             {WIPE_LABELS[e.wipe_type] ?? e.wipe_type}
                           </span>
                         )}
                         {e.notes && (
-                          <span className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] truncate max-w-[300px]">
+                          <span className="text-xs text-text-lo italic font-[family-name:var(--font-display)] truncate max-w-[300px]">
                             {e.notes}
                           </span>
                         )}
@@ -370,13 +370,13 @@ export default function GutHealthPage() {
       {/* Log entry modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-ink-0 border border-hairline rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
-            <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
+          <div className="bg-surface-0 border border-hairline rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+            <h2 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic mb-4">
               {editingId ? "Edit Entry" : "Log Entry"}
             </h2>
 
             {/* Bristol type selector */}
-            <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
+            <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
               BRISTOL TYPE
             </p>
             <div className="grid grid-cols-7 gap-1 mb-2">
@@ -387,15 +387,15 @@ export default function GutHealthPage() {
                   className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-colors ${
                     bristolType === b.type
                       ? "border-accent bg-accent/10"
-                      : "border-hairline hover:border-ink-3"
+                      : "border-hairline hover:border-text-lo"
                   }`}
                 >
                   <span className="text-lg" style={{ color: b.color }}>{b.icon}</span>
-                  <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">{b.type}</span>
+                  <span className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">{b.type}</span>
                 </button>
               ))}
             </div>
-            <p className="text-xs text-ink-4 font-[family-name:var(--font-display)] mb-2">
+            <p className="text-xs text-text-hi font-[family-name:var(--font-display)] mb-2">
               {BRISTOL[bristolType - 1].name}
             </p>
 
@@ -406,7 +406,7 @@ export default function GutHealthPage() {
                 setBristolOpen(next);
                 try { localStorage.setItem("gut_bristol_chart_open", String(next)); } catch { /* noop */ }
               }}
-              className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em] mb-2 hover:text-ink-4 transition-colors flex items-center gap-1"
+              className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.1em] mb-2 hover:text-text-hi transition-colors flex items-center gap-1"
             >
               {bristolOpen ? "▾" : "▸"} What do these mean?
             </button>
@@ -415,9 +415,9 @@ export default function GutHealthPage() {
                 {BRISTOL.map((b) => (
                   <div key={b.type} className="flex items-center gap-3 py-1">
                     <span className="text-base shrink-0 w-8 text-center" style={{ color: b.color }}>{b.icon}</span>
-                    <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] shrink-0 w-3">{b.type}</span>
-                    <span className="text-xs text-ink-4 font-[family-name:var(--font-display)] shrink-0">{b.name}</span>
-                    <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">&mdash; {BRISTOL_HEALTH[b.type]}</span>
+                    <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] shrink-0 w-3">{b.type}</span>
+                    <span className="text-xs text-text-hi font-[family-name:var(--font-display)] shrink-0">{b.name}</span>
+                    <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">&mdash; {BRISTOL_HEALTH[b.type]}</span>
                   </div>
                 ))}
               </div>
@@ -425,7 +425,7 @@ export default function GutHealthPage() {
             {!bristolOpen && <div className="mb-2" />}
 
             {/* Time of day */}
-            <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
+            <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
               TIME OF DAY
             </p>
             <div className="flex flex-wrap gap-1 mb-4">
@@ -436,7 +436,7 @@ export default function GutHealthPage() {
                   className={`px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
                     timeOfDay === val
                       ? "border-accent bg-accent/10 text-accent"
-                      : "border-hairline text-ink-3 hover:border-ink-3"
+                      : "border-hairline text-text-lo hover:border-text-lo"
                   }`}
                 >
                   {label}
@@ -445,7 +445,7 @@ export default function GutHealthPage() {
             </div>
 
             {/* Felt finished */}
-            <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
+            <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
               FELT FINISHED?
             </p>
             <div className="flex gap-1 mb-4">
@@ -460,7 +460,7 @@ export default function GutHealthPage() {
                   className={`px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
                     feltFinished === val
                       ? "border-accent bg-accent/10 text-accent"
-                      : "border-hairline text-ink-3 hover:border-ink-3"
+                      : "border-hairline text-text-lo hover:border-text-lo"
                   }`}
                 >
                   {label}
@@ -469,7 +469,7 @@ export default function GutHealthPage() {
             </div>
 
             {/* Wipe type */}
-            <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
+            <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
               HOW DID IT WIPE?
             </p>
             <div className="flex flex-wrap gap-1 mb-4">
@@ -480,7 +480,7 @@ export default function GutHealthPage() {
                   className={`px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
                     wipeType === val
                       ? "border-accent bg-accent/10 text-accent"
-                      : "border-hairline text-ink-3 hover:border-ink-3"
+                      : "border-hairline text-text-lo hover:border-text-lo"
                   }`}
                 >
                   {label}
@@ -489,7 +489,7 @@ export default function GutHealthPage() {
             </div>
 
             {/* Discomfort slider */}
-            <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
+            <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
               DISCOMFORT: <span style={{ color: discomfortColor(discomfort) }}>{discomfort}/10</span>
             </p>
             <input
@@ -503,7 +503,7 @@ export default function GutHealthPage() {
 
             {/* Blood / Urgent toggles */}
             <div className="flex items-center gap-4 mb-4">
-              <label className="flex items-center gap-2 text-xs text-ink-4 font-[family-name:var(--font-mono)] cursor-pointer">
+              <label className="flex items-center gap-2 text-xs text-text-hi font-[family-name:var(--font-mono)] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={blood}
@@ -512,7 +512,7 @@ export default function GutHealthPage() {
                 />
                 {"🩸"} Blood
               </label>
-              <label className="flex items-center gap-2 text-xs text-ink-4 font-[family-name:var(--font-mono)] cursor-pointer">
+              <label className="flex items-center gap-2 text-xs text-text-hi font-[family-name:var(--font-mono)] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={urgent}
@@ -524,14 +524,14 @@ export default function GutHealthPage() {
             </div>
 
             {/* Notes */}
-            <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
+            <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-2">
               NOTES
             </p>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3 resize-y mb-4"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo placeholder:text-text-lo resize-y mb-4"
               placeholder="Anything else to note…"
             />
 
@@ -539,7 +539,7 @@ export default function GutHealthPage() {
             <div className="flex items-center gap-2 justify-end">
               <button
                 onClick={closeModal}
-                className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+                className="px-3 py-1.5 rounded-v2-md border border-hairline text-text-lo hover:text-text-hi hover:border-text-lo text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
               >
                 CANCEL
               </button>

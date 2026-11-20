@@ -418,7 +418,7 @@ export function SpendingClient() {
           type="button"
           onClick={handleCategorise}
           disabled={categorising}
-          className="shrink-0 px-4 py-3 rounded-v2-md border border-accent/30 bg-accent/10 hover:border-accent/50 text-sm text-accent hover:text-accent/80 disabled:text-ink-3 disabled:border-hairline disabled:bg-surface-1/50 transition-colors font-[family-name:var(--font-mono)]"
+          className="shrink-0 px-4 py-3 rounded-v2-md border border-accent/30 bg-accent/10 hover:border-accent/50 text-sm text-accent hover:text-accent/80 disabled:text-text-lo disabled:border-hairline disabled:bg-surface-1/50 transition-colors font-[family-name:var(--font-mono)]"
         >
           {categorising ? "Categorising…" : "Categorise"}
         </button>
@@ -426,7 +426,7 @@ export function SpendingClient() {
           type="button"
           onClick={handleSync}
           disabled={syncing}
-          className="shrink-0 px-4 py-3 rounded-v2-md border border-hairline bg-surface-1/50 hover:border-ink-3 text-sm text-text-1 hover:text-text-0 disabled:text-ink-3 transition-colors font-[family-name:var(--font-mono)]"
+          className="shrink-0 px-4 py-3 rounded-v2-md border border-hairline bg-surface-1/50 hover:border-text-lo text-sm text-text-mid hover:text-text-hi disabled:text-text-lo transition-colors font-[family-name:var(--font-mono)]"
         >
           {syncing ? "Syncing…" : "Sync PayPal"}
         </button>
@@ -458,7 +458,7 @@ export function SpendingClient() {
       {summary && transactions !== null && transactions.length > 0 && (
         <div className="flex items-center gap-4 flex-wrap rounded-v2-md bg-surface-1 px-4 py-3">
           <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               IN
             </span>
             <Mono className="text-sm text-ok">
@@ -466,7 +466,7 @@ export function SpendingClient() {
             </Mono>
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               OUT
             </span>
             <Mono className="text-sm text-danger">
@@ -474,7 +474,7 @@ export function SpendingClient() {
             </Mono>
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               NET
             </span>
             <Mono
@@ -484,7 +484,7 @@ export function SpendingClient() {
             </Mono>
           </div>
           <div className="flex-1" />
-          <Mono className="text-[11px] text-ink-3">
+          <Mono className="text-[11px] text-text-lo">
             {total} transaction{total === 1 ? "" : "s"}
           </Mono>
         </div>
@@ -496,12 +496,12 @@ export function SpendingClient() {
           <button
             type="button"
             onClick={() => setOverviewOpen((o) => !o)}
-            className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-ink-2/20 transition-colors"
+            className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-surface-2/20 transition-colors"
           >
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Overview
             </span>
-            <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">
               {overviewOpen ? "▲" : "▼"}
             </span>
           </button>
@@ -529,7 +529,7 @@ export function SpendingClient() {
             </div>
           </div>
           {overviewOpen && (
-            <ul className="flex flex-col divide-y divide-ink-2/60 px-4 pb-3">
+            <ul className="flex flex-col divide-y divide-surface-2/60 px-4 pb-3">
               {overviewData.map((row) => {
                 const overviewTotal = overviewData.reduce(
                   (s, r) => s + Number(r.total),
@@ -548,17 +548,17 @@ export function SpendingClient() {
                             CATEGORY_COLOURS[row.category] ?? "var(--ink-3)",
                         }}
                       />
-                      <span className="text-sm text-ink-4 truncate">
+                      <span className="text-sm text-text-hi truncate">
                         {row.category}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Mono className="text-[11px] text-ink-3 tabular-nums">
+                      <Mono className="text-[11px] text-text-lo tabular-nums">
                         {overviewTotal > 0
                           ? `${((Number(row.total) / overviewTotal) * 100).toFixed(1)}%`
                           : "—"}
                       </Mono>
-                      <Mono className="text-sm text-text-0 tabular-nums">
+                      <Mono className="text-sm text-text-hi tabular-nums">
                         <Money value={Number(row.total)} format="balance" />
                       </Mono>
                     </div>
@@ -578,13 +578,13 @@ export function SpendingClient() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="search description…"
-            className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-0 text-sm text-ink-4 placeholder:text-ink-3 outline-none focus:border-ink-3 transition-colors w-56"
+            className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-0 text-sm text-text-hi placeholder:text-text-lo outline-none focus:border-text-lo transition-colors w-56"
           />
           {accounts.length > 0 && (
             <select
               value={accountFilter}
               onChange={(e) => setAccountFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-0 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
+              className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-0 text-sm text-text-hi outline-none focus:border-text-lo transition-colors"
             >
               <option value="all">All accounts</option>
               {accounts.map((a) => (
@@ -615,7 +615,7 @@ export function SpendingClient() {
               setDateFrom(e.target.value);
               setActivePreset(null);
             }}
-            className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-0 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
+            className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-0 text-sm text-text-hi outline-none focus:border-text-lo transition-colors"
             placeholder="from"
           />
           <input
@@ -625,7 +625,7 @@ export function SpendingClient() {
               setDateTo(e.target.value);
               setActivePreset(null);
             }}
-            className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-0 text-sm text-ink-4 outline-none focus:border-ink-3 transition-colors"
+            className="px-3 py-1.5 rounded-v2-md border border-hairline bg-surface-0 text-sm text-text-hi outline-none focus:border-text-lo transition-colors"
             placeholder="to"
           />
           {(search || dateFrom || dateTo || accountFilter !== "all" || typeFilter.length > 0 || categoryFilter.length > 0) && (
@@ -640,7 +640,7 @@ export function SpendingClient() {
                 setCategoryFilter([]);
                 setActivePreset(null);
               }}
-              className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+              className="text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
             >
               Clear
             </button>
@@ -661,7 +661,7 @@ export function SpendingClient() {
                 className={`shrink-0 px-2.5 py-1 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] transition-colors ${
                   activePreset === p.label
                     ? "bg-accent/15 text-accent border border-accent/30"
-                    : "bg-surface-1 text-ink-3 border border-hairline hover:text-ink-4 hover:border-ink-3"
+                    : "bg-surface-1 text-text-lo border border-hairline hover:text-text-hi hover:border-text-lo"
                 }`}
               >
                 {p.label}
@@ -670,19 +670,19 @@ export function SpendingClient() {
           </div>
           <div
             aria-hidden
-            className="pointer-events-none absolute top-0 right-0 bottom-0 w-10 sm:hidden bg-gradient-to-l from-ink-0 to-transparent"
+            className="pointer-events-none absolute top-0 right-0 bottom-0 w-10 sm:hidden bg-gradient-to-l from-surface-0 to-transparent"
           />
         </div>
       </div>
 
       {/* Transactions table */}
       {transactions === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading transactions…
         </div>
       ) : transactions.length === 0 ? (
         <div className="rounded-v2-md bg-surface-1 p-8 text-center">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             No transactions yet. Import a bank CSV above to get started.
           </p>
         </div>
@@ -743,7 +743,7 @@ function ImportDropzone({
       className={`rounded-v2-md border-2 border-dashed p-6 text-center transition-colors cursor-pointer ${
         dragOver
           ? "border-accent bg-accent/5"
-          : "border-hairline bg-surface-1/50 hover:border-ink-3"
+          : "border-hairline bg-surface-1/50 hover:border-text-lo"
       }`}
       onClick={() => inputRef.current?.click()}
     >
@@ -764,10 +764,10 @@ function ImportDropzone({
         <Mono className="text-sm text-accent">Importing…</Mono>
       ) : (
         <>
-          <p className="text-sm text-text-1">
+          <p className="text-sm text-text-mid">
             Drop bank CSV files here, or click to browse
           </p>
-          <Mono className="text-[11px] text-ink-3 mt-1">
+          <Mono className="text-[11px] text-text-lo mt-1">
             Halifax, Revolut, Amex, and PayPal · duplicates skipped automatically
           </Mono>
         </>
@@ -790,13 +790,13 @@ function ImportResultsBanner({
   return (
     <div className="rounded-v2-md bg-surface-1 border border-hairline p-4 flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           Import Results
         </span>
         <button
           type="button"
           onClick={onDismiss}
-          className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+          className="text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
         >
           Dismiss
         </button>
@@ -804,22 +804,22 @@ function ImportResultsBanner({
       {results.map((r, i) => (
         <div key={i} className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
-            <Mono className="text-sm text-text-0">{r.file}</Mono>
+            <Mono className="text-sm text-text-hi">{r.file}</Mono>
             <Mono className="text-[11px] text-ok">{r.imported} imported</Mono>
             {r.skipped > 0 && (
-              <Mono className="text-[11px] text-ink-3">
+              <Mono className="text-[11px] text-text-lo">
                 {r.skipped} skipped
               </Mono>
             )}
             {r.skipped_by_state != null && r.skipped_by_state > 0 && (
-              <Mono className="text-[11px] text-ink-3">
+              <Mono className="text-[11px] text-text-lo">
                 {r.skipped_by_state} filtered (non-completed)
               </Mono>
             )}
           </div>
           {r.paypal_summary && (
             <div className="flex items-center gap-3 pl-2">
-              <Mono className="text-[11px] text-ink-3">
+              <Mono className="text-[11px] text-text-lo">
                 {r.paypal_summary.total_payments} payments · {r.paypal_summary.balance_funded} balance · {r.paypal_summary.card_funded + r.paypal_summary.bank_funded} card/bank (pending match)
               </Mono>
             </div>
@@ -834,7 +834,7 @@ function ImportResultsBanner({
                   {err.line > 0 ? `Line ${err.line}: ` : ""}
                   {err.reason}
                   {err.raw && (
-                    <span className="text-ink-3 ml-2 truncate inline-block max-w-[40ch] align-bottom">
+                    <span className="text-text-lo ml-2 truncate inline-block max-w-[40ch] align-bottom">
                       {err.raw}
                     </span>
                   )}
@@ -896,7 +896,7 @@ function Th({
 }) {
   return (
     <th
-      className={`px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] font-medium whitespace-nowrap ${
+      className={`px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] font-medium whitespace-nowrap ${
         align === "right" ? "text-right" : "text-left"
       }`}
     >
@@ -917,25 +917,25 @@ function TransactionRow({
   return (
     <tr className="border-b border-hairline hover:bg-surface-2 transition-colors">
       <td className="px-3 py-1.5 whitespace-nowrap">
-        <Mono className="text-text-1 text-[13px]">{fmtDate(txn.txn_date)}</Mono>
+        <Mono className="text-text-mid text-[13px]">{fmtDate(txn.txn_date)}</Mono>
       </td>
       <td className="px-3 py-1.5 max-w-[300px]">
         {txn.enriched_merchant ? (
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-text-0 truncate"><PrivateText>{txn.enriched_merchant}</PrivateText></span>
+              <span className="text-text-hi truncate"><PrivateText>{txn.enriched_merchant}</PrivateText></span>
               <span className="shrink-0 text-[9px] uppercase tracking-[0.18em] text-accent/60 font-[family-name:var(--font-mono)] border border-accent/20 rounded px-1 py-px">
                 via PayPal
               </span>
             </div>
-            <span className="text-[11px] text-ink-3 truncate"><PrivateText>{txn.description}</PrivateText></span>
+            <span className="text-[11px] text-text-lo truncate"><PrivateText>{txn.description}</PrivateText></span>
           </div>
         ) : (
-          <span className="text-text-0 truncate block"><PrivateText>{txn.description}</PrivateText></span>
+          <span className="text-text-hi truncate block"><PrivateText>{txn.description}</PrivateText></span>
         )}
       </td>
       <td className="px-3 py-1.5">
-        <Mono className="text-[11px] text-ink-3">{txn.txn_type}</Mono>
+        <Mono className="text-[11px] text-text-lo">{txn.txn_type}</Mono>
       </td>
       <td className="px-3 py-1.5 text-right">
         <Mono className={`text-[13px] ${amountColor}`}>
@@ -943,12 +943,12 @@ function TransactionRow({
         </Mono>
       </td>
       <td className="px-3 py-1.5 text-right">
-        <Mono className="text-[13px] text-text-1">
+        <Mono className="text-[13px] text-text-mid">
           {txn.balance != null ? <Money value={Number(txn.balance)} format="balance" /> : "—"}
         </Mono>
       </td>
       <td className="px-3 py-1.5">
-        <Mono className="text-[11px] text-ink-3">
+        <Mono className="text-[11px] text-text-lo">
           {txn.account_label ?? txn.account_number ?? "—"}
         </Mono>
       </td>
@@ -957,7 +957,7 @@ function TransactionRow({
           value={txn.category ?? ""}
           onChange={(e) => onPatchCategory(txn.id, e.target.value)}
           className={`w-full bg-transparent rounded-sm text-sm px-1 py-0.5 -mx-1 outline-none hover:bg-surface-2 focus:ring-1 focus:ring-glow-2/60 transition-colors cursor-pointer ${
-            txn.category ? "text-text-0" : "text-ink-3"
+            txn.category ? "text-text-hi" : "text-text-lo"
           }`}
         >
           <option value="">—</option>
@@ -1020,7 +1020,7 @@ function MultiSelect({
         className={`px-3 py-1.5 rounded-v2-md border text-sm outline-none transition-colors ${
           selected.length > 0
             ? "border-accent/30 bg-accent/10 text-accent"
-            : "border-hairline bg-surface-0 text-ink-4 hover:border-ink-3"
+            : "border-hairline bg-surface-0 text-text-hi hover:border-text-lo"
         }`}
       >
         {display}
@@ -1030,7 +1030,7 @@ function MultiSelect({
           {options.map((opt) => (
             <label
               key={opt}
-              className="flex items-center gap-2 px-3 py-1.5 hover:bg-surface-2 cursor-pointer text-sm text-text-1"
+              className="flex items-center gap-2 px-3 py-1.5 hover:bg-surface-2 cursor-pointer text-sm text-text-mid"
             >
               <input
                 type="checkbox"
@@ -1071,7 +1071,7 @@ function PayPalMatchPanel({
   return (
     <div className="rounded-v2-md bg-surface-1 border border-hairline p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           PayPal Matching
         </span>
         <div className="flex items-center gap-3">
@@ -1079,7 +1079,7 @@ function PayPalMatchPanel({
             type="button"
             onClick={onSync}
             disabled={syncing}
-            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-accent/80 disabled:text-ink-3 font-[family-name:var(--font-mono)] transition-colors"
+            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-accent/80 disabled:text-text-lo font-[family-name:var(--font-mono)] transition-colors"
           >
             {syncing ? "Syncing…" : "Sync PayPal"}
           </button>
@@ -1087,7 +1087,7 @@ function PayPalMatchPanel({
             type="button"
             onClick={onRerun}
             disabled={matching}
-            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-accent/80 disabled:text-ink-3 font-[family-name:var(--font-mono)] transition-colors"
+            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-accent/80 disabled:text-text-lo font-[family-name:var(--font-mono)] transition-colors"
           >
             {matching ? "Matching…" : "Re-run matching"}
           </button>
@@ -1102,7 +1102,7 @@ function PayPalMatchPanel({
           </Mono>
         )}
         {counts.pending > 0 && (
-          <Mono className="text-[11px] text-ink-3">
+          <Mono className="text-[11px] text-text-lo">
             {counts.pending} pending (no statement yet)
           </Mono>
         )}
@@ -1116,13 +1116,13 @@ function PayPalMatchPanel({
               className="rounded bg-surface-0 border border-hairline p-3 flex flex-col gap-2"
             >
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-sm text-text-0 font-medium">
+                <span className="text-sm text-text-hi font-medium">
                   {p.merchant_name ?? "Unknown"}
                 </span>
                 <Mono className="text-[11px] text-danger">
                   <Money value={p.amount} format="amount" />
                 </Mono>
-                <Mono className="text-[11px] text-ink-3">
+                <Mono className="text-[11px] text-text-lo">
                   {fmtDate(p.paypal_date)}
                 </Mono>
                 {p.currency !== "GBP" && (
@@ -1142,20 +1142,20 @@ function PayPalMatchPanel({
                       >
                         This one
                       </button>
-                      <span className="text-[12px] text-text-1 truncate min-w-0">
+                      <span className="text-[12px] text-text-mid truncate min-w-0">
                         <PrivateText>{c.description}</PrivateText>
                       </span>
-                      <Mono className="text-[11px] text-ink-3 shrink-0">
+                      <Mono className="text-[11px] text-text-lo shrink-0">
                         {fmtDate(c.txn_date)}
                       </Mono>
-                      <Mono className="text-[11px] text-ink-3 shrink-0">
+                      <Mono className="text-[11px] text-text-lo shrink-0">
                         {c.account_label ?? c.account_type}
                       </Mono>
                     </div>
                   ))}
                 </div>
               ) : (
-                <Mono className="text-[11px] text-ink-3 pl-2">
+                <Mono className="text-[11px] text-text-lo pl-2">
                   No candidates found
                 </Mono>
               )}

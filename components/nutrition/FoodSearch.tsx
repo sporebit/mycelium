@@ -290,22 +290,22 @@ export function FoodSearch({
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 bg-ink-0/60 backdrop-blur-sm cursor-default"
+        className="absolute inset-0 bg-surface-0/60 backdrop-blur-sm cursor-default"
       />
       <div
         role="dialog"
         aria-label="Add food"
-        className="relative w-full max-w-md max-h-[90vh] md:max-h-[80vh] rounded-t-xl md:rounded-xl bg-ink-1 border border-ink-2 shadow-2xl flex flex-col overflow-hidden"
+        className="relative w-full max-w-md max-h-[90vh] md:max-h-[80vh] rounded-t-xl md:rounded-xl bg-surface-1 border border-surface-2 shadow-2xl flex flex-col overflow-hidden"
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-ink-2">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-surface-2">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Add food
           </span>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="text-ink-3 hover:text-ink-4"
+            className="text-text-lo hover:text-text-hi"
           >
             ✕
           </button>
@@ -322,7 +322,7 @@ export function FoodSearch({
           />
         ) : (
           <>
-            <div className="flex items-center border-b border-ink-2 px-3">
+            <div className="flex items-center border-b border-surface-2 px-3">
               <TabBtn label="SEARCH" active={tab === "search"} onClick={() => setTab("search")} />
               <TabBtn label="SCAN" active={tab === "scan"} onClick={() => setTab("scan")} />
               <TabBtn label="MY FOODS" active={tab === "library"} onClick={() => setTab("library")} />
@@ -337,7 +337,7 @@ export function FoodSearch({
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search e.g. oats, banana, Coca-Cola"
-                    className="flex-1 px-3 py-2 rounded-md bg-ink-2 text-sm text-text-0 outline-none focus:ring-2 focus:ring-glow-2/60 placeholder:text-ink-3"
+                    className="flex-1 px-3 py-2 rounded-md bg-surface-2 text-sm text-text-hi outline-none focus:ring-2 focus:ring-glow-2/60 placeholder:text-text-lo"
                   />
                   <button
                     type="button"
@@ -346,7 +346,7 @@ export function FoodSearch({
                       setScannerOpen(true);
                     }}
                     title="Scan barcode"
-                    className="px-2 py-2 rounded-md border border-ink-2 hover:border-ink-3 text-ink-3 hover:text-ink-4 text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors inline-flex items-center gap-1"
+                    className="px-2 py-2 rounded-md border border-surface-2 hover:border-text-lo text-text-lo hover:text-text-hi text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors inline-flex items-center gap-1"
                   >
                     📷 SCAN
                   </button>
@@ -354,7 +354,7 @@ export function FoodSearch({
                     type="button"
                     onClick={() => setLabelScannerOpen(true)}
                     title="Scan nutrition label"
-                    className="px-2 py-2 rounded-md border border-ink-2 hover:border-ink-3 text-ink-3 hover:text-ink-4 text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors inline-flex items-center gap-1"
+                    className="px-2 py-2 rounded-md border border-surface-2 hover:border-text-lo text-text-lo hover:text-text-hi text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors inline-flex items-center gap-1"
                   >
                     🏷️ LABEL
                   </button>
@@ -369,7 +369,7 @@ export function FoodSearch({
                   className={`self-start px-2 py-0.5 rounded-md border text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors ${
                     ukOnly
                       ? "border-accent/40 bg-accent/10 text-accent"
-                      : "border-ink-2 text-ink-3 hover:text-ink-4"
+                      : "border-surface-2 text-text-lo hover:text-text-hi"
                   }`}
                   title="When on, restricts search to UK products in English."
                 >
@@ -377,17 +377,17 @@ export function FoodSearch({
                 </button>
 
                 {searching && (
-                  <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-2 text-center">
+                  <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-2 text-center">
                     Searching…
                   </div>
                 )}
                 {!searching && hint && (
-                  <div className="text-[11px] text-ink-3 italic font-[family-name:var(--font-display)] -mt-1">
+                  <div className="text-[11px] text-text-lo italic font-[family-name:var(--font-display)] -mt-1">
                     {hint}
                   </div>
                 )}
                 {!searching && query.trim().length >= 2 && results.length === 0 && (
-                  <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
+                  <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-4 text-center">
                     No matches. Try a different search term
                     {ukOnly ? " or toggle off UK-only" : ""}.
                   </div>
@@ -409,7 +409,7 @@ export function FoodSearch({
 
             {tab === "scan" && (
               <div className="flex-1 flex flex-col items-center justify-center gap-4 p-4">
-                <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] text-center">
+                <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] text-center">
                   Use the camera to scan a barcode or nutrition label.
                 </p>
                 <div className="flex items-center gap-2">
@@ -423,7 +423,7 @@ export function FoodSearch({
                   <button
                     type="button"
                     onClick={() => setLabelScannerOpen(true)}
-                    className="px-4 py-2 rounded-md border border-ink-2 hover:border-ink-3 text-ink-3 hover:text-ink-4 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+                    className="px-4 py-2 rounded-md border border-surface-2 hover:border-text-lo text-text-lo hover:text-text-hi text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
                   >
                     📷 SCAN LABEL
                   </button>
@@ -431,7 +431,7 @@ export function FoodSearch({
                 <button
                   type="button"
                   onClick={() => setTab("search")}
-                  className="text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+                  className="text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
                 >
                   Search by text instead →
                 </button>
@@ -441,11 +441,11 @@ export function FoodSearch({
             {tab === "library" && (
               <div className="flex-1 overflow-y-auto px-3 py-3">
                 {library === null ? (
-                  <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
+                  <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-4 text-center">
                     Loading…
                   </div>
                 ) : library.length === 0 ? (
-                  <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
+                  <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-4 text-center">
                     No saved foods yet. Search and tap the bookmark icon to add.
                   </div>
                 ) : (
@@ -486,8 +486,8 @@ export function FoodSearch({
       {missedBarcode && (
         <>
           {labelScanning ? (
-            <div className="fixed inset-0 z-[200] bg-ink-0/95 backdrop-blur-sm flex items-center justify-center">
-              <span className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+            <div className="fixed inset-0 z-[200] bg-surface-0/95 backdrop-blur-sm flex items-center justify-center">
+              <span className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
                 Reading label…
               </span>
             </div>
@@ -528,16 +528,16 @@ export function FoodSearch({
                 type="button"
                 aria-label="Close"
                 onClick={() => setMissedBarcode(null)}
-                className="absolute inset-0 bg-ink-0/60 backdrop-blur-sm cursor-default"
+                className="absolute inset-0 bg-surface-0/60 backdrop-blur-sm cursor-default"
               />
               <div
                 role="dialog"
                 aria-label="Barcode not found"
-                className="relative w-full max-w-md rounded-t-xl md:rounded-xl bg-ink-1 border border-ink-2 shadow-2xl flex flex-col items-center gap-4 p-6"
+                className="relative w-full max-w-md rounded-t-xl md:rounded-xl bg-surface-1 border border-surface-2 shadow-2xl flex flex-col items-center gap-4 p-6"
               >
-                <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] text-center">
+                <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] text-center">
                   Barcode{" "}
-                  <span className="text-ink-4 font-[family-name:var(--font-mono)] not-italic">
+                  <span className="text-text-hi font-[family-name:var(--font-mono)] not-italic">
                     {missedBarcode}
                   </span>{" "}
                   not found
@@ -552,7 +552,7 @@ export function FoodSearch({
                 <button
                   type="button"
                   onClick={() => setWantsManual(true)}
-                  className="text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+                  className="text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
                 >
                   Enter manually →
                 </button>
@@ -602,8 +602,8 @@ function TabBtn({
       onClick={onClick}
       className={`px-3 py-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] border-b-2 transition-colors ${
         active
-          ? "border-accent text-ink-4"
-          : "border-transparent text-ink-3 hover:text-ink-4"
+          ? "border-accent text-text-hi"
+          : "border-transparent text-text-lo hover:text-text-hi"
       }`}
     >
       {label}
@@ -625,14 +625,14 @@ function ResultList({
       {results.map((r, idx) => (
         <li
           key={r.id ?? `${r.off_id ?? ""}-${idx}`}
-          className="bg-ink-0/40 border border-ink-2 hover:border-ink-3 rounded-md px-3 py-2 flex items-center gap-3 transition-colors"
+          className="bg-surface-0/40 border border-surface-2 hover:border-text-lo rounded-md px-3 py-2 flex items-center gap-3 transition-colors"
         >
           <button
             type="button"
             onClick={() => onPick(r)}
             className="flex-1 min-w-0 text-left"
           >
-            <div className="text-sm text-ink-4 truncate flex items-center gap-1.5">
+            <div className="text-sm text-text-hi truncate flex items-center gap-1.5">
               <SourceBadge source={r.source} inLibrary={r.in_library} />
               <span className="truncate">{r.name}</span>
               {r.is_favourite && (
@@ -641,7 +641,7 @@ function ResultList({
                 </span>
               )}
             </div>
-            <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] truncate">
+            <div className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)] truncate">
               {r.brand ? `${r.brand} · ` : ""}
               {r.kcal_per_100g != null ? `${Math.round(r.kcal_per_100g)} kcal/100g` : "kcal —"}
               {r.protein_per_100g != null ? ` · P ${Math.round(r.protein_per_100g)}g` : ""}
@@ -653,7 +653,7 @@ function ResultList({
               onClick={() => void onSave(r)}
               aria-label="Save to library"
               title="Save to library"
-              className="text-ink-3 hover:text-accent transition-colors text-base"
+              className="text-text-lo hover:text-accent transition-colors text-base"
             >
               ＋
             </button>
@@ -696,7 +696,7 @@ function SourceBadge({
   if (source === "open_food_facts") {
     return (
       <span
-        className="text-[8px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-1 py-0.5 rounded-sm bg-ink-2 text-ink-3 border border-ink-2 shrink-0"
+        className="text-[8px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-1 py-0.5 rounded-sm bg-surface-2 text-text-lo border border-surface-2 shrink-0"
         title="Open Food Facts — branded products"
       >
         OFF

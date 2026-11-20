@@ -36,7 +36,7 @@ function daysUntil(iso: string): string {
 
 function typeStyle(c: Collection): { swatch: string; label: string; text: string } {
   if (c.type === "black") {
-    return { swatch: "bg-ink-4", label: "Black bin", text: "text-ink-4" };
+    return { swatch: "bg-text-hi", label: "Black bin", text: "text-text-hi" };
   }
   if (c.gardenIncluded) {
     return { swatch: "bg-glow-1", label: "Recycling + garden", text: "text-glow-1" };
@@ -90,7 +90,7 @@ export function Bins({ width = 1 }: { width?: CardWidth } = {}) {
       )}
 
       {!data && !error && (
-        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-3">
+        <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-3">
           Loading…
         </div>
       )}
@@ -98,28 +98,28 @@ export function Bins({ width = 1 }: { width?: CardWidth } = {}) {
       {data && (
         <div className="flex flex-col gap-3">
           <div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Next collection
             </div>
             <div className="flex items-baseline gap-3 mt-1">
-              <Mono className="text-xl text-ink-4">{formatDay(data.next.date)}</Mono>
-              <Mono className="text-[11px] text-ink-3">{daysUntil(data.next.date)}</Mono>
+              <Mono className="text-xl text-text-hi">{formatDay(data.next.date)}</Mono>
+              <Mono className="text-[11px] text-text-lo">{daysUntil(data.next.date)}</Mono>
             </div>
             <div className="mt-2">
               <TypeIcon c={data.next} />
             </div>
             {data.next.type === "recycling" && !data.next.gardenIncluded && (
-              <div className="mt-1 text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.12em]">
+              <div className="mt-1 text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.12em]">
                 garden waste: out of season
               </div>
             )}
           </div>
 
           {width >= 2 && data.upcoming.length > 1 && (
-            <ul className="flex flex-col divide-y divide-ink-2 pt-2 border-t border-ink-2">
+            <ul className="flex flex-col divide-y divide-surface-2 pt-2 border-t border-surface-2">
               {data.upcoming.slice(1).map((c) => (
                 <li key={c.date} className="flex items-center justify-between gap-2 py-1.5">
-                  <Mono className="text-[11px] text-ink-3 w-24">{formatDay(c.date)}</Mono>
+                  <Mono className="text-[11px] text-text-lo w-24">{formatDay(c.date)}</Mono>
                   <TypeIcon c={c} />
                 </li>
               ))}

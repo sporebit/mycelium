@@ -47,8 +47,8 @@ function shiftMonth(year: number, month: number, delta: number): {
 }
 
 function pillClasses(state: CalendarPill["state"], kindClass: string): string {
-  if (state === "completed") return `${kindClass} text-text-0`;
-  if (state === "active") return `${kindClass} text-text-0 ring-1 ring-glow-2`;
+  if (state === "completed") return `${kindClass} text-text-hi`;
+  if (state === "active") return `${kindClass} text-text-hi ring-1 ring-glow-2`;
   if (state === "planned-future")
     return "border border-current/50 bg-transparent";
   return "border border-dashed border-current/30 bg-transparent opacity-40";
@@ -85,24 +85,24 @@ export function CalendarMonth({ year, month, todayKey, cells, days }: Props) {
           <Link
             href={`/fitness/calendar?month=${monthParam(prev.year, prev.month)}`}
             aria-label="Previous month"
-            className="h-9 w-9 inline-flex items-center justify-center rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-v2-md border border-hairline text-text-lo hover:text-text-hi hover:border-text-lo transition-colors"
           >
             ←
           </Link>
-          <h1 className="font-[family-name:var(--font-display)] italic text-text-0 text-2xl">
+          <h1 className="font-[family-name:var(--font-display)] italic text-text-hi text-2xl">
             {monthLabel(year, month)}
           </h1>
           <Link
             href={`/fitness/calendar?month=${monthParam(next.year, next.month)}`}
             aria-label="Next month"
-            className="h-9 w-9 inline-flex items-center justify-center rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-v2-md border border-hairline text-text-lo hover:text-text-hi hover:border-text-lo transition-colors"
           >
             →
           </Link>
           {monthParam(year, month) !== todayMonth && (
             <Link
               href="/fitness/calendar"
-              className="ml-2 px-3 h-9 inline-flex items-center rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+              className="ml-2 px-3 h-9 inline-flex items-center rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi hover:border-text-lo transition-colors"
             >
               TODAY
             </Link>
@@ -125,18 +125,18 @@ export function CalendarMonth({ year, month, todayKey, cells, days }: Props) {
             href="/fitness"
             role="tab"
             aria-selected="false"
-            className="px-3 py-2 text-ink-3 hover:text-ink-4 hover:bg-surface-2 transition-colors"
+            className="px-3 py-2 text-text-lo hover:text-text-hi hover:bg-surface-2 transition-colors"
           >
             WEEK
           </Link>
         </div>
       </header>
 
-      <div className="grid grid-cols-7 gap-px bg-ink-2 rounded-v2-md overflow-hidden">
+      <div className="grid grid-cols-7 gap-px bg-surface-2 rounded-v2-md overflow-hidden">
         {DOW_LABELS.map((d) => (
           <div
             key={d}
-            className="bg-surface-1 px-2 py-1.5 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] text-center"
+            className="bg-surface-1 px-2 py-1.5 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] text-center"
           >
             {d}
           </div>
@@ -160,7 +160,7 @@ export function CalendarMonth({ year, month, todayKey, cells, days }: Props) {
             >
               <Mono
                 className={`text-[11px] leading-none ${
-                  isToday ? "text-text-0 font-bold" : "text-ink-3"
+                  isToday ? "text-text-hi font-bold" : "text-text-lo"
                 }`}
               >
                 {dayNum}
@@ -184,7 +184,7 @@ export function CalendarMonth({ year, month, todayKey, cells, days }: Props) {
                   );
                 })}
                 {overflow > 0 && (
-                  <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] px-1">
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)] px-1">
                     +{overflow} more
                   </span>
                 )}
@@ -194,7 +194,7 @@ export function CalendarMonth({ year, month, todayKey, cells, days }: Props) {
         })}
       </div>
 
-      <div className="flex items-center gap-3 flex-wrap text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <div className="flex items-center gap-3 flex-wrap text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-3 w-5 rounded bg-accent/15 border border-accent/40" />
           completed

@@ -86,7 +86,7 @@ export function FoodLibrary({
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           placeholder="Filter foods…"
-          className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-sm text-ink-4 placeholder:text-ink-3 outline-none focus:border-ink-3 w-64"
+          className="px-3 py-1.5 rounded-md border border-surface-2 bg-surface-0/40 text-sm text-text-hi placeholder:text-text-lo outline-none focus:border-text-lo w-64"
         />
         <button
           type="button"
@@ -94,7 +94,7 @@ export function FoodLibrary({
           className={`px-3 py-1.5 rounded-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
             favsOnly
               ? "bg-warn/15 border-warn/40 text-warn"
-              : "bg-ink-0/40 border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+              : "bg-surface-0/40 border-surface-2 text-text-lo hover:text-text-hi hover:border-text-lo"
           }`}
         >
           {favsOnly ? "★ FAVS ONLY" : "ALL"}
@@ -102,12 +102,12 @@ export function FoodLibrary({
       </div>
 
       {foods === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-md bg-ink-1 p-12 text-center">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="rounded-md bg-surface-1 p-12 text-center">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             {foods.length === 0
               ? "Your library is empty. Use the SEARCH tab to look up foods and tap + to save them."
               : "No foods match your filter."}
@@ -118,14 +118,14 @@ export function FoodLibrary({
           {filtered.map((f) => (
             <li
               key={f.id}
-              className="bg-ink-1 border border-ink-2 hover:border-ink-3 rounded-md px-3 py-2 flex items-center gap-3 transition-colors"
+              className="bg-surface-1 border border-surface-2 hover:border-text-lo rounded-md px-3 py-2 flex items-center gap-3 transition-colors"
             >
               <button
                 type="button"
                 onClick={() => void patchFood(f.id, { is_favourite: !f.is_favourite })}
                 aria-label={f.is_favourite ? "Unstar" : "Star"}
                 className={`text-base shrink-0 ${
-                  f.is_favourite ? "text-warn" : "text-ink-3 hover:text-warn"
+                  f.is_favourite ? "text-warn" : "text-text-lo hover:text-warn"
                 }`}
               >
                 {f.is_favourite ? "★" : "☆"}
@@ -135,21 +135,21 @@ export function FoodLibrary({
                 onClick={() => setEdit(f)}
                 className="flex-1 min-w-0 text-left"
               >
-                <div className="text-sm text-ink-4 truncate">{f.name}</div>
-                <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] truncate">
+                <div className="text-sm text-text-hi truncate">{f.name}</div>
+                <div className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)] truncate">
                   {f.brand ? `${f.brand} · ` : ""}
                   {f.kcal_per_100g != null ? `${Math.round(f.kcal_per_100g)} kcal/100g` : "kcal —"}
                   {f.protein_per_100g != null ? ` · P ${Math.round(f.protein_per_100g)}g` : ""}
                 </div>
               </button>
-              <Mono className="text-[10px] text-ink-3 tabular-nums">
+              <Mono className="text-[10px] text-text-lo tabular-nums">
                 {f.use_count}×
               </Mono>
               <button
                 type="button"
                 onClick={() => void deleteFood(f.id)}
                 aria-label="Delete"
-                className="text-ink-3 hover:text-danger text-base"
+                className="text-text-lo hover:text-danger text-base"
               >
                 ×
               </button>
@@ -203,14 +203,14 @@ function FoodEditDialog({
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 bg-ink-0/60 backdrop-blur-sm cursor-default"
+        className="absolute inset-0 bg-surface-0/60 backdrop-blur-sm cursor-default"
       />
-      <div className="relative w-full max-w-md rounded-lg bg-ink-1 border border-ink-2 shadow-2xl p-5 flex flex-col gap-4">
+      <div className="relative w-full max-w-md rounded-lg bg-surface-1 border border-surface-2 shadow-2xl p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-[family-name:var(--font-display)] italic text-ink-4">
+          <h3 className="text-base font-[family-name:var(--font-display)] italic text-text-hi">
             Edit food
           </h3>
-          <button type="button" onClick={onClose} aria-label="Close" className="text-ink-3 hover:text-ink-4">
+          <button type="button" onClick={onClose} aria-label="Close" className="text-text-lo hover:text-text-hi">
             ✕
           </button>
         </div>
@@ -220,7 +220,7 @@ function FoodEditDialog({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
             />
           </Field>
           <Field label="Brand">
@@ -228,7 +228,7 @@ function FoodEditDialog({
               type="text"
               value={brand}
               onChange={(e) => setBrand(e.target.value)}
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
             />
           </Field>
           <Field label="kcal / 100g">
@@ -237,7 +237,7 @@ function FoodEditDialog({
               min={0}
               value={kcal}
               onChange={(e) => setKcal(Number(e.target.value) || 0)}
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
             />
           </Field>
           <Field label="Protein / 100g">
@@ -246,7 +246,7 @@ function FoodEditDialog({
               min={0}
               value={protein}
               onChange={(e) => setProtein(Number(e.target.value) || 0)}
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
             />
           </Field>
           <Field label="Carbs / 100g">
@@ -255,7 +255,7 @@ function FoodEditDialog({
               min={0}
               value={carbs}
               onChange={(e) => setCarbs(Number(e.target.value) || 0)}
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
             />
           </Field>
           <Field label="Fat / 100g">
@@ -264,7 +264,7 @@ function FoodEditDialog({
               min={0}
               value={fat}
               onChange={(e) => setFat(Number(e.target.value) || 0)}
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
             />
           </Field>
         </div>
@@ -272,7 +272,7 @@ function FoodEditDialog({
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 transition-colors"
+            className="px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi transition-colors"
           >
             CANCEL
           </button>
@@ -292,7 +292,7 @@ function FoodEditDialog({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {label}
       </span>
       {children}

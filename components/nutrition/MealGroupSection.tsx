@@ -37,7 +37,7 @@ export function MealGroupSection({
           onClick={() => setCollapsed((v) => !v)}
           className="flex items-center gap-2 text-left"
         >
-          <span aria-hidden className="text-ink-3 text-[10px]">
+          <span aria-hidden className="text-text-lo text-[10px]">
             {collapsed ? "▶" : "▼"}
           </span>
           {editingName && group ? (
@@ -60,7 +60,7 @@ export function MealGroupSection({
                   setEditingName(false);
                 }
               }}
-              className="bg-ink-2 px-1.5 py-0.5 rounded-sm text-[11px] text-text-0 font-[family-name:var(--font-mono)] tracking-[0.18em] outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="bg-surface-2 px-1.5 py-0.5 rounded-sm text-[11px] text-text-hi font-[family-name:var(--font-mono)] tracking-[0.18em] outline-none focus:ring-2 focus:ring-glow-2/60"
             />
           ) : (
             <span
@@ -69,14 +69,14 @@ export function MealGroupSection({
                 e.stopPropagation();
                 setEditingName(true);
               }}
-              className="text-[11px] uppercase tracking-[0.18em] text-ink-4 font-[family-name:var(--font-mono)]"
+              className="text-[11px] uppercase tracking-[0.18em] text-text-hi font-[family-name:var(--font-mono)]"
             >
               {groupName}
             </span>
           )}
         </button>
         <div className="flex items-center gap-3">
-          <Mono className="text-[11px] text-ink-3 tabular-nums">
+          <Mono className="text-[11px] text-text-lo tabular-nums">
             {Math.round(total)} kcal
           </Mono>
           {group && onDeleteGroup && (
@@ -93,7 +93,7 @@ export function MealGroupSection({
               }}
               aria-label="Delete meal group"
               title="Delete meal group"
-              className="text-ink-3 hover:text-danger transition-colors text-base"
+              className="text-text-lo hover:text-danger transition-colors text-base"
             >
               ✕
             </button>
@@ -104,11 +104,11 @@ export function MealGroupSection({
       {!collapsed && (
         <div className="flex flex-col">
           {logs.length === 0 ? (
-            <div className="px-3 py-3 text-[11px] text-ink-3 italic font-[family-name:var(--font-display)] text-center">
+            <div className="px-3 py-3 text-[11px] text-text-lo italic font-[family-name:var(--font-display)] text-center">
               Nothing logged here yet.
             </div>
           ) : (
-            <ul className="flex flex-col divide-y divide-ink-2/60">
+            <ul className="flex flex-col divide-y divide-surface-2/60">
               {logs.map((log) => (
                 <LogRow
                   key={log.id}
@@ -151,15 +151,15 @@ function LogRow({
   }
 
   return (
-    <li className="group flex items-center gap-2 px-3 py-2 hover:bg-ink-2/30 transition-colors">
+    <li className="group flex items-center gap-2 px-3 py-2 hover:bg-surface-2/30 transition-colors">
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-ink-4 truncate">
+        <div className="text-sm text-text-hi truncate">
           {log.food_name}
           {log.brand && (
-            <span className="text-ink-3 text-xs ml-1.5">· {log.brand}</span>
+            <span className="text-text-lo text-xs ml-1.5">· {log.brand}</span>
           )}
         </div>
-        <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5 flex items-center gap-2">
+        <div className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)] mt-0.5 flex items-center gap-2">
           {editing ? (
             <input
               autoFocus
@@ -176,13 +176,13 @@ function LogRow({
                 }
               }}
               onClick={(e) => e.stopPropagation()}
-              className="w-16 bg-ink-2 px-1.5 py-0.5 rounded-sm text-text-0 text-[11px] font-[family-name:var(--font-mono)] outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-16 bg-surface-2 px-1.5 py-0.5 rounded-sm text-text-hi text-[11px] font-[family-name:var(--font-mono)] outline-none focus:ring-2 focus:ring-glow-2/60"
             />
           ) : (
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="hover:text-ink-4 transition-colors"
+              className="hover:text-text-hi transition-colors"
               title="Tap to edit quantity"
             >
               {log.serving_label ? `${log.serving_label} · ` : ""}
@@ -196,7 +196,7 @@ function LogRow({
         </div>
       </div>
       <div className="text-right">
-        <Mono className="text-sm text-ink-4 tabular-nums">
+        <Mono className="text-sm text-text-hi tabular-nums">
           {Math.round(log.kcal ?? 0)}
         </Mono>
       </div>
@@ -204,7 +204,7 @@ function LogRow({
         type="button"
         onClick={onDelete}
         aria-label="Delete"
-        className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-danger transition-opacity text-sm"
+        className="opacity-0 group-hover:opacity-100 text-text-lo hover:text-danger transition-opacity text-sm"
       >
         ×
       </button>

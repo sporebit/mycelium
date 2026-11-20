@@ -75,8 +75,8 @@ const ad = (p: PendingEntity, k: string): string | null => {
 
 const smallBtn = "px-2 py-1 rounded-md disabled:opacity-40 text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)]";
 const primaryBtn = `${smallBtn} bg-accent/15 border border-accent/40 text-accent hover:bg-accent/25`;
-const quietBtn = `${smallBtn} bg-ink-0/40 border border-ink-2 hover:border-ink-3 text-ink-3 hover:text-ink-4`;
-const rejectBtn = `${smallBtn} text-ink-3 hover:text-danger`;
+const quietBtn = `${smallBtn} bg-surface-0/40 border border-surface-2 hover:border-text-lo text-text-lo hover:text-text-hi`;
+const rejectBtn = `${smallBtn} text-text-lo hover:text-danger`;
 
 /**
  * Tab body for /organisation/captures/review's "NEW ENTITIES" view. Two
@@ -174,15 +174,15 @@ export function PendingEntitiesList({ dayId }: { dayId?: string | null }) {
 
   if (pending === null) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
   }
   if (pending.length === 0) {
     return (
-      <div className="rounded-md bg-ink-1 p-8 text-center">
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+      <div className="rounded-md bg-surface-1 p-8 text-center">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           {dayId
             ? "Nothing left to review for that day."
             : "No new entities waiting. Voice captures mentioning names we recognise route automatically."}
@@ -204,7 +204,7 @@ export function PendingEntitiesList({ dayId }: { dayId?: string | null }) {
           <section key={g.key} className="flex flex-col gap-2">
             {g.day && (
               <div className="flex items-center justify-between gap-2 px-1">
-                <Link href={`/journal/${g.day}`} className="text-[11px] uppercase tracking-[0.18em] text-ink-4 hover:text-accent font-[family-name:var(--font-mono)]">
+                <Link href={`/journal/${g.day}`} className="text-[11px] uppercase tracking-[0.18em] text-text-hi hover:text-accent font-[family-name:var(--font-mono)]">
                   Day log · {g.day}
                 </Link>
                 {routine.length > 1 && (
@@ -218,16 +218,16 @@ export function PendingEntitiesList({ dayId }: { dayId?: string | null }) {
               {g.items.map((p) => (
                 <li
                   key={p.id}
-                  className="rounded-md bg-ink-1 border border-ink-2 px-3 py-3 flex flex-col gap-2"
+                  className="rounded-md bg-surface-1 border border-surface-2 px-3 py-3 flex flex-col gap-2"
                 >
                   <div className="flex items-baseline justify-between gap-2 flex-wrap">
                     <div className="flex items-baseline gap-2 min-w-0">
-                      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] shrink-0">
+                      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] shrink-0">
                         {TYPE_LABEL[p.entity_type]}
                       </span>
-                      {p.entity_type !== "daylog_fact" && <span className="text-base text-ink-4">{p.entity_name}</span>}
+                      {p.entity_type !== "daylog_fact" && <span className="text-base text-text-hi">{p.entity_name}</span>}
                     </div>
-                    <Mono className="text-[10px] text-ink-3">
+                    <Mono className="text-[10px] text-text-lo">
                       {relativeDate(p.created_at)}
                     </Mono>
                   </div>
@@ -235,10 +235,10 @@ export function PendingEntitiesList({ dayId }: { dayId?: string | null }) {
                   {p.capture ? (
                     <Link
                       href={`/organisation/captures?focus=${p.capture.id}`}
-                      className="block rounded-md bg-ink-0/40 border border-ink-2/60 px-2 py-1.5 text-xs text-ink-3 italic font-[family-name:var(--font-display)] hover:border-ink-3 transition-colors"
+                      className="block rounded-md bg-surface-0/40 border border-surface-2/60 px-2 py-1.5 text-xs text-text-lo italic font-[family-name:var(--font-display)] hover:border-text-lo transition-colors"
                     >
                       {p.capture.raw_text?.slice(0, 240) || "(no transcription)"}
-                      <span className="ml-2 not-italic text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                      <span className="ml-2 not-italic text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                         · {p.capture.source}
                       </span>
                     </Link>
@@ -246,10 +246,10 @@ export function PendingEntitiesList({ dayId }: { dayId?: string | null }) {
                     // A name from a ticket (people-review R1): the ticket's title, linking to it when the key is known.
                     <Link
                       href={`/work/browse/${encodeURIComponent(ad(p, "ticket_key") ?? ad(p, "ticket_id") ?? "")}`}
-                      className="block rounded-md bg-ink-0/40 border border-ink-2/60 px-2 py-1.5 text-xs text-ink-3 italic font-[family-name:var(--font-display)] hover:border-ink-3 transition-colors"
+                      className="block rounded-md bg-surface-0/40 border border-surface-2/60 px-2 py-1.5 text-xs text-text-lo italic font-[family-name:var(--font-display)] hover:border-text-lo transition-colors"
                     >
                       {ad(p, "snippet")}
-                      <span className="ml-2 not-italic text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                      <span className="ml-2 not-italic text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                         · {ad(p, "source_kind") ?? "ticket"}
                       </span>
                     </Link>
@@ -284,7 +284,7 @@ function Picker({ options, placeholder, busy, onPick }: { options: Option[]; pla
       <select
         value={pick}
         onChange={(e) => setPick(e.target.value)}
-        className="flex-1 bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+        className="flex-1 bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
       >
         <option value="">{placeholder}</option>
         {options.map((o) => (
@@ -319,8 +319,8 @@ function DaylogActions({ p, people, places, busy, onResolve }: { p: PendingEntit
     <>
       {p.entity_type === "daylog_fact" ? (
         <div className="flex flex-col sm:flex-row gap-2">
-          <input value={text} onChange={(e) => setText(e.target.value)} aria-label="Fact" className="flex-1 bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60" />
-          <select value={kind} onChange={(e) => setKind(e.target.value)} aria-label="Kind" className="bg-ink-2 rounded-sm text-xs text-text-0 px-2 py-1.5">
+          <input value={text} onChange={(e) => setText(e.target.value)} aria-label="Fact" className="flex-1 bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60" />
+          <select value={kind} onChange={(e) => setKind(e.target.value)} aria-label="Kind" className="bg-surface-2 rounded-sm text-xs text-text-hi px-2 py-1.5">
             {FACT_KINDS.map((k) => (
               <option key={k} value={k}>
                 {k.replace("_", " ")}
@@ -330,10 +330,10 @@ function DaylogActions({ p, people, places, busy, onResolve }: { p: PendingEntit
         </div>
       ) : null}
 
-      <div className="text-xs text-ink-3">
-        {p.entity_type === "daylog_person_link" && <>Matched to {matched ? <Link href={`/organisation/people/${matched.id}`} className="text-ink-4 hover:text-accent">{matched.label}</Link> : "a person"}. </>}
-        {p.entity_type === "daylog_new_person" && (ad(p, "note") ? <>You said: <span className="italic text-ink-4">“{ad(p, "note")}”</span>. </> : <>No one by this name in People. </>)}
-        {p.entity_type === "daylog_fact" && ad(p, "subject") && <>About <span className="text-ink-4">{ad(p, "subject")}</span>. </>}
+      <div className="text-xs text-text-lo">
+        {p.entity_type === "daylog_person_link" && <>Matched to {matched ? <Link href={`/organisation/people/${matched.id}`} className="text-text-hi hover:text-accent">{matched.label}</Link> : "a person"}. </>}
+        {p.entity_type === "daylog_new_person" && (ad(p, "note") ? <>You said: <span className="italic text-text-hi">“{ad(p, "note")}”</span>. </> : <>No one by this name in People. </>)}
+        {p.entity_type === "daylog_fact" && ad(p, "subject") && <>About <span className="text-text-hi">{ad(p, "subject")}</span>. </>}
         {p.entity_type === "daylog_fact" && ad(p, "confidence") === "inferred" && <span className="italic">Inferred, not stated. </span>}
         {scenes.length > 0 && <>Scenes: {scenes.join(" · ")}</>}
         {scene && <>Scene: {scene}</>}

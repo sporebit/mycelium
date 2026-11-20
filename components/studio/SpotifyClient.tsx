@@ -172,9 +172,9 @@ function dbToPlayItems(plays: PlayRecord[]): PlayItem[] {
 const CHIP =
   "px-2 py-1 rounded-v2-md transition-colors text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em]";
 const CHIP_ON = "bg-[#1DB954]/15 text-[#1DB954]";
-const CHIP_OFF = "text-ink-3 hover:text-ink-4";
+const CHIP_OFF = "text-text-lo hover:text-text-hi";
 const INPUT =
-  "bg-ink-0 border border-hairline rounded-v2-md text-[11px] text-text-0 placeholder:text-ink-3 px-2 py-1 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]";
+  "bg-surface-0 border border-hairline rounded-v2-md text-[11px] text-text-hi placeholder:text-text-lo px-2 py-1 outline-none focus:border-text-lo font-[family-name:var(--font-mono)]";
 
 export function SpotifyClient() {
   const [connected, setConnected] = useState<boolean | null>(null);
@@ -427,7 +427,7 @@ export function SpotifyClient() {
 
   if (connected === null) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Checking connection…
       </div>
     );
@@ -441,10 +441,10 @@ export function SpotifyClient() {
             <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
           </svg>
         </div>
-        <h2 className="font-[family-name:var(--font-display)] italic text-xl text-text-0">
+        <h2 className="font-[family-name:var(--font-display)] italic text-xl text-text-hi">
           Connect Spotify
         </h2>
-        <p className="text-sm text-ink-3 max-w-sm text-center">
+        <p className="text-sm text-text-lo max-w-sm text-center">
           Link your Spotify account to see your top tracks, artists, listening patterns, and what you&apos;re playing right now.
         </p>
         <a
@@ -471,7 +471,7 @@ export function SpotifyClient() {
   return (
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Spotify
         </h1>
         <div className="flex items-center gap-3">
@@ -521,20 +521,20 @@ export function SpotifyClient() {
               />
             )}
             {nowPlaying.is_playing && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#1DB954] border-2 border-ink-1 animate-pulse" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#1DB954] border-2 border-surface-1 animate-pulse" />
             )}
           </div>
           <div className="flex-1 min-w-0">
             <Mono className="text-[9px] text-[#1DB954]">
               {nowPlaying.is_playing ? "NOW PLAYING" : "PAUSED"}
             </Mono>
-            <div className="text-sm text-text-0 truncate">{nowPlaying.item.name}</div>
-            <div className="text-xs text-ink-3 truncate">
+            <div className="text-sm text-text-hi truncate">{nowPlaying.item.name}</div>
+            <div className="text-xs text-text-lo truncate">
               {nowPlaying.item.artists.map((a) => a.name).join(", ")}
             </div>
           </div>
           {nowPlaying.progress_ms != null && (
-            <Mono className="text-[10px] text-ink-3 shrink-0">
+            <Mono className="text-[10px] text-text-lo shrink-0">
               {msToMin(nowPlaying.progress_ms)} / {msToMin(nowPlaying.item.duration_ms)}
             </Mono>
           )}
@@ -556,7 +556,7 @@ export function SpotifyClient() {
       </div>
 
       {loading ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : (
@@ -594,23 +594,23 @@ export function SpotifyClient() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-2 rounded-v2-md hover:bg-surface-1 transition-colors group"
                   >
-                    <Mono className="text-[10px] text-ink-3 w-5 text-right shrink-0">{i + 1}</Mono>
+                    <Mono className="text-[10px] text-text-lo w-5 text-right shrink-0">{i + 1}</Mono>
                     {track.album.images.length > 0 && (
                       <Image src={smallImg(track.album.images)} alt="" width={40} height={40} unoptimized className="w-10 h-10 rounded shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm text-text-0 truncate group-hover:text-[#1DB954] transition-colors">
+                      <div className="text-sm text-text-hi truncate group-hover:text-[#1DB954] transition-colors">
                         {track.name}
                       </div>
-                      <div className="text-xs text-ink-3 truncate">
+                      <div className="text-xs text-text-lo truncate">
                         {track.artists.map((a) => a.name).join(", ")} · {track.album.name}
                       </div>
                     </div>
-                    <Mono className="text-[10px] text-ink-3 shrink-0">{msToMin(track.duration_ms)}</Mono>
+                    <Mono className="text-[10px] text-text-lo shrink-0">{msToMin(track.duration_ms)}</Mono>
                   </a>
                 ))}
                 {filteredTracks.length === 0 && (
-                  <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+                  <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-8 text-center">
                     {trackSearch ? "No tracks match your search." : "No top tracks for this period."}
                   </p>
                 )}
@@ -672,17 +672,17 @@ export function SpotifyClient() {
                         className="w-16 h-16 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-ink-2 flex items-center justify-center text-xl text-ink-3">
+                      <div className="w-16 h-16 rounded-full bg-surface-2 flex items-center justify-center text-xl text-text-lo">
                         {artist.name.charAt(0)}
                       </div>
                     )}
                     <div className="text-center min-w-0 w-full">
-                      <Mono className="text-[9px] text-ink-3">#{i + 1}</Mono>
-                      <div className="text-sm text-text-0 truncate group-hover:text-[#1DB954] transition-colors">
+                      <Mono className="text-[9px] text-text-lo">#{i + 1}</Mono>
+                      <div className="text-sm text-text-hi truncate group-hover:text-[#1DB954] transition-colors">
                         {artist.name}
                       </div>
                       {(artist.genres ?? []).length > 0 && (
-                        <div className="text-[10px] text-ink-3 truncate">
+                        <div className="text-[10px] text-text-lo truncate">
                           {(artist.genres ?? []).slice(0, 2).join(", ")}
                         </div>
                       )}
@@ -690,7 +690,7 @@ export function SpotifyClient() {
                   </a>
                 ))}
                 {filteredArtists.length === 0 && (
-                  <p className="col-span-full text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+                  <p className="col-span-full text-sm text-text-lo italic font-[family-name:var(--font-display)] py-8 text-center">
                     {artistSearch || selectedGenres.size > 0 ? "No artists match your filters." : "No top artists for this period."}
                   </p>
                 )}
@@ -702,7 +702,7 @@ export function SpotifyClient() {
           {tab === "plays" && (
             <>
               <div className="flex items-center gap-3 flex-wrap">
-                <Mono className="text-[10px] text-ink-3">
+                <Mono className="text-[10px] text-text-lo">
                   {totalPlays.toLocaleString()} TOTAL PLAYS
                 </Mono>
                 <div className="flex items-center gap-1 ml-auto">
@@ -719,14 +719,14 @@ export function SpotifyClient() {
                 </div>
               </div>
               {loadingCounts ? (
-                <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+                <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-8 text-center">
                   Loading counts…
                 </div>
               ) : (
                 <>
                   {/* Most Played Tracks */}
                   <div className="flex flex-col gap-1">
-                    <Mono className="text-[10px] text-ink-3 px-2">MOST PLAYED TRACKS</Mono>
+                    <Mono className="text-[10px] text-text-lo px-2">MOST PLAYED TRACKS</Mono>
                     {trackCounts.slice(0, 50).map((tc, i) => (
                       <a
                         key={tc.track_id}
@@ -735,15 +735,15 @@ export function SpotifyClient() {
                         rel="noopener noreferrer"
                         className="flex items-center gap-3 p-2 rounded-v2-md hover:bg-surface-1 transition-colors group"
                       >
-                        <Mono className="text-[10px] text-ink-3 w-5 text-right shrink-0">{i + 1}</Mono>
+                        <Mono className="text-[10px] text-text-lo w-5 text-right shrink-0">{i + 1}</Mono>
                         {tc.album_art_url && (
                           <Image src={tc.album_art_url} alt="" width={40} height={40} unoptimized className="w-10 h-10 rounded shrink-0" />
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm text-text-0 truncate group-hover:text-[#1DB954] transition-colors">
+                          <div className="text-sm text-text-hi truncate group-hover:text-[#1DB954] transition-colors">
                             {tc.track_name}
                           </div>
-                          <div className="text-xs text-ink-3 truncate">
+                          <div className="text-xs text-text-lo truncate">
                             {tc.artist_names}{tc.album_name ? ` · ${tc.album_name}` : ""}
                           </div>
                         </div>
@@ -753,7 +753,7 @@ export function SpotifyClient() {
                       </a>
                     ))}
                     {trackCounts.length === 0 && (
-                      <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+                      <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-8 text-center">
                         No play data yet.
                       </p>
                     )}
@@ -761,18 +761,18 @@ export function SpotifyClient() {
 
                   {/* Most Played Artists */}
                   <div className="flex flex-col gap-2 mt-4">
-                    <Mono className="text-[10px] text-ink-3 px-2">MOST PLAYED ARTISTS</Mono>
+                    <Mono className="text-[10px] text-text-lo px-2">MOST PLAYED ARTISTS</Mono>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {artistCounts.slice(0, 20).map((ac, i) => (
                         <div
                           key={ac.name}
                           className="bg-surface-1 rounded-v2-md p-3 flex flex-col items-center gap-1"
                         >
-                          <div className="w-12 h-12 rounded-full bg-ink-2 flex items-center justify-center text-lg text-ink-3">
+                          <div className="w-12 h-12 rounded-full bg-surface-2 flex items-center justify-center text-lg text-text-lo">
                             {ac.name.charAt(0)}
                           </div>
-                          <Mono className="text-[9px] text-ink-3">#{i + 1}</Mono>
-                          <div className="text-sm text-text-0 truncate w-full text-center">
+                          <Mono className="text-[9px] text-text-lo">#{i + 1}</Mono>
+                          <div className="text-sm text-text-hi truncate w-full text-center">
                             {ac.name}
                           </div>
                           <Mono className="text-[10px] text-[#1DB954]">
@@ -782,7 +782,7 @@ export function SpotifyClient() {
                       ))}
                     </div>
                     {artistCounts.length === 0 && (
-                      <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+                      <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-8 text-center">
                         No play data yet.
                       </p>
                     )}
@@ -835,7 +835,7 @@ export function SpotifyClient() {
                         onChange={(e) => setCustomFrom(e.target.value)}
                         className={INPUT}
                       />
-                      <Mono className="text-[9px] text-ink-3">TO</Mono>
+                      <Mono className="text-[9px] text-text-lo">TO</Mono>
                       <input
                         type="date"
                         value={customTo}
@@ -856,7 +856,7 @@ export function SpotifyClient() {
                 </div>
               </div>
               {isRecentLoading ? (
-                <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+                <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-8 text-center">
                   Loading history…
                 </div>
               ) : (
@@ -873,10 +873,10 @@ export function SpotifyClient() {
                         <Image src={item.albumArt} alt="" width={40} height={40} unoptimized className="w-10 h-10 rounded shrink-0" />
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm text-text-0 truncate group-hover:text-[#1DB954] transition-colors">
+                        <div className="text-sm text-text-hi truncate group-hover:text-[#1DB954] transition-colors">
                           {item.name}
                         </div>
-                        <div className="text-xs text-ink-3 truncate">
+                        <div className="text-xs text-text-lo truncate">
                           {item.artists}
                         </div>
                       </div>
@@ -890,13 +890,13 @@ export function SpotifyClient() {
                           {trackCountMap.get(item.trackId)} plays
                         </Mono>
                       )}
-                      <Mono className="text-[10px] text-ink-3 shrink-0">
+                      <Mono className="text-[10px] text-text-lo shrink-0">
                         {timeAgoShort(item.playedAt)}
                       </Mono>
                     </a>
                   ))}
                   {displayRecent.length === 0 && (
-                    <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+                    <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-8 text-center">
                       {recentSearch ? "No plays match your search." : "No plays found for this period."}
                     </p>
                   )}
@@ -909,7 +909,7 @@ export function SpotifyClient() {
           {patternSource.length > 0 && (
             <div className="bg-surface-1 rounded-v2-md p-4 flex flex-col gap-3 mt-2">
               <div className="flex items-center justify-between">
-                <Mono className="text-[10px] text-ink-3">
+                <Mono className="text-[10px] text-text-lo">
                   LISTENING PATTERNS ({patternSource.length} PLAYS)
                 </Mono>
                 <div className="flex items-center gap-1">

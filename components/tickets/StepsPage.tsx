@@ -43,15 +43,15 @@ export function StepsPage({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] uppercase tracking-[0.12em] text-ink-3">
+        <span className="text-[11px] uppercase tracking-[0.12em] text-text-lo">
           {simple ? "Checklist" : definition.kind ?? kind}
         </span>
-        <span className="text-[11px] font-[family-name:var(--font-mono)] text-ink-3">
+        <span className="text-[11px] font-[family-name:var(--font-mono)] text-text-lo">
           {counts.done}/{counts.total}
           {counts.total > 0 && counts.done === counts.total ? " · complete" : ""}
         </span>
       </div>
-      <div className="h-1 w-full overflow-hidden rounded bg-ink-2">
+      <div className="h-1 w-full overflow-hidden rounded bg-surface-2">
         <div
           className="h-full bg-accent transition-[width]"
           style={{ width: `${counts.total ? Math.round((counts.done / counts.total) * 100) : 0}%` }}
@@ -59,7 +59,7 @@ export function StepsPage({
       </div>
 
       {!simple && definition.intro && (
-        <section className="rounded-v2-md border border-hairline p-3 text-sm text-ink-4">
+        <section className="rounded-v2-md border border-hairline p-3 text-sm text-text-hi">
           {definition.intro.verdict_html && <Html html={definition.intro.verdict_html} />}
           {definition.intro.prerequisites && definition.intro.prerequisites.length > 0 && (
             <div className="mt-2">
@@ -74,10 +74,10 @@ export function StepsPage({
             </div>
           )}
           {definition.intro.time && definition.intro.time.length > 0 && (
-            <p className="mt-2 text-[11px] text-ink-3">Time: {definition.intro.time.join(" · ")}</p>
+            <p className="mt-2 text-[11px] text-text-lo">Time: {definition.intro.time.join(" · ")}</p>
           )}
           {definition.intro.cost && definition.intro.cost.length > 0 && (
-            <p className="text-[11px] text-ink-3">Cost: {definition.intro.cost.join(" · ")}</p>
+            <p className="text-[11px] text-text-lo">Cost: {definition.intro.cost.join(" · ")}</p>
           )}
         </section>
       )}
@@ -86,7 +86,7 @@ export function StepsPage({
         <section className="flex flex-wrap items-center gap-x-5 gap-y-2">
           {Object.entries(definition.toggles).map(([key, t]) => (
             <div key={key} className="flex items-center gap-1.5">
-              <span className="text-[10px] uppercase tracking-[0.14em] text-ink-3">{t.label}</span>
+              <span className="text-[10px] uppercase tracking-[0.14em] text-text-lo">{t.label}</span>
               {Object.entries(t.options).map(([val, label]) => (
                 <button
                   key={val}
@@ -96,7 +96,7 @@ export function StepsPage({
                   className={`rounded-full border px-2.5 py-1 text-[11px] ${
                     toggles[key] === val
                       ? "border-glow-2/50 bg-glow-2/15 text-glow-2"
-                      : "border-ink-2 text-ink-3 hover:text-ink-4"
+                      : "border-surface-2 text-text-lo hover:text-text-hi"
                   }`}
                 >
                   {label}
@@ -132,16 +132,16 @@ export function StepsPage({
           <section key={phase.id} className="rounded-v2-lg border border-hairline bg-surface-1 p-3">
             {!simple && (
               <div className="flex items-baseline justify-between">
-                <h3 className="text-sm font-semibold text-text-0">
+                <h3 className="text-sm font-semibold text-text-hi">
                   <span className="mr-2 font-[family-name:var(--font-mono)] text-[11px] text-glow-2">{phase.id}</span>
                   {phase.title}
                 </h3>
-                <span className="text-[11px] font-[family-name:var(--font-mono)] text-ink-3">
+                <span className="text-[11px] font-[family-name:var(--font-mono)] text-text-lo">
                   {phaseDone}/{steps.length}
                 </span>
               </div>
             )}
-            {!simple && phase.lede_html && <Html html={phase.lede_html} className="mt-1 text-sm text-ink-3" />}
+            {!simple && phase.lede_html && <Html html={phase.lede_html} className="mt-1 text-sm text-text-lo" />}
 
             <ul className="mt-2 flex flex-col gap-2">
               {steps.map((s) => (
@@ -162,7 +162,7 @@ export function StepsPage({
             </ul>
 
             {!simple && phase.verify_html && phase.verify_html.length > 0 && (
-              <div className="mt-3 rounded-sm border border-ok/30 bg-ok/5 p-2 text-sm text-ink-4">
+              <div className="mt-3 rounded-sm border border-ok/30 bg-ok/5 p-2 text-sm text-text-hi">
                 <Label>Verify</Label>
                 <ul className="ml-4 list-disc">
                   {phase.verify_html.map((v, i) => (
@@ -174,7 +174,7 @@ export function StepsPage({
               </div>
             )}
             {!simple && phase.why_html && (
-              <div className="mt-2 text-[12px] text-ink-3">
+              <div className="mt-2 text-[12px] text-text-lo">
                 <Label>Why</Label>
                 <Html html={phase.why_html} inline />
               </div>
@@ -184,7 +184,7 @@ export function StepsPage({
       })}
 
       {!simple && definition.rollback_html && (
-        <section className="rounded-v2-md border border-warn/30 p-3 text-sm text-ink-4">
+        <section className="rounded-v2-md border border-warn/30 p-3 text-sm text-text-hi">
           <Label>Rollback</Label>
           <Html html={definition.rollback_html} />
         </section>
@@ -195,10 +195,10 @@ export function StepsPage({
           <ul className="mt-1 flex flex-col gap-2">
             {definition.troubleshooting.map((t, i) => (
               <li key={i}>
-                <span className="text-ink-4">{t.symptom}</span>
-                {t.cause && <span className="text-ink-3"> — {t.cause}</span>}
+                <span className="text-text-hi">{t.symptom}</span>
+                {t.cause && <span className="text-text-lo"> — {t.cause}</span>}
                 {t.fix && (
-                  <div className="text-ink-3">
+                  <div className="text-text-lo">
                     Fix: <Html html={t.fix} inline />
                   </div>
                 )}
@@ -224,7 +224,7 @@ export function StepsPage({
                       {l.label}
                     </a>
                   )}
-                  {l.note && <span className="text-ink-3"> — {l.note}</span>}
+                  {l.note && <span className="text-text-lo"> — {l.note}</span>}
                 </li>
               );
             })}
@@ -293,12 +293,12 @@ function StepRow({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             {!simple && (
-              <span className="font-[family-name:var(--font-mono)] text-[11px] text-ink-3">{step.id}</span>
+              <span className="font-[family-name:var(--font-mono)] text-[11px] text-text-lo">{step.id}</span>
             )}
             <button
               type="button"
               onClick={() => hasBody && setOpen((v) => !v)}
-              className={`text-left text-sm ${done ? "text-ink-3 line-through" : "text-text-0"}`}
+              className={`text-left text-sm ${done ? "text-text-lo line-through" : "text-text-hi"}`}
             >
               {step.title}
             </button>
@@ -309,7 +309,7 @@ function StepRow({
             )}
             {step.route && (
               <span
-                className="rounded-sm border border-ink-2 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-ink-3"
+                className="rounded-sm border border-surface-2 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-text-lo"
                 title="Only applies on this route / device; a test keeps it visible so every pass counts the same steps"
               >
                 {routeLabel(definition, step.route)}
@@ -321,7 +321,7 @@ function StepRow({
                   href={whereUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-full border border-ink-2 px-2 py-0.5 text-[10px] text-glow-2 hover:underline"
+                  className="rounded-full border border-surface-2 px-2 py-0.5 text-[10px] text-glow-2 hover:underline"
                 >
                   {WHERE_GLYPH[step.where.kind ?? "page"] ?? ""} {step.where.label}
                 </a>
@@ -330,20 +330,20 @@ function StepRow({
                   {step.where.label} (needs a value)
                 </a>
               ) : (
-                <span className="rounded-full border border-ink-2 px-2 py-0.5 text-[10px] text-ink-3">
+                <span className="rounded-full border border-surface-2 px-2 py-0.5 text-[10px] text-text-lo">
                   {WHERE_GLYPH[step.where.kind ?? "page"] ?? ""} {step.where.label}
                 </span>
               )
             )}
             {done && at && (
-              <span className="text-[10px] text-ink-3">
+              <span className="text-[10px] text-text-lo">
                 {new Date(at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
           </div>
 
           {hasBody && open && (
-            <div className="mt-2 flex flex-col gap-2 text-sm text-ink-4">
+            <div className="mt-2 flex flex-col gap-2 text-sm text-text-hi">
               {step.body_html && <Html html={substitute(step.body_html, definition, state)} />}
               {step.blocks?.map((b, i) => {
                 const text = b.shells ? (b.shells[shell ?? ""] ?? Object.values(b.shells)[0] ?? "") : (b.text ?? "");
@@ -367,15 +367,15 @@ function StepRow({
                   key={i}
                   className={`rounded-sm border px-2 py-1 text-[12px] ${
                     n.kind === "security" || n.kind === "warn"
-                      ? "border-warn/40 bg-warn/5 text-ink-4"
-                      : "border-ink-2 text-ink-3"
+                      ? "border-warn/40 bg-warn/5 text-text-hi"
+                      : "border-surface-2 text-text-lo"
                   }`}
                 >
                   <Html html={substitute(n.html, definition, state)} inline />
                 </div>
               ))}
               {step.after_html && (
-                <div className="text-[12px] text-ink-3">
+                <div className="text-[12px] text-text-lo">
                   After it reports: <Html html={substitute(step.after_html, definition, state)} inline />
                 </div>
               )}
@@ -388,16 +388,16 @@ function StepRow({
 }
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <div className="text-[10px] uppercase tracking-[0.14em] text-ink-3">{children}</div>;
+  return <div className="text-[10px] uppercase tracking-[0.14em] text-text-lo">{children}</div>;
 }
 
 function Html({ html, className = "", inline = false }: { html: string; className?: string; inline?: boolean }) {
   const clean = sanitizeHtml(html);
   return inline ? (
-    <span className={`[&_a]:text-glow-2 [&_a]:underline [&_code]:rounded-sm [&_code]:bg-ink-2 [&_code]:px-1 ${className}`} dangerouslySetInnerHTML={{ __html: clean }} />
+    <span className={`[&_a]:text-glow-2 [&_a]:underline [&_code]:rounded-sm [&_code]:bg-surface-2 [&_code]:px-1 ${className}`} dangerouslySetInnerHTML={{ __html: clean }} />
   ) : (
     <div
-      className={`prose-sm [&_a]:text-glow-2 [&_a]:underline [&_code]:rounded-sm [&_code]:bg-ink-2 [&_code]:px-1 [&_p+p]:mt-2 [&_ul]:ml-4 [&_ul]:list-disc [&_ol]:ml-4 [&_ol]:list-decimal ${className}`}
+      className={`prose-sm [&_a]:text-glow-2 [&_a]:underline [&_code]:rounded-sm [&_code]:bg-surface-2 [&_code]:px-1 [&_p+p]:mt-2 [&_ul]:ml-4 [&_ul]:list-disc [&_ol]:ml-4 [&_ol]:list-decimal ${className}`}
       dangerouslySetInnerHTML={{ __html: clean }}
     />
   );
@@ -406,8 +406,8 @@ function Html({ html, className = "", inline = false }: { html: string; classNam
 function CodeBlock({ label, text }: { label?: string; text: string }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div className="rounded-sm border border-ink-2 bg-ink-0/60">
-      <div className="flex items-center justify-between px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-ink-3">
+    <div className="rounded-sm border border-surface-2 bg-surface-0/60">
+      <div className="flex items-center justify-between px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-text-lo">
         <span>{label ?? "copy"}</span>
         <button
           type="button"
@@ -417,12 +417,12 @@ function CodeBlock({ label, text }: { label?: string; text: string }) {
               setTimeout(() => setCopied(false), 1200);
             });
           }}
-          className="hover:text-ink-4"
+          className="hover:text-text-hi"
         >
           {copied ? "copied" : "copy"}
         </button>
       </div>
-      <pre className="overflow-x-auto whitespace-pre-wrap px-2 pb-2 font-[family-name:var(--font-mono)] text-[12px] text-ink-4">{text}</pre>
+      <pre className="overflow-x-auto whitespace-pre-wrap px-2 pb-2 font-[family-name:var(--font-mono)] text-[12px] text-text-hi">{text}</pre>
     </div>
   );
 }
@@ -440,9 +440,9 @@ function AnswerBox({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.12em] text-ink-3">{label}</span>
+      <span className="text-[10px] uppercase tracking-[0.12em] text-text-lo">{label}</span>
       <input
-        className="rounded-sm bg-ink-2 px-2 py-1 text-sm text-text-0 outline-none focus:ring-1 focus:ring-glow-2/60"
+        className="rounded-sm bg-surface-2 px-2 py-1 text-sm text-text-hi outline-none focus:ring-1 focus:ring-glow-2/60"
         defaultValue={value}
         placeholder={placeholder}
         onBlur={(e) => {

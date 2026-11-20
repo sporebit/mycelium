@@ -125,10 +125,10 @@ export function PersonDrawer({
     <div className="fixed inset-0 z-50">
       <div
         onClick={onClose}
-        className="absolute inset-0 bg-ink-0/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-surface-0/60 backdrop-blur-sm"
       />
       <aside
-        className="drawer-slide-in absolute top-0 right-0 h-full w-full max-w-[480px] bg-ink-1 shadow-2xl flex flex-col rounded-l-lg"
+        className="drawer-slide-in absolute top-0 right-0 h-full w-full max-w-[480px] bg-surface-1 shadow-2xl flex flex-col rounded-l-lg"
         role="dialog"
         aria-label={mode.kind === "create" ? "Add person" : "Edit person"}
       >
@@ -137,7 +137,7 @@ export function PersonDrawer({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="h-8 w-8 flex items-center justify-center text-text-2 hover:text-text-0 text-base"
+            className="h-8 w-8 flex items-center justify-center text-text-lo hover:text-text-hi text-base"
           >
             ✕
           </button>
@@ -267,7 +267,7 @@ export function PersonDrawer({
               {aliases.map((a) => (
                 <span
                   key={a}
-                  className="inline-flex items-center gap-1 rounded-full bg-ink-2 text-text-1 text-xs px-2.5 py-1 font-[family-name:var(--font-mono)]"
+                  className="inline-flex items-center gap-1 rounded-full bg-surface-2 text-text-mid text-xs px-2.5 py-1 font-[family-name:var(--font-mono)]"
                 >
                   {a}
                   <button
@@ -275,7 +275,7 @@ export function PersonDrawer({
                     onClick={() =>
                       setAliases((prev) => prev.filter((x) => x !== a))
                     }
-                    className="text-text-2 hover:text-error"
+                    className="text-text-lo hover:text-error"
                     aria-label={`Remove ${a}`}
                   >
                     ×
@@ -294,10 +294,10 @@ export function PersonDrawer({
                 }}
                 onBlur={addAliasFromDraft}
                 placeholder="type + Enter"
-                className="bg-transparent outline-none text-sm text-text-0 placeholder:text-text-3 min-w-[120px] flex-1"
+                className="bg-transparent outline-none text-sm text-text-hi placeholder:text-text-ghost min-w-[120px] flex-1"
               />
             </div>
-            <p className="text-[11px] text-text-2 mt-1">
+            <p className="text-[11px] text-text-lo mt-1">
               The first name (or display name) becomes the primary alias
               automatically.
             </p>
@@ -310,11 +310,11 @@ export function PersonDrawer({
           )}
         </div>
 
-        <footer className="px-8 py-5 flex items-center gap-3 border-t border-ink-3/60">
+        <footer className="px-8 py-5 flex items-center gap-3 border-t border-text-lo/60">
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-3 rounded-sm border border-ink-4 text-sm text-text-1 hover:text-text-0 hover:bg-ink-2 transition-colors"
+            className="px-6 py-3 rounded-sm border border-text-hi text-sm text-text-mid hover:text-text-hi hover:bg-surface-2 transition-colors"
           >
             Cancel
           </button>
@@ -325,7 +325,7 @@ export function PersonDrawer({
               triggerGlowPulse(e.currentTarget);
               void submit();
             }}
-            className="ml-auto px-6 py-3 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+            className="ml-auto px-6 py-3 rounded-sm bg-glow-2 text-text-hi hover:bg-glow-1 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-colors"
           >
             {busy ? "Saving…" : "Save"}
           </button>
@@ -336,7 +336,7 @@ export function PersonDrawer({
 }
 
 const inputClass =
-  "w-full bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
+  "w-full bg-surface-2 rounded-sm text-sm text-text-hi placeholder:text-text-ghost placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
 
 function Field({
   label,

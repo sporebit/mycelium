@@ -82,18 +82,18 @@ export function NutritionTable() {
       topRight={<Mono>LAST 30 DAYS</Mono>}
     >
       {days === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : nonEmpty.length === 0 ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Log meals on the dashboard to see history here
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-hairline">
+              <tr className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] border-b border-hairline">
                 <th className="text-left py-2 pr-3">Date</th>
                 <th className="text-right py-2 px-3">Kcal</th>
                 <th className="text-right py-2 px-3">P</th>
@@ -104,26 +104,26 @@ export function NutritionTable() {
             </thead>
             <tbody>
               {avg && (
-                <tr className="border-b border-hairline bg-ink-2/20">
+                <tr className="border-b border-hairline bg-surface-2/20">
                   <td className="py-2 pr-3 text-[10px] uppercase tracking-[0.18em] text-accent font-[family-name:var(--font-mono)]">
                     Avg ({nonEmpty.length}d)
                   </td>
                   <td className="text-right py-2 px-3">
-                    <Mono className="text-ink-4">
+                    <Mono className="text-text-hi">
                       {avg.kcal.toLocaleString()}
                     </Mono>
                   </td>
                   <td className="text-right py-2 px-3">
-                    <Mono className="text-ink-4">{avg.p}g</Mono>
+                    <Mono className="text-text-hi">{avg.p}g</Mono>
                   </td>
                   <td className="text-right py-2 px-3">
-                    <Mono className="text-ink-4">{avg.c}g</Mono>
+                    <Mono className="text-text-hi">{avg.c}g</Mono>
                   </td>
                   <td className="text-right py-2 px-3">
-                    <Mono className="text-ink-4">{avg.f}g</Mono>
+                    <Mono className="text-text-hi">{avg.f}g</Mono>
                   </td>
                   <td className="text-right py-2 pl-3">
-                    <Mono className="text-ink-4">{avg.meals}</Mono>
+                    <Mono className="text-text-hi">{avg.meals}</Mono>
                   </td>
                 </tr>
               )}
@@ -163,11 +163,11 @@ function RowFragment({
     <>
       <tr
         onClick={onToggle}
-        className={`border-b border-hairline cursor-pointer hover:bg-ink-2/20 transition-colors ${
+        className={`border-b border-hairline cursor-pointer hover:bg-surface-2/20 transition-colors ${
           row.empty ? "opacity-50" : ""
         } ${isToday ? "bg-accent/5" : ""}`}
       >
-        <td className="py-2 pr-3 text-ink-4">
+        <td className="py-2 pr-3 text-text-hi">
           {isToday && (
             <span className="text-[9px] uppercase tracking-[0.18em] text-accent font-[family-name:var(--font-mono)] mr-2">
               TODAY
@@ -176,27 +176,27 @@ function RowFragment({
           {fmtDate(row.date)}
         </td>
         <td className="text-right py-2 px-3">
-          <Mono className={row.empty ? "text-ink-3" : "text-ink-4"}>
+          <Mono className={row.empty ? "text-text-lo" : "text-text-hi"}>
             {row.empty ? "—" : row.total_kcal.toLocaleString()}
           </Mono>
         </td>
         <td className="text-right py-2 px-3">
-          <Mono className={row.empty ? "text-ink-3" : "text-ink-4"}>
+          <Mono className={row.empty ? "text-text-lo" : "text-text-hi"}>
             {row.empty ? "—" : `${row.total_p}g`}
           </Mono>
         </td>
         <td className="text-right py-2 px-3">
-          <Mono className={row.empty ? "text-ink-3" : "text-ink-4"}>
+          <Mono className={row.empty ? "text-text-lo" : "text-text-hi"}>
             {row.empty ? "—" : `${row.total_c}g`}
           </Mono>
         </td>
         <td className="text-right py-2 px-3">
-          <Mono className={row.empty ? "text-ink-3" : "text-ink-4"}>
+          <Mono className={row.empty ? "text-text-lo" : "text-text-hi"}>
             {row.empty ? "—" : `${row.total_f}g`}
           </Mono>
         </td>
         <td className="text-right py-2 pl-3">
-          <Mono className={row.empty ? "text-ink-3" : "text-ink-4"}>
+          <Mono className={row.empty ? "text-text-lo" : "text-text-hi"}>
             {row.meal_count}
           </Mono>
         </td>
@@ -210,12 +210,12 @@ function RowFragment({
                   key={m.id}
                   className="flex items-center gap-3 text-[12px]"
                 >
-                  <Mono className="text-ink-3 w-12 shrink-0">{m.t}</Mono>
-                  <span className="flex-1 truncate text-ink-4">{m.n}</span>
-                  <Mono className="text-ink-3 text-[10px]">
+                  <Mono className="text-text-lo w-12 shrink-0">{m.t}</Mono>
+                  <span className="flex-1 truncate text-text-hi">{m.n}</span>
+                  <Mono className="text-text-lo text-[10px]">
                     {m.p}P · {m.c}C · {m.f}F
                   </Mono>
-                  <Mono className="text-ink-4 w-12 text-right">{m.kcal}</Mono>
+                  <Mono className="text-text-hi w-12 text-right">{m.kcal}</Mono>
                 </li>
               ))}
             </ul>

@@ -176,8 +176,8 @@ export function AddRecipeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-ink-0 border border-hairline rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-        <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
+      <div className="bg-surface-0 border border-hairline rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+        <h2 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic mb-4">
           Add Recipe
         </h2>
 
@@ -236,35 +236,35 @@ export function AddRecipeModal({
 
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="col-span-2">
-            <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">TITLE</label>
+            <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">TITLE</label>
             <input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} className={RECIPES_INPUT_CLS} placeholder="Recipe name" />
           </div>
           <div>
-            <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">SOURCE NAME</label>
+            <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">SOURCE NAME</label>
             <input value={formSourceName} onChange={(e) => setFormSourceName(e.target.value)} className={RECIPES_INPUT_CLS} placeholder="e.g. Gousto" />
           </div>
           <div>
-            <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">SOURCE URL</label>
+            <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">SOURCE URL</label>
             <input value={formSourceUrl} onChange={(e) => setFormSourceUrl(e.target.value)} className={RECIPES_INPUT_CLS} placeholder="https://…" />
           </div>
           <div>
-            <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">PREP (min)</label>
+            <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">PREP (min)</label>
             <input type="number" value={formPrepTime} onChange={(e) => setFormPrepTime(e.target.value)} className={RECIPES_INPUT_CLS} />
           </div>
           <div>
-            <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">COOK (min)</label>
+            <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">COOK (min)</label>
             <input type="number" value={formCookTime} onChange={(e) => setFormCookTime(e.target.value)} className={RECIPES_INPUT_CLS} />
           </div>
           <div>
-            <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">SERVINGS</label>
+            <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">SERVINGS</label>
             <input type="number" value={formServings} onChange={(e) => setFormServings(e.target.value)} className={RECIPES_INPUT_CLS} />
           </div>
           <div>
-            <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">CUISINE</label>
+            <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">CUISINE</label>
             <input value={formCuisine} onChange={(e) => setFormCuisine(e.target.value)} className={RECIPES_INPUT_CLS} placeholder="e.g. Italian" />
           </div>
           <div className="col-span-2">
-            <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">TAGS (comma separated)</label>
+            <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">TAGS (comma separated)</label>
             <input value={formTags} onChange={(e) => setFormTags(e.target.value)} className={RECIPES_INPUT_CLS} placeholder="quick, chicken, healthy" />
           </div>
         </div>
@@ -272,7 +272,7 @@ export function AddRecipeModal({
         {/* Ingredients */}
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">INGREDIENTS</label>
+            <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">INGREDIENTS</label>
             <button
               onClick={() => setFormIngredients([...formIngredients, { amount: "", unit: null, name: "", notes: null }])}
               className="text-[10px] text-accent font-[family-name:var(--font-mono)]"
@@ -314,7 +314,7 @@ export function AddRecipeModal({
               />
               <button
                 onClick={() => setFormIngredients(formIngredients.filter((_, j) => j !== i))}
-                className="text-ink-3 hover:text-danger text-xs px-1"
+                className="text-text-lo hover:text-danger text-xs px-1"
               >
                 ✕
               </button>
@@ -325,7 +325,7 @@ export function AddRecipeModal({
         {/* Method */}
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">METHOD</label>
+            <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">METHOD</label>
             <button
               onClick={() => setFormMethod([...formMethod, { step: formMethod.length + 1, instruction: "" }])}
               className="text-[10px] text-accent font-[family-name:var(--font-mono)]"
@@ -335,7 +335,7 @@ export function AddRecipeModal({
           </div>
           {formMethod.map((s, i) => (
             <div key={i} className="flex gap-1 mb-1 items-start">
-              <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] mt-2.5 w-5 shrink-0">{s.step}.</span>
+              <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] mt-2.5 w-5 shrink-0">{s.step}.</span>
               <textarea
                 value={s.instruction}
                 onChange={(e) => {
@@ -351,7 +351,7 @@ export function AddRecipeModal({
                   const next = formMethod.filter((_, j) => j !== i).map((s, j) => ({ ...s, step: j + 1 }));
                   setFormMethod(next);
                 }}
-                className="text-ink-3 hover:text-danger text-xs px-1 mt-2"
+                className="text-text-lo hover:text-danger text-xs px-1 mt-2"
               >
                 ✕
               </button>
@@ -361,14 +361,14 @@ export function AddRecipeModal({
 
         {/* Notes */}
         <div className="mb-4">
-          <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">NOTES</label>
+          <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">NOTES</label>
           <textarea value={formNotes} onChange={(e) => setFormNotes(e.target.value)} rows={2} className={`${RECIPES_INPUT_CLS} resize-y`} />
         </div>
 
         <div className="flex items-center gap-2 justify-end">
           <button
             onClick={() => { resetForm(); onClose(); }}
-            className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+            className="px-3 py-1.5 rounded-v2-md border border-hairline text-text-lo hover:text-text-hi hover:border-text-lo text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
           >
             CANCEL
           </button>

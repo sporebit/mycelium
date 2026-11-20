@@ -84,7 +84,7 @@ export function DateSelector({
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-v2-md border border-hairline text-sm text-text-0 hover:border-ink-3 transition-colors font-[family-name:var(--font-display)] italic"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-v2-md border border-hairline text-sm text-text-hi hover:border-text-lo transition-colors font-[family-name:var(--font-display)] italic"
         >
           {fmtLongDate(currentDate)}
           {!isToday && (
@@ -94,14 +94,14 @@ export function DateSelector({
                 : "· FUTURE"}
             </span>
           )}
-          <span aria-hidden className="text-ink-3">
+          <span aria-hidden className="text-text-lo">
             ▾
           </span>
         </button>
         {!isToday && (
           <Link
             href="/fitness"
-            className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+            className="text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
           >
             → TODAY
           </Link>
@@ -122,18 +122,18 @@ export function DateSelector({
                 type="button"
                 onClick={() => shiftWeek(-1)}
                 aria-label="Previous week"
-                className="h-8 w-8 inline-flex items-center justify-center rounded-v2-md text-ink-3 hover:text-ink-4 hover:bg-ink-2/50"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-v2-md text-text-lo hover:text-text-hi hover:bg-surface-2/50"
               >
                 ←
               </button>
-              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 {week ? `Week of ${week.days[0].date}` : "Week"}
               </span>
               <button
                 type="button"
                 onClick={() => shiftWeek(1)}
                 aria-label="Next week"
-                className="h-8 w-8 inline-flex items-center justify-center rounded-v2-md text-ink-3 hover:text-ink-4 hover:bg-ink-2/50"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-v2-md text-text-lo hover:text-text-hi hover:bg-surface-2/50"
               >
                 →
               </button>
@@ -159,8 +159,8 @@ export function DateSelector({
                         isSelected
                           ? "border-accent/60 bg-accent/15 text-accent"
                           : d.is_today
-                            ? "border-accent/30 text-text-0 hover:bg-surface-2"
-                            : "border-hairline text-text-1 hover:text-text-0 hover:bg-surface-2"
+                            ? "border-accent/30 text-text-hi hover:bg-surface-2"
+                            : "border-hairline text-text-mid hover:text-text-hi hover:bg-surface-2"
                       }`}
                       aria-current={isSelected ? "date" : undefined}
                     >

@@ -15,10 +15,10 @@ export default function BodyShortcutSetupPage() {
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl">
-        <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
+        <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-text-hi">
           iOS Shortcut — Body metrics
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] leading-relaxed">
           Reads the latest weight + body fat % from Apple Health and posts
           them to Myphelium2. Run it after stepping off your scale — or
           schedule it daily via Personal Automations.
@@ -26,7 +26,7 @@ export default function BodyShortcutSetupPage() {
 
         <Panel title="Your API secret" topRight={<Mono>copy me</Mono>}>
           <SecretCopy value={secret} label="X-API-Secret" />
-          <p className="text-[11px] text-ink-3 mt-2 italic font-[family-name:var(--font-display)]">
+          <p className="text-[11px] text-text-lo mt-2 italic font-[family-name:var(--font-display)]">
             Same secret as the capture Shortcut. Don&apos;t paste it anywhere
             public, including screenshots.
           </p>
@@ -44,7 +44,7 @@ export default function BodyShortcutSetupPage() {
               body={
                 <>
                   Add <Mono>Find Health Samples</Mono> with:
-                  <ul className="mt-1 list-disc list-inside text-[13px] text-ink-3">
+                  <ul className="mt-1 list-disc list-inside text-[13px] text-text-lo">
                     <li>Category: <Mono>Body Measurements</Mono></li>
                     <li>Sample Type: <Mono>Weight</Mono></li>
                     <li>Sort by: <Mono>Date</Mono> · Order: <Mono>Latest First</Mono></li>
@@ -72,7 +72,7 @@ export default function BodyShortcutSetupPage() {
               body={
                 <>
                   Build a dictionary with the keys Myphelium2 expects:
-                  <ul className="mt-1 list-disc list-inside text-[13px] text-ink-3">
+                  <ul className="mt-1 list-disc list-inside text-[13px] text-text-lo">
                     <li>
                       <Mono>weight_kg</Mono> → numeric value of{" "}
                       <Mono>WeightSample</Mono>
@@ -98,7 +98,7 @@ export default function BodyShortcutSetupPage() {
               title="Get Contents of URL"
               body={
                 <>
-                  <ul className="list-disc list-inside text-[13px] text-ink-3">
+                  <ul className="list-disc list-inside text-[13px] text-text-lo">
                     <li>URL: <Mono>{url}</Mono></li>
                     <li>Method: <Mono>POST</Mono></li>
                     <li>Headers — <Mono>X-API-Secret</Mono>: the value from the secret panel above</li>
@@ -115,7 +115,7 @@ export default function BodyShortcutSetupPage() {
                 <>
                   Pull the <Mono>summary</Mono> key from the response and
                   show it as a banner:
-                  <ul className="list-disc list-inside text-[13px] text-ink-3 mt-1">
+                  <ul className="list-disc list-inside text-[13px] text-text-lo mt-1">
                     <li>Get Dictionary Value · Key: <Mono>summary</Mono></li>
                     <li>
                       Title: <Mono>Myphelium2</Mono> · Body: the dictionary
@@ -129,7 +129,7 @@ export default function BodyShortcutSetupPage() {
         </Panel>
 
         <Panel title="Schedule it">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] leading-relaxed">
             iOS Settings → Shortcuts → Automation → Personal Automation. Pick
             a time (e.g. 07:30 daily) and link this Shortcut. Set{" "}
             <Mono>Ask Before Running</Mono> to <Mono>Off</Mono> so it fires
@@ -138,7 +138,7 @@ export default function BodyShortcutSetupPage() {
         </Panel>
 
         <Panel title="Manual fallback">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] leading-relaxed">
             No Shortcut yet? Use the form on{" "}
             <Mono>/fitness/body</Mono> — same endpoint under the hood, just
             with <Mono>source=&quot;manual&quot;</Mono>.
@@ -163,8 +163,8 @@ function Step({
         {n}
       </span>
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-ink-4 mb-1">{title}</div>
-        <div className="text-sm text-ink-3 leading-relaxed">{body}</div>
+        <div className="text-sm text-text-hi mb-1">{title}</div>
+        <div className="text-sm text-text-lo leading-relaxed">{body}</div>
       </div>
     </li>
   );

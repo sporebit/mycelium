@@ -138,10 +138,10 @@ export function AnalysisClient() {
   return (
     <div className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Spending analysis
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Where the money actually goes.
         </p>
       </header>
@@ -160,7 +160,7 @@ export function AnalysisClient() {
             className={`shrink-0 px-2.5 py-1 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.08em] transition-colors ${
               activePreset === p.label
                 ? "bg-accent/15 text-accent border border-accent/30"
-                : "bg-surface-1 text-ink-3 border border-hairline hover:text-ink-4 hover:border-ink-3"
+                : "bg-surface-1 text-text-lo border border-hairline hover:text-text-hi hover:border-text-lo"
             }`}
           >
             {p.label}
@@ -178,13 +178,13 @@ export function AnalysisClient() {
           </Mono>
         </SummaryCard>
         <SummaryCard label="Top category" loading={catData === null}>
-          <span className="text-sm text-text-0">{topCategory}</span>
+          <span className="text-sm text-text-hi">{topCategory}</span>
         </SummaryCard>
         <SummaryCard label="Categories" loading={catData === null}>
-          <Mono className="text-lg text-ink-4">{categoryCount}</Mono>
+          <Mono className="text-lg text-text-hi">{categoryCount}</Mono>
         </SummaryCard>
         <SummaryCard label="Daily avg" loading={catData === null}>
-          <Mono className="text-lg text-ink-4">
+          <Mono className="text-lg text-text-hi">
             <PrivateText>
               <DailyAvg total={totalSpend} from={dateFrom} to={dateTo} />
             </PrivateText>
@@ -194,7 +194,7 @@ export function AnalysisClient() {
 
       {/* Category breakdown — horizontal bars */}
       <section className="rounded-v2-md bg-surface-1 border border-hairline p-3">
-        <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
+        <h3 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-2">
           By category
         </h3>
         {catData === null ? (
@@ -248,7 +248,7 @@ export function AnalysisClient() {
 
       {/* Monthly trend — stacked bars */}
       <section className="rounded-v2-md bg-surface-1 border border-hairline p-3">
-        <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
+        <h3 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-2">
           Monthly trend (last 6 months)
         </h3>
         {monthData === null ? (
@@ -302,10 +302,10 @@ export function AnalysisClient() {
       {/* Category table */}
       {catData && catData.length > 0 && (
         <section className="rounded-v2-md bg-surface-1 border border-hairline p-3">
-          <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
+          <h3 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-2">
             Breakdown
           </h3>
-          <ul className="flex flex-col divide-y divide-ink-2/60">
+          <ul className="flex flex-col divide-y divide-surface-2/60">
             {catData.map((row) => (
               <li
                 key={row.category}
@@ -319,17 +319,17 @@ export function AnalysisClient() {
                         CATEGORY_COLOURS[row.category] ?? "var(--ink-3)",
                     }}
                   />
-                  <span className="text-sm text-ink-4 truncate">
+                  <span className="text-sm text-text-hi truncate">
                     {row.category}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Mono className="text-[11px] text-ink-3 tabular-nums">
+                  <Mono className="text-[11px] text-text-lo tabular-nums">
                     {totalSpend > 0
                       ? `${((Number(row.total) / totalSpend) * 100).toFixed(1)}%`
                       : "—"}
                   </Mono>
-                  <Mono className="text-sm text-text-0 tabular-nums">
+                  <Mono className="text-sm text-text-hi tabular-nums">
                     <PrivateText>
                       <Money value={Number(row.total)} format="balance" />
                     </PrivateText>
@@ -355,11 +355,11 @@ function SummaryCard({
 }) {
   return (
     <div className="rounded-v2-md bg-surface-1 border border-hairline px-4 py-3 flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {label}
       </span>
       {loading ? (
-        <span className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <span className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           …
         </span>
       ) : (
@@ -390,7 +390,7 @@ function DailyAvg({
 
 function Loading() {
   return (
-    <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+    <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
       Loading…
     </div>
   );
@@ -398,7 +398,7 @@ function Loading() {
 
 function Empty() {
   return (
-    <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+    <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
       No data for this period.
     </div>
   );

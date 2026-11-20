@@ -75,7 +75,7 @@ export default function SettingsPage() {
 
   if (!settings) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
@@ -84,10 +84,10 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-6 max-w-5xl">
       <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Settings
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Configure your Myphelium2 experience.
         </p>
       </header>
@@ -152,7 +152,7 @@ function SettingsBody({
               className={`text-left px-3 py-2 rounded-v2-md text-sm transition-colors ${
                 panel.key === active
                   ? "bg-surface-2 text-text-hi"
-                  : "text-ink-3 hover:text-ink-4 hover:bg-surface-1"
+                  : "text-text-lo hover:text-text-hi hover:bg-surface-1"
               }`}
             >
               {panel.label}
@@ -169,10 +169,10 @@ function SettingsBody({
             key={panel.key}
             type="button"
             onClick={() => setSheetKey(panel.key)}
-            className="flex items-center justify-between px-4 py-3 text-left text-sm text-ink-4 bg-surface-1 border-b border-hairline last:border-b-0 active:bg-surface-2 transition-colors"
+            className="flex items-center justify-between px-4 py-3 text-left text-sm text-text-hi bg-surface-1 border-b border-hairline last:border-b-0 active:bg-surface-2 transition-colors"
           >
             {panel.label}
-            <span aria-hidden className="text-ink-3">›</span>
+            <span aria-hidden className="text-text-lo">›</span>
           </button>
         ))}
       </div>
@@ -204,7 +204,7 @@ function DailySection() {
   return (
     <div className="flex flex-col gap-4">
       <SectionCard title="TODAY — WHEN IT SPEAKS">
-        <p className="text-sm text-ink-3">
+        <p className="text-sm text-text-lo">
           The morning pick normally comes when the phone&apos;s alarm stops, and the evening close when it goes on charge.
           These are for the days neither happens.
         </p>
@@ -218,13 +218,13 @@ function DailySection() {
           type="number"
           onSave={(v) => save({ interruption_budget: minutes(v, d.interruption_budget, 10) })}
         />
-        <p className="text-[12px] text-ink-3">
+        <p className="text-[12px] text-text-lo">
           Counted across push, Telegram and the wall together. Replies to something you started, reminders you set, and
           another person&apos;s nudges are not counted. Nothing is sent while a countdown is running.
         </p>
       </SectionCard>
       <SectionCard title="TODAY — HOW MUCH FITS">
-        <p className="text-sm text-ink-3">
+        <p className="text-sm text-text-lo">
           Free minutes each day. Today is filled to half of this, with shown times already half as long again as the
           estimate.
         </p>
@@ -283,7 +283,7 @@ function JournalSection({ settings, onPatch }: { settings: Settings; onPatch: (f
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-v2-md bg-surface-1 p-5">
-      <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-4">{title}</Mono>
+      <Mono className="text-[11px] text-text-lo tracking-[0.18em] mb-4">{title}</Mono>
       <div className="flex flex-col gap-4">{children}</div>
     </div>
   );
@@ -297,7 +297,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
 function PeopleLinkSection() {
   return (
     <SectionCard title="PEOPLE & TEAMS">
-      <p className="text-sm text-ink-3">
+      <p className="text-sm text-text-lo">
         Teams you belong to, who can see which sections, invitations, and
         what you have shared with a person. Finance is never shared.
       </p>
@@ -314,7 +314,7 @@ function PeopleLinkSection() {
 function SecurityLinkSection() {
   return (
     <SectionCard title="SECURITY">
-      <p className="text-sm text-ink-3">
+      <p className="text-sm text-text-lo">
         Password, authenticator app, passkeys and the sessions currently
         signed in to this account.
       </p>
@@ -348,13 +348,13 @@ function TextSetting({
 
   return (
     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
-      <label className="text-xs text-text-1 sm:w-48 shrink-0">{label}</label>
+      <label className="text-xs text-text-mid sm:w-48 shrink-0">{label}</label>
       <input
         type={type}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={() => { if (draft !== value) onSave(draft); }}
-        className="flex-1 bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+        className="flex-1 bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
       />
     </div>
   );
@@ -373,11 +373,11 @@ function SelectSetting({
 }) {
   return (
     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
-      <label className="text-xs text-text-1 sm:w-48 shrink-0">{label}</label>
+      <label className="text-xs text-text-mid sm:w-48 shrink-0">{label}</label>
       <select
         value={value}
         onChange={(e) => onSave(e.target.value)}
-        className="flex-1 bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+        className="flex-1 bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
@@ -401,16 +401,16 @@ function ToggleSetting({
   return (
     <div className="flex items-start gap-4">
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-text-0">{label}</div>
+        <div className="text-sm text-text-hi">{label}</div>
         {description && (
-          <div className="text-xs text-ink-3 mt-0.5">{description}</div>
+          <div className="text-xs text-text-lo mt-0.5">{description}</div>
         )}
       </div>
       <button
         type="button"
         onClick={() => onToggle(!value)}
         className={`shrink-0 w-10 h-5 rounded-full transition-colors relative ${
-          value ? "bg-ok" : "bg-ink-3"
+          value ? "bg-ok" : "bg-text-lo"
         }`}
       >
         <span
@@ -493,8 +493,8 @@ function AppearanceSection({ settings, onPatch }: { settings: Settings; onPatch:
     <SectionCard title="APPEARANCE">
       <div className="flex items-center justify-between gap-4 py-2 flex-wrap">
         <div className="min-w-0">
-          <div className="text-sm text-ink-4">Shell</div>
-          <div className="text-[11px] text-ink-3">
+          <div className="text-sm text-text-hi">Shell</div>
+          <div className="text-[11px] text-text-lo">
             New: a top menu bar, and Home as the Specimen plate. Classic: the sidebar and the dashboard. Switch back at any time.
           </div>
         </div>
@@ -515,8 +515,8 @@ function AppearanceSection({ settings, onPatch }: { settings: Settings; onPatch:
 
       <div className="flex items-center justify-between gap-4 py-2 flex-wrap">
         <div className="min-w-0">
-          <div className="text-sm text-ink-4">Density</div>
-          <div className="text-[11px] text-ink-3">
+          <div className="text-sm text-text-hi">Density</div>
+          <div className="text-[11px] text-text-lo">
             Compact tightens table rows from 40px to 32px
           </div>
         </div>
@@ -534,8 +534,8 @@ function AppearanceSection({ settings, onPatch }: { settings: Settings; onPatch:
 
       <div className="flex items-center justify-between gap-4 py-2 flex-wrap">
         <div className="min-w-0">
-          <div className="text-sm text-ink-4">Motion</div>
-          <div className="text-[11px] text-ink-3">
+          <div className="text-sm text-text-hi">Motion</div>
+          <div className="text-[11px] text-text-lo">
             Reduced shortens transitions; off disables them entirely
           </div>
         </div>
@@ -561,8 +561,8 @@ function AppearanceSection({ settings, onPatch }: { settings: Settings; onPatch:
 
       <div className="flex items-center justify-between gap-4 py-2 flex-wrap">
         <div className="min-w-0">
-          <div className="text-sm text-ink-4">Reset dashboard layout</div>
-          <div className="text-[11px] text-ink-3">
+          <div className="text-sm text-text-hi">Reset dashboard layout</div>
+          <div className="text-[11px] text-text-lo">
             Restores the default card order and sizes
           </div>
         </div>
@@ -573,7 +573,7 @@ function AppearanceSection({ settings, onPatch }: { settings: Settings; onPatch:
               void setPrefs({ dashboard_layout: {} });
             }
           }}
-          className="text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:bg-surface-2 transition-colors"
+          className="text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-3 py-1.5 rounded-v2-md border border-hairline text-text-lo hover:text-text-hi hover:bg-surface-2 transition-colors"
         >
           Reset
         </button>
@@ -592,7 +592,7 @@ function SectionsSection() {
   const hidden = new Set(prefs.hidden_sections);
   return (
     <SectionCard title="SECTIONS">
-      <p className="text-[11px] text-ink-3 pb-1">
+      <p className="text-[11px] text-text-lo pb-1">
         Hidden sections disappear from the sidebar, tab bar and ⌘K search.
         Their pages still open if you navigate straight to them.
       </p>
@@ -604,7 +604,7 @@ function SectionsSection() {
               key={sec.key}
               className="flex items-center justify-between gap-3 py-2 cursor-pointer"
             >
-              <span className="text-sm text-ink-4">{sec.label}</span>
+              <span className="text-sm text-text-hi">{sec.label}</span>
               <input
                 type="checkbox"
                 checked={!isHidden}
@@ -662,7 +662,7 @@ function NotificationsSection({ settings, onPatch }: { settings: Settings; onPat
         />
       )}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
-        <label className="text-xs text-text-1 sm:w-48 shrink-0">
+        <label className="text-xs text-text-mid sm:w-48 shrink-0">
           Reminder lead time
         </label>
         <div className="flex items-center gap-2">
@@ -674,9 +674,9 @@ function NotificationsSection({ settings, onPatch }: { settings: Settings; onPat
                 reminder_notification_minutes_before: parseInt(e.target.value) || 10,
               })
             }
-            className="w-20 bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+            className="w-20 bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
           />
-          <span className="text-xs text-ink-3">minutes before</span>
+          <span className="text-xs text-text-lo">minutes before</span>
         </div>
       </div>
     </SectionCard>
@@ -782,7 +782,7 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
         statusOk={!!settings.spotify_connected}
         action={
           settings.spotify_connected ? (
-            <Mono className="text-[10px] text-ink-3">Connected</Mono>
+            <Mono className="text-[10px] text-text-lo">Connected</Mono>
           ) : (
             <Link
               href="/api/spotify/authorize"
@@ -845,14 +845,14 @@ function IntegrationRow({
   return (
     <div className="flex items-center gap-4">
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-text-0">{name}</div>
-        <div className="text-xs text-ink-3">{description}</div>
+        <div className="text-sm text-text-hi">{name}</div>
+        <div className="text-xs text-text-lo">{description}</div>
       </div>
       <div className="flex items-center gap-2">
         <span
-          className={`w-1.5 h-1.5 rounded-full ${statusOk ? "bg-ok" : "bg-ink-3"}`}
+          className={`w-1.5 h-1.5 rounded-full ${statusOk ? "bg-ok" : "bg-text-lo"}`}
         />
-        <Mono className="text-[10px] text-ink-3">{status}</Mono>
+        <Mono className="text-[10px] text-text-lo">{status}</Mono>
       </div>
       {action}
     </div>
@@ -912,7 +912,7 @@ function CaptureSourcesSection({ settings, onPatch }: { settings: Settings; onPa
 
   return (
     <SectionCard title="CAPTURE SOURCES">
-      <div className="text-xs text-ink-3 mb-1">
+      <div className="text-xs text-text-lo mb-1">
         Customise the icon and label shown for each capture source.
       </div>
       <div className="flex flex-col gap-3">
@@ -923,7 +923,7 @@ function CaptureSourcesSection({ settings, onPatch }: { settings: Settings; onPa
               value={source.icon}
               onChange={(e) => setDrafts((d) => ({ ...d, [key]: { ...d[key], icon: e.target.value } }))}
               onBlur={() => save(key, "icon", drafts[key].icon)}
-              className="w-10 bg-ink-0 border border-hairline rounded-v2-md text-sm text-center text-text-0 py-1.5 outline-none focus:border-accent"
+              className="w-10 bg-surface-0 border border-hairline rounded-v2-md text-sm text-center text-text-hi py-1.5 outline-none focus:border-accent"
               title="Icon"
             />
             <input
@@ -931,15 +931,15 @@ function CaptureSourcesSection({ settings, onPatch }: { settings: Settings; onPa
               value={source.label}
               onChange={(e) => setDrafts((d) => ({ ...d, [key]: { ...d[key], label: e.target.value } }))}
               onBlur={() => save(key, "label", drafts[key].label)}
-              className="flex-1 bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+              className="flex-1 bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
               title="Label"
             />
-            <Mono className="text-[9px] text-ink-3 w-16 text-right shrink-0">{key}</Mono>
+            <Mono className="text-[9px] text-text-lo w-16 text-right shrink-0">{key}</Mono>
             <button
               type="button"
               onClick={() => save(key, "visible", !source.visible)}
               className={`shrink-0 w-10 h-5 rounded-full transition-colors relative ${
-                source.visible ? "bg-ok" : "bg-ink-3"
+                source.visible ? "bg-ok" : "bg-text-lo"
               }`}
             >
               <span
@@ -976,7 +976,7 @@ function AIConfigSection({ settings, onPatch }: { settings: Settings; onPatch: (
         options={models}
         onSave={(v) => onPatch({ ai_spending_categorisation_model: v })}
       />
-      <div className="text-[10px] text-ink-3 italic font-[family-name:var(--font-display)]">
+      <div className="text-[10px] text-text-lo italic font-[family-name:var(--font-display)]">
         Model changes take effect on next API call.
       </div>
     </SectionCard>
@@ -995,16 +995,16 @@ function DataSection({ stats }: { stats: Stats | null }) {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
           {Object.values(stats).map((s) => (
-            <div key={s.label} className="rounded-v2-md bg-ink-0 px-3 py-2">
-              <div className="text-sm text-text-0 font-[family-name:var(--font-display)]">
+            <div key={s.label} className="rounded-v2-md bg-surface-0 px-3 py-2">
+              <div className="text-sm text-text-hi font-[family-name:var(--font-display)]">
                 {s.count.toLocaleString()}
               </div>
-              <Mono className="text-[9px] text-ink-3">{s.label}</Mono>
+              <Mono className="text-[9px] text-text-lo">{s.label}</Mono>
             </div>
           ))}
         </div>
       )}
-      <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
+      <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-1">
         Import history coming soon.
       </div>
     </SectionCard>
@@ -1074,7 +1074,7 @@ function DangerButton({
       className={`text-left px-3 py-2 rounded-v2-md border text-xs font-[family-name:var(--font-mono)] tracking-[0.08em] transition-colors ${
         confirming
           ? "border-danger bg-danger/10 text-danger"
-          : "border-hairline text-ink-3 hover:text-danger hover:border-danger/40"
+          : "border-hairline text-text-lo hover:text-danger hover:border-danger/40"
       }`}
     >
       {confirming ? "Click again to confirm" : label}

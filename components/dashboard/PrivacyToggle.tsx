@@ -57,7 +57,7 @@ export function PrivacyToggle() {
       className={`hidden lg:inline-flex items-center justify-center h-8 w-8 rounded-md transition-colors ${
         financeHidden
           ? "text-accent hover:text-accent/80"
-          : "text-ink-3 hover:text-ink-4"
+          : "text-text-lo hover:text-text-hi"
       }`}
     >
       {financeHidden ? <EyeOffIcon /> : <EyeIcon />}

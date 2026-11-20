@@ -162,13 +162,13 @@ export function AddSessionModal({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
-          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-0">
+          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-hi">
             Add session to {SLOT_LABEL[slot]}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-text-2 hover:text-text-0 text-xl leading-none"
+            className="text-text-lo hover:text-text-hi text-xl leading-none"
             aria-label="Close"
           >
             ×
@@ -194,7 +194,7 @@ export function AddSessionModal({
                   className={`px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
                     active
                       ? "border-accent/50 bg-accent/15 text-accent"
-                      : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                      : "border-hairline text-text-lo hover:text-text-hi hover:border-text-lo"
                   }`}
                 >
                   {label}
@@ -206,7 +206,7 @@ export function AddSessionModal({
           {source === "programme" ? (
             <div className="flex flex-col gap-3 max-h-72 overflow-y-auto">
               {programmeSessions.length === 0 ? (
-                <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+                <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
                   No programme active.
                 </p>
               ) : (
@@ -227,14 +227,14 @@ export function AddSessionModal({
                               className={`text-left rounded-sm px-3 py-2 flex items-center gap-2 transition-colors ${
                                 active
                                   ? "bg-accent/15 ring-1 ring-accent/40"
-                                  : "bg-surface-2 hover:bg-ink-2"
+                                  : "bg-surface-2 hover:bg-surface-2"
                               }`}
                             >
                               <span aria-hidden>{kv.icon}</span>
-                              <span className="text-[11px] uppercase tracking-[0.15em] text-text-2 font-[family-name:var(--font-mono)]">
+                              <span className="text-[11px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
                                 {s.slot}
                               </span>
-                              <span className="text-sm text-text-0 flex-1 truncate">
+                              <span className="text-sm text-text-hi flex-1 truncate">
                                 {s.name}
                               </span>
                             </button>
@@ -248,11 +248,11 @@ export function AddSessionModal({
           ) : source === "library" ? (
             <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
               {workouts.length === 0 ? (
-                <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+                <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
                   No workouts in the library yet. Build one at{" "}
                   <Link
                     href="/fitness/workouts/new"
-                    className="text-accent hover:text-text-0 underline"
+                    className="text-accent hover:text-text-hi underline"
                   >
                     /fitness/workouts/new
                   </Link>
@@ -266,7 +266,7 @@ export function AddSessionModal({
                       value={libraryQuery}
                       onChange={(e) => setLibraryQuery(e.target.value)}
                       placeholder="Filter workouts…"
-                      className="bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+                      className="bg-surface-2 rounded-sm text-sm text-text-hi placeholder:text-text-ghost px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
                     />
                   )}
                   <div className="flex flex-col gap-1">
@@ -288,16 +288,16 @@ export function AddSessionModal({
                             className={`text-left rounded-sm px-3 py-2 flex items-center gap-2 transition-colors ${
                               active
                                 ? "bg-accent/15 ring-1 ring-accent/40"
-                                : "bg-surface-2 hover:bg-ink-2"
+                                : "bg-surface-2 hover:bg-surface-2"
                             }`}
                           >
                             <span aria-hidden>
                               {w.default_kind ? KIND_ICON[w.default_kind] : "·"}
                             </span>
-                            <span className="text-sm text-text-0 flex-1 truncate">
+                            <span className="text-sm text-text-hi flex-1 truncate">
                               {w.name}
                             </span>
-                            <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                            <span className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
                               {w.exercise_count ?? "·"} ex
                             </span>
                           </button>
@@ -322,7 +322,7 @@ export function AddSessionModal({
                       className={`px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors flex items-center gap-1.5 ${
                         active
                           ? `${kv.bgClass} ${kv.textClass} ${kv.borderClass}`
-                          : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                          : "border-hairline text-text-lo hover:text-text-hi hover:border-text-lo"
                       }`}
                     >
                       <span aria-hidden>{kv.icon}</span>
@@ -341,7 +341,7 @@ export function AddSessionModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="leave blank to use the default"
-              className="bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+              className="bg-surface-2 rounded-sm text-sm text-text-hi placeholder:text-text-ghost placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
             />
           </label>
 
@@ -365,7 +365,7 @@ export function AddSessionModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-12 rounded-sm border border-ink-4 text-text-1 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] hover:text-text-0 hover:bg-ink-2"
+            className="flex-1 h-12 rounded-sm border border-text-hi text-text-mid text-xs font-[family-name:var(--font-mono)] tracking-[0.18em] hover:text-text-hi hover:bg-surface-2"
           >
             CANCEL
           </button>
@@ -376,7 +376,7 @@ export function AddSessionModal({
               triggerGlowPulse(e.currentTarget);
               void submit();
             }}
-            className="flex-[2] h-12 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
+            className="flex-[2] h-12 rounded-sm bg-glow-2 text-text-hi hover:bg-glow-1 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
           >
             {busy ? "ADDING…" : "ADD"}
           </button>
@@ -452,7 +452,7 @@ function SessionTypeSelect({
           setCustomMode(false);
           onChange(v);
         }}
-        className="bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+        className="bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
       >
         <option value="">—</option>
         {sorted.map((t) => (
@@ -480,7 +480,7 @@ function SessionTypeSelect({
               }
             }}
             placeholder="e.g. Tennis, Yoga"
-            className="flex-1 bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+            className="flex-1 bg-surface-2 rounded-sm text-sm text-text-hi placeholder:text-text-ghost px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
           />
           <button
             type="button"
@@ -496,7 +496,7 @@ function SessionTypeSelect({
               setCustomMode(false);
               setCustomLabel("");
             }}
-            className="text-ink-3 hover:text-ink-4 text-sm"
+            className="text-text-lo hover:text-text-hi text-sm"
             aria-label="Cancel"
           >
             ×

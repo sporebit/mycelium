@@ -88,21 +88,21 @@ export function Operator({ width = 1 }: { width?: CardWidth } = {}) {
       <Panel borderless title="OPERATOR" status="ONLINE" statusTone="ok">
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-6">
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-ink-2 to-ink-1 border border-ink-2 flex items-center justify-center shrink-0">
-              <span className="text-2xl font-[family-name:var(--font-display)] italic text-ink-4">
+            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-surface-2 to-surface-1 border border-surface-2 flex items-center justify-center shrink-0">
+              <span className="text-2xl font-[family-name:var(--font-display)] italic text-text-hi">
                 {initial}
               </span>
             </div>
             <div>
-              <div className="text-base text-ink-4">{fullName}</div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <div className="text-base text-text-hi">{fullName}</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 {OPERATOR.role} · {OPERATOR.city}
               </div>
             </div>
           </div>
 
-          <div className="border-l border-ink-2 pl-6">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1">
+          <div className="border-l border-surface-2 pl-6">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-1">
               Focus
             </div>
             {editing ? (
@@ -114,35 +114,35 @@ export function Operator({ width = 1 }: { width?: CardWidth } = {}) {
                 onBlur={save}
                 placeholder="What are you focused on?"
                 rows={2}
-                className="w-full bg-transparent text-sm text-ink-4 italic font-[family-name:var(--font-display)] outline-none resize-none placeholder:text-ink-3 leading-snug"
+                className="w-full bg-transparent text-sm text-text-hi italic font-[family-name:var(--font-display)] outline-none resize-none placeholder:text-text-lo leading-snug"
                 disabled={saving}
               />
             ) : (
               <button
                 type="button"
                 onClick={beginEdit}
-                className="text-left w-full text-sm text-ink-4 italic font-[family-name:var(--font-display)] hover:text-ink-3 transition-colors whitespace-pre-wrap leading-snug"
+                className="text-left w-full text-sm text-text-hi italic font-[family-name:var(--font-display)] hover:text-text-lo transition-colors whitespace-pre-wrap leading-snug"
                 title="Click to edit"
               >
                 {loaded && focus ? (
                   focus
                 ) : (
-                  <span className="text-ink-3">[Set today&apos;s focus]</span>
+                  <span className="text-text-lo">[Set today&apos;s focus]</span>
                 )}
               </button>
             )}
           </div>
 
-          <div className="border-l border-ink-2 pl-6 flex flex-col gap-0.5">
+          <div className="border-l border-surface-2 pl-6 flex flex-col gap-0.5">
             <span className="card-eyebrow">Streak</span>
             {streak === null ? (
-              <Mono className="text-sm text-text-1">—</Mono>
+              <Mono className="text-sm text-text-mid">—</Mono>
             ) : (
               <div className="flex items-baseline gap-2 tabular-nums">
-                <span className="font-[family-name:var(--font-display)] text-3xl font-medium text-text-0 leading-none">
+                <span className="font-[family-name:var(--font-display)] text-3xl font-medium text-text-hi leading-none">
                   {streak}
                 </span>
-                <span className="text-sm text-text-1">
+                <span className="text-sm text-text-mid">
                   {streak === 1 ? "day" : "days"}
                 </span>
               </div>
@@ -156,22 +156,22 @@ export function Operator({ width = 1 }: { width?: CardWidth } = {}) {
   return (
     <Panel borderless title="OPERATOR" status="ONLINE" statusTone="ok">
       <div className="flex flex-col items-center gap-3 pt-1">
-        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-ink-2 to-ink-1 border border-ink-2 flex items-center justify-center">
-          <span className="text-2xl font-[family-name:var(--font-display)] italic text-ink-4">
+        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-surface-2 to-surface-1 border border-surface-2 flex items-center justify-center">
+          <span className="text-2xl font-[family-name:var(--font-display)] italic text-text-hi">
             {initial}
           </span>
         </div>
         <div className="text-center">
-          <div className="text-base text-ink-4">{fullName}</div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <div className="text-base text-text-hi">{fullName}</div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             {OPERATOR.role} · {OPERATOR.city}
           </div>
         </div>
       </div>
 
-      <div className="mt-5 pt-4 border-t border-ink-2 flex flex-col gap-3">
+      <div className="mt-5 pt-4 border-t border-surface-2 flex flex-col gap-3">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-1">
             Focus
           </div>
           {editing ? (
@@ -183,20 +183,20 @@ export function Operator({ width = 1 }: { width?: CardWidth } = {}) {
               onBlur={save}
               placeholder="What are you focused on?"
               rows={2}
-              className="w-full bg-transparent text-sm text-ink-4 italic font-[family-name:var(--font-display)] outline-none resize-none placeholder:text-ink-3 leading-snug"
+              className="w-full bg-transparent text-sm text-text-hi italic font-[family-name:var(--font-display)] outline-none resize-none placeholder:text-text-lo leading-snug"
               disabled={saving}
             />
           ) : (
             <button
               type="button"
               onClick={beginEdit}
-              className="text-left w-full text-sm text-ink-4 italic font-[family-name:var(--font-display)] hover:text-ink-3 transition-colors whitespace-pre-wrap leading-snug"
+              className="text-left w-full text-sm text-text-hi italic font-[family-name:var(--font-display)] hover:text-text-lo transition-colors whitespace-pre-wrap leading-snug"
               title="Click to edit"
             >
               {loaded && focus ? (
                 focus
               ) : (
-                <span className="text-ink-3">[Set today&apos;s focus]</span>
+                <span className="text-text-lo">[Set today&apos;s focus]</span>
               )}
             </button>
           )}
@@ -205,13 +205,13 @@ export function Operator({ width = 1 }: { width?: CardWidth } = {}) {
         <div className="flex flex-col gap-0.5">
           <span className="card-eyebrow">Streak</span>
           {streak === null ? (
-            <Mono className="text-sm text-text-1">—</Mono>
+            <Mono className="text-sm text-text-mid">—</Mono>
           ) : (
             <div className="flex items-baseline gap-2 tabular-nums">
-              <span className="font-[family-name:var(--font-display)] text-3xl font-medium text-text-0 leading-none">
+              <span className="font-[family-name:var(--font-display)] text-3xl font-medium text-text-hi leading-none">
                 {streak}
               </span>
-              <span className="text-sm text-text-1">
+              <span className="text-sm text-text-mid">
                 {streak === 1 ? "day" : "days"}
               </span>
             </div>

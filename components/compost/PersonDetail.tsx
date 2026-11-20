@@ -45,7 +45,7 @@ function avatarColor(name: string): string {
     "bg-glow-3 text-glow-1",
     "bg-warn/20 text-warn",
     "bg-info/20 text-info",
-    "bg-ink-3 text-text-1",
+    "bg-text-lo text-text-mid",
   ];
   return palette[h % palette.length];
 }
@@ -192,10 +192,10 @@ export function PersonDetail({ id }: { id: string }) {
   if (!person && missing) {
     return (
       <div className="flex flex-col gap-4">
-        <Link href="/organisation/people" className="text-[11px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em] self-start">
+        <Link href="/organisation/people" className="text-[11px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] tracking-[0.18em] self-start">
           ← PEOPLE
         </Link>
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           This person is not here. If they were deleted, they can be restored from the bin in{" "}
           <Link href="/other/settings/people" className="text-glow-2 hover:underline not-italic">
             Settings → People
@@ -207,7 +207,7 @@ export function PersonDetail({ id }: { id: string }) {
   }
   if (!person) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
@@ -228,14 +228,14 @@ export function PersonDetail({ id }: { id: string }) {
     <div className="flex flex-col gap-4">
       <Link
         href="/organisation/people"
-        className="text-[11px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em] self-start"
+        className="text-[11px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] tracking-[0.18em] self-start"
       >
         ← PEOPLE
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* LEFT — identity + contact */}
-        <section className="rounded-md bg-ink-1 p-6 flex flex-col gap-4">
+        <section className="rounded-md bg-surface-1 p-6 flex flex-col gap-4">
           <div className="flex flex-col items-center text-center gap-3">
             <span
               className={`h-20 w-20 rounded-full flex items-center justify-center text-2xl font-[family-name:var(--font-display)] ${avatarColor(name)}`}
@@ -243,7 +243,7 @@ export function PersonDetail({ id }: { id: string }) {
               {initials}
             </span>
             <div>
-              <h1 className="font-[family-name:var(--font-display)] text-3xl text-text-0">
+              <h1 className="font-[family-name:var(--font-display)] text-3xl text-text-hi">
                 {name}
               </h1>
               {person.relationship && (
@@ -257,7 +257,7 @@ export function PersonDetail({ id }: { id: string }) {
                 </div>
               )}
               {person.archived_at && (
-                <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-2" title="Off the People list and never matched by the day log, quotes or captures. History and links stay.">
+                <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-2" title="Off the People list and never matched by the day log, quotes or captures. History and links stay.">
                   archived ·{" "}
                   <button type="button" disabled={archiving} onClick={() => void setArchived(false)} className="text-glow-2 hover:underline disabled:opacity-50">
                     {archiving ? "…" : "unarchive"}
@@ -265,7 +265,7 @@ export function PersonDetail({ id }: { id: string }) {
                 </div>
               )}
               {person.tier === "contact" && (
-                <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-2" title="An imported card nothing has linked to yet. The day log, quotes and captures do not match contacts.">
+                <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-2" title="An imported card nothing has linked to yet. The day log, quotes and captures do not match contacts.">
                   contact ·{" "}
                   <button type="button" disabled={promoting} onClick={() => void promote()} className="text-glow-2 hover:underline disabled:opacity-50">
                     {promoting ? "…" : "promote to person"}
@@ -277,14 +277,14 @@ export function PersonDetail({ id }: { id: string }) {
               <button
                 type="button"
                 onClick={() => setEditing(true)}
-                className="px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                className="px-3 py-1.5 rounded-sm border border-text-hi text-xs text-text-mid hover:text-text-hi hover:bg-surface-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
               >
                 EDIT
               </button>
               <button
                 type="button"
                 onClick={() => setPicking(true)}
-                className="px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                className="px-3 py-1.5 rounded-sm border border-text-hi text-xs text-text-mid hover:text-text-hi hover:bg-surface-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
                 title="Merge with another person or contact"
               >
                 MERGE…
@@ -294,7 +294,7 @@ export function PersonDetail({ id }: { id: string }) {
                   type="button"
                   disabled={archiving}
                   onClick={() => void setArchived(true)}
-                  className="px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 disabled:opacity-50 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                  className="px-3 py-1.5 rounded-sm border border-text-hi text-xs text-text-mid hover:text-text-hi hover:bg-surface-2 disabled:opacity-50 font-[family-name:var(--font-mono)] tracking-[0.1em]"
                   title="Hide from the list and stop matching; history and links stay"
                 >
                   {archiving ? "…" : "ARCHIVE"}
@@ -303,7 +303,7 @@ export function PersonDetail({ id }: { id: string }) {
               <button
                 type="button"
                 onClick={() => setDeleting(true)}
-                className="px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-1 hover:border-error/60 hover:text-error font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                className="px-3 py-1.5 rounded-sm border border-text-hi text-xs text-text-mid hover:border-error/60 hover:text-error font-[family-name:var(--font-mono)] tracking-[0.1em]"
               >
                 DELETE
               </button>
@@ -320,13 +320,13 @@ export function PersonDetail({ id }: { id: string }) {
 
         {/* MIDDLE — aliases + notes */}
         <section className="flex flex-col gap-4">
-          <div className="rounded-md bg-ink-1 p-6">
+          <div className="rounded-md bg-surface-1 p-6">
             <div className="card-eyebrow mb-3">Aliases</div>
             <div className="flex flex-wrap items-center gap-2">
               {person.aliases.map((a) => (
                 <span
                   key={a.id}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-ink-2 text-text-1 text-xs px-2.5 py-1 font-[family-name:var(--font-mono)]"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 text-text-mid text-xs px-2.5 py-1 font-[family-name:var(--font-mono)]"
                 >
                   {a.alias}
                   {a.is_primary && (
@@ -338,7 +338,7 @@ export function PersonDetail({ id }: { id: string }) {
                     <button
                       type="button"
                       onClick={() => void removeAlias(a.id)}
-                      className="text-text-2 hover:text-error"
+                      className="text-text-lo hover:text-error"
                       aria-label={`Remove ${a.alias}`}
                     >
                       ×
@@ -357,22 +357,22 @@ export function PersonDetail({ id }: { id: string }) {
                   }
                 }}
                 placeholder="+ add alias"
-                className="bg-transparent outline-none text-sm text-text-0 placeholder:text-text-3 min-w-[100px]"
+                className="bg-transparent outline-none text-sm text-text-hi placeholder:text-text-ghost min-w-[100px]"
               />
             </div>
           </div>
 
-          <div className="rounded-md bg-ink-1 p-6">
+          <div className="rounded-md bg-surface-1 p-6">
             <div className="card-eyebrow mb-3 flex items-center justify-between">
               <span>Quotes</span>
-              <Link href={`/organisation/quotes?person=${id}`} className="text-[10px] text-text-2 hover:text-text-0 font-[family-name:var(--font-mono)]">
+              <Link href={`/organisation/quotes?person=${id}`} className="text-[10px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]">
                 {quotes === null ? "…" : quotes.length} →
               </Link>
             </div>
             {quotes === null ? (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">Loading…</div>
+              <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">Loading…</div>
             ) : quotes.length === 0 ? (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">Nothing quoted yet.</div>
+              <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">Nothing quoted yet.</div>
             ) : (
               <div className="flex flex-col gap-2">
                 {quotes.slice(0, 5).map((q) => (
@@ -382,36 +382,36 @@ export function PersonDetail({ id }: { id: string }) {
             )}
           </div>
 
-          <div className="rounded-md bg-ink-1 p-6">
+          <div className="rounded-md bg-surface-1 p-6">
             <div className="card-eyebrow mb-3">Notes</div>
             <textarea
               value={notesDraft}
               onChange={(e) => scheduleNotesSave(e.target.value)}
               rows={6}
               placeholder="Anything worth remembering…"
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2 resize-y"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi placeholder:text-text-ghost placeholder:italic px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2 resize-y"
             />
           </div>
         </section>
 
         {/* RIGHT — mentions */}
-        <section className="rounded-md bg-ink-1 p-6">
+        <section className="rounded-md bg-surface-1 p-6">
           <div className="card-eyebrow mb-3 flex items-center justify-between">
             <span>Mentions</span>
-            <Mono className="text-[10px] text-text-2">
+            <Mono className="text-[10px] text-text-lo">
               {mentions === null ? "…" : mentions.length}
             </Mono>
           </div>
           {mentions === null ? (
-            <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+            <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
               Loading…
             </div>
           ) : mentions.length === 0 ? (
-            <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+            <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
               No mentions yet.
             </div>
           ) : (
-            <ul className="flex flex-col divide-y divide-ink-2">
+            <ul className="flex flex-col divide-y divide-surface-2">
               {mentions.map((m) => {
                 // Each mention links to the specific source record.
                 // Captures route through `?focus=<id>` which the
@@ -429,20 +429,20 @@ export function PersonDetail({ id }: { id: string }) {
                   <li key={m.id} className="growth-in py-3 first:pt-0 last:pb-0">
                     <Link href={href} className="block group">
                       <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-[10px] uppercase tracking-[0.15em] text-text-2 font-[family-name:var(--font-mono)]">
+                        <span className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
                           {SOURCE_ICON[m.source_type] ?? "·"} {m.source_type}
                         </span>
-                        <Mono className="text-[10px] text-text-2">
+                        <Mono className="text-[10px] text-text-lo">
                           {relativeDate(m.source_at ?? m.created_at)}
                         </Mono>
                       </div>
-                      <p className="text-sm text-text-1 leading-snug mt-1 group-hover:text-text-0 transition-colors">
+                      <p className="text-sm text-text-mid leading-snug mt-1 group-hover:text-text-hi transition-colors">
                         {m.snippet
                           ? m.snippet.slice(0, 180) +
                             (m.snippet.length > 180 ? "…" : "")
                           : "—"}
                       </p>
-                      <Mono className="text-[10px] text-text-2 mt-1">
+                      <Mono className="text-[10px] text-text-lo mt-1">
                         said: &ldquo;{m.raw_alias}&rdquo;
                       </Mono>
                     </Link>
@@ -517,11 +517,11 @@ function ContactField({
     <button
       type="button"
       onClick={copy}
-      className="text-left group rounded-sm hover:bg-ink-2 -mx-2 px-2 py-1 transition-colors"
+      className="text-left group rounded-sm hover:bg-surface-2 -mx-2 px-2 py-1 transition-colors"
     >
       <div className="card-eyebrow">{label}</div>
       <div
-        className={`text-sm text-text-0 mt-0.5 ${
+        className={`text-sm text-text-hi mt-0.5 ${
           multiline ? "whitespace-pre-wrap" : "truncate"
         }`}
       >

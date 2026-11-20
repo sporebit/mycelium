@@ -29,18 +29,18 @@ export function ShoppingListModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-ink-0 border border-hairline rounded-2xl w-full max-w-md max-h-[80vh] overflow-y-auto p-6">
-        <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
+      <div className="bg-surface-0 border border-hairline rounded-2xl w-full max-w-md max-h-[80vh] overflow-y-auto p-6">
+        <h2 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic mb-4">
           Shopping List
         </h2>
 
         <div className="flex flex-col gap-1 mb-4">
           {items.map((item, i) => (
             <div key={i} className="flex items-center gap-2 py-1 text-sm">
-              <span className="text-ink-4 font-[family-name:var(--font-mono)] font-bold">
+              <span className="text-text-hi font-[family-name:var(--font-mono)] font-bold">
                 {item.amount}{item.unit ? ` ${item.unit}` : ""}
               </span>
-              <span className="text-ink-4 font-[family-name:var(--font-display)]">
+              <span className="text-text-hi font-[family-name:var(--font-display)]">
                 {item.name}
               </span>
             </div>
@@ -57,7 +57,7 @@ export function ShoppingListModal({
           </button>
           <button
             onClick={onClose}
-            className="px-3 py-2 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+            className="px-3 py-2 rounded-v2-md border border-hairline text-text-lo hover:text-text-hi text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
           >
             CLOSE
           </button>

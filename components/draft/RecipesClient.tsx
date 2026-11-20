@@ -34,7 +34,7 @@ function buildEmptyGrid(): PlannerGrid {
 }
 
 const inputClass =
-  "w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
+  "w-full rounded-md bg-surface-0 border border-surface-2 px-3 py-2 text-sm text-text-hi placeholder:text-text-lo/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
 export function RecipesClient() {
   const [recipes] = useState<Recipe[]>(SAMPLE_RECIPES);
   const [planner, setPlanner] = useState<PlannerGrid>(buildEmptyGrid);
@@ -55,10 +55,10 @@ export function RecipesClient() {
   return (
     <div className="flex flex-col gap-6 max-w-[1100px]">
       <header>
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Recipes
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] mt-1">
           Library and weekly meal planner.
         </p>
       </header>
@@ -71,16 +71,16 @@ export function RecipesClient() {
 
       {/* Recipe library */}
       <section>
-        <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-3">
+        <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-3">
           Library
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {recipes.map((r) => (
             <div
               key={r.id}
-              className="bg-ink-1 border border-ink-2 rounded-md p-4 flex flex-col gap-2"
+              className="bg-surface-1 border border-surface-2 rounded-md p-4 flex flex-col gap-2"
             >
-              <span className="text-sm text-ink-4 font-medium">{r.title}</span>
+              <span className="text-sm text-text-hi font-medium">{r.title}</span>
               <div className="flex flex-wrap gap-1">
                 {r.tags.map((t) => (
                   <span
@@ -91,7 +91,7 @@ export function RecipesClient() {
                   </span>
                 ))}
               </div>
-              <span className="font-[family-name:var(--font-mono)] tabular-nums text-[10px] text-ink-3">
+              <span className="font-[family-name:var(--font-mono)] tabular-nums text-[10px] text-text-lo">
                 {r.prepMinutes} min
               </span>
             </div>
@@ -102,7 +102,7 @@ export function RecipesClient() {
       {/* Weekly planner */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Weekly Planner
           </h2>
           <button
@@ -118,13 +118,13 @@ export function RecipesClient() {
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr>
-                <th className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] text-left p-2 font-normal">
+                <th className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] text-left p-2 font-normal">
                   Slot
                 </th>
                 {DAYS.map((d) => (
                   <th
                     key={d}
-                    className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] text-left p-2 font-normal"
+                    className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] text-left p-2 font-normal"
                   >
                     {d}
                   </th>
@@ -133,8 +133,8 @@ export function RecipesClient() {
             </thead>
             <tbody>
               {MEAL_SLOTS.map((slot) => (
-                <tr key={slot} className="border-t border-ink-2">
-                  <td className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] p-2 whitespace-nowrap">
+                <tr key={slot} className="border-t border-surface-2">
+                  <td className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] p-2 whitespace-nowrap">
                     {slot}
                   </td>
                   {DAYS.map((day) => (

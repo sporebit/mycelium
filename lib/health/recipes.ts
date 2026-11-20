@@ -58,4 +58,4 @@ export const MEAL_LABELS: Record<string, string> = {
 };
 
 export const RECIPES_INPUT_CLS =
-  "w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3";
+  "w-full bg-surface-0/40 border border-surface-2 rounded-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo placeholder:text-text-lo";

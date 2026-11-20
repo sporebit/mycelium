@@ -27,16 +27,16 @@ export default async function RundownPage({ params }: { params: Promise<{ team: 
   return (
     <div className="flex flex-col gap-6 max-w-3xl">
       <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           {teamRow?.name ?? "Team"} rundown
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Week {week}, rendered for you on {new Date(issue.created_at as string).toLocaleDateString()}.
         </p>
       </header>
       {/* Our own renderer's output, HTML-escaped at render time. */}
       <article
-        className="rounded-v2-md bg-surface-1 p-5 text-sm text-text-hi [&_a]:underline [&_h1]:text-text-0 [&_h2]:text-ink-3 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:py-0.5"
+        className="rounded-v2-md bg-surface-1 p-5 text-sm text-text-hi [&_a]:underline [&_h1]:text-text-hi [&_h2]:text-text-lo [&_ul]:list-disc [&_ul]:pl-5 [&_li]:py-0.5"
         dangerouslySetInnerHTML={{ __html: issue.rendered_html as string }}
       />
     </div>

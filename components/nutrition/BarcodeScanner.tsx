@@ -149,16 +149,16 @@ export function BarcodeScanner({
   }
 
   return (
-    <div className="fixed inset-0 z-[200] bg-ink-0/95 backdrop-blur-sm flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-ink-2">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+    <div className="fixed inset-0 z-[200] bg-surface-0/95 backdrop-blur-sm flex flex-col">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-surface-2">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           Scan barcode
         </span>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close scanner"
-          className="text-ink-3 hover:text-ink-4 text-base"
+          className="text-text-lo hover:text-text-hi text-base"
         >
           ✕
         </button>
@@ -166,7 +166,7 @@ export function BarcodeScanner({
 
       <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
         {showVideo && (
-          <div className="relative w-full max-w-md aspect-square rounded-lg overflow-hidden bg-ink-1 border border-ink-2">
+          <div className="relative w-full max-w-md aspect-square rounded-lg overflow-hidden bg-surface-1 border border-surface-2">
             <video
               ref={videoRef}
               autoPlay
@@ -182,12 +182,12 @@ export function BarcodeScanner({
 
         <div className="text-center max-w-md">
           {status === "initialising" && (
-            <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+            <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
               Starting camera…
             </p>
           )}
           {status === "scanning" && (
-            <p className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Hold the barcode inside the box.
             </p>
           )}
@@ -198,7 +198,7 @@ export function BarcodeScanner({
             </p>
           )}
           {status === "no_camera" && (
-            <p className="text-sm text-ink-3 font-[family-name:var(--font-display)] italic">
+            <p className="text-sm text-text-lo font-[family-name:var(--font-display)] italic">
               No camera available. Use the manual entry below.
             </p>
           )}
@@ -218,7 +218,7 @@ export function BarcodeScanner({
           <button
             type="button"
             onClick={() => setLabelMode(true)}
-            className="text-[11px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
+            className="text-[11px] uppercase tracking-[0.18em] text-accent hover:text-text-hi font-[family-name:var(--font-mono)]"
           >
             Scan label instead →
           </button>
@@ -226,9 +226,9 @@ export function BarcodeScanner({
 
         <form
           onSubmit={submitManual}
-          className="w-full max-w-md flex items-center gap-2 bg-ink-1 rounded-md border border-ink-2 px-3 py-2"
+          className="w-full max-w-md flex items-center gap-2 bg-surface-1 rounded-md border border-surface-2 px-3 py-2"
         >
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Manual
           </span>
           <input
@@ -237,12 +237,12 @@ export function BarcodeScanner({
             value={manual}
             onChange={(e) => setManual(e.target.value)}
             placeholder="Enter barcode digits"
-            className="flex-1 bg-transparent outline-none text-sm text-text-0 placeholder:text-ink-3"
+            className="flex-1 bg-transparent outline-none text-sm text-text-hi placeholder:text-text-lo"
           />
           <button
             type="submit"
             disabled={!manual.trim()}
-            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 disabled:opacity-40 disabled:cursor-not-allowed font-[family-name:var(--font-mono)]"
+            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-hi disabled:opacity-40 disabled:cursor-not-allowed font-[family-name:var(--font-mono)]"
           >
             LOOK UP ↵
           </button>

@@ -60,16 +60,16 @@ export function GoustoRecipePage({ slug }: { slug: string }) {
 	}
 
 	if (isLoading && !data) {
-		return <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-20 text-center">Loading…</p>;
+		return <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-20 text-center">Loading…</p>;
 	}
 	if (error || !r) {
 		const status = (error as { status?: number } | undefined)?.status;
 		return (
 			<div className="max-w-3xl mx-auto">
-				<Link href="/health/recipes/gousto" className="text-[10px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em]">
+				<Link href="/health/recipes/gousto" className="text-[10px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] tracking-[0.18em]">
 					← GOUSTO COOKBOOK
 				</Link>
-				<p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">{status === 404 ? "No such recipe. Run the Gousto sync on the PC first." : "Could not load this recipe."}</p>
+				<p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">{status === 404 ? "No such recipe. Run the Gousto sync on the PC first." : "Could not load this recipe."}</p>
 			</div>
 		);
 	}
@@ -81,7 +81,7 @@ export function GoustoRecipePage({ slug }: { slug: string }) {
 	return (
 		<div className="max-w-3xl mx-auto">
 			<div className="flex items-center justify-between mb-3">
-				<Link href="/health/recipes/gousto" className="text-[10px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em]">
+				<Link href="/health/recipes/gousto" className="text-[10px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] tracking-[0.18em]">
 					← GOUSTO COOKBOOK
 				</Link>
 				<div className="flex items-center gap-2">
@@ -98,10 +98,10 @@ export function GoustoRecipePage({ slug }: { slug: string }) {
 				</div>
 			</div>
 
-			{(r.image_large_url ?? r.image_url) && <div className="h-56 sm:h-72 w-full rounded-xl bg-cover bg-center bg-ink-1 mb-4" style={{ backgroundImage: `url(${r.image_large_url ?? r.image_url})` }} role="img" aria-label={r.title} />}
+			{(r.image_large_url ?? r.image_url) && <div className="h-56 sm:h-72 w-full rounded-xl bg-cover bg-center bg-surface-1 mb-4" style={{ backgroundImage: `url(${r.image_large_url ?? r.image_url})` }} role="img" aria-label={r.title} />}
 
-			<h1 className="text-xl text-text-0 font-[family-name:var(--font-display)] italic">{r.title}</h1>
-			<div className="flex flex-wrap items-center gap-3 mt-1 text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">
+			<h1 className="text-xl text-text-hi font-[family-name:var(--font-display)] italic">{r.title}</h1>
+			<div className="flex flex-wrap items-center gap-3 mt-1 text-[10px] text-text-lo font-[family-name:var(--font-mono)]">
 				<Stars avg={r.rating_avg} count={r.rating_count} />
 				{prep && <span>{prep}</span>}
 				{(d?.cuisine ?? r.cuisine) && <span>{d?.cuisine ?? r.cuisine}</span>}
@@ -119,7 +119,7 @@ export function GoustoRecipePage({ slug }: { slug: string }) {
 						The ingredients and method for this recipe have not been pulled yet. Run <code className="font-[family-name:var(--font-mono)]">npm run gousto:sync</code> on the PC (favourites are fetched first), or read it on gousto.co.uk.
 					</p>
 				))}
-			{(d?.description ?? r.description) && <p className="text-sm text-ink-4 mt-3 leading-relaxed">{d?.description ?? r.description}</p>}
+			{(d?.description ?? r.description) && <p className="text-sm text-text-hi mt-3 leading-relaxed">{d?.description ?? r.description}</p>}
 			{d && d.categories.length > 0 && (
 				<div className="flex flex-wrap gap-1 mt-3">
 					{d.categories.map((c) => (
@@ -133,31 +133,31 @@ export function GoustoRecipePage({ slug }: { slug: string }) {
 			{d && (
 				<div className="grid grid-cols-1 md:grid-cols-[16rem_minmax(0,1fr)] gap-6 mt-6">
 					<aside>
-						<h2 className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">In the box</h2>
+						<h2 className="text-[10px] uppercase tracking-[0.22em] text-text-lo font-[family-name:var(--font-mono)] mb-2">In the box</h2>
 						<ul className="flex flex-col gap-1.5">
 							{d.ingredients.map((i, idx) => (
-								<li key={`${i.label}-${idx}`} className="flex items-center gap-2 text-sm text-ink-4">
-									<span className="h-7 w-7 shrink-0 rounded-full bg-cover bg-center bg-ink-1" style={i.image ? { backgroundImage: `url(${i.image})` } : undefined} aria-hidden />
+								<li key={`${i.label}-${idx}`} className="flex items-center gap-2 text-sm text-text-hi">
+									<span className="h-7 w-7 shrink-0 rounded-full bg-cover bg-center bg-surface-1" style={i.image ? { backgroundImage: `url(${i.image})` } : undefined} aria-hidden />
 									<span>{i.label}</span>
 								</li>
 							))}
 						</ul>
 						{d.basics.length > 0 && (
 							<>
-								<h2 className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)] mt-4 mb-2">From your cupboard</h2>
-								<p className="text-sm text-ink-4">{d.basics.join(", ")}</p>
+								<h2 className="text-[10px] uppercase tracking-[0.22em] text-text-lo font-[family-name:var(--font-mono)] mt-4 mb-2">From your cupboard</h2>
+								<p className="text-sm text-text-hi">{d.basics.join(", ")}</p>
 							</>
 						)}
 						{d.allergens.length > 0 && (
 							<>
-								<h2 className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)] mt-4 mb-2">Allergens</h2>
+								<h2 className="text-[10px] uppercase tracking-[0.22em] text-text-lo font-[family-name:var(--font-mono)] mt-4 mb-2">Allergens</h2>
 								<p className="text-sm text-[#f5b56d]">{d.allergens.join(", ")}</p>
 							</>
 						)}
 						{perPortion && (
 							<>
-								<h2 className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)] mt-4 mb-2">Per portion</h2>
-								<table className="w-full text-xs text-ink-4">
+								<h2 className="text-[10px] uppercase tracking-[0.22em] text-text-lo font-[family-name:var(--font-mono)] mt-4 mb-2">Per portion</h2>
+								<table className="w-full text-xs text-text-hi">
 									<tbody>
 										{NUTRITION.map((n) => {
 											const raw = perPortion[n.key];
@@ -165,7 +165,7 @@ export function GoustoRecipePage({ slug }: { slug: string }) {
 											const v = n.unit === "kcal" ? raw : mgToG(raw);
 											return (
 												<tr key={n.key} className="border-t border-hairline">
-													<td className={`py-1 ${n.label.startsWith("of which") ? "pl-3 text-ink-3" : ""}`}>{n.label}</td>
+													<td className={`py-1 ${n.label.startsWith("of which") ? "pl-3 text-text-lo" : ""}`}>{n.label}</td>
 													<td className="py-1 text-right font-[family-name:var(--font-mono)] tabular-nums">
 														{v} {n.unit}
 													</td>
@@ -178,15 +178,15 @@ export function GoustoRecipePage({ slug }: { slug: string }) {
 						)}
 					</aside>
 					<section>
-						<h2 className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">Method</h2>
+						<h2 className="text-[10px] uppercase tracking-[0.22em] text-text-lo font-[family-name:var(--font-mono)] mb-2">Method</h2>
 						<ol className="flex flex-col gap-4">
 							{d.steps.map((s, i) => (
 								<li key={s.order ?? i} className="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
 									<span className="text-lg text-accent font-[family-name:var(--font-display)] italic leading-none pt-0.5">{i + 1}</span>
 									<div>
-										{s.image && <div className="h-28 w-full max-w-xs rounded-lg bg-cover bg-center bg-ink-1 mb-2" style={{ backgroundImage: `url(${s.image})` }} aria-hidden />}
+										{s.image && <div className="h-28 w-full max-w-xs rounded-lg bg-cover bg-center bg-surface-1 mb-2" style={{ backgroundImage: `url(${s.image})` }} aria-hidden />}
 										{/* safeStepHtml allowed only p / strong / em / br through */}
-										<div className="text-sm text-ink-4 leading-relaxed [&_p]:mb-1.5 [&_strong]:text-text-0" dangerouslySetInnerHTML={{ __html: s.html }} />
+										<div className="text-sm text-text-hi leading-relaxed [&_p]:mb-1.5 [&_strong]:text-text-hi" dangerouslySetInnerHTML={{ __html: s.html }} />
 									</div>
 								</li>
 							))}

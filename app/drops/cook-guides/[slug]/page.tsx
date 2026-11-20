@@ -74,7 +74,7 @@ export default function CookGuideDetailPage() {
 
   if (loading) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
         Loading guide…
       </div>
     );
@@ -82,7 +82,7 @@ export default function CookGuideDetailPage() {
 
   if (!guide) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
         Guide not found.
       </div>
     );
@@ -93,7 +93,7 @@ export default function CookGuideDetailPage() {
       <div className="flex items-center gap-3">
         <Link
           href="/drops/cook-guides"
-          className="text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
+          className="text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-text-lo hover:text-text-hi"
         >
           ← GUIDES
         </Link>
@@ -105,7 +105,7 @@ export default function CookGuideDetailPage() {
       </div>
 
       <header>
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           {guide.retailer}
         </h1>
         {guide.retailer_url && (
@@ -124,7 +124,7 @@ export default function CookGuideDetailPage() {
         <select
           value={guide.difficulty ?? ""}
           onChange={(e) => saveField("difficulty", e.target.value || null)}
-          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-text-0 px-2 py-1 outline-none focus:border-accent"
+          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-text-hi px-2 py-1 outline-none focus:border-accent"
         >
           <option value="">No difficulty set</option>
           {Object.entries(DIFF_LABELS).map(([k, v]) => (
@@ -136,7 +136,7 @@ export default function CookGuideDetailPage() {
         <select
           value={guide.region}
           onChange={(e) => saveField("region", e.target.value)}
-          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-text-0 px-2 py-1 outline-none focus:border-accent"
+          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-text-hi px-2 py-1 outline-none focus:border-accent"
         >
           {["UK", "EU", "US", "Global"].map((r) => (
             <option key={r} value={r}>
@@ -187,7 +187,7 @@ export default function CookGuideDetailPage() {
               }
               className="accent-accent"
             />
-            <span className="text-sm text-text-1">VPN recommended</span>
+            <span className="text-sm text-text-mid">VPN recommended</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -198,7 +198,7 @@ export default function CookGuideDetailPage() {
               }
               className="accent-accent"
             />
-            <span className="text-sm text-text-1">Bot compatible</span>
+            <span className="text-sm text-text-mid">Bot compatible</span>
           </label>
         </div>
 
@@ -246,7 +246,7 @@ function TextSection({
 
   return (
     <div className="rounded-v2-md bg-surface-1 p-4">
-      <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-2 block">
+      <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-2 block">
         {label.toUpperCase()}
       </Mono>
       <Component
@@ -256,7 +256,7 @@ function TextSection({
           if (draft !== value) onSave(draft);
         }}
         placeholder={placeholder}
-        className={`w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent ${
+        className={`w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-accent ${
           multiline ? "resize-none min-h-[80px]" : ""
         }`}
       />

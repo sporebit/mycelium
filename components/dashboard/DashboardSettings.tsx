@@ -53,20 +53,20 @@ export function DashboardSettings({
       onClick={onClose}
     >
       <div
-        className="growth-in w-full sm:max-w-md bg-ink-1 border border-ink-2 rounded-t-2xl sm:rounded-lg shadow-2xl flex flex-col max-h-[92vh]"
+        className="growth-in w-full sm:max-w-md bg-surface-1 border border-surface-2 rounded-t-2xl sm:rounded-lg shadow-2xl flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-ink-2">
+        <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-surface-2">
           <div>
             <div className="card-eyebrow">Dashboard</div>
-            <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-0">
+            <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-hi">
               Customize
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-text-2 hover:text-text-0 text-xl leading-none"
+            className="text-text-lo hover:text-text-hi text-xl leading-none"
             aria-label="Close"
           >
             ×
@@ -76,7 +76,7 @@ export function DashboardSettings({
         <div className="px-5 py-4 overflow-y-auto flex flex-col gap-4">
           <Section title="Visible">
             {visible.length === 0 ? (
-              <p className="text-xs text-text-2 italic font-[family-name:var(--font-display)]">
+              <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
                 Nothing visible.
               </p>
             ) : (
@@ -109,17 +109,17 @@ export function DashboardSettings({
           )}
         </div>
 
-        <footer className="px-5 py-4 border-t border-ink-2 flex items-center gap-2">
+        <footer className="px-5 py-4 border-t border-surface-2 flex items-center gap-2">
           {confirmingReset ? (
             <>
-              <span className="flex-1 text-xs text-text-1 italic font-[family-name:var(--font-display)]">
+              <span className="flex-1 text-xs text-text-mid italic font-[family-name:var(--font-display)]">
                 Reset all cards to defaults?
               </span>
               <button
                 type="button"
                 onClick={() => setConfirmingReset(false)}
                 disabled={resetting}
-                className="px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.15em] disabled:opacity-40"
+                className="px-3 py-1.5 rounded-sm border border-text-hi text-xs text-text-mid hover:text-text-hi hover:bg-surface-2 font-[family-name:var(--font-mono)] tracking-[0.15em] disabled:opacity-40"
               >
                 CANCEL
               </button>
@@ -136,7 +136,7 @@ export function DashboardSettings({
             <button
               type="button"
               onClick={() => setConfirmingReset(true)}
-              className="ml-auto px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-2 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.15em]"
+              className="ml-auto px-3 py-1.5 rounded-sm border border-text-hi text-xs text-text-lo hover:text-text-hi hover:bg-surface-2 font-[family-name:var(--font-mono)] tracking-[0.15em]"
             >
               RESET TO DEFAULTS
             </button>
@@ -172,13 +172,13 @@ function Row({
   onToggle: () => void;
 }) {
   return (
-    <li className="flex items-center justify-between gap-3 py-2 border-b border-ink-2 last:border-b-0">
+    <li className="flex items-center justify-between gap-3 py-2 border-b border-surface-2 last:border-b-0">
       <div className="flex items-center gap-2 min-w-0">
-        <span aria-hidden className="text-text-2 text-base shrink-0">
+        <span aria-hidden className="text-text-lo text-base shrink-0">
           {hidden ? "👁️‍🗨️" : "👁"}
         </span>
         <span
-          className={`text-sm truncate ${hidden ? "text-text-2 line-through" : "text-text-0"}`}
+          className={`text-sm truncate ${hidden ? "text-text-lo line-through" : "text-text-hi"}`}
         >
           {label}
         </span>
@@ -188,8 +188,8 @@ function Row({
         onClick={onToggle}
         className={`px-3 py-1 rounded-sm text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] transition-colors ${
           hidden
-            ? "bg-glow-2 text-text-0 hover:bg-glow-1"
-            : "border border-ink-4 text-text-1 hover:text-text-0 hover:bg-ink-2"
+            ? "bg-glow-2 text-text-hi hover:bg-glow-1"
+            : "border border-text-hi text-text-mid hover:text-text-hi hover:bg-surface-2"
         }`}
       >
         {hidden ? "SHOW" : "HIDE"}

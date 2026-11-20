@@ -30,7 +30,7 @@ const FIELDS: Array<{ key: keyof PersonUpdateDraft["patch"]; label: string; type
   { key: "notes", label: "Add to notes", wide: true, rows: 2 },
 ];
 
-const input = "w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
+const input = "w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
 
 function nameOf(p: PeopleRow): string {
   return (p.display_name?.trim() || [p.first_name, p.last_name].filter(Boolean).join(" ").trim()) || "(unnamed)";
@@ -70,7 +70,7 @@ export function PersonUpdateEditor({
   const chosen = people.find((p) => p.id === value.id);
 
   return (
-    <div className="rounded-md border border-glow-2/30 bg-ink-0/30 p-3 flex flex-col gap-3">
+    <div className="rounded-md border border-glow-2/30 bg-surface-0/30 p-3 flex flex-col gap-3">
       <label className="flex flex-col gap-1">
         <span className="card-eyebrow">Person</span>
         <select value={value.id} onChange={(e) => onChange({ ...value, id: e.target.value })} className={input}>
@@ -83,7 +83,7 @@ export function PersonUpdateEditor({
           ))}
         </select>
         {chosen && hints.length > 0 && (
-          <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">from “{hints[0]}” in the capture</span>
+          <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">from “{hints[0]}” in the capture</span>
         )}
       </label>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -98,7 +98,7 @@ export function PersonUpdateEditor({
           </label>
         ))}
       </div>
-      <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">Only filled fields change. Notes are added as a dated line.</p>
+      <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">Only filled fields change. Notes are added as a dated line.</p>
     </div>
   );
 }

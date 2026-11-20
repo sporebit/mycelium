@@ -34,7 +34,7 @@ export function FacetStrip({ t, className = "" }: { t: Task; className?: string 
   const win = (t.time_window ?? "anytime") as TimeWindow;
   return (
     <span
-      className={`inline-flex items-center gap-1 text-[11px] text-ink-3 ${className}`}
+      className={`inline-flex items-center gap-1 text-[11px] text-text-lo ${className}`}
       title={[
         WHERE_LABEL[where] ?? where,
         tools.length ? `Tools: ${tools.join(", ")}` : "No tools",
@@ -49,7 +49,7 @@ export function FacetStrip({ t, className = "" }: { t: Task; className?: string 
         <span key={tool}>{TOOL_GLYPH[tool] ?? `#${tool}`}</span>
       ))}
       {win !== "anytime" && (
-        <span className="rounded-sm bg-ink-2/60 px-1 font-[family-name:var(--font-mono)] text-[9px] uppercase tracking-[0.1em]">
+        <span className="rounded-sm bg-surface-2/60 px-1 font-[family-name:var(--font-mono)] text-[9px] uppercase tracking-[0.1em]">
           {TIME_WINDOW_LABEL[win]}
         </span>
       )}
@@ -134,7 +134,7 @@ export function TicketListRow({
           <CategoryChip category={t.category} name={t.status_name} simple={simple} />
         )}
         <span
-          className={`min-w-0 flex-1 truncate text-sm ${closed ? "text-ink-3 line-through" : "text-ink-4"}`}
+          className={`min-w-0 flex-1 truncate text-sm ${closed ? "text-text-lo line-through" : "text-text-hi"}`}
         >
           {t.title}
         </span>
@@ -152,7 +152,7 @@ export function TicketListRow({
           </span>
         )}
         {t.sprint_name && (
-          <span className={`hidden max-w-[110px] shrink-0 truncate text-[10px] sm:inline ${t.sprint_status === "active" ? "text-accent" : "text-ink-3"}`} title={`Sprint: ${t.sprint_name} (${t.sprint_status})`}>
+          <span className={`hidden max-w-[110px] shrink-0 truncate text-[10px] sm:inline ${t.sprint_status === "active" ? "text-accent" : "text-text-lo"}`} title={`Sprint: ${t.sprint_name} (${t.sprint_status})`}>
             ⚡ {t.sprint_name}
           </span>
         )}
@@ -162,7 +162,7 @@ export function TicketListRow({
           </span>
         )}
         {t.project_name && (
-          <span className="hidden max-w-[140px] shrink-0 truncate text-[11px] text-ink-3 md:inline">
+          <span className="hidden max-w-[140px] shrink-0 truncate text-[11px] text-text-lo md:inline">
             {t.project_name}
           </span>
         )}
@@ -171,7 +171,7 @@ export function TicketListRow({
         <OverduePill t={t} window />
         {!deadline && scheduled && (
           <span
-            className="shrink-0 text-[11px] font-[family-name:var(--font-mono)] text-ink-3"
+            className="shrink-0 text-[11px] font-[family-name:var(--font-mono)] text-text-lo"
             title={`Scheduled ${scheduled}`}
           >
             ▸ {fmtDay(scheduled)}

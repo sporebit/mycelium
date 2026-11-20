@@ -42,29 +42,29 @@ export function DeleteDialog({ personId, name, onClose, onDeleted, onMergeInstea
 
   return (
     <div className="fixed inset-0 z-[140] flex items-center justify-center px-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="absolute inset-0 bg-ink-0/70 backdrop-blur-sm" onClick={onClose} />
-      <div role="dialog" aria-label="Delete person" className="relative w-full max-w-md rounded-2xl border border-ink-2 bg-ink-1 p-5 shadow-2xl flex flex-col gap-4">
-        <h2 className="font-[family-name:var(--font-display)] text-xl text-text-0">Delete {name}?</h2>
+      <div className="absolute inset-0 bg-surface-0/70 backdrop-blur-sm" onClick={onClose} />
+      <div role="dialog" aria-label="Delete person" className="relative w-full max-w-md rounded-2xl border border-surface-2 bg-surface-1 p-5 shadow-2xl flex flex-col gap-4">
+        <h2 className="font-[family-name:var(--font-display)] text-xl text-text-hi">Delete {name}?</h2>
         {links === null ? (
-          <p className="text-sm text-ink-3">Checking what points at them…</p>
+          <p className="text-sm text-text-lo">Checking what points at them…</p>
         ) : total === 0 ? (
-          <p className="text-sm text-text-1">Nothing links to them. They go to the bin and are removed for good after 30 days.</p>
+          <p className="text-sm text-text-mid">Nothing links to them. They go to the bin and are removed for good after 30 days.</p>
         ) : (
-          <div className="text-sm text-text-1 flex flex-col gap-1">
+          <div className="text-sm text-text-mid flex flex-col gap-1">
             <p>Linked to them:</p>
-            <ul className="text-[12px] font-[family-name:var(--font-mono)] text-ink-3 pl-3">
+            <ul className="text-[12px] font-[family-name:var(--font-mono)] text-text-lo pl-3">
               {links.map((l) => (
                 <li key={`${l.table}.${l.column}`}>
                   {l.count} {TABLE_LABEL[l.table] ?? l.table}
                 </li>
               ))}
             </ul>
-            <p className="text-[12px] text-ink-3 mt-1">Those rows keep the person id, but the person is hidden. If this is a duplicate, merge instead and the links follow the survivor.</p>
+            <p className="text-[12px] text-text-lo mt-1">Those rows keep the person id, but the person is hidden. If this is a duplicate, merge instead and the links follow the survivor.</p>
           </div>
         )}
         {error && <div className="text-xs text-danger">{error}</div>}
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <button type="button" onClick={onClose} className="px-3 py-2 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em]">CANCEL</button>
+          <button type="button" onClick={onClose} className="px-3 py-2 rounded-sm border border-text-hi text-xs text-text-mid hover:text-text-hi hover:bg-surface-2 font-[family-name:var(--font-mono)] tracking-[0.1em]">CANCEL</button>
           <button type="button" onClick={onMergeInstead} className="px-3 py-2 rounded-sm border border-glow-2/50 text-xs text-glow-2 hover:bg-glow-2/10 font-[family-name:var(--font-mono)] tracking-[0.1em]">MERGE INSTEAD…</button>
           <button type="button" disabled={busy || links === null} onClick={() => void del()} className="px-4 py-2 rounded-sm border border-danger/50 text-danger hover:bg-danger/10 disabled:opacity-40 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]">
             {busy ? "DELETING…" : "DELETE TO BIN"}

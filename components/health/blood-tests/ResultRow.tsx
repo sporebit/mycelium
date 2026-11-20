@@ -15,14 +15,14 @@ export function ResultRow({
   return (
     <div className="grid grid-cols-[1fr_100px_120px_32px_24px] sm:grid-cols-[1fr_100px_140px_32px_24px] items-center px-4 py-2.5 border-b border-hairline last:border-b-0 gap-2">
       {/* Name */}
-      <div className="text-sm text-ink-4 truncate">{r.display_name}</div>
+      <div className="text-sm text-text-hi truncate">{r.display_name}</div>
       {/* Value + unit */}
-      <div className="font-[family-name:var(--font-mono)] tabular-nums text-sm text-ink-4 text-right">
+      <div className="font-[family-name:var(--font-mono)] tabular-nums text-sm text-text-hi text-right">
         {r.value_prefix && (
-          <span className="text-ink-3 italic text-xs">{r.value_prefix}</span>
+          <span className="text-text-lo italic text-xs">{r.value_prefix}</span>
         )}
         {r.value_numeric !== null ? r.value_numeric : r.value_raw}{" "}
-        <span className="text-ink-3 text-xs">{r.unit}</span>
+        <span className="text-text-lo text-xs">{r.unit}</span>
       </div>
       {/* Range bar */}
       <div className="flex items-center justify-center">
@@ -37,7 +37,7 @@ export function ResultRow({
           />
         ) : (
           <span
-            className="text-[10px] font-[family-name:var(--font-mono)] tabular-nums text-ink-3"
+            className="text-[10px] font-[family-name:var(--font-mono)] tabular-nums text-text-lo"
           >
             {r.ref_direction === "above" && r.ref_min !== null
               ? `≥ ${r.ref_min}`
@@ -52,7 +52,7 @@ export function ResultRow({
         {trend ? (
           <span style={{ color: trend.colour }}>{trend.arrow}</span>
         ) : (
-          <span className="text-ink-3/30">—</span>
+          <span className="text-text-lo/30">—</span>
         )}
       </div>
       {/* Status dot */}

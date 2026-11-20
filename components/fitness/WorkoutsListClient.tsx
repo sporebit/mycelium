@@ -89,10 +89,10 @@ export function WorkoutsListClient() {
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Workouts
           </h1>
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             Reusable workout templates — once edited, every programme that
             schedules them updates automatically.
           </p>
@@ -104,7 +104,7 @@ export function WorkoutsListClient() {
             className={`px-3 py-1.5 rounded-v2-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
               showArchived
                 ? "border-accent/40 bg-accent/15 text-accent"
-                : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                : "border-hairline text-text-lo hover:text-text-hi hover:border-text-lo"
             }`}
           >
             {showArchived ? "HIDE ARCHIVED" : "SHOW ARCHIVED"}
@@ -129,7 +129,7 @@ export function WorkoutsListClient() {
               className={`px-3 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
                 active
                   ? "bg-accent/15 text-accent"
-                  : "text-ink-3 hover:text-ink-4 hover:bg-surface-2"
+                  : "text-text-lo hover:text-text-hi hover:bg-surface-2"
               }`}
             >
               {f.label}
@@ -139,12 +139,12 @@ export function WorkoutsListClient() {
       </div>
 
       {workouts === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : visible.length === 0 ? (
         <div className="rounded-v2-md bg-surface-1 p-12 text-center">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             {workouts.length === 0
               ? "No workouts yet. Tap + NEW WORKOUT to build your first template."
               : "No workouts match that filter."}
@@ -157,7 +157,7 @@ export function WorkoutsListClient() {
             return (
               <li key={w.id}>
                 <div
-                  className={`bg-surface-1 border border-hairline hover:border-ink-3 rounded-v2-md p-4 flex flex-col gap-2 transition-colors group relative ${
+                  className={`bg-surface-1 border border-hairline hover:border-text-lo rounded-v2-md p-4 flex flex-col gap-2 transition-colors group relative ${
                     isArchived ? "opacity-50" : ""
                   }`}
                 >
@@ -174,7 +174,7 @@ export function WorkoutsListClient() {
                       type="button"
                       onClick={() => archive(w)}
                       aria-label={`Archive ${w.name}`}
-                      className="absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center text-ink-3 hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      className="absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center text-text-lo hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                     >
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                         <path d="M2 2l8 8M10 2l-8 8" />
@@ -189,15 +189,15 @@ export function WorkoutsListClient() {
                       {w.default_kind ? KIND_ICON[w.default_kind] : "·"}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-base text-ink-4 truncate">{w.name}</div>
-                      <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5">
+                      <div className="text-base text-text-hi truncate">{w.name}</div>
+                      <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-0.5">
                         {w.default_kind ? KIND_LABEL[w.default_kind] : "—"}
                         {w.default_slot ? ` · ${SLOT_LABEL[w.default_slot]}` : ""}
                       </div>
                     </div>
                   </Link>
                   <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                       <Mono>{w.exercise_count ?? 0} ex</Mono>
                       {(w.times_performed ?? 0) > 0 && (
                         <Mono>{w.times_performed} sessions</Mono>
@@ -205,7 +205,7 @@ export function WorkoutsListClient() {
                     </div>
                     <MiniSparkline values={w.recent_volumes ?? []} />
                   </div>
-                  <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                     <Mono>
                       {w.last_performed
                         ? `Last ${w.last_performed}`

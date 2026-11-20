@@ -163,13 +163,13 @@ export function ExtraSessionModal({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
-          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-ink-4">
+          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-hi">
             Add extra session
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-ink-3 hover:text-ink-4 text-xl leading-none"
+            className="text-text-lo hover:text-text-hi text-xl leading-none"
           >
             ×
           </button>
@@ -177,7 +177,7 @@ export function ExtraSessionModal({
 
         <div className="px-5 py-4 overflow-y-auto flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Session type
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -191,7 +191,7 @@ export function ExtraSessionModal({
                     className={`px-2.5 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
                       active
                         ? "border-accent/50 bg-accent/15 text-accent"
-                        : "border-hairline text-ink-4 hover:border-ink-3"
+                        : "border-hairline text-text-hi hover:border-text-lo"
                     }`}
                   >
                     {t.label}
@@ -204,7 +204,7 @@ export function ExtraSessionModal({
                 className={`px-2.5 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.1em] border transition-colors ${
                   customMode
                     ? "border-accent/50 bg-accent/15 text-accent"
-                    : "border-hairline text-ink-3 hover:border-ink-3"
+                    : "border-hairline text-text-lo hover:border-text-lo"
                 }`}
               >
                 + Other
@@ -214,7 +214,7 @@ export function ExtraSessionModal({
 
           {customMode && (
             <label className="flex flex-col gap-1">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 What kind of session?
               </span>
               <input
@@ -222,13 +222,13 @@ export function ExtraSessionModal({
                 value={customLabel}
                 onChange={(e) => setCustomLabel(e.target.value.slice(0, 30))}
                 placeholder="e.g. Yoga, Climbing, Swimming"
-                className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent"
+                className="bg-surface-0 border border-hairline rounded-v2-md text-base text-text-hi px-3 py-2 outline-none focus:border-accent"
               />
             </label>
           )}
 
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Name (optional)
             </span>
             <input
@@ -242,12 +242,12 @@ export function ExtraSessionModal({
                   ? `e.g. ${selected.label} — Snowdon`
                   : "What did you do?"
               }
-              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-text-hi px-3 py-2 outline-none focus:border-accent"
             />
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Notes (optional)
             </span>
             <textarea
@@ -255,12 +255,12 @@ export function ExtraSessionModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="2 hours, hurt my knees on descent…"
-              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-accent resize-none"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-accent resize-none"
             />
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Calories (optional)
             </span>
             <input
@@ -270,7 +270,7 @@ export function ExtraSessionModal({
                 setCalories(e.target.value.replace(/[^0-9]/g, ""))
               }
               placeholder="—"
-              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-text-hi px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
             />
           </label>
 
@@ -285,7 +285,7 @@ export function ExtraSessionModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-12 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
+            className="flex-1 h-12 rounded-v2-md border border-hairline text-text-lo text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
           >
             CANCEL
           </button>

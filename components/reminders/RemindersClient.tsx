@@ -231,16 +231,16 @@ export function RemindersClient({ focusId }: { focusId: string | null }) {
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-6">
-      <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+      <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
         Reminders
       </h1>
 
       {/* Add form */}
       <form
         onSubmit={handleAdd}
-        className="bg-ink-1 border border-ink-2 rounded-md p-4 flex flex-col gap-3"
+        className="bg-surface-1 border border-surface-2 rounded-md p-4 flex flex-col gap-3"
       >
-        <label className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1 block">
+        <label className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-1 block">
           New reminder
         </label>
         <EntityForm def={REMINDER_DEF} only={ADD_FIELDS} values={draft} onChange={setDraft} errors={draftErrors} disabled={submitting} onSubmit={() => void handleAdd()} />
@@ -264,7 +264,7 @@ export function RemindersClient({ focusId }: { focusId: string | null }) {
       )}
 
       {loading ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Loading...
         </div>
       ) : (
@@ -377,7 +377,7 @@ function Section({
 }) {
   return (
     <div>
-      <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
+      <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-2">
         {title}
       </h2>
       <div className="flex flex-col gap-2">{children}</div>
@@ -387,7 +387,7 @@ function Section({
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+    <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
       {children}
     </p>
   );
@@ -432,30 +432,30 @@ function ReminderRow({
 }) {
   if (editing) {
     return (
-      <div data-reminder-id={reminder.id} className="bg-ink-1 border border-ink-2 rounded-md p-3 flex flex-col gap-2">
+      <div data-reminder-id={reminder.id} className="bg-surface-1 border border-surface-2 rounded-md p-3 flex flex-col gap-2">
         <input
           type="text"
           value={editMsg}
           onChange={(e) => onEditMsg(e.target.value)}
-          className="w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
+          className="w-full rounded-md bg-surface-0 border border-surface-2 px-3 py-2 text-sm text-text-hi placeholder:text-text-lo/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
         />
         <div className="grid grid-cols-3 gap-2">
           <input
             type="date"
             value={editDate}
             onChange={(e) => onEditDate(e.target.value)}
-            className="w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
+            className="w-full rounded-md bg-surface-0 border border-surface-2 px-3 py-2 text-sm text-text-hi focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
           />
           <input
             type="time"
             value={editTime}
             onChange={(e) => onEditTime(e.target.value)}
-            className="w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
+            className="w-full rounded-md bg-surface-0 border border-surface-2 px-3 py-2 text-sm text-text-hi focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
           />
           <select
             value={editRecurrence}
             onChange={(e) => onEditRecurrence(e.target.value)}
-            className="w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
+            className="w-full rounded-md bg-surface-0 border border-surface-2 px-3 py-2 text-sm text-text-hi focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
           >
             <option value="">None</option>
             <option value="daily">Daily</option>
@@ -467,7 +467,7 @@ function ReminderRow({
           <button
             type="button"
             onClick={onCancelEdit}
-            className="text-ink-3 hover:text-ink-4 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase px-2 py-1 rounded-md"
+            className="text-text-lo hover:text-text-hi text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase px-2 py-1 rounded-md"
           >
             Cancel
           </button>
@@ -487,14 +487,14 @@ function ReminderRow({
   return (
     <div
       data-reminder-id={reminder.id}
-      className={`bg-ink-1 border rounded-md p-3 flex items-center gap-3 transition-colors ${
-        focused ? "border-accent ring-1 ring-accent/30" : "border-ink-2"
+      className={`bg-surface-1 border rounded-md p-3 flex items-center gap-3 transition-colors ${
+        focused ? "border-accent ring-1 ring-accent/30" : "border-surface-2"
       }`}
     >
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-text-0 truncate">{reminder.message}</div>
+        <div className="text-sm text-text-hi truncate">{reminder.message}</div>
         <div className="flex items-center gap-2 mt-1">
-          <span className="font-[family-name:var(--font-mono)] tabular-nums text-ink-4 text-[11px]">
+          <span className="font-[family-name:var(--font-mono)] tabular-nums text-text-hi text-[11px]">
             {timeLabel}
           </span>
           {reminder.recurrence && (
@@ -508,7 +508,7 @@ function ReminderRow({
         <button
           type="button"
           onClick={onStartEdit}
-          className="text-ink-3 hover:text-ink-4 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase px-2 py-1 rounded-md"
+          className="text-text-lo hover:text-text-hi text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase px-2 py-1 rounded-md"
         >
           Edit
         </button>

@@ -161,17 +161,17 @@ export function SupplementsClient() {
     `px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors border ${
       tab === t
         ? "bg-accent/20 text-accent border-accent/40"
-        : "text-ink-3 border-hairline hover:text-ink-4"
+        : "text-text-lo border-hairline hover:text-text-hi"
     }`;
 
   return (
     <div className="flex flex-col gap-5">
       <header className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Supplements
           </h1>
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             Active supplements and daily dose tracking.
           </p>
         </div>
@@ -207,11 +207,11 @@ export function SupplementsClient() {
           {showAdd && <AddForm onSubmit={addSupplement} />}
 
           {supplements === null ? (
-            <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-6 text-center">
+            <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-6 text-center">
               Loading…
             </div>
           ) : supplements.length === 0 ? (
-            <div className="rounded-v2-md bg-surface-1 p-6 text-center text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+            <div className="rounded-v2-md bg-surface-1 p-6 text-center text-sm text-text-lo italic font-[family-name:var(--font-display)]">
               No active supplements. Tap + ADD to get started.
             </div>
           ) : (
@@ -254,24 +254,24 @@ function SupplementRow({
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-ink-4 font-medium truncate">
+            <span className="text-sm text-text-hi font-medium truncate">
               {s.name}
             </span>
             {s.brand && (
-              <span className="text-[10px] text-ink-3 uppercase tracking-[0.12em] font-[family-name:var(--font-mono)] shrink-0">
+              <span className="text-[10px] text-text-lo uppercase tracking-[0.12em] font-[family-name:var(--font-mono)] shrink-0">
                 {s.brand}
               </span>
             )}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            <Mono className="text-[11px] text-ink-3">{s.dose}</Mono>
-            <span className="text-[10px] text-ink-3 uppercase tracking-[0.12em] font-[family-name:var(--font-mono)]">
+            <Mono className="text-[11px] text-text-lo">{s.dose}</Mono>
+            <span className="text-[10px] text-text-lo uppercase tracking-[0.12em] font-[family-name:var(--font-mono)]">
               {s.form}
             </span>
             {s.schedule && (
               <>
-                <span className="text-ink-2">·</span>
-                <span className="text-[10px] text-ink-3 italic font-[family-name:var(--font-display)]">
+                <span className="text-surface-2">·</span>
+                <span className="text-[10px] text-text-lo italic font-[family-name:var(--font-display)]">
                   {s.schedule}
                 </span>
               </>
@@ -292,7 +292,7 @@ function SupplementRow({
             type="button"
             onClick={onDeactivate}
             title="Deactivate supplement"
-            className="p-1.5 rounded-v2-md text-ink-3 hover:text-danger hover:bg-danger/10 transition-colors"
+            className="p-1.5 rounded-v2-md text-text-lo hover:text-danger hover:bg-danger/10 transition-colors"
           >
             <svg
               width="14"
@@ -322,7 +322,7 @@ function SupplementRow({
               type="button"
               onClick={() => onUndoLog(log.id)}
               title="Undo this dose"
-              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-surface-2 text-[10px] text-ink-3 hover:text-danger hover:bg-danger/10 font-[family-name:var(--font-mono)] transition-colors"
+              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-surface-2 text-[10px] text-text-lo hover:text-danger hover:bg-danger/10 font-[family-name:var(--font-mono)] transition-colors"
             >
               {relativeTime(log.taken_at)}
               <span className="text-[9px]">✕</span>
@@ -358,9 +358,9 @@ function AddForm({
   }
 
   const inputClass =
-    "w-full rounded-v2-md bg-ink-0 border border-hairline px-3 py-2 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
+    "w-full rounded-v2-md bg-surface-0 border border-hairline px-3 py-2 text-sm text-text-hi placeholder:text-text-lo/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
   const labelClass =
-    "text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1 block";
+    "text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-1 block";
 
   return (
     <form

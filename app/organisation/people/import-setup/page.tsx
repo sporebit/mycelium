@@ -13,10 +13,10 @@ export default function PeopleImportSetupPage() {
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl">
-      <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
+      <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-text-hi">
         Bulk-import contacts from iPhone
       </h1>
-      <p className="text-sm text-text-1 leading-relaxed">
+      <p className="text-sm text-text-mid leading-relaxed">
         A one-tap iOS Shortcut that exports your Contacts to Myphelium2&apos;s
         Rolodex. Existing rows are merged (we only fill blanks); new rows are
         created with first / first-last / last aliases.
@@ -24,7 +24,7 @@ export default function PeopleImportSetupPage() {
 
       <Panel borderless title="Your API secret" topRight={<Mono>copy me</Mono>}>
         <SecretCopy value={secret} label="X-API-Secret" />
-        <p className="text-[11px] text-text-2 mt-2 italic font-[family-name:var(--font-display)]">
+        <p className="text-[11px] text-text-lo mt-2 italic font-[family-name:var(--font-display)]">
           Don&apos;t paste it anywhere public.
         </p>
       </Panel>
@@ -41,7 +41,7 @@ export default function PeopleImportSetupPage() {
           </Step>
           <Step n={2} title="Repeat with Each → Build Dictionary">
             For each contact, create a Dictionary with these keys:
-            <ul className="mt-1 list-disc list-inside text-[13px] text-text-1">
+            <ul className="mt-1 list-disc list-inside text-[13px] text-text-mid">
               <li><Mono>first_name</Mono> ← <Mono>Contact.First Name</Mono></li>
               <li><Mono>last_name</Mono> ← <Mono>Contact.Last Name</Mono></li>
               <li><Mono>phone</Mono> ← <Mono>Contact.Phone</Mono></li>
@@ -52,10 +52,10 @@ export default function PeopleImportSetupPage() {
           </Step>
           <Step n={3} title="Wrap into JSON">
             Outside the loop, build:
-            <pre className="mt-1 text-[12px] text-text-1 bg-ink-2 rounded-sm p-3 overflow-x-auto">{`{ "people": <the list from step 2> }`}</pre>
+            <pre className="mt-1 text-[12px] text-text-mid bg-surface-2 rounded-sm p-3 overflow-x-auto">{`{ "people": <the list from step 2> }`}</pre>
           </Step>
           <Step n={4} title="POST to Myphelium2">
-            <ul className="list-disc list-inside text-[13px] text-text-1">
+            <ul className="list-disc list-inside text-[13px] text-text-mid">
               <li>URL: <Mono>{url}</Mono></li>
               <li>Method: <Mono>POST</Mono></li>
               <li>
@@ -73,7 +73,7 @@ export default function PeopleImportSetupPage() {
       </Panel>
 
       <Panel borderless title="Schema">
-        <pre className="text-[12px] text-text-1 bg-ink-2 rounded-sm p-3 overflow-x-auto whitespace-pre">{`POST /api/people/import
+        <pre className="text-[12px] text-text-mid bg-surface-2 rounded-sm p-3 overflow-x-auto whitespace-pre">{`POST /api/people/import
 {
   "people": [
     {
@@ -110,8 +110,8 @@ function Step({
         {n}
       </span>
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-text-0 mb-1">{title}</div>
-        <div className="text-sm text-text-1 leading-relaxed">{children}</div>
+        <div className="text-sm text-text-hi mb-1">{title}</div>
+        <div className="text-sm text-text-mid leading-relaxed">{children}</div>
       </div>
     </li>
   );

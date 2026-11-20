@@ -1019,11 +1019,11 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
     <div className="min-h-screen pb-32 sm:pb-24" data-readonly={readOnly}>
       <div className="max-w-[600px] mx-auto px-3 sm:px-4">
         {/* Sticky top bar */}
-        <header className="sticky top-0 z-30 -mx-3 sm:-mx-4 px-3 sm:px-4 py-2 bg-ink-0/95 backdrop-blur-xl border-b border-hairline flex items-center gap-3">
+        <header className="sticky top-0 z-30 -mx-3 sm:-mx-4 px-3 sm:px-4 py-2 bg-surface-0/95 backdrop-blur-xl border-b border-hairline flex items-center gap-3">
           <button
             type="button"
             onClick={() => router.push("/fitness")}
-            className="text-ink-3 hover:text-ink-4 text-sm font-[family-name:var(--font-mono)]"
+            className="text-text-lo hover:text-text-hi text-sm font-[family-name:var(--font-mono)]"
             aria-label="Back"
           >
             ←
@@ -1043,19 +1043,19 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
                   if (e.key === "Escape") setNameDraft(null);
                 }}
                 aria-label="Session name"
-                className="w-full bg-ink-2 rounded-sm text-sm text-ink-4 px-2 py-0.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+                className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-0.5 outline-none focus:ring-2 focus:ring-glow-2/60"
               />
             ) : (
               <button
                 type="button"
                 onClick={() => setNameDraft(session.name ?? "")}
                 title="Rename this session"
-                className="max-w-full text-left text-sm text-ink-4 truncate hover:underline underline-offset-2 decoration-ink-3"
+                className="max-w-full text-left text-sm text-text-hi truncate hover:underline underline-offset-2 decoration-text-lo"
               >
                 {session.name ?? "Session"}
               </button>
             )}
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] flex items-center gap-2">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] flex items-center gap-2">
               <span>{session.slot}</span>
               {typeLabel && (
                 <>
@@ -1067,7 +1067,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
               <button
                 type="button"
                 onClick={() => setShowTimeEdit(true)}
-                className="hover:text-ink-4 hover:underline underline-offset-2 transition-colors"
+                className="hover:text-text-hi hover:underline underline-offset-2 transition-colors"
                 aria-label="Edit session time"
               >
                 <Mono>{fmtElapsed(elapsedForDisplay)}</Mono>
@@ -1094,7 +1094,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
               <button
                 type="button"
                 onClick={() => setShowMenu((v) => !v)}
-                className="h-10 w-10 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4"
+                className="h-10 w-10 rounded-v2-md border border-hairline text-text-lo hover:text-text-hi"
                 aria-label="Menu"
               >
                 ⋮
@@ -1134,7 +1134,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
               {guardrailLines.map((line, i) => (
                 <li
                   key={i}
-                  className="text-[13px] text-ink-4 leading-snug font-[family-name:var(--font-display)] flex gap-2"
+                  className="text-[13px] text-text-hi leading-snug font-[family-name:var(--font-display)] flex gap-2"
                 >
                   <span aria-hidden="true" className="text-accent shrink-0">
                     ·
@@ -1149,7 +1149,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
         {/* Attempted banner — only when the lifecycle status is
             attempted *and* the session isn't already finished. */}
         {isAttempted && !readOnly && (
-          <div className="my-3 rounded-v2-md border border-warn/40 bg-warn/10 p-3 text-sm text-ink-4">
+          <div className="my-3 rounded-v2-md border border-warn/40 bg-warn/10 p-3 text-sm text-text-hi">
             <div className="font-[family-name:var(--font-display)] italic">
               This session was marked as attempted — it started 48+ hours ago
               and was never completed. You can still log sets or mark it
@@ -1160,7 +1160,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
 
         {/* Yesterday-banner */}
         {isStale && (
-          <div className="my-3 rounded-v2-md border border-warn/40 bg-warn/10 p-3 text-sm text-ink-4">
+          <div className="my-3 rounded-v2-md border border-warn/40 bg-warn/10 p-3 text-sm text-text-hi">
             <div className="font-[family-name:var(--font-display)] italic mb-2">
               This session is from {session.date}. Mark complete or start fresh?
             </div>
@@ -1170,7 +1170,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
                 value={completeAtInput}
                 onChange={(e) => setCompleteAtInput(e.target.value)}
                 aria-label="Completed at"
-                className="bg-surface-0 border border-hairline rounded-v2-md text-[11px] text-ink-4 px-2 py-1 font-[family-name:var(--font-mono)] tracking-[0.05em] outline-none focus:border-ink-3"
+                className="bg-surface-0 border border-hairline rounded-v2-md text-[11px] text-text-hi px-2 py-1 font-[family-name:var(--font-mono)] tracking-[0.05em] outline-none focus:border-text-lo"
               />
               <button
                 type="button"
@@ -1182,7 +1182,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
               <button
                 type="button"
                 onClick={() => setAgeBannerDismissed(true)}
-                className="px-2 py-1 rounded-v2-md border border-hairline text-ink-3 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em]"
+                className="px-2 py-1 rounded-v2-md border border-hairline text-text-lo text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em]"
               >
                 CONTINUE
               </button>
@@ -1235,7 +1235,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
 
         {/* REMAINING LIST */}
         <div className="mt-4 rounded-2xl border border-hairline bg-surface-1">
-          <div className="px-3 py-2 border-b border-hairline text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <div className="px-3 py-2 border-b border-hairline text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             All exercises ({exercises.length})
           </div>
           <ReorderableExerciseList
@@ -1259,7 +1259,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
               <button
                 type="button"
                 onClick={() => setShowAdd(true)}
-                className="flex-1 h-11 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4 hover:border-ink-3"
+                className="flex-1 h-11 rounded-v2-md border border-hairline text-text-lo text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-text-hi hover:border-text-lo"
               >
                 + ADD EXERCISE
               </button>
@@ -1267,7 +1267,7 @@ export function LogClient({ initial }: { initial: SessionDetail }) {
                 type="button"
                 disabled
                 title="Coming in next round"
-                className="h-11 px-3 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] opacity-40 cursor-not-allowed"
+                className="h-11 px-3 rounded-v2-md border border-hairline text-text-lo text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] opacity-40 cursor-not-allowed"
               >
                 🎤 VOICE
               </button>
@@ -1541,7 +1541,7 @@ function CurrentExerciseCard({
     <div className="mt-3 rounded-2xl border border-accent/40 bg-accent/5 p-4">
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
-          <div className="text-lg sm:text-xl text-ink-4 leading-tight flex items-baseline gap-2 flex-wrap">
+          <div className="text-lg sm:text-xl text-text-hi leading-tight flex items-baseline gap-2 flex-wrap">
             {supersetLabel && (
               <span className="rounded-v2-md bg-accent/20 border border-accent/40 text-accent text-[10px] px-1.5 py-0.5 font-[family-name:var(--font-mono)] tracking-[0.15em]" title="Superset — no rest until the last exercise in the group">
                 SS {supersetLabel}
@@ -1552,26 +1552,26 @@ function CurrentExerciseCard({
                 href={`/fitness/history/exercise/${encodeURIComponent(ex.name)}`}
                 className="hover:text-accent transition-colors"
               >
-                {ex.name} <span className="text-ink-3 text-sm">→</span>
+                {ex.name} <span className="text-text-lo text-sm">→</span>
               </Link>
             ) : (
               ex.name
             )}
           </div>
           {targets && (
-            <div className="text-[11px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
+            <div className="text-[11px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)] mt-1">
               {targets}
             </div>
           )}
           {grid && lastTop && (
-            <div className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
+            <div className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)] mt-1">
               Last: {lastTop.weight}
               {lastTop.unit} × {lastTop.reps}
               {last?.session_date ? ` on ${last.session_date}` : ""}
             </div>
           )}
           {ex.notes && (
-            <div className="text-[11px] text-ink-3 italic font-[family-name:var(--font-display)] mt-1 leading-snug">
+            <div className="text-[11px] text-text-lo italic font-[family-name:var(--font-display)] mt-1 leading-snug">
               {ex.notes}
             </div>
           )}
@@ -1579,7 +1579,7 @@ function CurrentExerciseCard({
             <button
               type="button"
               onClick={() => onToggleSuperset(ex)}
-              className="mt-1 text-[10px] uppercase tracking-[0.15em] text-ink-3 hover:text-accent font-[family-name:var(--font-mono)]"
+              className="mt-1 text-[10px] uppercase tracking-[0.15em] text-text-lo hover:text-accent font-[family-name:var(--font-mono)]"
               title={supersetLabel ? "Take this exercise out of its superset" : "Pair with the previous exercise: no rest between them, rest after the pair"}
             >
               {supersetLabel ? "− leave superset" : "⇄ superset with previous"}
@@ -1601,7 +1601,7 @@ function CurrentExerciseCard({
               className={`px-2 py-1.5 rounded-v2-md border text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] transition-colors ${
                 isBodyweight(ex)
                   ? "bg-accent/20 border-accent/40 text-accent"
-                  : "bg-surface-0 border-hairline text-ink-3 hover:text-ink-4"
+                  : "bg-surface-0 border-hairline text-text-lo hover:text-text-hi"
               }`}
             >
               BW
@@ -1616,7 +1616,7 @@ function CurrentExerciseCard({
                   className={`px-2 py-1.5 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] ${
                     unit === u
                       ? "bg-accent/20 text-accent"
-                      : "text-ink-3 hover:text-ink-4"
+                      : "text-text-lo hover:text-text-hi"
                   }`}
                 >
                   {UNIT_LABEL[u]}
@@ -1644,7 +1644,7 @@ function CurrentExerciseCard({
           {/* TARGET RIBBON — only when a target weight exists */}
           {target && target.weight > 0 && (
             <div className="rounded-xl border border-accent/40 bg-accent/10 px-4 py-3 flex flex-col items-center text-center">
-              <span className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <span className="text-[10px] uppercase tracking-[0.22em] text-text-lo font-[family-name:var(--font-mono)]">
                 Target
               </span>
               <span className="text-4xl sm:text-5xl text-accent font-[family-name:var(--font-mono)] tabular-nums leading-tight mt-1">
@@ -1666,7 +1666,7 @@ function CurrentExerciseCard({
               showsWeightColumn(ex)
                 ? "grid-cols-[2rem_1fr_1fr_4.5rem_2rem]"
                 : "grid-cols-[2rem_1fr_4.5rem_2rem]"
-            } gap-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] pl-1`}
+            } gap-2 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] pl-1`}
           >
             <span>Set</span>
             {showsWeightColumn(ex) && (
@@ -1718,10 +1718,10 @@ function CurrentExerciseCard({
                     ? "border-ok bg-ok/30 ring-2 ring-ok/40"
                     : isLogged
                     ? "border-ok/50 bg-ok/10"
-                    : "border-hairline bg-ink-0/30"
+                    : "border-hairline bg-surface-0/30"
                 }`}
               >
-                <span className="text-center text-sm font-[family-name:var(--font-mono)] text-ink-3">
+                <span className="text-center text-sm font-[family-name:var(--font-mono)] text-text-lo">
                   {displayed}
                 </span>
                 {showWeight && (
@@ -1737,7 +1737,7 @@ function CurrentExerciseCard({
                       setDraft(n, "w", e.target.value.replace(/[^0-9.]/g, ""))
                     }
                     placeholder={weightFieldPlaceholder}
-                    className="bg-transparent border border-hairline rounded-v2-md text-base text-ink-4 px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
+                    className="bg-transparent border border-hairline rounded-v2-md text-base text-text-hi px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
                   />
                 )}
                 <input
@@ -1749,7 +1749,7 @@ function CurrentExerciseCard({
                     setDraft(n, "r", e.target.value.replace(/[^0-9]/g, ""))
                   }
                   placeholder={isHold ? holdPlaceholder : repsPlaceholder || "—"}
-                  className="bg-transparent border border-hairline rounded-v2-md text-base text-ink-4 px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
+                  className="bg-transparent border border-hairline rounded-v2-md text-base text-text-hi px-2 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums min-w-0"
                 />
                 <button
                   type="button"
@@ -1771,7 +1771,7 @@ function CurrentExerciseCard({
                   disabled={readOnly}
                   onClick={() => onRemoveSet(n)}
                   aria-label={`Delete set ${displayed}`}
-                  className="h-10 rounded-v2-md text-ink-3 hover:text-danger text-base disabled:opacity-40"
+                  className="h-10 rounded-v2-md text-text-lo hover:text-danger text-base disabled:opacity-40"
                 >
                   🗑
                 </button>
@@ -1782,7 +1782,7 @@ function CurrentExerciseCard({
             <button
               type="button"
               onClick={onAddSet}
-              className="self-start mt-1 px-3 h-9 rounded-v2-md border border-hairline text-ink-3 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4 hover:border-ink-3"
+              className="self-start mt-1 px-3 h-9 rounded-v2-md border border-hairline text-text-lo text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-text-hi hover:border-text-lo"
             >
               + ADD SET
             </button>
@@ -1791,7 +1791,7 @@ function CurrentExerciseCard({
       ) : (
         <div className="mt-3 grid grid-cols-2 gap-2">
           <label className="flex flex-col gap-1 col-span-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Duration (min)
             </span>
             <input
@@ -1801,11 +1801,11 @@ function CurrentExerciseCard({
               value={duration}
               onChange={(e) => setDuration(e.target.value.replace(/[^0-9]/g, ""))}
               placeholder={String(ex.template?.default_duration_min ?? "—")}
-              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-text-hi px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
             />
           </label>
           <label className="flex flex-col gap-1 col-span-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Distance (km)
             </span>
             <input
@@ -1821,11 +1821,11 @@ function CurrentExerciseCard({
                   ? String(ex.template.default_distance_km)
                   : "—"
               }
-              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-text-hi px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
             />
           </label>
           <label className="flex flex-col gap-1 col-span-2">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Intensity
             </span>
             <input
@@ -1834,7 +1834,7 @@ function CurrentExerciseCard({
               value={intensity}
               onChange={(e) => setIntensity(e.target.value)}
               placeholder={ex.template?.default_intensity ?? "easy / moderate / hard"}
-              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-accent"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-accent"
             />
           </label>
         </div>
@@ -1854,7 +1854,7 @@ function CurrentExerciseCard({
                 : painLog.severity >= 4
                   ? "bg-warn/15 border-warn/40 text-warn"
                   : "bg-accent/10 border-accent/40 text-accent"
-              : "bg-surface-0 border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
+              : "bg-surface-0 border-hairline text-text-lo hover:text-text-hi hover:border-text-lo"
           }`}
           aria-expanded={false}
         >
@@ -1876,9 +1876,9 @@ function CurrentExerciseCard({
             onCommentChange(ex, e.target.value);
           }}
           placeholder="How did this feel?"
-          className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-accent resize-none"
+          className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-accent resize-none"
         />
-        <label className="flex items-center gap-2 text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em]">
+        <label className="flex items-center gap-2 text-[11px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.1em]">
           <input
             type="checkbox"
             disabled={readOnly}
@@ -1895,7 +1895,7 @@ function CurrentExerciseCard({
             <button
               type="button"
               onClick={onStartRest}
-              className="h-12 px-3 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-ink-4"
+              className="h-12 px-3 rounded-v2-md border border-hairline text-text-lo text-xs font-[family-name:var(--font-mono)] tracking-[0.15em] hover:text-text-hi"
             >
               START REST
             </button>
@@ -1921,7 +1921,7 @@ function CurrentExerciseCard({
         <button
           type="button"
           onClick={() => onSkip(ex)}
-          className="mt-2 text-[11px] text-ink-3 hover:text-danger underline-offset-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
+          className="mt-2 text-[11px] text-text-lo hover:text-danger underline-offset-2 font-[family-name:var(--font-mono)] tracking-[0.1em]"
         >
           Skip this
         </button>
@@ -1967,7 +1967,7 @@ function PainIndicator({
           Logged: {summary || "—"}
           {sevPart}
         </span>
-        <span className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.18em] shrink-0">
+        <span className="text-[11px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.18em] shrink-0">
           EDIT →
         </span>
       </button>
@@ -1994,7 +1994,7 @@ function PainIndicator({
           ? ` · typical ${sev}`
           : ""}
       </span>
-      <span className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.18em] shrink-0">
+      <span className="text-[11px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.18em] shrink-0">
         LOG →
       </span>
     </button>
@@ -2130,13 +2130,13 @@ function TimeEditModal({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
-          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-ink-4">
+          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-hi">
             Edit time
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-ink-3 hover:text-ink-4 text-xl leading-none"
+            className="text-text-lo hover:text-text-hi text-xl leading-none"
             aria-label="Close"
           >
             ×
@@ -2144,38 +2144,38 @@ function TimeEditModal({
         </header>
         <div className="px-5 py-4 flex flex-col gap-3">
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Started
             </span>
             <input
               type="datetime-local"
               value={startedInput}
               onChange={(e) => onStartedChange(e.target.value)}
-              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-text-hi px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Ended
             </span>
             <input
               type="datetime-local"
               value={endedInput}
               onChange={(e) => onEndedChange(e.target.value)}
-              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-text-hi px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
             />
             {!session.completed_at ? (
-              <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em]">
+              <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.1em]">
                 Set to mark complete; leave blank to keep active.
               </span>
             ) : (
-              <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em]">
+              <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.1em]">
                 Clear to reopen this session.
               </span>
             )}
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Duration (MM or HH:MM)
             </span>
             <input
@@ -2184,7 +2184,7 @@ function TimeEditModal({
               value={durationInput}
               onChange={(e) => onDurationChange(e.target.value)}
               placeholder="45 or 1:15"
-              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-text-hi px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)] tabular-nums"
             />
           </label>
           {error && (
@@ -2197,7 +2197,7 @@ function TimeEditModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-12 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
+            className="flex-1 h-12 rounded-v2-md border border-hairline text-text-lo text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
           >
             CANCEL
           </button>
@@ -2261,20 +2261,20 @@ function AddExerciseModal({
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
-          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-ink-4">
+          <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-hi">
             Add exercise
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-ink-3 hover:text-ink-4 text-xl leading-none"
+            className="text-text-lo hover:text-text-hi text-xl leading-none"
           >
             ×
           </button>
         </header>
         <div className="px-5 py-4 flex flex-col gap-3">
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Name
             </span>
             <input
@@ -2283,11 +2283,11 @@ function AddExerciseModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Lat pulldown"
-              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-text-hi px-3 py-2 outline-none focus:border-accent"
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Rest (seconds)
             </span>
             <input
@@ -2295,10 +2295,10 @@ function AddExerciseModal({
               type="text"
               value={rest}
               onChange={(e) => setRest(e.target.value.replace(/[^0-9]/g, ""))}
-              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-ink-4 px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-base text-text-hi px-3 py-2 outline-none focus:border-accent font-[family-name:var(--font-mono)]"
             />
           </label>
-          <label className="flex items-center gap-2 text-sm text-ink-4">
+          <label className="flex items-center gap-2 text-sm text-text-hi">
             <input
               type="checkbox"
               checked={saveTpl}
@@ -2311,7 +2311,7 @@ function AddExerciseModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-12 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
+            className="flex-1 h-12 rounded-v2-md border border-hairline text-text-lo text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
           >
             CANCEL
           </button>
@@ -2351,14 +2351,14 @@ function SessionPainSection({
   return (
     <section className="mt-6 rounded-2xl border border-hairline bg-surface-1">
       <div className="px-3 py-2 border-b border-hairline flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           Session pain notes
         </span>
         {!readOnly && (
           <button
             type="button"
             onClick={onOpen}
-            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
+            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-hi font-[family-name:var(--font-mono)]"
           >
             {painLog ? "EDIT" : "+ LOG"}
           </button>
@@ -2376,24 +2376,24 @@ function SessionPainSection({
                 Severity {painLog.severity}
               </span>
               {painLog.feel_rating && (
-                <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                <span className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
                   · {painLog.feel_rating}
                 </span>
               )}
               {painLog.pain_regions.length > 0 && (
-                <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                <span className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
                   · {painLog.pain_regions.join(", ")}
                 </span>
               )}
             </div>
             {painLog.notes && (
-              <p className="text-sm text-ink-4 whitespace-pre-wrap">
+              <p className="text-sm text-text-hi whitespace-pre-wrap">
                 {painLog.notes}
               </p>
             )}
           </div>
         ) : (
-          <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
             {readOnly
               ? "No session-level pain notes."
               : "Tap LOG to record how the session felt overall, or any pain that wasn't tied to a specific exercise."}

@@ -147,7 +147,7 @@ export function DailyChecklist() {
         <button
           type="button"
           onClick={() => changeDate(shiftDate(date, -1))}
-          className="p-1.5 rounded-v2-md text-ink-3 hover:text-ink-4 hover:bg-surface-1 transition-colors"
+          className="p-1.5 rounded-v2-md text-text-lo hover:text-text-hi hover:bg-surface-1 transition-colors"
         >
           <svg
             width="16"
@@ -162,13 +162,13 @@ export function DailyChecklist() {
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
-        <span className="text-sm text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.08em] min-w-[140px] text-center">
+        <span className="text-sm text-text-hi font-[family-name:var(--font-mono)] tracking-[0.08em] min-w-[140px] text-center">
           {fmtDate(date)}
         </span>
         <button
           type="button"
           onClick={() => changeDate(shiftDate(date, 1))}
-          className="p-1.5 rounded-v2-md text-ink-3 hover:text-ink-4 hover:bg-surface-1 transition-colors"
+          className="p-1.5 rounded-v2-md text-text-lo hover:text-text-hi hover:bg-surface-1 transition-colors"
         >
           <svg
             width="16"
@@ -196,7 +196,7 @@ export function DailyChecklist() {
 
       {/* Loading */}
       {data === null && (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-6 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-6 text-center">
           Loading...
         </div>
       )}
@@ -210,7 +210,7 @@ export function DailyChecklist() {
               style={{ width: `${pct}%` }}
             />
           </div>
-          <Mono className="text-[11px] text-ink-3 shrink-0">
+          <Mono className="text-[11px] text-text-lo shrink-0">
             {data.progress.taken} / {data.progress.total}
           </Mono>
         </div>
@@ -218,7 +218,7 @@ export function DailyChecklist() {
 
       {/* Empty state */}
       {data && data.slots.length === 0 && (
-        <div className="rounded-v2-md bg-surface-1 p-6 text-center text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="rounded-v2-md bg-surface-1 p-6 text-center text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           No active supplements configured.
         </div>
       )}
@@ -233,7 +233,7 @@ export function DailyChecklist() {
           <div key={slot.slot} className="flex flex-col gap-1">
             {/* Slot header */}
             <div className="flex items-center gap-2 px-1">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 {slot.label}
               </span>
               {hasFasted && (
@@ -247,7 +247,7 @@ export function DailyChecklist() {
                 </span>
               )}
               <span className="flex-1" />
-              <Mono className="text-[10px] text-ink-3">
+              <Mono className="text-[10px] text-text-lo">
                 {slotTaken}/{slot.items.length}
               </Mono>
             </div>
@@ -275,7 +275,7 @@ export function DailyChecklist() {
                       className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${
                         taken
                           ? "bg-ok/20 border-ok/50 text-ok"
-                          : "border-ink-3 text-transparent"
+                          : "border-text-lo text-transparent"
                       }`}
                     >
                       {taken && (
@@ -297,28 +297,28 @@ export function DailyChecklist() {
                     {/* Name + dose */}
                     <div className="flex-1 min-w-0">
                       <span
-                        className={`text-sm ${taken ? "text-ink-3 line-through" : "text-ink-4"}`}
+                        className={`text-sm ${taken ? "text-text-lo line-through" : "text-text-hi"}`}
                       >
                         {item.name}
                       </span>
                     </div>
 
                     <Mono
-                      className={`text-[11px] shrink-0 ${taken ? "text-ink-2" : "text-ink-3"}`}
+                      className={`text-[11px] shrink-0 ${taken ? "text-surface-2" : "text-text-lo"}`}
                     >
                       {item.dose}
                     </Mono>
 
                     <span
                       className={`text-[10px] uppercase tracking-[0.08em] font-[family-name:var(--font-mono)] shrink-0 w-[50px] text-right ${
-                        taken ? "text-ink-2" : "text-ink-3"
+                        taken ? "text-surface-2" : "text-text-lo"
                       }`}
                     >
                       {item.form}
                     </span>
 
                     {/* Time taken or brand */}
-                    <span className="text-[10px] font-[family-name:var(--font-mono)] text-ink-3 w-[48px] text-right shrink-0">
+                    <span className="text-[10px] font-[family-name:var(--font-mono)] text-text-lo w-[48px] text-right shrink-0">
                       {taken ? fmtTime(item.log!.taken_at) : ""}
                     </span>
                   </button>

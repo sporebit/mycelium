@@ -54,9 +54,9 @@ export function SuggestCapture({
         e.preventDefault();
         submit();
       }}
-      className="rounded-xl border border-ink-2 bg-ink-0/40 px-4 py-3 flex items-center gap-3"
+      className="rounded-xl border border-surface-2 bg-surface-0/40 px-4 py-3 flex items-center gap-3"
     >
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] shrink-0">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] shrink-0">
         {label}
       </span>
       <input
@@ -65,12 +65,12 @@ export function SuggestCapture({
         onChange={(e) => setValue(e.target.value)}
         placeholder="Type and press Enter…"
         disabled={submitting}
-        className="flex-1 bg-transparent outline-none text-sm text-ink-4 placeholder:text-ink-3"
+        className="flex-1 bg-transparent outline-none text-sm text-text-hi placeholder:text-text-lo"
       />
       <button
         type="submit"
         disabled={!value.trim() || submitting}
-        className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-ink-4 disabled:opacity-40 disabled:cursor-not-allowed font-[family-name:var(--font-mono)]"
+        className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-hi disabled:opacity-40 disabled:cursor-not-allowed font-[family-name:var(--font-mono)]"
       >
         {submitting ? "…" : "CAPTURE ↵"}
       </button>

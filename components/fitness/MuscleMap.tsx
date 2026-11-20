@@ -69,7 +69,7 @@ export function MuscleMapSvg({
             />
           ))}
         </svg>
-        <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)] uppercase">
+        <span className="text-[9px] text-text-lo font-[family-name:var(--font-mono)] uppercase">
           Front
         </span>
       </div>
@@ -93,7 +93,7 @@ export function MuscleMapSvg({
             />
           ))}
         </svg>
-        <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)] uppercase">
+        <span className="text-[9px] text-text-lo font-[family-name:var(--font-mono)] uppercase">
           Back
         </span>
       </div>

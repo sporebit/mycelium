@@ -132,23 +132,23 @@ export function HabitsConfigModal({
       }}
     >
       <div
-        className="absolute inset-0 bg-ink-0/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-surface-0/70 backdrop-blur-sm"
         onClick={onClose}
       />
       <div
-        className="relative w-full max-w-2xl rounded-2xl border border-ink-2 bg-ink-1 shadow-2xl flex flex-col max-h-[80vh]"
+        className="relative w-full max-w-2xl rounded-2xl border border-surface-2 bg-surface-1 shadow-2xl flex flex-col max-h-[80vh]"
         role="dialog"
         aria-label="Manage habits"
       >
-        <header className="flex items-center justify-between px-4 py-3 border-b border-ink-2">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <header className="flex items-center justify-between px-4 py-3 border-b border-surface-2">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Manage Habits
           </span>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="text-ink-3 hover:text-ink-4 text-sm"
+            className="text-text-lo hover:text-text-hi text-sm"
           >
             ✕
           </button>
@@ -161,7 +161,7 @@ export function HabitsConfigModal({
             </div>
           )}
 
-          <div className="grid grid-cols-[1fr_100px_80px_80px_28px] gap-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] pb-1">
+          <div className="grid grid-cols-[1fr_100px_80px_80px_28px] gap-2 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] pb-1">
             <span>Name</span>
             <span>Category</span>
             <span>Target</span>
@@ -170,7 +170,7 @@ export function HabitsConfigModal({
           </div>
 
           {draft.length === 0 ? (
-            <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
+            <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-4 text-center">
               No habits configured. Add one below.
             </div>
           ) : (
@@ -184,14 +184,14 @@ export function HabitsConfigModal({
                   value={h.name}
                   onChange={(e) => patch(idx, { name: e.target.value })}
                   placeholder="Move"
-                  className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
+                  className="bg-surface-0/40 border border-surface-2 rounded-md text-sm text-text-hi px-2 py-1.5 outline-none focus:border-text-lo"
                 />
                 <input
                   type="text"
                   value={h.category}
                   onChange={(e) => patch(idx, { category: e.target.value })}
                   placeholder="BODY"
-                  className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 uppercase tracking-[0.12em] font-[family-name:var(--font-mono)] text-[11px]"
+                  className="bg-surface-0/40 border border-surface-2 rounded-md text-sm text-text-hi px-2 py-1.5 outline-none focus:border-text-lo uppercase tracking-[0.12em] font-[family-name:var(--font-mono)] text-[11px]"
                 />
                 <input
                   type="number"
@@ -202,7 +202,7 @@ export function HabitsConfigModal({
                     })
                   }
                   placeholder="—"
-                  className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)] tabular-nums"
+                  className="bg-surface-0/40 border border-surface-2 rounded-md text-sm text-text-hi px-2 py-1.5 outline-none focus:border-text-lo font-[family-name:var(--font-mono)] tabular-nums"
                 />
                 <input
                   type="text"
@@ -213,13 +213,13 @@ export function HabitsConfigModal({
                     })
                   }
                   placeholder="—"
-                  className="bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
+                  className="bg-surface-0/40 border border-surface-2 rounded-md text-sm text-text-hi px-2 py-1.5 outline-none focus:border-text-lo"
                 />
                 <button
                   type="button"
                   onClick={() => remove(idx)}
                   aria-label="Delete habit"
-                  className="text-ink-3 hover:text-danger transition-colors text-base leading-none"
+                  className="text-text-lo hover:text-danger transition-colors text-base leading-none"
                 >
                   ×
                 </button>
@@ -230,23 +230,23 @@ export function HabitsConfigModal({
           <button
             type="button"
             onClick={add}
-            className="self-start text-[11px] uppercase tracking-[0.18em] text-accent hover:text-ink-4 font-[family-name:var(--font-mono)] mt-1"
+            className="self-start text-[11px] uppercase tracking-[0.18em] text-accent hover:text-text-hi font-[family-name:var(--font-mono)] mt-1"
           >
             + add habit
           </button>
 
-          <p className="mt-3 text-[10px] text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
+          <p className="mt-3 text-[10px] text-text-lo italic font-[family-name:var(--font-display)] leading-relaxed">
             Ids are stable. Renaming a habit keeps history intact; deleting one
             leaves historical &quot;done&quot; entries pointing at a ghost id
             (harmless, just hidden).
           </p>
         </div>
 
-        <footer className="border-t border-ink-2 px-4 py-3 flex items-center justify-end gap-2">
+        <footer className="border-t border-surface-2 px-4 py-3 flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 rounded-md border border-ink-2 text-sm text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+            className="px-3 py-1.5 rounded-md border border-surface-2 text-sm text-text-lo hover:text-text-hi hover:border-text-lo transition-colors"
           >
             Cancel
           </button>

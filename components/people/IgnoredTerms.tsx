@@ -77,15 +77,15 @@ export function IgnoredTerms() {
         </button>
       </form>
       {rows === null ? (
-        <div className="text-xs text-ink-3 italic">Loading…</div>
+        <div className="text-xs text-text-lo italic">Loading…</div>
       ) : rows.length === 0 ? (
-        <div className="text-xs text-ink-3 italic">Nothing ignored yet.</div>
+        <div className="text-xs text-text-lo italic">Nothing ignored yet.</div>
       ) : (
         <ul className="flex flex-col divide-y divide-hairline max-h-96 overflow-y-auto">
           {rows.map((t) => (
             <li key={t.id} className="flex flex-wrap items-center gap-3 py-2">
               <span className="text-sm text-text-hi">{t.term_raw}</span>
-              <Mono className="text-[10px] text-ink-3">
+              <Mono className="text-[10px] text-text-lo">
                 {SOURCE_LABEL[t.source]} · {new Date(t.created_at).toLocaleDateString("en-GB")}
                 {t.person_id && (
                   <>

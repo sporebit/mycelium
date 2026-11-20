@@ -76,7 +76,7 @@ export function WhenPicker({
           {DUE_WINDOW_LABEL.date}
         </Pill>
         {(current || value.deadline_on || value.someday) && (
-          <button type="button" onClick={() => !disabled && choose({ due_window: null })} className="text-[11px] text-ink-3 hover:text-ink-4" title="No deadline">
+          <button type="button" onClick={() => !disabled && choose({ due_window: null })} className="text-[11px] text-text-lo hover:text-text-hi" title="No deadline">
             clear
           </button>
         )}
@@ -85,7 +85,7 @@ export function WhenPicker({
       {pickingWeekend && (
         <select
           autoFocus
-          className="w-fit rounded-sm bg-ink-2 px-2 py-1 text-[12px] text-text-0"
+          className="w-fit rounded-sm bg-surface-2 px-2 py-1 text-[12px] text-text-hi"
           defaultValue=""
           onChange={(e) => {
             if (e.target.value) choose({ due_window: "weekend", scheduled_on: e.target.value });
@@ -105,7 +105,7 @@ export function WhenPicker({
           autoFocus
           type="date"
           min={today}
-          className="w-fit rounded-sm bg-ink-2 px-2 py-1 text-[12px] text-text-0"
+          className="w-fit rounded-sm bg-surface-2 px-2 py-1 text-[12px] text-text-hi"
           defaultValue={value.deadline_on ?? ""}
           onChange={(e) => {
             if (e.target.value) choose({ due_window: "date", deadline_on: e.target.value });
@@ -114,7 +114,7 @@ export function WhenPicker({
       )}
 
       {!compact && label && (
-        <span className={`text-[11px] ${label.kind === "overdue" ? "text-danger" : "text-ink-3"}`}>
+        <span className={`text-[11px] ${label.kind === "overdue" ? "text-danger" : "text-text-lo"}`}>
           {label.kind === "overdue"
             ? `Overdue by ${label.days} day${label.days === 1 ? "" : "s"}`
             : label.kind === "someday"

@@ -105,7 +105,7 @@ export default function RecipesPage() {
 
   if (loading) {
     return (
-      <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-20 text-center">
+      <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-20 text-center">
         Loading…
       </p>
     );
@@ -115,12 +115,12 @@ export default function RecipesPage() {
     <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic">
+        <h1 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic">
           Recipes
         </h1>
         {tab === "recipes" && (
           <div className="flex items-center gap-3">
-          <Link href="/health/recipes/gousto" className="text-[10px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em]">
+          <Link href="/health/recipes/gousto" className="text-[10px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] tracking-[0.18em]">
             GOUSTO COOKBOOK
           </Link>
           <button
@@ -141,8 +141,8 @@ export default function RecipesPage() {
             onClick={() => setTab(t)}
             className={`px-3 py-2 -mb-px text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] border-b-2 transition-colors ${
               tab === t
-                ? "border-accent text-ink-4"
-                : "border-transparent text-ink-3 hover:text-ink-4"
+                ? "border-accent text-text-hi"
+                : "border-transparent text-text-lo hover:text-text-hi"
             }`}
           >
             {t === "recipes" ? "RECIPES" : "MEAL PLANNER"}

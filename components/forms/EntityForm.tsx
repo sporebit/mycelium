@@ -14,9 +14,9 @@ import { visibleFields, type EntityDef, type FieldDef, type FieldErrors, type Fi
  */
 
 export const inputClass =
-  "w-full bg-ink-2 rounded-sm text-sm text-text-0 placeholder:text-text-3 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2 disabled:opacity-60";
-const inlineInputClass = "bg-transparent outline-none text-sm text-text-0 placeholder:text-text-3 min-w-[120px] flex-1";
-const eyebrow = "text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]";
+  "w-full bg-surface-2 rounded-sm text-sm text-text-hi placeholder:text-text-ghost px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2 disabled:opacity-60";
+const inlineInputClass = "bg-transparent outline-none text-sm text-text-hi placeholder:text-text-ghost min-w-[120px] flex-1";
+const eyebrow = "text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]";
 
 type PeopleRow = { id: string; display_name?: string | null; first_name?: string | null; last_name?: string | null; relationship?: string | null };
 type ProjectRow = { id: string; name: string; prefix?: string | null };
@@ -116,7 +116,7 @@ export function EntityForm({
         return <input {...common} type="datetime-local" value={typeof v === "string" ? v : ""} onChange={(e) => set(f.name, e.target.value)} className={cls} />;
       case "boolean":
         return (
-          <label className={`flex items-center gap-2 text-sm text-text-0 ${inline ? "" : "py-2"} cursor-pointer select-none`}>
+          <label className={`flex items-center gap-2 text-sm text-text-hi ${inline ? "" : "py-2"} cursor-pointer select-none`}>
             <input {...common} type="checkbox" checked={v === true} onChange={(e) => set(f.name, e.target.checked)} className="accent-accent h-3.5 w-3.5" />
             {inline ? f.label : f.help ?? "Yes"}
           </label>
@@ -205,7 +205,7 @@ export function EntityForm({
           {errors?.[f.name] ? (
             <span className="text-[10px] text-danger font-[family-name:var(--font-mono)]">{errors[f.name]}</span>
           ) : f.help && f.type !== "boolean" ? (
-            <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">{f.help}</span>
+            <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">{f.help}</span>
           ) : null}
         </label>
       ))}

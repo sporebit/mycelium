@@ -52,7 +52,7 @@ export function RecipeGrid({
           <button
             onClick={() => setTagFilter("all")}
             className={`px-2 py-1 rounded-full text-[10px] font-[family-name:var(--font-mono)] border transition-colors ${
-              tagFilter === "all" ? "border-accent bg-accent/10 text-accent" : "border-hairline text-ink-3"
+              tagFilter === "all" ? "border-accent bg-accent/10 text-accent" : "border-hairline text-text-lo"
             }`}
           >
             All
@@ -62,7 +62,7 @@ export function RecipeGrid({
               key={t}
               onClick={() => setTagFilter(tagFilter === t ? "all" : t)}
               className={`px-2 py-1 rounded-full text-[10px] font-[family-name:var(--font-mono)] border transition-colors ${
-                tagFilter === t ? "border-[#5de8e0] bg-[#5de8e0]/10 text-[#5de8e0]" : "border-hairline text-ink-3"
+                tagFilter === t ? "border-[#5de8e0] bg-[#5de8e0]/10 text-[#5de8e0]" : "border-hairline text-text-lo"
               }`}
             >
               {t}
@@ -72,7 +72,7 @@ export function RecipeGrid({
       )}
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] text-center py-12">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] text-center py-12">
           No recipes yet. Add your first one.
         </p>
       ) : (
@@ -81,7 +81,7 @@ export function RecipeGrid({
             <Link
               key={r.id}
               href={`/health/recipes/${r.id}`}
-              className="group rounded-xl border border-hairline overflow-hidden hover:border-ink-3 transition-colors"
+              className="group rounded-xl border border-hairline overflow-hidden hover:border-text-lo transition-colors"
             >
               <div
                 className="h-36 w-full bg-cover bg-center"
@@ -92,10 +92,10 @@ export function RecipeGrid({
                 }
               />
               <div className="p-3">
-                <p className="text-sm text-ink-4 font-[family-name:var(--font-display)] group-hover:text-text-0 transition-colors truncate">
+                <p className="text-sm text-text-hi font-[family-name:var(--font-display)] group-hover:text-text-hi transition-colors truncate">
                   {r.title}
                 </p>
-                <div className="flex items-center gap-2 mt-1 text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">
+                <div className="flex items-center gap-2 mt-1 text-[10px] text-text-lo font-[family-name:var(--font-mono)]">
                   {r.cuisine && <span>{r.cuisine}</span>}
                   {r.prep_time_minutes != null && <span>{r.prep_time_minutes}m prep</span>}
                   {r.cook_time_minutes != null && <span>{r.cook_time_minutes}m cook</span>}

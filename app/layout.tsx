@@ -81,7 +81,7 @@ export default async function RootLayout({
       data-shell={shell}
       className={`${interTight.variable} ${jetbrainsMono.variable} ${newsreader.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-ink-0 text-ink-4">
+      <body className="min-h-full flex flex-col bg-surface-0 text-text-hi">
         <SoilGrain />
         <MyceliumField />
         <SessionWatch />

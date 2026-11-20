@@ -87,17 +87,17 @@ export function NutritionHistory() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-[family-name:var(--font-display)] italic text-ink-4">
+        <h2 className="text-base font-[family-name:var(--font-display)] italic text-text-hi">
           History
         </h2>
-        <div className="inline-flex rounded-lg border border-ink-2 bg-ink-0/40 p-0.5">
+        <div className="inline-flex rounded-lg border border-surface-2 bg-surface-0/40 p-0.5">
           {(["7", "30"] as const).map((r) => (
             <button
               key={r}
               type="button"
               onClick={() => setRange(r)}
               className={`px-3 py-1 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] rounded-md transition-colors ${
-                range === r ? "bg-ink-2 text-ink-4" : "text-ink-3 hover:text-ink-4"
+                range === r ? "bg-surface-2 text-text-hi" : "text-text-lo hover:text-text-hi"
               }`}
             >
               {r}D
@@ -107,7 +107,7 @@ export function NutritionHistory() {
       </div>
 
       {data === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : (
@@ -127,8 +127,8 @@ export function NutritionHistory() {
             />
           </div>
 
-          <section className="rounded-md bg-ink-1 border border-ink-2 p-3">
-            <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
+          <section className="rounded-md bg-surface-1 border border-surface-2 p-3">
+            <h3 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-2">
               Daily calories
             </h3>
             <div className="h-48">
@@ -156,13 +156,13 @@ export function NutritionHistory() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-1 text-right">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-1 text-right">
               target {targets.kcal} kcal
             </div>
           </section>
 
-          <section className="rounded-md bg-ink-1 border border-ink-2 p-3">
-            <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
+          <section className="rounded-md bg-surface-1 border border-surface-2 p-3">
+            <h3 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-2">
               Macro breakdown (g)
             </h3>
             <div className="h-48">
@@ -196,18 +196,18 @@ export function NutritionHistory() {
           </section>
 
           {data.top_foods.length > 0 && (
-            <section className="rounded-md bg-ink-1 border border-ink-2 p-3">
-              <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
+            <section className="rounded-md bg-surface-1 border border-surface-2 p-3">
+              <h3 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-2">
                 Most logged foods
               </h3>
-              <ul className="flex flex-col divide-y divide-ink-2/60">
+              <ul className="flex flex-col divide-y divide-surface-2/60">
                 {data.top_foods.map((f) => (
                   <li
                     key={f.name}
                     className="flex items-center justify-between py-1.5"
                   >
-                    <span className="text-sm text-ink-4 truncate">{f.name}</span>
-                    <Mono className="text-[11px] text-ink-3 tabular-nums">
+                    <span className="text-sm text-text-hi truncate">{f.name}</span>
+                    <Mono className="text-[11px] text-text-lo tabular-nums">
                       {f.count}×
                     </Mono>
                   </li>
@@ -231,13 +231,13 @@ function Stat({
   unit?: string;
 }) {
   return (
-    <div className="rounded-md bg-ink-1 border border-ink-2 px-3 py-2">
-      <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+    <div className="rounded-md bg-surface-1 border border-surface-2 px-3 py-2">
+      <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {label}
       </div>
-      <div className="text-base text-ink-4 mt-0.5 font-[family-name:var(--font-mono)] tabular-nums truncate">
+      <div className="text-base text-text-hi mt-0.5 font-[family-name:var(--font-mono)] tabular-nums truncate">
         {value}{" "}
-        {unit && <span className="text-ink-3 text-[11px]">{unit}</span>}
+        {unit && <span className="text-text-lo text-[11px]">{unit}</span>}
       </div>
     </div>
   );

@@ -8,9 +8,9 @@ import type { FactRow, SceneRow } from "@/lib/daylog/rows";
 import type { SignedMedia } from "@/lib/daylog/media";
 import { PhotoStrip } from "./PhotoStrip";
 
-const input = "w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
+const input = "w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2";
 const tiny = "text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] disabled:opacity-50";
-const chip = "rounded-md border border-ink-4 px-1.5 py-0.5 text-[11px] text-text-1";
+const chip = "rounded-md border border-text-hi px-1.5 py-0.5 text-[11px] text-text-mid";
 
 async function call(url: string, method: "PATCH" | "DELETE", body?: unknown): Promise<void> {
   const r = await fetch(url, { method, headers: body === undefined ? undefined : { "content-type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
@@ -59,13 +59,13 @@ export function ScenesSection({ scenes, dayFacts, pending, dayId, media = [], on
         <SceneCard key={s.id} scene={s} index={i} busy={busy} act={act} photos={media.filter((m) => m.scene_id === s.id)} onChanged={onChanged} />
       ))}
       {loose.length > 0 && (
-        <div className="rounded-md bg-ink-1 p-4 flex flex-col gap-2">
+        <div className="rounded-md bg-surface-1 p-4 flex flex-col gap-2">
           <div className="card-eyebrow">Photos not yet on a scene</div>
           <PhotoStrip photos={loose} onChanged={onChanged} />
         </div>
       )}
       {dayFacts.length > 0 && (
-        <div className="rounded-md bg-ink-1 p-4 flex flex-col gap-2">
+        <div className="rounded-md bg-surface-1 p-4 flex flex-col gap-2">
           <div className="card-eyebrow">The day in general</div>
           <FactList facts={dayFacts} busy={busy} act={act} />
         </div>
@@ -94,29 +94,29 @@ function SceneCard({ scene, index, busy, act, photos, onChanged }: { scene: Scen
     });
 
   return (
-    <div className="rounded-md bg-ink-1 p-4 flex flex-col gap-2">
+    <div className="rounded-md bg-surface-1 p-4 flex flex-col gap-2">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-baseline gap-2 min-w-0">
-          <Mono className="text-[10px] text-text-2">{index + 1}</Mono>
-          {edit ? <input value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })} className={input} aria-label="Scene title" /> : <h2 className="text-sm font-semibold text-text-0 truncate">{scene.title}</h2>}
+          <Mono className="text-[10px] text-text-lo">{index + 1}</Mono>
+          {edit ? <input value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })} className={input} aria-label="Scene title" /> : <h2 className="text-sm font-semibold text-text-hi truncate">{scene.title}</h2>}
         </div>
         {edit ? (
           <span className="flex gap-2 shrink-0">
             <button type="button" className={`${tiny} text-glow-1`} disabled={busy} onClick={() => void save()}>
               SAVE
             </button>
-            <button type="button" className={`${tiny} text-text-2`} onClick={() => setEdit(null)}>
+            <button type="button" className={`${tiny} text-text-lo`} onClick={() => setEdit(null)}>
               CANCEL
             </button>
           </span>
         ) : (
           <span className="flex gap-2 shrink-0">
-            <button type="button" className={`${tiny} text-text-2 hover:text-text-0`} onClick={() => setEdit({ title: scene.title, place_text: scene.place_text ?? "", time_hint: scene.time_hint ?? "", narrative: scene.narrative ?? "" })}>
+            <button type="button" className={`${tiny} text-text-lo hover:text-text-hi`} onClick={() => setEdit({ title: scene.title, place_text: scene.place_text ?? "", time_hint: scene.time_hint ?? "", narrative: scene.narrative ?? "" })}>
               EDIT
             </button>
             <button
               type="button"
-              className={`${tiny} text-text-2 hover:text-warn`}
+              className={`${tiny} text-text-lo hover:text-warn`}
               disabled={busy}
               onClick={() => {
                 if (window.confirm(`Delete the scene "${scene.title}"? Its facts stay on the day.`)) void act(() => call(url, "DELETE"));
@@ -136,23 +136,23 @@ function SceneCard({ scene, index, busy, act, photos, onChanged }: { scene: Scen
       ) : (
         <div className="flex flex-wrap items-center gap-1.5">
           {scene.place_id ? (
-            <Link href={`/places?focus=${scene.place_id}`} className={`${chip} hover:text-text-0`}>
+            <Link href={`/places?focus=${scene.place_id}`} className={`${chip} hover:text-text-hi`}>
               {scene.place_name ?? scene.place_text ?? "place"}
             </Link>
           ) : scene.place_text ? (
-            <span className={`${chip} border-dashed text-text-2`} title="Not linked to Places yet">
+            <span className={`${chip} border-dashed text-text-lo`} title="Not linked to Places yet">
               {scene.place_text}
             </span>
           ) : null}
-          {scene.time_hint && <span className="text-[11px] text-text-2">{scene.time_hint}</span>}
+          {scene.time_hint && <span className="text-[11px] text-text-lo">{scene.time_hint}</span>}
           {scene.people.map((p) => (
-            <Link key={p.id} href={`/organisation/people/${p.id}`} className={`${chip} bg-glow-3/30 hover:text-text-0`}>
+            <Link key={p.id} href={`/organisation/people/${p.id}`} className={`${chip} bg-glow-3/30 hover:text-text-hi`}>
               {p.name}
             </Link>
           ))}
           <button
             type="button"
-            className={`${tiny} ml-auto ${scene.hidden_from_linked ? "text-warn" : "text-text-2 hover:text-text-0"}`}
+            className={`${tiny} ml-auto ${scene.hidden_from_linked ? "text-warn" : "text-text-lo hover:text-text-hi"}`}
             disabled={busy}
             title={scene.hidden_from_linked ? "Hidden from anyone linked to a person in this scene. Click to share the scene basics with them." : "Anyone linked to a person in this scene sees its title, place, names and line. Click to hide it from them."}
             onClick={() => void act(() => call(url, "PATCH", { hidden_from_linked: !scene.hidden_from_linked }))}
@@ -165,7 +165,7 @@ function SceneCard({ scene, index, busy, act, photos, onChanged }: { scene: Scen
       {edit ? (
         <textarea rows={3} value={edit.narrative} onChange={(e) => setEdit({ ...edit, narrative: e.target.value })} placeholder="What happened here" className={`${input} resize-y`} aria-label="Scene narrative" />
       ) : scene.narrative ? (
-        <p className="text-sm text-text-1 whitespace-pre-wrap">{scene.narrative}</p>
+        <p className="text-sm text-text-mid whitespace-pre-wrap">{scene.narrative}</p>
       ) : null}
 
       <PhotoStrip photos={photos} onChanged={onChanged} />
@@ -181,7 +181,7 @@ function FactList({ facts, busy, act }: { facts: FactRow[]; busy: boolean; act: 
     <div className="flex flex-col gap-1.5 pt-1">
       {groups.map((g) => (
         <div key={g.kind} className="flex gap-2">
-          <Mono className="w-20 shrink-0 pt-0.5 text-[10px] uppercase tracking-[0.12em] text-text-2">{g.kind.replace("_", " ")}</Mono>
+          <Mono className="w-20 shrink-0 pt-0.5 text-[10px] uppercase tracking-[0.12em] text-text-lo">{g.kind.replace("_", " ")}</Mono>
           <ul className="flex-1 flex flex-col gap-1 min-w-0">
             {g.rows.map((f) => (
               <FactItem key={f.id} fact={f} busy={busy} act={act} />
@@ -200,7 +200,7 @@ function FactItem({ fact, busy, act }: { fact: FactRow; busy: boolean; act: Act 
     return (
       <li className="flex flex-col sm:flex-row gap-2">
         <input value={edit.text} onChange={(e) => setEdit({ ...edit, text: e.target.value })} className={input} aria-label="Fact" />
-        <select value={edit.kind} onChange={(e) => setEdit({ ...edit, kind: e.target.value })} className="bg-ink-2 rounded-sm text-xs text-text-0 px-2 py-2" aria-label="Kind">
+        <select value={edit.kind} onChange={(e) => setEdit({ ...edit, kind: e.target.value })} className="bg-surface-2 rounded-sm text-xs text-text-hi px-2 py-2" aria-label="Kind">
           {FACT_KINDS.map((k) => (
             <option key={k} value={k}>
               {k.replace("_", " ")}
@@ -221,7 +221,7 @@ function FactItem({ fact, busy, act }: { fact: FactRow; busy: boolean; act: Act 
           >
             SAVE
           </button>
-          <button type="button" className={`${tiny} text-text-2`} onClick={() => setEdit(null)}>
+          <button type="button" className={`${tiny} text-text-lo`} onClick={() => setEdit(null)}>
             CANCEL
           </button>
         </span>
@@ -229,17 +229,17 @@ function FactItem({ fact, busy, act }: { fact: FactRow; busy: boolean; act: Act 
     );
   }
   return (
-    <li className="group flex items-baseline justify-between gap-2 text-sm text-text-1">
+    <li className="group flex items-baseline justify-between gap-2 text-sm text-text-mid">
       <span className="min-w-0">
         {fact.subject_name && <span className="text-glow-2">{fact.subject_name}: </span>}
         {fact.text}
-        {fact.confidence === "inferred" && <span className="ml-1 text-[10px] text-text-2 italic">inferred</span>}
+        {fact.confidence === "inferred" && <span className="ml-1 text-[10px] text-text-lo italic">inferred</span>}
       </span>
       <span className="flex gap-2 shrink-0 opacity-60 group-hover:opacity-100">
-        <button type="button" className={`${tiny} text-text-2 hover:text-text-0`} onClick={() => setEdit({ text: fact.text, kind: fact.kind })}>
+        <button type="button" className={`${tiny} text-text-lo hover:text-text-hi`} onClick={() => setEdit({ text: fact.text, kind: fact.kind })}>
           EDIT
         </button>
-        <button type="button" className={`${tiny} text-text-2 hover:text-warn`} disabled={busy} onClick={() => void act(() => call(url, "DELETE"))}>
+        <button type="button" className={`${tiny} text-text-lo hover:text-warn`} disabled={busy} onClick={() => void act(() => call(url, "DELETE"))}>
           ×
         </button>
       </span>

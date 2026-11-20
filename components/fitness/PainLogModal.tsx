@@ -105,17 +105,17 @@ export function PainLogModal({
       >
         <header className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-hairline">
           <div>
-            <h2 className="text-lg italic font-[family-name:var(--font-display)] text-ink-4">
+            <h2 className="text-lg italic font-[family-name:var(--font-display)] text-text-hi">
               How does it feel?
             </h2>
-            <p className="text-[11px] text-ink-3 mt-0.5 truncate">
+            <p className="text-[11px] text-text-lo mt-0.5 truncate">
               {exerciseName}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-ink-3 hover:text-ink-4 text-xl leading-none"
+            className="text-text-lo hover:text-text-hi text-xl leading-none"
           >
             ×
           </button>
@@ -137,7 +137,7 @@ export function PainLogModal({
                   className={`px-2.5 py-2 rounded-v2-md border text-xs font-[family-name:var(--font-mono)] tracking-[0.1em] flex items-center gap-1.5 transition-colors ${
                     active
                       ? "border-accent/50 bg-accent/15 text-accent"
-                      : "border-hairline text-ink-4 hover:border-ink-3"
+                      : "border-hairline text-text-hi hover:border-text-lo"
                   }`}
                 >
                   <span aria-hidden>{o.emoji}</span>
@@ -150,9 +150,9 @@ export function PainLogModal({
           {/* Severity slider when relevant */}
           {showSeverity && (
             <label className="flex flex-col gap-1">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] flex items-center justify-between">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] flex items-center justify-between">
                 <span>Severity (0–10)</span>
-                <span className="text-ink-4">{severity}</span>
+                <span className="text-text-hi">{severity}</span>
               </span>
               <input
                 type="range"
@@ -168,7 +168,7 @@ export function PainLogModal({
 
           {/* Region multi-select */}
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Region(s)
             </span>
             <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto">
@@ -182,7 +182,7 @@ export function PainLogModal({
                     className={`px-2.5 py-1.5 rounded-v2-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.1em] transition-colors ${
                       active
                         ? "border-warn/50 bg-warn/15 text-warn"
-                        : "border-hairline text-ink-4 hover:border-ink-3"
+                        : "border-hairline text-text-hi hover:border-text-lo"
                     }`}
                   >
                     {opt.label}
@@ -194,7 +194,7 @@ export function PainLogModal({
 
           {/* Notes */}
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Notes
             </span>
             <textarea
@@ -202,7 +202,7 @@ export function PainLogModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Optional context…"
-              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 resize-none"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo resize-none"
             />
           </label>
 
@@ -216,7 +216,7 @@ export function PainLogModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 h-12 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
+            className="flex-1 h-12 rounded-v2-md border border-hairline text-text-lo text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
           >
             CANCEL
           </button>

@@ -48,7 +48,7 @@ export function PlacesMap({ places }: { places: Place[] }) {
       : ([53.5349, -1.0537] as [number, number]);
 
   return (
-    <div className="h-[400px] rounded-lg border border-ink-2 overflow-hidden">
+    <div className="h-[400px] rounded-lg border border-surface-2 overflow-hidden">
       <MapContainer
         center={center}
         zoom={10}

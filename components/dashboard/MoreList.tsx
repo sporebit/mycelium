@@ -256,7 +256,7 @@ function Chevron(): ReactNode {
 
 function GroupHeading({ children }: { children: ReactNode }) {
   return (
-    <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-4 mb-2 px-1">
+    <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-4 mb-2 px-1">
       {children}
     </h2>
   );
@@ -349,25 +349,25 @@ export function MoreList() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+      <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
         More
       </h1>
 
       {/* Install prompt */}
       {install.state.kind !== "hidden" && (
-        <div className="rounded-md bg-ink-1 border border-ink-2 px-4 py-3 flex items-center gap-3">
+        <div className="rounded-md bg-surface-1 border border-surface-2 px-4 py-3 flex items-center gap-3">
           <InstallIcon size={22} ariaLabel="Install" />
           <div className="flex-1">
             {install.state.kind === "android" ? (
               <button
                 type="button"
                 onClick={install.state.prompt}
-                className="text-sm text-text-0 hover:text-accent transition-colors"
+                className="text-sm text-text-hi hover:text-accent transition-colors"
               >
                 Install Myphelium2
               </button>
             ) : (
-              <span className="text-sm text-ink-3">
+              <span className="text-sm text-text-lo">
                 Add to Home Screen via Share
               </span>
             )}
@@ -375,7 +375,7 @@ export function MoreList() {
           <button
             type="button"
             onClick={install.dismiss}
-            className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+            className="text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
           >
             Dismiss
           </button>
@@ -389,12 +389,12 @@ export function MoreList() {
             type="button"
             onClick={toggle}
             aria-pressed={financeHidden}
-            className="w-full flex items-center gap-3 bg-ink-1 rounded-md px-4 min-h-[56px] hover:bg-ink-2/40 transition-colors text-left"
+            className="w-full flex items-center gap-3 bg-surface-1 rounded-md px-4 min-h-[56px] hover:bg-surface-2/40 transition-colors text-left"
           >
             <SettingsIcon size={22} ariaLabel="Privacy mode" />
             <div className="flex-1">
-              <div className="text-base text-text-0">Privacy mode</div>
-              <div className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.04em] uppercase">
+              <div className="text-base text-text-hi">Privacy mode</div>
+              <div className="text-[11px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.04em] uppercase">
                 Redact financial values (resets on reload)
               </div>
             </div>
@@ -402,7 +402,7 @@ export function MoreList() {
               className={`text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase px-2 py-1 rounded-md border ${
                 financeHidden
                   ? "border-accent/40 bg-accent/15 text-accent"
-                  : "border-ink-2 text-ink-3"
+                  : "border-surface-2 text-text-lo"
               }`}
             >
               {financeHidden ? "ON" : "OFF"}
@@ -414,12 +414,12 @@ export function MoreList() {
             type="button"
             onClick={handleNotifToggle}
             disabled={notifLoading}
-            className="w-full flex items-center gap-3 bg-ink-1 rounded-md px-4 min-h-[56px] hover:bg-ink-2/40 transition-colors text-left"
+            className="w-full flex items-center gap-3 bg-surface-1 rounded-md px-4 min-h-[56px] hover:bg-surface-2/40 transition-colors text-left"
           >
             <BellIcon size={22} ariaLabel="Notifications" />
             <div className="flex-1">
-              <div className="text-base text-text-0">Enable notifications</div>
-              <div className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.04em] uppercase">
+              <div className="text-base text-text-hi">Enable notifications</div>
+              <div className="text-[11px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.04em] uppercase">
                 {notifLoading ? "Working…" : "Push notifications for reminders"}
               </div>
             </div>
@@ -427,7 +427,7 @@ export function MoreList() {
               className={`text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase px-2 py-1 rounded-md border ${
                 notifEnabled
                   ? "border-accent/40 bg-accent/15 text-accent"
-                  : "border-ink-2 text-ink-3"
+                  : "border-surface-2 text-text-lo"
               }`}
             >
               {notifEnabled ? "ON" : "OFF"}
@@ -440,11 +440,11 @@ export function MoreList() {
               type="button"
               onClick={handleTestPush}
               disabled={testSending}
-              className="w-full flex items-center gap-3 bg-ink-1 rounded-md px-4 min-h-[56px] hover:bg-ink-2/40 transition-colors text-left"
+              className="w-full flex items-center gap-3 bg-surface-1 rounded-md px-4 min-h-[56px] hover:bg-surface-2/40 transition-colors text-left"
             >
               <BellIcon size={22} ariaLabel="Test" />
               <div className="flex-1">
-                <div className="text-base text-text-0">
+                <div className="text-base text-text-hi">
                   {testSending ? "Sending…" : "Send test notification"}
                 </div>
               </div>
@@ -456,7 +456,7 @@ export function MoreList() {
       {toast && (
         <div
           role="status"
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] bg-ink-1 text-text-0 border border-ink-2"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[120] px-4 py-2 rounded-md text-sm shadow-2xl font-[family-name:var(--font-mono)] bg-surface-1 text-text-hi border border-surface-2"
         >
           {toast}
         </div>
@@ -470,13 +470,13 @@ export function MoreList() {
             <li key={item.label}>
               <Link
                 href={item.href}
-                className="flex items-center gap-3 bg-ink-1 rounded-md px-4 min-h-[56px] hover:bg-ink-2/40 transition-colors"
+                className="flex items-center gap-3 bg-surface-1 rounded-md px-4 min-h-[56px] hover:bg-surface-2/40 transition-colors"
               >
                 <Icon size={22} ariaLabel={item.label} />
-                <span className="flex-1 text-base text-text-0">
+                <span className="flex-1 text-base text-text-hi">
                   {item.label}
                 </span>
-                <span className="text-ink-3">
+                <span className="text-text-lo">
                   <Chevron />
                 </span>
               </Link>

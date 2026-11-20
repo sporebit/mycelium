@@ -26,7 +26,7 @@ type Candidate = {
   match_person: PersonWithAliases | null;
 };
 
-const btn = "px-3 py-1.5 rounded-sm border border-ink-4 text-xs text-text-1 hover:text-text-0 hover:bg-ink-2 font-[family-name:var(--font-mono)] tracking-[0.1em] disabled:opacity-50";
+const btn = "px-3 py-1.5 rounded-sm border border-text-hi text-xs text-text-mid hover:text-text-hi hover:bg-surface-2 font-[family-name:var(--font-mono)] tracking-[0.1em] disabled:opacity-50";
 
 function nameOf(p: PersonWithAliases | null): string {
   if (!p) return "—";
@@ -35,13 +35,13 @@ function nameOf(p: PersonWithAliases | null): string {
 
 function Card({ title, lines }: { title: string; lines: Array<[string, string | null | undefined]> }) {
   return (
-    <div className="rounded-md bg-ink-0/40 border border-ink-2 p-3 flex flex-col gap-1 min-w-0">
-      <div className="font-[family-name:var(--font-display)] text-base text-text-0 truncate">{title}</div>
+    <div className="rounded-md bg-surface-0/40 border border-surface-2 p-3 flex flex-col gap-1 min-w-0">
+      <div className="font-[family-name:var(--font-display)] text-base text-text-hi truncate">{title}</div>
       {lines
         .filter(([, v]) => v)
         .map(([k, v]) => (
-          <div key={k} className="text-[12px] text-text-1 truncate">
-            <span className="text-ink-3 font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.12em] mr-1">{k}</span>
+          <div key={k} className="text-[12px] text-text-mid truncate">
+            <span className="text-text-lo font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.12em] mr-1">{k}</span>
             {v}
           </div>
         ))}
@@ -109,38 +109,38 @@ export function ImportClient() {
 
   return (
     <div className="flex flex-col gap-5">
-      <Link href="/organisation/people" className="text-[11px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em] self-start">← PEOPLE</Link>
+      <Link href="/organisation/people" className="text-[11px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] tracking-[0.18em] self-start">← PEOPLE</Link>
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
         <div>
           <div className="card-eyebrow">People</div>
-          <h1 className="font-[family-name:var(--font-display)] text-2xl text-text-0">Import contacts</h1>
+          <h1 className="font-[family-name:var(--font-display)] text-2xl text-text-hi">Import contacts</h1>
         </div>
-        <Link href="/organisation/people/import-setup" className="text-[11px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]">spreadsheet import →</Link>
+        <Link href="/organisation/people/import-setup" className="text-[11px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]">spreadsheet import →</Link>
       </div>
 
-      <label className={`rounded-md border border-dashed border-ink-3 bg-ink-1 p-6 text-center cursor-pointer hover:border-glow-2/60 ${uploading ? "opacity-60" : ""}`}>
+      <label className={`rounded-md border border-dashed border-text-lo bg-surface-1 p-6 text-center cursor-pointer hover:border-glow-2/60 ${uploading ? "opacity-60" : ""}`}>
         <input type="file" accept=".vcf,text/vcard,text/x-vcard" className="hidden" disabled={uploading} onChange={(e) => e.target.files?.[0] && void upload(e.target.files[0])} />
-        <div className="font-[family-name:var(--font-display)] text-lg text-text-0">{uploading ? (progress ?? "Importing…") : "Drop a .vcf here or click to choose"}</div>
-        <div className="text-[11px] text-ink-3 mt-1">
+        <div className="font-[family-name:var(--font-display)] text-lg text-text-hi">{uploading ? (progress ?? "Importing…") : "Drop a .vcf here or click to choose"}</div>
+        <div className="text-[11px] text-text-lo mt-1">
           Cards that match someone you already have (same number, same email, or a close name) wait below for your decision. Everyone else comes in as a contact. Re-importing the same file never duplicates anyone.
         </div>
       </label>
       {error && <div className="text-xs text-danger">{error}</div>}
 
-      <div className="rounded-md bg-ink-1 p-4">
+      <div className="rounded-md bg-surface-1 p-4">
         <div className="card-eyebrow mb-2">Batches</div>
         {batches === null ? (
-          <div className="text-xs text-ink-3 italic">Loading…</div>
+          <div className="text-xs text-text-lo italic">Loading…</div>
         ) : batches.length === 0 ? (
-          <div className="text-xs text-ink-3 italic">No imports yet.</div>
+          <div className="text-xs text-text-lo italic">No imports yet.</div>
         ) : (
-          <ul className="flex flex-col divide-y divide-ink-2">
+          <ul className="flex flex-col divide-y divide-surface-2">
             {batches.map((b) => (
               <li key={b.id}>
-                <button type="button" onClick={() => setOpen(open === b.id ? null : b.id)} className={`w-full text-left py-2 flex flex-wrap items-baseline gap-x-3 ${open === b.id ? "text-glow-2" : "text-text-0 hover:text-glow-2"}`}>
+                <button type="button" onClick={() => setOpen(open === b.id ? null : b.id)} className={`w-full text-left py-2 flex flex-wrap items-baseline gap-x-3 ${open === b.id ? "text-glow-2" : "text-text-hi hover:text-glow-2"}`}>
                   <span className="text-sm">{b.filename ?? "(no name)"}</span>
-                  <Mono className="text-[10px] text-ink-3">{new Date(b.created_at).toLocaleString("en-GB")}</Mono>
-                  <Mono className="text-[10px] text-ink-3 ml-auto">
+                  <Mono className="text-[10px] text-text-lo">{new Date(b.created_at).toLocaleString("en-GB")}</Mono>
+                  <Mono className="text-[10px] text-text-lo ml-auto">
                     {b.card_count} cards · {b.imported} imported · {b.review} to review{b.pending ? ` (${b.pending} waiting)` : ""} · {b.skipped} skipped · {b.failed} failed
                   </Mono>
                 </button>
@@ -153,13 +153,13 @@ export function ImportClient() {
       {detail && (
         <div className="flex flex-col gap-3">
           <div className="card-eyebrow">Review — {pending.length} waiting{decided.length ? ` · ${decided.length} decided` : ""}</div>
-          {pending.length === 0 && <div className="text-xs text-ink-3 italic">Nothing waiting in this batch.</div>}
+          {pending.length === 0 && <div className="text-xs text-text-lo italic">Nothing waiting in this batch.</div>}
           {pending.map((c) => {
             const p = c.parsed;
             const m = c.match_person;
             return (
-              <div key={c.id} className="rounded-md bg-ink-1 p-4 flex flex-col gap-3">
-                <div className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)]">
+              <div key={c.id} className="rounded-md bg-surface-1 p-4 flex flex-col gap-3">
+                <div className="text-[11px] text-text-lo font-[family-name:var(--font-mono)]">
                   card #{c.card_index + 1} · matched on {c.match_reason}
                   {c.match_reason === "name" && c.match_score != null ? ` (${Math.round(c.match_score * 100)}%)` : ""}
                 </div>
@@ -187,20 +187,20 @@ export function ImportClient() {
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <button type="button" disabled={busy === c.id || !m} onClick={() => void decide(c, "merge")} className="px-3 py-1.5 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]">
+                  <button type="button" disabled={busy === c.id || !m} onClick={() => void decide(c, "merge")} className="px-3 py-1.5 rounded-sm bg-glow-2 text-text-hi hover:bg-glow-1 disabled:opacity-40 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]">
                     MERGE INTO {nameOf(m).toUpperCase()}
                   </button>
                   <button type="button" disabled={busy === c.id} onClick={() => void decide(c, "separate")} className={btn}>KEEP SEPARATE</button>
                   <button type="button" disabled={busy === c.id} onClick={() => void decide(c, "skip")} className={btn}>SKIP</button>
                   {m && (
-                    <Link href={`/organisation/people/${m.id}`} className="ml-auto text-[11px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]">open {nameOf(m)} →</Link>
+                    <Link href={`/organisation/people/${m.id}`} className="ml-auto text-[11px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]">open {nameOf(m)} →</Link>
                   )}
                 </div>
               </div>
             );
           })}
           {decided.length > 0 && (
-            <details className="text-xs text-ink-3">
+            <details className="text-xs text-text-lo">
               <summary className="cursor-pointer">Decided ({decided.length})</summary>
               <ul className="mt-2 flex flex-col gap-1 font-[family-name:var(--font-mono)]">
                 {decided.map((c) => (

@@ -277,11 +277,11 @@ function EntryList({
           <Mono className="text-[11px] tracking-[0.18em] text-glow-2">
             {e.term}
           </Mono>
-          <p className="text-[12px] italic text-ink-3 font-[family-name:var(--font-display)] leading-snug">
+          <p className="text-[12px] italic text-text-lo font-[family-name:var(--font-display)] leading-snug">
             {e.myco}
           </p>
-          <p className="text-[12px] text-ink-4 leading-snug">
-            <span className="text-ink-3">→ </span>
+          <p className="text-[12px] text-text-hi leading-snug">
+            <span className="text-text-lo">→ </span>
             {e.maps}
           </p>
         </li>

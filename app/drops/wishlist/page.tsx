@@ -185,7 +185,7 @@ export default function WishlistPage() {
     <div className="flex flex-col gap-6">
       <header className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Wishlist
           </h1>
         </div>
@@ -199,15 +199,15 @@ export default function WishlistPage() {
       </header>
 
       {/* Stats bar */}
-      <div className="flex gap-4 text-[10px] font-[family-name:var(--font-mono)] text-ink-3 tracking-[0.1em]">
+      <div className="flex gap-4 text-[10px] font-[family-name:var(--font-mono)] text-text-lo tracking-[0.1em]">
         <span>
-          <span className="text-text-0">{stats.want}</span> wanted
+          <span className="text-text-hi">{stats.want}</span> wanted
         </span>
         <span>
-          <span className="text-text-0">{stats.got}</span> got
+          <span className="text-text-hi">{stats.got}</span> got
         </span>
         <span>
-          <span className="text-text-0">{stats.missed}</span> missed
+          <span className="text-text-hi">{stats.missed}</span> missed
         </span>
         <span>
           Hit rate:{" "}
@@ -225,7 +225,7 @@ export default function WishlistPage() {
             className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
               filterStatus === s
                 ? "border-accent/50 bg-accent/15 text-accent"
-                : "border-hairline text-ink-3 hover:text-ink-4"
+                : "border-hairline text-text-lo hover:text-text-hi"
             }`}
           >
             {s === "all" ? "All" : STATUS_LABELS[s] ?? s}
@@ -234,7 +234,7 @@ export default function WishlistPage() {
         <select
           value={filterBrand}
           onChange={(e) => setFilterBrand(e.target.value)}
-          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-ink-3 px-2 py-1 outline-none"
+          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-text-lo px-2 py-1 outline-none"
         >
           <option value="all">All brands</option>
           {brands.map((b) => (
@@ -246,11 +246,11 @@ export default function WishlistPage() {
       </div>
 
       {loading ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Loading wishlist…
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           No items yet. Add one to start tracking.
         </div>
       ) : (
@@ -271,7 +271,7 @@ export default function WishlistPage() {
                 }`}
               >
                 {item.image_url ? (
-                  <div className="h-48 overflow-hidden bg-ink-2">
+                  <div className="h-48 overflow-hidden bg-surface-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={item.image_url}
@@ -289,7 +289,7 @@ export default function WishlistPage() {
                 )}
                 <div className="p-4">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium text-text-0">
+                    <span className="text-sm font-medium text-text-hi">
                       {item.brand}
                     </span>
                     <span
@@ -304,25 +304,25 @@ export default function WishlistPage() {
                       {item.status === "got_it" && " ✓"}
                     </span>
                     {!!item.drops && (
-                      <span className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] bg-ink-2 text-ink-3">
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] bg-surface-2 text-text-lo">
                         DROP
                       </span>
                     )}
                   </div>
-                  <div className="text-sm text-text-1">{item.name}</div>
+                  <div className="text-sm text-text-mid">{item.name}</div>
                   <div className="flex gap-2 mt-1 flex-wrap">
                     {item.colourway && (
-                      <span className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] bg-ink-2 text-ink-3">
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] bg-surface-2 text-text-lo">
                         {item.colourway}
                       </span>
                     )}
                     {item.size && (
-                      <span className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] bg-ink-2 text-ink-3">
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] bg-surface-2 text-text-lo">
                         {item.size}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 mt-2 text-[10px] font-[family-name:var(--font-mono)] text-ink-3">
+                  <div className="flex items-center gap-3 mt-2 text-[10px] font-[family-name:var(--font-mono)] text-text-lo">
                     {item.retail_price != null && (
                       <span>£{item.retail_price}</span>
                     )}
@@ -347,7 +347,7 @@ export default function WishlistPage() {
                         href={item.product_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[9px] font-[family-name:var(--font-mono)] text-ink-3 hover:text-text-0"
+                        className="text-[9px] font-[family-name:var(--font-mono)] text-text-lo hover:text-text-hi"
                         title="Product"
                       >
                         LINK
@@ -360,7 +360,7 @@ export default function WishlistPage() {
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[9px] font-[family-name:var(--font-mono)] text-ink-3 hover:text-text-0"
+                      className="text-[9px] font-[family-name:var(--font-mono)] text-text-lo hover:text-text-hi"
                     >
                       STOCKX
                     </a>
@@ -371,7 +371,7 @@ export default function WishlistPage() {
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[9px] font-[family-name:var(--font-mono)] text-ink-3 hover:text-text-0"
+                      className="text-[9px] font-[family-name:var(--font-mono)] text-text-lo hover:text-text-hi"
                     >
                       GRAILED
                     </a>
@@ -382,7 +382,7 @@ export default function WishlistPage() {
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[9px] font-[family-name:var(--font-mono)] text-ink-3 hover:text-text-0"
+                      className="text-[9px] font-[family-name:var(--font-mono)] text-text-lo hover:text-text-hi"
                     >
                       EBAY
                     </a>
@@ -428,8 +428,8 @@ export default function WishlistPage() {
       {/* Add Item modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-ink-0 border border-hairline rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
-            <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-0 mb-4">
+          <div className="bg-surface-0 border border-hairline rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+            <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-hi mb-4">
               Add Wishlist Item
             </h2>
             <div className="flex flex-col gap-3">
@@ -463,7 +463,7 @@ export default function WishlistPage() {
                 />
               </div>
               <div>
-                <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                   STATUS
                 </Mono>
                 <select
@@ -471,7 +471,7 @@ export default function WishlistPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, status: e.target.value }))
                   }
-                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                 >
                   {STATUSES.map((s) => (
                     <option key={s} value={s}>
@@ -506,7 +506,7 @@ export default function WishlistPage() {
               />
               {drops.length > 0 && (
                 <div>
-                  <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                  <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                     LINK TO DROP
                   </Mono>
                   <select
@@ -514,7 +514,7 @@ export default function WishlistPage() {
                     onChange={(e) =>
                       setForm((f) => ({ ...f, drop_id: e.target.value }))
                     }
-                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                   >
                     <option value="">None</option>
                     {drops.map((d) => (
@@ -526,7 +526,7 @@ export default function WishlistPage() {
                 </div>
               )}
               <div>
-                <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                   NOTES
                 </Mono>
                 <textarea
@@ -534,7 +534,7 @@ export default function WishlistPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, notes: e.target.value }))
                   }
-                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-2 outline-none focus:border-accent resize-none h-20"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-accent resize-none h-20"
                 />
               </div>
             </div>
@@ -545,7 +545,7 @@ export default function WishlistPage() {
                   setShowModal(false);
                   setForm(EMPTY_MODAL);
                 }}
-                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
+                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-text-lo hover:text-text-hi"
               >
                 CANCEL
               </button>
@@ -580,7 +580,7 @@ function ModalField({
 }) {
   return (
     <div>
-      <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+      <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
         {label.toUpperCase()}
         {required && <span className="text-accent ml-1">*</span>}
       </Mono>
@@ -588,7 +588,7 @@ function ModalField({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+        className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
       />
     </div>
   );

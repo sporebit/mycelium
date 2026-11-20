@@ -288,7 +288,7 @@ export function TodayView({
   }
   if (!data) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
@@ -307,19 +307,19 @@ export function TodayView({
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <DateSelector currentDate={data.date} isToday={isToday} />
         {data.programme_name && (
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Programme · {data.programme_name}
           </span>
         )}
       </div>
 
       {isFuture && (
-        <div className="rounded-v2-md border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-text-1 italic font-[family-name:var(--font-display)]">
+        <div className="rounded-v2-md border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-text-mid italic font-[family-name:var(--font-display)]">
           Future plan — sessions become startable on the day.
         </div>
       )}
       {isPast && (
-        <div className="rounded-v2-md border border-hairline bg-ink-0/30 px-3 py-2 text-sm text-text-1 italic font-[family-name:var(--font-display)]">
+        <div className="rounded-v2-md border border-hairline bg-surface-0/30 px-3 py-2 text-sm text-text-mid italic font-[family-name:var(--font-display)]">
           Past day — completed sessions remain editable; planned-only entries are marked missed.
         </div>
       )}
@@ -474,7 +474,7 @@ function SlotSection({
       <button
         type="button"
         onClick={onAdd}
-        className="self-start px-3 py-1.5 rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+        className="self-start px-3 py-1.5 rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi hover:border-text-lo transition-colors"
       >
         + ADD SESSION
       </button>
@@ -556,7 +556,7 @@ function SortableSessionCard(props: {
           {...listeners}
           aria-label="Drag to reorder"
           onClick={(e) => e.stopPropagation()}
-          className="h-7 w-5 shrink-0 flex items-center justify-center text-ink-3 hover:text-ink-4 cursor-grab active:cursor-grabbing touch-none"
+          className="h-7 w-5 shrink-0 flex items-center justify-center text-text-lo hover:text-text-hi cursor-grab active:cursor-grabbing touch-none"
         >
           <span aria-hidden className="text-base leading-none">⠿</span>
         </button>
@@ -568,7 +568,7 @@ function SortableSessionCard(props: {
               {kindVisual.icon} {kindVisual.label}
             </span>
             {typeLabel && (
-              <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <span className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
                 · {typeLabel}
               </span>
             )}
@@ -592,10 +592,10 @@ function SortableSessionCard(props: {
               />
             )}
           </div>
-          <div className="font-[family-name:var(--font-display)] text-xl text-text-0 mt-1 truncate">
+          <div className="font-[family-name:var(--font-display)] text-xl text-text-hi mt-1 truncate">
             {entry.name}
           </div>
-          <div className="text-[11px] text-text-2 font-[family-name:var(--font-mono)] tracking-[0.08em] mt-0.5">
+          <div className="text-[11px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.08em] mt-0.5">
             {entry.exercises.length > 0
               ? `${entry.exercises.length} exercise${entry.exercises.length === 1 ? "" : "s"}`
               : "free-form"}
@@ -621,7 +621,7 @@ function SortableSessionCard(props: {
           type="button"
           onClick={() => onRemove(entry)}
           aria-label={`Remove ${entry.name}`}
-          className="h-7 w-7 shrink-0 rounded-full flex items-center justify-center text-ink-3 hover:text-danger hover:bg-danger/10 md:opacity-0 md:group-hover/card:opacity-100 transition-all"
+          className="h-7 w-7 shrink-0 rounded-full flex items-center justify-center text-text-lo hover:text-danger hover:bg-danger/10 md:opacity-0 md:group-hover/card:opacity-100 transition-all"
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
             <path d="M2 2l8 8M10 2l-8 8" />
@@ -630,27 +630,27 @@ function SortableSessionCard(props: {
       </div>
 
       {entry.exercises.length > 0 && (
-        <ul className="flex flex-col divide-y divide-ink-2/60">
+        <ul className="flex flex-col divide-y divide-surface-2/60">
           {entry.exercises.slice(0, 5).map((ex) => (
             <li
               key={ex.id}
               className="py-1.5 first:pt-0 last:pb-0 flex items-baseline gap-3"
             >
-              <Mono className="text-[10px] text-ink-3 w-5 shrink-0">
+              <Mono className="text-[10px] text-text-lo w-5 shrink-0">
                 {ex.position}
               </Mono>
               <div className="flex-1 min-w-0">
-                <div className="text-sm text-text-0 leading-snug truncate">
+                <div className="text-sm text-text-hi leading-snug truncate">
                   {ex.name}
                 </div>
-                <div className="text-[10px] uppercase tracking-[0.15em] text-text-2 font-[family-name:var(--font-mono)]">
+                <div className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
                   {exerciseLine(ex)}
                 </div>
               </div>
             </li>
           ))}
           {entry.exercises.length > 5 && (
-            <li className="py-1.5 text-[10px] text-text-2 font-[family-name:var(--font-mono)] tracking-[0.15em]">
+            <li className="py-1.5 text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">
               + {entry.exercises.length - 5} more
             </li>
           )}
@@ -661,14 +661,14 @@ function SortableSessionCard(props: {
         {entry.completed && entry.logged_session_id ? (
           <Link
             href={`/fitness/log/${entry.logged_session_id}`}
-            className="text-[10px] uppercase tracking-[0.18em] text-ok font-[family-name:var(--font-mono)] hover:text-text-0"
+            className="text-[10px] uppercase tracking-[0.18em] text-ok font-[family-name:var(--font-mono)] hover:text-text-hi"
           >
             {label}
           </Link>
         ) : isAttempted && entry.logged_session_id ? (
           <Link
             href={`/fitness/log/${entry.logged_session_id}`}
-            className="text-[10px] uppercase tracking-[0.18em] text-warn font-[family-name:var(--font-mono)] hover:text-text-0 px-2 py-1 rounded-v2-md border border-warn/40 bg-warn/15"
+            className="text-[10px] uppercase tracking-[0.18em] text-warn font-[family-name:var(--font-mono)] hover:text-text-hi px-2 py-1 rounded-v2-md border border-warn/40 bg-warn/15"
           >
             {label}
           </Link>
@@ -687,7 +687,7 @@ function SortableSessionCard(props: {
                 <span
                   className={`text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-2 py-1 rounded-v2-md border shrink-0 ${
                     isMissed
-                      ? "border-ink-3 text-ink-3 opacity-60"
+                      ? "border-text-lo text-text-lo opacity-60"
                       : "border-warn/40 bg-warn/10 text-warn"
                   }`}
                 >
@@ -700,7 +700,7 @@ function SortableSessionCard(props: {
                 type="button"
                 disabled={isStarting}
                 onClick={() => onStart(entry)}
-                className="text-[11px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)] disabled:opacity-40"
+                className="text-[11px] uppercase tracking-[0.18em] text-accent hover:text-text-hi font-[family-name:var(--font-mono)] disabled:opacity-40"
               >
                 {isStarting ? "STARTING…" : label}
               </button>

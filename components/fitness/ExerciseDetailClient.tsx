@@ -60,7 +60,7 @@ export function ExerciseDetailClient({ slug }: { slug: string }) {
       <div className="flex flex-col gap-4">
         <Link
           href="/fitness/exercises"
-          className="self-start text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+          className="self-start text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
         >
           ← ALL EXERCISES
         </Link>
@@ -73,7 +73,7 @@ export function ExerciseDetailClient({ slug }: { slug: string }) {
 
   if (!data) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
@@ -83,23 +83,23 @@ export function ExerciseDetailClient({ slug }: { slug: string }) {
     <div className="flex flex-col gap-4 max-w-3xl">
       <Link
         href="/fitness/exercises"
-        className="self-start text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+        className="self-start text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
       >
         ← ALL EXERCISES
       </Link>
 
       <header>
-        <h1 className="text-2xl text-text-0 font-[family-name:var(--font-display)] italic">
+        <h1 className="text-2xl text-text-hi font-[family-name:var(--font-display)] italic">
           {data.name}
         </h1>
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-1 inline-block px-2 py-0.5 rounded border border-hairline">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-1 inline-block px-2 py-0.5 rounded border border-hairline">
           {MUSCLE_GROUP_LABEL[data.muscle_group] ?? data.muscle_group}
         </span>
       </header>
 
       {/* GIF placeholder */}
       <div className="rounded-lg bg-surface-0 border border-hairline flex items-center justify-center" style={{ height: 240 }}>
-        <span className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] uppercase">
+        <span className="text-[11px] text-text-lo font-[family-name:var(--font-mono)] uppercase">
           Animation coming soon
         </span>
       </div>
@@ -119,26 +119,26 @@ export function ExerciseDetailClient({ slug }: { slug: string }) {
       <div className="grid grid-cols-3 gap-3">
         <Panel borderless>
           <div className="text-center">
-            <div className="text-xl text-text-0 font-[family-name:var(--font-mono)] tabular-nums">
+            <div className="text-xl text-text-hi font-[family-name:var(--font-mono)] tabular-nums">
               {data.pr_weight ? `${data.pr_weight}kg` : "—"}
             </div>
-            <Mono className="text-[10px] text-ink-3">PERSONAL BEST</Mono>
+            <Mono className="text-[10px] text-text-lo">PERSONAL BEST</Mono>
           </div>
         </Panel>
         <Panel borderless>
           <div className="text-center">
-            <div className="text-xl text-text-0 font-[family-name:var(--font-mono)] tabular-nums">
+            <div className="text-xl text-text-hi font-[family-name:var(--font-mono)] tabular-nums">
               {data.total_sets}
             </div>
-            <Mono className="text-[10px] text-ink-3">TOTAL SETS</Mono>
+            <Mono className="text-[10px] text-text-lo">TOTAL SETS</Mono>
           </div>
         </Panel>
         <Panel borderless>
           <div className="text-center">
-            <div className="text-xl text-text-0 font-[family-name:var(--font-mono)] tabular-nums">
+            <div className="text-xl text-text-hi font-[family-name:var(--font-mono)] tabular-nums">
               {data.first_date ?? "—"}
             </div>
-            <Mono className="text-[10px] text-ink-3">FIRST LOGGED</Mono>
+            <Mono className="text-[10px] text-text-lo">FIRST LOGGED</Mono>
           </div>
         </Panel>
       </div>
@@ -198,7 +198,7 @@ export function ExerciseDetailClient({ slug }: { slug: string }) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-hairline">
+                <tr className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] border-b border-hairline">
                   <th className="text-left py-2 pr-3">Date</th>
                   <th className="text-left py-2 px-3">Session</th>
                   <th className="text-right py-2 px-3">Set</th>
@@ -209,18 +209,18 @@ export function ExerciseDetailClient({ slug }: { slug: string }) {
               <tbody>
                 {data.sets.map((s, i) => (
                   <tr key={i} className="border-b border-hairline">
-                    <td className="py-2 pr-3 text-ink-4">{s.date}</td>
-                    <td className="py-2 px-3 text-ink-3 truncate max-w-[120px]">
+                    <td className="py-2 pr-3 text-text-hi">{s.date}</td>
+                    <td className="py-2 px-3 text-text-lo truncate max-w-[120px]">
                       {s.session_name ?? "—"}
                     </td>
                     <td className="text-right py-2 px-3">
-                      <Mono className="text-ink-3">{s.set_number}</Mono>
+                      <Mono className="text-text-lo">{s.set_number}</Mono>
                     </td>
                     <td className="text-right py-2 px-3">
-                      <Mono className="text-ink-4">{s.reps ?? "—"}</Mono>
+                      <Mono className="text-text-hi">{s.reps ?? "—"}</Mono>
                     </td>
                     <td className="text-right py-2 pl-3">
-                      <Mono className="text-ink-4">
+                      <Mono className="text-text-hi">
                         {s.weight ? `${s.weight}${s.unit ? ` ${s.unit}` : "kg"}` : "—"}
                       </Mono>
                     </td>

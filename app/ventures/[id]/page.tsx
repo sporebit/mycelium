@@ -75,7 +75,7 @@ export default function VentureDetailPage() {
 
   if (!venture)
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
@@ -103,7 +103,7 @@ export default function VentureDetailPage() {
       {parent && (
         <Link
           href={`/ventures/${parent.id}`}
-          className="text-xs text-ink-3 hover:text-accent font-[family-name:var(--font-mono)] tracking-[0.08em]"
+          className="text-xs text-text-lo hover:text-accent font-[family-name:var(--font-mono)] tracking-[0.08em]"
         >
           ← {parent.name}
         </Link>

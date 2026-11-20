@@ -81,20 +81,20 @@ export function EntityPicker({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full text-left rounded-md border border-ink-2 bg-ink-0/40 px-3 py-2 text-sm text-ink-4 hover:border-ink-3 transition-colors"
+        className="w-full text-left rounded-md border border-surface-2 bg-surface-0/40 px-3 py-2 text-sm text-text-hi hover:border-text-lo transition-colors"
       >
-        {valueName ?? <span className="text-ink-3">No entity</span>}
+        {valueName ?? <span className="text-text-lo">No entity</span>}
       </button>
 
       {open && (
-        <div className="absolute top-full mt-1 left-0 right-0 z-50 rounded-lg border border-ink-2 bg-ink-1 shadow-2xl backdrop-blur-xl max-h-72 overflow-y-auto">
-          <div className="p-2 border-b border-ink-2">
+        <div className="absolute top-full mt-1 left-0 right-0 z-50 rounded-lg border border-surface-2 bg-surface-1 shadow-2xl backdrop-blur-xl max-h-72 overflow-y-auto">
+          <div className="p-2 border-b border-surface-2">
             <input
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search or create…"
-              className="w-full bg-transparent outline-none text-sm text-ink-4 placeholder:text-ink-3"
+              className="w-full bg-transparent outline-none text-sm text-text-hi placeholder:text-text-lo"
             />
           </div>
           <ul className="py-1">
@@ -106,16 +106,16 @@ export function EntityPicker({
                     onChange(null);
                     setOpen(false);
                   }}
-                  className="w-full text-left px-3 py-1.5 text-sm text-ink-3 italic hover:bg-ink-2 transition-colors"
+                  className="w-full text-left px-3 py-1.5 text-sm text-text-lo italic hover:bg-surface-2 transition-colors"
                 >
                   Clear selection
                 </button>
               </li>
             )}
             {loading ? (
-              <li className="px-3 py-2 text-xs text-ink-3 italic">Searching…</li>
+              <li className="px-3 py-2 text-xs text-text-lo italic">Searching…</li>
             ) : results.length === 0 && !query ? (
-              <li className="px-3 py-2 text-xs text-ink-3 italic">
+              <li className="px-3 py-2 text-xs text-text-lo italic">
                 Type to search
               </li>
             ) : (
@@ -128,13 +128,13 @@ export function EntityPicker({
                       setOpen(false);
                       setQuery("");
                     }}
-                    className={`w-full text-left px-3 py-1.5 text-sm hover:bg-ink-2 transition-colors ${
-                      e.id === value ? "text-accent" : "text-ink-4"
+                    className={`w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 transition-colors ${
+                      e.id === value ? "text-accent" : "text-text-hi"
                     }`}
                   >
                     {e.name}
                     {e.kind && (
-                      <span className="ml-2 text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                      <span className="ml-2 text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
                         {e.kind}
                       </span>
                     )}
@@ -143,7 +143,7 @@ export function EntityPicker({
               ))
             )}
             {query.trim() && !exactMatch && (
-              <li className="border-t border-ink-2">
+              <li className="border-t border-surface-2">
                 <button
                   type="button"
                   disabled={creating}

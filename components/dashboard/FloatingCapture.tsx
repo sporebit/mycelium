@@ -234,7 +234,7 @@ export function FloatingCapture() {
           type="button"
           onClick={openModal}
           aria-label="Capture"
-          className="capture-fab hidden lg:flex fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-accent text-ink-0 shadow-2xl hover:bg-accent/90 transition-transform hover:scale-105 items-center justify-center text-xl font-[family-name:var(--font-mono)]"
+          className="capture-fab hidden lg:flex fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-accent text-surface-0 shadow-2xl hover:bg-accent/90 transition-transform hover:scale-105 items-center justify-center text-xl font-[family-name:var(--font-mono)]"
         >
           +
         </button>
@@ -250,25 +250,25 @@ export function FloatingCapture() {
           }}
         >
           <div
-            className="absolute inset-0 bg-ink-0/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-surface-0/70 backdrop-blur-sm"
             onClick={closeModal}
           />
           <div
-            className="relative w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl border border-ink-2 bg-ink-1 shadow-2xl overflow-hidden"
+            className="relative w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl border border-surface-2 bg-surface-1 shadow-2xl overflow-hidden"
             role="dialog"
             aria-label="Capture"
           >
-            <header className="flex items-center justify-between px-4 py-3 border-b border-ink-2 gap-3">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <header className="flex items-center justify-between px-4 py-3 border-b border-surface-2 gap-3">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 Capture
               </span>
-              <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 <span>Type</span>
                 <select
                   value={type}
                   onChange={(e) => changeType(e.target.value as CaptureType)}
                   disabled={submitting}
-                  className="bg-ink-2 rounded-sm text-xs normal-case tracking-normal text-text-0 px-2 py-1 outline outline-1 outline-transparent focus:outline-glow-2"
+                  className="bg-surface-2 rounded-sm text-xs normal-case tracking-normal text-text-hi px-2 py-1 outline outline-1 outline-transparent focus:outline-glow-2"
                   aria-label="Capture type"
                 >
                   <option value="auto">Auto</option>
@@ -283,7 +283,7 @@ export function FloatingCapture() {
                 type="button"
                 onClick={closeModal}
                 aria-label="Close"
-                className="text-ink-3 hover:text-ink-4 text-sm"
+                className="text-text-lo hover:text-text-hi text-sm"
               >
                 ✕
               </button>
@@ -291,7 +291,7 @@ export function FloatingCapture() {
             <div className="p-4 flex flex-col gap-3 overflow-y-auto">
               {def ? (
                 <>
-                  <p className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <p className="text-[11px] text-text-lo font-[family-name:var(--font-mono)]">
                     {def.description}{" "}
                     {def.kind === "task" || def.kind === "ticket" ? "Goes to the Tickets Inbox." : "Goes to Capture review for a one-tap approve."}
                   </p>
@@ -306,12 +306,12 @@ export function FloatingCapture() {
                   placeholder="Capture a thought, task, or decision…"
                   rows={4}
                   disabled={submitting}
-                  className="w-full bg-ink-0/40 border border-ink-2 rounded-md outline-none text-sm text-ink-4 placeholder:text-ink-3 p-3 resize-y focus:border-ink-3"
+                  className="w-full bg-surface-0/40 border border-surface-2 rounded-md outline-none text-sm text-text-hi placeholder:text-text-lo p-3 resize-y focus:border-text-lo"
                 />
               )}
-              <div className="flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <div className="flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 <span className="hidden sm:inline">⌘/Ctrl+Enter to submit · Esc to close</span>
-                <label className="flex items-center gap-1.5 cursor-pointer select-none hover:text-ink-4">
+                <label className="flex items-center gap-1.5 cursor-pointer select-none hover:text-text-hi">
                   <input
                     type="checkbox"
                     checked={addAnother}

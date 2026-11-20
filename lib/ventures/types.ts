@@ -64,8 +64,8 @@ export const STATUS_COLOURS: Record<string, string> = {
   launched: "bg-ok/20 text-ok",
   building: "bg-info/20 text-info",
   exploring: "bg-warn/20 text-warn",
-  idea: "bg-ink-3/20 text-ink-3",
-  paused: "bg-ink-3/20 text-ink-3",
+  idea: "bg-text-lo/20 text-text-lo",
+  paused: "bg-text-lo/20 text-text-lo",
   closed: "bg-danger/20 text-danger",
 };
 
@@ -86,7 +86,7 @@ export const PLATFORM_COLOURS: Record<string, string> = {
   pinterest: "bg-danger/20 text-danger",
   twitter: "bg-info/20 text-info",
   youtube: "bg-danger/20 text-danger",
-  other: "bg-ink-3/20 text-ink-3",
+  other: "bg-text-lo/20 text-text-lo",
 };
 
 export const STEP_STATUS_CYCLE: Record<string, string> = {

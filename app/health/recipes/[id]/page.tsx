@@ -96,7 +96,7 @@ export default function RecipeDetailPage() {
 
   if (loading) {
     return (
-      <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-20 text-center">
+      <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-20 text-center">
         Loading…
       </p>
     );
@@ -104,13 +104,13 @@ export default function RecipeDetailPage() {
 
   if (!recipe) {
     return (
-      <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-20 text-center">
+      <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-20 text-center">
         Recipe not found.
       </p>
     );
   }
 
-  const inputCls = "bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3";
+  const inputCls = "bg-surface-0/40 border border-surface-2 rounded-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo placeholder:text-text-lo";
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -125,14 +125,14 @@ export default function RecipeDetailPage() {
       />
 
       {/* Title + meta */}
-      <h1 className="text-xl text-text-0 font-[family-name:var(--font-display)] italic mb-1">
+      <h1 className="text-xl text-text-hi font-[family-name:var(--font-display)] italic mb-1">
         {recipe.title}
       </h1>
       {recipe.cuisine && (
-        <p className="text-xs text-ink-3 font-[family-name:var(--font-mono)] mb-1">{recipe.cuisine}</p>
+        <p className="text-xs text-text-lo font-[family-name:var(--font-mono)] mb-1">{recipe.cuisine}</p>
       )}
       {recipe.source_name && (
-        <p className="text-xs text-ink-3 font-[family-name:var(--font-display)] mb-3">
+        <p className="text-xs text-text-lo font-[family-name:var(--font-display)] mb-3">
           Source:{" "}
           {recipe.source_url ? (
             <a href={recipe.source_url} target="_blank" rel="noopener noreferrer" className="text-accent underline">
@@ -145,20 +145,20 @@ export default function RecipeDetailPage() {
       )}
 
       {/* Stats row */}
-      <div className="flex items-center gap-4 py-3 border-y border-ink-2 mb-4 text-xs text-ink-3 font-[family-name:var(--font-mono)]">
+      <div className="flex items-center gap-4 py-3 border-y border-surface-2 mb-4 text-xs text-text-lo font-[family-name:var(--font-mono)]">
         {recipe.prep_time_minutes != null && <span>{recipe.prep_time_minutes}m prep</span>}
         {recipe.cook_time_minutes != null && <span>{recipe.cook_time_minutes}m cook</span>}
         <span className="flex items-center gap-1">
           <button
             onClick={() => setServings(Math.max(1, servings - 1))}
-            className="h-5 w-5 rounded border border-ink-2 text-ink-3 hover:text-ink-4 flex items-center justify-center text-xs"
+            className="h-5 w-5 rounded border border-surface-2 text-text-lo hover:text-text-hi flex items-center justify-center text-xs"
           >
             −
           </button>
-          <span className="text-ink-4 font-bold min-w-[20px] text-center">{servings}</span>
+          <span className="text-text-hi font-bold min-w-[20px] text-center">{servings}</span>
           <button
             onClick={() => setServings(servings + 1)}
-            className="h-5 w-5 rounded border border-ink-2 text-ink-3 hover:text-ink-4 flex items-center justify-center text-xs"
+            className="h-5 w-5 rounded border border-surface-2 text-text-lo hover:text-text-hi flex items-center justify-center text-xs"
           >
             +
           </button>
@@ -168,18 +168,18 @@ export default function RecipeDetailPage() {
 
       {/* Ingredients */}
       <div className="mb-6">
-        <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-3">
+        <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-3">
           INGREDIENTS
         </p>
         <div className="grid grid-cols-1 gap-1">
           {recipe.ingredients.map((ing, i) => (
-            <div key={i} className="flex items-baseline gap-2 py-1 border-b border-ink-2/30 last:border-b-0">
-              <span className="text-sm text-ink-4 font-[family-name:var(--font-mono)] font-bold shrink-0 w-20 text-right">
+            <div key={i} className="flex items-baseline gap-2 py-1 border-b border-surface-2/30 last:border-b-0">
+              <span className="text-sm text-text-hi font-[family-name:var(--font-mono)] font-bold shrink-0 w-20 text-right">
                 {scaleAmount(ing.amount, scaleFactor)}{ing.unit ? ` ${ing.unit}` : ""}
               </span>
-              <span className="text-sm text-ink-4 font-[family-name:var(--font-display)]">
+              <span className="text-sm text-text-hi font-[family-name:var(--font-display)]">
                 {ing.name}
-                {ing.notes && <span className="text-ink-3 text-xs ml-1">({ing.notes})</span>}
+                {ing.notes && <span className="text-text-lo text-xs ml-1">({ing.notes})</span>}
               </span>
             </div>
           ))}
@@ -188,7 +188,7 @@ export default function RecipeDetailPage() {
 
       {/* Method */}
       <div className="mb-6">
-        <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-3">
+        <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-3">
           METHOD
         </p>
         <div className="flex flex-col gap-3">
@@ -197,7 +197,7 @@ export default function RecipeDetailPage() {
               <div className="h-7 w-7 rounded-full bg-[#5de8e0]/15 text-[#5de8e0] flex items-center justify-center text-xs font-[family-name:var(--font-mono)] font-bold shrink-0 mt-0.5">
                 {s.step}
               </div>
-              <p className="text-sm text-ink-4 font-[family-name:var(--font-display)] leading-relaxed">
+              <p className="text-sm text-text-hi font-[family-name:var(--font-display)] leading-relaxed">
                 {s.instruction}
               </p>
             </div>
@@ -218,13 +218,13 @@ export default function RecipeDetailPage() {
 
       {/* Notes */}
       {recipe.notes && (
-        <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mb-4">
+        <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mb-4">
           {recipe.notes}
         </p>
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-2 border-t border-ink-2 pt-4">
+      <div className="flex items-center gap-2 border-t border-surface-2 pt-4">
         <button
           onClick={() => setAddingToPlan(true)}
           className="px-4 py-2 rounded-md bg-[#5de8e0]/15 border border-[#5de8e0]/40 text-[#5de8e0] text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] hover:bg-[#5de8e0]/25 transition-colors"
@@ -233,7 +233,7 @@ export default function RecipeDetailPage() {
         </button>
         <button
           onClick={() => router.push("/health/recipes")}
-          className="px-3 py-2 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+          className="px-3 py-2 rounded-md border border-surface-2 text-text-lo hover:text-text-hi text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
         >
           BACK
         </button>
@@ -249,23 +249,23 @@ export default function RecipeDetailPage() {
       {/* Add to plan modal */}
       {addingToPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-ink-0 border border-ink-2 rounded-2xl w-full max-w-sm p-6">
-            <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
+          <div className="bg-surface-0 border border-surface-2 rounded-2xl w-full max-w-sm p-6">
+            <h2 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic mb-4">
               Add to Meal Plan
             </h2>
             <div className="mb-3">
-              <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">DATE</label>
+              <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">DATE</label>
               <input type="date" value={planDate} onChange={(e) => setPlanDate(e.target.value)} className={`w-full ${inputCls}`} />
             </div>
             <div className="mb-4">
-              <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">MEAL</label>
+              <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">MEAL</label>
               <div className="flex gap-1 mt-1">
                 {(["breakfast", "lunch", "dinner", "snack"] as const).map((m) => (
                   <button
                     key={m}
                     onClick={() => setPlanMeal(m)}
                     className={`px-3 py-1.5 rounded-md text-[10px] font-[family-name:var(--font-mono)] border transition-colors ${
-                      planMeal === m ? "border-accent bg-accent/10 text-accent" : "border-ink-2 text-ink-3"
+                      planMeal === m ? "border-accent bg-accent/10 text-accent" : "border-surface-2 text-text-lo"
                     }`}
                   >
                     {m.charAt(0).toUpperCase() + m.slice(1)}
@@ -274,7 +274,7 @@ export default function RecipeDetailPage() {
               </div>
             </div>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setAddingToPlan(false)} className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em]">CANCEL</button>
+              <button onClick={() => setAddingToPlan(false)} className="px-3 py-1.5 rounded-md border border-surface-2 text-text-lo text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em]">CANCEL</button>
               <button onClick={handleAddToPlan} disabled={!planDate} className="px-4 py-1.5 rounded-md bg-accent/15 border border-accent/40 text-accent text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40">ADD</button>
             </div>
           </div>

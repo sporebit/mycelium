@@ -43,27 +43,27 @@ export function BloodTestsClient() {
   return (
     <div className="flex flex-col gap-6 max-w-[900px]">
       <header>
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Blood Tests
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] mt-1">
           Markers, ranges, and trends.
         </p>
       </header>
 
       {/* Markers table */}
       <section>
-        <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-3">
+        <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-3">
           Latest Results
         </h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="border-b border-ink-2">
+              <tr className="border-b border-surface-2">
                 {["Marker", "Value", "Unit", "Reference Range", "Date", "Status"].map((h) => (
                   <th
                     key={h}
-                    className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] text-left p-2 font-normal"
+                    className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] text-left p-2 font-normal"
                   >
                     {h}
                   </th>
@@ -72,16 +72,16 @@ export function BloodTestsClient() {
             </thead>
             <tbody>
               {markers.map((m) => (
-                <tr key={m.id} className="border-b border-ink-2/50">
-                  <td className="p-2 text-ink-4 font-medium">{m.name}</td>
-                  <td className="p-2 font-[family-name:var(--font-mono)] tabular-nums text-ink-4">
+                <tr key={m.id} className="border-b border-surface-2/50">
+                  <td className="p-2 text-text-hi font-medium">{m.name}</td>
+                  <td className="p-2 font-[family-name:var(--font-mono)] tabular-nums text-text-hi">
                     {m.value}
                   </td>
-                  <td className="p-2 text-ink-3">{m.unit}</td>
-                  <td className="p-2 font-[family-name:var(--font-mono)] tabular-nums text-ink-3">
+                  <td className="p-2 text-text-lo">{m.unit}</td>
+                  <td className="p-2 font-[family-name:var(--font-mono)] tabular-nums text-text-lo">
                     {m.refLow} - {m.refHigh}
                   </td>
-                  <td className="p-2 font-[family-name:var(--font-mono)] tabular-nums text-ink-3 text-xs">
+                  <td className="p-2 font-[family-name:var(--font-mono)] tabular-nums text-text-lo text-xs">
                     {formatDate(m.date)}
                   </td>
                   <td className="p-2">
@@ -104,25 +104,25 @@ export function BloodTestsClient() {
 
       {/* Trend chart placeholders */}
       <section>
-        <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-3">
+        <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-3">
           Trends
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {markers.map((m) => (
             <div
               key={m.id}
-              className="bg-ink-1 border border-ink-2 rounded-md p-4 flex flex-col gap-2"
+              className="bg-surface-1 border border-surface-2 rounded-md p-4 flex flex-col gap-2"
             >
-              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 {m.name}
               </span>
-              <div className="h-24 rounded border border-ink-2/50 bg-ink-0 flex items-center justify-center">
-                <span className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+              <div className="h-24 rounded border border-surface-2/50 bg-surface-0 flex items-center justify-center">
+                <span className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
                   Trend chart placeholder
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-[family-name:var(--font-mono)] tabular-nums text-sm text-ink-4">
+                <span className="font-[family-name:var(--font-mono)] tabular-nums text-sm text-text-hi">
                   {m.value} {m.unit}
                 </span>
                 <span

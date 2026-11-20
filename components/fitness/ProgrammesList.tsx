@@ -114,7 +114,7 @@ export function ProgrammesList() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
+        <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-text-hi">
           Programmes
         </h1>
         <div className="flex items-center gap-2">
@@ -124,7 +124,7 @@ export function ProgrammesList() {
             className={`px-3 py-1.5 rounded-v2-md border text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
               showArchived
                 ? "border-accent/40 bg-accent/15 text-accent"
-                : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                : "border-hairline text-text-lo hover:text-text-hi hover:border-text-lo"
             }`}
           >
             {showArchived ? "HIDE ARCHIVED" : "SHOW ARCHIVED"}
@@ -133,7 +133,7 @@ export function ProgrammesList() {
             type="button"
             onClick={runSeed}
             disabled={seeding}
-            className="px-3 py-1.5 rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1.5 rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi hover:border-text-lo disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             {seeding ? "SEEDING…" : "SEED"}
           </button>
@@ -152,7 +152,7 @@ export function ProgrammesList() {
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="New programme name…"
-          className="flex-1 max-w-md bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 placeholder:text-ink-3 px-3 py-1.5 outline-none focus:border-ink-3"
+          className="flex-1 max-w-md bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-1.5 outline-none focus:border-text-lo"
         />
         <button
           type="submit"
@@ -164,12 +164,12 @@ export function ProgrammesList() {
       </form>
 
       {programmes === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-8 text-center">
           Loading…
         </div>
       ) : programmes.length === 0 ? (
         <Panel title="Empty">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             No programmes yet. Seed Phil&apos;s rehab programme above, or create a
             new one.
           </p>
@@ -193,7 +193,7 @@ export function ProgrammesList() {
                     type="button"
                     onClick={() => archive(p)}
                     aria-label={`Archive ${p.name}`}
-                    className="absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center text-ink-3 hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    className="absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center text-text-lo hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                   >
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                       <path d="M2 2l8 8M10 2l-8 8" />
@@ -205,18 +205,18 @@ export function ProgrammesList() {
                   bottomCTA={
                     <Link
                       href={`/fitness/programmes/${p.id}/edit`}
-                      className="hover:text-ink-4 transition-colors"
+                      className="hover:text-text-hi transition-colors"
                     >
                       EDIT →
                     </Link>
                   }
                 >
                   {p.description && (
-                    <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
+                    <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] leading-relaxed">
                       {p.description}
                     </p>
                   )}
-                  <div className="mt-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <div className="mt-2 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                     Created <Mono>{p.created_at.slice(0, 10)}</Mono>
                   </div>
                 </Panel>

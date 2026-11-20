@@ -25,11 +25,11 @@ export function MealPickerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-ink-0 border border-hairline rounded-2xl w-full max-w-md max-h-[80vh] overflow-y-auto p-6">
-        <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-1">
+      <div className="bg-surface-0 border border-hairline rounded-2xl w-full max-w-md max-h-[80vh] overflow-y-auto p-6">
+        <h2 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic mb-1">
           {MEAL_LABELS[meal]}
         </h2>
-        <p className="text-xs text-ink-3 font-[family-name:var(--font-mono)] mb-4">
+        <p className="text-xs text-text-lo font-[family-name:var(--font-mono)] mb-4">
           {new Date(date + "T00:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" })}
         </p>
 
@@ -47,16 +47,16 @@ export function MealPickerModal({
               <button
                 key={r.id}
                 onClick={() => onAdd(r.id, null)}
-                className="text-left px-3 py-2 rounded-lg hover:bg-surface-1 text-sm text-ink-4 font-[family-name:var(--font-display)] transition-colors"
+                className="text-left px-3 py-2 rounded-lg hover:bg-surface-1 text-sm text-text-hi font-[family-name:var(--font-display)] transition-colors"
               >
                 {r.title}
-                {r.cuisine && <span className="text-ink-3 text-xs ml-2">{r.cuisine}</span>}
+                {r.cuisine && <span className="text-text-lo text-xs ml-2">{r.cuisine}</span>}
               </button>
             ))}
         </div>
 
         <div className="border-t border-hairline pt-3">
-          <p className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-1">OR CUSTOM MEAL</p>
+          <p className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-1">OR CUSTOM MEAL</p>
           <div className="flex gap-2">
             <input
               value={customMeal}
@@ -76,7 +76,7 @@ export function MealPickerModal({
 
         <button
           onClick={onClose}
-          className="mt-3 w-full py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+          className="mt-3 w-full py-1.5 rounded-v2-md border border-hairline text-text-lo hover:text-text-hi text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
         >
           CANCEL
         </button>

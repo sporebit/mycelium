@@ -46,21 +46,21 @@ export function LinkControl({ personId }: { personId: string }) {
   return (
     <div className="flex flex-col items-end gap-1">
       {data.linked ? (
-        <div className="flex items-center gap-2 text-xs text-text-2">
+        <div className="flex items-center gap-2 text-xs text-text-lo">
           <span title="They see the scenes this person was in on their own day pages — dates, places, names, the scene line. Never a fact.">
-            Linked to <span className="text-text-0">{name(data.linked)}</span>
+            Linked to <span className="text-text-hi">{name(data.linked)}</span>
           </span>
-          <button type="button" className={`${tiny} text-text-2 hover:text-warn`} disabled={busy} onClick={() => void act("DELETE")}>
+          <button type="button" className={`${tiny} text-text-lo hover:text-warn`} disabled={busy} onClick={() => void act("DELETE")}>
             UNLINK
           </button>
         </div>
       ) : data.candidates.length === 0 ? (
-        <span className="text-[11px] text-text-2" title="Linking needs a shared team — invite them to one first.">
+        <span className="text-[11px] text-text-lo" title="Linking needs a shared team — invite them to one first.">
           No teammates to link
         </span>
       ) : open ? (
         <div className="flex items-center gap-2">
-          <select value={pick} onChange={(e) => setPick(e.target.value)} className="bg-ink-2 rounded-sm text-xs text-text-0 px-2 py-1" aria-label="Teammate">
+          <select value={pick} onChange={(e) => setPick(e.target.value)} className="bg-surface-2 rounded-sm text-xs text-text-hi px-2 py-1" aria-label="Teammate">
             <option value="">— teammate —</option>
             {data.candidates.map((c) => (
               <option key={c.user_id} value={c.user_id}>
@@ -71,12 +71,12 @@ export function LinkControl({ personId }: { personId: string }) {
           <button type="button" className={`${tiny} text-glow-1`} disabled={busy || !pick} onClick={() => void act("POST", { user_id: pick })}>
             LINK
           </button>
-          <button type="button" className={`${tiny} text-text-2`} onClick={() => setOpen(false)}>
+          <button type="button" className={`${tiny} text-text-lo`} onClick={() => setOpen(false)}>
             CANCEL
           </button>
         </div>
       ) : (
-        <button type="button" className={`${tiny} text-text-2 hover:text-text-0`} onClick={() => setOpen(true)} title="Let this person, as a Mycelium user, see the scenes they were in">
+        <button type="button" className={`${tiny} text-text-lo hover:text-text-hi`} onClick={() => setOpen(true)} title="Let this person, as a Mycelium user, see the scenes they were in">
           LINK TO A TEAMMATE
         </button>
       )}

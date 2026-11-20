@@ -107,7 +107,7 @@ export function ReviewQueue({ onResolved, hidePeople = false }: { onResolved: ()
   if (items === null) {
     if (hidePeople) return null;
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
@@ -116,7 +116,7 @@ export function ReviewQueue({ onResolved, hidePeople = false }: { onResolved: ()
   if (visible.length === 0) {
     if (hidePeople) return null;
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Nothing in the review queue. 🌱
       </div>
     );
@@ -130,13 +130,13 @@ export function ReviewQueue({ onResolved, hidePeople = false }: { onResolved: ()
             return (
               <li
                 key={`m:${it.mention.id}`}
-                className="growth-in rounded-md bg-ink-1 p-4 flex flex-col gap-2"
+                className="growth-in rounded-md bg-surface-1 p-4 flex flex-col gap-2"
               >
                 <div className="flex items-baseline justify-between gap-3">
                   <Mono className="text-[10px] uppercase tracking-[0.18em] text-warn">
                     Ambiguous mention
                   </Mono>
-                  <Mono className="text-[10px] text-text-2">
+                  <Mono className="text-[10px] text-text-lo">
                     {new Date(it.created_at).toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "short",
@@ -144,14 +144,14 @@ export function ReviewQueue({ onResolved, hidePeople = false }: { onResolved: ()
                   </Mono>
                 </div>
                 {it.snippet && (
-                  <p className="text-sm text-text-1 italic font-[family-name:var(--font-display)] leading-snug">
+                  <p className="text-sm text-text-mid italic font-[family-name:var(--font-display)] leading-snug">
                     &ldquo;{it.snippet.slice(0, 200)}
                     {it.snippet.length > 200 ? "…" : ""}&rdquo;
                   </p>
                 )}
-                <div className="text-xs text-text-2">
+                <div className="text-xs text-text-lo">
                   Said:{" "}
-                  <span className="text-text-0">
+                  <span className="text-text-hi">
                     &ldquo;{it.mention.raw_alias}&rdquo;
                   </span>
                 </div>
@@ -164,7 +164,7 @@ export function ReviewQueue({ onResolved, hidePeople = false }: { onResolved: ()
                         triggerGlowPulse(e.currentTarget);
                         void resolve(it.mention.id, c.id);
                       }}
-                      className="px-3 py-1.5 rounded-sm bg-ink-2 text-text-0 hover:bg-glow-3 text-xs font-[family-name:var(--font-mono)]"
+                      className="px-3 py-1.5 rounded-sm bg-surface-2 text-text-hi hover:bg-glow-3 text-xs font-[family-name:var(--font-mono)]"
                     >
                       {c.display_name ||
                         `${c.first_name} ${c.last_name ?? ""}`.trim()}
@@ -179,7 +179,7 @@ export function ReviewQueue({ onResolved, hidePeople = false }: { onResolved: ()
                         rawAlias: it.mention.raw_alias,
                       });
                     }}
-                    className="px-3 py-1.5 rounded-sm border border-ink-4 text-text-1 hover:text-text-0 hover:bg-ink-2 text-xs font-[family-name:var(--font-mono)]"
+                    className="px-3 py-1.5 rounded-sm border border-text-hi text-text-mid hover:text-text-hi hover:bg-surface-2 text-xs font-[family-name:var(--font-mono)]"
                   >
                     + Create new &ldquo;{it.mention.raw_alias}&rdquo;
                   </button>
@@ -192,22 +192,22 @@ export function ReviewQueue({ onResolved, hidePeople = false }: { onResolved: ()
             it.person.display_name ||
             [it.person.first_name, it.person.last_name].filter(Boolean).join(" ");
           const busy = busyId === it.person.id;
-          const btn = "px-3 py-1.5 rounded-sm border border-ink-4 text-text-1 hover:text-text-0 hover:bg-ink-2 disabled:opacity-50 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]";
+          const btn = "px-3 py-1.5 rounded-sm border border-text-hi text-text-mid hover:text-text-hi hover:bg-surface-2 disabled:opacity-50 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]";
           return (
             <li
               key={`p:${it.person.id}:${i}`}
-              className="growth-in rounded-md bg-ink-1 p-4 flex flex-wrap items-center gap-4"
+              className="growth-in rounded-md bg-surface-1 p-4 flex flex-wrap items-center gap-4"
             >
               <div className="flex-1 min-w-0">
-                <div className="text-base text-text-0 font-[family-name:var(--font-display)]">
+                <div className="text-base text-text-hi font-[family-name:var(--font-display)]">
                   {name}
                 </div>
-                <div className="text-[11px] text-text-2 mt-0.5">
+                <div className="text-[11px] text-text-lo mt-0.5">
                   Auto-created — {it.mention_count} mention
                   {it.mention_count === 1 ? "" : "s"} so far
                 </div>
                 {it.snippet && (
-                  <p className="text-xs text-text-1 italic font-[family-name:var(--font-display)] leading-snug mt-1 truncate" title={it.snippet}>
+                  <p className="text-xs text-text-mid italic font-[family-name:var(--font-display)] leading-snug mt-1 truncate" title={it.snippet}>
                     &ldquo;{it.snippet.slice(0, 160)}
                     {it.snippet.length > 160 ? "…" : ""}&rdquo;
                   </p>
@@ -216,7 +216,7 @@ export function ReviewQueue({ onResolved, hidePeople = false }: { onResolved: ()
               <div className="flex items-center gap-2 flex-wrap">
                 <Link
                   href={`/organisation/people/${it.person.id}`}
-                  className="px-3 py-1.5 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]"
+                  className="px-3 py-1.5 rounded-sm bg-glow-2 text-text-hi hover:bg-glow-1 text-xs font-[family-name:var(--font-mono)] tracking-[0.1em]"
                 >
                   OPEN
                 </Link>

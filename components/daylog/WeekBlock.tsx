@@ -24,10 +24,10 @@ export function WeekBlock({ isoYear, isoWeek }: { isoYear: number; isoWeek: numb
   if (!data.days.length) return null;
 
   return (
-    <section className="rounded-md bg-ink-1 p-4 flex flex-col gap-3">
+    <section className="rounded-md bg-surface-1 p-4 flex flex-col gap-3">
       <div className="card-eyebrow flex items-center justify-between gap-3 flex-wrap">
         <span>Day log</span>
-        <Mono className="text-[10px] text-text-2">
+        <Mono className="text-[10px] text-text-lo">
           {data.logged} logged · {data.skipped} skipped
           {keys.length ? ` · ${keys.map((k) => `${k} ${data.averages[k]}`).join(" · ")}` : ""}
         </Mono>
@@ -35,10 +35,10 @@ export function WeekBlock({ isoYear, isoWeek }: { isoYear: number; isoWeek: numb
       <ul className="flex flex-col gap-1.5">
         {data.days.map((d) => (
           <li key={d.day} className="flex items-baseline gap-3">
-            <Link href={`/journal/${d.day}`} className="w-10 shrink-0 text-[10px] text-text-2 hover:text-glow-2 font-[family-name:var(--font-mono)]">
+            <Link href={`/journal/${d.day}`} className="w-10 shrink-0 text-[10px] text-text-lo hover:text-glow-2 font-[family-name:var(--font-mono)]">
               {weekday(d.day)}
             </Link>
-            <span className="min-w-0 flex-1 text-sm text-text-1 truncate">{d.first_line ?? <span className="italic text-text-2">{d.status === "skipped" ? "skipped" : d.status}</span>}</span>
+            <span className="min-w-0 flex-1 text-sm text-text-mid truncate">{d.first_line ?? <span className="italic text-text-lo">{d.status === "skipped" ? "skipped" : d.status}</span>}</span>
             <span className="flex gap-1 shrink-0">
               {Object.entries(d.scores ?? {}).map(([k, v]) => (
                 <span key={k} title={`${k} ${v}`} className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-glow-3/50 text-[9px] text-glow-1">

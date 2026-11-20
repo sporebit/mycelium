@@ -18,7 +18,7 @@ function typeBadge(source: EnrichedSource | null): {
   label: string;
   className: string;
 } {
-  if (!source) return { label: "NOTE", className: "bg-ink-2 text-ink-3 border-ink-2" };
+  if (!source) return { label: "NOTE", className: "bg-surface-2 text-text-lo border-surface-2" };
   if (source.type === "task")
     return {
       label: "TASK",
@@ -31,7 +31,7 @@ function typeBadge(source: EnrichedSource | null): {
     };
   return {
     label: source.source_type.toUpperCase(),
-    className: "bg-ink-2 text-ink-3 border-ink-2",
+    className: "bg-surface-2 text-text-lo border-surface-2",
   };
 }
 
@@ -74,7 +74,7 @@ export function SourceCard({
       className={`rounded-lg border p-3 transition-colors ${
         highlighted
           ? "border-accent/60 bg-accent/5"
-          : "border-ink-2 bg-ink-0/40"
+          : "border-surface-2 bg-surface-0/40"
       }`}
     >
       <header className="flex items-center justify-between gap-2 mb-1.5">
@@ -89,27 +89,27 @@ export function SourceCard({
           >
             {badge.label}
           </span>
-          <Mono className="text-[10px] text-ink-3">
+          <Mono className="text-[10px] text-text-lo">
             {relativeDays(match.chunk.created_at)}
           </Mono>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Mono className="text-[10px] text-ink-3">{pct}%</Mono>
+          <Mono className="text-[10px] text-text-lo">{pct}%</Mono>
           {href && (
             <Link
               href={href}
-              className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+              className="text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
             >
               → open
             </Link>
           )}
         </div>
       </header>
-      <p className="text-sm text-ink-4 leading-snug whitespace-pre-wrap break-words">
+      <p className="text-sm text-text-hi leading-snug whitespace-pre-wrap break-words">
         {body}
       </p>
       {match.source?.type === "task" && match.source.entity_name && (
-        <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           {match.source.entity_name}
         </div>
       )}

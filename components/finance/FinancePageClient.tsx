@@ -32,7 +32,7 @@ function EyeToggle() {
       className={`inline-flex items-center justify-center h-8 w-8 rounded-v2-md transition-colors ${
         financeHidden
           ? "text-accent hover:text-accent/80"
-          : "text-ink-3 hover:text-ink-4"
+          : "text-text-lo hover:text-text-hi"
       }`}
     >
       {financeHidden ? (
@@ -64,14 +64,14 @@ function KpiBox({
   const isPlaceholder = value === "—";
   return (
     <div className="rounded-xl border border-hairline bg-surface-1 backdrop-blur-xl p-4">
-      <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {label}
       </div>
-      <Mono className="block text-2xl text-ink-4 mt-2">
+      <Mono className="block text-2xl text-text-hi mt-2">
         {isPlaceholder ? value : value}
       </Mono>
       {hint && (
-        <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
+        <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-1">
           {hint}
         </div>
       )}
@@ -108,21 +108,21 @@ function CategoryPanel({
         </Mono>
       }
     >
-      <Mono className={`block text-xl ${financeHidden ? "text-ink-3" : toneClass}`}>
+      <Mono className={`block text-xl ${financeHidden ? "text-text-lo" : toneClass}`}>
         <Money value={total} currency={currency} />
       </Mono>
-      <ul className="mt-3 flex flex-col divide-y divide-ink-2">
+      <ul className="mt-3 flex flex-col divide-y divide-surface-2">
         {items.length === 0 ? (
-          <li className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-2">
+          <li className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-2">
             None
           </li>
         ) : (
           items.map((c, i) => (
             <li key={`${c.name}-${i}`} className="flex items-center justify-between py-1.5">
-              <span className="text-sm text-ink-4 truncate flex-1 min-w-0 pr-2">
+              <span className="text-sm text-text-hi truncate flex-1 min-w-0 pr-2">
                 {c.name}
               </span>
-              <Mono className="text-[12px] text-ink-3 shrink-0">
+              <Mono className="text-[12px] text-text-lo shrink-0">
                 <Money value={c.value} currency={currency} />
               </Mono>
             </li>
@@ -256,14 +256,14 @@ export function FinancePageClient() {
     data && "last_refreshed_at" in data ? data.last_refreshed_at : null;
   const tone = liveTone(lastRefreshed);
   const toneClass = financeHidden
-    ? "text-ink-3"
+    ? "text-text-lo"
     : tone === "ok"
       ? "text-ok"
       : tone === "warn"
         ? "text-warn"
         : tone === "danger"
           ? "text-danger"
-          : "text-ink-3";
+          : "text-text-lo";
 
   const bd = useMemo(() => (snapshot ? breakDown(snapshot) : null), [snapshot]);
   const monthly = useMemo(
@@ -276,12 +276,12 @@ export function FinancePageClient() {
       {/* Header bar */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Net worth
           </div>
           {snapshot ? (
             <>
-              <Mono className="block text-4xl text-ink-4 mt-1">
+              <Mono className="block text-4xl text-text-hi mt-1">
                 <Money value={snapshot.net_worth} currency={snapshot.currency} />
               </Mono>
               <div
@@ -289,24 +289,24 @@ export function FinancePageClient() {
               >
                 ● {relativeTime(lastRefreshed)}
                 {snapshot.as_of && (
-                  <span className="ml-2 text-ink-3">as of {snapshot.as_of}</span>
+                  <span className="ml-2 text-text-lo">as of {snapshot.as_of}</span>
                 )}
                 {data && "source" in data && data.source && (
-                  <span className="ml-2 text-ink-3">via {data.source}</span>
+                  <span className="ml-2 text-text-lo">via {data.source}</span>
                 )}
               </div>
               {snapshot.notes && (
-                <div className="mt-2 text-xs text-ink-3 italic font-[family-name:var(--font-display)] max-w-md">
+                <div className="mt-2 text-xs text-text-lo italic font-[family-name:var(--font-display)] max-w-md">
                   ⓘ {snapshot.notes}
                 </div>
               )}
             </>
           ) : data === null ? (
-            <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-2">
+            <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-2">
               Loading…
             </div>
           ) : (
-            <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-2">
+            <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-2">
               No snapshot yet — tap Refresh to fetch from your sheet.
             </div>
           )}
@@ -370,18 +370,18 @@ export function FinancePageClient() {
       {/* History table */}
       <Panel title="SNAPSHOT HISTORY" topRight={<Mono>24 MONTHS</Mono>}>
         {history === null ? (
-          <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-6 text-center">
+          <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-6 text-center">
             Loading…
           </div>
         ) : monthly.length === 0 ? (
-          <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-6 text-center">
+          <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-6 text-center">
             No history yet
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] border-b border-hairline">
+                <tr className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] border-b border-hairline">
                   <th className="text-left py-2 pr-3">Period</th>
                   <th className="text-right py-2 px-3">Net Worth</th>
                   <th className="text-right py-2 px-3">Liquid</th>
@@ -395,35 +395,35 @@ export function FinancePageClient() {
                   const currency = snapshot?.currency ?? "GBP";
                   return (
                     <tr key={r.period} className="border-b border-hairline">
-                      <td className="py-2 pr-3 text-ink-4">{fmtMonth(r.period)}</td>
+                      <td className="py-2 pr-3 text-text-hi">{fmtMonth(r.period)}</td>
                       <td className="text-right py-2 px-3">
-                        <Mono className="text-ink-4">
+                        <Mono className="text-text-hi">
                           <Money value={r.netWorth} currency={currency} />
                         </Mono>
                       </td>
                       <td className="text-right py-2 px-3">
-                        <Mono className="text-ink-3">
+                        <Mono className="text-text-lo">
                           <Money value={r.liquid} currency={currency} />
                         </Mono>
                       </td>
                       <td className="text-right py-2 px-3">
-                        <Mono className="text-ink-3">
+                        <Mono className="text-text-lo">
                           <Money value={r.invested} currency={currency} />
                         </Mono>
                       </td>
                       <td className="text-right py-2 px-3">
-                        <Mono className="text-ink-3">
+                        <Mono className="text-text-lo">
                           <Money value={r.liabilities} currency={currency} />
                         </Mono>
                       </td>
                       <td className="text-right py-2 pl-3">
                         {r.delta === null ? (
-                          <Mono className="text-ink-3">—</Mono>
+                          <Mono className="text-text-lo">—</Mono>
                         ) : (
                           <Mono
                             className={
                               financeHidden
-                                ? "text-ink-3"
+                                ? "text-text-lo"
                                 : r.delta >= 0
                                   ? "text-ok"
                                   : "text-danger"

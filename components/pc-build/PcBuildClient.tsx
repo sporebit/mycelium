@@ -164,10 +164,10 @@ export function PcBuildClient() {
     <div className="flex flex-col gap-5">
       <header className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             PC Build
           </h1>
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             Current specs and upgrade history.
           </p>
         </div>
@@ -201,9 +201,9 @@ export function PcBuildClient() {
       {view === "current" && (
         <>
           {totalSpend > 0 && (
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
               Total invested:{" "}
-              <Mono className="text-ink-4">
+              <Mono className="text-text-hi">
                 <Money value={totalSpend} currency="GBP" />
               </Mono>
             </div>
@@ -252,7 +252,7 @@ function TabButton({
       className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
         active
           ? "bg-accent/15 border border-accent/40 text-accent"
-          : "border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+          : "border border-surface-2 text-text-lo hover:text-text-hi hover:border-text-lo"
       }`}
     >
       {children}
@@ -262,7 +262,7 @@ function TabButton({
 
 function Loading() {
   return (
-    <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-6 text-center">
+    <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-6 text-center">
       Loading…
     </div>
   );
@@ -270,7 +270,7 @@ function Loading() {
 
 function Empty({ text }: { text: string }) {
   return (
-    <div className="rounded-md bg-ink-1 p-6 text-center text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+    <div className="rounded-md bg-surface-1 p-6 text-center text-sm text-text-lo italic font-[family-name:var(--font-display)]">
       {text}
     </div>
   );
@@ -299,7 +299,7 @@ function ComponentList({
     <div className="flex flex-col gap-4">
       {sorted.map(([cat, items]) => (
         <div key={cat}>
-          <h3 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
+          <h3 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-2">
             {cat}
           </h3>
           <ul className="flex flex-col gap-2">
@@ -323,31 +323,31 @@ function ComponentCard({
   const [confirming, setConfirming] = useState(false);
 
   return (
-    <li className="rounded-md bg-ink-1 border border-ink-2 p-3 flex items-center gap-3">
+    <li className="rounded-md bg-surface-1 border border-surface-2 p-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-ink-4 font-medium truncate">
+          <span className="text-sm text-text-hi font-medium truncate">
             {c.name}
           </span>
           {c.brand && (
-            <span className="text-[10px] text-ink-3 uppercase tracking-[0.12em] font-[family-name:var(--font-mono)] shrink-0">
+            <span className="text-[10px] text-text-lo uppercase tracking-[0.12em] font-[family-name:var(--font-mono)] shrink-0">
               {c.brand}
             </span>
           )}
         </div>
         {c.specs && (
-          <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-0.5 truncate">
+          <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-0.5 truncate">
             {c.specs}
           </div>
         )}
         <div className="flex items-center gap-2 mt-1">
           {c.price_paid != null && (
-            <Mono className="text-[10px] text-ink-3">
+            <Mono className="text-[10px] text-text-lo">
               <Money value={c.price_paid} currency={c.currency} />
             </Mono>
           )}
           {c.purchase_date && (
-            <Mono className="text-[10px] text-ink-3">
+            <Mono className="text-[10px] text-text-lo">
               {formatDate(c.purchase_date)}
             </Mono>
           )}
@@ -372,7 +372,7 @@ function ComponentCard({
           <button
             type="button"
             onClick={() => setConfirming(false)}
-            className="px-2 py-1 rounded text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3"
+            className="px-2 py-1 rounded text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-text-lo"
           >
             ✕
           </button>
@@ -382,7 +382,7 @@ function ComponentCard({
           type="button"
           onClick={() => setConfirming(true)}
           title="Mark as removed"
-          className="p-1.5 rounded-md text-ink-3 hover:text-warn hover:bg-warn/10 transition-colors shrink-0"
+          className="p-1.5 rounded-md text-text-lo hover:text-warn hover:bg-warn/10 transition-colors shrink-0"
         >
           <svg
             width="14"
@@ -414,12 +414,12 @@ function HistoryList({
       {components.map((c) => (
         <li
           key={c.id}
-          className="rounded-md bg-ink-1 border border-ink-2 p-3 flex items-center gap-3 opacity-70"
+          className="rounded-md bg-surface-1 border border-surface-2 p-3 flex items-center gap-3 opacity-70"
         >
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-ink-4 truncate">{c.name}</span>
-              <span className="text-[10px] text-ink-3 uppercase tracking-[0.12em] font-[family-name:var(--font-mono)]">
+              <span className="text-sm text-text-hi truncate">{c.name}</span>
+              <span className="text-[10px] text-text-lo uppercase tracking-[0.12em] font-[family-name:var(--font-mono)]">
                 {c.category}
               </span>
             </div>
@@ -430,13 +430,13 @@ function HistoryList({
                 </Mono>
               )}
               {c.removal_reason && (
-                <span className="text-[10px] text-ink-3 italic font-[family-name:var(--font-display)]">
+                <span className="text-[10px] text-text-lo italic font-[family-name:var(--font-display)]">
                   ({c.removal_reason})
                 </span>
               )}
             </div>
             {c.specs && (
-              <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-0.5 truncate">
+              <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-0.5 truncate">
                 {c.specs}
               </div>
             )}
@@ -445,7 +445,7 @@ function HistoryList({
             type="button"
             onClick={() => onDelete(c.id)}
             title="Delete permanently"
-            className="p-1.5 rounded-md text-ink-3 hover:text-danger hover:bg-danger/10 transition-colors shrink-0"
+            className="p-1.5 rounded-md text-text-lo hover:text-danger hover:bg-danger/10 transition-colors shrink-0"
           >
             <svg
               width="14"
@@ -502,14 +502,14 @@ function AddForm({
   }
 
   const inputClass =
-    "w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
+    "w-full rounded-md bg-surface-0 border border-surface-2 px-3 py-2 text-sm text-text-hi placeholder:text-text-lo/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
   const labelClass =
-    "text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-1 block";
+    "text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-1 block";
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-md bg-ink-1 border border-ink-2 p-4 flex flex-col gap-3"
+      className="rounded-md bg-surface-1 border border-surface-2 p-4 flex flex-col gap-3"
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>

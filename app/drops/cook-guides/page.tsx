@@ -120,7 +120,7 @@ export default function CookGuidesPage() {
     <div className="flex flex-col gap-6">
       <header className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Cook Guides
           </h1>
         </div>
@@ -143,7 +143,7 @@ export default function CookGuidesPage() {
             className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] uppercase border transition-colors ${
               filterDiff === d
                 ? "border-accent/50 bg-accent/15 text-accent"
-                : "border-hairline text-ink-3 hover:text-ink-4"
+                : "border-hairline text-text-lo hover:text-text-hi"
             }`}
           >
             {d === "all" ? "All" : DIFF_LABELS[d] ?? d}
@@ -152,7 +152,7 @@ export default function CookGuidesPage() {
         <select
           value={filterRegion}
           onChange={(e) => setFilterRegion(e.target.value)}
-          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-ink-3 px-2 py-1 outline-none"
+          className="bg-surface-1 border border-hairline rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] text-text-lo px-2 py-1 outline-none"
         >
           <option value="all">All regions</option>
           {regions.map((r) => (
@@ -164,11 +164,11 @@ export default function CookGuidesPage() {
       </div>
 
       {loading ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Loading guides…
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           No cook guides yet. Add a retailer to get started.
         </div>
       ) : (
@@ -183,7 +183,7 @@ export default function CookGuidesPage() {
                 className="rounded-v2-md bg-surface-1 border border-transparent p-4 flex flex-col gap-2"
               >
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-text-0">
+                  <span className="text-sm font-medium text-text-hi">
                     {g.retailer}
                   </span>
                   {g.difficulty && (
@@ -198,7 +198,7 @@ export default function CookGuidesPage() {
                       {DIFF_LABELS[g.difficulty]}
                     </span>
                   )}
-                  <span className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] bg-ink-2 text-ink-3">
+                  <span className="px-1.5 py-0.5 rounded text-[8px] font-[family-name:var(--font-mono)] bg-surface-2 text-text-lo">
                     {g.region}
                   </span>
                   {g.bot_compatible && (
@@ -213,18 +213,18 @@ export default function CookGuidesPage() {
                   )}
                 </div>
                 {g.success_rate && (
-                  <div className="text-[10px] font-[family-name:var(--font-mono)] text-ink-3">
+                  <div className="text-[10px] font-[family-name:var(--font-mono)] text-text-lo">
                     Success: {g.success_rate}
                   </div>
                 )}
                 {g.checkout_tips && (
-                  <div className="text-xs text-text-1 line-clamp-2">
+                  <div className="text-xs text-text-mid line-clamp-2">
                     {g.checkout_tips.slice(0, 100)}
                     {g.checkout_tips.length > 100 ? "…" : ""}
                   </div>
                 )}
                 {g.last_updated && (
-                  <Mono className="text-[9px] text-ink-3">
+                  <Mono className="text-[9px] text-text-lo">
                     Updated{" "}
                     {new Date(g.last_updated + "T00:00:00").toLocaleDateString(
                       "en-GB",
@@ -244,7 +244,7 @@ export default function CookGuidesPage() {
                       href={g.retailer_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[9px] font-[family-name:var(--font-mono)] tracking-[0.1em] text-ink-3 hover:text-text-0 transition-colors"
+                      className="text-[9px] font-[family-name:var(--font-mono)] tracking-[0.1em] text-text-lo hover:text-text-hi transition-colors"
                     >
                       VISIT SITE →
                     </a>
@@ -259,13 +259,13 @@ export default function CookGuidesPage() {
       {/* Add Retailer modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-ink-0 border border-hairline rounded-lg w-full max-w-md p-6">
-            <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-0 mb-4">
+          <div className="bg-surface-0 border border-hairline rounded-lg w-full max-w-md p-6">
+            <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-hi mb-4">
               Add Retailer
             </h2>
             <div className="flex flex-col gap-3">
               <div>
-                <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                   RETAILER <span className="text-accent">*</span>
                 </Mono>
                 <input
@@ -274,11 +274,11 @@ export default function CookGuidesPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, retailer: e.target.value }))
                   }
-                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                 />
               </div>
               <div>
-                <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                   URL
                 </Mono>
                 <input
@@ -287,12 +287,12 @@ export default function CookGuidesPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, retailer_url: e.target.value }))
                   }
-                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                  className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                  <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                     REGION
                   </Mono>
                   <select
@@ -300,7 +300,7 @@ export default function CookGuidesPage() {
                     onChange={(e) =>
                       setForm((f) => ({ ...f, region: e.target.value }))
                     }
-                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                   >
                     {["UK", "EU", "US", "Global"].map((r) => (
                       <option key={r} value={r}>
@@ -310,7 +310,7 @@ export default function CookGuidesPage() {
                   </select>
                 </div>
                 <div>
-                  <Mono className="text-[9px] text-ink-3 tracking-[0.12em] mb-1 block">
+                  <Mono className="text-[9px] text-text-lo tracking-[0.12em] mb-1 block">
                     DIFFICULTY
                   </Mono>
                   <select
@@ -318,7 +318,7 @@ export default function CookGuidesPage() {
                     onChange={(e) =>
                       setForm((f) => ({ ...f, difficulty: e.target.value }))
                     }
-                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-0 px-3 py-1.5 outline-none focus:border-accent"
+                    className="w-full bg-surface-1 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
                   >
                     <option value="">—</option>
                     {DIFFICULTIES.map((d) => (
@@ -337,7 +337,7 @@ export default function CookGuidesPage() {
                   setShowModal(false);
                   setForm(EMPTY_MODAL);
                 }}
-                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-ink-3 hover:text-text-0"
+                className="px-3 py-1.5 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.12em] text-text-lo hover:text-text-hi"
               >
                 CANCEL
               </button>

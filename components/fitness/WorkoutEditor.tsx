@@ -147,7 +147,7 @@ export function WorkoutEditor({
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={saveHeader}
-          className="text-2xl text-ink-4 bg-transparent border-b border-hairline focus:border-accent outline-none pb-1 font-[family-name:var(--font-display)] italic"
+          className="text-2xl text-text-hi bg-transparent border-b border-hairline focus:border-accent outline-none pb-1 font-[family-name:var(--font-display)] italic"
         />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <Field label="Default kind">
@@ -155,7 +155,7 @@ export function WorkoutEditor({
               value={defaultKind}
               onChange={(e) => setDefaultKind(e.target.value as WorkoutKind | "")}
               onBlur={saveHeader}
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
             >
               <option value="">— None —</option>
               {WORKOUT_KINDS.map((k) => (
@@ -170,7 +170,7 @@ export function WorkoutEditor({
               value={defaultSlot}
               onChange={(e) => setDefaultSlot(e.target.value as WorkoutSlot | "")}
               onBlur={saveHeader}
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
             >
               <option value="">— None —</option>
               {WORKOUT_SLOTS.map((s) => (
@@ -187,14 +187,14 @@ export function WorkoutEditor({
               onChange={(e) => setNotes(e.target.value)}
               onBlur={saveHeader}
               placeholder="(optional)"
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
             />
           </Field>
         </div>
       </header>
 
       <section>
-        <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
+        <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-2">
           Exercises
         </h2>
         <DndContext
@@ -216,7 +216,7 @@ export function WorkoutEditor({
                 />
               ))}
               {exercises.length === 0 && (
-                <li className="rounded-v2-md bg-surface-1 px-3 py-3 text-sm text-ink-3 italic font-[family-name:var(--font-display)] text-center">
+                <li className="rounded-v2-md bg-surface-1 px-3 py-3 text-sm text-text-lo italic font-[family-name:var(--font-display)] text-center">
                   No exercises yet.
                 </li>
               )}
@@ -234,7 +234,7 @@ export function WorkoutEditor({
 
       {workout.used_in && workout.used_in.length > 0 && (
         <section className="rounded-v2-md bg-surface-1 border border-hairline p-3">
-          <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
+          <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-2">
             Used in {workout.used_in.length} programme
             {workout.used_in.length === 1 ? "" : "s"}
           </h2>
@@ -243,10 +243,10 @@ export function WorkoutEditor({
               <li key={u.programme_session_id}>
                 <a
                   href={`/fitness/programmes/${u.programme_id}/edit`}
-                  className="text-sm text-ink-4 hover:text-accent transition-colors"
+                  className="text-sm text-text-hi hover:text-accent transition-colors"
                 >
                   {u.programme_name}{" "}
-                  <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                     · day {u.day_of_week} · {u.slot}
                   </span>
                 </a>
@@ -287,7 +287,7 @@ function ExerciseRow({
         {...attributes}
         {...listeners}
         aria-label="Drag to reorder"
-        className="text-ink-3 hover:text-ink-4 cursor-grab active:cursor-grabbing select-none touch-none mt-1.5"
+        className="text-text-lo hover:text-text-hi cursor-grab active:cursor-grabbing select-none touch-none mt-1.5"
       >
         ⠿
       </button>
@@ -299,7 +299,7 @@ function ExerciseRow({
             const v = e.target.value.trim();
             if (v && v !== ex.name) onPatch({ name: v });
           }}
-          className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+          className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
         />
         <input
           type="number"
@@ -312,7 +312,7 @@ function ExerciseRow({
           }}
           aria-label="Sets"
           title="Sets"
-          className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60 tabular-nums"
+          className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60 tabular-nums"
         />
         <input
           type="text"
@@ -323,7 +323,7 @@ function ExerciseRow({
           }}
           aria-label="Reps"
           title="Reps (e.g. 8-12 or 5)"
-          className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60 tabular-nums"
+          className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60 tabular-nums"
         />
         <input
           type="number"
@@ -336,7 +336,7 @@ function ExerciseRow({
           }}
           aria-label="Rest seconds"
           title="Rest (seconds)"
-          className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60 tabular-nums"
+          className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60 tabular-nums"
         />
         <div className="flex items-center gap-1.5">
           <input
@@ -351,7 +351,7 @@ function ExerciseRow({
             }}
             aria-label="Weight kg"
             title="Weight (kg). Empty = no target."
-            className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60 tabular-nums"
+            className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60 tabular-nums"
           />
           <button
             type="button"
@@ -361,7 +361,7 @@ function ExerciseRow({
             className={`shrink-0 px-1.5 py-1.5 rounded-v2-md border text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] transition-colors ${
               ex.is_bodyweight
                 ? "bg-accent/20 border-accent/40 text-accent"
-                : "bg-surface-0 border-hairline text-ink-3 hover:text-ink-4"
+                : "bg-surface-0 border-hairline text-text-lo hover:text-text-hi"
             }`}
           >
             BW
@@ -371,7 +371,7 @@ function ExerciseRow({
           type="button"
           onClick={onRemove}
           aria-label="Remove exercise"
-          className="text-ink-3 hover:text-danger text-base"
+          className="text-text-lo hover:text-danger text-base"
         >
           🗑
         </button>
@@ -383,7 +383,7 @@ function ExerciseRow({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {label}
       </span>
       {children}

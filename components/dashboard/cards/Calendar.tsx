@@ -123,7 +123,7 @@ export function Calendar(_props: { width?: CardWidth } = {}) {
       bottomCTA={
         <Link
           href="/organisation/calendar"
-          className="cursor-pointer hover:text-ink-4 transition-colors"
+          className="cursor-pointer hover:text-text-hi transition-colors"
         >
           OPEN MONTH →
         </Link>
@@ -145,13 +145,13 @@ export function Calendar(_props: { width?: CardWidth } = {}) {
                   ? "border-accent/70 bg-accent/15"
                   : isToday
                     ? "border-accent/40 bg-accent/5 hover:bg-accent/10"
-                    : "border-ink-2 bg-ink-0/40 hover:border-ink-3"
+                    : "border-surface-2 bg-surface-0/40 hover:border-text-lo"
               }`}
               aria-current={isToday ? "date" : undefined}
             >
               <div
                 className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] ${
-                  isSelected || isToday ? "text-accent" : "text-ink-3"
+                  isSelected || isToday ? "text-accent" : "text-text-lo"
                 }`}
               >
                 {DAY_LABELS[i]}
@@ -159,10 +159,10 @@ export function Calendar(_props: { width?: CardWidth } = {}) {
               <Mono
                 className={`block mt-1 text-base ${
                   isSelected
-                    ? "text-ink-4"
+                    ? "text-text-hi"
                     : isToday
-                      ? "text-ink-4"
-                      : "text-ink-3"
+                      ? "text-text-hi"
+                      : "text-text-lo"
                 }`}
               >
                 {String(d.getDate()).padStart(2, "0")}
@@ -178,16 +178,16 @@ export function Calendar(_props: { width?: CardWidth } = {}) {
           {[0, 1, 2, 3].map((i) => (
             <li
               key={i}
-              className="h-10 rounded-md bg-ink-2/30 animate-pulse"
+              className="h-10 rounded-md bg-surface-2/30 animate-pulse"
             />
           ))}
         </ul>
       ) : dayEvents.length === 0 ? (
-        <div className="mt-6 text-xs text-ink-3 italic font-[family-name:var(--font-display)] text-center py-4">
+        <div className="mt-6 text-xs text-text-lo italic font-[family-name:var(--font-display)] text-center py-4">
           Nothing scheduled
         </div>
       ) : (
-        <ul className="mt-5 flex flex-col divide-y divide-ink-2">
+        <ul className="mt-5 flex flex-col divide-y divide-surface-2">
           {dayEvents.flatMap((e, idx) => {
             const rows = [];
             if (idx === nowMarkerIndex && isTodaySelected) {
@@ -209,13 +209,13 @@ export function Calendar(_props: { width?: CardWidth } = {}) {
                 key={e.id}
                 className="flex items-center gap-3 py-2.5 first:pt-0"
               >
-                <Mono className="text-[11px] text-ink-3 w-28 shrink-0">
+                <Mono className="text-[11px] text-text-lo w-28 shrink-0">
                   {e.allDay ? "ALL DAY" : fmtTimeRange(e.start, e.end)}
                 </Mono>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-ink-4 truncate">{e.title}</div>
+                  <div className="text-sm text-text-hi truncate">{e.title}</div>
                   {(e.location || e.description) && (
-                    <div className="text-[11px] text-ink-3 truncate">
+                    <div className="text-[11px] text-text-lo truncate">
                       {e.location ||
                         e.description.split(/\r?\n/)[0].slice(0, 120)}
                     </div>

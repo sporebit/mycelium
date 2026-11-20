@@ -239,15 +239,15 @@ function ChartTooltipContent({
   const e = p.entry;
   if (!e) {
     return (
-      <div className="rounded-v2-md border border-hairline bg-surface-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-ink-4">
+      <div className="rounded-v2-md border border-hairline bg-surface-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-text-hi">
         {p.xLabel}: <span className="text-accent">{fmtNumber(p.y, 1)}</span>{" "}
         {yMode === "volume" ? "kg" : fmtUnitLabel(unit)}
       </div>
     );
   }
   return (
-    <div className="rounded-v2-md border border-hairline bg-surface-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-ink-4 max-w-xs">
-      <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 mb-1">
+    <div className="rounded-v2-md border border-hairline bg-surface-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-text-hi max-w-xs">
+      <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo mb-1">
         {fmtDate(e.date)} · {SLOT_LABEL[e.slot] ?? ""}
       </div>
       <div>
@@ -255,17 +255,17 @@ function ChartTooltipContent({
         {e.top_set ? (
           <>
             {" · top: "}
-            <span className="text-ink-4">
+            <span className="text-text-hi">
               {e.top_set.weight}
               {fmtUnitLabel(e.top_set.unit)} × {e.top_set.reps}
             </span>
           </>
         ) : null}
         {" · volume: "}
-        <span className="text-ink-4">{fmtNumber(e.volume_kg)} kg</span>
+        <span className="text-text-hi">{fmtNumber(e.volume_kg)} kg</span>
       </div>
       {e.comment && (
-        <div className="text-[11px] text-ink-3 italic font-[family-name:var(--font-display)] mt-1 leading-snug">
+        <div className="text-[11px] text-text-lo italic font-[family-name:var(--font-display)] mt-1 leading-snug">
           {e.comment}
         </div>
       )}
@@ -428,8 +428,8 @@ function PainTooltipContent({ active, payload }: PainTooltipArgs) {
       : null;
   const emoji = l.feel_rating ? FEEL_EMOJI[l.feel_rating] : "·";
   return (
-    <div className="rounded-v2-md border border-hairline bg-surface-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-ink-4 max-w-xs">
-      <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 mb-1">
+    <div className="rounded-v2-md border border-hairline bg-surface-1/95 backdrop-blur-md px-3 py-2 text-xs font-[family-name:var(--font-mono)] text-text-hi max-w-xs">
+      <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo mb-1">
         {fmtDate(l.date)}
       </div>
       <div>
@@ -437,10 +437,10 @@ function PainTooltipContent({ active, payload }: PainTooltipArgs) {
         {l.severity != null ? ` · ${l.severity}/10` : ""}
       </div>
       {regions && (
-        <div className="text-[11px] text-ink-3 mt-1">{regions.toLowerCase()}</div>
+        <div className="text-[11px] text-text-lo mt-1">{regions.toLowerCase()}</div>
       )}
       {l.notes && (
-        <div className="text-[11px] text-ink-3 italic font-[family-name:var(--font-display)] mt-1 leading-snug">
+        <div className="text-[11px] text-text-lo italic font-[family-name:var(--font-display)] mt-1 leading-snug">
           {l.notes}
         </div>
       )}
@@ -639,7 +639,7 @@ export function ExerciseHistoryClient({
   }
   if (!data) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
@@ -651,15 +651,15 @@ export function ExerciseHistoryClient({
       <div className="flex flex-col gap-1">
         <Link
           href="/fitness/history"
-          className="text-[11px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em] self-start"
+          className="text-[11px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] tracking-[0.18em] self-start"
         >
           ← HISTORY
         </Link>
-        <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
+        <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-text-hi">
           {data.exercise_name}
         </h1>
         {data.template_notes && (
-          <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
             {data.template_notes}
           </p>
         )}
@@ -670,7 +670,7 @@ export function ExerciseHistoryClient({
         <button
           type="button"
           onClick={() => setAliasesOpen((v) => !v)}
-          className="text-[11px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase cursor-pointer"
+          className="text-[11px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase cursor-pointer"
         >
           {aliasesOpen ? "- ALIASES" : "+ ALIASES"}
           {aliases.length > 0 && ` (${aliases.length})`}
@@ -682,13 +682,13 @@ export function ExerciseHistoryClient({
                 {aliases.map((a) => (
                   <span
                     key={a.id}
-                    className="text-[11px] bg-surface-1 border border-hairline rounded-v2-md px-2 py-1 font-[family-name:var(--font-mono)] text-ink-4 inline-flex items-center gap-1"
+                    className="text-[11px] bg-surface-1 border border-hairline rounded-v2-md px-2 py-1 font-[family-name:var(--font-mono)] text-text-hi inline-flex items-center gap-1"
                   >
                     {a.alias}
                     <button
                       type="button"
                       onClick={() => removeAlias(a.id)}
-                      className="text-ink-3 hover:text-danger text-xs"
+                      className="text-text-lo hover:text-danger text-xs"
                     >
                       x
                     </button>
@@ -705,7 +705,7 @@ export function ExerciseHistoryClient({
                   if (e.key === "Enter") addAlias();
                 }}
                 placeholder="Add alias..."
-                className="rounded-v2-md bg-ink-0 border border-hairline px-2 py-1 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
+                className="rounded-v2-md bg-surface-0 border border-hairline px-2 py-1 text-sm text-text-hi placeholder:text-text-lo/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]"
               />
               <button
                 type="button"
@@ -723,7 +723,7 @@ export function ExerciseHistoryClient({
 
       {data.sessions.length === 0 ? (
         <Panel title="No history">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             You haven&apos;t logged this exercise yet. Once you complete a
             session that includes &quot;{data.exercise_name}&quot;, it&apos;ll
             show up here.
@@ -795,7 +795,7 @@ export function ExerciseHistoryClient({
               />
 
               {data.sessions.length === 1 && (
-                <p className="text-[11px] text-ink-3 italic font-[family-name:var(--font-display)]">
+                <p className="text-[11px] text-text-lo italic font-[family-name:var(--font-display)]">
                   Need more sessions to see progression.
                 </p>
               )}
@@ -879,7 +879,7 @@ export function ExerciseHistoryClient({
             }
           >
             {painPoints.length === 0 ? (
-              <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+              <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
                 No pain logs for this exercise yet.
               </p>
             ) : (
@@ -942,7 +942,7 @@ export function ExerciseHistoryClient({
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <tr className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                     <th className="text-left py-2 pr-3">Date</th>
                     <th className="text-right py-2 px-3">Sets</th>
                     <th className="text-right py-2 px-3">Top Set</th>
@@ -967,15 +967,15 @@ export function ExerciseHistoryClient({
                     return (
                     <tr
                       key={s.id}
-                      className="border-t border-hairline hover:bg-ink-2/20"
+                      className="border-t border-hairline hover:bg-surface-2/20"
                     >
                       <td className="py-2 pr-3">
                         <Link
                           href={`/fitness/log/${s.session_id}`}
-                          className="text-ink-4 hover:text-accent"
+                          className="text-text-hi hover:text-accent"
                         >
                           <Mono className="text-[11px]">{fmtDate(s.date)}</Mono>
-                          <span className="text-[10px] text-ink-3 ml-2 uppercase tracking-[0.15em] font-[family-name:var(--font-mono)]">
+                          <span className="text-[10px] text-text-lo ml-2 uppercase tracking-[0.15em] font-[family-name:var(--font-mono)]">
                             {SLOT_LABEL[s.slot] ?? ""}
                           </span>
                           {s.is_peak_weight_pr && (
@@ -988,15 +988,15 @@ export function ExerciseHistoryClient({
                           )}
                         </Link>
                       </td>
-                      <td className="py-2 px-3 text-right font-[family-name:var(--font-mono)] tabular-nums text-ink-4">
+                      <td className="py-2 px-3 text-right font-[family-name:var(--font-mono)] tabular-nums text-text-hi">
                         {s.sets_logged}
                       </td>
-                      <td className="py-2 px-3 text-right font-[family-name:var(--font-mono)] tabular-nums text-ink-4">
+                      <td className="py-2 px-3 text-right font-[family-name:var(--font-mono)] tabular-nums text-text-hi">
                         {s.top_set
                           ? `${s.top_set.weight}${fmtUnitLabel(s.top_set.unit)} × ${s.top_set.reps}`
                           : "—"}
                       </td>
-                      <td className="py-2 px-3 text-right font-[family-name:var(--font-mono)] tabular-nums text-ink-4">
+                      <td className="py-2 px-3 text-right font-[family-name:var(--font-mono)] tabular-nums text-text-hi">
                         {s.volume_kg > 0 ? `${fmtNumber(s.volume_kg)} kg` : "—"}
                       </td>
                       <td
@@ -1009,11 +1009,11 @@ export function ExerciseHistoryClient({
                             {sev != null ? ` ${sev}` : ""}
                           </span>
                         ) : (
-                          <span className="text-ink-3">—</span>
+                          <span className="text-text-lo">—</span>
                         )}
                       </td>
                       <td
-                        className="py-2 pl-3 text-xs text-ink-3 italic font-[family-name:var(--font-display)] max-w-[14rem] truncate"
+                        className="py-2 pl-3 text-xs text-text-lo italic font-[family-name:var(--font-display)] max-w-[14rem] truncate"
                         title={s.comment ?? ""}
                       >
                         {s.comment ?? ""}
@@ -1042,17 +1042,17 @@ function BaselineCard({ baseline }: { baseline: ExerciseBaseline }) {
       <div className="text-[10px] uppercase tracking-[0.22em] text-warn font-[family-name:var(--font-mono)] flex items-center gap-2">
         <span aria-hidden>⚠</span> Known history
       </div>
-      <div className="text-sm text-ink-4 mt-1">
+      <div className="text-sm text-text-hi mt-1">
         Has issues
-        {sev ? <span className="text-ink-3"> · typical {sev}</span> : null}
+        {sev ? <span className="text-text-lo"> · typical {sev}</span> : null}
       </div>
       {regions && (
-        <div className="text-[12px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.08em]">
-          Regions: <span className="text-ink-4">{regions.toLowerCase()}</span>
+        <div className="text-[12px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.08em]">
+          Regions: <span className="text-text-hi">{regions.toLowerCase()}</span>
         </div>
       )}
       {baseline.conditional_notes && (
-        <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-1 leading-snug">
+        <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-1 leading-snug">
           {baseline.conditional_notes}
         </p>
       )}
@@ -1073,7 +1073,7 @@ function ToggleRow<T extends string>({
 }) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)] w-16 shrink-0">
+      <span className="text-[10px] uppercase tracking-[0.22em] text-text-lo font-[family-name:var(--font-mono)] w-16 shrink-0">
         {label}
       </span>
       <div className="flex flex-wrap gap-1">
@@ -1087,7 +1087,7 @@ function ToggleRow<T extends string>({
               className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
                 active
                   ? "border-accent/50 bg-accent/15 text-accent"
-                  : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                  : "border-hairline text-text-lo hover:text-text-hi hover:border-text-lo"
               }`}
             >
               {o.label}
@@ -1113,8 +1113,8 @@ function PRBadge({
   href: string | null;
 }) {
   const inner = (
-    <div className="flex flex-col gap-1 p-4 rounded-2xl border border-hairline bg-surface-1 hover:border-ink-3 transition-colors">
-      <div className="text-[10px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)]">
+    <div className="flex flex-col gap-1 p-4 rounded-2xl border border-hairline bg-surface-1 hover:border-text-lo transition-colors">
+      <div className="text-[10px] uppercase tracking-[0.22em] text-text-lo font-[family-name:var(--font-mono)]">
         <span aria-hidden className="mr-1.5">
           {icon}
         </span>
@@ -1124,7 +1124,7 @@ function PRBadge({
         {value}
       </div>
       {sub && (
-        <div className="text-[11px] text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="text-[11px] text-text-lo italic font-[family-name:var(--font-display)]">
           {sub}
         </div>
       )}

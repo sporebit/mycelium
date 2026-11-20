@@ -52,7 +52,7 @@ function when(iso: string | null | undefined): string {
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-v2-md bg-surface-1 p-5">
-      <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-4 block">{title}</Mono>
+      <Mono className="text-[11px] text-text-lo tracking-[0.18em] mb-4 block">{title}</Mono>
       <div className="flex flex-col gap-4">{children}</div>
     </div>
   );
@@ -122,7 +122,7 @@ export default function SecuritySettingsPage() {
 
   if (!loaded) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
@@ -131,10 +131,10 @@ export default function SecuritySettingsPage() {
   return (
     <div className="flex flex-col gap-6 max-w-3xl">
       <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Security
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           How this account signs in, and where it is signed in.
         </p>
       </header>
@@ -200,7 +200,7 @@ export default function SecuritySettingsPage() {
                       </span>
                     )}
                   </div>
-                  <Mono className="text-[11px] text-ink-3">
+                  <Mono className="text-[11px] text-text-lo">
                     {s.ip ?? "?"} · {s.aal ?? "aal1"} · active {when(s.refreshed_at ?? s.created_at)}
                   </Mono>
                 </div>
@@ -333,7 +333,7 @@ function AccessLogCard({ hasFactor }: { hasFactor: boolean }) {
                 {e.actor_name ?? (e.actor_id ? e.actor_id.slice(0, 8) : "system")} · {e.action.replace(/_/g, " ")}
                 {e.section ? ` · ${e.section}${e.entity_group ? `.${e.entity_group}` : ""}` : ""}
               </span>
-              <Mono className="text-[11px] text-ink-3">{when(e.at)}{typeof e.meta?.path === "string" ? ` · ${e.meta.path}` : ""}</Mono>
+              <Mono className="text-[11px] text-text-lo">{when(e.at)}{typeof e.meta?.path === "string" ? ` · ${e.meta.path}` : ""}</Mono>
             </li>
           ))}
         </ul>
@@ -501,7 +501,7 @@ function TotpCard({
             <li key={f.id} className="py-3 flex items-center justify-between gap-3">
               <div className="flex flex-col">
                 <span className="text-sm text-text-hi">{f.friendly_name || "Authenticator"}</span>
-                <Mono className="text-[11px] text-ink-3">enrolled {when(f.created_at)}</Mono>
+                <Mono className="text-[11px] text-text-lo">enrolled {when(f.created_at)}</Mono>
               </div>
               <Button size="sm" variant="danger" disabled={busy} onClick={() => remove(f.id)}>
                 Remove
@@ -618,7 +618,7 @@ function PasskeysCard({
             <li key={p.id} className="py-3 flex items-center justify-between gap-3">
               <div className="flex flex-col">
                 <span className="text-sm text-text-hi">{p.friendly_name || "Passkey"}</span>
-                <Mono className="text-[11px] text-ink-3">
+                <Mono className="text-[11px] text-text-lo">
                   added {when(p.created_at)}
                   {p.last_used_at ? ` · last used ${when(p.last_used_at)}` : ""}
                 </Mono>

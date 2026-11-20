@@ -87,7 +87,7 @@ function confidenceTone(c: string | undefined): string {
   if (c === "medium") return "bg-accent/15 text-accent border-accent/40";
   if (c === "low") return "bg-warn/15 text-warn border-warn/40";
   if (c === "ambiguous") return "bg-danger/15 text-danger border-danger/40";
-  return "bg-ink-2 text-ink-3 border-ink-2";
+  return "bg-surface-2 text-text-lo border-surface-2";
 }
 
 function inferConfidence(c: Classification | null): string {
@@ -225,17 +225,17 @@ export function CaptureReviewClient({ initialTab = "needs_review", dayId = null 
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Capture review
           </h1>
           {captures !== null && (
-            <Mono className="text-[10px] text-ink-3">{total} SHOWN</Mono>
+            <Mono className="text-[10px] text-text-lo">{total} SHOWN</Mono>
           )}
         </div>
         <div
           role="tablist"
           aria-label="Filter"
-          className="flex rounded-md border border-ink-2 overflow-hidden text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          className="flex rounded-md border border-surface-2 overflow-hidden text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
         >
           {(
             [
@@ -255,7 +255,7 @@ export function CaptureReviewClient({ initialTab = "needs_review", dayId = null 
                 className={`px-3 py-2 transition-colors ${
                   active
                     ? "bg-accent/15 text-accent"
-                    : "text-ink-3 hover:text-ink-4 hover:bg-ink-2/40"
+                    : "text-text-lo hover:text-text-hi hover:bg-surface-2/40"
                 }`}
               >
                 {t.label}
@@ -268,12 +268,12 @@ export function CaptureReviewClient({ initialTab = "needs_review", dayId = null 
       {tab === "entities" ? (
         <PendingEntitiesList dayId={dayId} />
       ) : captures === null || loading ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : captures.length === 0 ? (
-        <div className="rounded-md bg-ink-1 p-8 text-center">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <div className="rounded-md bg-surface-1 p-8 text-center">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             {tab === "needs_review"
               ? "Nothing needs review — every capture has been triaged."
               : "No captures yet."}
@@ -468,15 +468,15 @@ function ReviewCard({
   const isReviewed = !!capture.reviewed_at;
 
   return (
-    <article className="bg-ink-1 rounded-md p-4 flex flex-col gap-3">
+    <article className="bg-surface-1 rounded-md p-4 flex flex-col gap-3">
       <header className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
-          <Mono className="text-[10px] text-ink-3">{relTime(capture.created_at)}</Mono>
-          <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <Mono className="text-[10px] text-text-lo">{relTime(capture.created_at)}</Mono>
+          <span className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
             · {capture.source}
           </span>
           {capture.llm_source && (
-            <span className="text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+            <span className="text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
               · via {capture.llm_source}
             </span>
           )}
@@ -495,15 +495,15 @@ function ReviewCard({
         </span>
       </header>
 
-      <div className="rounded-md border border-ink-2 bg-ink-0/40 px-3 py-2 text-sm text-text-0 whitespace-pre-wrap break-words">
+      <div className="rounded-md border border-surface-2 bg-surface-0/40 px-3 py-2 text-sm text-text-hi whitespace-pre-wrap break-words">
         {capture.raw_text || (
-          <span className="text-ink-3 italic">(no text)</span>
+          <span className="text-text-lo italic">(no text)</span>
         )}
       </div>
 
       {typeof capture.classification?.photo_path === "string" && (
         // eslint-disable-next-line @next/next/no-img-element -- a signed, short-lived link; the image optimiser cannot fetch it
-        <img src={`/api/captures/${capture.id}/media?kind=photo`} alt="The captured picture" className="max-h-72 w-auto rounded-md border border-ink-2 object-contain" />
+        <img src={`/api/captures/${capture.id}/media?kind=photo`} alt="The captured picture" className="max-h-72 w-auto rounded-md border border-surface-2 object-contain" />
       )}
       {(capture.audio_path || capture.parent_capture_id) && (
         <audio controls preload="none" src={`/api/captures/${capture.id}/media?kind=audio`} className="h-9 w-full" aria-label="The recording" />
@@ -516,7 +516,7 @@ function ReviewCard({
               <select
                 value={kind}
                 onChange={(e) => changeKind(e.target.value)}
-                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+                className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
               >
                 {TYPED_KINDS.map((k) => (
                   <option key={k} value={k}>
@@ -529,12 +529,12 @@ function ReviewCard({
               {routedUrl(capture) ? (
                 <Link
                   href={routedUrl(capture)!}
-                  className="text-sm text-accent px-3 py-2 rounded-sm bg-ink-0/40 border border-accent/30 font-[family-name:var(--font-mono)] truncate block hover:bg-accent/10 transition-colors"
+                  className="text-sm text-accent px-3 py-2 rounded-sm bg-surface-0/40 border border-accent/30 font-[family-name:var(--font-mono)] truncate block hover:bg-accent/10 transition-colors"
                 >
                   {routedTarget(capture)} →
                 </Link>
               ) : (
-                <div className="text-sm text-text-1 px-3 py-2 rounded-sm bg-ink-0/40 border border-ink-2 font-[family-name:var(--font-mono)] truncate">
+                <div className="text-sm text-text-mid px-3 py-2 rounded-sm bg-surface-0/40 border border-surface-2 font-[family-name:var(--font-mono)] truncate">
                   {isReviewed ? routedTarget(capture) : "waiting for approve"}
                 </div>
               )}
@@ -550,7 +550,7 @@ function ReviewCard({
           <select
             value={kind}
             onChange={(e) => setKind(e.target.value)}
-            className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+            className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
           >
             {KIND_OPTIONS.map((k) => (
               <option key={k} value={k}>
@@ -563,7 +563,7 @@ function ReviewCard({
           <select
             value={urgency}
             onChange={(e) => setUrgency(e.target.value)}
-            className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+            className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
           >
             {URGENCY_OPTIONS.map((u) => (
               <option key={u} value={u}>
@@ -581,7 +581,7 @@ function ReviewCard({
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+          className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
         />
       </Field>
       )}
@@ -610,19 +610,19 @@ function ReviewCard({
             type="date"
             value={dateInferred}
             onChange={(e) => setDateInferred(e.target.value)}
-            className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+            className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
           />
         </Field>
         <Field label="Routed to">
           {routedUrl(capture) ? (
             <Link
               href={routedUrl(capture)!}
-              className="text-sm text-accent px-3 py-2 rounded-sm bg-ink-0/40 border border-accent/30 font-[family-name:var(--font-mono)] truncate block hover:bg-accent/10 transition-colors"
+              className="text-sm text-accent px-3 py-2 rounded-sm bg-surface-0/40 border border-accent/30 font-[family-name:var(--font-mono)] truncate block hover:bg-accent/10 transition-colors"
             >
               {routedTarget(capture)} →
             </Link>
           ) : (
-            <div className="text-sm text-text-1 px-3 py-2 rounded-sm bg-ink-0/40 border border-ink-2 font-[family-name:var(--font-mono)] truncate">
+            <div className="text-sm text-text-mid px-3 py-2 rounded-sm bg-surface-0/40 border border-surface-2 font-[family-name:var(--font-mono)] truncate">
               {routedTarget(capture)}
             </div>
           )}
@@ -643,7 +643,7 @@ function ReviewCard({
           <select
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
-            className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+            className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
           >
             <option value="">{projectsData ? (ticketProjects.length ? "Choose a project…" : "No Tickets projects yet") : "Loading…"}</option>
             {ticketProjects.map((p) => (
@@ -662,7 +662,7 @@ function ReviewCard({
               type="date"
               value={scheduledDate}
               onChange={(e) => setScheduledDate(e.target.value)}
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
             />
           </Field>
           <Field label="Scheduled time">
@@ -671,7 +671,7 @@ function ReviewCard({
               value={scheduledTime}
               onChange={(e) => setScheduledTime(e.target.value)}
               placeholder="09:00"
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-3 py-2 outline outline-1 outline-transparent focus:outline-glow-2"
             />
           </Field>
         </div>
@@ -712,7 +712,7 @@ function ReviewCard({
           disabled={busy || (!typed && ((kind === "ticket" && !projectId) || (kind === "person" && !personReady)))}
           onClick={() => (typed ? typedAction("approve") : onAction("approve", draft))}
           title={!typed && kind === "ticket" && !projectId ? "Choose a project first" : undefined}
-          className="px-4 py-2 rounded-sm bg-glow-2 text-text-0 hover:bg-glow-1 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
+          className="px-4 py-2 rounded-sm bg-glow-2 text-text-hi hover:bg-glow-1 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] disabled:opacity-40"
         >
           {busy ? "…" : "APPROVE"}
         </button>
@@ -730,7 +730,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {label}
       </span>
       {children}
@@ -759,7 +759,7 @@ function TagInput({
     setDraft("");
   }
   return (
-    <div className="flex flex-wrap items-center gap-1.5 rounded-sm bg-ink-2 px-2 py-1.5 outline outline-1 outline-transparent focus-within:outline-glow-2">
+    <div className="flex flex-wrap items-center gap-1.5 rounded-sm bg-surface-2 px-2 py-1.5 outline outline-1 outline-transparent focus-within:outline-glow-2">
       {values.map((v) => (
         <span
           key={v}
@@ -790,7 +790,7 @@ function TagInput({
         }}
         onBlur={commit}
         placeholder={placeholder}
-        className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-text-0 placeholder:text-text-3"
+        className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-text-hi placeholder:text-text-ghost"
       />
     </div>
   );
@@ -859,7 +859,7 @@ function MentionInput({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-1.5 rounded-sm bg-ink-2 px-2 py-1.5 outline outline-1 outline-transparent focus-within:outline-glow-2">
+      <div className="flex flex-wrap items-center gap-1.5 rounded-sm bg-surface-2 px-2 py-1.5 outline outline-1 outline-transparent focus-within:outline-glow-2">
         {values.map((m, i) => {
           const matched = people.some(
             (p) => p.name.toLowerCase() === m.name_hint.toLowerCase(),
@@ -870,7 +870,7 @@ function MentionInput({
               className={`inline-flex items-center gap-1 text-[11px] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border ${
                 matched
                   ? "border-accent/40 bg-accent/15 text-accent"
-                  : "border-ink-3 bg-ink-0/40 text-ink-4"
+                  : "border-text-lo bg-surface-0/40 text-text-hi"
               }`}
               title={matched ? "Linked to people record" : "Not linked"}
             >
@@ -903,7 +903,7 @@ function MentionInput({
           onBlur={commit}
           placeholder="Add name, press Enter"
           list="people-suggestions"
-          className="flex-1 min-w-[120px] bg-transparent outline-none text-sm text-text-0 placeholder:text-text-3"
+          className="flex-1 min-w-[120px] bg-transparent outline-none text-sm text-text-hi placeholder:text-text-ghost"
         />
         <datalist id="people-suggestions">
           {people.map((p) => (
@@ -919,7 +919,7 @@ function MentionInput({
       ) && (
         <Link
           href="/organisation/people"
-          className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] mt-1 inline-block"
+          className="text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] mt-1 inline-block"
         >
           Manage people →
         </Link>

@@ -222,7 +222,7 @@ export function CalendarView() {
   }
 
   const monthLabel = new Date(year, month).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-  const inputCls = "w-full bg-ink-0/40 border border-ink-2 rounded-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3";
+  const inputCls = "w-full bg-surface-0/40 border border-surface-2 rounded-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo placeholder:text-text-lo";
 
   // Upcoming birthdays (next 30 days)
   const upcomingBirthdays = useMemo(() => {
@@ -239,7 +239,7 @@ export function CalendarView() {
   return (
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Calendar
         </h1>
         <div className="flex items-center gap-2">
@@ -254,24 +254,24 @@ export function CalendarView() {
           <button
             type="button"
             onClick={prev}
-            className="px-2 py-1 rounded-md text-ink-3 hover:text-ink-4 hover:bg-ink-2/40 text-sm transition-colors"
+            className="px-2 py-1 rounded-md text-text-lo hover:text-text-hi hover:bg-surface-2/40 text-sm transition-colors"
           >
             ←
           </button>
-          <Mono className="text-sm text-ink-4 min-w-[140px] text-center">
+          <Mono className="text-sm text-text-hi min-w-[140px] text-center">
             {monthLabel.toUpperCase()}
           </Mono>
           <button
             type="button"
             onClick={next}
-            className="px-2 py-1 rounded-md text-ink-3 hover:text-ink-4 hover:bg-ink-2/40 text-sm transition-colors"
+            className="px-2 py-1 rounded-md text-text-lo hover:text-text-hi hover:bg-surface-2/40 text-sm transition-colors"
           >
             →
           </button>
           <button
             type="button"
             onClick={goToday}
-            className="ml-2 px-3 py-1 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] text-ink-3 hover:text-ink-4 border border-ink-2 hover:border-ink-3 transition-colors"
+            className="ml-2 px-3 py-1 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.15em] text-text-lo hover:text-text-hi border border-surface-2 hover:border-text-lo transition-colors"
           >
             TODAY
           </button>
@@ -279,7 +279,7 @@ export function CalendarView() {
       </header>
 
       {/* Colour legend */}
-      <div className="flex items-center gap-3 text-[9px] font-[family-name:var(--font-mono)] text-ink-3">
+      <div className="flex items-center gap-3 text-[9px] font-[family-name:var(--font-mono)] text-text-lo">
         {COLOUR_LEGEND.map((l) => (
           <span key={l.label} className="flex items-center gap-1">
             <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: l.colour }} />
@@ -289,10 +289,10 @@ export function CalendarView() {
       </div>
 
       {/* Month grid */}
-      <div className="grid grid-cols-7 gap-px bg-ink-2/40 rounded-md overflow-hidden border border-ink-2">
+      <div className="grid grid-cols-7 gap-px bg-surface-2/40 rounded-md overflow-hidden border border-surface-2">
         {DAY_LABELS.map((d) => (
-          <div key={d} className="bg-ink-0 px-2 py-1.5 text-center">
-            <Mono className="text-[10px] text-ink-3">{d}</Mono>
+          <div key={d} className="bg-surface-0 px-2 py-1.5 text-center">
+            <Mono className="text-[10px] text-text-lo">{d}</Mono>
           </div>
         ))}
         {cells.map((d) => {
@@ -310,20 +310,20 @@ export function CalendarView() {
               key={key}
               type="button"
               onClick={() => setSelected(key)}
-              className={`bg-ink-0 px-1.5 py-1.5 text-left transition-colors min-h-[56px] flex flex-col ${
+              className={`bg-surface-0 px-1.5 py-1.5 text-left transition-colors min-h-[56px] flex flex-col ${
                 isSelected
                   ? "bg-accent/10 ring-1 ring-inset ring-accent/40"
                   : isToday
                     ? "bg-accent/5"
-                    : "hover:bg-ink-2/30"
+                    : "hover:bg-surface-2/30"
               } ${!isCurrentMonth ? "opacity-40" : ""}`}
             >
               <div className="flex items-center justify-between gap-0.5">
-                <Mono className={`text-xs ${isToday ? "text-accent" : isCurrentMonth ? "text-ink-4" : "text-ink-3"}`}>
+                <Mono className={`text-xs ${isToday ? "text-accent" : isCurrentMonth ? "text-text-hi" : "text-text-lo"}`}>
                   {d.getDate()}
                 </Mono>
                 {weather && isCurrentMonth && (
-                  <span className="text-[8px] text-ink-3 font-[family-name:var(--font-mono)] flex items-center gap-px shrink-0">
+                  <span className="text-[8px] text-text-lo font-[family-name:var(--font-mono)] flex items-center gap-px shrink-0">
                     <span>{weatherEmoji(weather.description)}</span>
                     <span>{weather.temp_max}°</span>
                   </span>
@@ -353,7 +353,7 @@ export function CalendarView() {
                     />
                   ))}
                   {timedEvts.length > 3 && (
-                    <Mono className="text-[8px] text-ink-3">+{timedEvts.length - 3}</Mono>
+                    <Mono className="text-[8px] text-text-lo">+{timedEvts.length - 3}</Mono>
                   )}
                 </div>
               )}
@@ -365,12 +365,12 @@ export function CalendarView() {
       {/* Selected day detail */}
       <section>
         <div className="flex items-center gap-2 mb-2">
-          <Mono className="text-[10px] text-ink-3">
+          <Mono className="text-[10px] text-text-lo">
             {new Date(selected + "T00:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }).toUpperCase()}
           </Mono>
-          <Mono className="text-[10px] text-ink-3">{dayEvents.length}</Mono>
+          <Mono className="text-[10px] text-text-lo">{dayEvents.length}</Mono>
           {weatherByDate[selected] && (
-            <Mono className="text-[10px] text-ink-3 bg-ink-2 px-1.5 py-0.5 rounded-md ml-auto">
+            <Mono className="text-[10px] text-text-lo bg-surface-2 px-1.5 py-0.5 rounded-md ml-auto">
               {weatherEmoji(weatherByDate[selected].description)}{" "}
               {weatherByDate[selected].temp_min}–{weatherByDate[selected].temp_max}°C
               {weatherByDate[selected].rain_chance > 30 && (
@@ -383,12 +383,12 @@ export function CalendarView() {
         {events === null ? (
           <div className="flex flex-col gap-2">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-10 rounded-md bg-ink-2/30 animate-pulse" />
+              <div key={i} className="h-10 rounded-md bg-surface-2/30 animate-pulse" />
             ))}
           </div>
         ) : dayEvents.length === 0 ? (
-          <div className="rounded-md bg-ink-1 p-6 text-center">
-            <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <div className="rounded-md bg-surface-1 p-6 text-center">
+            <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
               Nothing scheduled
             </p>
           </div>
@@ -399,23 +399,23 @@ export function CalendarView() {
               return (
                 <li
                   key={e.id}
-                  className="flex items-center gap-3 bg-ink-1 hover:bg-ink-2/60 rounded-md px-3 py-2.5 transition-colors"
+                  className="flex items-center gap-3 bg-surface-1 hover:bg-surface-2/60 rounded-md px-3 py-2.5 transition-colors"
                 >
                   <span
                     className="w-1 h-8 rounded-full shrink-0"
                     style={{ backgroundColor: e.calendarColour }}
                   />
-                  <Mono className="text-[11px] text-ink-3 w-24 shrink-0">
+                  <Mono className="text-[11px] text-text-lo w-24 shrink-0">
                     {e.allDay ? "ALL DAY" : fmtTimeRange(e.start, e.end)}
                   </Mono>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-ink-4 truncate">{e.title}</div>
+                    <div className="text-sm text-text-hi truncate">{e.title}</div>
                     {e.location && (
-                      <div className="text-[11px] text-ink-3 truncate">{e.location}</div>
+                      <div className="text-[11px] text-text-lo truncate">{e.location}</div>
                     )}
                   </div>
                   {w && (
-                    <Mono className="text-[10px] text-ink-3 bg-ink-2 px-1.5 py-0.5 rounded-md shrink-0">
+                    <Mono className="text-[10px] text-text-lo bg-surface-2 px-1.5 py-0.5 rounded-md shrink-0">
                       {weatherEmoji(w.description)} {w.temp_max}°C
                     </Mono>
                   )}
@@ -439,7 +439,7 @@ export function CalendarView() {
       {/* Upcoming birthdays */}
       {upcomingBirthdays.length > 0 && (
         <section>
-          <Mono className="text-[10px] text-ink-3 mb-2">UPCOMING BIRTHDAYS</Mono>
+          <Mono className="text-[10px] text-text-lo mb-2">UPCOMING BIRTHDAYS</Mono>
           <div className="flex flex-wrap gap-2">
             {upcomingBirthdays.map((b) => {
               const d = new Date(b.start);
@@ -467,30 +467,30 @@ export function CalendarView() {
       {/* Add event modal */}
       {showAddEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-ink-0 border border-ink-2 rounded-2xl w-full max-w-md p-6">
-            <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
+          <div className="bg-surface-0 border border-surface-2 rounded-2xl w-full max-w-md p-6">
+            <h2 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic mb-4">
               Add Event
             </h2>
 
             <div className="flex flex-col gap-3 mb-4">
               <div>
-                <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">TITLE</label>
+                <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">TITLE</label>
                 <input value={evTitle} onChange={(e) => setEvTitle(e.target.value)} className={inputCls} placeholder="Event title" />
               </div>
 
-              <label className="flex items-center gap-2 text-xs text-ink-4 font-[family-name:var(--font-mono)] cursor-pointer">
+              <label className="flex items-center gap-2 text-xs text-text-hi font-[family-name:var(--font-mono)] cursor-pointer">
                 <input type="checkbox" checked={evAllDay} onChange={(e) => setEvAllDay(e.target.checked)} className="accent-accent" />
                 All day
               </label>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">START DATE</label>
+                  <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">START DATE</label>
                   <input type="date" value={evStartDate} onChange={(e) => setEvStartDate(e.target.value)} className={inputCls} />
                 </div>
                 {!evAllDay && (
                   <div>
-                    <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">START TIME</label>
+                    <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">START TIME</label>
                     <input type="time" value={evStartTime} onChange={(e) => setEvStartTime(e.target.value)} className={inputCls} />
                   </div>
                 )}
@@ -499,28 +499,28 @@ export function CalendarView() {
               {!evAllDay && (
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">END DATE</label>
+                    <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">END DATE</label>
                     <input type="date" value={evEndDate} onChange={(e) => setEvEndDate(e.target.value)} className={inputCls} />
                   </div>
                   <div>
-                    <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">END TIME</label>
+                    <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">END TIME</label>
                     <input type="time" value={evEndTime} onChange={(e) => setEvEndTime(e.target.value)} className={inputCls} />
                   </div>
                 </div>
               )}
 
               <div>
-                <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">LOCATION</label>
+                <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">LOCATION</label>
                 <input value={evLocation} onChange={(e) => setEvLocation(e.target.value)} className={inputCls} placeholder="Optional" />
               </div>
 
               <div>
-                <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">NOTES</label>
+                <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">NOTES</label>
                 <textarea value={evNotes} onChange={(e) => setEvNotes(e.target.value)} rows={2} className={`${inputCls} resize-y`} />
               </div>
 
               <div>
-                <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em] mb-1 block">COLOUR</label>
+                <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em] mb-1 block">COLOUR</label>
                 <div className="flex gap-1">
                   {EVENT_COLOURS.map((c) => (
                     <button
@@ -528,7 +528,7 @@ export function CalendarView() {
                       type="button"
                       onClick={() => setEvColour(c.value)}
                       className={`h-7 w-7 rounded-full border-2 transition-colors ${
-                        evColour === c.value ? "border-ink-4 scale-110" : "border-transparent"
+                        evColour === c.value ? "border-text-hi scale-110" : "border-transparent"
                       }`}
                       style={{ backgroundColor: c.value }}
                       title={c.label}
@@ -541,7 +541,7 @@ export function CalendarView() {
             <div className="flex items-center gap-2 justify-end">
               <button
                 onClick={() => { resetEventForm(); setShowAddEvent(false); }}
-                className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+                className="px-3 py-1.5 rounded-md border border-surface-2 text-text-lo hover:text-text-hi text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
               >
                 CANCEL
               </button>
@@ -588,7 +588,7 @@ function SyncButton() {
       type="button"
       onClick={sync}
       disabled={syncing}
-      className="px-3 py-1.5 rounded-md border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors disabled:opacity-50"
+      className="px-3 py-1.5 rounded-md border border-surface-2 text-text-lo hover:text-text-hi hover:border-text-lo text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors disabled:opacity-50"
     >
       {label}
     </button>

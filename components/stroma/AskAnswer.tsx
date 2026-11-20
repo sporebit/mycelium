@@ -45,7 +45,7 @@ function renderAnswer(
         className={`mx-0.5 inline-flex items-center text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] px-1.5 py-0.5 rounded-md border align-baseline ${
           valid
             ? "border-accent/40 bg-accent/15 text-accent hover:bg-accent/25"
-            : "border-ink-2 bg-ink-2 text-ink-3 opacity-50 cursor-not-allowed"
+            : "border-surface-2 bg-surface-2 text-text-lo opacity-50 cursor-not-allowed"
         }`}
         title={
           valid
@@ -92,7 +92,7 @@ export function AskAnswer({
   }
   if (streaming && answer === "") {
     return (
-      <div className="mt-6 flex items-center gap-2 text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+      <div className="mt-6 flex items-center gap-2 text-sm text-text-lo italic font-[family-name:var(--font-display)]">
         <span className="inline-block h-2 w-2 rounded-full bg-accent animate-pulse" />
         Thinking…
       </div>
@@ -106,7 +106,7 @@ export function AskAnswer({
 
   return (
     <div className="mt-6 flex flex-col gap-4">
-      <article className="text-base text-ink-4 leading-relaxed whitespace-pre-wrap">
+      <article className="text-base text-text-hi leading-relaxed whitespace-pre-wrap">
         {renderAnswer(answer, sources, onCite)}
         {streaming && (
           <span
@@ -117,13 +117,13 @@ export function AskAnswer({
       </article>
 
       {sources.length > 0 && (
-        <section className="rounded-lg border border-ink-2 bg-ink-0/30">
+        <section className="rounded-lg border border-surface-2 bg-surface-0/30">
           <button
             type="button"
             onClick={() => setSourcesOpen((o) => !o)}
-            className="w-full flex items-center justify-between px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+            className="w-full flex items-center justify-between px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
           >
-            <span>Sources <Mono className="text-ink-3">({sources.length})</Mono></span>
+            <span>Sources <Mono className="text-text-lo">({sources.length})</Mono></span>
             <span aria-hidden>{sourcesOpen ? "▼" : "▶"}</span>
           </button>
           {sourcesOpen && (

@@ -100,10 +100,10 @@ export default function BloodTestsPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-[family-name:var(--font-display)] italic text-ink-4">
+          <h1 className="text-2xl font-[family-name:var(--font-display)] italic text-text-hi">
             Blood Tests
           </h1>
-          <p className="text-sm text-ink-3 mt-1">
+          <p className="text-sm text-text-lo mt-1">
             Markers, ranges, and trends across sessions.
           </p>
         </div>
@@ -112,7 +112,7 @@ export default function BloodTestsPage() {
             <select
               value={selectedSessionId ?? ""}
               onChange={(e) => setSelectedSessionId(e.target.value)}
-              className="bg-ink-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
+              className="bg-surface-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-text-hi font-[family-name:var(--font-mono)]"
             >
               {sessions.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -124,7 +124,7 @@ export default function BloodTestsPage() {
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="shrink-0 px-3 py-1.5 rounded-v2-md border border-hairline text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 font-[family-name:var(--font-mono)] transition-colors"
+            className="shrink-0 px-3 py-1.5 rounded-v2-md border border-hairline text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi hover:border-text-lo font-[family-name:var(--font-mono)] transition-colors"
           >
             Add results
           </button>
@@ -140,8 +140,8 @@ export default function BloodTestsPage() {
             onClick={() => setTab(t)}
             className={`px-4 py-2 text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors border-b-2 -mb-px ${
               tab === t
-                ? "text-ink-4 border-current"
-                : "text-ink-3 border-transparent hover:text-ink-4"
+                ? "text-text-hi border-current"
+                : "text-text-lo border-transparent hover:text-text-hi"
             }`}
             style={tab === t ? { borderColor: ACCENT } : undefined}
           >
@@ -152,7 +152,7 @@ export default function BloodTestsPage() {
 
       {/* Loading */}
       {loading && (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading blood tests…
         </div>
       )}
@@ -169,13 +169,13 @@ export default function BloodTestsPage() {
                   onClick={() => togglePanel(panel)}
                   className="flex items-center gap-2 w-full text-left mb-2"
                 >
-                  <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">
                     {collapsed ? "▶" : "▼"}
                   </span>
-                  <h3 className="text-[11px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <h3 className="text-[11px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                     {panel}
                   </h3>
-                  <span className="text-[10px] text-ink-3/60 font-[family-name:var(--font-mono)]">
+                  <span className="text-[10px] text-text-lo/60 font-[family-name:var(--font-mono)]">
                     {results.filter((r) => getStatus(r) === "abnormal").length >
                     0
                       ? `${results.filter((r) => getStatus(r) === "abnormal").length} flagged`
@@ -205,7 +205,7 @@ export default function BloodTestsPage() {
             );
           })}
           {groupedResults.length === 0 && (
-            <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-6 text-center">
+            <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-6 text-center">
               No results in this session.
             </p>
           )}

@@ -76,7 +76,7 @@ export function SunWidget() {
 
   return (
     <div
-      className="hidden lg:flex items-center gap-1 text-[11px] font-[family-name:var(--font-mono)] text-ink-3 tabular-nums"
+      className="hidden lg:flex items-center gap-1 text-[11px] font-[family-name:var(--font-mono)] text-text-lo tabular-nums"
       title={`Next ${next.kind}`}
     >
       <span aria-hidden>{arrow}</span>

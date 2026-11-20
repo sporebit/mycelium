@@ -71,7 +71,7 @@ export function Habits({ width = 1 }: { width?: CardWidth } = {}) {
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="cursor-pointer hover:text-ink-4 font-[family-name:var(--font-mono)] uppercase tracking-[0.18em]"
+          className="cursor-pointer hover:text-text-hi font-[family-name:var(--font-mono)] uppercase tracking-[0.18em]"
         >
           EDIT HABITS →
         </button>
@@ -111,7 +111,7 @@ export function Habits({ width = 1 }: { width?: CardWidth } = {}) {
             <span
               key={count}
               className={`font-[family-name:var(--font-display)] text-3xl font-medium tabular-nums transition-colors habit-count-pulse ${
-                allDone ? "text-ok" : "text-text-0"
+                allDone ? "text-ok" : "text-text-hi"
               }`}
             >
               {count}
@@ -120,14 +120,14 @@ export function Habits({ width = 1 }: { width?: CardWidth } = {}) {
         </div>
 
         <div className="flex-1">
-          <div className="text-sm text-ink-4">
+          <div className="text-sm text-text-hi">
             {count === 0
               ? "No habits logged today"
               : allDone
                 ? "All habits done — nice."
                 : `${count} of ${total} logged`}
           </div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-1">
             Tap a tile to toggle
           </div>
         </div>
@@ -153,7 +153,7 @@ export function Habits({ width = 1 }: { width?: CardWidth } = {}) {
               } ${
                 isDone
                   ? "border-accent/50 bg-accent/10 hover:bg-accent/15"
-                  : "border-ink-2 bg-ink-0/40 hover:border-ink-3"
+                  : "border-surface-2 bg-surface-0/40 hover:border-text-lo"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -165,15 +165,15 @@ export function Habits({ width = 1 }: { width?: CardWidth } = {}) {
                       : "h-3.5 w-3.5 text-[10px]"
                   } ${
                     isDone
-                      ? "border-accent bg-accent text-ink-0"
-                      : "border-ink-3"
+                      ? "border-accent bg-accent text-surface-0"
+                      : "border-text-lo"
                   }`}
                 >
                   {isDone ? "✓" : ""}
                 </span>
                 {h.target !== undefined && (
                   <Mono
-                    className={`text-[10px] ${isDone ? "text-accent" : "text-ink-3"}`}
+                    className={`text-[10px] ${isDone ? "text-accent" : "text-text-lo"}`}
                   >
                     {isDone ? h.target : 0}/{h.target}
                     {h.unit ?? ""}
@@ -181,11 +181,11 @@ export function Habits({ width = 1 }: { width?: CardWidth } = {}) {
                 )}
               </div>
               <div
-                className={`text-ink-4 ${width >= 3 ? "text-base" : "text-sm"}`}
+                className={`text-text-hi ${width >= 3 ? "text-base" : "text-sm"}`}
               >
                 {h.name}
               </div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 {h.category}
               </div>
             </button>

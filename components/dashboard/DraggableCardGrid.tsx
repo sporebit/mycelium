@@ -52,10 +52,10 @@ function SortableCard({ card }: { card: DraggableCard }) {
       <Link
         href={card.href}
         draggable={false}
-        className="block rounded-md bg-ink-1 border border-ink-2 hover:border-ink-3 px-4 py-3 transition-colors h-full"
+        className="block rounded-md bg-surface-1 border border-surface-2 hover:border-text-lo px-4 py-3 transition-colors h-full"
       >
-        <div className="text-base text-ink-4">{card.label}</div>
-        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
+        <div className="text-base text-text-hi">{card.label}</div>
+        <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-1">
           {card.description}
         </div>
         {card.detail && (

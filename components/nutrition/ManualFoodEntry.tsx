@@ -142,22 +142,22 @@ export function ManualFoodEntry({
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 bg-ink-0/60 backdrop-blur-sm cursor-default"
+        className="absolute inset-0 bg-surface-0/60 backdrop-blur-sm cursor-default"
       />
       <div
         role="dialog"
         aria-label="Add food manually"
-        className="relative w-full max-w-md max-h-[90vh] rounded-t-xl md:rounded-xl bg-ink-1 border border-ink-2 shadow-2xl flex flex-col overflow-hidden"
+        className="relative w-full max-w-md max-h-[90vh] rounded-t-xl md:rounded-xl bg-surface-1 border border-surface-2 shadow-2xl flex flex-col overflow-hidden"
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-ink-2">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-surface-2">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             {prefill ? "Label scanned" : "Add manually"}
           </span>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="text-ink-3 hover:text-ink-4"
+            className="text-text-lo hover:text-text-hi"
           >
             ✕
           </button>
@@ -174,11 +174,11 @@ export function ManualFoodEntry({
           )}
 
           <div className="flex flex-col gap-1">
-            <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+            <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
               {prefill ? (
                 <>
                   Review the extracted values for barcode{" "}
-                  <span className="text-ink-4 font-[family-name:var(--font-mono)] not-italic">
+                  <span className="text-text-hi font-[family-name:var(--font-mono)] not-italic">
                     {barcode}
                   </span>
                   .
@@ -186,7 +186,7 @@ export function ManualFoodEntry({
               ) : (
                 <>
                   We couldn&apos;t find barcode{" "}
-                  <span className="text-ink-4 font-[family-name:var(--font-mono)] not-italic">
+                  <span className="text-text-hi font-[family-name:var(--font-mono)] not-italic">
                     {barcode}
                   </span>
                   . Add it manually so next time it&apos;s instant.
@@ -198,7 +198,7 @@ export function ManualFoodEntry({
                 type="button"
                 onClick={onRetry}
                 disabled={retrying}
-                className="self-start mt-1 text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 disabled:opacity-40 font-[family-name:var(--font-mono)]"
+                className="self-start mt-1 text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-hi disabled:opacity-40 font-[family-name:var(--font-mono)]"
               >
                 {retrying ? "LOOKING…" : "↺ LOOKUP AGAIN"}
               </button>
@@ -212,7 +212,7 @@ export function ManualFoodEntry({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Tesco 5% Beef Mince"
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
             />
           </Field>
           <Field label="Brand">
@@ -221,7 +221,7 @@ export function ManualFoodEntry({
               value={brand}
               onChange={(e) => setBrand(e.target.value)}
               placeholder="e.g. Tesco"
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
             />
           </Field>
 
@@ -232,7 +232,7 @@ export function ManualFoodEntry({
                 inputMode="decimal"
                 value={kcal}
                 onChange={(e) => setKcal(e.target.value)}
-                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+                className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
               />
             </Field>
             <Field label="Protein / 100g">
@@ -241,7 +241,7 @@ export function ManualFoodEntry({
                 inputMode="decimal"
                 value={protein}
                 onChange={(e) => setProtein(e.target.value)}
-                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+                className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
               />
             </Field>
             <Field label="Carbs / 100g">
@@ -250,7 +250,7 @@ export function ManualFoodEntry({
                 inputMode="decimal"
                 value={carbs}
                 onChange={(e) => setCarbs(e.target.value)}
-                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+                className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
               />
             </Field>
             <Field label="Fat / 100g">
@@ -259,7 +259,7 @@ export function ManualFoodEntry({
                 inputMode="decimal"
                 value={fat}
                 onChange={(e) => setFat(e.target.value)}
-                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+                className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
               />
             </Field>
             <Field label="Fibre / 100g">
@@ -268,7 +268,7 @@ export function ManualFoodEntry({
                 inputMode="decimal"
                 value={fibre}
                 onChange={(e) => setFibre(e.target.value)}
-                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+                className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
               />
             </Field>
             <Field label="Sugar / 100g">
@@ -277,7 +277,7 @@ export function ManualFoodEntry({
                 inputMode="decimal"
                 value={sugar}
                 onChange={(e) => setSugar(e.target.value)}
-                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+                className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
               />
             </Field>
             <Field label="Sat. fat / 100g">
@@ -286,7 +286,7 @@ export function ManualFoodEntry({
                 inputMode="decimal"
                 value={satFat}
                 onChange={(e) => setSatFat(e.target.value)}
-                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+                className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
               />
             </Field>
             <Field label="Salt / 100g">
@@ -295,13 +295,13 @@ export function ManualFoodEntry({
                 inputMode="decimal"
                 value={salt}
                 onChange={(e) => setSalt(e.target.value)}
-                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+                className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
               />
             </Field>
           </div>
 
           {prefill?.total_weight_g != null ? (
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] px-2 py-1.5 rounded-md bg-ink-2">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] px-2 py-1.5 rounded-md bg-surface-2">
               Total package: {prefill.total_weight_g}g
             </div>
           ) : (
@@ -312,7 +312,7 @@ export function ManualFoodEntry({
                 value={totalWeightG}
                 onChange={(e) => setTotalWeightG(e.target.value)}
                 placeholder="e.g. 500"
-                className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+                className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
               />
             </Field>
           )}
@@ -324,16 +324,16 @@ export function ManualFoodEntry({
               value={servingG}
               onChange={(e) => setServingG(e.target.value)}
               placeholder="100"
-              className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+              className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
             />
           </Field>
 
           {weight != null && weight > 0 && (
-            <div className="rounded-md bg-ink-0/40 border border-ink-2 px-3 py-2">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] block mb-1.5">
+            <div className="rounded-md bg-surface-0/40 border border-surface-2 px-3 py-2">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] block mb-1.5">
                 Package totals ({weight}g)
               </span>
-              <div className="grid grid-cols-4 gap-2 text-[10px] font-[family-name:var(--font-mono)] text-ink-4 tabular-nums">
+              <div className="grid grid-cols-4 gap-2 text-[10px] font-[family-name:var(--font-mono)] text-text-hi tabular-nums">
                 <span>{calcTotal(kcal)} kcal</span>
                 <span>P {calcTotal(protein)}g</span>
                 <span>C {calcTotal(carbs)}g</span>
@@ -349,7 +349,7 @@ export function ManualFoodEntry({
               onChange={(e) => setSaveToLibrary(e.target.checked)}
               className="accent-accent"
             />
-            <span className="text-sm text-ink-4">Save to my library</span>
+            <span className="text-sm text-text-hi">Save to my library</span>
           </label>
 
           {error && (
@@ -362,7 +362,7 @@ export function ManualFoodEntry({
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4"
+              className="px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi"
             >
               CANCEL
             </button>
@@ -390,7 +390,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {label}
       </span>
       {children}

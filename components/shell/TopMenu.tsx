@@ -128,7 +128,7 @@ export function TopMenu() {
       <button
         type="button"
         onClick={openCapture}
-        className="ml-2 min-h-[44px] rounded-v2-md bg-text-hi px-5 text-[15px] font-bold text-ink-0 transition-transform active:scale-[0.97]"
+        className="ml-2 min-h-[44px] rounded-v2-md bg-text-hi px-5 text-[15px] font-bold text-surface-0 transition-transform active:scale-[0.97]"
       >
         Capture
       </button>

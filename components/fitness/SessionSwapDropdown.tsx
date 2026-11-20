@@ -112,7 +112,7 @@ export function SessionSwapDropdown({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="inline-flex items-center gap-1 text-ink-3 hover:text-ink-4 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          className="inline-flex items-center gap-1 text-text-lo hover:text-text-hi text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
           aria-label="Change session"
         >
           SWAP <span aria-hidden>▾</span>
@@ -157,10 +157,10 @@ export function SessionSwapDropdown({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 py-4 border-b border-hairline">
-              <h2 className="text-base text-ink-4">Swap session?</h2>
+              <h2 className="text-base text-text-hi">Swap session?</h2>
             </div>
-            <div className="px-5 py-4 text-sm text-ink-3 italic font-[family-name:var(--font-display)] leading-relaxed">
-              Swap to <span className="text-ink-4">{confirmFor.name}</span>?
+            <div className="px-5 py-4 text-sm text-text-lo italic font-[family-name:var(--font-display)] leading-relaxed">
+              Swap to <span className="text-text-hi">{confirmFor.name}</span>?
               <br />
               Your logged sets will be kept; empty planned exercises will be
               replaced with the new session&apos;s exercises.
@@ -169,7 +169,7 @@ export function SessionSwapDropdown({
               <button
                 type="button"
                 onClick={() => setConfirmFor(null)}
-                className="flex-1 h-11 rounded-v2-md border border-hairline text-ink-3 text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
+                className="flex-1 h-11 rounded-v2-md border border-hairline text-text-lo text-xs font-[family-name:var(--font-mono)] tracking-[0.18em]"
               >
                 CANCEL
               </button>
@@ -198,7 +198,7 @@ function Group({
 }) {
   return (
     <div className="px-1">
-      <div className="px-3 pt-1 pb-1 text-[9px] uppercase tracking-[0.22em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <div className="px-3 pt-1 pb-1 text-[9px] uppercase tracking-[0.22em] text-text-lo font-[family-name:var(--font-mono)]">
         {title}
       </div>
       <div className="flex flex-col">{children}</div>
@@ -220,7 +220,7 @@ function Item({
       type="button"
       onClick={onClick}
       className={`text-left px-3 py-2 text-xs font-[family-name:var(--font-mono)] tracking-[0.08em] rounded-sm flex items-center gap-2 hover:bg-surface-2 ${
-        current ? "text-accent" : "text-ink-4"
+        current ? "text-accent" : "text-text-hi"
       }`}
     >
       <span className="w-3 shrink-0">{current ? "▸" : ""}</span>

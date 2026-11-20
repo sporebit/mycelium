@@ -129,10 +129,10 @@ export function ExercisesListClient() {
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Exercises
           </h1>
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             Every exercise you&apos;ve logged — progression tracking and personal bests.
           </p>
         </div>
@@ -141,7 +141,7 @@ export function ExercisesListClient() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search exercises…"
-          className="w-48 bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-1.5 outline-none focus:border-ink-3 placeholder:text-ink-3"
+          className="w-48 bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-text-lo placeholder:text-text-lo"
         />
       </header>
 
@@ -152,7 +152,7 @@ export function ExercisesListClient() {
           className={`shrink-0 px-3 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
             filter === "all"
               ? "bg-accent/15 text-accent"
-              : "text-ink-3 hover:text-ink-4 hover:bg-surface-2"
+              : "text-text-lo hover:text-text-hi hover:bg-surface-2"
           }`}
         >
           ALL
@@ -165,7 +165,7 @@ export function ExercisesListClient() {
             className={`shrink-0 px-3 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors ${
               filter === g
                 ? "bg-accent/15 text-accent"
-                : "text-ink-3 hover:text-ink-4 hover:bg-surface-2"
+                : "text-text-lo hover:text-text-hi hover:bg-surface-2"
             }`}
           >
             {MUSCLE_GROUP_LABEL[g].toUpperCase()}
@@ -174,12 +174,12 @@ export function ExercisesListClient() {
       </div>
 
       {exercises === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : visible.length === 0 ? (
         <div className="rounded-v2-md bg-surface-1 p-12 text-center">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             {exercises.length === 0
               ? "No exercises logged yet."
               : "No exercises match that filter."}
@@ -191,7 +191,7 @@ export function ExercisesListClient() {
             <li key={ex.slug}>
               <Link
                 href={`/fitness/exercises/${ex.slug}`}
-                className="group relative block bg-surface-1 border border-hairline hover:border-ink-3 rounded-v2-md p-4 transition-colors"
+                className="group relative block bg-surface-1 border border-hairline hover:border-text-lo rounded-v2-md p-4 transition-colors"
               >
                 <button
                   type="button"
@@ -201,7 +201,7 @@ export function ExercisesListClient() {
                     e.stopPropagation();
                     hideExercise(ex.name);
                   }}
-                  className="absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center text-ink-3 hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  className="absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center text-text-lo hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                 >
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                     <path d="M2 2l8 8M10 2l-8 8" />
@@ -209,19 +209,19 @@ export function ExercisesListClient() {
                 </button>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className="text-base text-ink-4 truncate">{ex.name}</div>
-                    <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5 inline-block px-1.5 py-0.5 rounded border border-hairline">
+                    <div className="text-base text-text-hi truncate">{ex.name}</div>
+                    <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-0.5 inline-block px-1.5 py-0.5 rounded border border-hairline">
                       {MUSCLE_GROUP_LABEL[ex.muscle_group as MuscleGroup] ?? ex.muscle_group}
                     </span>
                   </div>
                   <MiniSparkline values={ex.recent_weights} />
                 </div>
                 <div className="mt-3 rounded-lg bg-surface-0 border border-hairline h-[100px] flex items-center justify-center">
-                  <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] uppercase">
+                  <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] uppercase">
                     Animation coming soon
                   </span>
                 </div>
-                <div className="flex items-center justify-between mt-3 text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                <div className="flex items-center justify-between mt-3 text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                   <Mono>
                     {ex.pr_weight
                       ? `PR ${ex.pr_weight}kg`

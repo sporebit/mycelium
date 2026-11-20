@@ -44,12 +44,12 @@ function statusBadgeClass(s: AccountStatus): string {
     case "inactive":
       return "border-warn/40 text-warn bg-warn/10";
     case "cancelled":
-      return "border-ink-2 text-ink-3 bg-ink-0";
+      return "border-surface-2 text-text-lo bg-surface-0";
   }
 }
 
 const inputClass =
-  "w-full rounded-md bg-ink-0 border border-ink-2 px-3 py-2 text-sm text-ink-4 placeholder:text-ink-3/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
+  "w-full rounded-md bg-surface-0 border border-surface-2 px-3 py-2 text-sm text-text-hi placeholder:text-text-lo/60 focus:outline-none focus:border-accent/60 font-[family-name:var(--font-display)]";
 
 export function AccountsClient() {
   const [accounts] = useState<ServiceAccount[]>(SAMPLE_ACCOUNTS);
@@ -78,10 +78,10 @@ export function AccountsClient() {
   return (
     <div className="flex flex-col gap-6 max-w-[900px]">
       <header>
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Accounts
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] mt-1">
           Service register and subscriptions.
         </p>
       </header>
@@ -104,7 +104,7 @@ export function AccountsClient() {
               className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase transition-colors ${
                 statusFilter === s
                   ? "bg-accent/15 border border-accent/50 text-accent"
-                  : "border border-ink-2 text-ink-3 hover:text-ink-4"
+                  : "border border-surface-2 text-text-lo hover:text-text-hi"
               }`}
             >
               {s}
@@ -114,16 +114,16 @@ export function AccountsClient() {
       </div>
 
       {/* Summary */}
-      <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         Active monthly cost:{" "}
-        <span className="font-[family-name:var(--font-mono)] tabular-nums text-ink-4">
+        <span className="font-[family-name:var(--font-mono)] tabular-nums text-text-hi">
           {"£"}{totalMonthlyCost.toFixed(2)}
         </span>
       </div>
 
       {/* Accounts list */}
       {filtered.length === 0 ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-4 text-center">
           No matching services.
         </div>
       ) : (
@@ -131,17 +131,17 @@ export function AccountsClient() {
           {filtered.map((a) => (
             <li
               key={a.id}
-              className="bg-ink-1 border border-ink-2 rounded-md p-4 flex flex-col gap-2"
+              className="bg-surface-1 border border-surface-2 rounded-md p-4 flex flex-col gap-2"
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm text-ink-4 font-medium">{a.name}</span>
+                <span className="text-sm text-text-hi font-medium">{a.name}</span>
                 <span
                   className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border ${statusBadgeClass(a.status)}`}
                 >
                   {a.status}
                 </span>
               </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-3">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-lo">
                 <span>{a.email}</span>
                 <span>{a.purpose}</span>
                 <span className="font-[family-name:var(--font-mono)] tabular-nums">
@@ -154,7 +154,7 @@ export function AccountsClient() {
                 )}
               </div>
               {a.notes && (
-                <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+                <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
                   {a.notes}
                 </p>
               )}

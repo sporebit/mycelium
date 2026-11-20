@@ -76,11 +76,11 @@ export function OperatorZone({
 
   return (
     <section className="px-1 pt-12 pb-8 sm:pt-16 sm:pb-10">
-      <div className="text-text-1 text-sm">{greeting || " "}</div>
-      <h1 className="mt-3 font-[family-name:var(--font-display)] text-2xl sm:text-[28px] leading-[1.3] text-text-0 font-medium max-w-[36rem]">
+      <div className="text-text-mid text-sm">{greeting || " "}</div>
+      <h1 className="mt-3 font-[family-name:var(--font-display)] text-2xl sm:text-[28px] leading-[1.3] text-text-hi font-medium max-w-[36rem]">
         {picked.headline}
       </h1>
-      <p className="mt-3 text-base text-text-1 max-w-[36rem]">{picked.body}</p>
+      <p className="mt-3 text-base text-text-mid max-w-[36rem]">{picked.body}</p>
     </section>
   );
 }

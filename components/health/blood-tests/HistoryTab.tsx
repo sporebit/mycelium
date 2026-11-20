@@ -79,13 +79,13 @@ export function HistoryTab({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <label className="text-[11px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <label className="text-[11px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           Marker
         </label>
         <select
           value={historyMarker}
           onChange={(e) => onMarkerChange(e.target.value)}
-          className="bg-ink-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-ink-4 font-[family-name:var(--font-mono)]"
+          className="bg-surface-0 border border-hairline rounded-v2-md px-2 py-1.5 text-sm text-text-hi font-[family-name:var(--font-mono)]"
         >
           {PANEL_ORDER.map((panel) => (
             <optgroup key={panel} label={panel}>
@@ -100,12 +100,12 @@ export function HistoryTab({
       </div>
 
       {data.length === 0 ? (
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-8 text-center">
           No data for {markerInfo?.name ?? historyMarker}.
         </p>
       ) : (
         <div className="rounded-v2-md border border-hairline p-4 bg-surface-0">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-2">
             {markerInfo?.name ?? historyMarker} ({unit})
           </div>
           <ResponsiveContainer width="100%" height={260}>
@@ -169,7 +169,7 @@ export function HistoryTab({
             </LineChart>
           </ResponsiveContainer>
           {refMin !== null && refMax !== null && (
-            <div className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] mt-1">
+            <div className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] mt-1">
               Reference range: {refMin}–{refMax} {unit}
             </div>
           )}

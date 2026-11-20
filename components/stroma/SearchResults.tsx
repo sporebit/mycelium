@@ -18,7 +18,7 @@ export function SearchResults({
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-20 rounded-lg border border-ink-2 bg-ink-2/20 animate-pulse"
+            className="h-20 rounded-lg border border-surface-2 bg-surface-2/20 animate-pulse"
           />
         ))}
       </div>
@@ -34,7 +34,7 @@ export function SearchResults({
   if (matches === null) return null;
   if (matches.length === 0) {
     return (
-      <div className="mt-6 text-sm text-ink-3 italic font-[family-name:var(--font-display)] text-center py-12">
+      <div className="mt-6 text-sm text-text-lo italic font-[family-name:var(--font-display)] text-center py-12">
         No matches found.
       </div>
     );

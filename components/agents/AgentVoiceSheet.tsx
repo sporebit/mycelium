@@ -237,16 +237,16 @@ export function AgentVoiceSheet({
     { label: "OpenAI", items: options.filter((o) => o.provider === "openai") },
   ].filter((g) => g.items.length > 0);
 
-  const btn = "px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 disabled:opacity-40 disabled:cursor-not-allowed text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase transition-colors";
+  const btn = "px-3 py-1.5 rounded-v2-md border border-hairline text-text-lo hover:text-text-hi hover:border-text-lo disabled:opacity-40 disabled:cursor-not-allowed text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase transition-colors";
 
   return (
     <Sheet open={open} onClose={onClose} title={`${agentName} — voice & manner`} side="auto">
       <div className="flex flex-col gap-6 pt-2 pb-6">
         {loadError && <Mono className="text-[10px] text-danger">{loadError}</Mono>}
-        {!data && !loadError && <Mono className="text-[10px] text-ink-3">Loading voices…</Mono>}
+        {!data && !loadError && <Mono className="text-[10px] text-text-lo">Loading voices…</Mono>}
 
         {data && !data.elevenlabs && (
-          <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
             ElevenLabs voices and cloning need ELEVENLABS_API_KEY on the server. OpenAI&apos;s stock voices work now.
           </p>
         )}
@@ -254,7 +254,7 @@ export function AgentVoiceSheet({
         {/* Voice picker */}
         {groups.map((g) => (
           <section key={g.label} className="flex flex-col gap-1.5">
-            <Mono className="text-[10px] text-ink-3 tracking-[0.18em] uppercase">{g.label}</Mono>
+            <Mono className="text-[10px] text-text-lo tracking-[0.18em] uppercase">{g.label}</Mono>
             <ul className="flex flex-col gap-1">
               {g.items.map((v) => {
                 const selected = v.provider === provider && v.voice_id === voiceId;
@@ -267,11 +267,11 @@ export function AgentVoiceSheet({
                         setVoiceId(v.voice_id);
                       }}
                       className={`flex-1 min-w-0 text-left px-3 py-2 rounded-v2-md border text-sm transition-colors ${
-                        selected ? "border-accent/60 bg-accent/10 text-ink-4" : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                        selected ? "border-accent/60 bg-accent/10 text-text-hi" : "border-hairline text-text-lo hover:text-text-hi hover:border-text-lo"
                       }`}
                     >
                       <span className="block truncate">{v.name}</span>
-                      {v.description && <span className="block text-[11px] text-ink-3 truncate">{v.description}</span>}
+                      {v.description && <span className="block text-[11px] text-text-lo truncate">{v.description}</span>}
                     </button>
                     <button type="button" onClick={() => preview(v)} disabled={previewing === v.voice_id} className={btn} aria-label={`Preview ${v.name}`}>
                       {previewing === v.voice_id ? "…" : "▶"}
@@ -290,15 +290,15 @@ export function AgentVoiceSheet({
 
         {/* Manner */}
         <section className="flex flex-col gap-1.5">
-          <Mono className="text-[10px] text-ink-3 tracking-[0.18em] uppercase">How {agentName} talks</Mono>
+          <Mono className="text-[10px] text-text-lo tracking-[0.18em] uppercase">How {agentName} talks</Mono>
           <textarea
             value={style}
             onChange={(e) => setStyle(e.target.value.slice(0, 1200))}
             placeholder={STYLE_PLACEHOLDER}
             rows={4}
-            className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2.5 outline-none focus:border-ink-3 placeholder:text-ink-3 resize-y"
+            className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2.5 outline-none focus:border-text-lo placeholder:text-text-lo resize-y"
           />
-          <p className="text-[11px] text-ink-3">
+          <p className="text-[11px] text-text-lo">
             Goes into every reply, typed or spoken. Leave it empty for the agent&apos;s own manner.
           </p>
         </section>
@@ -307,14 +307,14 @@ export function AgentVoiceSheet({
           <button type="button" onClick={save} disabled={saving || !voiceId} className="px-4 py-2 rounded-v2-md bg-accent/15 border border-accent/40 text-accent disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/25 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]">
             {saving ? "SAVING…" : "SAVE"}
           </button>
-          {notice && <Mono className="text-[10px] text-ink-3">{notice}</Mono>}
+          {notice && <Mono className="text-[10px] text-text-lo">{notice}</Mono>}
         </div>
 
         {/* Clone */}
         {data?.elevenlabs && (
           <section className="flex flex-col gap-2 border-t border-hairline pt-4">
-            <Mono className="text-[10px] text-ink-3 tracking-[0.18em] uppercase">Clone your voice</Mono>
-            <p className="text-[11px] text-ink-3">
+            <Mono className="text-[10px] text-text-lo tracking-[0.18em] uppercase">Clone your voice</Mono>
+            <p className="text-[11px] text-text-lo">
               Your own voice only. Record a minute or two of natural speech here, or upload a recording you made.
             </p>
             <input
@@ -322,7 +322,7 @@ export function AgentVoiceSheet({
               value={cloneName}
               onChange={(e) => setCloneName(e.target.value.slice(0, 60))}
               placeholder="Voice name, e.g. Phil"
-              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3"
+              className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo placeholder:text-text-lo"
             />
             <div className="flex items-center gap-2 flex-wrap">
               <button type="button" onClick={recording ? stopRecording : startRecording} className={`${btn} ${recording ? "text-danger border-danger/40" : ""}`}>
@@ -339,9 +339,9 @@ export function AgentVoiceSheet({
             {samples.length > 0 && (
               <ul className="flex flex-col gap-1">
                 {samples.map((s, i) => (
-                  <li key={i} className="flex items-center justify-between gap-2 text-[11px] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <li key={i} className="flex items-center justify-between gap-2 text-[11px] text-text-lo font-[family-name:var(--font-mono)]">
                     <span className="truncate">{s.name} · {Math.round(s.blob.size / 1024)} KB</span>
-                    <button type="button" onClick={() => setSamples((prev) => prev.filter((_, j) => j !== i))} className="text-ink-3 hover:text-danger" aria-label={`Remove ${s.name}`}>
+                    <button type="button" onClick={() => setSamples((prev) => prev.filter((_, j) => j !== i))} className="text-text-lo hover:text-danger" aria-label={`Remove ${s.name}`}>
                       ✕
                     </button>
                   </li>

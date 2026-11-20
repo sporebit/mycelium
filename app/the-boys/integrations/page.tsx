@@ -30,12 +30,12 @@ function statePill(state: IntegrationState): { label: string; tone: string } {
     case "missing":
       return {
         label: "○ NOT CONNECTED",
-        tone: "border-ink-3 text-ink-3 bg-surface-0",
+        tone: "border-text-lo text-text-lo bg-surface-0",
       };
     case "future":
       return {
         label: "○ COMING SOON",
-        tone: "border-ink-3 text-ink-3 bg-surface-0 opacity-70",
+        tone: "border-text-lo text-text-lo bg-surface-0 opacity-70",
       };
   }
 }
@@ -163,10 +163,10 @@ export default async function IntegrationsPage() {
   return (
     <div className="flex flex-col gap-4 max-w-3xl">
         <header className="flex flex-col gap-1">
-          <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
+          <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-text-hi">
             Integrations
           </h1>
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             External systems feeding the network. Status is read from
             environment config + the most recent row each source touched.
           </p>
@@ -181,24 +181,24 @@ export default async function IntegrationsPage() {
                   <div className="flex items-start gap-4">
                     <span
                       aria-hidden
-                      className="shrink-0 h-10 w-10 rounded-v2-md border border-hairline bg-surface-0 flex items-center justify-center text-base text-text-0"
+                      className="shrink-0 h-10 w-10 rounded-v2-md border border-hairline bg-surface-0 flex items-center justify-center text-base text-text-hi"
                     >
                       {i.icon}
                     </span>
                     <div className="flex-1 min-w-0 flex flex-col gap-1">
                       <div className="flex items-center justify-between gap-3 flex-wrap">
-                        <h2 className="text-base text-text-0">{i.name}</h2>
+                        <h2 className="text-base text-text-hi">{i.name}</h2>
                         <span
                           className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] px-2 py-0.5 rounded-v2-md border ${pill.tone}`}
                         >
                           {pill.label}
                         </span>
                       </div>
-                      <p className="text-[13px] text-ink-3 leading-snug">
+                      <p className="text-[13px] text-text-lo leading-snug">
                         {i.description}
                       </p>
                       <div className="flex items-center justify-between gap-3 flex-wrap mt-1">
-                        <Mono className="text-[10px] text-ink-3">
+                        <Mono className="text-[10px] text-text-lo">
                           Last sync · {fmtTime(i.lastSync)}
                         </Mono>
                         {i.setupHref && i.state !== "future" && (

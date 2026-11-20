@@ -53,7 +53,7 @@ const SAMPLE_DESIGN: DesignProject[] = [
 
 function musicStatusClass(s: MusicProject["status"]): string {
   switch (s) {
-    case "idea": return "border-ink-2 text-ink-3 bg-ink-0";
+    case "idea": return "border-surface-2 text-text-lo bg-surface-0";
     case "in-progress": return "border-accent/40 text-accent bg-accent/10";
     case "mixing": return "border-warn/40 text-warn bg-warn/10";
     case "done": return "border-ok/40 text-ok bg-ok/10";
@@ -62,7 +62,7 @@ function musicStatusClass(s: MusicProject["status"]): string {
 
 function designStatusClass(s: DesignProject["status"]): string {
   switch (s) {
-    case "backlog": return "border-ink-2 text-ink-3 bg-ink-0";
+    case "backlog": return "border-surface-2 text-text-lo bg-surface-0";
     case "in-progress": return "border-accent/40 text-accent bg-accent/10";
     case "review": return "border-warn/40 text-warn bg-warn/10";
     case "done": return "border-ok/40 text-ok bg-ok/10";
@@ -93,10 +93,10 @@ export function StudioClient() {
   return (
     <div className="flex flex-col gap-6 max-w-[1000px]">
       <header>
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Studio
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] mt-1">
           Music, footage, and design projects.
         </p>
       </header>
@@ -117,7 +117,7 @@ export function StudioClient() {
             className={`px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase transition-colors ${
               tab === t.key
                 ? "bg-accent/15 border border-accent/50 text-accent"
-                : "border border-ink-2 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                : "border border-surface-2 text-text-lo hover:text-text-hi hover:border-text-lo"
             }`}
           >
             {t.label}
@@ -136,28 +136,28 @@ function MusicTab() {
   const [projects] = useState(SAMPLE_MUSIC);
   return (
     <section>
-      <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-3">
+      <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-3">
         Music Projects
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {projects.map((p) => (
           <div
             key={p.id}
-            className="bg-ink-1 border border-ink-2 rounded-md p-4 flex flex-col gap-2"
+            className="bg-surface-1 border border-surface-2 rounded-md p-4 flex flex-col gap-2"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="text-sm text-ink-4 font-medium">{p.name}</span>
+              <span className="text-sm text-text-hi font-medium">{p.name}</span>
               <span
                 className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border ${musicStatusClass(p.status)}`}
               >
                 {p.status}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-xs text-ink-3">
+            <div className="flex items-center gap-3 text-xs text-text-lo">
               <span>{p.genre}</span>
               <span className="font-[family-name:var(--font-mono)] tabular-nums">{p.bpm} BPM</span>
             </div>
-            <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+            <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
               Stem links placeholder
             </div>
           </div>
@@ -171,17 +171,17 @@ function FootageTab() {
   const [items] = useState(SAMPLE_FOOTAGE);
   return (
     <section>
-      <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-3">
+      <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-3">
         Media Catalogue
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-ink-2">
+            <tr className="border-b border-surface-2">
               {["Filename", "Date", "Duration", "Tags", "Location"].map((h) => (
                 <th
                   key={h}
-                  className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] text-left p-2 font-normal"
+                  className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] text-left p-2 font-normal"
                 >
                   {h}
                 </th>
@@ -190,14 +190,14 @@ function FootageTab() {
           </thead>
           <tbody>
             {items.map((f) => (
-              <tr key={f.id} className="border-b border-ink-2/50">
-                <td className="p-2 text-ink-4 font-[family-name:var(--font-mono)] text-xs">
+              <tr key={f.id} className="border-b border-surface-2/50">
+                <td className="p-2 text-text-hi font-[family-name:var(--font-mono)] text-xs">
                   {f.filename}
                 </td>
-                <td className="p-2 font-[family-name:var(--font-mono)] tabular-nums text-ink-3 text-xs">
+                <td className="p-2 font-[family-name:var(--font-mono)] tabular-nums text-text-lo text-xs">
                   {formatDate(f.date)}
                 </td>
-                <td className="p-2 font-[family-name:var(--font-mono)] tabular-nums text-ink-3">
+                <td className="p-2 font-[family-name:var(--font-mono)] tabular-nums text-text-lo">
                   {formatDuration(f.durationSecs)}
                 </td>
                 <td className="p-2">
@@ -205,14 +205,14 @@ function FootageTab() {
                     {f.tags.map((t) => (
                       <span
                         key={t}
-                        className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-ink-2 text-ink-3"
+                        className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border border-surface-2 text-text-lo"
                       >
                         {t}
                       </span>
                     ))}
                   </div>
                 </td>
-                <td className="p-2 text-ink-3 text-xs">{f.location}</td>
+                <td className="p-2 text-text-lo text-xs">{f.location}</td>
               </tr>
             ))}
           </tbody>
@@ -226,17 +226,17 @@ function DesignTab() {
   const [projects] = useState(SAMPLE_DESIGN);
   return (
     <section>
-      <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-3">
+      <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-3">
         Design / Video Projects
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-ink-2">
+            <tr className="border-b border-surface-2">
               {["Project", "Type", "Status", "Deadline"].map((h) => (
                 <th
                   key={h}
-                  className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] text-left p-2 font-normal"
+                  className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] text-left p-2 font-normal"
                 >
                   {h}
                 </th>
@@ -245,9 +245,9 @@ function DesignTab() {
           </thead>
           <tbody>
             {projects.map((p) => (
-              <tr key={p.id} className="border-b border-ink-2/50">
-                <td className="p-2 text-ink-4 font-medium">{p.name}</td>
-                <td className="p-2 text-ink-3 text-xs">{p.type}</td>
+              <tr key={p.id} className="border-b border-surface-2/50">
+                <td className="p-2 text-text-hi font-medium">{p.name}</td>
+                <td className="p-2 text-text-lo text-xs">{p.type}</td>
                 <td className="p-2">
                   <span
                     className={`text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-md border ${designStatusClass(p.status)}`}
@@ -255,8 +255,8 @@ function DesignTab() {
                     {p.status}
                   </span>
                 </td>
-                <td className="p-2 font-[family-name:var(--font-mono)] tabular-nums text-ink-3 text-xs">
-                  {p.deadline ? formatDate(p.deadline) : <span className="text-ink-3/50">--</span>}
+                <td className="p-2 font-[family-name:var(--font-mono)] tabular-nums text-text-lo text-xs">
+                  {p.deadline ? formatDate(p.deadline) : <span className="text-text-lo/50">--</span>}
                 </td>
               </tr>
             ))}

@@ -8,7 +8,7 @@ import type { ExercisePainLog, FeelRating } from "@/lib/fitness/types";
 const FEEL_TONE: Record<FeelRating, string> = {
   great: "text-ok",
   good: "text-ok",
-  ok: "text-ink-3",
+  ok: "text-text-lo",
   mild: "text-warn",
   moderate: "text-warn",
   painful: "text-danger",
@@ -65,17 +65,17 @@ export function PainOverview() {
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           Pain tracking
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Standalone pain captures + the pain notes attached to recent workout
           sessions.
         </p>
       </header>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           Standalone logs
         </h2>
         <PainList logs={standalone} emptyText="No standalone pain captures yet." />
@@ -83,12 +83,12 @@ export function PainOverview() {
 
       <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <h2 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Session pain notes
           </h2>
           <Link
             href="/fitness/history"
-            className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+            className="text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
           >
             FITNESS HISTORY →
           </Link>
@@ -108,22 +108,22 @@ function PainList({
 }) {
   if (logs === null) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-3 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-3 text-center">
         Loading…
       </div>
     );
   }
   if (logs.length === 0) {
     return (
-      <div className="rounded-v2-md bg-surface-1 p-6 text-center text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+      <div className="rounded-v2-md bg-surface-1 p-6 text-center text-sm text-text-lo italic font-[family-name:var(--font-display)]">
         {emptyText}
       </div>
     );
   }
   return (
-    <ul className="flex flex-col divide-y divide-ink-2/60 rounded-v2-md bg-surface-1 border border-hairline">
+    <ul className="flex flex-col divide-y divide-surface-2/60 rounded-v2-md bg-surface-1 border border-hairline">
       {logs.map((l) => {
-        const tone = l.feel_rating ? FEEL_TONE[l.feel_rating] : "text-ink-3";
+        const tone = l.feel_rating ? FEEL_TONE[l.feel_rating] : "text-text-lo";
         const regions = (l.pain_regions ?? []).join(", ");
         return (
           <li key={l.id} className="flex items-start gap-3 px-3 py-2">
@@ -131,7 +131,7 @@ function PainList({
               {l.severity ?? "—"}/10
             </Mono>
             <div className="flex-1 min-w-0">
-              <div className="text-sm text-ink-4 truncate">
+              <div className="text-sm text-text-hi truncate">
                 {regions || "(no region)"}
                 {l.feel_rating && (
                   <span className={`ml-2 text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] ${tone}`}>
@@ -140,12 +140,12 @@ function PainList({
                 )}
               </div>
               {l.notes && (
-                <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-0.5 line-clamp-2">
+                <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-0.5 line-clamp-2">
                   {l.notes}
                 </div>
               )}
             </div>
-            <Mono className="text-[10px] text-ink-3 shrink-0">
+            <Mono className="text-[10px] text-text-lo shrink-0">
               {formatDateTime(l.logged_at)}
             </Mono>
           </li>

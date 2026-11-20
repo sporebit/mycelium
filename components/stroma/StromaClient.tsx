@@ -183,8 +183,8 @@ export function StromaClient() {
             onClick={() => setMode(m)}
             className={`px-4 py-1.5 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] rounded-md transition-colors ${
               mode === m
-                ? "bg-ink-2 text-ink-4"
-                : "text-ink-3 hover:text-ink-4"
+                ? "bg-surface-2 text-text-hi"
+                : "text-text-lo hover:text-text-hi"
             }`}
           >
             {m.toUpperCase()}
@@ -198,7 +198,7 @@ export function StromaClient() {
           e.preventDefault();
           submit();
         }}
-        className="rounded-md bg-ink-1 px-6 py-5 flex items-center gap-3 focus-within:outline focus-within:outline-1 focus-within:outline-glow-2"
+        className="rounded-md bg-surface-1 px-6 py-5 flex items-center gap-3 focus-within:outline focus-within:outline-1 focus-within:outline-glow-2"
       >
         <input
           autoFocus
@@ -211,12 +211,12 @@ export function StromaClient() {
               : "Search captures, journals, decisions…"
           }
           disabled={submitting}
-          className="flex-1 bg-transparent outline-none text-xl text-text-0 placeholder:text-text-3 italic font-[family-name:var(--font-display)]"
+          className="flex-1 bg-transparent outline-none text-xl text-text-hi placeholder:text-text-ghost italic font-[family-name:var(--font-display)]"
         />
         <button
           type="submit"
           disabled={!query.trim() || submitting}
-          className="px-3 py-1.5 rounded-md bg-glow-2/30 border border-glow-2/60 text-text-0 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-glow-2/50 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+          className="px-3 py-1.5 rounded-md bg-glow-2/30 border border-glow-2/60 text-text-hi disabled:opacity-40 disabled:cursor-not-allowed hover:bg-glow-2/50 transition-colors text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
         >
           {submitting
             ? "…"
@@ -235,7 +235,7 @@ export function StromaClient() {
             className={`px-3 py-1 rounded-full border text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] transition-colors ${
               journalOnly
                 ? "border-accent/50 bg-accent/15 text-accent"
-                : "border-ink-2 bg-ink-0/40 text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                : "border-surface-2 bg-surface-0/40 text-text-lo hover:text-text-hi hover:border-text-lo"
             }`}
           >
             Journal only
@@ -246,7 +246,7 @@ export function StromaClient() {
       {/* Empty memory state */}
       {noMemory && (
         <Panel title="Empty memory">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             Start capturing to build your memory. Every Telegram message, web
             capture, and task you create gets embedded and becomes searchable
             here.

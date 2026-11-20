@@ -303,10 +303,10 @@ export function InvestmentsClient() {
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Investments
           </h1>
-          <Mono className="text-sm text-ink-3">
+          <Mono className="text-sm text-text-lo">
             <PrivateText>
               <Money value={portfolioValue} format="balance" />
             </PrivateText>
@@ -317,14 +317,14 @@ export function InvestmentsClient() {
             type="button"
             onClick={refreshPrices}
             disabled={refreshing}
-            className="px-3 py-2 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors disabled:opacity-40"
+            className="px-3 py-2 rounded-v2-md border border-hairline text-text-lo hover:text-text-hi hover:border-text-lo text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors disabled:opacity-40"
           >
             {refreshing ? "REFRESHING…" : "REFRESH PRICES"}
           </button>
           <button
             type="button"
             onClick={openAdd}
-            className="px-4 py-2 rounded-v2-md bg-glow-2 text-text-0 hover:bg-glow-1 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+            className="px-4 py-2 rounded-v2-md bg-glow-2 text-text-hi hover:bg-glow-1 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
           >
             ADD HOLDING
           </button>
@@ -335,22 +335,22 @@ export function InvestmentsClient() {
       {active.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-[1fr_200px] gap-4">
           <div className="bg-surface-1 rounded-v2-md p-4 flex flex-col gap-3">
-            <Mono className="text-[10px] text-ink-3">PORTFOLIO SUMMARY</Mono>
+            <Mono className="text-[10px] text-text-lo">PORTFOLIO SUMMARY</Mono>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Mono className="text-[9px] text-ink-3">TOTAL VALUE</Mono>
-                <div className="text-lg text-text-0 font-[family-name:var(--font-mono)]">
+                <Mono className="text-[9px] text-text-lo">TOTAL VALUE</Mono>
+                <div className="text-lg text-text-hi font-[family-name:var(--font-mono)]">
                   <PrivateText><Money value={portfolioValue} format="balance" /></PrivateText>
                 </div>
               </div>
               <div>
-                <Mono className="text-[9px] text-ink-3">TOTAL COST</Mono>
-                <div className="text-lg text-text-0 font-[family-name:var(--font-mono)]">
+                <Mono className="text-[9px] text-text-lo">TOTAL COST</Mono>
+                <div className="text-lg text-text-hi font-[family-name:var(--font-mono)]">
                   <PrivateText><Money value={portfolioCost} format="balance" /></PrivateText>
                 </div>
               </div>
               <div>
-                <Mono className="text-[9px] text-ink-3">TOTAL P&L</Mono>
+                <Mono className="text-[9px] text-text-lo">TOTAL P&L</Mono>
                 <div className={`text-lg font-[family-name:var(--font-mono)] ${totalPnl >= 0 ? "text-ok" : "text-danger"}`}>
                   <PrivateText>
                     <Money value={totalPnl} format="amount" />
@@ -363,7 +363,7 @@ export function InvestmentsClient() {
 
           {allocationData.length > 1 && (
             <div className="bg-surface-1 rounded-v2-md p-4 flex flex-col items-center gap-2">
-              <Mono className="text-[10px] text-ink-3">ALLOCATION</Mono>
+              <Mono className="text-[10px] text-text-lo">ALLOCATION</Mono>
               <ResponsiveContainer width="100%" height={120}>
                 <PieChart>
                   <Pie
@@ -390,7 +390,7 @@ export function InvestmentsClient() {
                 {allocationData.map((d) => (
                   <div key={d.name} className="flex items-center gap-1">
                     <div className="w-2 h-2 rounded-full" style={{ background: d.colour }} />
-                    <Mono className="text-[9px] text-ink-3">{d.name}</Mono>
+                    <Mono className="text-[9px] text-text-lo">{d.name}</Mono>
                   </div>
                 ))}
               </div>
@@ -410,7 +410,7 @@ export function InvestmentsClient() {
               className={`px-2 py-1 rounded-v2-md transition-colors ${
                 statusFilter === s
                   ? "bg-accent/15 text-accent"
-                  : "text-ink-3 hover:text-ink-4"
+                  : "text-text-lo hover:text-text-hi"
               }`}
             >
               {s.toUpperCase()}
@@ -426,7 +426,7 @@ export function InvestmentsClient() {
               className={`px-2 py-1 rounded-v2-md transition-colors ${
                 catFilter === c
                   ? "bg-accent/15 text-accent"
-                  : "text-ink-3 hover:text-ink-4"
+                  : "text-text-lo hover:text-text-hi"
               }`}
             >
               {(CATEGORY_LABELS[c] ?? c).toUpperCase()}
@@ -437,12 +437,12 @@ export function InvestmentsClient() {
 
       {/* Grid */}
       {loading ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-v2-md bg-surface-1 p-8 text-center">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             {investments.length === 0 ? "No investments yet — add one above." : "No investments match filters."}
           </p>
         </div>
@@ -478,14 +478,14 @@ export function InvestmentsClient() {
       {/* Sell Modal */}
       {sellModal && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-ink-0/80 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-surface-0/80 backdrop-blur-sm"
           onClick={(e) => { if (e.target === e.currentTarget) setSellModal(null); }}
         >
           <div className="bg-surface-1 border border-hairline rounded-lg p-6 w-full max-w-sm flex flex-col gap-4">
-            <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-0">
+            <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-hi">
               Sell {sellModal.name}
             </h2>
-            <p className="text-xs text-ink-3 font-[family-name:var(--font-mono)]">
+            <p className="text-xs text-text-lo font-[family-name:var(--font-mono)]">
               {sellModal.quantity} × bought at <Money value={Number(sellModal.buy_price)} format="balance" />
             </p>
             <Field label="Sell Price (per unit)" required>
@@ -494,7 +494,7 @@ export function InvestmentsClient() {
                 step="0.01"
                 value={sellDraft.sell_price}
                 onChange={(e) => setSellDraft((d) => ({ ...d, sell_price: e.target.value }))}
-                className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+                className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
                 placeholder="0.00"
               />
             </Field>
@@ -503,13 +503,13 @@ export function InvestmentsClient() {
                 type="date"
                 value={sellDraft.sell_date}
                 onChange={(e) => setSellDraft((d) => ({ ...d, sell_date: e.target.value }))}
-                className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+                className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
               />
             </Field>
             {sellDraft.sell_price && (
               <div className="text-xs font-[family-name:var(--font-mono)]">
                 <PrivateText>
-                  <span className="text-ink-3">P&L: </span>
+                  <span className="text-text-lo">P&L: </span>
                   <span className={
                     (Number(sellDraft.sell_price) - sellModal.buy_price) >= 0 ? "text-ok" : "text-danger"
                   }>
@@ -522,7 +522,7 @@ export function InvestmentsClient() {
               <button
                 type="button"
                 onClick={() => setSellModal(null)}
-                className="px-4 py-2 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 border border-hairline hover:border-ink-3 transition-colors"
+                className="px-4 py-2 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi border border-hairline hover:border-text-lo transition-colors"
               >
                 CANCEL
               </button>
@@ -530,7 +530,7 @@ export function InvestmentsClient() {
                 type="button"
                 onClick={markSold}
                 disabled={!sellDraft.sell_price || saving}
-                className="px-4 py-2 rounded-v2-md bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+                className="px-4 py-2 rounded-v2-md bg-glow-2 text-text-hi hover:bg-glow-1 disabled:opacity-40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
               >
                 {saving ? "…" : "CONFIRM SELL"}
               </button>
@@ -582,11 +582,11 @@ function HoldingCard({
           {inv.name.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
-          <div className={`text-sm font-medium ${inv.sold ? "text-ink-3 line-through" : "text-ink-4"}`}>
+          <div className={`text-sm font-medium ${inv.sold ? "text-text-lo line-through" : "text-text-hi"}`}>
             {inv.name}
           </div>
           {inv.ticker && (
-            <Mono className="text-[10px] text-ink-3">{inv.ticker}</Mono>
+            <Mono className="text-[10px] text-text-lo">{inv.ticker}</Mono>
           )}
         </div>
         <span
@@ -596,7 +596,7 @@ function HoldingCard({
           {inv.category}
         </span>
         {inv.sold && (
-          <span className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-v2-md border border-hairline bg-surface-2 text-ink-3 shrink-0">
+          <span className="text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded-v2-md border border-hairline bg-surface-2 text-text-lo shrink-0">
             SOLD
           </span>
         )}
@@ -604,21 +604,21 @@ function HoldingCard({
 
       <div className="grid grid-cols-3 gap-2 text-[11px] font-[family-name:var(--font-mono)]">
         <div>
-          <div className="text-ink-3 text-[9px]">QTY × BUY</div>
-          <div className="text-ink-4">
+          <div className="text-text-lo text-[9px]">QTY × BUY</div>
+          <div className="text-text-hi">
             <PrivateText>
               {Number(inv.quantity)} × <Money value={Number(inv.buy_price)} format="balance" />
             </PrivateText>
           </div>
         </div>
         <div>
-          <div className="text-ink-3 text-[9px]">VALUE</div>
-          <div className="text-ink-4">
+          <div className="text-text-lo text-[9px]">VALUE</div>
+          <div className="text-text-hi">
             <PrivateText><Money value={val} format="balance" /></PrivateText>
           </div>
         </div>
         <div>
-          <div className="text-ink-3 text-[9px]">P&L</div>
+          <div className="text-text-lo text-[9px]">P&L</div>
           {pl ? (
             <div className={pl.value >= 0 ? "text-ok" : "text-danger"}>
               <PrivateText>
@@ -627,19 +627,19 @@ function HoldingCard({
               </PrivateText>
             </div>
           ) : (
-            <div className="text-ink-3">—</div>
+            <div className="text-text-lo">—</div>
           )}
         </div>
       </div>
 
       {inv.current_price_updated_at && !inv.sold && (
-        <Mono className="text-[9px] text-ink-3">
+        <Mono className="text-[9px] text-text-lo">
           Price updated {timeAgo(inv.current_price_updated_at)}
         </Mono>
       )}
 
       {inv.platform && (
-        <Mono className="text-[9px] text-ink-3">
+        <Mono className="text-[9px] text-text-lo">
           Platform: {inv.platform}
         </Mono>
       )}
@@ -649,7 +649,7 @@ function HoldingCard({
           <button
             type="button"
             onClick={onSell}
-            className="text-[9px] text-ink-3 hover:text-accent font-[family-name:var(--font-mono)] tracking-wide transition-colors"
+            className="text-[9px] text-text-lo hover:text-accent font-[family-name:var(--font-mono)] tracking-wide transition-colors"
           >
             SELL
           </button>
@@ -658,14 +658,14 @@ function HoldingCard({
         <button
           type="button"
           onClick={onEdit}
-          className="opacity-0 group-hover:opacity-100 text-[9px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-wide transition-opacity"
+          className="opacity-0 group-hover:opacity-100 text-[9px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)] tracking-wide transition-opacity"
         >
           EDIT
         </button>
         <button
           type="button"
           onClick={onDelete}
-          className="opacity-0 group-hover:opacity-100 text-[9px] text-ink-3 hover:text-danger font-[family-name:var(--font-mono)] tracking-wide transition-opacity"
+          className="opacity-0 group-hover:opacity-100 text-[9px] text-text-lo hover:text-danger font-[family-name:var(--font-mono)] tracking-wide transition-opacity"
         >
           DELETE
         </button>
@@ -697,11 +697,11 @@ function InvestmentModal({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-ink-0/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-surface-0/80 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="bg-surface-1 border border-hairline rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col gap-4">
-        <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-0">
+        <h2 className="font-[family-name:var(--font-display)] italic text-lg text-text-hi">
           {editing ? "Edit Holding" : "Add Holding"}
         </h2>
 
@@ -710,7 +710,7 @@ function InvestmentModal({
             type="text"
             value={draft.name}
             onChange={(e) => set("name", e.target.value)}
-            className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+            className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
             placeholder="Apple Inc."
           />
         </Field>
@@ -721,7 +721,7 @@ function InvestmentModal({
               type="text"
               value={draft.ticker}
               onChange={(e) => set("ticker", e.target.value.toUpperCase())}
-              className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
               placeholder="AAPL"
             />
           </Field>
@@ -729,7 +729,7 @@ function InvestmentModal({
             <select
               value={draft.category}
               onChange={(e) => set("category", e.target.value)}
-              className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
             >
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
@@ -745,7 +745,7 @@ function InvestmentModal({
               step="any"
               value={draft.quantity}
               onChange={(e) => set("quantity", e.target.value)}
-              className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
               placeholder="10"
             />
           </Field>
@@ -755,7 +755,7 @@ function InvestmentModal({
               step="0.01"
               value={draft.buy_price}
               onChange={(e) => set("buy_price", e.target.value)}
-              className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
               placeholder="150.00"
             />
           </Field>
@@ -764,7 +764,7 @@ function InvestmentModal({
               type="text"
               value={draft.buy_currency}
               onChange={(e) => set("buy_currency", e.target.value.toUpperCase())}
-              className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
               maxLength={3}
             />
           </Field>
@@ -776,7 +776,7 @@ function InvestmentModal({
               type="date"
               value={draft.buy_date}
               onChange={(e) => set("buy_date", e.target.value)}
-              className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
             />
           </Field>
           <Field label="Current Price">
@@ -785,7 +785,7 @@ function InvestmentModal({
               step="0.01"
               value={draft.current_price}
               onChange={(e) => set("current_price", e.target.value)}
-              className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+              className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
               placeholder="Auto-refresh"
             />
           </Field>
@@ -796,7 +796,7 @@ function InvestmentModal({
             type="text"
             value={draft.platform}
             onChange={(e) => set("platform", e.target.value)}
-            className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3"
+            className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo"
             placeholder="Trading 212, Coinbase…"
           />
         </Field>
@@ -805,7 +805,7 @@ function InvestmentModal({
           <textarea
             value={draft.notes}
             onChange={(e) => set("notes", e.target.value)}
-            className="w-full bg-ink-0 border border-hairline rounded-v2-md text-sm text-text-0 placeholder:text-ink-3 px-3 py-2 outline-none focus:border-ink-3 min-h-[60px] resize-y"
+            className="w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi placeholder:text-text-lo px-3 py-2 outline-none focus:border-text-lo min-h-[60px] resize-y"
             placeholder="Any notes…"
           />
         </Field>
@@ -814,7 +814,7 @@ function InvestmentModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 border border-hairline hover:border-ink-3 transition-colors"
+            className="px-4 py-2 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi border border-hairline hover:border-text-lo transition-colors"
           >
             CANCEL
           </button>
@@ -822,7 +822,7 @@ function InvestmentModal({
             type="button"
             onClick={onSave}
             disabled={!draft.name.trim() || !draft.quantity || !draft.buy_price || saving}
-            className="px-4 py-2 rounded-v2-md bg-glow-2 text-text-0 hover:bg-glow-1 disabled:opacity-40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+            className="px-4 py-2 rounded-v2-md bg-glow-2 text-text-hi hover:bg-glow-1 disabled:opacity-40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
           >
             {saving ? "…" : editing ? "SAVE" : "ADD"}
           </button>
@@ -843,7 +843,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <Mono className="text-[10px] text-ink-3">
+      <Mono className="text-[10px] text-text-lo">
         {label.toUpperCase()}
         {required && <span className="text-accent ml-0.5">*</span>}
       </Mono>

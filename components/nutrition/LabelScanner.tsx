@@ -181,9 +181,9 @@ export function LabelScanner({
   }
 
   return (
-    <div className="fixed inset-0 z-[200] bg-ink-0/95 backdrop-blur-sm flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-ink-2">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+    <div className="fixed inset-0 z-[200] bg-surface-0/95 backdrop-blur-sm flex flex-col">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-surface-2">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           {stage === "extracted" ? "Review label" : "Scan label"}
         </span>
         <div className="flex items-center gap-3">
@@ -191,7 +191,7 @@ export function LabelScanner({
             <button
               type="button"
               onClick={onSwitchToBarcode}
-              className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+              className="text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
             >
               ↺ BARCODE
             </button>
@@ -200,7 +200,7 @@ export function LabelScanner({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="text-ink-3 hover:text-ink-4 text-base"
+            className="text-text-lo hover:text-text-hi text-base"
           >
             ✕
           </button>
@@ -209,7 +209,7 @@ export function LabelScanner({
 
       {(stage === "camera" || stage === "uploading") && (
         <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
-          <div className="relative w-full max-w-md aspect-[3/4] rounded-lg overflow-hidden bg-ink-1 border border-ink-2">
+          <div className="relative w-full max-w-md aspect-[3/4] rounded-lg overflow-hidden bg-surface-1 border border-surface-2">
             <video
               ref={videoRef}
               autoPlay
@@ -221,11 +221,11 @@ export function LabelScanner({
               <div className="w-[85%] h-[60%] border-2 border-glow-2 rounded-lg shadow-[0_0_24px_var(--glow-2)]" />
             </div>
           </div>
-          <p className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] text-center max-w-md">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] text-center max-w-md">
             Hold steady, make sure the label fills the frame.
           </p>
           {stage === "uploading" ? (
-            <span className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+            <span className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
               Reading label…
             </span>
           ) : (
@@ -233,14 +233,14 @@ export function LabelScanner({
               <button
                 type="button"
                 onClick={() => void capture()}
-                className="px-4 py-2 rounded-md bg-glow-2 text-ink-0 hover:bg-glow-1 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+                className="px-4 py-2 rounded-md bg-glow-2 text-surface-0 hover:bg-glow-1 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
               >
                 CAPTURE
               </button>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 rounded-md border border-ink-2 hover:border-ink-3 text-ink-3 hover:text-ink-4 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
+                className="px-4 py-2 rounded-md border border-surface-2 hover:border-text-lo text-text-lo hover:text-text-hi text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em]"
               >
                 UPLOAD
               </button>
@@ -271,7 +271,7 @@ export function LabelScanner({
 
       {stage === "saving" && (
         <div className="flex-1 flex items-center justify-center">
-          <span className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <span className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             Saving…
           </span>
         </div>
@@ -337,18 +337,18 @@ function ExtractedForm({
       </div>
 
       <label className="flex flex-col gap-1">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           Name *
         </span>
         <input
           type="text"
           value={v.product_name}
           onChange={(e) => setV((c) => ({ ...c, product_name: e.target.value }))}
-          className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+          className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
         />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           Brand
         </span>
         <input
@@ -357,7 +357,7 @@ function ExtractedForm({
           onChange={(e) =>
             setV((c) => ({ ...c, brand: e.target.value.trim() || null }))
           }
-          className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+          className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
         />
       </label>
 
@@ -375,11 +375,11 @@ function ExtractedForm({
       </div>
 
       {v.total_weight_g != null && v.total_weight_g > 0 && (
-        <div className="rounded-md bg-ink-0/40 border border-ink-2 px-3 py-2">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] block mb-1.5">
+        <div className="rounded-md bg-surface-0/40 border border-surface-2 px-3 py-2">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] block mb-1.5">
             Package totals ({v.total_weight_g}g)
           </span>
-          <div className="grid grid-cols-4 gap-2 text-[10px] font-[family-name:var(--font-mono)] text-ink-4 tabular-nums">
+          <div className="grid grid-cols-4 gap-2 text-[10px] font-[family-name:var(--font-mono)] text-text-hi tabular-nums">
             <span>{ct(v.kcal_per_100g)} kcal</span>
             <span>P {ct(v.protein_per_100g)}g</span>
             <span>C {ct(v.carbs_per_100g)}g</span>
@@ -392,7 +392,7 @@ function ExtractedForm({
         <button
           type="button"
           onClick={onRetry}
-          className="px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4"
+          className="px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi"
         >
           ↻ RETRY
         </button>
@@ -420,7 +420,7 @@ function NumField({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {label}
       </span>
       <input
@@ -428,7 +428,7 @@ function NumField({
         inputMode="decimal"
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60 tabular-nums"
+        className="bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60 tabular-nums"
       />
     </label>
   );

@@ -79,14 +79,14 @@ function numOrNull(v: number | null | undefined): number | null {
 }
 
 function tempColour(temp: number | null): string {
-  if (temp === null) return "text-ink-3";
+  if (temp === null) return "text-text-lo";
   if (temp < 60) return "text-ok";
   if (temp < 80) return "text-warn";
   return "text-danger";
 }
 
 function usageColour(pct: number | null): string {
-  if (pct === null) return "text-ink-3";
+  if (pct === null) return "text-text-lo";
   if (pct < 60) return "text-ok";
   if (pct < 85) return "text-warn";
   return "text-danger";
@@ -143,8 +143,8 @@ function GaugeRing({
           {value !== null ? `${Math.round(value)}%` : "—"}
         </span>
       </div>
-      <Mono className="text-[10px] text-ink-3 mt-1">{label}</Mono>
-      {sub && <Mono className="text-[10px] text-ink-3">{sub}</Mono>}
+      <Mono className="text-[10px] text-text-lo mt-1">{label}</Mono>
+      {sub && <Mono className="text-[10px] text-text-lo">{sub}</Mono>}
     </div>
   );
 }
@@ -219,10 +219,10 @@ export default function PCDashboardPage() {
     <div className="flex flex-col gap-6">
       <header className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             PC Dashboard
           </h1>
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             Real-time hardware monitoring.
           </p>
         </div>
@@ -236,8 +236,8 @@ export default function PCDashboardPage() {
                   onClick={() => setSelected(m)}
                   className={`rounded-v2-md px-2 py-1 transition-colors ${
                     selected === m
-                      ? "bg-surface-1 text-text-0"
-                      : "text-ink-3 hover:text-text-0"
+                      ? "bg-surface-1 text-text-hi"
+                      : "text-text-lo hover:text-text-hi"
                   }`}
                 >
                   <Mono className="text-[10px]">{m.toUpperCase()}</Mono>
@@ -248,14 +248,14 @@ export default function PCDashboardPage() {
           <span
             className={`w-2 h-2 rounded-full ${isOffline ? "bg-danger" : "bg-ok"}`}
           />
-          <Mono className="text-[10px] text-ink-3">
+          <Mono className="text-[10px] text-text-lo">
             {isOffline ? "OFFLINE" : "ONLINE"}
           </Mono>
         </div>
       </header>
 
       {isOffline && !current && (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           No metrics received yet. Start the Mycelium PC Agent on your machine.
         </div>
       )}
@@ -293,18 +293,18 @@ export default function PCDashboardPage() {
             </div>
 
             <div className="rounded-v2-md bg-surface-1 p-4 flex flex-col items-center justify-center gap-2">
-              <Mono className="text-[10px] text-ink-3">RAM</Mono>
-              <div className="text-xl font-[family-name:var(--font-display)] text-text-0">
+              <Mono className="text-[10px] text-text-lo">RAM</Mono>
+              <div className="text-xl font-[family-name:var(--font-display)] text-text-hi">
                 {current.ram_used_gb !== null
                   ? `${Number(current.ram_used_gb).toFixed(1)}`
                   : "—"}
-                <span className="text-sm text-ink-3">
+                <span className="text-sm text-text-lo">
                   /{current.ram_total_gb !== null ? `${Number(current.ram_total_gb).toFixed(0)}` : "—"} GB
                 </span>
               </div>
               {current.ram_total_gb != null && current.ram_used_gb != null &&
                 Number(current.ram_total_gb) > 0 && (
-                <div className="w-full h-1.5 bg-ink-2 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-surface-2 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${
                       Number(current.ram_used_gb) / Number(current.ram_total_gb) > 0.85
@@ -322,7 +322,7 @@ export default function PCDashboardPage() {
             </div>
 
             <div className="rounded-v2-md bg-surface-1 p-4 flex flex-col items-center justify-center gap-2">
-              <Mono className="text-[10px] text-ink-3">NETWORK</Mono>
+              <Mono className="text-[10px] text-text-lo">NETWORK</Mono>
               <div className="flex items-center gap-3 text-sm font-[family-name:var(--font-display)]">
                 <span className="text-ok">
                   ↑ {current.network_upload_mbps !== null ? Number(current.network_upload_mbps).toFixed(1) : "—"}
@@ -331,7 +331,7 @@ export default function PCDashboardPage() {
                   ↓ {current.network_download_mbps !== null ? Number(current.network_download_mbps).toFixed(1) : "—"}
                 </span>
               </div>
-              <Mono className="text-[9px] text-ink-3">Mbps</Mono>
+              <Mono className="text-[9px] text-text-lo">Mbps</Mono>
             </div>
           </div>
 
@@ -346,8 +346,8 @@ export default function PCDashboardPage() {
                     onClick={() => setRange(r)}
                     className={`rounded-v2-md px-2 py-1 transition-colors ${
                       range === r
-                        ? "bg-surface-1 text-text-0"
-                        : "text-ink-3 hover:text-text-0"
+                        ? "bg-surface-1 text-text-hi"
+                        : "text-text-lo hover:text-text-hi"
                     }`}
                   >
                     <Mono className="text-[10px]">{r.toUpperCase()}</Mono>
@@ -361,7 +361,7 @@ export default function PCDashboardPage() {
                 { key: "ram" as const, label: "RAM USAGE", colour: "#f5b56d" },
               ].map(({ key, label, colour }) => (
                 <div key={key} className="rounded-v2-md bg-surface-1 p-3">
-                  <Mono className="text-[10px] text-ink-3 mb-2">{label}</Mono>
+                  <Mono className="text-[10px] text-text-lo mb-2">{label}</Mono>
                   <ResponsiveContainer width="100%" height={60}>
                     <AreaChart data={chartData}>
                       <defs>
@@ -390,7 +390,7 @@ export default function PCDashboardPage() {
           {/* Row 3: Drives */}
           {current.drives && (current.drives as Drive[]).length > 0 && (
             <div>
-              <Mono className="text-[10px] text-ink-3 mb-2">DRIVES</Mono>
+              <Mono className="text-[10px] text-text-lo mb-2">DRIVES</Mono>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {(current.drives as Drive[]).map((drive) => (
                   <div
@@ -398,18 +398,18 @@ export default function PCDashboardPage() {
                     className="rounded-v2-md bg-surface-1 p-3 flex flex-col gap-1.5"
                   >
                     <div className="flex items-center justify-between">
-                      <Mono className="text-xs text-text-0">{drive.letter}</Mono>
-                      <Mono className="text-[10px] text-ink-3">
+                      <Mono className="text-xs text-text-hi">{drive.letter}</Mono>
+                      <Mono className="text-[10px] text-text-lo">
                         {drive.used_gb.toFixed(0)}/{drive.size_gb.toFixed(0)} GB
                       </Mono>
                     </div>
-                    <div className="h-1.5 bg-ink-2 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-surface-2 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all ${driveColour(drive.percent)}`}
                         style={{ width: `${Math.min(drive.percent, 100)}%` }}
                       />
                     </div>
-                    <Mono className="text-[9px] text-ink-3">
+                    <Mono className="text-[9px] text-text-lo">
                       {(drive.size_gb - drive.used_gb).toFixed(0)} GB free ({(100 - drive.percent).toFixed(0)}%)
                     </Mono>
                   </div>
@@ -422,22 +422,22 @@ export default function PCDashboardPage() {
           <div className="flex flex-wrap gap-4">
             {current.uptime_seconds != null && (
               <div className="rounded-v2-md bg-surface-1 px-4 py-3">
-                <Mono className="text-[10px] text-ink-3 mb-1">UPTIME</Mono>
-                <div className="text-sm text-text-0 font-[family-name:var(--font-display)]">
+                <Mono className="text-[10px] text-text-lo mb-1">UPTIME</Mono>
+                <div className="text-sm text-text-hi font-[family-name:var(--font-display)]">
                   {formatUptime(Number(current.uptime_seconds))}
                 </div>
               </div>
             )}
             <div className="rounded-v2-md bg-surface-1 px-4 py-3">
-              <Mono className="text-[10px] text-ink-3 mb-1">LAST UPDATED</Mono>
-              <div className="text-sm text-text-0 font-[family-name:var(--font-display)]">
+              <Mono className="text-[10px] text-text-lo mb-1">LAST UPDATED</Mono>
+              <div className="text-sm text-text-hi font-[family-name:var(--font-display)]">
                 {formatAgo(secondsAgo)}
               </div>
             </div>
             {current.gpu_vram_used_mb != null && current.gpu_vram_total_mb != null && (
               <div className="rounded-v2-md bg-surface-1 px-4 py-3">
-                <Mono className="text-[10px] text-ink-3 mb-1">GPU VRAM</Mono>
-                <div className="text-sm text-text-0 font-[family-name:var(--font-display)]">
+                <Mono className="text-[10px] text-text-lo mb-1">GPU VRAM</Mono>
+                <div className="text-sm text-text-hi font-[family-name:var(--font-display)]">
                   {(Number(current.gpu_vram_used_mb) / 1024).toFixed(1)}/
                   {(Number(current.gpu_vram_total_mb) / 1024).toFixed(1)} GB
                 </div>
@@ -445,8 +445,8 @@ export default function PCDashboardPage() {
             )}
             {current.cpu_clock_mhz != null && (
               <div className="rounded-v2-md bg-surface-1 px-4 py-3">
-                <Mono className="text-[10px] text-ink-3 mb-1">CPU CLOCK</Mono>
-                <div className="text-sm text-text-0 font-[family-name:var(--font-display)]">
+                <Mono className="text-[10px] text-text-lo mb-1">CPU CLOCK</Mono>
+                <div className="text-sm text-text-hi font-[family-name:var(--font-display)]">
                   {(Number(current.cpu_clock_mhz) / 1000).toFixed(2)} GHz
                 </div>
               </div>

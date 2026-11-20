@@ -309,7 +309,7 @@ export function DashboardGrid() {
 
   if (prefs === null) {
     return (
-      <div className="text-sm text-text-2 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
@@ -393,7 +393,7 @@ export function DashboardGrid() {
 
       {editing && hiddenCount > 0 && (
         <div className="mt-3 flex items-center justify-center gap-2">
-          <span className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.08em]">
+          <span className="text-[11px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.08em]">
             {hiddenCount} card{hiddenCount === 1 ? "" : "s"} hidden
           </span>
           <button
@@ -457,7 +457,7 @@ function SortableCard({
       style={style}
       className={`relative overflow-hidden rounded-md ${
         editing
-          ? "outline outline-1 outline-dashed outline-ink-3/40"
+          ? "outline outline-1 outline-dashed outline-text-lo/40"
           : ""
       } ${isDragging ? "ring-1 ring-glow-2/60 shadow-2xl" : ""}`}
     >
@@ -470,7 +470,7 @@ function SortableCard({
             {...attributes}
             {...listeners}
             aria-label="Drag card"
-            className="absolute top-2 left-2 z-10 h-7 w-7 flex items-center justify-center rounded-sm text-text-2 hover:text-text-0 bg-ink-2/80 hover:bg-ink-2 cursor-grab active:cursor-grabbing touch-none"
+            className="absolute top-2 left-2 z-10 h-7 w-7 flex items-center justify-center rounded-sm text-text-lo hover:text-text-hi bg-surface-2/80 hover:bg-surface-2 cursor-grab active:cursor-grabbing touch-none"
           >
             <span aria-hidden className="text-sm leading-none">⠿</span>
           </button>
@@ -531,7 +531,7 @@ function SizePicker({
         type="button"
         onClick={onHide}
         aria-label="Hide card"
-        className="h-7 w-7 flex items-center justify-center rounded-sm text-text-2 hover:text-error bg-ink-2/80 hover:bg-ink-2"
+        className="h-7 w-7 flex items-center justify-center rounded-sm text-text-lo hover:text-error bg-surface-2/80 hover:bg-surface-2"
       >
         <span aria-hidden className="text-sm leading-none">×</span>
       </button>
@@ -539,14 +539,14 @@ function SizePicker({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label="Change size"
-        className={`h-7 w-7 flex items-center justify-center rounded-sm bg-ink-2/80 hover:bg-ink-2 ${
-          open ? "text-text-0" : "text-text-2 hover:text-text-0"
+        className={`h-7 w-7 flex items-center justify-center rounded-sm bg-surface-2/80 hover:bg-surface-2 ${
+          open ? "text-text-hi" : "text-text-lo hover:text-text-hi"
         }`}
       >
         <span aria-hidden className="text-sm leading-none">⊞</span>
       </button>
       {open && (
-        <div className="absolute top-full right-0 mt-1 bg-ink-1 border border-ink-2 rounded-md shadow-lg p-2 grid grid-cols-2 gap-1.5 min-w-[180px] max-h-[320px] overflow-y-auto">
+        <div className="absolute top-full right-0 mt-1 bg-surface-1 border border-surface-2 rounded-md shadow-lg p-2 grid grid-cols-2 gap-1.5 min-w-[180px] max-h-[320px] overflow-y-auto">
           {ALL_SIZES.map((size) => {
             const sh = SHAPE_DIMS[size];
             const active = current === size;
@@ -561,14 +561,14 @@ function SizePicker({
                 className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-sm transition-colors ${
                   active
                     ? "bg-glow-2/20 ring-1 ring-glow-2/40"
-                    : "hover:bg-ink-2/60"
+                    : "hover:bg-surface-2/60"
                 }`}
               >
                 <div
-                  className={`rounded-sm ${active ? "bg-glow-2/60" : "bg-ink-3/30"}`}
+                  className={`rounded-sm ${active ? "bg-glow-2/60" : "bg-text-lo/30"}`}
                   style={{ width: sh.w, height: sh.h }}
                 />
-                <span className="text-[9px] font-[family-name:var(--font-mono)] tracking-[0.15em] text-ink-3">
+                <span className="text-[9px] font-[family-name:var(--font-mono)] tracking-[0.15em] text-text-lo">
                   {SIZE_LABELS[size]}
                 </span>
               </button>
@@ -597,8 +597,8 @@ function EditButton({
       onClick={onClick}
       className={`fixed bottom-6 right-6 z-40 px-4 py-2.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] uppercase shadow-lg transition-colors border ${
         editing
-          ? "bg-glow-2 border-glow-2 text-text-0 hover:bg-glow-1"
-          : "bg-ink-1 border-ink-2 text-ink-4 hover:text-text-0 hover:border-ink-3"
+          ? "bg-glow-2 border-glow-2 text-text-hi hover:bg-glow-1"
+          : "bg-surface-1 border-surface-2 text-text-hi hover:text-text-hi hover:border-text-lo"
       }`}
     >
       {editing ? "DONE" : "EDIT LAYOUT"}
@@ -608,12 +608,12 @@ function EditButton({
 
 function EmptyState({ onReset }: { onReset: () => void }) {
   return (
-    <div className="text-sm text-text-2 italic font-[family-name:var(--font-display)] py-16 text-center">
+    <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-16 text-center">
       All cards hidden.{" "}
       <button
         type="button"
         onClick={onReset}
-        className="underline hover:text-text-0"
+        className="underline hover:text-text-hi"
       >
         Reset layout
       </button>{" "}

@@ -22,21 +22,21 @@ export function Journal({ width = 1 }: { width?: CardWidth } = {}) {
       title="JOURNAL"
       topRight={<Mono>{day ? day.status.toUpperCase() : "TODAY"}</Mono>}
       bottomCTA={
-        <Link href={`/journal/${today}`} className="hover:text-ink-4 transition-colors">
+        <Link href={`/journal/${today}`} className="hover:text-text-hi transition-colors">
           {day && (day.status === "open" || day.status === "closing") ? "CONTINUE →" : day && day.status === "closed" ? "READ →" : "LOG TODAY →"}
         </Link>
       }
     >
       {!data ? (
-        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-3">Loading…</div>
+        <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-3">Loading…</div>
       ) : (
         <div className="flex flex-col gap-2 py-1">
           {day?.summary ? (
-            <p className={`text-sm text-text-1 ${width === 1 ? "line-clamp-4" : "line-clamp-6"}`}>{day.summary.split("\n")[0]}</p>
+            <p className={`text-sm text-text-mid ${width === 1 ? "line-clamp-4" : "line-clamp-6"}`}>{day.summary.split("\n")[0]}</p>
           ) : userTurns > 0 ? (
-            <p className="text-xs text-text-2">{userTurns} message{userTurns === 1 ? "" : "s"} so far — the entry is written at close.</p>
+            <p className="text-xs text-text-lo">{userTurns} message{userTurns === 1 ? "" : "s"} so far — the entry is written at close.</p>
           ) : (
-            <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">Nothing logged yet. The bot asks this evening.</p>
+            <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">Nothing logged yet. The bot asks this evening.</p>
           )}
           {scores.length > 0 && (
             <div className="flex flex-wrap gap-1.5">

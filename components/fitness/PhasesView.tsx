@@ -125,13 +125,13 @@ export function PhasesView() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
+      <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-text-hi">
         Phases
       </h1>
 
       <Panel title="Schedule a phase">
         {programmes && programmes.length === 0 ? (
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             Create a programme first.
           </p>
         ) : (
@@ -140,13 +140,13 @@ export function PhasesView() {
             className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end"
           >
             <label className="flex flex-col gap-1">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 Programme
               </span>
               <select
                 value={draftProgramme}
                 onChange={(e) => setDraftProgramme(e.target.value)}
-                className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3"
+                className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-2 py-1.5 outline-none focus:border-text-lo"
               >
                 {(programmes ?? []).map((p) => (
                   <option key={p.id} value={p.id}>
@@ -156,7 +156,7 @@ export function PhasesView() {
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 Start (YYYY-Www)
               </span>
               <input
@@ -164,11 +164,11 @@ export function PhasesView() {
                 value={draftStart}
                 onChange={(e) => setDraftStart(e.target.value)}
                 placeholder={thisWeek}
-                className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
+                className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-2 py-1.5 outline-none focus:border-text-lo font-[family-name:var(--font-mono)]"
               />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                 End (optional)
               </span>
               <input
@@ -176,7 +176,7 @@ export function PhasesView() {
                 value={draftEnd}
                 onChange={(e) => setDraftEnd(e.target.value)}
                 placeholder="ongoing"
-                className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-2 py-1.5 outline-none focus:border-ink-3 font-[family-name:var(--font-mono)]"
+                className="bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-2 py-1.5 outline-none focus:border-text-lo font-[family-name:var(--font-mono)]"
               />
             </label>
             <button
@@ -192,15 +192,15 @@ export function PhasesView() {
 
       <Panel title="All phases" topRight={<Mono>{phases?.length ?? 0}</Mono>}>
         {phases === null ? (
-          <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
+          <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-4 text-center">
             Loading…
           </div>
         ) : phases.length === 0 ? (
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             No phases scheduled yet.
           </p>
         ) : (
-          <ul className="flex flex-col divide-y divide-ink-2">
+          <ul className="flex flex-col divide-y divide-surface-2">
             {phases.map((p) => {
               const active =
                 p.start_week_iso <= thisWeek &&
@@ -208,10 +208,10 @@ export function PhasesView() {
               return (
                 <li key={p.id} className="py-3 flex items-center gap-3">
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-ink-4 leading-snug">
+                    <div className="text-sm text-text-hi leading-snug">
                       {programmeName(p.programme_id)}
                     </div>
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5">
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-0.5">
                       <Mono>{p.start_week_iso}</Mono>
                       {" → "}
                       <Mono>{p.end_week_iso ?? "ongoing"}</Mono>
@@ -227,7 +227,7 @@ export function PhasesView() {
                   <button
                     type="button"
                     onClick={() => void deletePhase(p.id)}
-                    className="text-[10px] uppercase tracking-[0.18em] text-ink-3 hover:text-danger font-[family-name:var(--font-mono)]"
+                    className="text-[10px] uppercase tracking-[0.18em] text-text-lo hover:text-danger font-[family-name:var(--font-mono)]"
                   >
                     Remove
                   </button>

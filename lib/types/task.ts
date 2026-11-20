@@ -216,14 +216,14 @@ export function isDueToday(task: Task, now: Date = new Date()): boolean {
 }
 
 export const TASK_STATUS_TONE: Record<TaskStatus, { fg: string; bg: string; border: string }> = {
-  new: { fg: "text-ink-3", bg: "bg-ink-2/40", border: "border-ink-2" },
+  new: { fg: "text-text-lo", bg: "bg-surface-2/40", border: "border-surface-2" },
   in_progress: { fg: "text-accent", bg: "bg-accent/15", border: "border-accent/40" },
   blocked: { fg: "text-danger", bg: "bg-danger/15", border: "border-danger/40" },
-  on_hold: { fg: "text-ink-3", bg: "bg-ink-2/40", border: "border-ink-2" },
+  on_hold: { fg: "text-text-lo", bg: "bg-surface-2/40", border: "border-surface-2" },
   waiting_third_party: { fg: "text-warn", bg: "bg-warn/15", border: "border-warn/40" },
   review: { fg: "text-glow-2", bg: "bg-glow-2/15", border: "border-glow-2/40" },
   pending_review: { fg: "text-glow-2", bg: "bg-glow-2/10", border: "border-glow-2/30" },
   testing: { fg: "text-accent", bg: "bg-accent/10", border: "border-accent/30" },
   completed: { fg: "text-ok", bg: "bg-ok/15", border: "border-ok/40" },
-  cancelled: { fg: "text-ink-3", bg: "bg-ink-2/40", border: "border-ink-2" },
+  cancelled: { fg: "text-text-lo", bg: "bg-surface-2/40", border: "border-surface-2" },
 };

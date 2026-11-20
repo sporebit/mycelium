@@ -61,10 +61,10 @@ export default function TheBoysPage() {
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
       <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
           The Boys
         </h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Your AI agents — each specialised, all sharing memory.
         </p>
       </header>
@@ -77,18 +77,18 @@ export default function TheBoysPage() {
         >
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl text-text-0 font-[family-name:var(--font-display)] italic">
+              <h2 className="text-xl text-text-hi font-[family-name:var(--font-display)] italic">
                 {daBoi?.agent.display_name ?? "Da Boi"}
               </h2>
-              <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
+              <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] mt-1">
                 {daBoi?.agent.tagline ?? "Knows everything. Says it straight."}
               </p>
-              <p className="text-xs text-ink-3 font-[family-name:var(--font-mono)] mt-3 line-clamp-2">
+              <p className="text-xs text-text-lo font-[family-name:var(--font-mono)] mt-3 line-clamp-2">
                 {daBoi?.memory
                   ? daBoi.memory.slice(0, 100) + (daBoi.memory.length > 100 ? "…" : "")
                   : "No memory yet"}
               </p>
-              <Mono className="text-[10px] text-ink-3 mt-2">
+              <Mono className="text-[10px] text-text-lo mt-2">
                 Memory updated {fmtTime(daBoi?.memoryUpdatedAt ?? null)}
               </Mono>
             </div>
@@ -119,18 +119,18 @@ export default function TheBoysPage() {
                   style={{ backgroundColor: colour }}
                 />
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-base text-ink-4">
+                  <h3 className="text-base text-text-hi">
                     {info?.agent.display_name ?? id}
                   </h3>
-                  <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+                  <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">
                     {info?.agent.tagline ?? ""}
                   </p>
-                  <p className="text-xs text-ink-3 font-[family-name:var(--font-mono)] line-clamp-2">
+                  <p className="text-xs text-text-lo font-[family-name:var(--font-mono)] line-clamp-2">
                     {info?.memory
                       ? info.memory.slice(0, 100) + (info.memory.length > 100 ? "…" : "")
                       : "No memory yet"}
                   </p>
-                  <Mono className="text-[10px] text-ink-3">
+                  <Mono className="text-[10px] text-text-lo">
                     Memory updated {fmtTime(info?.memoryUpdatedAt ?? null)}
                   </Mono>
                   <div
@@ -157,7 +157,7 @@ export default function TheBoysPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Ask anything across all of Myphelium2…"
-          className="flex-1 bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2.5 outline-none focus:border-ink-3 placeholder:text-ink-3"
+          className="flex-1 bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2.5 outline-none focus:border-text-lo placeholder:text-text-lo"
         />
         <button
           type="submit"

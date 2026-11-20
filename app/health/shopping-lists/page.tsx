@@ -191,11 +191,11 @@ export default function ShoppingListsPage() {
     }
   }
 
-  const inputCls = "w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-ink-4 px-3 py-2 outline-none focus:border-ink-3 placeholder:text-ink-3";
+  const inputCls = "w-full bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-2 outline-none focus:border-text-lo placeholder:text-text-lo";
 
   if (loading) {
     return (
-      <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-20 text-center">
+      <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-20 text-center">
         Loading…
       </p>
     );
@@ -204,7 +204,7 @@ export default function ShoppingListsPage() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic">
+        <h1 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic">
           Shopping Lists
         </h1>
         <button
@@ -216,7 +216,7 @@ export default function ShoppingListsPage() {
       </div>
 
       {lists.length === 0 ? (
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] text-center py-12">
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] text-center py-12">
           No shopping lists yet. Create one or generate from the Meal Planner.
         </p>
       ) : (
@@ -232,7 +232,7 @@ export default function ShoppingListsPage() {
                   className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-1/50 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-ink-4 font-[family-name:var(--font-display)]">
+                    <span className="text-sm text-text-hi font-[family-name:var(--font-display)]">
                       {list.title}
                     </span>
                     {list.default_list && (
@@ -243,10 +243,10 @@ export default function ShoppingListsPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)]">
+                    <span className="text-[10px] text-text-lo font-[family-name:var(--font-mono)]">
                       {uncheckedCount}/{list.items.length} items
                     </span>
-                    <span className="text-ink-3 text-xs">{expanded.has(list.id) ? "▲" : "▼"}</span>
+                    <span className="text-text-lo text-xs">{expanded.has(list.id) ? "▲" : "▼"}</span>
                   </div>
                 </button>
 
@@ -268,7 +268,7 @@ export default function ShoppingListsPage() {
                               />
                               <span
                                 className={`flex-1 font-[family-name:var(--font-display)] ${
-                                  item.checked ? "line-through text-ink-3" : "text-ink-4"
+                                  item.checked ? "line-through text-text-lo" : "text-text-hi"
                                 }`}
                               >
                                 {item.quantity && (
@@ -279,11 +279,11 @@ export default function ShoppingListsPage() {
                                 {item.name}
                               </span>
                               {item.added_by === "voice" && (
-                                <span className="text-[9px] text-ink-3 font-[family-name:var(--font-mono)]">{"🎙"}</span>
+                                <span className="text-[9px] text-text-lo font-[family-name:var(--font-mono)]">{"🎙"}</span>
                               )}
                               <button
                                 onClick={() => deleteItem(list.id, item.id)}
-                                className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-danger text-xs transition-opacity"
+                                className="opacity-0 group-hover:opacity-100 text-text-lo hover:text-danger text-xs transition-opacity"
                               >
                                 {"✕"}
                               </button>
@@ -292,10 +292,10 @@ export default function ShoppingListsPage() {
                         }
                         return (
                           <div key={i} className="flex items-baseline gap-2 py-0.5 text-sm">
-                            <span className="text-ink-4 font-[family-name:var(--font-mono)] font-bold">
+                            <span className="text-text-hi font-[family-name:var(--font-mono)] font-bold">
                               {item.amount}{item.unit ? ` ${item.unit}` : ""}
                             </span>
-                            <span className="text-ink-4 font-[family-name:var(--font-display)]">
+                            <span className="text-text-hi font-[family-name:var(--font-display)]">
                               {item.name}
                             </span>
                           </div>
@@ -353,12 +353,12 @@ export default function ShoppingListsPage() {
       {/* Create list modal */}
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-ink-0 border border-hairline rounded-2xl w-full max-w-sm p-6">
-            <h2 className="text-lg text-text-0 font-[family-name:var(--font-display)] italic mb-4">
+          <div className="bg-surface-0 border border-hairline rounded-2xl w-full max-w-sm p-6">
+            <h2 className="text-lg text-text-hi font-[family-name:var(--font-display)] italic mb-4">
               New Shopping List
             </h2>
             <div className="mb-4">
-              <label className="text-[10px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">
+              <label className="text-[10px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">
                 TITLE
               </label>
               <input
@@ -369,7 +369,7 @@ export default function ShoppingListsPage() {
                 autoFocus
               />
             </div>
-            <label className="flex items-center gap-2 text-xs text-ink-4 font-[family-name:var(--font-mono)] cursor-pointer mb-4">
+            <label className="flex items-center gap-2 text-xs text-text-hi font-[family-name:var(--font-mono)] cursor-pointer mb-4">
               <input
                 type="checkbox"
                 checked={createDefault}
@@ -385,7 +385,7 @@ export default function ShoppingListsPage() {
                   setCreateTitle("Shopping List");
                   setCreateDefault(false);
                 }}
-                className="px-3 py-1.5 rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
+                className="px-3 py-1.5 rounded-v2-md border border-hairline text-text-lo hover:text-text-hi hover:border-text-lo text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] transition-colors"
               >
                 CANCEL
               </button>

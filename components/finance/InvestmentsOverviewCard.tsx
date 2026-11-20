@@ -36,14 +36,14 @@ export function InvestmentsOverviewCard() {
   }, []);
 
   if (investments === null) {
-    return <CardShell><Mono className="text-[10px] text-ink-3">Loading…</Mono></CardShell>;
+    return <CardShell><Mono className="text-[10px] text-text-lo">Loading…</Mono></CardShell>;
   }
 
   if (investments.length === 0) {
     return (
       <CardShell>
-        <div className="text-base text-ink-4">Investments</div>
-        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
+        <div className="text-base text-text-hi">Investments</div>
+        <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-1">
           No holdings yet.{" "}
           <Link href="/finance/investments" className="text-accent hover:underline">
             Add your first
@@ -68,23 +68,23 @@ export function InvestmentsOverviewCard() {
 
   return (
     <CardShell>
-      <div className="text-base text-ink-4">Investments</div>
-      <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
+      <div className="text-base text-text-hi">Investments</div>
+      <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-1">
         Portfolio tracker — stocks, crypto, commodities, collectibles.
       </div>
       <div className="flex items-center gap-3 mt-2 text-[11px] font-[family-name:var(--font-mono)]">
-        <div className="text-ink-3">
+        <div className="text-text-lo">
           <PrivateText><Money value={totalValue} format="balance" /></PrivateText>
         </div>
         <div className={pnl >= 0 ? "text-ok" : "text-danger"}>
           <PrivateText><Money value={pnl} format="amount" /></PrivateText>
         </div>
-        <Mono className="text-[9px] text-ink-3">
+        <Mono className="text-[9px] text-text-lo">
           {active.length} holding{active.length !== 1 ? "s" : ""}
         </Mono>
       </div>
       {latestUpdate && (
-        <Mono className="text-[9px] text-ink-3 mt-1">
+        <Mono className="text-[9px] text-text-lo mt-1">
           Updated {timeAgo(latestUpdate)}
         </Mono>
       )}
@@ -97,7 +97,7 @@ function CardShell({ children }: { children: React.ReactNode }) {
     <li>
       <Link
         href="/finance/investments"
-        className="block rounded-v2-md bg-surface-1 border border-hairline hover:border-ink-3 px-4 py-3 transition-colors"
+        className="block rounded-v2-md bg-surface-1 border border-hairline hover:border-text-lo px-4 py-3 transition-colors"
       >
         {children}
       </Link>

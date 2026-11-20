@@ -280,20 +280,20 @@ export function ReviewClient({
     <div className="flex flex-col gap-5 max-w-5xl mx-auto">
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+          <h1 className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
             Weekly Review · {weekLabel}
             {isPast && (
               <span className="ml-2 text-warn">· READ-ONLY</span>
             )}
           </h1>
-          <div className="mt-1 text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
+          <div className="mt-1 text-2xl italic font-[family-name:var(--font-display)] text-text-hi">
             {rangeLabel}
           </div>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
           {!isPast && (
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] flex items-center gap-2">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] flex items-center gap-2">
               {savingField ? (
                 <>
                   <span
@@ -310,7 +310,7 @@ export function ReviewClient({
               ) : (
                 <>
                   <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ok" />
-                  Auto-saved <Mono className="text-ink-3">{fmtSavedRelative(savedAt)}</Mono>
+                  Auto-saved <Mono className="text-text-lo">{fmtSavedRelative(savedAt)}</Mono>
                 </>
               )}
             </div>
@@ -324,18 +324,18 @@ export function ReviewClient({
                 setArchiveOpen((o) => !o);
                 void loadArchive();
               }}
-              className="px-3 py-1.5 rounded-md border border-ink-2 bg-ink-0/40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+              className="px-3 py-1.5 rounded-md border border-surface-2 bg-surface-0/40 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi hover:border-text-lo transition-colors"
             >
               ‹ PAST REVIEWS
             </button>
             {archiveOpen && (
-              <div className="absolute top-full mt-1 right-0 z-30 w-64 rounded-lg border border-ink-2 bg-ink-1 shadow-2xl max-h-72 overflow-y-auto">
+              <div className="absolute top-full mt-1 right-0 z-30 w-64 rounded-lg border border-surface-2 bg-surface-1 shadow-2xl max-h-72 overflow-y-auto">
                 {archive === null ? (
-                  <div className="px-3 py-2 text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+                  <div className="px-3 py-2 text-xs text-text-lo italic font-[family-name:var(--font-display)]">
                     Loading…
                   </div>
                 ) : archive.length === 0 ? (
-                  <div className="px-3 py-2 text-xs text-ink-3 italic font-[family-name:var(--font-display)]">
+                  <div className="px-3 py-2 text-xs text-text-lo italic font-[family-name:var(--font-display)]">
                     No sealed reviews yet.
                   </div>
                 ) : (
@@ -350,12 +350,12 @@ export function ReviewClient({
                               `/review/${isoWeekKey(a.iso_year, a.iso_week)}`
                             );
                           }}
-                          className="w-full text-left px-3 py-1.5 text-sm text-ink-4 hover:bg-ink-2 transition-colors flex items-center justify-between gap-2"
+                          className="w-full text-left px-3 py-1.5 text-sm text-text-hi hover:bg-surface-2 transition-colors flex items-center justify-between gap-2"
                         >
                           <span>
                             {a.iso_year}-W{String(a.iso_week).padStart(2, "0")}
                           </span>
-                          <Mono className="text-[10px] text-ink-3">
+                          <Mono className="text-[10px] text-text-lo">
                             {a.sunday_key}
                           </Mono>
                         </button>
@@ -380,7 +380,7 @@ export function ReviewClient({
             <button
               type="button"
               onClick={unseal}
-              className="text-[11px] uppercase tracking-[0.18em] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)]"
+              className="text-[11px] uppercase tracking-[0.18em] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]"
             >
               ✎ Edit again
             </button>
@@ -388,7 +388,7 @@ export function ReviewClient({
           {isPast && (
             <Link
               href="/review"
-              className="px-3 py-1.5 rounded-md border border-ink-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+              className="px-3 py-1.5 rounded-md border border-surface-2 text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi hover:border-text-lo transition-colors"
             >
               ← THIS WEEK
             </Link>
@@ -403,7 +403,7 @@ export function ReviewClient({
       )}
 
       {!loaded ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : (
@@ -466,8 +466,8 @@ function ReviewField({
   tall?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl p-4 flex flex-col">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mb-2">
+    <div className="rounded-xl border border-surface-2 bg-surface-1/60 backdrop-blur-xl p-4 flex flex-col">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mb-2">
         {label}
       </span>
       <textarea
@@ -477,7 +477,7 @@ function ReviewField({
         disabled={locked}
         rows={tall ? 6 : 5}
         placeholder={locked ? "" : "—"}
-        className="w-full flex-1 bg-transparent outline-none text-sm text-ink-4 placeholder:text-ink-3 resize-y leading-relaxed disabled:cursor-default disabled:opacity-90"
+        className="w-full flex-1 bg-transparent outline-none text-sm text-text-hi placeholder:text-text-lo resize-y leading-relaxed disabled:cursor-default disabled:opacity-90"
       />
     </div>
   );

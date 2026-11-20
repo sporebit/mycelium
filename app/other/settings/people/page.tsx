@@ -27,7 +27,7 @@ const SELECT = INPUT + " pr-8";
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-v2-md bg-surface-1 p-5">
-      <Mono className="text-[11px] text-ink-3 tracking-[0.18em] mb-4 block">{title}</Mono>
+      <Mono className="text-[11px] text-text-lo tracking-[0.18em] mb-4 block">{title}</Mono>
       <div className="flex flex-col gap-4">{children}</div>
     </div>
   );
@@ -127,7 +127,7 @@ export default function PeopleAndTeamsPage() {
 
   if (!loaded) {
     return (
-      <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+      <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
         Loading…
       </div>
     );
@@ -136,8 +136,8 @@ export default function PeopleAndTeamsPage() {
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
       <header className="flex flex-col gap-1">
-        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">People &amp; teams</h1>
-        <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+        <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">People &amp; teams</h1>
+        <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
           Who can see what. Finance is never shared and never appears here.
         </p>
       </header>
@@ -211,7 +211,7 @@ function TeamsCard({
               onClick={() => onSelect(t.id)}
               aria-current={t.id === selected ? "true" : undefined}
               className={`px-3 py-1.5 rounded-v2-md text-sm border transition-colors ${
-                t.id === selected ? "bg-surface-2 text-text-hi border-hairline-strong" : "text-ink-3 border-hairline hover:text-ink-4"
+                t.id === selected ? "bg-surface-2 text-text-hi border-hairline-strong" : "text-text-lo border-hairline hover:text-text-hi"
               }`}
             >
               {t.name} <span className="text-[10px] uppercase tracking-[0.08em] text-text-lo ml-1">{t.my_role}</span>
@@ -272,7 +272,7 @@ function TeamCard({
         <div className="flex flex-col gap-1">
           <Label>Pending invites</Label>
           {team.invites.map((i) => (
-            <Mono key={i.id} className="text-[11px] text-ink-3">
+            <Mono key={i.id} className="text-[11px] text-text-lo">
               {i.email} · {i.role} · expires {new Date(i.expires_at).toLocaleDateString()}
             </Mono>
           ))}
@@ -544,7 +544,7 @@ function MemberRow({
             <option value="viewer">viewer</option>
           </select>
         ) : (
-          <Mono className="text-[11px] text-ink-3 uppercase tracking-[0.08em]">{member.role}</Mono>
+          <Mono className="text-[11px] text-text-lo uppercase tracking-[0.08em]">{member.role}</Mono>
         )}
         {editable && (
           <>
@@ -717,7 +717,7 @@ function ShareCard({
             <li key={g.id} className="py-2 flex items-center gap-3">
               <div className="flex-1 min-w-0 text-sm text-text-hi">
                 {g.other_name ?? g.grantee_id.slice(0, 8)}
-                <Mono className="block text-[11px] text-ink-3">
+                <Mono className="block text-[11px] text-text-lo">
                   {g.section}
                   {g.entity_groups.length ? ` · ${g.entity_groups.join(", ")}` : " · whole section"} · {g.verbs.join(", ")}
                   {g.expires_at ? ` · until ${new Date(g.expires_at).toLocaleDateString()}` : ""}
@@ -762,7 +762,7 @@ function SharedWithMeCard({
             <li key={g.id} className="py-2 flex items-center gap-3">
               <div className="flex-1 min-w-0 text-sm text-text-hi">
                 {g.other_name ?? g.grantor_id.slice(0, 8)}
-                <Mono className="block text-[11px] text-ink-3">
+                <Mono className="block text-[11px] text-text-lo">
                   {g.section}
                   {g.entity_groups.length ? ` · ${g.entity_groups.join(", ")}` : " · whole section"} · {g.verbs.join(", ")}
                   {g.expires_at ? ` · until ${new Date(g.expires_at).toLocaleDateString()}` : ""}

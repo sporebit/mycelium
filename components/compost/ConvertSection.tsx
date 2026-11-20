@@ -65,14 +65,14 @@ export function ConvertSection({
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         Convert
       </span>
       <select
         value={target}
         onChange={(e) => setTarget(e.target.value as ConvertibleKind | "")}
         disabled={busy}
-        className="w-full bg-ink-2 rounded-sm text-sm text-text-0 px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
+        className="w-full bg-surface-2 rounded-sm text-sm text-text-hi px-2 py-1.5 outline-none focus:ring-2 focus:ring-glow-2/60"
       >
         <option value="">Convert to…</option>
         {options.map((k) => (
@@ -98,19 +98,19 @@ export function ConvertSection({
             type="button"
             aria-label="Cancel"
             onClick={() => setConfirming(false)}
-            className="absolute inset-0 bg-ink-0/60 backdrop-blur-sm cursor-default"
+            className="absolute inset-0 bg-surface-0/60 backdrop-blur-sm cursor-default"
           />
           <div
             role="dialog"
             aria-label="Confirm convert"
-            className="relative w-full max-w-sm rounded-lg bg-ink-1 border border-ink-2 shadow-2xl p-5 flex flex-col gap-4"
+            className="relative w-full max-w-sm rounded-lg bg-surface-1 border border-surface-2 shadow-2xl p-5 flex flex-col gap-4"
           >
-            <h3 className="text-base font-[family-name:var(--font-display)] italic text-ink-4">
+            <h3 className="text-base font-[family-name:var(--font-display)] italic text-text-hi">
               Convert this {KIND_LABELS[fromKind].toLowerCase()} to a{" "}
               {KIND_LABELS[target].toLowerCase()}?
             </h3>
-            <p className="text-sm text-ink-3">
-              <strong className="text-ink-4">{fromTitle}</strong> will be
+            <p className="text-sm text-text-lo">
+              <strong className="text-text-hi">{fromTitle}</strong> will be
               soft-deleted and a new {KIND_LABELS[target].toLowerCase()} record
               will be created with its fields where they map. Some fields may
               not transfer.
@@ -120,7 +120,7 @@ export function ConvertSection({
                 type="button"
                 onClick={() => setConfirming(false)}
                 disabled={busy}
-                className="px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-ink-3 hover:text-ink-4"
+                className="px-3 py-1.5 rounded-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-text-lo hover:text-text-hi"
               >
                 CANCEL
               </button>

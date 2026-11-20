@@ -57,7 +57,7 @@ export function PCOverviewCard() {
   if (!loaded) {
     return (
       <CardShell>
-        <Mono className="text-[10px] text-ink-3">Loading…</Mono>
+        <Mono className="text-[10px] text-text-lo">Loading…</Mono>
       </CardShell>
     );
   }
@@ -65,12 +65,12 @@ export function PCOverviewCard() {
   return (
     <CardShell>
       <div className="flex items-center justify-between">
-        <div className="text-base text-ink-4">PC</div>
+        <div className="text-base text-text-hi">PC</div>
         <div className="flex items-center gap-1.5">
           <span
             className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-ok" : "bg-danger"}`}
           />
-          <Mono className="text-[9px] text-ink-3">
+          <Mono className="text-[9px] text-text-lo">
             {isOnline ? "ONLINE" : "OFFLINE"}
           </Mono>
         </div>
@@ -78,37 +78,37 @@ export function PCOverviewCard() {
       {metric ? (
         <>
           <div className="flex items-center gap-3 mt-2 text-[11px] font-[family-name:var(--font-mono)]">
-            <span className="text-ink-3">
+            <span className="text-text-lo">
               CPU{" "}
-              <span className="text-text-1">
+              <span className="text-text-mid">
                 {metric.cpu_usage !== null
                   ? `${Math.round(Number(metric.cpu_usage))}%`
                   : "—"}
               </span>
             </span>
-            <span className="text-ink-3">
+            <span className="text-text-lo">
               GPU{" "}
-              <span className="text-text-1">
+              <span className="text-text-mid">
                 {metric.gpu_usage !== null
                   ? `${Math.round(Number(metric.gpu_usage))}%`
                   : "—"}
               </span>
             </span>
-            <span className="text-ink-3">
+            <span className="text-text-lo">
               RAM{" "}
-              <span className="text-text-1">
+              <span className="text-text-mid">
                 {metric.ram_used_gb !== null && metric.ram_total_gb !== null
                   ? `${Number(metric.ram_used_gb).toFixed(0)}/${Number(metric.ram_total_gb).toFixed(0)}GB`
                   : "—"}
               </span>
             </span>
           </div>
-          <Mono className="text-[9px] text-ink-3 mt-1">
+          <Mono className="text-[9px] text-text-lo mt-1">
             Last seen {timeAgo(metric.recorded_at)}
           </Mono>
         </>
       ) : (
-        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-1">
+        <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-1">
           No data yet. Start the PC Agent.
         </div>
       )}
@@ -120,7 +120,7 @@ function CardShell({ children }: { children: React.ReactNode }) {
   return (
     <Link
       href="/studio/pc"
-      className="block rounded-v2-md bg-surface-1 border border-hairline hover:border-ink-3 px-4 py-3 transition-colors"
+      className="block rounded-v2-md bg-surface-1 border border-hairline hover:border-text-lo px-4 py-3 transition-colors"
     >
       {children}
     </Link>

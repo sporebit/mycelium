@@ -28,10 +28,10 @@ export function SecretCopy({
 
   return (
     <div className="flex items-center gap-2 rounded-v2-md border border-hairline bg-surface-0 px-3 py-2">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] shrink-0">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] shrink-0">
         {label}
       </span>
-      <code className="flex-1 min-w-0 text-xs text-ink-4 font-[family-name:var(--font-mono)] truncate select-all">
+      <code className="flex-1 min-w-0 text-xs text-text-hi font-[family-name:var(--font-mono)] truncate select-all">
         {value}
       </code>
       <button

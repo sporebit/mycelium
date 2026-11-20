@@ -195,7 +195,7 @@ export function ReceiptsClient({ focusId = null }: { focusId?: string | null }) 
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
         <div className="flex items-baseline gap-3 flex-wrap">
-          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-0">
+          <h1 className="font-[family-name:var(--font-display)] italic text-2xl text-text-hi">
             Receipts
           </h1>
           <Link

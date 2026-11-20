@@ -119,32 +119,32 @@ export function Supplements({ width = 1 }: { width?: CardWidth } = {}) {
       topRight={
         <Link
           href="/health/supplements"
-          className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
+          className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-hi font-[family-name:var(--font-mono)]"
         >
           OPEN →
         </Link>
       }
     >
       {data === undefined ? (
-        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
+        <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-4 text-center">
           Loading…
         </div>
       ) : data.progress.total === 0 ? (
-        <div className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-4 text-center">
+        <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-4 text-center">
           No active supplements
         </div>
       ) : (
         <div className={width >= 3 ? "mt-2 grid grid-cols-2 gap-x-6" : "contents"}>
           <div>
             <div className="mt-2 flex items-baseline gap-2">
-              <Mono className="text-2xl text-ink-4 tabular-nums">
+              <Mono className="text-2xl text-text-hi tabular-nums">
                 {data.progress.taken}/{data.progress.total}
               </Mono>
-              <Mono className="text-[10px] text-ink-3">
+              <Mono className="text-[10px] text-text-lo">
                 {pct}%
               </Mono>
             </div>
-            <div className="mt-1.5 h-1.5 rounded-full bg-ink-2 overflow-hidden">
+            <div className="mt-1.5 h-1.5 rounded-full bg-surface-2 overflow-hidden">
               <div
                 className="h-full bg-ok transition-[width] duration-300 rounded-full"
                 style={{ width: `${pct}%` }}
@@ -172,7 +172,7 @@ export function Supplements({ width = 1 }: { width?: CardWidth } = {}) {
                     className={`w-full flex items-center gap-2 px-2 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] transition-colors ${
                       allDone
                         ? "bg-ok/10 text-ok"
-                        : "bg-ink-1 text-ink-3 hover:text-ink-4"
+                        : "bg-surface-1 text-text-lo hover:text-text-hi"
                     }`}
                   >
                     <span className="uppercase">{slot.label}</span>
@@ -195,7 +195,7 @@ export function Supplements({ width = 1 }: { width?: CardWidth } = {}) {
                             className={`px-2 py-1 rounded-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.1em] transition-colors disabled:opacity-50 ${
                               taken
                                 ? "bg-ok/15 text-ok"
-                                : "bg-ink-2 text-ink-3 hover:text-ink-4"
+                                : "bg-surface-2 text-text-lo hover:text-text-hi"
                             }`}
                           >
                             {item.name}

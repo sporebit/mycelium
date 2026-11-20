@@ -5,7 +5,7 @@ export const metadata = { title: "Quotes — Mycelium" };
 
 export default function QuotesPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-3xl px-4 py-6 text-sm text-ink-3 italic">Loading…</div>}>
+    <Suspense fallback={<div className="mx-auto max-w-3xl px-4 py-6 text-sm text-text-lo italic">Loading…</div>}>
       <QuotesClient />
     </Suspense>
   );

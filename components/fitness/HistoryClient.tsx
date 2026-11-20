@@ -202,7 +202,7 @@ export function HistoryClient() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-ink-4">
+        <h1 className="text-2xl italic font-[family-name:var(--font-display)] text-text-hi">
           History
         </h1>
       </div>
@@ -219,7 +219,7 @@ export function HistoryClient() {
               className={`px-3 py-1.5 rounded-v2-md text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] border transition-colors ${
                 active
                   ? "border-accent/50 bg-accent/15 text-accent"
-                  : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                  : "border-hairline text-text-lo hover:text-text-hi hover:border-text-lo"
               }`}
             >
               {f.label}
@@ -237,7 +237,7 @@ export function HistoryClient() {
             className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
               typeFilter == null
                 ? "border-accent/50 bg-accent/15 text-accent"
-                : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                : "border-hairline text-text-lo hover:text-text-hi hover:border-text-lo"
             }`}
           >
             ALL TYPES
@@ -255,7 +255,7 @@ export function HistoryClient() {
                   className={`px-2.5 py-1 rounded-v2-md text-[10px] font-[family-name:var(--font-mono)] tracking-[0.15em] border transition-colors ${
                     active
                       ? "border-accent/50 bg-accent/15 text-accent"
-                      : "border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3"
+                      : "border-hairline text-text-lo hover:text-text-hi hover:border-text-lo"
                   }`}
                 >
                   {lbl} <span className="opacity-60">({count})</span>
@@ -274,7 +274,7 @@ export function HistoryClient() {
       {/* Session cards */}
       <div className="flex flex-col gap-3">
         {sessions.length === 0 && !loading && !error && (
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
             No completed sessions yet.
           </p>
         )}
@@ -282,21 +282,21 @@ export function HistoryClient() {
           <Link
             key={s.id}
             href={`/fitness/log/${s.id}`}
-            className="growth-in block rounded-v2-md bg-surface-1 hover:bg-ink-2 transition-colors p-6"
+            className="growth-in block rounded-v2-md bg-surface-1 hover:bg-surface-2 transition-colors p-6"
           >
             <div className="flex items-baseline gap-2 flex-wrap">
-              <Mono className="text-[11px] text-ink-3 tracking-[0.15em]">
+              <Mono className="text-[11px] text-text-lo tracking-[0.15em]">
                 {fmtDate(s.date)}
               </Mono>
-              <span className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">
+              <span className="text-[11px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">
                 · {SLOT_ICON[s.slot] ?? "·"} {SLOT_LABEL[s.slot]}
               </span>
               {s.session_type && (
-                <span className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.15em]">
+                <span className="text-[11px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.15em]">
                   · {typeLabels[s.session_type] ?? s.session_type}
                 </span>
               )}
-              <span className="text-base text-ink-4 ml-1 truncate">
+              <span className="text-base text-text-hi ml-1 truncate">
                 {s.name ?? "Untitled session"}
               </span>
               {s.status === "attempted" && (
@@ -308,11 +308,11 @@ export function HistoryClient() {
                 </span>
               )}
             </div>
-            <div className="text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.1em] mt-1.5">
+            <div className="text-[11px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.1em] mt-1.5">
               {statsLine(s)}
             </div>
             {s.kind === "other" && s.notes && (
-              <p className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] mt-1 line-clamp-2">
+              <p className="text-xs text-text-lo italic font-[family-name:var(--font-display)] mt-1 line-clamp-2">
                 {s.notes}
               </p>
             )}
@@ -328,7 +328,7 @@ export function HistoryClient() {
         </div>
       )}
       {!hasMore && sessions.length > 0 && (
-        <p className="text-center text-[11px] text-ink-3 font-[family-name:var(--font-mono)] tracking-[0.18em] py-6">
+        <p className="text-center text-[11px] text-text-lo font-[family-name:var(--font-mono)] tracking-[0.18em] py-6">
           — end of history —
         </p>
       )}

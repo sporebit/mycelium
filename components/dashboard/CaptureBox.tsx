@@ -78,7 +78,7 @@ export function CaptureBox() {
         </div>
       )}
 
-      <div className="rounded-xl border border-ink-2 bg-ink-0/40 p-3 flex flex-col gap-2">
+      <div className="rounded-xl border border-surface-2 bg-surface-0/40 p-3 flex flex-col gap-2">
         <textarea
           ref={textareaRef}
           value={value}
@@ -86,10 +86,10 @@ export function CaptureBox() {
           onKeyDown={onKeyDown}
           placeholder="Capture a thought, task, or decision…"
           rows={2}
-          className="w-full bg-transparent text-ink-4 placeholder:text-ink-3 resize-none outline-none text-sm leading-relaxed"
+          className="w-full bg-transparent text-text-hi placeholder:text-text-lo resize-none outline-none text-sm leading-relaxed"
           disabled={submitting}
         />
-        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           <span>⌘/Ctrl+Enter to submit</span>
           <button
             onClick={submit}

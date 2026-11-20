@@ -41,11 +41,11 @@ export function OverviewTab({
 
       <div className="flex flex-wrap items-center gap-3">
         <div>
-          <Mono className="text-[10px] text-ink-3 mb-1">STATUS</Mono>
+          <Mono className="text-[10px] text-text-lo mb-1">STATUS</Mono>
           <select
             value={venture.status}
             onChange={(e) => onPatch({ status: e.target.value })}
-            className="bg-ink-2 rounded-sm text-[11px] text-text-1 px-3 py-1.5 outline-none focus:outline-accent font-[family-name:var(--font-mono)] tracking-[0.1em]"
+            className="bg-surface-2 rounded-sm text-[11px] text-text-mid px-3 py-1.5 outline-none focus:outline-accent font-[family-name:var(--font-mono)] tracking-[0.1em]"
           >
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
@@ -55,7 +55,7 @@ export function OverviewTab({
           </select>
         </div>
         <div>
-          <Mono className="text-[10px] text-ink-3 mb-1">ACCENT</Mono>
+          <Mono className="text-[10px] text-text-lo mb-1">ACCENT</Mono>
           <input
             type="color"
             value={venture.accent_colour}
@@ -84,7 +84,7 @@ export function OverviewTab({
         multiline
       />
 
-      <div className="flex flex-wrap gap-4 text-xs font-[family-name:var(--font-mono)] text-ink-3">
+      <div className="flex flex-wrap gap-4 text-xs font-[family-name:var(--font-mono)] text-text-lo">
         <span>
           Steps: {stepsComplete}/{stepsTotal} complete
         </span>
@@ -93,19 +93,19 @@ export function OverviewTab({
 
       {childVentures.length > 0 && (
         <div>
-          <Mono className="text-[10px] text-ink-3 mb-2">CHILD VENTURES</Mono>
+          <Mono className="text-[10px] text-text-lo mb-2">CHILD VENTURES</Mono>
           <div className="flex flex-wrap gap-2">
             {childVentures.map((c) => (
               <Link
                 key={c.id}
                 href={`/ventures/${c.id}`}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-ink-2 hover:bg-ink-3/30 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-surface-2 hover:bg-text-lo/30 transition-colors"
               >
                 <span
                   className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: c.accent_colour }}
                 />
-                <span className="text-xs text-text-0">{c.name}</span>
+                <span className="text-xs text-text-hi">{c.name}</span>
                 <span
                   className={`text-[9px] px-1.5 py-0.5 rounded font-[family-name:var(--font-mono)] ${STATUS_COLOURS[c.status] ?? ""}`}
                 >

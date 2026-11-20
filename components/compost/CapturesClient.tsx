@@ -90,10 +90,10 @@ function kindBadge(kind: string | undefined): { label: string; className: string
   if (kind === "idea")
     return { label: "IDEA", className: "bg-glow-2/15 text-glow-2 border-glow-2/40" };
   if (kind === "note")
-    return { label: "NOTE", className: "bg-ink-2 text-ink-4 border-ink-2" };
+    return { label: "NOTE", className: "bg-surface-2 text-text-hi border-surface-2" };
   return {
     label: (kind ?? "CAPTURE").toUpperCase(),
-    className: "bg-ink-2 text-ink-3 border-ink-2",
+    className: "bg-surface-2 text-text-lo border-surface-2",
   };
 }
 
@@ -181,23 +181,23 @@ export function CapturesClient() {
           onChange={setKind}
         />
         <div className="flex-1" />
-        <Mono className="text-[10px] text-ink-3">
+        <Mono className="text-[10px] text-text-lo">
           {captures === null ? "…" : `${captures.length} CAPTURES`}
         </Mono>
       </div>
 
       {captures === null ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           Loading…
         </div>
       ) : captures.length === 0 ? (
-        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+        <div className="text-sm text-text-lo italic font-[family-name:var(--font-display)] py-12 text-center">
           {kind === "all" && source === "all"
             ? "Speak anything to begin — Myphelium2 will route it where it fits."
             : "No captures match these filters."}
         </div>
       ) : (
-        <ul className="flex flex-col divide-y divide-ink-2 rounded-xl border border-ink-2 bg-ink-1/60 backdrop-blur-xl overflow-hidden">
+        <ul className="flex flex-col divide-y divide-surface-2 rounded-xl border border-surface-2 bg-surface-1/60 backdrop-blur-xl overflow-hidden">
           {captures.map((c) => {
             const isOpen = expanded.has(c.id);
             const cls = c.classification ?? {};
@@ -217,17 +217,17 @@ export function CapturesClient() {
                 <button
                   type="button"
                   onClick={() => toggle(c.id)}
-                  className="w-full text-left px-4 py-3 hover:bg-ink-2/30 transition-colors flex items-start gap-3"
+                  className="w-full text-left px-4 py-3 hover:bg-surface-2/30 transition-colors flex items-start gap-3"
                 >
                   <span
                     aria-hidden
-                    className="text-ink-3 text-base w-5 shrink-0 mt-0.5"
+                    className="text-text-lo text-base w-5 shrink-0 mt-0.5"
                     title={getSourceConfig(c.source, sourceConfig).label}
                   >
                     {getSourceConfig(c.source, sourceConfig).icon}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.15em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
                       <span className="flex items-center gap-2">
                         <span>{relativeDate(c.created_at)}</span>
                         <span>·</span>
@@ -240,11 +240,11 @@ export function CapturesClient() {
                       </span>
                     </div>
                     {title && (
-                      <div className="text-sm text-ink-4 font-medium mt-1 leading-snug break-words">
+                      <div className="text-sm text-text-hi font-medium mt-1 leading-snug break-words">
                         {title}
                       </div>
                     )}
-                    <div className="text-[12px] text-ink-3 italic mt-1 leading-snug break-words font-[family-name:var(--font-display)]">
+                    <div className="text-[12px] text-text-lo italic mt-1 leading-snug break-words font-[family-name:var(--font-display)]">
                       {isOpen
                         ? c.raw_text
                         : truncate(c.raw_text, title ? 80 : 200)}
@@ -256,7 +256,7 @@ export function CapturesClient() {
                     <Link
                       href={routed.href}
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] text-ink-3 hover:text-accent transition-colors"
+                      className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] font-[family-name:var(--font-mono)] text-text-lo hover:text-accent transition-colors"
                     >
                       <span aria-hidden>→</span>
                       <span className="text-accent">{routed.label}:</span>
@@ -268,11 +268,11 @@ export function CapturesClient() {
                 )}
                 {isOpen && (
                   <div className="px-4 pb-3">
-                    <details className="rounded-md border border-ink-2 bg-ink-0/40 p-2">
-                      <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    <details className="rounded-md border border-surface-2 bg-surface-0/40 p-2">
+                      <summary className="cursor-pointer text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                         Classification JSON
                       </summary>
-                      <pre className="mt-2 text-[11px] text-ink-3 overflow-x-auto font-[family-name:var(--font-mono)]">
+                      <pre className="mt-2 text-[11px] text-text-lo overflow-x-auto font-[family-name:var(--font-mono)]">
                         {JSON.stringify(c.classification, null, 2)}
                       </pre>
                     </details>
@@ -300,10 +300,10 @@ function FilterGroup({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
         {label}
       </span>
-      <div className="inline-flex rounded-lg border border-ink-2 bg-ink-0/40 p-0.5">
+      <div className="inline-flex rounded-lg border border-surface-2 bg-surface-0/40 p-0.5">
         {options.map((o) => (
           <button
             key={o.id}
@@ -311,8 +311,8 @@ function FilterGroup({
             onClick={() => onChange(o.id)}
             className={`px-2 py-1 text-[10px] font-[family-name:var(--font-mono)] tracking-[0.18em] rounded-md transition-colors ${
               value === o.id
-                ? "bg-ink-2 text-ink-4"
-                : "text-ink-3 hover:text-ink-4"
+                ? "bg-surface-2 text-text-hi"
+                : "text-text-lo hover:text-text-hi"
             }`}
           >
             {o.label}

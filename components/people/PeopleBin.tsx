@@ -46,9 +46,9 @@ export function PeopleBin() {
     <div className="flex flex-col gap-3">
       <p className="text-sm text-text-mid">Deleted people stay here for {days} days, then the nightly run removes them for good. Someone merged into another person stays merged; open the survivor instead.</p>
       {rows === null ? (
-        <div className="text-xs text-ink-3 italic">Loading…</div>
+        <div className="text-xs text-text-lo italic">Loading…</div>
       ) : rows.length === 0 ? (
-        <div className="text-xs text-ink-3 italic">The bin is empty.</div>
+        <div className="text-xs text-text-lo italic">The bin is empty.</div>
       ) : (
         <ul className="flex flex-col divide-y divide-hairline">
           {rows.map((p) => {
@@ -56,7 +56,7 @@ export function PeopleBin() {
             return (
               <li key={p.id} className="flex flex-wrap items-center gap-3 py-2">
                 <span className="text-sm text-text-hi">{name}</span>
-                <Mono className="text-[10px] text-ink-3">
+                <Mono className="text-[10px] text-text-lo">
                   {p.tier === "contact" ? "contact · " : ""}
                   deleted {p.deleted_at ? new Date(p.deleted_at).toLocaleDateString("en-GB") : ""} · gone on {p.deleted_at ? purgeOn(p.deleted_at) : "—"}
                 </Mono>

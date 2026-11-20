@@ -30,7 +30,7 @@ function statusLabel(pill: CalendarPill): {
     return { text: "ACTIVE", cls: "text-warn" };
   if (pill.state === "planned-future")
     return { text: "PLANNED", cls: "text-accent" };
-  return { text: "MISSED", cls: "text-ink-3" };
+  return { text: "MISSED", cls: "text-text-lo" };
 }
 
 function rowHref(pill: CalendarPill, dateKey: string, todayKey: string): string | null {
@@ -64,18 +64,18 @@ export function CalendarDayView({ date, pills, todayKey, programmeSessions }: Pr
           <Link
             href={backHrefForDate(date)}
             aria-label="Back to month"
-            className="h-9 w-9 inline-flex items-center justify-center rounded-v2-md border border-hairline text-ink-3 hover:text-ink-4 hover:border-ink-3 transition-colors"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-v2-md border border-hairline text-text-lo hover:text-text-hi hover:border-text-lo transition-colors"
           >
             ←
           </Link>
-          <h1 className="font-[family-name:var(--font-display)] italic text-text-0 text-2xl">
+          <h1 className="font-[family-name:var(--font-display)] italic text-text-hi text-2xl">
             {fmtFullDate(date)}
           </h1>
         </div>
         <button
           type="button"
           onClick={() => setAddOpen("morning")}
-          className="px-3 h-9 inline-flex items-center rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-accent hover:text-text-0 hover:border-accent/60 transition-colors"
+          className="px-3 h-9 inline-flex items-center rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-accent hover:text-text-hi hover:border-accent/60 transition-colors"
         >
           + ADD SESSION
         </button>
@@ -83,13 +83,13 @@ export function CalendarDayView({ date, pills, todayKey, programmeSessions }: Pr
 
       {pills.length === 0 ? (
         <div className="rounded-v2-md bg-surface-1 p-6 text-center">
-          <p className="text-sm text-ink-3 italic font-[family-name:var(--font-display)]">
+          <p className="text-sm text-text-lo italic font-[family-name:var(--font-display)]">
             No sessions on this day.
           </p>
           <button
             type="button"
             onClick={() => setAddOpen("morning")}
-            className="mt-3 inline-flex items-center px-3 py-2 rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-accent hover:text-text-0 hover:border-accent/60 transition-colors"
+            className="mt-3 inline-flex items-center px-3 py-2 rounded-v2-md border border-hairline text-[11px] font-[family-name:var(--font-mono)] tracking-[0.18em] text-accent hover:text-text-hi hover:border-accent/60 transition-colors"
           >
             + ADD SESSION
           </button>
@@ -117,12 +117,12 @@ export function CalendarDayView({ date, pills, todayKey, programmeSessions }: Pr
                   {kv.icon}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                  <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                     {p.slot.toUpperCase()} · {kv.label}
                   </div>
-                  <div className="text-base text-text-0 truncate">{p.name}</div>
+                  <div className="text-base text-text-hi truncate">{p.name}</div>
                   {stats && (
-                    <Mono className="text-[11px] text-ink-3 mt-0.5">{stats}</Mono>
+                    <Mono className="text-[11px] text-text-lo mt-0.5">{stats}</Mono>
                   )}
                 </div>
                 <Mono

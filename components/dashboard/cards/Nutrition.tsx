@@ -27,14 +27,14 @@ function Macro({
   return (
     <div className="flex-1 min-w-0">
       <div className="flex items-baseline justify-between">
-        <span className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+        <span className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
           {label}
         </span>
-        <Mono className="text-[11px] text-ink-4 tabular-nums">
+        <Mono className="text-[11px] text-text-hi tabular-nums">
           {Math.round(value)}/{target}g
         </Mono>
       </div>
-      <div className="mt-1 h-1 rounded-full bg-ink-2 overflow-hidden">
+      <div className="mt-1 h-1 rounded-full bg-surface-2 overflow-hidden">
         <div
           className="h-full bg-accent transition-[width] duration-300"
           style={{ width: `${pct}%` }}
@@ -118,13 +118,13 @@ export function Nutrition({ width = 1 }: { width?: CardWidth } = {}) {
             onClick={() => setScanOpen(true)}
             aria-label="Quick scan barcode"
             title="Quick scan barcode"
-            className="text-ink-3 hover:text-accent transition-colors"
+            className="text-text-lo hover:text-accent transition-colors"
           >
             <CameraIcon />
           </button>
           <Link
             href="/health/nutrition"
-            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-0 font-[family-name:var(--font-mono)]"
+            className="text-[10px] uppercase tracking-[0.18em] text-accent hover:text-text-hi font-[family-name:var(--font-mono)]"
           >
             OPEN →
           </Link>
@@ -134,13 +134,13 @@ export function Nutrition({ width = 1 }: { width?: CardWidth } = {}) {
       <div className={width >= 3 ? "mt-2 grid grid-cols-2 gap-x-8" : "contents"}>
         <div>
           <div className="mt-2">
-            <Mono className="block text-2xl text-ink-4 tabular-nums">
+            <Mono className="block text-2xl text-text-hi tabular-nums">
               {Math.round(totals.kcal).toLocaleString()}{" "}
-              <span className="text-ink-3">
+              <span className="text-text-lo">
                 of {targets.kcal.toLocaleString()}
               </span>
             </Mono>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)] mt-0.5">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)] mt-0.5">
               KCAL · <span className={deltaTone}>{deltaLabel}</span>
             </div>
           </div>
@@ -157,13 +157,13 @@ export function Nutrition({ width = 1 }: { width?: CardWidth } = {}) {
         </div>
 
         <div>
-          <ul className="mt-4 flex flex-col divide-y divide-ink-2/60">
+          <ul className="mt-4 flex flex-col divide-y divide-surface-2/60">
             {logs === null ? (
-              <li className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-3 text-center">
+              <li className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-3 text-center">
                 Loading…
               </li>
             ) : logs.length === 0 ? (
-              <li className="text-xs text-ink-3 italic font-[family-name:var(--font-display)] py-3 text-center">
+              <li className="text-xs text-text-lo italic font-[family-name:var(--font-display)] py-3 text-center">
                 Nothing logged today
               </li>
             ) : (
@@ -175,10 +175,10 @@ export function Nutrition({ width = 1 }: { width?: CardWidth } = {}) {
                     key={g.id}
                     className="flex items-center justify-between py-1.5"
                   >
-                    <span className="text-[11px] uppercase tracking-[0.18em] text-ink-3 font-[family-name:var(--font-mono)]">
+                    <span className="text-[11px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]">
                       {g.name}
                     </span>
-                    <Mono className="text-[11px] text-ink-4 tabular-nums">
+                    <Mono className="text-[11px] text-text-hi tabular-nums">
                       {Math.round(kcal)} kcal
                     </Mono>
                   </li>
