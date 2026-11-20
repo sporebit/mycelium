@@ -9,6 +9,7 @@ import type { HoursEntry } from "@/lib/hours/types";
 import { EntryHeader, EntryRow } from "./EntryRow";
 import { INPUT_SM, dateLabel } from "./kit";
 import { NewEntryRow } from "./NewEntryRow";
+import { ENTRY_COLUMNS, FilterNote, useTable } from "./table";
 import { useEntryMutations } from "./useEntryMutations";
 import { useHoursBundle } from "./useHours";
 
@@ -58,23 +59,37 @@ export function LogView() {
   const monday = range === "this" ? mondayOf(today) : range === "last" ? addDays(mondayOf(today), -7) : range === "pick" ? mondayOf(pick) : null;
   const sunday = monday ? addDays(monday, 6) : null;
 
-  const groups = useMemo(() => {
+  // Week, state and search narrow the record first; the column filters and sort (table) apply next.
+  const inRange = useMemo(() => {
     if (!index) return [];
     const needle = q.trim().toLowerCase();
-    const byDate = new Map<string, HoursEntry[]>();
+    const out: HoursEntry[] = [];
     for (const e of index.live) {
       if (monday && sunday && (!e.entry_date || e.entry_date < monday || e.entry_date > sunday)) continue;
       if (!matchesState(e, state)) continue;
       if (needle && !e.description.toLowerCase().includes(needle) && !e.ticket_raw.toLowerCase().includes(needle)) continue;
       if (!e.entry_date) continue; // dateless entries live in the Backlog
-      const list = byDate.get(e.entry_date) ?? [];
+      out.push(e);
+    }
+    return out;
+  }, [index, monday, sunday, state, q]);
+  const table = useTable(inRange, ENTRY_COLUMNS, null);
+
+  // Grouped by day (newest day first unless flipped); inside a day the column sort wins, else newest entry first.
+  const groups = useMemo(() => {
+    const byDate = new Map<string, HoursEntry[]>();
+    for (const e of table.rows) {
+      const list = byDate.get(e.entry_date!) ?? [];
       list.push(e);
-      byDate.set(e.entry_date, list);
+      byDate.set(e.entry_date!, list);
     }
     const days = Array.from(byDate.keys()).sort();
     if (!sortAsc) days.reverse();
-    return days.map((d) => ({ date: d, entries: byDate.get(d)!.slice().sort((a, b) => (sortAsc ? a.created_at.localeCompare(b.created_at) : b.created_at.localeCompare(a.created_at))) }));
-  }, [index, monday, sunday, state, q, sortAsc]);
+    return days.map((d) => {
+      const entries = byDate.get(d)!;
+      return { date: d, entries: table.sort ? entries : entries.slice().sort((a, b) => (sortAsc ? a.created_at.localeCompare(b.created_at) : b.created_at.localeCompare(a.created_at))) };
+    });
+  }, [table.rows, table.sort, sortAsc]);
 
   if (isLoading || !index || !bundle) {
     return (
@@ -159,23 +174,22 @@ export function LogView() {
       <div className="flex items-baseline justify-between gap-3 text-xs text-text-lo">
         <span>
           {monday && sunday ? <>Week of {dateLabel(monday, true)} to {dateLabel(sunday)} · </> : null}
-          Click any cell to edit. Enter saves and moves down, Tab moves across, Esc puts it back.
+          Click any cell to edit. Enter saves and moves down, Tab moves across, Esc puts it back. Headers sort; the funnel filters.
         </span>
         <button type="button" onClick={() => setSortAsc((v) => !v)} className="text-xs text-text-mid hover:text-text-hi whitespace-nowrap">
           {sortAsc ? "Oldest first ↑" : "Newest first ↓"}
         </button>
       </div>
 
-      {groups.length === 0 ? (
-        <div className="rounded-v2-md border border-hairline p-6 text-center text-sm text-text-lo">Nothing here for this filter.</div>
-      ) : (
-        <div className="flex flex-col gap-4" data-hours-grid>
-          <EntryHeader />
-          {groups.map((g) => (
-            <DayGroup key={g.date} date={g.date} entries={g.entries} baseUrl={baseUrl} index={index} />
-          ))}
-        </div>
-      )}
+      <div className="flex flex-col gap-4" data-hours-grid>
+        <EntryHeader table={table} />
+        {groups.length === 0 ? (
+          <div className="rounded-v2-md border border-hairline p-6 text-center text-sm text-text-lo">Nothing here for this filter.</div>
+        ) : (
+          groups.map((g) => <DayGroup key={g.date} date={g.date} entries={g.entries} baseUrl={baseUrl} index={index} />)
+        )}
+        <FilterNote table={table} />
+      </div>
     </div>
   );
 }

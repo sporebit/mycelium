@@ -5,6 +5,7 @@ import { entryState, fmtHm, parseDuration } from "@/lib/hours/calc";
 import type { HoursEntry } from "@/lib/hours/types";
 import { parseTicket } from "@/lib/hours/ticket";
 import { StateDot } from "./kit";
+import { entryColumns, FilterInput, FunnelButton, GridHead, type TableState } from "./table";
 import { useEntryMutations } from "./useEntryMutations";
 
 /**
@@ -113,20 +114,52 @@ export function EntryRow({ entry, baseUrl, showDate = true, showEstimate = false
   );
 }
 
-/** Column header that lines up with EntryRow's grid. */
-export function EntryHeader({ showDate = true, showEstimate = false }: { showDate?: boolean; showEstimate?: boolean }) {
+/**
+ * Column header that lines up with EntryRow's grid. With a `table` (from
+ * useTable) the labels sort on click and the funnel at the end opens a row
+ * of per-column filter inputs; without one it is a plain header.
+ */
+export function EntryHeader({ showDate = true, showEstimate = false, table }: { showDate?: boolean; showEstimate?: boolean; table?: TableState<HoursEntry> }) {
   const cols = `${showDate ? "9.5rem_" : ""}4.5rem_${showEstimate ? "4.5rem_" : ""}minmax(0,1fr)_10rem_auto_auto`;
+  const grid = { gridTemplateColumns: `auto ${cols.replace(/_/g, " ")}` };
   const h = "px-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-text-lo";
+  if (!table) {
+    return (
+      <div className="hidden sm:grid items-center gap-x-1 px-1 pb-1 border-b border-hairline mb-1" style={grid}>
+        <span className="w-[18px]" />
+        {showDate && <span className={h}>Date</span>}
+        <span className={`${h} text-right`}>Time</span>
+        {showEstimate && <span className={`${h} text-right`}>Est.</span>}
+        <span className={h}>Description</span>
+        <span className={h}>Ticket</span>
+        <span className={h}>Logged</span>
+        <span className="w-6" />
+      </div>
+    );
+  }
+  const columns = entryColumns(showDate, showEstimate);
   return (
-    <div className="hidden sm:grid items-center gap-x-1 px-1 pb-1 border-b border-hairline mb-1" style={{ gridTemplateColumns: `auto ${cols.replace(/_/g, " ")}` }}>
-      <span className="w-[18px]" />
-      {showDate && <span className={h}>Date</span>}
-      <span className={`${h} text-right`}>Time</span>
-      {showEstimate && <span className={`${h} text-right`}>Est.</span>}
-      <span className={h}>Description</span>
-      <span className={h}>Ticket</span>
-      <span className={h}>Logged</span>
-      <span className="w-6" />
+    <div className="hidden sm:block border-b border-hairline mb-1">
+      <div className="grid items-center gap-x-1 px-1 pb-1" style={grid}>
+        <span className="w-[18px]" />
+        {columns.map((c) => (
+          <GridHead key={c.key} col={c} table={table} className={c.key === "logged" ? "text-center" : ""} />
+        ))}
+        <FunnelButton table={table} />
+      </div>
+      {table.showFilters && (
+        <div className="grid items-center gap-x-1 px-1 pb-1" style={grid}>
+          <span className="w-[18px]" />
+          {columns.map((c) => (
+            <span key={c.key} className="px-0.5">
+              <FilterInput col={c} table={table} />
+            </span>
+          ))}
+          <button type="button" onClick={table.clearFilters} className="w-6 text-[10px] text-text-lo hover:text-text-hi" title="Clear all filters" aria-label="Clear all filters">
+            {table.active > 0 ? "✕" : ""}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
