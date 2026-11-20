@@ -170,7 +170,7 @@ Build now, behind the **old/new shell switch** in Settings (`ui_prefs`):
 - Completion feedback hooks (motion, soft chime with a mute toggle, progress), behind the switch.
 - Items are placed by time; undated ones mid-distance by priority. Slipped items do not pile up at the front (research rule 14): the front zone holds at most three, and anything slipped for seven days is offered once as Re-date / Someday / Drop. The word "overdue" is never shown.
 
-**Not now — Core sample, Burrow, Colony.** Decided, recorded in `claude/ui-direction.md`, sources kept in `docs/design/home-views/`. Do not start them, and do not scaffold or stub them, until Phil says his usage limits have refreshed. The run cannot see his limits: wait for his word.
+**Scrapped — Core sample, Burrow, Colony** (Phil, 2026-11-20 evening). Not to be built at all; the "limits refreshed" gate is gone. Phil is rethinking the app's direction himself; `claude/ui-direction.md` is a record, not a brief. Sources stay in `docs/design/home-views/`.
 
 **Spend:** be economical on this stream only — one view, no exploratory variants. No other stream is limited.
 
@@ -189,7 +189,7 @@ Create each as a dated ticket with the exact link and value, in the checklist fo
 7. Build the iPhone Shortcuts from the guide; set the alarm and plug-in automations.
 8. Name the second backup drive.
 9. Enter the due date; tell the run the photo frame's make and model when the box turns up.
-10. UI: say when usage limits have refreshed (starts Core sample, Burrow, Colony); choose the Plate artwork source; adjust the top menu grouping if wanted.
+10. UI: ~~say when usage limits have refreshed (starts Core sample, Burrow, Colony)~~ scrapped 2026-11-20 evening; Phil is rethinking the direction. Still his: the Plate artwork source and the top menu grouping, if the Plate survives the rethink.
 11. Supabase Security Advisor review; retire the legacy Vercel env vars; revoke cutover tokens; decision 0.2 (`platform` owner-only).
 12. The 15-minute checklist chunks.
 13. Set up the scroll-friction automation from the guide (research rule 31), if he wants it.

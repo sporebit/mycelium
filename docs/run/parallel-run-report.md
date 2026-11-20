@@ -39,7 +39,7 @@ MYC-180 (cron-job.org jobs), MYC-181 (reconnect Google), MYC-182 (backup drive, 
 
 ## Still open, and why
 
-- **Stream I's other three home views (Core sample, Burrow, Colony)** stay unstarted: the brief gates them on Phil saying his usage limits have refreshed, and his "i've reset it" today was about this session's rate limit, not read as that word. One line from him starts them.
+- **Stream I's other three home views (Core sample, Burrow, Colony)** were unstarted at the time of writing (gated on Phil's word about his limits). **Scrapped by Phil the same evening**: not to be built; he said all the previous suggestions were bad and is rethinking the app's direction himself. Recorded in `claude/backlog.md`, `claude/ui-direction.md` and `claude/master-run.md`.
 - **Spoken lines are not rendered ahead** (`warmSpeech` exists; the briefing and the nudges do not call it), so the first time a line is said on the wall it is the browser's voice and the second time the PC's. Chunk 22 step 6 checks exactly that.
 - **The tick on production runs while the PC is on** (the worker knocks every few minutes; a dry run at 14:52 listed the slot's due jobs). When the PC is off, nothing sub-daily runs until MYC-180's cron-job.org job exists.
 - MYC-188 stays in *waiting*: the net-worth part is built, the feeds wait on Enable Banking (MYC-195) and the inbox on MYC-201.

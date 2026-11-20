@@ -2,6 +2,8 @@
 
 *Decision record for the Home redesign, written 2026-11-20 from a Cowork session with Phil. It supersedes the UI lines in `claude/master-run.md` §13 and the "Terrain" lean recorded earlier the same night. **Build scope, Phil 2026-11-20 02:47: Specimen plate only for now. Core sample, Burrow and Colony are recorded here and wait until Phil says his usage limits have refreshed. The gate is lifted for Plate and the top menu bar; nothing else in the run is limited.** Mock-ups: https://claude.ai/artifact/KYdGhqrFcH4CjP2jTaKY99 (rejected first desktop set: https://claude.ai/artifact/23XHpEr4sUTZWXT3jbcLQk).*
 
+**Scrapped 2026-11-20 evening (Phil):** Core sample, Burrow and Colony are not to be built. Phil: "all of the previous suggestions were bad"; he is rethinking how he wants the app himself. Nothing in this record is a build brief until he sets the new direction. The Plate and the top bar stay as built, behind the switch.
+
 ## What Phil decided
 
 1. **Home has four switchable views**, chosen with a toggle. Default and favourite: **Specimen plate**. The other three at launch: **Core sample**, **Burrow**, **Colony**. Forest floor and Mat were not picked.
