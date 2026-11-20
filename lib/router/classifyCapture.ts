@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { MODEL_FAST } from "@/lib/config/models";
 import { kindFromHost, linksIn } from "@/lib/finds/url";
 import { extractGiftFromText, giftFromClassification, GIFT_SIGNAL_RE, type GiftExtraction } from "@/lib/gifts/extract";
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
 
 /** What the classifier needs to pull the user's own routing rules into
  *  the prompt: a client to read them with, and the auth uid that keys
@@ -641,7 +642,7 @@ async function classifyAnthropic(
       "x-api-key": apiKey,
       "anthropic-version": "2023-06-01",
       "Content-Type": "application/json",
-      ...(selfRecorded ? { "x-mycelium-recorded": "1" } : {}),
+      ...(selfRecorded ? { "x-mycelium-recorded": "1" } : { [FEATURE_HEADER]: "capture.classify" }),
     },
     body: JSON.stringify({
       model,
@@ -679,7 +680,7 @@ async function classifyOpenAI(
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      ...(selfRecorded ? { "x-mycelium-recorded": "1" } : {}),
+      ...(selfRecorded ? { "x-mycelium-recorded": "1" } : { [FEATURE_HEADER]: "capture.classify" }),
     },
     body: JSON.stringify({
       model,

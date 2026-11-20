@@ -19,6 +19,7 @@ import { watcherFetch } from "./fixtures";
 import { openFind } from "./open";
 import { getFind, mergeRaw, saveVerdict, unverdicted } from "./store";
 import type { FindRow, Verdict, VerdictCall } from "./types";
+import { RECORDED_HEADER } from "@/lib/ai/meterRules";
 
 export const VERDICT_KIND = "finds_verdict";
 /** Hours a find waits for the PC before the cloud is asked. */
@@ -154,7 +155,7 @@ export async function cloudVerdict(db: SupabaseClient, find: FindRow, fetchImpl:
   const prompt = await preparePrompt(db, find);
   const res = await fetchImpl("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json", [RECORDED_HEADER]: "1" },
     body: JSON.stringify({ model: MODEL_FAST, max_tokens: 700, system: prompt.system, messages: [{ role: "user", content: prompt.user }] }),
     signal: AbortSignal.timeout(40_000),
   });

@@ -13,7 +13,7 @@ import { apiWrite, jsonBody, reportApiError } from "@/lib/data/apiWrite";
 import { mgToG, type GoustoRow } from "@/lib/health/gousto";
 import { Heart, Stars } from "./GoustoCookbook";
 
-type Payload = { recipe: GoustoRow; needs_detail?: boolean; error?: string };
+type Payload = { recipe: GoustoRow; needs_detail?: boolean; held?: "hosted" | "pc" | "none"; pending?: boolean; error?: string };
 
 const NUTRITION: Array<{ key: string; label: string; unit: "kcal" | "g" }> = [
 	{ key: "energy_kcal", label: "Energy", unit: "kcal" },
@@ -29,7 +29,8 @@ const NUTRITION: Array<{ key: string; label: string; unit: "kcal" | "g" }> = [
 export function GoustoRecipePage({ slug }: { slug: string }) {
 	const router = useRouter();
 	const key = `/api/health/gousto/${encodeURIComponent(slug)}`;
-	const { data, error, isLoading, mutate } = useApi<Payload>(key);
+	// While the PC is sending the detail over, ask again every few seconds; the row fills within a minute.
+	const { data, error, isLoading, mutate } = useApi<Payload>(key, { refreshInterval: (latest) => (latest?.pending ? 5_000 : 0) });
 	const r = data?.recipe ?? null;
 	const [saving, setSaving] = useState(false);
 
@@ -111,7 +112,12 @@ export function GoustoRecipePage({ slug }: { slug: string }) {
 				</a>
 			</div>
 			{!d &&
-				(r.detail_fetched_at ? (
+				(data?.held === "pc" ? (
+					// the ingredients and method live on the PC (lib/reference): back within a minute when it is on
+					<p className="text-xs text-[#f5b56d] mt-3" data-testid="detail-on-pc">
+						{data.pending ? "The ingredients and method are kept on the PC and are on their way; this page refreshes itself." : "The ingredients and method are kept on the PC. They appear here the next time it is on, or read it on gousto.co.uk."}
+					</p>
+				) : r.detail_fetched_at ? (
 					// the sync asked Gousto for this one and was told it is gone: running it again will not help
 					<p className="text-xs text-[#f5b56d] mt-3">Gousto no longer serves this recipe, so there are no ingredients or method to show. Only its listing is kept.</p>
 				) : (

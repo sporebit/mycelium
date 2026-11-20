@@ -3,6 +3,7 @@ import { MODEL_CHAT } from "@/lib/config/models";
 import { createUserClient } from "@/lib/supabase/user";
 import { buildAgentSystemPrompt } from "@/lib/agents/system";
 import { readAnthropicStream } from "@/lib/agents/anthropicStream";
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ agentId: s
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
-          headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
+          headers: { "x-api-key": apiKey, [FEATURE_HEADER]: "agents.chat", "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
           body: JSON.stringify(request),
           signal: abort.signal,
         });

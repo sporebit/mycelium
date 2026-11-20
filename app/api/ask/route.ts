@@ -3,6 +3,7 @@ import { createUserClient } from "@/lib/supabase/user";
 import { getQueryEmbedding } from "@/lib/memory/embedCache";
 import { searchChunks, enrichSources, buildMatches } from "@/lib/memory/search";
 import type { AskSource, SearchMatch } from "@/lib/memory/types";
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -89,6 +90,7 @@ async function streamFromAnthropic(
       method: "POST",
       headers: {
         "x-api-key": apiKey,
+        [FEATURE_HEADER]: "ask",
         "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },

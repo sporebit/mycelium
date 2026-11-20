@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const ext = audio.type.includes("mp4") ? "mp4" : "webm";
-    const text = await transcribeAudio(buffer, audio.name || `turn.${ext}`, audio.type || `audio/${ext}`, { prompt: CHAT_PROMPT });
+    const text = await transcribeAudio(buffer, audio.name || `turn.${ext}`, audio.type || `audio/${ext}`, { prompt: CHAT_PROMPT, feature: "agents.transcribe" });
     return NextResponse.json({ text: text.trim() });
   } catch (err) {
     console.error("[agents/transcribe]", err instanceof Error ? err.message : err);

@@ -7,6 +7,7 @@ import {
   type ParsedReceipt,
   type ParsedReceiptLine,
 } from "@/lib/types/receipt";
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
 
 export const PARSE_PROMPT = `You are reading photographs of a single till receipt. Return ONLY valid JSON, no markdown fences.
 
@@ -147,6 +148,7 @@ async function callVision(images: ImageInput[]): Promise<{
     method: "POST",
     headers: {
       "x-api-key": apiKey,
+      [FEATURE_HEADER]: "receipts.parse",
       "anthropic-version": "2023-06-01",
       "Content-Type": "application/json",
     },

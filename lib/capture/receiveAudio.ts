@@ -13,7 +13,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { after } from "next/server";
 import { cloudAllowed } from "@/lib/ai/budget";
-import { costPence, recordUsage } from "@/lib/ai/usage";
 import { applyTranscript, queueTranscription } from "@/lib/capture/jobs";
 import { type CaptureSource, processCapture, receiveCapture } from "@/lib/capture/pipeline";
 import { sweepCaptures } from "@/lib/capture/sweep";
@@ -21,11 +20,6 @@ import { pcIsOn } from "@/lib/jobs/queue";
 import { transcribeAudio } from "@/lib/openai/whisper";
 import { audioExtension, uploadCaptureAudio } from "@/lib/storage/captures";
 
-/** Whisper's list price, for the monthly cap: $0.006 a minute. Length is estimated from size (AAC at about 64 kbit/s). */
-export function whisperUsd(bytes: number): number {
-  const minutes = Math.max(0.25, bytes / (8_000 * 60));
-  return minutes * 0.006;
-}
 
 export type RecordingInput = {
   audio: File;
@@ -59,8 +53,8 @@ export async function captureRecording(db: SupabaseClient, uid: string, input: R
       // for nothing. If it is off, do not leave the capture wordless until
       // the next sweep: transcribe now in the cloud, inside the month's cap.
       if (!hasText && !(await pcIsOn(db)) && process.env.OPENAI_API_KEY && (await cloudAllowed(db))) {
-        const words = await transcribeAudio(buffer, audio.name || `capture.${ext}`, audio.type || `audio/${ext}`);
-        await recordUsage(db, { provider: "openai", tag: "capture.transcribe", model: "whisper-1", input_tokens: 0, output_tokens: 0, cost_pence: costPence(null, 0, 0, whisperUsd(audio.size)) });
+        // The meter counts the call under capture.transcribe (lib/system/aiMeter.ts); nothing is recorded by hand.
+        const words = await transcribeAudio(buffer, audio.name || `capture.${ext}`, audio.type || `audio/${ext}`, { feature: "capture.transcribe" });
         await applyTranscript(db, uid, received.id, words, "whisper_cloud");
       }
       await sweepCaptures(db, uid, { limit: 5 });

@@ -39,6 +39,7 @@ export const SCHEDULE: readonly ScheduledJob[] = [
   { path: "/api/cron/finds", everyMinutes: 60, londonHours: [8, 21], why: "the Finds feed: the watchers once a day, verdicts for what has waited, and on Sunday evening the week's digest" },
   { path: "/api/cron/gift-occasions", everyMinutes: 60, londonHours: [8, 9], why: "once a morning: birthday and fixed occasions seeded, annual ones rolled forward, dates of birth reconciled (gifts spec §5)" },
   { path: "/api/cron/gift-reminders", everyMinutes: 60, londonHours: [8, 9], why: "once a morning, after the occasions: the gift task when a lead window opens and one vague nudge on a lead day (gifts spec §6)" },
+  { path: "/api/cron/reference", everyMinutes: 60, londonHours: [4, 5], why: "on Sunday morning, after the Gousto sync: cold recipe details move to the PC's reference store (the route skips other days)" },
   { path: "/api/cron/quotes-research", everyMinutes: 30, why: "quote research that did not finish after its request" },
   { path: "/api/cron/rundowns", everyMinutes: 60, why: "weekly rundowns, sent in each team's hour" },
   { path: "/api/cron/ai-models", everyMinutes: 60, londonHours: [5, 6], why: "once a day at five: the AI providers' model lists, first and last seen; a nudge on a new model and on a retired one still pinned (MYC-190)" },

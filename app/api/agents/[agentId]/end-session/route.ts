@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { MODEL_CHAT } from "@/lib/config/models";
 import { createUserClient } from "@/lib/supabase/user";
 import { MEMORY_UPDATE_PROMPT } from "@/lib/agents/prompts";
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
 
 export const runtime = "nodejs";
 
@@ -17,6 +18,7 @@ async function callClaude(
     method: "POST",
     headers: {
       "x-api-key": apiKey,
+      [FEATURE_HEADER]: "agents.session",
       "anthropic-version": "2023-06-01",
       "Content-Type": "application/json",
     },

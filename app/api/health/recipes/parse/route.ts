@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MODEL_VISION } from "@/lib/config/models";
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
 
 export const runtime = "nodejs";
 
@@ -67,6 +68,7 @@ ${PARSE_PROMPT}`
       method: "POST",
       headers: {
         "x-api-key": apiKey,
+        [FEATURE_HEADER]: "health.recipes",
         "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },

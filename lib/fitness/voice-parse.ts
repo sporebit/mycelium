@@ -395,6 +395,7 @@ export async function parseWorkoutVoice(
     : BASE_SYSTEM_PROMPT;
 
   const out = await callClaudeJSON<ParsedWorkout>({
+    feature: "fitness.voice-parse",
     systemPrompt,
     userMessage: userPrompt,
     validate,

@@ -1,4 +1,6 @@
 # Registers the Mycelium PC worker as a scheduled task for the signed-in user.
+# First time on a machine: pc-worker\setup.ps1 (the Python environment, the
+# voice's model files, then this).
 #
 #   powershell -ExecutionPolicy Bypass -File pc-worker\register.ps1            register (or re-register) and start
 #   powershell -ExecutionPolicy Bypass -File pc-worker\register.ps1 -Remove    stop and remove

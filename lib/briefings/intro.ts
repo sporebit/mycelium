@@ -1,4 +1,5 @@
 import type { BriefingData } from "./data";
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
 
 const SYSTEM_PROMPT = `You are writing the opening line of Phil's daily briefing. One sentence. Energetic but not cheesy. Reference one concrete thing from today — the weather, a calendar event, a habit streak, a notable financial movement, or a blocker — whichever feels most worth flagging. Don't say "Good morning". Don't use exclamation marks. UK English. Cap at 25 words.`;
 
@@ -68,6 +69,7 @@ export async function generateIntro(
       method: "POST",
       headers: {
         "x-api-key": apiKey,
+        [FEATURE_HEADER]: "briefing.intro",
         "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },

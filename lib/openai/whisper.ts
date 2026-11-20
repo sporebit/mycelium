@@ -1,3 +1,5 @@
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
+
 const CAPTURE_PROMPT =
   "A personal capture, possibly about tasks, ideas, meetings, reflections, or daily observations. Names of people and places may include: Phil, Sporebit, Myphelium2, Armthorpe, Doncaster.";
 
@@ -5,7 +7,7 @@ export async function transcribeAudio(
   buffer: ArrayBuffer,
   filename = "audio.ogg",
   contentType = "audio/ogg",
-  opts: { prompt?: string } = {},
+  opts: { prompt?: string; feature?: string } = {},
 ): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY missing");
@@ -24,7 +26,8 @@ export async function transcribeAudio(
 
   const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}` },
+    // The meter files the cost under the feature (lib/system/aiMeter.ts); the header does not reach OpenAI.
+    headers: { Authorization: `Bearer ${apiKey}`, [FEATURE_HEADER]: opts.feature ?? "capture.transcribe" },
     body: form,
   });
 

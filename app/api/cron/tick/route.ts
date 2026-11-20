@@ -12,6 +12,7 @@ import { GET as finds } from "../finds/route";
 import { GET as giftOccasions } from "../gift-occasions/route";
 import { GET as giftReminders } from "../gift-reminders/route";
 import { GET as quotesResearch } from "../quotes-research/route";
+import { GET as reference } from "../reference/route";
 import { GET as reminders } from "../reminders/route";
 import { GET as rundowns } from "../rundowns/route";
 import { GET as ticketsCheckins } from "../tickets-checkins/route";
@@ -33,6 +34,7 @@ const HANDLERS: Record<string, Handler> = {
   "/api/cron/gift-occasions": giftOccasions,
   "/api/cron/gift-reminders": giftReminders,
   "/api/cron/quotes-research": quotesResearch,
+  "/api/cron/reference": reference,
   "/api/cron/rundowns": rundowns,
   "/api/cron/ai-models": aiModels,
 };

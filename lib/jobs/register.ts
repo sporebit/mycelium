@@ -8,3 +8,5 @@ import "@/lib/capture/jobs";
 import "@/lib/daily/firstSteps";
 import "@/lib/finds/verdict";
 import "@/lib/finds/audit";
+import "@/lib/speech/server";
+import "@/lib/reference/jobs";

@@ -1,4 +1,7 @@
-export async function generateEmbedding(text: string): Promise<number[]> {
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
+
+/** `feature` is the tag the meter files the cost under (lib/system/aiMeter.ts). */
+export async function generateEmbedding(text: string, feature = "capture.embed"): Promise<number[]> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY missing");
 
@@ -7,6 +10,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
+      [FEATURE_HEADER]: feature,
     },
     body: JSON.stringify({
       model: "text-embedding-3-small",

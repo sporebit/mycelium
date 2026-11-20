@@ -3,6 +3,7 @@ import { MODEL_CHAT } from "@/lib/config/models";
 import { createUserClient } from "@/lib/supabase/user";
 import { buildAgentSystemPrompt } from "@/lib/agents/system";
 import { executeTool } from "@/lib/agents/tools";
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
 
 export const runtime = "nodejs";
 
@@ -33,6 +34,7 @@ async function callClaude(
     method: "POST",
     headers: {
       "x-api-key": apiKey,
+      [FEATURE_HEADER]: "agents.tool",
       "anthropic-version": "2023-06-01",
       "Content-Type": "application/json",
     },

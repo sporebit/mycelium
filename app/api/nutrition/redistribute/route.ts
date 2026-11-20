@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
   }
 
   const result = await callClaudeJSON<Macros>({
+    feature: "nutrition.redistribute",
     systemPrompt: SYSTEM_PROMPT,
     userMessage: `Food: ${name}\nTarget kcal: ${kcal}`,
     validate,

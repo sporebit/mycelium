@@ -405,6 +405,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
   },
   {
     section: "platform",
+    group: "speech",
+    tables: ["speech_clips"],
+    note: "A line the PC's voice has rendered (0179): the words, the voice, the file in the private speech bucket. Personal: what the app says to a person is theirs.",
+  },
+  {
+    section: "platform",
     group: "jobs",
     tables: ["jobs"],
     note: "Work queued for the PC or the cloud (0159); owned by the user whose data it touches, claimed by the worker with the service role.",

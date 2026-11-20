@@ -45,6 +45,13 @@ type UsageData = {
     total_cost_usd?: number;
     error?: string;
   };
+  recorded?: {
+    available: boolean;
+    cap_pence: number;
+    spent_pence: number;
+    by_feature: { feature: string; name: string; pence: number; calls: number }[];
+    error?: string;
+  };
   internal: {
     vision_scans: number;
     agent_messages: number;
@@ -525,13 +532,50 @@ export default function ApiUsagePage() {
           </a>
         </div>
 
-        {/* SECTION 4 — Internal Myphelium2 API calls */}
+        {/* SECTION 4 — What the meter recorded, by feature */}
+        {data.recorded && (
+          <div className="rounded-v2-md bg-surface-1 p-5 flex flex-col gap-4" data-testid="recorded-by-feature">
+            <Mono className="text-[11px] text-text-lo tracking-[0.18em]">
+              THIS MONTH, BY FEATURE
+            </Mono>
+            <Mono className="text-[9px] text-text-lo block">
+              {data.recorded.available
+                ? `Recorded by the meter on every paid call: £${(data.recorded.spent_pence / 100).toFixed(2)} of the £${(data.recorded.cap_pence / 100).toFixed(2)} cap. This is the figure the cap is enforced from.`
+                : `The recorded usage could not be read${data.recorded.error ? `: ${data.recorded.error}` : "."}`}
+            </Mono>
+            {data.recorded.by_feature.length > 0 && (
+              <table className="w-full text-[10px] font-[family-name:var(--font-mono)]">
+                <thead>
+                  <tr className="text-text-lo text-left">
+                    <th className="pb-1 font-normal">Feature</th>
+                    <th className="pb-1 font-normal text-right">Calls</th>
+                    <th className="pb-1 font-normal text-right">Spent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.recorded.by_feature.map((f) => (
+                    <tr key={f.feature} className="text-text-mid border-t border-hairline">
+                      <td className="py-1">
+                        {f.name}
+                        {f.name !== f.feature && <span className="text-text-lo"> · {f.feature}</span>}
+                      </td>
+                      <td className="py-1 text-right">{f.calls}</td>
+                      <td className="py-1 text-right">£{(f.pence / 100).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+
+        {/* SECTION 5 — Internal Myphelium2 API calls (estimates from row counts, older than the meter) */}
         <div className="rounded-v2-md bg-surface-1 p-5 flex flex-col gap-4">
           <Mono className="text-[11px] text-text-lo tracking-[0.18em]">
             INTERNAL MYPHELIUM2 USAGE
           </Mono>
           <Mono className="text-[9px] text-text-lo block">
-            Estimated Anthropic token spend by feature this month
+            Estimated Anthropic token spend by feature this month (from row counts; the table above is what was recorded)
           </Mono>
           <table className="w-full text-[10px] font-[family-name:var(--font-mono)]">
             <thead>

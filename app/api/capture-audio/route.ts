@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { cloudAllowed } from "@/lib/ai/budget";
-import { costPence, recordUsage } from "@/lib/ai/usage";
-import { captureRecording, whisperUsd } from "@/lib/capture/receiveAudio";
+import { captureRecording } from "@/lib/capture/receiveAudio";
 import { transcribeAudio } from "@/lib/openai/whisper";
 import { audioExtension } from "@/lib/storage/captures";
 import { createUserClient } from "@/lib/supabase/user";
@@ -62,8 +61,8 @@ export async function POST(req: NextRequest) {
       return fail("transcription_unavailable", 503, { summary: "Voice typing is off for now (the month's AI allowance is used, or no key is set)." });
     }
     try {
-      const transcription = (await transcribeAudio(await audio.arrayBuffer(), audio.name || `speech.${ext}`, audio.type || `audio/${ext}`)).trim();
-      await recordUsage(supabase, { provider: "openai", tag: "voice.transcribe", model: "whisper-1", input_tokens: 0, output_tokens: 0, cost_pence: costPence(null, 0, 0, whisperUsd(audio.size)) });
+      // The meter counts the call under voice.transcribe (lib/system/aiMeter.ts).
+      const transcription = (await transcribeAudio(await audio.arrayBuffer(), audio.name || `speech.${ext}`, audio.type || `audio/${ext}`, { feature: "voice.transcribe" })).trim();
       return NextResponse.json({ ok: true, status: "ok", transcription });
     } catch (err) {
       console.error("[capture-audio] transcribe_only failed:", err);
