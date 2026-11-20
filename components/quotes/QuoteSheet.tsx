@@ -37,12 +37,15 @@ function fromQuote(q: QuoteRow) {
 export function QuoteSheet({
   quote,
   people,
+  researchOff = false,
   onClose,
   onChanged,
   onDeleted,
 }: {
   quote: QuoteRow | null;
   people: PersonOption[];
+  /** The server has no AI key: a pending quote is waiting, not being researched. */
+  researchOff?: boolean;
   onClose: () => void;
   onChanged: (q: QuoteRow) => void;
   onDeleted: (id: string) => void;
@@ -54,6 +57,7 @@ export function QuoteSheet({
           key={quote.id}
           quote={quote}
           people={people}
+          researchOff={researchOff}
           onClose={onClose}
           onChanged={onChanged}
           onDeleted={onDeleted}
@@ -67,12 +71,14 @@ export function QuoteSheet({
 function QuoteSheetBody({
   quote,
   people,
+  researchOff,
   onClose,
   onChanged,
   onDeleted,
 }: {
   quote: QuoteRow;
   people: PersonOption[];
+  researchOff: boolean;
   onClose: () => void;
   onChanged: (q: QuoteRow) => void;
   onDeleted: (id: string) => void;
@@ -250,9 +256,9 @@ function QuoteSheetBody({
       <div className="rounded-md border border-ink-2 p-3 flex flex-col gap-3">
         <div className="flex items-center justify-between gap-2">
           <span className="card-eyebrow">Research</span>
-          <ResearchBadge q={quote} />
+          <ResearchBadge q={quote} off={researchOff} />
         </div>
-        <ResearchPanel q={quote} />
+        <ResearchPanel q={quote} off={researchOff} />
         <label className="flex flex-col gap-1">
           <span className="card-eyebrow">Attributed to</span>
           <input

@@ -63,7 +63,10 @@ function parsePayload(text: string): Omit<ResearchPayload, "model" | "searched_a
 /** Run research for one quote; writes status/research on the row. */
 export async function researchQuote(db: SupabaseClient, id: string, opts: { force?: boolean } = {}): Promise<Result> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return { ok: false, error: "ANTHROPIC_API_KEY missing", status: 500 };
+  // No key is a state of the server, not a fault: answer 409 with words the
+  // quote sheet can show, and leave the row as it is so the sweeper picks a
+  // pending quote up once a key is set.
+  if (!apiKey) return { ok: false, error: "Research is unavailable: no AI key is set on this server.", status: 409 };
   const { data } = await db.from("quotes").select("id, text, context, source, research_status, research, is_own").eq("id", id).maybeSingle();
   const q = data as { id: string; text: string; context: string | null; source: string | null; research_status: string; research: Record<string, unknown> | null; is_own: boolean } | null;
   if (!q) return { ok: false, error: "not found", status: 404 };

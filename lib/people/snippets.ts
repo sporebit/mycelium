@@ -22,8 +22,9 @@ export async function mentionSnippets(db: SupabaseClient, mentions: MentionRef[]
     })(),
     (async () => {
       if (!taskIds.length) return;
-      const { data } = await db.from("tickets").select("id, key, title").in("id", taskIds);
-      for (const r of (data ?? []) as Array<{ id: string; key: string | null; title: string }>) out.set(`task:${r.id}`, r.key ? `${r.key} — ${r.title}` : r.title);
+      // `ticket_key` is the "MYC-12" key; `key` on tickets is the boolean "key task" flag, which is what this used to read.
+      const { data } = await db.from("tickets").select("id, ticket_key, title").in("id", taskIds);
+      for (const r of (data ?? []) as Array<{ id: string; ticket_key: string | null; title: string }>) out.set(`task:${r.id}`, r.ticket_key ? `${r.ticket_key} — ${r.title}` : r.title);
     })(),
     (async () => {
       if (!journalIds.length) return;

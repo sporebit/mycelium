@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { principalUid, readJson, ticketWriteGate } from "@/lib/tickets/server";
-import { QUOTE_SELECT } from "@/lib/quotes/server";
+import { canSeePerson, QUOTE_SELECT } from "@/lib/quotes/server";
 
 export const runtime = "nodejs";
 
@@ -66,6 +66,9 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     const supabase = await createUserClient();
     const limited = await ticketWriteGate(supabase, uid);
     if (limited) return limited;
+    if (typeof update.said_by_person_id === "string" && !(await canSeePerson(supabase, update.said_by_person_id))) {
+      return NextResponse.json({ error: "No such person." }, { status: 400 });
+    }
     const { data, error } = await supabase.from("quotes").update(update).eq("id", id).select(QUOTE_SELECT).maybeSingle();
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     if (!data) return NextResponse.json({ error: "not found" }, { status: 404 });

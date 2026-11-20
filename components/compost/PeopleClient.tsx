@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSWRConfig } from "swr";
 import { useApi } from "@/lib/data/useApi";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
@@ -108,7 +109,18 @@ export function PeopleClient() {
     return data.people ?? [];
   }, [data, error]);
   const reviewCount = data?.review_count ?? 0;
-  const load = () => void mutate();
+  // Promote, archive, reject and merge move a person between the lists
+  // behind the other chips. Those lists are cached under their own keys, and
+  // a chip pressed within the dedupe window showed the old one: a contact
+  // just promoted was missing from People. Drop them so they load afresh
+  // (revalidate must stay on: it is what clears the dedupe entry).
+  const { mutate: mutateCache } = useSWRConfig();
+  const listKey = `/api/people?tier=${tier}&archived=${filter === "archived" ? "true" : "false"}`;
+  const refresh = async () => {
+    await mutate();
+    void mutateCache((key) => typeof key === "string" && key.startsWith("/api/people?") && key !== listKey, undefined, { revalidate: true });
+  };
+  const load = () => void refresh();
 
   const relationships = useMemo(() => {
     const s = new Set<string>();
@@ -178,7 +190,7 @@ export function PeopleClient() {
     setBusyId(id);
     try {
       const r = await fetch(`/api/people/${id}/promote`, { method: "POST" });
-      if (r.ok) await mutate();
+      if (r.ok) await refresh();
     } finally {
       setBusyId(null);
     }
@@ -201,7 +213,7 @@ export function PeopleClient() {
       const j = (await r.json().catch(() => ({}))) as { error?: string; ignored?: number };
       if (!r.ok) throw new Error(j.error ?? `${r.status}`);
       if (action === "reject") setNotice(`Rejected “${displayName(p)}” — ${j.ignored ?? 0} word${j.ignored === 1 ? "" : "s"} now ignored. Restore from Settings → People → Bin.`);
-      await mutate();
+      await refresh();
     } catch (e) {
       setNotice(e instanceof Error ? e.message : "action failed");
     } finally {
@@ -233,7 +245,7 @@ export function PeopleClient() {
       );
       setSelected([]);
       setSelecting(false);
-      await mutate();
+      await refresh();
     } catch (e) {
       setNotice(e instanceof Error ? e.message : "bulk action failed");
     } finally {

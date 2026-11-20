@@ -64,6 +64,8 @@ export function PersonDetail({ id }: { id: string }) {
   const [deleting, setDeleting] = useState(false);
   const [promoting, setPromoting] = useState(false);
   const [archiving, setArchiving] = useState(false);
+  // 404: deleted to the bin, or not one of this user's people. Without this the page said "Loading…" for ever.
+  const [missing, setMissing] = useState(false);
   const notesTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadPerson = useCallback(async () => {
@@ -99,6 +101,7 @@ export function PersonDetail({ id }: { id: string }) {
         } else if (mounted) {
           setQuotes([]);
         }
+        if (pRes.status === 404 && mounted) setMissing(true);
         if (pRes.ok) {
           const j = (await pRes.json()) as { person: PersonWithAliases; resolved_from?: string | null };
           if (mounted) {
@@ -186,6 +189,22 @@ export function PersonDetail({ id }: { id: string }) {
   }
 
 
+  if (!person && missing) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Link href="/organisation/people" className="text-[11px] text-ink-3 hover:text-ink-4 font-[family-name:var(--font-mono)] tracking-[0.18em] self-start">
+          ← PEOPLE
+        </Link>
+        <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">
+          This person is not here. If they were deleted, they can be restored from the bin in{" "}
+          <Link href="/other/settings/people" className="text-glow-2 hover:underline not-italic">
+            Settings → People
+          </Link>{" "}
+          for 30 days.
+        </div>
+      </div>
+    );
+  }
   if (!person) {
     return (
       <div className="text-sm text-ink-3 italic font-[family-name:var(--font-display)] py-12 text-center">

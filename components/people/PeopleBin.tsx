@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSWRConfig } from "swr";
 import { useApi } from "@/lib/data/useApi";
 import { Mono } from "@/components/dashboard/Mono";
 import type { Person } from "@/lib/people/types";
@@ -13,7 +14,12 @@ export function PeopleBin() {
   const { data, error: loadError, mutate } = useApi<{ people: Person[]; purge_after_days: number }>("/api/people/bin");
   const rows: Person[] | null = loadError ? [] : (data?.people ?? null);
   const days = data?.purge_after_days ?? 30;
-  const load = () => mutate();
+  const { mutate: mutateCache } = useSWRConfig();
+  // Restoring a rejected person takes their words off the ignore list, which is the next card down and has its own cache entry.
+  const load = async () => {
+    await mutate();
+    await mutateCache("/api/people/ignored");
+  };
 
   async function restore(id: string) {
     setBusy(id);

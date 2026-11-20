@@ -83,12 +83,25 @@ export type CreateQuoteInput = {
   skip_research?: boolean;
 };
 
+/**
+ * True when the caller can see this person. The foreign key alone accepts
+ * any person id, including one in a space the caller has no access to, so
+ * every write that names a speaker asks first.
+ */
+export async function canSeePerson(db: SupabaseClient, personId: string): Promise<boolean> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(personId)) return false;
+  const { data } = await db.from("people").select("id").eq("id", personId).maybeSingle();
+  return !!data;
+}
+
 export async function createQuote(db: SupabaseClient, input: CreateQuoteInput): Promise<QuoteRow> {
-  const is_own = input.is_own === true || !input.said_by_person_id && input.is_own !== false;
+  // a speaker the caller cannot see is no speaker (the routes refuse it earlier with a 400)
+  const speakerId = input.said_by_person_id && (await canSeePerson(db, input.said_by_person_id)) ? input.said_by_person_id : null;
+  const is_own = input.is_own === true || !speakerId && input.is_own !== false;
   const row = {
     text: input.text.trim(),
     raw_text: input.raw_text ?? null,
-    said_by_person_id: is_own ? null : (input.said_by_person_id ?? null),
+    said_by_person_id: is_own ? null : speakerId,
     is_own,
     speaker_confidence: input.speaker_confidence ?? "certain",
     context: input.context ?? null,
@@ -110,7 +123,11 @@ export async function createQuoteFromExtraction(
   opts: { raw_text: string; capture_id: string; said_by_person_id?: string | null; is_own?: boolean },
 ): Promise<QuoteRow> {
   const resolved = opts.said_by_person_id !== undefined ? { person_id: opts.said_by_person_id } : await resolveSpeaker(db, ex.is_own ? null : ex.speaker);
-  const is_own = opts.is_own ?? (ex.is_own || !resolved.person_id);
+  // A named speaker who matches nobody stays "unknown speaker" (uncertain),
+  // which is what the review card offers as "approve as unknown". Falling
+  // back to Me here recorded someone else's words as Phil's, marked certain.
+  // No name at all still means Me: the extraction sets is_own for that.
+  const is_own = opts.is_own ?? ex.is_own;
   return createQuote(db, {
     text: ex.text,
     raw_text: opts.raw_text,

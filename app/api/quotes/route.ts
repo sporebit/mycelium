@@ -4,7 +4,7 @@ import { after } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { auditListRead } from "@/lib/system/readAudit";
 import { principalUid, readJson, ticketWriteGate } from "@/lib/tickets/server";
-import { createQuote, findSimilar, QUOTE_SELECT, type QuoteRow } from "@/lib/quotes/server";
+import { canSeePerson, createQuote, findSimilar, QUOTE_SELECT, type QuoteRow } from "@/lib/quotes/server";
 import { researchQuote } from "@/lib/quotes/research";
 import { similarity } from "@/lib/quotes/text";
 
@@ -52,7 +52,8 @@ export async function GET(req: NextRequest) {
         .slice(0, limit)
         .map((x) => x.r);
     }
-    return NextResponse.json({ quotes: rows });
+    // With no AI key nothing will research a pending quote; the list says so rather than "researching".
+    return NextResponse.json({ quotes: rows, research_available: !!process.env.ANTHROPIC_API_KEY });
   } catch (err) {
     console.error("[/api/quotes GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });
@@ -83,6 +84,9 @@ export async function POST(req: NextRequest) {
     const supabase = await createUserClient();
     const limited = await ticketWriteGate(supabase, uid);
     if (limited) return limited;
+    if (typeof body?.said_by_person_id === "string" && body.said_by_person_id && body.is_own !== true && !(await canSeePerson(supabase, body.said_by_person_id))) {
+      return NextResponse.json({ error: "No such person." }, { status: 400 });
+    }
     if (!body?.force) {
       const similar = await findSimilar(supabase, text);
       if (similar.length) return NextResponse.json({ error: "near-duplicate", similar }, { status: 409 });

@@ -52,7 +52,8 @@ export function QuotesClient() {
   if (person) params.set("person", person);
   if (merch) params.set("merch", "1");
   const key = `/api/quotes${params.toString() ? `?${params}` : ""}`;
-  const { data, mutate } = useApi<{ quotes: QuoteRow[] }>(key);
+  const { data, mutate } = useApi<{ quotes: QuoteRow[]; research_available?: boolean }>(key);
+  const researchOff = data?.research_available === false;
   const { data: peopleData } = useApi<{ people: PeopleApiRow[] }>("/api/people");
   const people: PersonOption[] = (peopleData?.people ?? []).map((p) => ({
     id: p.id,
@@ -68,8 +69,8 @@ export function QuotesClient() {
   for (const r of quotes) if (r.said_by_person_id) chipPeople.set(r.said_by_person_id, quotePersonName(r) ?? "person");
   if (person && person !== "mine" && !chipPeople.has(person)) chipPeople.set(person, people.find((p) => p.id === person)?.name ?? "person");
 
-  const replace = (row: QuoteRow) => void mutate((cur) => (cur ? { quotes: cur.quotes.map((x) => (x.id === row.id ? row : x)) } : cur), { revalidate: false });
-  const remove = (id: string) => void mutate((cur) => (cur ? { quotes: cur.quotes.filter((x) => x.id !== id) } : cur), { revalidate: false });
+  const replace = (row: QuoteRow) => void mutate((cur) => (cur ? { ...cur, quotes: cur.quotes.map((x) => (x.id === row.id ? row : x)) } : cur), { revalidate: false });
+  const remove = (id: string) => void mutate((cur) => (cur ? { ...cur, quotes: cur.quotes.filter((x) => x.id !== id) } : cur), { revalidate: false });
   const toggleMerch = async (row: QuoteRow) => {
     replace({ ...row, merch: !row.merch });
     try {
@@ -208,13 +209,13 @@ export function QuotesClient() {
           <section key={g.key} className="flex flex-col gap-2">
             {g.label && <div className="card-eyebrow pt-2">{g.label}</div>}
             {g.rows.map((r) => (
-              <QuoteCard key={r.id} q={r} onOpen={(x) => setOpenId(x.id)} onToggleMerch={(x) => void toggleMerch(x)} showPerson={view !== "person"} />
+              <QuoteCard key={r.id} q={r} onOpen={(x) => setOpenId(x.id)} onToggleMerch={(x) => void toggleMerch(x)} showPerson={view !== "person"} researchOff={researchOff} />
             ))}
           </section>
         ))
       )}
 
-      <QuoteSheet quote={open} people={people} onClose={() => setOpenId(null)} onChanged={replace} onDeleted={remove} />
+      <QuoteSheet quote={open} people={people} researchOff={researchOff} onClose={() => setOpenId(null)} onChanged={replace} onDeleted={remove} />
     </div>
   );
 }

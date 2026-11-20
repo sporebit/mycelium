@@ -29,8 +29,9 @@ const BADGE: Record<QuoteRow["research_status"], { label: string; cls: string }>
 
 const CONF: Record<string, string> = { high: "text-ok", medium: "text-warn", low: "text-text-2" };
 
-export function ResearchBadge({ q, onClick, open }: { q: QuoteRow; onClick?: () => void; open?: boolean }) {
-  const b = BADGE[q.research_status] ?? BADGE.pending;
+/** `off`: the server has no AI key, so a pending quote is waiting, not being researched. */
+export function ResearchBadge({ q, onClick, open, off }: { q: QuoteRow; onClick?: () => void; open?: boolean; off?: boolean }) {
+  const b = off && q.research_status === "pending" ? { label: "research off", cls: "border-ink-4 text-text-2" } : (BADGE[q.research_status] ?? BADGE.pending);
   const conf = (q.research as Partial<ResearchPayload> | null)?.confidence;
   return (
     <button
@@ -46,9 +47,10 @@ export function ResearchBadge({ q, onClick, open }: { q: QuoteRow; onClick?: () 
 }
 
 /** The §3.1 payload, inline. */
-export function ResearchPanel({ q }: { q: QuoteRow }) {
+export function ResearchPanel({ q, off }: { q: QuoteRow; off?: boolean }) {
   const r = (q.research ?? null) as Partial<ResearchPayload> | null;
   if (!r || (!r.verdict && !r.error)) {
+    if (off && q.research_status === "pending") return <div className="text-xs text-ink-3 italic">Research is off on this server: no AI key is set. The quote waits and is looked up once one is.</div>;
     return <div className="text-xs text-ink-3 italic">{q.research_status === "skipped" ? "Skipped — sounded like their own words. Re-run to check anyway." : "No research yet."}</div>;
   }
   return (
@@ -94,11 +96,13 @@ export function QuoteCard({
   onOpen,
   onToggleMerch,
   showPerson = true,
+  researchOff = false,
 }: {
   q: QuoteRow;
   onOpen?: (q: QuoteRow) => void;
   onToggleMerch?: (q: QuoteRow) => void;
   showPerson?: boolean;
+  researchOff?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const who = q.is_own ? "Me" : quotePersonName(q);
@@ -121,13 +125,14 @@ export function QuoteCard({
             <span className="rounded-full bg-ink-2 px-2 py-0.5 text-text-2 italic">unknown speaker</span>
           ))}
         {q.speaker_confidence === "uncertain" && <span className="text-warn">speaker uncertain</span>}
-        {q.attributed_to && q.research_status === "found" && <span className="text-text-2">orig. {q.attributed_to}</span>}
+        {/* research sets this, and so can the sheet by hand; Wrong and Their own clear it, so whatever is here is meant to show */}
+        {q.attributed_to && <span className="text-text-2">orig. {q.attributed_to}</span>}
         <Mono className="text-[10px] text-text-2">
           added {added}
           {said && said !== added ? ` · said ${said}` : ""}
         </Mono>
         <span className="flex-1" />
-        <ResearchBadge q={q} open={open} onClick={() => setOpen((v) => !v)} />
+        <ResearchBadge q={q} open={open} off={researchOff} onClick={() => setOpen((v) => !v)} />
         <button
           type="button"
           onClick={() => onToggleMerch?.(q)}
@@ -140,7 +145,7 @@ export function QuoteCard({
       {q.context && <div className="text-xs text-text-2">{q.context}</div>}
       {open && (
         <div className="rounded-sm border border-ink-2 bg-ink-0/40 px-3 py-2">
-          <ResearchPanel q={q} />
+          <ResearchPanel q={q} off={researchOff} />
         </div>
       )}
     </article>
