@@ -8,6 +8,7 @@ import { suggestContexts } from "@/lib/tickets/suggest";
 import { resolveSpeaker } from "@/lib/quotes/server";
 import { applySpeakerRules, readBack } from "@/lib/quotes/text";
 import { appendCapture } from "@/lib/daylog/engine";
+import { findFromCapture } from "@/lib/finds/capture";
 import { fieldsFromClassification, recordCaptureLearning } from "@/lib/capture/learning";
 
 export type WriteCaptureInput = {
@@ -301,6 +302,11 @@ export async function writeCapture(
     }
     routedTo = "accounts";
     routedId = acctRow.id;
+  } else if (classification.kind === "find") {
+    // The Finds feed (0178): the link is kept once by its URL and the PC gives it a verdict; without a link it is a note.
+    const find = await findFromCapture(supabase, rawText, { title: classification.title, captureId: rawCapture.id });
+    routedTo = find ? "finds" : "raw_captures";
+    routedId = find ? find.id : rawCapture.id;
   } else if (classification.kind === "journal") {
     // Day log (0127): a reflective capture is appended to today's day row
     // (append-only transcript, channel "capture"); the old journal_entries

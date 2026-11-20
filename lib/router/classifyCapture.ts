@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { MODEL_FAST } from "@/lib/config/models";
+import { kindFromHost, linksIn } from "@/lib/finds/url";
 
 /** What the classifier needs to pull the user's own routing rules into
  *  the prompt: a client to read them with, and the auth uid that keys
@@ -33,7 +34,8 @@ export type CaptureKind =
   | "reminder"
   | "media"
   | "account"
-  | "quote";
+  | "quote"
+  | "find";
 export type CaptureUrgency = "today" | "this_week" | "this_month" | "someday";
 export type CaptureMood =
   | "energised"
@@ -164,6 +166,7 @@ const KINDS: readonly CaptureKind[] = [
   "media",
   "account",
   "quote",
+  "find",
 ];
 
 const PAIN_FEEL_RATINGS: readonly PainFeel[] = [
@@ -212,7 +215,8 @@ const MOODS: readonly CaptureMood[] = [
 export const CLASSIFIER_SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
 
 Rules:
-- "kind" is one of: task, note, decision, idea, journal, capture, workout, purchase, pain_log, reminder, media, account, quote.
+- "kind" is one of: task, note, decision, idea, journal, capture, workout, purchase, pain_log, reminder, media, account, quote, find.
+  - find = a link to a tool, library, repo, skill, MCP server, article or post the user wants to look at later, usually a URL with a few words ("look at this", "for the agency", "nice animation lib"). The title is what it is, not the URL. A product to buy is a purchase; a film, book or album is media; a link inside a longer thought is whatever the thought is.
   - task = an action the user needs to DO (not buy), with NO explicit time/date trigger.
   - reminder = the user explicitly wants to be reminded at a specific time or after a delay. Signals: "remind me", "set a reminder", "in 30 minutes", "at 8pm", "every day at", "tomorrow at". If there's a concrete time/date/delay attached to a task-like request, classify as reminder, not task.
   - decision = a choice the user wants to record.
@@ -835,8 +839,13 @@ function classifyRegex(text: string): Classification {
     /\b[a-z]+ (told me|came out with)\b/.test(lower) ||
     /\b(write that down|going on a t-shirt)\b/.test(lower);
 
+  // A link to a repo, a post, a skill or a tool is a find (lib/finds/url.ts) unless the words say buy or watch.
+  const findSignals = !purchaseSignals && !mediaSignals && linksIn(text).some((l) => kindFromHost(l) !== null);
+
   let kind: CaptureKind = "capture";
-  if (quoteSignals && !workoutSignals) {
+  if (findSignals) {
+    kind = "find";
+  } else if (quoteSignals && !workoutSignals) {
     kind = "quote";
   } else if (/\b(decided|decision|chose|choosing)\b/.test(lower)) {
     kind = "decision";

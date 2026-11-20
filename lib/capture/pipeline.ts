@@ -29,6 +29,8 @@ import { cloudAllowed } from "@/lib/ai/budget";
 import { costPence, recordUsage } from "@/lib/ai/usage";
 import { MODEL_FAST } from "@/lib/config/models";
 import { fileToFamily } from "@/lib/family/capture";
+import { findFromCapture } from "@/lib/finds/capture";
+import { readShare } from "@/lib/finds/url";
 import { routeRawVoice } from "@/lib/fitness/voice-route";
 import { parseWeight } from "@/lib/health/parse-weight";
 import { interrupt } from "@/lib/nudges/interrupt";
@@ -140,6 +142,7 @@ const KIND_LABEL: Record<string, string> = {
   note: "a note",
   capture: "a note",
   person: "a note about a person",
+  find: "a find",
 };
 
 /** "Filed as a task" — the words of the reply after "Saved". */
@@ -264,6 +267,23 @@ export async function processCapture(db: SupabaseClient, uid: string, captureId:
         });
         if (opts.reply) await reply(db, uid, row.id, `On the family timeline: ${filed.title}`, null);
         return { state: "done", kind: "note", title: filed.title, routed_to: "family_entries" };
+      }
+    }
+
+    // 1c. A link to a repo, a post, a skill or a tool, with at most a few words around it (the share sheet, a
+    //     pasted URL), is a find (lib/finds): kept once by its URL, opened and given a verdict later by the PC.
+    //     No model. A link to any other kind of site, or a link inside a longer thought, is left to the classifier.
+    if (!forcedKind && !isChild && readShare(text)) {
+      const find = await findFromCapture(db, text, { captureId: row.id });
+      if (find) {
+        await finish(db, row.id, {
+          classification: { ...(row.classification ?? {}), kind: "find", title: find.title, summary: "", urgency: "someday", key: false, tags: ["find"], confidence: "high", url: find.url },
+          llm_source: "regex",
+          routed_to: "finds",
+          routed_id: find.id,
+        });
+        if (opts.reply) await reply(db, uid, row.id, `Kept as a find: ${find.title}`, "The PC will open it and give it a verdict; it is in Sunday's finds.");
+        return { state: "done", kind: "find", title: find.title, routed_to: "finds" };
       }
     }
 

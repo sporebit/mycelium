@@ -19,6 +19,7 @@ import { aliasKey } from "@/lib/people/normalise";
 import { createQuoteFromExtraction, extractionFromClassification } from "@/lib/quotes/server";
 import { researchQuote } from "@/lib/quotes/research";
 import { appendCapture } from "@/lib/daylog/engine";
+import { findFromCapture } from "@/lib/finds/capture";
 import { technicalProjectIds } from "@/lib/tickets/area";
 import { moveTicket } from "@/lib/tickets/server";
 import { rruleFromRecurrence } from "@/lib/tickets/reminderShape";
@@ -343,6 +344,12 @@ export async function createRoutedRow(
     const row = await createQuoteFromExtraction(supabase, ex, { raw_text: rawText, capture_id: rawCaptureId, said_by_person_id: pid });
     if (row.research_status === "pending") after(() => researchQuote(supabase, row.id).catch((e) => console.error("[quotes research]", e)));
     return { routedTo: "quotes", routedId: row.id };
+  }
+
+  if (kind === "find") {
+    // The Finds feed (0178): a card re-routed to "find" keeps its link once; without a link it stays a note.
+    const find = await findFromCapture(supabase, rawText, { title: typeof classification.title === "string" ? classification.title : null, captureId: rawCaptureId });
+    if (find) return { routedTo: "finds", routedId: find.id };
   }
 
   // decision / note / capture / workout / other — leave in raw_captures.
