@@ -1,6 +1,6 @@
 # Four-Day Week Tracker — build spec
 
-*Written 2026-11-19 (Cowork, Everlight project) from Phil's Excel tracker and the chats that built it (Sep–Nov 2026). Status: **§8 answered and build started 2026-11-19 (MYC-176, live checks MYC-177); see §12 for what is built.** Decisions below are Phil's unless marked recommended.*
+*Written 2026-11-19 (Cowork, Everlight project) from Phil's Excel tracker and the chats that built it (Sep–Nov 2026). Status: **§8 answered 2026-11-19; parts 1–4 built and live by 2026-11-20 (MYC-176, live checks MYC-177); see §12. Part 5 (the parallel run, D4) is Phil's.** Decisions below are Phil's unless marked recommended.*
 
 Private companions, gitignored and absent from worktrees, read by absolute path:
 - `A:\Projects\Mycelium\imports\private\four-day-week\seed.json` — every log entry, absences, bank holidays, settings, check figures
@@ -166,12 +166,20 @@ Not in v1 and not to be started without Phil saying Everlight has agreed. If rev
 
 ## 11. Build order
 
-1. Migration, register tables, import path with dry run, seed load, History view. Stop and check §10.
-2. Log: add, edit, states, ticket links, Backlog filter.
-3. Dashboard, Daily, Tickets, Settings.
-4. Export; workbook-column paste/upload for the parallel run.
+1. ✅ Migration, register tables, import path with dry run, seed load, History view. Stop and check §10.
+2. ✅ Log: add, edit, states, ticket links, Backlog filter.
+3. ✅ Dashboard, Daily, Tickets, Settings (+ Rules, the Today glance tile).
+4. ✅ Export; workbook-column paste/upload for the parallel run.
 5. Parallel run by Phil. Workbook retires on his say (D4).
 
 ## 12. As built
 
 - **2026-11-19, part 1 (MYC-176):** migration `0156_hours.sql` (five `hours_*` tables under `organisation.hours`, `hours_apply_import` / `hours_undo_import`, self-check), `lib/hours/` (types, ticket parsing, every derived figure, the import planner; 35 unit tests on synthetic data), `/api/hours/bundle`, `/api/hours/import` (+ `/undo`), `scripts/hours-import.mjs`, pages `/organisation/hours/history` and `/organisation/hours/settings` (Import card), nav entry under Organisation. Not-yet-logged on History counts every unlogged entry dated in the week (Mon–Sun); the check figures agree with all three readings. The Confluence-URL row keeps no key (§3 rule) so the distinct-key count is 135.
+- **2026-11-19/20, parts 2–4 (MYC-176, commits `8c82d6c`, `e69f939` and the import commit after):** the seed was applied to hosted through the import route (run `2c729286`, 460 rows). Then, in the order of §11:
+  - **Log** `/organisation/hours/log` (`components/hours/LogView.tsx`): fast-add bar (date defaults to the last entry's date, Time accepts `0:45` / `45` / `1.5h`, Enter adds, cursor returns to Time), rows grouped by day newest first with the day total and credit, state pip (green / amber / red / open per §3), Logged tick in place, ticket link (D3), click-to-edit in place with Estimate and Delete (soft). Filters: This week / Last week / Week of… (any date) / All, state (All / Not logged / Incomplete / Open), search, sort. `POST /api/hours/entries`, `PATCH|DELETE /api/hours/entries/[id]`; `lib/hours/entry.ts` reads both (ticket key derived server-side, never trusted). **Backlog** `/backlog`: the open-item filter with Estimate and totals.
+  - **Dashboard** `/organisation/hours` (`DashboardView.tsx`): banner, This week, Today (pill, even pace, left today), the checkpoint card with **OPEN BLOCK-OUT EMAIL** (mailto built fresh, `lib/hours/blockout.ts`) and **CALENDAR .ICS** (all-day, free, stable UID per Friday) — O3; Friday card; By day (Mon–Fri with 4-day and 5-day %); Pace; Open backlog. **Daily** `/daily`: this week and last week by day with cumulative Mon–Thu. **Tickets** `/tickets`: this week (% of target, No ticket row) and any From/To range. **Rules** `/rules`: §2 with live figures. **Today glance tile** (O4): `GET /api/hours/glance`, Mon–Thu only, hidden where no tracker exists.
+  - **Settings** (`SettingsView.tsx`): targets and checkpoint with the trade-off table (`PATCH /api/hours/settings`, `lib/hours/settings.ts`); absences (`POST /api/hours/absences`, `DELETE …/[id]`, one row per date, default a standard day); bank holidays with **REFRESH FROM GOV.UK** (`POST /api/hours/bank-holidays/refresh`, England and Wales from the tracking start's year, never overwrites) and manual add/remove; ticket base URL and catch-all tickets (offered as suggestions in the Log's Ticket field); block-out recipients / subject (`{dd/mm/yyyy}`) / body; Export; Import.
+  - **Export** `GET /api/hours/export?format=xlsx|json` (`lib/hours/export.ts`, exceljs): xlsx tabs Log (with Minutes and Entry ID), Absences, Bank Holidays, Settings, Weekly History; JSON is the lossless import shape with ids and `exportedAt`.
+  - **Import** now takes three sources through the one planner: JSON backup, **paste of the workbook's Log columns** (Excel copy = tab-separated; header row optional; dates `19/11/2026` or ISO; Logged `x`) and an **.xlsx** (Log sheet or first sheet; the export's Entry ID column makes it an upsert). `lib/hours/paste.ts` reads both by header alias; unreadable rows are listed by row number and block APPLY like any rejected row.
+  - Tests: 62 unit tests over `lib/hours` (calc, import, ticket, entry, settings, blockout, paste). `isDateKey` now refuses rolled-over dates (31 Feb).
+  - Not built, by decision: Jira (D2, §9), Telegram capture (O5, after the parallel run), a visible ID or status column (§7).
