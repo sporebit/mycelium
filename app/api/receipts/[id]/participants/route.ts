@@ -179,12 +179,19 @@ export async function DELETE(
       .eq("receipt_id", id);
     const lineIds = ((lineRows ?? []) as { id: string }[]).map((l) => l.id);
 
+    // The deleted rows come back so the re-division below can be confined to
+    // the lines this person was actually on.
+    let sharedLineIds: string[] = [];
     if (lineIds.length > 0) {
-      await supabase
+      const { data: removed } = await supabase
         .from("receipt_line_shares")
         .delete()
         .eq("person_id", personId)
-        .in("receipt_line_id", lineIds);
+        .in("receipt_line_id", lineIds)
+        .select("receipt_line_id");
+      sharedLineIds = ((removed ?? []) as { receipt_line_id: string }[]).map(
+        (s) => s.receipt_line_id,
+      );
     }
 
     const { error } = await supabase
@@ -195,8 +202,10 @@ export async function DELETE(
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    // Rebalance every line this person had been sharing evenly with others.
-    await rebalanceLines(id, lineIds);
+    // Rebalance the lines this person had been sharing with others, and only
+    // those: a line they were never on keeps whatever share was set on it by
+    // hand, instead of being reset to an even split.
+    await rebalanceLines(id, sharedLineIds);
 
     return NextResponse.json({ ok: true });
   } catch (err) {

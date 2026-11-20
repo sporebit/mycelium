@@ -76,6 +76,30 @@ export async function removeReceiptImages(paths: string[]): Promise<void> {
   }
 }
 
+/**
+ * Re-files a stored image under another receipt and returns its new path, or
+ * null if the image could not be read. Used when receipts are merged.
+ *
+ * The bucket ties every file to the receipt its path names (0158): it can be
+ * read only while that receipt exists, and removed only by someone who can
+ * edit it. A page left under a receipt that is then deleted would be
+ * unreadable and unremovable from then on. There is no update policy on the
+ * bucket, so this is a copy and a delete rather than a storage move, and it
+ * has to run before the old receipt goes.
+ */
+export async function rehomeReceiptImage(
+  path: string,
+  toReceiptId: string,
+  mediaType: string,
+  sortOrder: number,
+): Promise<string | null> {
+  const buffer = await downloadReceiptImage(path);
+  if (!buffer) return null;
+  const next = await uploadReceiptImage(toReceiptId, buffer, mediaType, sortOrder);
+  await removeReceiptImages([path]);
+  return next;
+}
+
 /** Downloads a stored image back into a Buffer, for re-parsing. */
 export async function downloadReceiptImage(path: string): Promise<Buffer | null> {
   const supabase = await createUserClient();

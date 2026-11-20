@@ -403,7 +403,7 @@ function ReceiptDetailView({
   onChanged: () => void;
 }) {
   const key = `/api/receipts/${id}`;
-  const { data, isLoading, mutate } = useApi<ReceiptDetail>(key);
+  const { data, error, isLoading, mutate } = useApi<ReceiptDetail>(key);
   const [reparsing, setReparsing] = useState(false);
   const [addingPhotos, setAddingPhotos] = useState(false);
   const [splitBusy, setSplitBusy] = useState(false);
@@ -550,6 +550,30 @@ function ReceiptDetailView({
     } catch (e) {
       reportApiError(e, "Could not update line");
     }
+  }
+
+  // A receipt that is gone (deleted, merged away, or never this person's) must
+  // say so and offer the way back, not sit on "Loading…" for good. The id check
+  // covers the list keeping the previous receipt on screen while a new one loads.
+  if (error && (!receipt || receipt.id !== id)) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-[11px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] text-loam-3 hover:text-loam-4 transition-colors"
+          >
+            ← All receipts
+          </button>
+        </div>
+        <p className="text-sm text-loam-3 italic font-[family-name:var(--font-display)] py-8 text-center">
+          {(error as { status?: number }).status === 404
+            ? "This receipt could not be found. It may have been deleted or merged into another."
+            : "This receipt could not be loaded."}
+        </p>
+      </div>
+    );
   }
 
   if (isLoading || !receipt) {
@@ -809,8 +833,15 @@ function EditableTitle({
   onCommit: (v: string | null) => void;
 }) {
   const [draft, setDraft] = useState(value ?? "");
+  // Escape blurs the field, and the blur would otherwise commit the very text
+  // that was just abandoned (the draft in this render is still the typed one).
+  const abandoned = useRef(false);
 
   function commit() {
+    if (abandoned.current) {
+      abandoned.current = false;
+      return;
+    }
     const next = draft.trim() || null;
     if (next !== value) onCommit(next);
   }
@@ -825,6 +856,7 @@ function EditableTitle({
           e.preventDefault();
           e.currentTarget.blur();
         } else if (e.key === "Escape") {
+          abandoned.current = true;
           setDraft(value ?? "");
           e.currentTarget.blur();
         }
@@ -879,7 +911,7 @@ function LineRow({
     setRaw: (v: string) => void,
     stored: number | null,
     commit: (n: number | null) => void,
-    opts?: { title?: string },
+    opts: { label: string; title?: string },
   ) =>
     financeHidden ? (
       <div className="text-right">
@@ -893,8 +925,9 @@ function LineRow({
           const n = numOrNull(raw);
           if (n !== stored) commit(n);
         }}
+        aria-label={opts.label}
         className={cell}
-        title={opts?.title}
+        title={opts.title}
       />
     );
 
@@ -909,6 +942,7 @@ function LineRow({
               onPatch({ description: description.trim() });
             }
           }}
+          aria-label="Description"
           className="w-full bg-transparent outline-none text-loam-4 focus:bg-surface-2 rounded-v2-sm px-1 py-0.5"
         />
         {line.item_code && (
@@ -924,16 +958,21 @@ function LineRow({
             const n = numOrNull(quantity);
             if (n !== null && n !== line.quantity) onPatch({ quantity: n });
           }}
+          aria-label="Quantity"
           className={cell}
         />
       </td>
       <td className="px-3 py-1.5 w-24">
-        {moneyCell(unitPrice, setUnitPrice, line.unit_price, (n) =>
-          onPatch({ unit_price: n }),
+        {moneyCell(
+          unitPrice,
+          setUnitPrice,
+          line.unit_price,
+          (n) => onPatch({ unit_price: n }),
+          { label: "Unit price" },
         )}
       </td>
       <td className="px-3 py-1.5 w-20">
-        {moneyCell(vat, setVat, line.vat, (n) => onPatch({ vat: n }))}
+        {moneyCell(vat, setVat, line.vat, (n) => onPatch({ vat: n }), { label: "VAT" })}
       </td>
       <td className="px-3 py-1.5 w-24">
         {moneyCell(
@@ -943,7 +982,7 @@ function LineRow({
           (n) => {
             if (n !== null) onPatch({ line_total: n });
           },
-          { title: line.raw_text ?? undefined },
+          { label: "Line total", title: line.raw_text ?? undefined },
         )}
         <span className="sr-only">{currency}</span>
       </td>

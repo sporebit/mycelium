@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { parseReceipt } from "@/lib/receipts/parse";
+import { rehomeReceiptImage } from "@/lib/storage/receipts";
 import { RECEIPT_SELECT } from "@/lib/types/receipt";
 
 export const runtime = "nodejs";
@@ -11,6 +12,8 @@ type ImageRow = {
   id: string;
   receipt_id: string;
   sort_order: number;
+  storage_path: string;
+  media_type: string;
 };
 
 /**
@@ -73,7 +76,7 @@ export async function POST(req: NextRequest) {
 
     const { data: imageRows, error: imgErr } = await supabase
       .from("receipt_images")
-      .select("id, receipt_id, sort_order")
+      .select("id, receipt_id, sort_order, storage_path, media_type")
       .in("receipt_id", ids);
 
     if (imgErr) return NextResponse.json({ error: imgErr.message }, { status: 500 });
@@ -91,10 +94,30 @@ export async function POST(req: NextRequest) {
     // constraint, and the two-pass write costs nothing at these row counts.
     const offset = images.length;
     for (let i = 0; i < images.length; i++) {
-      await supabase
-        .from("receipt_images")
-        .update({ receipt_id: keepId, sort_order: offset + i })
-        .eq("id", images[i].id);
+      const image = images[i];
+      const update: Record<string, unknown> = {
+        receipt_id: keepId,
+        sort_order: offset + i,
+      };
+      // A page arriving from another receipt is re-filed under the survivor in
+      // storage as well as in the table: see rehomeReceiptImage(). If one
+      // cannot be moved the merge stops here, before anything is deleted.
+      if (image.receipt_id !== keepId) {
+        const moved = await rehomeReceiptImage(
+          image.storage_path,
+          keepId,
+          image.media_type,
+          i,
+        );
+        if (!moved) {
+          return NextResponse.json(
+            { error: "a page could not be moved, so nothing was deleted" },
+            { status: 500 },
+          );
+        }
+        update.storage_path = moved;
+      }
+      await supabase.from("receipt_images").update(update).eq("id", image.id);
     }
     for (let i = 0; i < images.length; i++) {
       await supabase
@@ -105,8 +128,7 @@ export async function POST(req: NextRequest) {
 
     // Only now are the losing receipts safe to remove: receipt_images cascades
     // on delete, so deleting first would take the images with it. Their storage
-    // objects are deliberately not removed — the rows that name them now belong
-    // to the surviving receipt.
+    // objects have already been re-filed under the surviving receipt above.
     const { error: delErr } = await supabase
       .from("receipts")
       .delete()

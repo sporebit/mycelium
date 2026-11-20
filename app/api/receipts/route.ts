@@ -3,6 +3,7 @@ import { createUserClient } from "@/lib/supabase/user";
 import { auditListRead } from "@/lib/system/readAudit";
 import { parseReceipt } from "@/lib/receipts/parse";
 import { storeReceiptImages, validateReceiptFiles } from "@/lib/receipts/upload";
+import { removeReceiptImages } from "@/lib/storage/receipts";
 import {
   RECEIPT_SELECT,
   RECEIPT_STATUSES,
@@ -107,7 +108,28 @@ export async function POST(req: NextRequest) {
 
     // Store every page before parsing, so a parse failure still leaves the
     // images on disk for a reparse.
-    await storeReceiptImages(receiptId, files);
+    try {
+      await storeReceiptImages(receiptId, files);
+    } catch (err) {
+      // The photographs are not there, so the row is a receipt of nothing and
+      // would sit in the list as UPLOADED for good. Whatever pages did land
+      // are taken back first, while the row still exists for the bucket's
+      // policy to recognise (0158), and then the row itself.
+      console.error("[receipts POST] storing images failed:", err);
+      const { data: storedRows } = await supabase
+        .from("receipt_images")
+        .delete()
+        .eq("receipt_id", receiptId)
+        .select("storage_path");
+      await removeReceiptImages(
+        ((storedRows ?? []) as { storage_path: string }[]).map((r) => r.storage_path),
+      );
+      await supabase.from("receipts").delete().eq("id", receiptId);
+      return NextResponse.json(
+        { error: "the photos could not be stored, so no receipt was created" },
+        { status: 500 },
+      );
+    }
 
     const outcome = await parseReceipt(receiptId);
 

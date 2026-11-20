@@ -154,7 +154,10 @@ function PersonCard({
     "bg-surface-2 border border-hairline rounded-v2-sm px-2 py-1 text-[11px] text-loam-4 outline-none focus:border-glow-dim";
 
   return (
-    <div className="rounded-v2-lg border border-hairline bg-surface-1 overflow-hidden">
+    <div
+      data-testid="balance-card"
+      className="rounded-v2-lg border border-hairline bg-surface-1 overflow-hidden"
+    >
       <div className="flex items-center gap-4 flex-wrap px-4 py-3">
         <span className="text-sm text-loam-4 flex-1 min-w-32">{balance.display_name}</span>
 
