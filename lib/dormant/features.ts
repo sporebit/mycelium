@@ -54,6 +54,8 @@ export const FEATURES: readonly Feature[] = [
   { key: "ventures", label: "Ventures", href: "/ventures", tables: ["ventures", "venture_steps", "venture_inspiration"], quietAfterDays: MONTHLY },
   { key: "drops", label: "Drops", href: "/drops", tables: ["drops", "wishlist_items", "raffle_entries"], quietAfterDays: MONTHLY },
   { key: "places", label: "Places", href: "/places", tables: ["places"], quietAfterDays: SELDOM },
+  // The family space (0171): quiet when neither a note, a name, a list, a cost nor a tap in the baby log for three weeks.
+  { key: "family", label: "Family", href: "/family", tables: ["family_entries", "family_names", "family_name_votes", "family_list_items", "baby_log", "household_items", "household_costs"], quietAfterDays: WEEKLY },
   { key: "clinical", label: "Health records", href: "/health", tables: ["blood_test_sessions", "gut_health_logs", "eye_prescriptions"], quietAfterDays: SELDOM },
 ];
 
