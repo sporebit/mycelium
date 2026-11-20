@@ -59,7 +59,7 @@ async function run(req: NextRequest) {
     }
     ran.push({ path: job.path, status, ms: Date.now() - started });
   }
-  return NextResponse.json({ ok: ran.every((r) => r.status < 500), status: "ok", london_minutes: now.minutes, ran });
+  return NextResponse.json({ ok: ran.every((r) => r.status === 200), status: "ok", london_minutes: now.minutes, ran });
 }
 
 export const GET = run;

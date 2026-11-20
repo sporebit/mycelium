@@ -14,8 +14,12 @@ export const runtime = "nodejs";
  * 15 minutes, so either schedule alone is enough.
  */
 export async function GET(req: NextRequest) {
-  const expected = process.env.REMINDERS_CRON_SECRET;
-  if (!expected || !matchesBearer(req.headers.get("authorization"), expected)) {
+  // Two callers: the older cron-job.org job with its own secret, and the five-minute tick (/api/cron/tick),
+  // which carries the cron secret like every other scheduled job.
+  const authorization = req.headers.get("authorization");
+  const own = process.env.REMINDERS_CRON_SECRET;
+  const allowed = (own && matchesBearer(authorization, own)) || matchesBearer(authorization, process.env.CRON_SECRET);
+  if (!allowed) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   try {

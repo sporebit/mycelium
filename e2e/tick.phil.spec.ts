@@ -46,7 +46,8 @@ test("a real knock runs every job that is due and none of them fails", async ({ 
   expect(res.status(), await res.text()).toBe(200);
   const body = (await res.json()) as { ok: boolean; london_minutes: number; ran: Array<{ path: string; status: number; ms: number }> };
   expect(body.ran.map((r) => r.path)).toEqual(dueJobs(body.london_minutes).map((j) => j.path));
-  for (const r of body.ran) expect(r.status, `${r.path} answered ${r.status}`).toBeLessThan(500);
+  // Exactly 200: "not a server error" once let a refused job (401, a different secret) pass as fine.
+  for (const r of body.ran) expect(r.status, `${r.path} answered ${r.status}`).toBe(200);
   expect(body.ok).toBe(true);
 
   // Knocking twice in the same slot (the PC and cron-job.org together) is harmless.
