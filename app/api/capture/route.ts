@@ -77,8 +77,8 @@ export async function POST(req: NextRequest) {
   const supabase = await createUserClient();
 
   const existingFor = async (clientUuid: string) => {
-    const { data } = await supabase.from("raw_captures").select("id").eq("client_uuid", clientUuid).maybeSingle();
-    return (data?.id as string | undefined) ?? null;
+    const { data } = await supabase.from("raw_captures").select("id").eq("client_uuid", clientUuid).order("created_at", { ascending: true }).limit(1);
+    return ((data ?? [])[0]?.id as string | undefined) ?? null;
   };
 
   try {

@@ -100,7 +100,9 @@ export async function receiveCapture(db: SupabaseClient, input: ReceiveInput): P
 
   // 23505: this client id is already stored. That is the retry working, not a failure.
   if (error?.code === "23505" && clientUuid) {
-    const { data: existing } = await db.from("raw_captures").select("id, status, raw_text").eq("client_uuid", clientUuid).maybeSingle();
+    // Oldest first, one row: the id is unique per space (0162), and the caller may see more than one space.
+    const { data: found } = await db.from("raw_captures").select("id, status, raw_text").eq("client_uuid", clientUuid).order("created_at", { ascending: true }).limit(1);
+    const existing = (found ?? [])[0] as { id: string; status: string; raw_text: string | null } | undefined;
     if (existing) {
       // The audio arrived first and the words second: give the stored capture its text.
       if (!existing.raw_text && original) {

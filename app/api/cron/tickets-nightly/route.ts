@@ -7,6 +7,9 @@ import { londonNow } from "@/lib/tickets/categories";
 import { spawnDue } from "@/lib/tickets/spawn";
 import { syncRepoTemplates } from "@/lib/tickets/templates";
 import { generateMissingRundowns } from "@/lib/tickets/rundown";
+import { autoFileStale } from "@/lib/capture/autofile";
+import { sweepCaptures } from "@/lib/capture/sweep";
+import { activeUserIds } from "@/lib/system/users";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -16,7 +19,10 @@ export const maxDuration = 120;
  *  - spawn recurrence occurrences due within 7 days,
  *  - generate rundowns for tomorrow's scheduled life tickets that lack one
  *    (§9.1, under the monthly cap),
- *  - sync the repo-authored templates.
+ *  - sync the repo-authored templates,
+ *  - for every user: finish any capture that was stored but never
+ *    processed, and file the review cards nobody answered in seven days
+ *    (master run §5).
  * Bearer CRON_SECRET; `?dry=1` reports without writing rundowns.
  */
 export async function GET(req: NextRequest) {
@@ -34,7 +40,22 @@ export async function GET(req: NextRequest) {
       const purgedPeople = dry ? 0 : await purgeDeletedPeople(db, 30);
       return { spawned, templates, rundowns, purgedPeople };
     });
-    return NextResponse.json({ ok: true, today, ...result });
+    // Captures: per person, as that person. One user's failure does not stop the rest.
+    const captures = { swept: 0, transcribed: 0, auto_filed: 0, users: 0 };
+    if (!dry) {
+      for (const uid of await activeUserIds()) {
+        try {
+          const done = await withUser(uid, async (db) => ({ sweep: await sweepCaptures(db, uid, { limit: 25 }), filed: await autoFileStale(db) }));
+          captures.users += 1;
+          captures.swept += done.sweep.processed;
+          captures.transcribed += done.sweep.transcribed;
+          captures.auto_filed += done.filed.filed;
+        } catch (err) {
+          console.error(`[cron/tickets-nightly] captures for ${uid}:`, err);
+        }
+      }
+    }
+    return NextResponse.json({ ok: true, today, ...result, captures });
   } catch (err) {
     console.error("[cron/tickets-nightly]", err);
     return NextResponse.json({ error: "failed" }, { status: 500 });
