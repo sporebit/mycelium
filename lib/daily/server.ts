@@ -211,6 +211,11 @@ export async function getPlan(db: SupabaseClient, uid: string, day: string, now:
   if (!data) return null;
   let plan = data as PlanRow;
   if (autoAcceptDue(plan, now)) plan = await acceptPlan(db, plan.id, "auto", now);
+  return withItems(db, plan);
+}
+
+/** A plan row with its items and their tickets. */
+async function withItems(db: SupabaseClient, plan: PlanRow): Promise<Plan> {
   const { data: items } = await db.from("day_plan_items").select(ITEM_SELECT).eq("plan_id", plan.id).order("position", { ascending: true });
   return { ...plan, items: await attachTickets(db, (items ?? []) as Omit<PlanItemRow, "ticket">[]) };
 }
@@ -265,8 +270,11 @@ export async function ensurePlan(
   if (error) {
     // 23505: another request created today's plan between the read and the insert.
     if (error.code === "23505") {
-      const raced = await getPlan(db, uid, day, opts.now);
-      if (raced) return raced;
+      // Asked in a different form from the first read (a list of one, newest first), for the same reason as
+      // the return below: the first question's "no" is remembered for the length of a page render.
+      const { data: rows } = await db.from("day_plans").select(PLAN_SELECT).eq("created_by", uid).eq("day", day).order("proposed_at", { ascending: false }).limit(1);
+      const raced = (rows as PlanRow[] | null)?.[0];
+      if (raced) return withItems(db, raced);
     }
     throw new Error(`plan create failed: ${error.message}`);
   }
@@ -290,7 +298,11 @@ export async function ensurePlan(
   // A slipped ticket is offered once: remember that it has been.
   if (p.slipped.length) await db.from("tickets").update({ slip_offered_on: day }).in("id", p.slipped);
 
-  return (await getPlan(db, uid, day, opts.now))!;
+  // Built from the row just inserted, not by asking "is there a plan for today?" a second time. Inside a
+  // page render React remembers the answer to an identical GET for the whole render, so the same question
+  // asked again after the insert was answered "no" from memory: the plan came back null on the first visit
+  // of any day that had items (found 2026-11-20; API routes are not affected, which is why tests passed).
+  return withItems(db, plan as PlanRow);
 }
 
 /** Mark that the morning prompt went out; the auto-accept clock starts here. */

@@ -59,8 +59,8 @@ test("the top menu bar: every group, dropdowns that open and close, and no sideb
   await page.goto("/work");
   const menu = page.getByTestId("top-menu");
   await expect(menu).toBeVisible();
-  await expect(page.locator('[data-shell="new"]')).toBeVisible();
-  await expect(page.locator('[data-shell="classic"]')).toHaveCount(0);
+  await expect(page.locator('div[data-shell="new"]')).toBeVisible();
+  await expect(page.locator('div[data-shell="classic"]')).toHaveCount(0);
   for (const g of MENU_GROUPS) await expect(menu.getByRole(g.items.length === 1 ? "link" : "button", { name: g.label, exact: true })).toBeVisible();
 
   // A group with several places opens a dropdown listing them.
@@ -178,7 +178,7 @@ test("the switch: Classic brings the sidebar and the dashboard back", async ({ p
   await expect(page.getByTestId("top-menu")).toBeVisible();
   await setShell("classic");
   await page.goto("/");
-  await expect(page.locator('[data-shell="classic"]')).toBeVisible();
+  await expect(page.locator('div[data-shell="classic"]')).toBeVisible();
   await expect(page.getByTestId("top-menu")).toHaveCount(0);
   await expect(page.getByTestId("home-plate")).toHaveCount(0);
   await expect(page.getByTestId("loop-links")).toBeVisible();
