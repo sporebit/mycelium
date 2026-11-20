@@ -9,6 +9,12 @@ export type ClassifyRulesContext = {
   userId: string;
   /** When set, the call's tokens are written to api_usage under this tag (MYC-161: `capture.shadow`). */
   usageTag?: string;
+  /**
+   * false = do not call a cloud model: the monthly cloud-AI cap is spent, or
+   * the job is going to the PC instead (master run §9). The pattern rules
+   * answer, and the capture still lands.
+   */
+  cloud?: boolean;
 };
 
 type LlmUsage = { input: number; output: number; model: string | null };
@@ -1101,6 +1107,10 @@ export async function classifyCapture(
     }
   }
 
+  if (rules?.cloud === false) {
+    return dropIgnoredMentions({ classification: classifyRegex(text), llm_source: "regex" }, rules);
+  }
+
   try {
     const anthropic = await classifyAnthropic(text, systemPrompt);
     await account("anthropic", anthropic.usage);
@@ -1118,4 +1128,24 @@ export async function classifyCapture(
   }
 
   return dropIgnoredMentions({ classification: classifyRegex(text), llm_source: "regex" }, rules);
+}
+
+/**
+ * For a classification done somewhere else (the PC's local model, master
+ * run §9): the same system prompt the cloud call gets, and the same
+ * validation of what comes back. A reply that does not validate gives null,
+ * and the caller falls back to the pattern rules.
+ */
+export async function classifierSystemPrompt(rules?: ClassifyRulesContext): Promise<string> {
+  return buildClassifierSystemPrompt(rules);
+}
+
+export function classificationFromModelText(raw: string | null | undefined): Classification | null {
+  if (!raw) return null;
+  return validate(extractJson(raw));
+}
+
+/** The pattern-rule answer, for when no model is available or allowed. */
+export function classifyByRules(text: string): Classification {
+  return classifyRegex(text);
 }

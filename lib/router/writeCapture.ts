@@ -24,6 +24,12 @@ export type WriteCaptureInput = {
   llmSource: "anthropic" | "openai" | "regex";
   clientUuid?: string;
   /**
+   * The capture row already exists (the pipeline stored it the moment it
+   * arrived, lib/capture/pipeline.ts): fill that row in instead of making a
+   * second one.
+   */
+  existingCaptureId?: string;
+  /**
    * Typed capture (MYC-161): the user picked the kind on the form. Every
    * typed submit goes to review — a task/ticket lands in the Tickets Inbox
    * with `suggested` extended by the typed fields (and `projectId` for a
@@ -110,15 +116,18 @@ export async function writeCapture(
   };
   if (input.clientUuid) captureRow.client_uuid = input.clientUuid;
 
-  const { data: rawCapture, error: rawErr } = await supabase
-    .from("raw_captures")
-    .insert(captureRow)
-    .select("id")
-    .single();
+  const { data: rawCapture, error: rawErr } = input.existingCaptureId
+    ? await supabase
+        .from("raw_captures")
+        .update({ classification: storedClassification, llm_source: llmSource, ...ctx })
+        .eq("id", input.existingCaptureId)
+        .select("id")
+        .single()
+    : await supabase.from("raw_captures").insert(captureRow).select("id").single();
 
   if (rawErr || !rawCapture) {
     throw new Error(
-      `raw_captures insert failed: ${rawErr?.message ?? "unknown"}`
+      `raw_captures write failed: ${rawErr?.message ?? "unknown"}`
     );
   }
 
