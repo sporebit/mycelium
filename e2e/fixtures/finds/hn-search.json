@@ -1,0 +1,34 @@
+{
+  "hits": [
+    {
+      "objectID": "90000001",
+      "title": "Show HN: Skillfile, a directory format for agent skills",
+      "url": "https://skillfile.example.org/?utm_source=hn&ref=front",
+      "points": 212,
+      "num_comments": 84,
+      "author": "e2e_finds",
+      "created_at": "2026-11-18T14:02:00.000Z"
+    },
+    {
+      "objectID": "90000002",
+      "title": "Ask HN: Which MCP servers do you run every day?",
+      "url": null,
+      "points": 95,
+      "num_comments": 140,
+      "author": "e2e_finds",
+      "created_at": "2026-11-17T10:00:00.000Z"
+    },
+    {
+      "objectID": "90000003",
+      "title": "A small post nobody upvoted",
+      "url": "https://example.net/small",
+      "points": 12,
+      "num_comments": 1,
+      "author": "quiet",
+      "created_at": "2026-11-19T10:00:00.000Z"
+    }
+  ],
+  "nbHits": 3,
+  "page": 0,
+  "hitsPerPage": 20
+}
