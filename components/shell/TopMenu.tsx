@@ -15,6 +15,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useGoneQuiet } from "@/components/dashboard/GoneQuiet";
+import { PrivacyToggle } from "@/components/dashboard/PrivacyToggle";
 import { NotificationBell } from "@/components/work/NotificationBell";
 import { groupForPath, MENU_GROUPS } from "@/lib/home/menu";
 
@@ -124,6 +125,8 @@ export function TopMenu() {
         })}
       </nav>
       <div className="flex-1" />
+      {/* finance amounts are hidden until this is pressed, as in the classic sidebar */}
+      <PrivacyToggle />
       <NotificationBell />
       <button
         type="button"
