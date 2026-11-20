@@ -61,7 +61,8 @@ export async function GET() {
 
     const apiKey = process.env.OPENWEATHER_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "OPENWEATHER_API_KEY missing" }, { status: 500 });
+      // No forecast service is set up: that is a calendar without weather, not a server error.
+      return NextResponse.json({ forecast: [], configured: false });
     }
 
     const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${LAT}&lon=${LON}&exclude=minutely,hourly,alerts&units=metric&appid=${apiKey}`;

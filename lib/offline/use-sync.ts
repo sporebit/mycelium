@@ -1,15 +1,36 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { pendingCount } from "./queue";
 import { processQueue } from "./sync";
 
 export type SyncState = "synced" | "offline" | "pending";
 
-export function useSync() {
-  const [online, setOnline] = useState(
-    () => typeof navigator !== "undefined" ? navigator.onLine : true,
+function subscribeOnline(onChange: () => void): () => void {
+  window.addEventListener("online", onChange);
+  window.addEventListener("offline", onChange);
+  return () => {
+    window.removeEventListener("online", onChange);
+    window.removeEventListener("offline", onChange);
+  };
+}
+
+/**
+ * Whether the browser is online. The server cannot know, and says "online":
+ * Node has a global `navigator` of its own with no `onLine`, so asking it
+ * rendered "Offline" on the server and "Synced" in the browser, and the
+ * page failed to hydrate.
+ */
+function useOnline(): boolean {
+  return useSyncExternalStore(
+    subscribeOnline,
+    () => navigator.onLine,
+    () => true,
   );
+}
+
+export function useSync() {
+  const online = useOnline();
   const [pending, setPending] = useState(0);
 
   const refresh = useCallback(async () => {
@@ -29,11 +50,7 @@ export function useSync() {
 
   useEffect(() => {
     function goOnline() {
-      setOnline(true);
       void sync();
-    }
-    function goOffline() {
-      setOnline(false);
     }
     function onFocus() {
       void refresh();
@@ -41,7 +58,6 @@ export function useSync() {
     }
 
     window.addEventListener("online", goOnline);
-    window.addEventListener("offline", goOffline);
     window.addEventListener("focus", onFocus);
 
     queueMicrotask(() => {
@@ -51,7 +67,6 @@ export function useSync() {
 
     return () => {
       window.removeEventListener("online", goOnline);
-      window.removeEventListener("offline", goOffline);
       window.removeEventListener("focus", onFocus);
     };
   }, [refresh, sync]);
