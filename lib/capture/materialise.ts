@@ -17,6 +17,7 @@ import { queuePendingPerson, recordMention, resolveMention } from "@/lib/people/
 import { ignoredTermKeys } from "@/lib/people/ignored";
 import { aliasKey } from "@/lib/people/normalise";
 import { createQuoteFromExtraction, extractionFromClassification } from "@/lib/quotes/server";
+import { createGiftFromClassification } from "@/lib/gifts/server";
 import { researchQuote } from "@/lib/quotes/research";
 import { appendCapture } from "@/lib/daylog/engine";
 import { findFromCapture } from "@/lib/finds/capture";
@@ -350,6 +351,12 @@ export async function createRoutedRow(
     // The Finds feed (0178): a card re-routed to "find" keeps its link once; without a link it stays a note.
     const find = await findFromCapture(supabase, rawText, { title: typeof classification.title === "string" ? classification.title : null, captureId: rawCaptureId });
     if (find) return { routedTo: "finds", routedId: find.id };
+  }
+
+  // Gifts (spec §4.7): the gifts row is created on approve, origin capture; the person is never created.
+  if (kind === "gift_idea") {
+    const row = await createGiftFromClassification(supabase, classification, rawText, rawCaptureId);
+    return { routedTo: "gifts", routedId: row.id };
   }
 
   // decision / note / capture / workout / other — leave in raw_captures.

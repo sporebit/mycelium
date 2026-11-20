@@ -83,6 +83,7 @@ const DELETE_ROUTE: Record<string, (id: string) => string> = {
   purchases: (id) => `/api/purchases/${id}`,
   media_items: (id) => `/api/media/${id}`,
   quotes: (id) => `/api/quotes/${id}`,
+  gifts: (id) => `/api/gifts/${id}`,
   accounts: (id) => `/api/finance/service-accounts/${id}`,
   exercise_pain_logs: (id) => `/api/fitness/pain-logs/${id}`,
 };

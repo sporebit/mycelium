@@ -75,6 +75,8 @@ export type PersonWithAliases = Person & {
   aliases: PersonAlias[];
   mention_count?: number;
   quote_count?: number;
+  /** gifts spec §9: open gift ideas (idea / shortlisted) for them; owner-only, so 0 for another member */
+  gift_idea_count?: number;
   /** distinct day-log days they were in a reviewed scene of (people_daylog_stats) */
   days_together?: number;
   last_mention_at?: string | null;

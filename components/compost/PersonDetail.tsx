@@ -7,6 +7,8 @@ import { Mono } from "@/components/dashboard/Mono";
 import { PersonDrawer } from "./PersonDrawer";
 import { triggerGlowPulse } from "@/lib/motion";
 import { QuoteCard } from "@/components/quotes/QuoteCard";
+import { GiftCard } from "@/components/gifts/GiftCard";
+import type { GiftRow } from "@/lib/gifts/types";
 import { PersonDays } from "@/components/daylog/PersonDays";
 import type { QuoteRow } from "@/lib/quotes/server";
 import type {
@@ -55,6 +57,7 @@ export function PersonDetail({ id }: { id: string }) {
   const [person, setPerson] = useState<PersonWithAliases | null>(null);
   const [mentions, setMentions] = useState<MentionWithSnippet[] | null>(null);
   const [quotes, setQuotes] = useState<QuoteRow[] | null>(null);
+  const [gifts, setGifts] = useState<GiftRow[] | null>(null);
   const [aliasDraft, setAliasDraft] = useState("");
   const [notesDraft, setNotesDraft] = useState("");
   const [editing, setEditing] = useState(false);
@@ -89,12 +92,20 @@ export function PersonDetail({ id }: { id: string }) {
     let mounted = true;
     (async () => {
       try {
-        const [pRes, mRes, qRes] = await Promise.all([
+        const [pRes, mRes, qRes, gRes] = await Promise.all([
           fetch(`/api/people/${id}`, { cache: "no-store" }),
           fetch(`/api/people/${id}/mentions?limit=50`, { cache: "no-store" }),
           fetch(`/api/people/${id}/quotes?limit=50`, { cache: "no-store" }),
+          fetch(`/api/people/${id}/gifts?limit=50`, { cache: "no-store" }),
         ]);
         if (!mounted) return;
+        // gifts spec §10: owner-only, so another member's view of this person has none
+        try {
+          const j = gRes.ok ? ((await gRes.json()) as { gifts: GiftRow[] }) : { gifts: [] };
+          if (mounted) setGifts(j.gifts ?? []);
+        } catch {
+          if (mounted) setGifts([]);
+        }
         if (qRes.ok) {
           const j = (await qRes.json()) as { quotes: QuoteRow[] };
           if (mounted) setQuotes(j.quotes ?? []);
@@ -377,6 +388,26 @@ export function PersonDetail({ id }: { id: string }) {
               <div className="flex flex-col gap-2">
                 {quotes.slice(0, 5).map((q) => (
                   <QuoteCard key={q.id} q={q} showPerson={false} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-md bg-surface-1 p-6" data-testid="person-gifts">
+            <div className="card-eyebrow mb-3 flex items-center justify-between">
+              <span>Gifts</span>
+              <Link href={`/organisation/gifts?person=${id}`} className="text-[10px] text-text-lo hover:text-text-hi font-[family-name:var(--font-mono)]">
+                {gifts === null ? "…" : gifts.length} →
+              </Link>
+            </div>
+            {gifts === null ? (
+              <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">Loading…</div>
+            ) : gifts.length === 0 ? (
+              <div className="text-xs text-text-lo italic font-[family-name:var(--font-display)]">No gift ideas yet. Say “gift idea for {person?.first_name ?? "them"}: …” to the bot.</div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {gifts.slice(0, 5).map((g) => (
+                  <GiftCard key={g.id} g={g} showPerson={false} />
                 ))}
               </div>
             )}

@@ -134,6 +134,7 @@ const KIND_LABEL: Record<string, string> = {
   media: "something to watch, read or hear",
   account: "an account",
   quote: "a quote",
+  gift_idea: "a gift idea",
   journal: "a Day log entry",
   pain_log: "a pain log",
   workout: "a workout",
@@ -369,7 +370,7 @@ export async function processCapture(db: SupabaseClient, uid: string, captureId:
     const written = await writeCapture({ supabase: db, userId: uid, source: row.source, rawText: text, audioUrl: row.audio_url, classification, llmSource: llm_source, existingCaptureId: row.id });
     await finish(db, row.id, {});
     if (useCloud) void embedAndStore({ supabase: db, sourceType: written.memorySourceType, sourceId: written.memorySourceId, text });
-    if (opts.reply) await reply(db, uid, row.id, kind === "quote" && written.quoteReadBack ? written.quoteReadBack : filedAs(kind), classification.title);
+    if (opts.reply) await reply(db, uid, row.id, (kind === "quote" && written.quoteReadBack) || (kind === "gift_idea" && written.giftReadBack) || filedAs(kind), classification.title);
     return { state: "done", kind, title: classification.title, routed_to: written.routedTo };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

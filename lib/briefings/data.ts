@@ -13,6 +13,7 @@ import {
 } from "@/lib/finance/persistSnapshot";
 import { fetchWeather, type Weather } from "./weather";
 import { fetchPendingReviewCount } from "@/lib/captures/reviewCount";
+import { upcomingGiftOccasions, type GiftsBlock } from "@/lib/gifts/briefing";
 import type { FinanceData } from "@/lib/finance/types";
 import { listTickets, type TicketRow } from "@/lib/tickets/query";
 
@@ -47,6 +48,8 @@ export type BriefingData = {
    *  when > 0; suppressed otherwise so the daily summary stays quiet. */
   reviewCount: number;
   tickets: TicketsBlock;
+  /** gifts spec §6: occasions in the next 30 days with nothing bought — counts only, never a name in the line. */
+  gifts: GiftsBlock;
 };
 
 function startOfTodayLocal(dateKey: string): Date {
@@ -179,6 +182,7 @@ export async function gatherBriefingData(
     weather,
     reviewCount,
     tickets,
+    gifts,
   ] = await Promise.allSettled([
     getCalendarData(supabase),
     fetchTopTasks(supabase),
@@ -189,6 +193,7 @@ export async function gatherBriefingData(
     fetchWeather(),
     fetchPendingReviewCount(supabase),
     fetchTicketsBlock(supabase, dateKey),
+    upcomingGiftOccasions(supabase, dateKey),
   ]);
 
   const calendarEvents =
@@ -216,5 +221,6 @@ export async function gatherBriefingData(
       reviewCount.status === "fulfilled" ? reviewCount.value : 0,
     tickets:
       tickets.status === "fulfilled" ? tickets.value : { today: [], overdue: [], verify: [] },
+    gifts: gifts.status === "fulfilled" ? gifts.value : { occasions: 0, nothing_bought: 0, horizon_days: 30 },
   };
 }

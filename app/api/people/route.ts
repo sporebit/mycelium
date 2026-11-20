@@ -45,11 +45,12 @@ export async function GET(req: NextRequest) {
     const aliasByPerson = new Map<string, PersonAlias[]>();
     const mentionCountByPerson = new Map<string, number>();
     const quoteCountByPerson = new Map<string, number>();
+    const giftIdeaCountByPerson = new Map<string, number>();
     const daysByPerson = new Map<string, number>();
     const lastMentionByPerson = new Map<string, string>();
     const snippetByPerson = new Map<string, string | null>();
     if (ids.length > 0) {
-      const [aliasRes, mentionRes, quoteRes, daysRes] = await Promise.all([
+      const [aliasRes, mentionRes, quoteRes, daysRes, giftRes] = await Promise.all([
         supabase
           .from("people_aliases")
           .select("id, person_id, alias, is_primary, created_at")
@@ -60,8 +61,11 @@ export async function GET(req: NextRequest) {
           .in("person_id", ids),
         supabase.from("quotes").select("said_by_person_id").in("said_by_person_id", ids),
         supabase.from("people_daylog_stats").select("person_id, days_together").in("person_id", ids),
+        // gifts spec §9: open ideas per person (owner-only: another member's count is 0)
+        supabase.from("gifts").select("for_person_id").in("for_person_id", ids).in("status", ["idea", "shortlisted"]),
       ]);
       for (const d of (daysRes.data ?? []) as Array<{ person_id: string; days_together: number }>) daysByPerson.set(d.person_id, d.days_together);
+      for (const g of (giftRes.data ?? []) as Array<{ for_person_id: string }>) giftIdeaCountByPerson.set(g.for_person_id, (giftIdeaCountByPerson.get(g.for_person_id) ?? 0) + 1);
       for (const q of (quoteRes.data ?? []) as Array<{ said_by_person_id: string }>) {
         quoteCountByPerson.set(q.said_by_person_id, (quoteCountByPerson.get(q.said_by_person_id) ?? 0) + 1);
       }
@@ -104,6 +108,7 @@ export async function GET(req: NextRequest) {
       aliases: aliasByPerson.get(p.id) ?? [],
       mention_count: mentionCountByPerson.get(p.id) ?? 0,
       quote_count: quoteCountByPerson.get(p.id) ?? 0,
+      gift_idea_count: giftIdeaCountByPerson.get(p.id) ?? 0,
       days_together: daysByPerson.get(p.id) ?? 0,
       last_mention_at: lastMentionByPerson.get(p.id) ?? null,
       snippet: snippetByPerson.get(p.id) ?? null,

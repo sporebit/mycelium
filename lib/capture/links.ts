@@ -21,6 +21,8 @@ export function routedLink(routedTo: string | null | undefined, routedId: string
       return { href: `/organisation/media?focus=${routedId}`, label: "Media" };
     case "quotes":
       return { href: `/organisation/quotes?focus=${routedId}`, label: "Quote" };
+    case "gifts":
+      return { href: `/organisation/gifts?focus=${routedId}`, label: "Gift idea" };
     case "accounts":
       return { href: `/draft/accounts`, label: "Account" };
     case "daylog_days":

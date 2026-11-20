@@ -40,6 +40,16 @@ type ReviewBody = {
   };
   /** Near-duplicate merge: keep the existing quote (discard this one) or replace its text. */
   duplicate?: { id: string; action: "keep" | "replace" };
+  /** Gifts (spec §4.7): the reviewer's corrections — recipient, occasion, title, reason. Never creates a person or an occasion. */
+  gift?: {
+    title?: string;
+    person?: string | null;
+    for_person_id?: string | null;
+    occasion_id?: string | null;
+    reason?: string | null;
+    url?: string | null;
+    target_price?: number | null;
+  };
   /** MYC-161: the registry form's values for `kind` — validated and mapped by the registry. */
   fields?: FieldValues;
 };
@@ -61,6 +71,7 @@ const ALLOWED_KINDS = new Set([
   "reminder",
   "account",
   "pain_log",
+  "gift_idea",
 ]);
 const ALLOWED_URGENCIES = new Set([
   "today",
@@ -114,6 +125,21 @@ function mergeClassification(
     merged.quote = q;
     if (b.said_by_person_id !== undefined) merged.quote_person_id = q.is_own === true ? null : b.said_by_person_id;
     if (typeof q.text === "string") merged.title = q.text;
+  }
+  if (body.gift && typeof body.gift === "object") {
+    const prev = (merged.gift as Record<string, unknown> | null | undefined) ?? {};
+    const g: Record<string, unknown> = { ...prev };
+    const b = body.gift;
+    const text = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+    if (text(b.title)) g.title = text(b.title);
+    if (b.person !== undefined) g.person = text(b.person);
+    if (b.reason !== undefined) g.reason = text(b.reason);
+    if (b.url !== undefined) g.url = text(b.url);
+    if (b.target_price !== undefined) g.target_price = typeof b.target_price === "number" && Number.isFinite(b.target_price) ? b.target_price : null;
+    merged.gift = g;
+    if (b.for_person_id !== undefined) merged.gift_person_id = typeof b.for_person_id === "string" && b.for_person_id ? b.for_person_id : null;
+    if (b.occasion_id !== undefined) merged.gift_occasion_id = typeof b.occasion_id === "string" && b.occasion_id ? b.occasion_id : null;
+    if (typeof g.title === "string") merged.title = g.title;
   }
   // MYC-161: a registry form's values become the classification for that
   // kind, and stay on the capture as typed_fields for the next edit.
@@ -256,6 +282,19 @@ export async function PATCH(
           mergedClassification.kind = "idea";
         }
         mergedClassification.held = false;
+      } else if (mergedClassification.kind === "gift_idea" && existing.routed_to !== "gifts") {
+        // Gifts (spec §4.7): keep the existing idea (this capture is reviewed and points at it) or make the row.
+        const dup = body.duplicate;
+        if (dup && typeof dup.id === "string" && dup.action === "keep") {
+          quoteRoute = { routed_to: "gifts", routed_id: dup.id };
+        } else {
+          try {
+            const r = await createRoutedRow(supabase, uid, id, existing.raw_text ?? "", existing.audio_url ?? null, mergedClassification, body.scheduled_at, body.project_id, body.person);
+            quoteRoute = { routed_to: r.routedTo, routed_id: r.routedId };
+          } catch (err) {
+            return NextResponse.json({ error: err instanceof Error ? err.message : "approve failed" }, { status: 400 });
+          }
+        }
       } else if (mergedClassification.kind === "quote" && existing.routed_to !== "quotes") {
         const dup = body.duplicate;
         if (dup && typeof dup.id === "string" && (dup.action === "keep" || dup.action === "replace")) {

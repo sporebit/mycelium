@@ -7,6 +7,8 @@ import { filterIgnored, ignoredTermKeys } from "@/lib/people/ignored";
 import { suggestContexts } from "@/lib/tickets/suggest";
 import { resolveSpeaker } from "@/lib/quotes/server";
 import { applySpeakerRules, readBack } from "@/lib/quotes/text";
+import { giftFromClassification, giftReadBack as giftReadBack_ } from "@/lib/gifts/extract";
+import { matchOpenOccasion, personNameById, resolveRecipient } from "@/lib/gifts/server";
 import { appendCapture } from "@/lib/daylog/engine";
 import { findFromCapture } from "@/lib/finds/capture";
 import { fieldsFromClassification, recordCaptureLearning } from "@/lib/capture/learning";
@@ -56,6 +58,8 @@ export type WriteCaptureResult = {
   ticketSuggested?: Record<string, unknown> | null;
   /** Quotes spec decision 4: the channel read-back ("Saved for review — Jake: …"). */
   quoteReadBack?: string | null;
+  /** Gifts spec §4.6: the channel read-back ("Saved for review — gift idea for Jake: …"). */
+  giftReadBack?: string | null;
   // Source identifiers the caller should use for the memory embedding —
   // journal entries embed as 'journal' so the Stroma tab can filter cleanly.
   memorySourceType: "capture" | "journal";
@@ -105,6 +109,27 @@ export async function writeCapture(
       confidence: "low",
     };
     quoteReadBack = readBack(ex, speakerName);
+  }
+
+  // Gifts (spec §4): the recipient is matched by alias and an open occasion
+  // of the named kind is looked up, both recorded on the classification; the
+  // person and the occasion are never created here, and the capture waits
+  // for review — the gifts row is created on approve.
+  let giftReadBack: string | null = null;
+  if (classification.kind === "gift_idea") {
+    const ex = giftFromClassification(classification as unknown as Record<string, unknown>, rawText);
+    const who = await resolveRecipient(supabase, ex.person);
+    const occasionId = await matchOpenOccasion(supabase, ex.occasion, who.person_id);
+    const resolvedName = who.person_id ? await personNameById(supabase, who.person_id) : null;
+    storedClassification = {
+      ...storedClassification,
+      gift: ex,
+      gift_person_id: who.person_id,
+      gift_person_candidates: who.candidates,
+      gift_occasion_id: occasionId,
+      confidence: "low",
+    };
+    giftReadBack = giftReadBack_(ex, resolvedName);
   }
 
   // a. INSERT into raw_captures (always — audit / memory continuity)
@@ -415,5 +440,6 @@ export async function writeCapture(
     ticketKey,
     ticketSuggested,
     quoteReadBack,
+    giftReadBack,
   };
 }

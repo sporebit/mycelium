@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { MODEL_FAST } from "@/lib/config/models";
 import { kindFromHost, linksIn } from "@/lib/finds/url";
+import { extractGiftFromText, giftFromClassification, GIFT_SIGNAL_RE, type GiftExtraction } from "@/lib/gifts/extract";
 
 /** What the classifier needs to pull the user's own routing rules into
  *  the prompt: a client to read them with, and the auth uid that keys
@@ -35,7 +36,8 @@ export type CaptureKind =
   | "media"
   | "account"
   | "quote"
-  | "find";
+  | "find"
+  | "gift_idea";
 export type CaptureUrgency = "today" | "this_week" | "this_month" | "someday";
 export type CaptureMood =
   | "energised"
@@ -120,6 +122,9 @@ export type QuoteDetails = {
   likely_original: boolean;
 };
 
+/** Gifts spec §4.3 — the extraction the classifier returns for kind = gift_idea. */
+export type GiftDetails = GiftExtraction;
+
 export type ContextEnergy = "low" | "medium" | "high";
 
 export type Classification = {
@@ -138,6 +143,7 @@ export type Classification = {
   media: MediaDetails | null; // only meaningful for media
   account: AccountDetails | null; // only meaningful for account
   quote: QuoteDetails | null; // only meaningful for quote
+  gift?: GiftDetails | null; // only meaningful for gift_idea
   /** Context fields — applies to every kind. The classifier sets them
    *  when they're clear from the text, otherwise leaves them null so
    *  the post-create suggester can fill in from history. */
@@ -167,6 +173,7 @@ const KINDS: readonly CaptureKind[] = [
   "account",
   "quote",
   "find",
+  "gift_idea",
 ];
 
 const PAIN_FEEL_RATINGS: readonly PainFeel[] = [
@@ -215,7 +222,7 @@ const MOODS: readonly CaptureMood[] = [
 export const CLASSIFIER_SYSTEM_PROMPT = `You classify short personal capture messages into structured JSON.
 
 Rules:
-- "kind" is one of: task, note, decision, idea, journal, capture, workout, purchase, pain_log, reminder, media, account, quote, find.
+- "kind" is one of: task, note, decision, idea, journal, capture, workout, purchase, pain_log, reminder, media, account, quote, find, gift_idea.
   - find = a link to a tool, library, repo, skill, MCP server, article or post the user wants to look at later, usually a URL with a few words ("look at this", "for the agency", "nice animation lib"). The title is what it is, not the URL. A product to buy is a purchase; a film, book or album is media; a link inside a longer thought is whatever the thought is.
   - task = an action the user needs to DO (not buy), with NO explicit time/date trigger.
   - reminder = the user explicitly wants to be reminded at a specific time or after a delay. Signals: "remind me", "set a reminder", "in 30 minutes", "at 8pm", "every day at", "tomorrow at". If there's a concrete time/date/delay attached to a task-like request, classify as reminder, not task.
@@ -229,6 +236,7 @@ Rules:
   - media = the user wants to add something to their watch, listen, or read list. Signals: "watch", "add to watch list", "read", "listen to", "check out this book/film/show/podcast/album/song/series/audiobook". The media object must include media_type ("watch" for films/shows/videos, "listen" for music/podcasts/audiobooks, "read" for books/articles) and creator (author/director/artist if mentioned, null otherwise).
   - account = the user wants to add, register, or manage a service/subscription account. Signals: "add [name] to my accounts", "signed up for", "subscribed to", "cancelled my [name]", "[name] costs", "opened a [name] account". This is for service accounts (Netflix, Spotify, AWS, etc.), NOT bank accounts. The title should be the service name. If the user says they "cancelled" a service, set account.status to "cancelled". If they're signing up or adding, set "active".
   - quote = the user is recording something memorable that was SAID — by a friend, by themselves, or something they heard — to keep as a quote. Signals: "quote", "X said", "X told me", "X came out with", "I said", "my quote", "write that down", "that's going on a t-shirt", a sentence in quotation marks with an attribution. Not a task, not a note about a fact: the point is the wording itself.
+  - gift_idea = something to GIVE someone else: a present, a gift idea, a thing a named person wants or would love, "for X's birthday / for Christmas / stocking filler". Signals: "gift", "present", "pressie", "get X a Y", "Y for X", "X wants a Y", "X would love". Not a purchase (that is for the user themselves), not a note about the person: the point is the thing and who it is for. Never a bill or a subscription.
   - capture = catch-all when none of the above clearly applies.
 
 Heuristics for journal (guidance, not strict):
@@ -343,6 +351,14 @@ Other fields:
     - said_at_relative: any time phrase the user gives ("last Tuesday", "this morning", "yesterday"), verbatim, else null.
     - source: a film / book / person the user says it comes from, if any, else null.
     - likely_original: false when it reads like a well-known saying, proverb, film line or famous quotation; true when it sounds like the speaker's own words.
+
+- "gift" is an object ONLY when kind = "gift_idea"; null for every other kind. Shape:
+    { "title": <string>, "person": <string or null>, "reason": <string or null>, "occasion": <"birthday" | "christmas" | "valentines" | "anniversary" | "graduation" | "new_job" | "wedding" | "new_baby" | "housewarming" | "thank_you" | null>, "url": <string or null>, "target_price": <number or null>, "needed_by_relative": <string or null> }
+    - title: the thing itself ("decent chef's knife"), with no "get X a" / "for X" framing and no price or link in it.
+    - person: who it is for, as named ("Jake", "Mum"); null when nobody is named. Never invent one.
+    - reason: why it suits them, anything after "because" / "he said" / "she's always", verbatim-ish; null if none.
+    - occasion: the kind named ("for his birthday" → "birthday", "stocking filler" → "christmas"); null if none.
+    - url: a link in the text, else null. target_price: a stated price or budget as a number, else null. needed_by_relative: "by Friday", "before the 23rd", as said, else null.
 
 Respond ONLY with a single JSON object matching this schema. No markdown, no preface.`;
 
@@ -539,6 +555,12 @@ function validate(obj: unknown): Classification | null {
     };
   }
 
+  // gift is only meaningful for kind === 'gift_idea'; the rules clean whatever the model returned.
+  let gift: GiftDetails | null = null;
+  if (kind === "gift_idea") {
+    gift = giftFromClassification({ gift: o.gift, title: o.title }, typeof o.summary === "string" && o.summary ? o.summary : String(o.title ?? ""));
+  }
+
   // Context fields are optional on every kind. Permissively read each one;
   // anything unusable (wrong type, non-whitelisted energy) falls back to null.
   const context_where =
@@ -575,6 +597,7 @@ function validate(obj: unknown): Classification | null {
     media,
     account,
     quote,
+    gift,
     context_where,
     context_device,
     context_energy,
@@ -842,8 +865,15 @@ function classifyRegex(text: string): Classification {
   // A link to a repo, a post, a skill or a tool is a find (lib/finds/url.ts) unless the words say buy or watch.
   const findSignals = !purchaseSignals && !mediaSignals && linksIn(text).some((l) => kindFromHost(l) !== null);
 
+  // A present for someone else is a gift idea before it is a purchase or a quote
+  // ("Jake said he wants a knife for his birthday" is about the knife).
+  const giftSignals = GIFT_SIGNAL_RE.test(text) && !/\b(quote|quotes)\b/.test(lower) && !workoutSignals;
+
   let kind: CaptureKind = "capture";
-  if (findSignals) {
+  if (giftSignals) {
+    kind = "gift_idea";
+  } else if (findSignals) {
+    // A link to a repo, a post, a skill or a tool is a find (lib/finds/url.ts) unless the words say buy, watch or give.
     kind = "find";
   } else if (quoteSignals && !workoutSignals) {
     kind = "quote";
@@ -904,6 +934,7 @@ function classifyRegex(text: string): Classification {
     media: kind === "media" ? extractMediaFromText(text) : null,
     account: kind === "account" ? extractAccountFromText(text) : null,
     quote: kind === "quote" ? extractQuoteFromText(text) : null,
+    gift: kind === "gift_idea" ? extractGiftFromText(text) : null,
     context_where: ctx.where,
     context_device: ctx.device,
     context_energy: ctx.energy,

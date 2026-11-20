@@ -43,6 +43,7 @@ import { CaptureReview } from "./cards/CaptureReview";
 import { Glossary } from "./cards/Glossary";
 import { Supplements } from "./cards/Supplements";
 import { Bins } from "./cards/Bins";
+import { Gifts } from "./cards/Gifts";
 import { CARD_REGISTRY, type CardWidth } from "@/lib/dashboard/card-registry";
 import {
   ALL_SIZES,
@@ -179,6 +180,7 @@ const CARD_COMPONENTS: Record<string, ComponentType<{ width: CardWidth }>> = {
   glossary: Glossary,
   supplements: Supplements,
   bins: Bins,
+  gifts: Gifts,
 };
 
 // ---------------------------------------------------------------------------

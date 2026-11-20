@@ -8,6 +8,10 @@
  *   node scripts/import-harvest.mjs            show what would be created (no writes)
  *   node scripts/import-harvest.mjs --apply    create it
  *
+ * Talks to production unless MYCELIUM_URL says otherwise, as Phil through
+ * API_SECRET from .env.local (MYCELIUM_API_SECRET overrides it). Against
+ * the local stack: MYCELIUM_URL=http://localhost:3108 MYCELIUM_API_SECRET=e2e-api-secret.
+ *
  * Safe to run again: a project is matched by its key or name, and an item
  * is skipped when a ticket with the same title is already in the project.
  * Nothing is edited or deleted, in Mycelium or in the other repos.
@@ -33,21 +37,30 @@ for (const line of readFileSync(path.join(ROOT, ".env.local"), "utf8").split(/\r
 const SECRET = process.env.MYCELIUM_API_SECRET ?? env.API_SECRET;
 if (!SECRET) throw new Error("API_SECRET is missing from .env.local");
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** One call as Phil. A 429 is the shared write budget, not a failure: wait and go again (up to a minute). */
 async function api(method, pathname, body) {
-  const res = await fetch(BASE + pathname, {
-    method,
-    headers: { "x-api-secret": SECRET, ...(body ? { "content-type": "application/json" } : {}) },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
-  let json = {};
-  try {
-    json = JSON.parse(text);
-  } catch {
-    json = { error: text.slice(0, 200) };
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(BASE + pathname, {
+      method,
+      headers: { "x-api-secret": SECRET, ...(body ? { "content-type": "application/json" } : {}) },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const text = await res.text();
+    let json = {};
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = { error: text.slice(0, 200) };
+    }
+    if (res.status === 429 && attempt < 12) {
+      await sleep(5_000);
+      continue;
+    }
+    if (!res.ok) throw new Error(`${method} ${pathname} → ${res.status} ${json.error ?? ""}`);
+    return json;
   }
-  if (!res.ok) throw new Error(`${method} ${pathname} → ${res.status} ${json.error ?? ""}`);
-  return json;
 }
 
 const POINTS = { S: 1, M: 3, L: 8 };
