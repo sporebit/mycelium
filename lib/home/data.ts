@@ -5,7 +5,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { countWaiting } from "@/lib/capture/queue";
-import { ensurePlan, FINISHED_STATES } from "@/lib/daily/server";
+import { ensurePlan, FINISHED_STATES, getPlan, type Plan } from "@/lib/daily/server";
 import { dailySettings } from "@/lib/daily/settings";
 import { type TodayCard, viewOf } from "@/lib/daily/view";
 import { goneQuiet } from "@/lib/dormant/features";
@@ -107,9 +107,23 @@ const quietly = async <T>(what: string, run: () => Promise<T>, fallback: T): Pro
 };
 
 export async function loadHome(db: SupabaseClient, uid: string, now: Date = new Date()): Promise<HomeData> {
-  const day = todayLondon(now);
   const settings = await dailySettings(db);
-  const today = await viewOf(db, await ensurePlan(db, uid, undefined, { freeMinutes: settings.free_minutes }));
+  return homeFrom(db, uid, now, await ensurePlan(db, uid, undefined, { freeMinutes: settings.free_minutes }));
+}
+
+/**
+ * The same contract without making anything: null when the person has no
+ * plan for today yet. For a screen that is looking in on someone (the wall,
+ * master run §11) rather than the person themselves.
+ */
+export async function peekHome(db: SupabaseClient, uid: string, now: Date = new Date()): Promise<HomeData | null> {
+  const plan = await getPlan(db, uid, todayLondon(now), now);
+  return plan ? homeFrom(db, uid, now, plan) : null;
+}
+
+async function homeFrom(db: SupabaseClient, uid: string, now: Date, plan: Plan): Promise<HomeData> {
+  const day = todayLondon(now);
+  const today = await viewOf(db, plan, now);
   const hhmm = (iso: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
   const [done, hrs, waiting, quiet, profile, nudges] = await Promise.all([
     quietly("finished", () => finished(db, uid, day), { week: [], count: 0, since: null }),

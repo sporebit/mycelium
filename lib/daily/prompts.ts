@@ -26,7 +26,7 @@ export type PromptResult = { prompted: boolean; say: string };
 
 type MorningWords = { title: string; body: string; say: string; view: TodayView; plan: Plan; card: { title: string; firstStep: string; minutes: number } | null };
 
-async function morningWords(db: SupabaseClient, uid: string, settings?: DailySettings): Promise<MorningWords> {
+export async function morningWords(db: SupabaseClient, uid: string, settings?: DailySettings): Promise<MorningWords> {
   const s = settings ?? (await dailySettings(db));
   const plan = await ensurePlan(db, uid, undefined, { freeMinutes: s.free_minutes });
   const view = await viewOf(db, plan);

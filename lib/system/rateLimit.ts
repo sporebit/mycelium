@@ -26,6 +26,10 @@ export const LIMITS = {
   inviteUser: { capacity: 20, refillPerMinute: 2 } satisfies Bucket,
   /** Ticket writes per user (spec §11) — generous: a bulk clarify is many. */
   ticketWrite: { capacity: 120, refillPerMinute: 60 } satisfies Bucket,
+  /** Pairing-code tries from one address (master run §11): an 8-digit code, ten minutes, five tries. */
+  wallPair: { capacity: 5, refillPerMinute: 1 } satisfies Bucket,
+  /** Quick-unlock tries, per wall and per person: a four-digit PIN must not be walkable from the screen. */
+  wallUnlock: { capacity: 6, refillPerMinute: 2 } satisfies Bucket,
 } as const;
 
 export async function takeToken(key: string, bucket: Bucket, cost = 1): Promise<boolean> {

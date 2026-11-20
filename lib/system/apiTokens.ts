@@ -22,6 +22,8 @@ export const TOKEN_ROUTES: Record<string, string[]> = {
   capture: ["/api/capture", "/api/capture-audio", "/api/capture-photo"],
   // the morning and evening calls an iPhone automation makes (master run §6)
   daily: ["/api/daily"],
+  // the wall screen's own routes (master run §11); the token is the household device's, never a person's
+  wall: ["/api/wall"],
 };
 
 function b64url(bytes: Uint8Array): string {

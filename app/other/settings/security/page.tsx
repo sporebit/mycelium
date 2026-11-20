@@ -9,6 +9,8 @@ import { Mono } from "@/components/dashboard/Mono";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { usePasskeySupport } from "@/lib/auth/usePasskeySupport";
 import { ApiTokensCard } from "@/components/settings/ApiTokensCard";
+import { QuickUnlockCard } from "@/components/settings/QuickUnlockCard";
+import { WallsCard } from "@/components/settings/WallsCard";
 
 type Passkey = {
   id: string;
@@ -181,6 +183,10 @@ export default function SecuritySettingsPage() {
 
       {/* Tickets spec §14.4: scoped bearer tokens for the tix CLI and Claude Code */}
       <ApiTokensCard />
+
+      {/* Master run §11: the wall's PIN for this person, and the household's walls */}
+      <QuickUnlockCard />
+      <WallsCard />
 
       <Card title="SESSIONS">
         {sessions.length === 0 ? (

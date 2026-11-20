@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { after } from "next/server";
 import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { cloudAllowed } from "@/lib/ai/budget";
 import { costPence, recordUsage } from "@/lib/ai/usage";
-import { applyTranscript, queueTranscription } from "@/lib/capture/jobs";
-import { pcIsOn } from "@/lib/jobs/queue";
-import { processCapture, receiveCapture } from "@/lib/capture/pipeline";
-import { sweepCaptures } from "@/lib/capture/sweep";
+import { captureRecording, whisperUsd } from "@/lib/capture/receiveAudio";
 import { transcribeAudio } from "@/lib/openai/whisper";
-import { audioExtension, uploadCaptureAudio } from "@/lib/storage/captures";
+import { audioExtension } from "@/lib/storage/captures";
 import { createUserClient } from "@/lib/supabase/user";
 
 export const runtime = "nodejs";
@@ -18,12 +14,6 @@ export const maxDuration = 60;
 
 /** Every answer says in its body whether it worked: an iPhone Shortcut cannot read the status code. */
 const fail = (error: string, status: number, extra: Record<string, unknown> = {}) => NextResponse.json({ ok: false, status: "error", error, ...extra }, { status });
-
-/** Whisper's list price, for the monthly cap: $0.006 a minute. Length is estimated from size (AAC at about 64 kbit/s). */
-function whisperUsd(bytes: number): number {
-  const minutes = Math.max(0.25, bytes / (8_000 * 60));
-  return minutes * 0.006;
-}
 
 /**
  * POST /api/capture-audio — a recording, as a multipart form.
@@ -82,33 +72,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const received = await receiveCapture(supabase, { text, clientUuid, source: "api", textSource: "dictation", forcedKind });
-
-    // The recording goes into the capture's own folder. The capture already
-    // exists, so a failure here loses nothing: the words (if any) are stored
-    // and the device still holds the file to send again.
-    const buffer = await audio.arrayBuffer();
-    const path = await uploadCaptureAudio(supabase, received.id, buffer, audio.type || `audio/${ext}`, ext);
-    const { data: row } = await supabase.from("raw_captures").update({ audio_path: path }).eq("id", received.id).select("id, raw_text, status").single();
-    const hasText = !!row?.raw_text?.trim();
-    await queueTranscription(supabase, received.id, hasText);
-
-    after(async () => {
-      try {
-        if (hasText && row?.status !== "processed") await processCapture(supabase, uid, received.id, { reply: true });
-        // No words yet. If the PC is on it will transcribe within the minute,
-        // for nothing. If it is off, do not leave the capture wordless until
-        // the next sweep: transcribe now in the cloud, inside the month's cap.
-        if (!hasText && !(await pcIsOn(supabase)) && process.env.OPENAI_API_KEY && (await cloudAllowed(supabase))) {
-          const words = await transcribeAudio(buffer, audio.name || `capture.${ext}`, audio.type || `audio/${ext}`);
-          await recordUsage(supabase, { provider: "openai", tag: "capture.transcribe", model: "whisper-1", input_tokens: 0, output_tokens: 0, cost_pence: costPence(null, 0, 0, whisperUsd(audio.size)) });
-          await applyTranscript(supabase, uid, received.id, words, "whisper_cloud");
-        }
-        await sweepCaptures(supabase, uid, { limit: 5 });
-      } catch (err) {
-        console.error("[capture-audio] processing soft-fail:", err);
-      }
-    });
+    // Storing, queuing and the after-the-answer transcription live in lib/capture/receiveAudio.ts, shared with the wall's tap-to-talk.
+    const received = await captureRecording(supabase, uid, { audio, text, clientUuid, forcedKind, source: "api" });
+    const hasText = received.hasText;
 
     return NextResponse.json(
       {
