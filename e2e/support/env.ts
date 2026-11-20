@@ -6,6 +6,7 @@
  * Next reads .env.local only for keys the process has not set, so a key set
  * here (even to an empty string) wins over the hosted value in that file.
  */
+import path from "node:path";
 import { localStackEnv } from "../../lib/access/introspect.ts";
 
 export const E2E_PORT = Number(process.env.E2E_PORT ?? 3100);
@@ -54,6 +55,8 @@ export function e2eServerEnv(): Record<string, string> {
     USER_TIMEZONE: "Europe/London",
     NEXT_DIST_DIR: ".next-e2e",
     NEXT_TELEMETRY_DISABLED: "1",
+    // The Finds feed's watchers read these files instead of GitHub, Hacker News and the feeds (lib/finds/fixtures.ts).
+    FINDS_FIXTURE_DIR: path.resolve(process.cwd(), "e2e/fixtures/finds"),
   };
   for (const key of SWITCHED_OFF) env[key] = "";
   return env;

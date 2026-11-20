@@ -36,6 +36,7 @@ export const SCHEDULE: readonly ScheduledJob[] = [
   { path: "/api/cron/tickets-checkins", everyMinutes: 15, why: "the scheduled-day check-in and the weekly-review reminder" },
   { path: "/api/cron/family", everyMinutes: 15, why: "an appointment in the family space, the evening before and two hours before; the week's letter question on Sunday evening" },
   { path: "/api/cron/finance", everyMinutes: 60, londonHours: [9, 10], why: "once a morning: a spending nudge when a category has passed 80% or all of its month's budget" },
+  { path: "/api/cron/finds", everyMinutes: 60, londonHours: [8, 21], why: "the Finds feed: the watchers once a day, verdicts for what has waited, and on Sunday evening the week's digest" },
   { path: "/api/cron/quotes-research", everyMinutes: 30, why: "quote research that did not finish after its request" },
   { path: "/api/cron/rundowns", everyMinutes: 60, why: "weekly rundowns, sent in each team's hour" },
 ];

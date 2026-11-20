@@ -107,6 +107,7 @@ export const SECTIONS: SectionConfig[] = [
     subPages: [
       { label: "Overview", href: "/studio", primary: true },
       { label: "Spotify", href: "/studio/spotify", primary: true },
+      { label: "Finds", href: "/studio/finds", primary: true },
       { label: "PC build", href: "/studio/pc", primary: false },
     ],
   },

@@ -7,6 +7,7 @@ import { GET as dailyPrompts } from "../daily-prompts/route";
 import { GET as daylog } from "../daylog/route";
 import { GET as family } from "../family/route";
 import { GET as finance } from "../finance/route";
+import { GET as finds } from "../finds/route";
 import { GET as quotesResearch } from "../quotes-research/route";
 import { GET as reminders } from "../reminders/route";
 import { GET as rundowns } from "../rundowns/route";
@@ -25,6 +26,7 @@ const HANDLERS: Record<string, Handler> = {
   "/api/cron/daylog": daylog,
   "/api/cron/family": family,
   "/api/cron/finance": finance,
+  "/api/cron/finds": finds,
   "/api/cron/quotes-research": quotesResearch,
   "/api/cron/rundowns": rundowns,
 };
