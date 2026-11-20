@@ -1,3 +1,4 @@
+import { auditListRead } from "@/lib/system/readAudit";
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { principalUid, readJson, ticketWriteGate } from "@/lib/tickets/server";
@@ -19,12 +20,13 @@ type Ctx = { params: Promise<{ key: string }> };
  *         start_on, target_on, links, board_type, board_columns, github_repo.
  * DELETE  archive — nothing is removed. Refused for the default project.
  */
-export async function GET(_req: NextRequest, ctx: Ctx) {
+export async function GET(req: NextRequest, ctx: Ctx) {
 	const { key } = await ctx.params;
 	try {
 		const supabase = await createUserClient();
 		const project = await resolveProject(supabase, key);
 		if (!project) return bad("not found", 404);
+		auditListRead(req, [project], "organisation", "tickets");
 		const [progress, components, offered, sprints, names] = await Promise.all([
 			progressOf(supabase, project.id),
 			// archived ones too: Settings lists them struck through with Restore; the overview leaves them out itself

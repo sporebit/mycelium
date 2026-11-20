@@ -1,3 +1,4 @@
+import { auditListRead } from "@/lib/system/readAudit";
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { principalUid, readJson, ticketWriteGate } from "@/lib/tickets/server";
@@ -38,6 +39,9 @@ export async function GET(req: NextRequest) {
 		if (rows.error) throw rows.error;
 		if (cats.error) throw cats.error;
 
+		// Someone reading projects that live in another person's space is recorded in that person's
+		// "who has seen my data" log, as every other shared list is. The Work routes were missed (found 2026-11-20).
+		auditListRead(req, (rows.data ?? []) as unknown as Array<{ space_id?: string | null }>, "organisation", "tickets");
 		const found = ((rows.data ?? []) as unknown as Array<Parameters<typeof serializeProject>[0]>).map(serializeProject);
 		const progress = await progressFor(supabase, found.map((p) => p.id));
 		const projects: ProjectWithProgress[] = found.map((p) => ({ ...p, progress: progress.get(p.id) ?? emptyProgress() }));

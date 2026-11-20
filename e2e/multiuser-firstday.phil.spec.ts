@@ -221,7 +221,7 @@ test("with no authenticator, the Security page says what is needed instead of as
 // sees. Settings writes user_settings.display_name; teams, shares and the
 // rundown read profiles.display_name, which nothing ever updates, so she
 // stays the first half of her email address everywhere.
-test.fixme("the name she sets in Settings is the name her team sees", async () => {
+test("the name she sets in Settings is the name her team sees", async () => {
   const chosen = `E2E Partner ${RUN}`;
   expect((await partner!.request.patch("/api/settings", { data: { display_name: chosen } })).status()).toBe(200);
   const seen = (await getJson<{ team: { members: Array<{ user_id: string; display_name: string | null }> } }>(host!.request, `/api/teams/${team!.id}`)).body;
@@ -232,7 +232,7 @@ test.fixme("the name she sets in Settings is the name her team sees", async () =
 // has seen my data" is fed by the list routes that call auditListRead();
 // none of /api/work/** does. She has just read the owner's shared project
 // through /api/work/projects and the owner's log has no trace of it.
-test.fixme("reading the owner's shared Work leaves a line in the owner's access log", async () => {
+test("reading the owner's shared Work leaves a line in the owner's access log", async () => {
   expect(await projectNames(partner!.request)).toContain(HOST_PLAN);
   expect((await partner!.request.get(`/api/work/projects/${hostPlanId}`)).status()).toBe(200);
   const logged = () => sqlValue(`select count(*) from public.audit_events where action = 'cross_user_read' and actor_id = '${partner!.id}' and subject_user_id = '${host!.id}' and section = 'organisation'`);
