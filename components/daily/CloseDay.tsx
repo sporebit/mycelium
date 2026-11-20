@@ -26,7 +26,7 @@ type CloseView = {
   summary: { done?: number; moved?: number; dropped?: number };
 };
 
-type CaptureCard = { id: string; text: string; title: string; kind: string; held: boolean; suggestion: string; has_audio: boolean; from_dump: boolean };
+type CaptureCard = { id: string; text: string; title: string; kind: string; held: boolean; suggestion: string; has_audio: boolean; has_photo: boolean; from_dump: boolean };
 
 /** What a capture can be changed to from the card. Anything that needs more detail (a reminder's time, a ticket's project) opens the full editor. */
 const FIX_KINDS: Array<{ kind: string; label: string }> = [
@@ -108,7 +108,16 @@ export function CloseDay({ chime = true }: { chime?: boolean }) {
             {cap.suggestion}
             {cap.from_dump ? " · from a longer recording" : ""}
           </span>
+          {cap.has_photo ? (
+            // eslint-disable-next-line @next/next/no-img-element -- a signed, short-lived link; the image optimiser cannot fetch it
+            <img src={`/api/captures/${cap.id}/media?kind=photo`} alt="The captured picture" className="max-h-64 w-auto rounded-v2-sm object-contain" />
+          ) : null}
           <p className="whitespace-pre-line text-text-hi">{cap.text}</p>
+          {cap.has_audio ? (
+            <a className="text-sm text-text-mid underline underline-offset-4" href={`/api/captures/${cap.id}/media?kind=audio`} target="_blank" rel="noreferrer">
+              Play the recording
+            </a>
+          ) : null}
         </div>
       ),
       right: { label: "Accept", value: "accept" },

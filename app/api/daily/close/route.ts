@@ -50,7 +50,8 @@ export async function GET() {
         held,
         // What accepting does, in words: "Filed as a task" or, for an item out of a long dump, "An idea. Suggested: a task".
         suggestion: held ? `An idea for now. Suggested: ${filedAs(kind).replace("Filed as ", "")}` : filedAs(kind),
-        has_audio: !!c.audio_path,
+        has_audio: !!c.audio_path || !!c.parent_capture_id,
+        has_photo: typeof cls.photo_path === "string",
         from_dump: !!c.parent_capture_id,
         created_at: c.created_at,
       };
@@ -91,6 +92,9 @@ export async function POST(req: NextRequest) {
       const s = summarise(plan);
       const left = plan.items.filter((i) => i.state === "planned" || i.state === "started").length;
       const words = eveningPrompt(s.done, left);
+      // Once a day: the charger and the fallback time may both fire.
+      const { data: already } = await db.from("interruptions").select("id").eq("created_by", uid).eq("kind", "evening").eq("day", plan.day).limit(1);
+      if (already?.length) return NextResponse.json({ ok: true, status: "ok", prompted: false, say: `${words.title}. ${words.body}` });
       const res = await interrupt(db, uid, { kind: "evening", essential: true, title: words.title, body: words.body, url: "/close" });
       return NextResponse.json({ ok: true, prompted: res.sent, say: `${words.title}. ${words.body}` });
     }
