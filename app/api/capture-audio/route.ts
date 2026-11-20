@@ -4,7 +4,8 @@ import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { cloudAllowed } from "@/lib/ai/budget";
 import { costPence, recordUsage } from "@/lib/ai/usage";
-import { queueTranscription } from "@/lib/capture/jobs";
+import { applyTranscript, queueTranscription } from "@/lib/capture/jobs";
+import { pcIsOn } from "@/lib/jobs/queue";
 import { processCapture, receiveCapture } from "@/lib/capture/pipeline";
 import { sweepCaptures } from "@/lib/capture/sweep";
 import { transcribeAudio } from "@/lib/openai/whisper";
@@ -95,6 +96,14 @@ export async function POST(req: NextRequest) {
     after(async () => {
       try {
         if (hasText && row?.status !== "processed") await processCapture(supabase, uid, received.id, { reply: true });
+        // No words yet. If the PC is on it will transcribe within the minute,
+        // for nothing. If it is off, do not leave the capture wordless until
+        // the next sweep: transcribe now in the cloud, inside the month's cap.
+        if (!hasText && !(await pcIsOn(supabase)) && process.env.OPENAI_API_KEY && (await cloudAllowed(supabase))) {
+          const words = await transcribeAudio(buffer, audio.name || `capture.${ext}`, audio.type || `audio/${ext}`);
+          await recordUsage(supabase, { provider: "openai", tag: "capture.transcribe", model: "whisper-1", input_tokens: 0, output_tokens: 0, cost_pence: costPence(null, 0, 0, whisperUsd(audio.size)) });
+          await applyTranscript(supabase, uid, received.id, words, "whisper_cloud");
+        }
         await sweepCaptures(supabase, uid, { limit: 5 });
       } catch (err) {
         console.error("[capture-audio] processing soft-fail:", err);
