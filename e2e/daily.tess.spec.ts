@@ -349,3 +349,28 @@ test("the Close page: the deck answers by button, and the day closes", async ({ 
   await expect(close.getByRole("heading", { name: "Day closed." })).toBeVisible();
   expect(col(a.id, "scheduled_on")).toBe(london(1));
 });
+
+test("when the phone asks, it gets the line and nothing is pushed on top; each is offered once", async () => {
+  await ticket("automation asks", { deadline_on: TODAY, minutes: 10 });
+  const pushed = () => localSql(`select count(*) from public.interruptions where created_by = '${TESS.id}' and day = '${TODAY}' and kind in ('morning', 'evening')`)[0][0];
+  const before = pushed();
+
+  const morning = (await (await api.post("/api/daily/morning")).json()) as { ok: boolean; status: string; prompted: boolean; say: string };
+  expect(morning).toMatchObject({ ok: true, status: "ok", prompted: true });
+  expect(morning.say).toContain("automation asks");
+  expect(((await (await api.post("/api/daily/morning")).json()) as { prompted: boolean }).prompted, "the alarm stopped twice").toBe(false);
+
+  const evening = (await (await api.post("/api/daily/close", { data: { action: "prompt" } })).json()) as { ok: boolean; status: string; prompted: boolean; say: string };
+  expect(evening).toMatchObject({ ok: true, status: "ok", prompted: true });
+  expect(evening.say.length).toBeGreaterThan(5);
+  const again = (await (await api.post("/api/daily/close", { data: { action: "prompt" } })).json()) as { prompted: boolean; say: string };
+  expect(again.prompted, "plugged in a second time").toBe(false);
+  expect(again.say).toBe(evening.say);
+
+  expect(localSql(`select (prompted_at is not null)::text, (evening_prompted_at is not null)::text from public.day_plans where created_by = '${TESS.id}' and day = '${TODAY}'`)[0]).toEqual(["true", "true"]);
+  expect(pushed(), "the phone showed it: the server sent nothing").toBe(before);
+
+  // A closed day is not offered again.
+  await api.post("/api/daily/close", { data: {} });
+  expect(((await (await api.post("/api/daily/close", { data: { action: "prompt" } })).json()) as { prompted: boolean; say: string })).toMatchObject({ prompted: false, say: "Day closed." });
+});

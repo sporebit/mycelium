@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { daylogSettings, type DaylogSettings } from "@/lib/daylog/settings";
+import { type DailySettings, mergeDailySettings } from "@/lib/daily/settings";
+import { DEFAULT_FREE_MINUTES } from "@/lib/daily/propose";
 import { Sheet } from "@/components/ui/Sheet";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
@@ -125,6 +127,7 @@ function SettingsBody({
     { key: "features", label: "Features", render: () => <FeatureFlagsSection settings={settings} onPatch={patch} /> },
     { key: "capture", label: "Capture", render: () => <CaptureSourcesSection settings={settings} onPatch={patch} /> },
     { key: "ai", label: "AI", render: () => <AIConfigSection settings={settings} onPatch={patch} /> },
+    { key: "today", label: "Today", render: () => <DailySection /> },
     { key: "journal", label: "Journal", render: () => <JournalSection settings={settings} onPatch={patch} /> },
     { key: "data", label: "Data", render: () => <DataSection stats={stats} /> },
     { key: "danger", label: "Danger zone", render: () => <DangerZoneSection /> },
@@ -180,6 +183,69 @@ function SettingsBody({
         </Sheet>
       )}
     </>
+  );
+}
+
+const WEEKDAYS: Array<[number, string]> = [[1, "Monday"], [2, "Tuesday"], [3, "Wednesday"], [4, "Thursday"], [5, "Friday"], [6, "Saturday"], [7, "Sunday"]];
+
+/**
+ * Today and the evening close (master run §6): the times and limits the
+ * daily loop runs on, kept in ui_prefs.daily. Anything left alone uses the
+ * defaults in lib/daily/settings.ts.
+ */
+function DailySection() {
+  const { prefs, setPrefs } = useUiPrefs();
+  const d = mergeDailySettings(prefs.daily);
+  const save = (partial: Partial<DailySettings>) => void setPrefs({ daily: { ...d, ...partial } });
+  const minutes = (v: string, fallback: number, max: number) => {
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) && n >= 0 && n <= max ? n : fallback;
+  };
+  return (
+    <div className="flex flex-col gap-4">
+      <SectionCard title="TODAY — WHEN IT SPEAKS">
+        <p className="text-sm text-ink-3">
+          The morning pick normally comes when the phone&apos;s alarm stops, and the evening close when it goes on charge.
+          These are for the days neither happens.
+        </p>
+        <TextSetting label="Morning pick, if no alarm (London)" value={d.morning_fallback} type="time" onSave={(v) => save({ morning_fallback: v })} />
+        <TextSetting label="Evening close, if never plugged in (London)" value={d.evening_fallback} type="time" onSave={(v) => save({ evening_fallback: v })} />
+        <TextSetting label="Quiet from" value={d.quiet_from} type="time" onSave={(v) => save({ quiet_from: v })} />
+        <TextSetting label="Quiet until" value={d.quiet_to} type="time" onSave={(v) => save({ quiet_to: v })} />
+        <TextSetting
+          label="Times a day the app may speak first"
+          value={String(d.interruption_budget)}
+          type="number"
+          onSave={(v) => save({ interruption_budget: minutes(v, d.interruption_budget, 10) })}
+        />
+        <p className="text-[12px] text-ink-3">
+          Counted across push, Telegram and the wall together. Replies to something you started, reminders you set, and
+          another person&apos;s nudges are not counted. Nothing is sent while a countdown is running.
+        </p>
+      </SectionCard>
+      <SectionCard title="TODAY — HOW MUCH FITS">
+        <p className="text-sm text-ink-3">
+          Free minutes each day. Today is filled to half of this, with shown times already half as long again as the
+          estimate.
+        </p>
+        {WEEKDAYS.map(([day, name]) => (
+          <TextSetting
+            key={day}
+            label={`${name} (minutes free)`}
+            value={String(d.free_minutes[day] ?? DEFAULT_FREE_MINUTES[day])}
+            type="number"
+            onSave={(v) => save({ free_minutes: { ...d.free_minutes, [day]: minutes(v, DEFAULT_FREE_MINUTES[day], 960) } })}
+          />
+        ))}
+        <TextSetting
+          label="Things in progress before it asks to park one"
+          value={String(d.wip_limit)}
+          type="number"
+          onSave={(v) => save({ wip_limit: Math.max(1, minutes(v, d.wip_limit, 10)) })}
+        />
+        <ToggleSetting label="Sound on Done" description="A short chime when something is finished." value={d.chime} onToggle={(v) => save({ chime: v })} />
+      </SectionCard>
+    </div>
   );
 }
 

@@ -11,6 +11,8 @@ export type UiPrefs = {
   // don't require a migration. Shape: { prefs: DashCardPref[] }.
   dashboard_layout: Record<string, unknown>;
   dashboard_view: "today" | "everything";
+  /** The daily loop's times and limits; read through lib/daily/settings.ts, which supplies the defaults. */
+  daily?: Record<string, unknown>;
   ventures_incubator_expanded: boolean;
   compost_view: string;
   compost_show_completed: boolean;
