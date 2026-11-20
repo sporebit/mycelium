@@ -8,7 +8,7 @@ import { writeCapture } from "@/lib/router/writeCapture";
 import { embedAndStore } from "@/lib/router/embedAndStore";
 import { classificationForTyped, getEntityDef, textForTyped, type FieldValues } from "@/lib/capture/registry";
 import { recordPrediction } from "@/lib/capture/learning";
-import { processCapture, receiveCapture } from "@/lib/capture/pipeline";
+import { correctCapture, processCapture, receiveCapture, replyFiled } from "@/lib/capture/pipeline";
 import { sweepCaptures } from "@/lib/capture/sweep";
 import { cloudAllowed } from "@/lib/ai/budget";
 
@@ -23,6 +23,15 @@ type CaptureBody = {
   dictated?: boolean;
   /** The person changed the dictated text by hand before sending. */
   edited?: boolean;
+  /**
+   * The Shortcut's two-step send. First: the dictated text goes up at once
+   * with `await_edit`, so nothing depends on the edit box. Then the box is
+   * shown; when it is answered the same `client_uuid` is sent again with
+   * `final` (and `edited` + the new text if the words were changed). If the
+   * box is dismissed there is no second send, and the first one stands.
+   */
+  await_edit?: boolean;
+  final?: boolean;
   /** MYC-161: the form's chosen type and its fields. Absent = Auto (classify). */
   typed?: { kind?: string; fields?: FieldValues };
 };
@@ -150,12 +159,22 @@ export async function POST(req: NextRequest) {
       clientUuid: body.client_uuid,
       source: fromDevice ? "api" : "web",
       textSource: body.dictated || body.source === "shortcut" ? "dictation" : "typed",
-      edited: body.edited === true,
+      // On the second send the stored words are corrected below, not here.
+      edited: body.edited === true && body.final !== true,
     });
 
     after(async () => {
       try {
-        if (!received.duplicate) await processCapture(supabase, userId, received.id, { reply: fromDevice });
+        // A repeat of a capture already being handled is left alone. One still at "received" is not: when the
+        // recording arrived first, these words are what it was waiting for (processCapture claims the row, so a
+        // double submit still runs once).
+        if (body.final === true && received.duplicate && received.status !== "received") {
+          // The edit box was answered. Changed words re-file the capture; unchanged words just get the reply that was held back.
+          if (body.edited === true) await correctCapture(supabase, userId, received.id, text);
+          else await replyFiled(supabase, userId, received.id);
+        } else if (!received.duplicate || received.status === "received") {
+          await processCapture(supabase, userId, received.id, { reply: fromDevice && body.await_edit !== true });
+        }
         await sweepCaptures(supabase, userId, { limit: 5 });
       } catch (err) {
         console.error("[/api/capture] processing soft-fail:", err);

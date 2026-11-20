@@ -348,3 +348,70 @@ async function reply(db: SupabaseClient, uid: string, captureId: string, title: 
     console.error("[capture] reply not sent:", err);
   }
 }
+
+/** Tell the person what an already-processed capture was filed as (the second half of "Saved … Filed as …"). */
+export async function replyFiled(db: SupabaseClient, uid: string, captureId: string): Promise<void> {
+  const { data } = await db.from("raw_captures").select("status, classification").eq("id", captureId).maybeSingle();
+  const row = data as { status: CaptureStatus; classification: Record<string, unknown> | null } | null;
+  if (!row || row.status !== "processed") return;
+  const c = row.classification ?? {};
+  const split = c.split as { count?: number } | undefined;
+  if (split?.count) return reply(db, uid, captureId, `Saved as ${split.count} separate items`, "They are in tonight's review, as ideas until you accept them.");
+  await reply(db, uid, captureId, filedAs(String(c.kind ?? "note")), typeof c.title === "string" ? c.title : null);
+}
+
+/**
+ * The person corrected the words after they were sent (the edit box in the
+ * iPhone Shortcut shows the dictated text; the unedited text has already
+ * gone up so that dismissing the box loses nothing).
+ *
+ * The capture keeps its id and its recording. Its text becomes the edited
+ * text, marked as edited by hand so no later transcription replaces it, and
+ * if nobody has reviewed it yet, whatever the first version was filed as is
+ * taken back and it is filed again from the corrected words. A capture that
+ * has been reviewed keeps its filing: the person already decided.
+ */
+export async function correctCapture(db: SupabaseClient, uid: string, captureId: string, newText: string, opts: ProcessOptions = {}): Promise<ProcessResult | { state: "text_only" }> {
+  const text = formatParagraphs(newText.trim());
+  if (!text) return { state: "failed", error: "no text" };
+
+  // The first version may still be on its way through: give it a moment to land.
+  type Correctable = CaptureRow & { reviewed_at: string | null; routed_id: string | null; auto_filed_at: string | null };
+  const read = async (): Promise<Correctable | null> => {
+    const { data } = await db.from("raw_captures").select(`${ROW}, reviewed_at, routed_id, auto_filed_at`).eq("id", captureId).maybeSingle();
+    return (data as Correctable | null) ?? null;
+  };
+  let row = await read();
+  for (let i = 0; i < 12 && row?.status === "processing"; i++) {
+    await new Promise((r) => setTimeout(r, 500));
+    row = await read();
+  }
+  if (!row) return { state: "failed", error: "capture not found" };
+
+  const wasSplit = !!(row.classification as { split?: unknown } | null)?.split;
+  const decided = row.reviewed_at !== null && !wasSplit;
+  if (decided || row.auto_filed_at) {
+    await db.from("raw_captures").update({ raw_text: text, text_edited: true }).eq("id", row.id);
+    return { state: "text_only" };
+  }
+
+  // Take back what the first version made: the items of a split, and the row it was filed into.
+  if (wasSplit) await db.from("raw_captures").delete().eq("parent_capture_id", row.id).is("reviewed_at", null);
+  const { deleteRoutedRow } = await import("./materialise");
+  await deleteRoutedRow(db, row.routed_to, row.routed_id);
+  const { error } = await db
+    .from("raw_captures")
+    .update({
+      raw_text: text,
+      text_edited: true,
+      status: "received",
+      routed_to: null,
+      routed_id: null,
+      reviewed_at: null,
+      processed_at: null,
+      classification: placeholderClassification(text),
+    })
+    .eq("id", row.id);
+  if (error) return { state: "failed", error: error.message };
+  return processCapture(db, uid, row.id, { reply: true, ...opts });
+}

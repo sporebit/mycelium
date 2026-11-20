@@ -22,7 +22,7 @@ import { appendCapture } from "@/lib/daylog/engine";
 import { technicalProjectIds } from "@/lib/tickets/area";
 import { moveTicket } from "@/lib/tickets/server";
 import { rruleFromRecurrence } from "@/lib/tickets/reminderShape";
-import { londonToUtcIso } from "@/lib/capture/registry";
+import { reminderDueIso } from "@/lib/capture/reminderDue";
 import { applyPersonPatch } from "@/lib/people/contacts";
 
 /** Person fields a capture may set (MYC-154); names and needs_review stay with the People drawer. */
@@ -260,9 +260,8 @@ export async function createRoutedRow(
     // classifier gives a London date + time; the row goes straight to Next.
     const r = (classification.reminder as Record<string, unknown> | undefined) ?? {};
     let dueIso = typeof classification.due_at === "string" && !Number.isNaN(Date.parse(classification.due_at)) ? new Date(classification.due_at).toISOString() : null;
-    if (!dueIso && typeof r.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.date)) {
-      dueIso = londonToUtcIso(r.date, typeof r.time === "string" && /^\d{2}:\d{2}$/.test(r.time) ? r.time : "09:00");
-    }
+    // "tomorrow at 9", "at 8pm", "in 30 minutes", "Friday at 3": the classifier's own terms, not only an ISO date
+    if (!dueIso) dueIso = reminderDueIso(r);
     if (!dueIso) throw new Error("a reminder needs a date and time");
     const message = (typeof r.reminder_message === "string" && r.reminder_message.trim()) || title;
     const due = new Date(dueIso);

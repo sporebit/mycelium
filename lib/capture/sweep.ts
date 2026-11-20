@@ -32,17 +32,22 @@ type Stuck = { id: string; raw_text: string | null; audio_path: string | null; s
 export async function sweepCaptures(db: SupabaseClient, uid: string, opts: { limit?: number; now?: Date } = {}): Promise<SweepResult> {
   const now = opts.now ?? new Date();
   const settled = new Date(now.getTime() - SETTLE_SECONDS * 1000).toISOString();
-  const { data } = await db
-    .from("raw_captures")
-    .select("id, raw_text, audio_path, status, process_attempts, created_at")
-    .eq("created_by", uid)
-    .in("status", ["received", "failed"])
-    .is("deleted_at", null)
-    .lt("created_at", settled)
-    .lt("process_attempts", MAX_ATTEMPTS)
-    .order("created_at", { ascending: true })
-    .limit(opts.limit ?? 10);
-  const rows = (data ?? []) as Stuck[];
+  const stuck = () =>
+    db
+      .from("raw_captures")
+      .select("id, raw_text, audio_path, status, process_attempts, created_at")
+      .eq("created_by", uid)
+      .in("status", ["received", "failed"])
+      .is("deleted_at", null)
+      .lt("created_at", settled)
+      .lt("process_attempts", MAX_ATTEMPTS)
+      .order("created_at", { ascending: true })
+      .limit(opts.limit ?? 10);
+  // Two reads, not one. A recording still waiting for its words is "left" without an attempt being counted,
+  // so in a single oldest-first list a handful of them sat at the front for ever and no capture with words
+  // behind them was ever reached.
+  const [{ data: withWords }, { data: audioOnly }] = await Promise.all([stuck().not("raw_text", "is", null), stuck().is("raw_text", null)]);
+  const rows = [...((withWords ?? []) as Stuck[]), ...((audioOnly ?? []) as Stuck[])];
   const out: SweepResult = { processed: 0, transcribed: 0, left: 0 };
   if (!rows.length) return out;
 
