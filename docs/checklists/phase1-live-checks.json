@@ -2,7 +2,7 @@
   "slug": "phase1-live-checks",
   "kind": "test",
   "title": "Live checks after the test pass: one surface per sitting",
-  "version": 6,
+  "version": 7,
   "intro": {
     "verdict_html": "Everything built so far was exercised by automation on 20 November: 482 end-to-end checks as two people, 821 unit and database checks, and a pass that opens all 220 page views. Faults found were fixed or are on the build list. What is left here is only what a machine cannot judge: look, feel, a real voice, a real receipt, a second person's phone. Each chunk is one surface and about fifteen minutes; do them in any order, on any day. Chunk 1 is five minutes and should be first.",
     "prerequisites": [
@@ -1750,6 +1750,86 @@
             {
               "key": "wall_frame",
               "label": "Which frame? (line from the table)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "title": "Family second pass, and team tickets (15 minutes; step 4 on the first of the month)",
+      "lede_html": "Built and checked by automation as Tess. Nothing here needs an account or a key.",
+      "steps": [
+        {
+          "id": "19.1",
+          "title": "An appointment on the Calendar",
+          "actor": "you",
+          "where": {
+            "label": "Calendar",
+            "url": "https://mycelium.sporebit.com/compost/calendar",
+            "kind": "page"
+          },
+          "body_html": "On the phone, open <b>Family</b>, add an appointment with a time three days from now and a place. Open <b>Calendar</b>: the day has a dot; pick the day; the line reads the appointment's title, the place, and <b>Family</b> in the legend's colour. Ask Kirsty to open Calendar: the same line.",
+          "fields": [
+            {
+              "key": "family_cal",
+              "label": "Both of you see it? (yes / who not)"
+            }
+          ]
+        },
+        {
+          "id": "19.2",
+          "title": "Edit in place, and Cancel",
+          "actor": "you",
+          "where": {
+            "label": "Family",
+            "url": "https://mycelium.sporebit.com/family",
+            "kind": "page"
+          },
+          "body_html": "On the appointment, press <b>Edit</b>, change the place, <b>Save</b>: the card shows the new place and <i>Coming up</i> at the top of Family does too. Press <b>Edit</b> again, change the line, <b>Cancel</b>: nothing changed."
+        },
+        {
+          "id": "19.3",
+          "title": "A photo over 4 MB",
+          "actor": "you",
+          "where": {
+            "label": "Family",
+            "url": "https://mycelium.sporebit.com/family",
+            "kind": "page"
+          },
+          "body_html": "Add a photo straight from the phone's camera roll, one larger than 4 MB. It goes through without the \"over 4 MB\" sentence; the card shows the picture and the day it was taken, not today.",
+          "fields": [
+            {
+              "key": "family_photo_day",
+              "label": "Taken-on day right? (yes / no)"
+            }
+          ]
+        },
+        {
+          "id": "19.4",
+          "title": "A monthly bill adds itself",
+          "actor": "you",
+          "where": {
+            "label": "Budget",
+            "url": "https://mycelium.sporebit.com/family/budget",
+            "kind": "page"
+          },
+          "body_html": "In <b>Budget</b>, add a bill with <b>Every month</b> ticked. On the first of next month (the tick runs every fifteen minutes), open Budget: the month's line is there, marked <i>monthly</i>, on the same day, for the same amount; the day after, still one line."
+        },
+        {
+          "id": "19.5",
+          "title": "A team ticket's pickers",
+          "actor": "you",
+          "where": {
+            "label": "Work",
+            "url": "https://mycelium.sporebit.com/work",
+            "kind": "page"
+          },
+          "body_html": "Open a ticket in your team's space (its key starts with the team's initials, not <code>TKT</code>). The <b>Project</b> picker lists the team's projects and none of your own; <b>Type</b> lists the team's types. Open one of your own tickets: the opposite.",
+          "fields": [
+            {
+              "key": "team_key",
+              "label": "Team key seen? (e.g. WH)"
             }
           ]
         }
