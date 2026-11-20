@@ -143,9 +143,18 @@ export function propose(input: ProposeInput): Proposal {
   const max = Math.max(1, Math.min(input.maxItems ?? MAX_ITEMS, MAX_ITEMS));
   const exclude = new Set(input.exclude ?? []);
 
-  const open = input.candidates.filter(
-    (c) => !c.someday && !c.blocked && !exclude.has(c.id) && ["inbox", "backlog", "next", "doing"].includes(c.category),
-  );
+  // Today is drawn from what is lined up (Next), what is in progress
+  // (Doing), and anything with a date that has arrived or is three days
+  // off. An undated item in the Inbox or the Backlog has not been chosen
+  // yet, so it is never put on a day by the proposal: a backlog of two
+  // hundred ideas must not turn into two hundred candidates.
+  const open = input.candidates.filter((c) => {
+    if (c.someday || c.blocked || exclude.has(c.id)) return false;
+    if (c.category === "next" || c.category === "doing") return true;
+    if (c.category !== "inbox" && c.category !== "backlog") return false;
+    if (dueBy(c, day)) return true;
+    return !!c.deadline_on && daysBetween(day, c.deadline_on) <= 3;
+  });
 
   // Rule 14: a week past its date means the date was wrong. One card, once.
   const slipped: string[] = [];

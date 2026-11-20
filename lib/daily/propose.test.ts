@@ -118,6 +118,23 @@ describe("propose", () => {
     expect(p.items.map((i) => i.ticket_id)).toEqual([keep.id]);
   });
 
+  it("never proposes an undated Inbox or Backlog item, however many there are", () => {
+    const backlog = Array.from({ length: 110 }, (_, i) => c({ title: `Harvested idea ${i}`, category: "backlog", priority_score: 0.9 }));
+    const inbox = c({ title: "Unsorted capture", category: "inbox" });
+    const lined = c({ title: "Lined up", category: "next", priority_score: 0.1 });
+    const p = propose({ day: DAY, freeMinutes: 600, candidates: [...backlog, inbox, lined] });
+    expect(p.items.map((i) => i.ticket_id)).toEqual([lined.id]);
+    expect(p.bench).toEqual([]);
+  });
+
+  it("does propose a Backlog item once its date arrives or is three days off", () => {
+    const dueToday = c({ title: "Backlog, date today", category: "backlog", scheduled_on: DAY });
+    const dueSoon = c({ title: "Backlog, date in two days", category: "backlog", deadline_on: "2026-11-22" });
+    const dueLater = c({ title: "Backlog, date in ten days", category: "backlog", deadline_on: "2026-11-30" });
+    const p = propose({ day: DAY, freeMinutes: 600, candidates: [dueToday, dueSoon, dueLater] });
+    expect(p.items.map((i) => i.ticket_id).sort()).toEqual([dueToday.id, dueSoon.id].sort());
+  });
+
   it("does not put a week-old date back at the front: it is held for one decision card (rule 14)", () => {
     const stale = c({ title: "Renew the passport", scheduled_on: "2026-11-10" }); // 10 days
     const offered = c({ title: "Already offered", scheduled_on: "2026-11-01", slip_offered: true });
