@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import { sectionForPath } from "@/lib/nav/sections";
 
 /**
- * Mobile-only sub-navigation. Derives the active section from the current
- * pathname and renders its subPages as a horizontally scrollable chip row.
- * Desktop uses the Sidebar's accordion for the same purpose.
+ * Sub-navigation as a chip row. Derives the active section from the current
+ * pathname and renders its subPages, horizontally scrollable. In the
+ * classic shell it is for phones only (desktop has the Sidebar's
+ * accordion); in the new shell, which has no sidebar, it shows on desktop
+ * too (`desktop`).
  */
-export function SubChips() {
+export function SubChips({ desktop = false }: { desktop?: boolean } = {}) {
   const pathname = usePathname();
   const section = sectionForPath(pathname);
   if (!section) return null;
@@ -17,7 +19,7 @@ export function SubChips() {
   return (
     <nav
       aria-label={`${section.label} pages`}
-      className="lg:hidden -mx-4 sm:-mx-6 mb-4 overflow-x-auto no-scrollbar"
+      className={`${desktop ? "" : "lg:hidden "}-mx-4 sm:-mx-6 mb-4 overflow-x-auto no-scrollbar`}
     >
       <ul className="inline-flex items-center gap-2 px-4 sm:px-6 snap-x snap-mandatory">
         {section.subPages.map((sp) => {

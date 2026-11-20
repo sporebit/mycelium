@@ -493,6 +493,28 @@ function AppearanceSection({ settings, onPatch }: { settings: Settings; onPatch:
     <SectionCard title="APPEARANCE">
       <div className="flex items-center justify-between gap-4 py-2 flex-wrap">
         <div className="min-w-0">
+          <div className="text-sm text-ink-4">Shell</div>
+          <div className="text-[11px] text-ink-3">
+            New: a top menu bar, and Home as the Specimen plate. Classic: the sidebar and the dashboard. Switch back at any time.
+          </div>
+        </div>
+        <SegmentedControl
+          size="sm"
+          ariaLabel="Shell"
+          value={prefs.shell === "new" ? "new" : "classic"}
+          onChange={(v) => {
+            // The shell wraps every page: reload so the whole frame is the chosen one.
+            void setPrefs({ shell: v === "new" ? "new" : "classic" }).then(() => window.location.reload());
+          }}
+          options={[
+            { value: "classic", label: "Classic" },
+            { value: "new", label: "New" },
+          ]}
+        />
+      </div>
+
+      <div className="flex items-center justify-between gap-4 py-2 flex-wrap">
+        <div className="min-w-0">
           <div className="text-sm text-ink-4">Density</div>
           <div className="text-[11px] text-ink-3">
             Compact tightens table rows from 40px to 32px

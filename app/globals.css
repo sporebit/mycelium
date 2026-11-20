@@ -837,3 +837,71 @@ a.work-chip:hover {
   font-size: 0.8rem;
   color: var(--text-lo);
 }
+
+/* ---------------------------------------------------------------------------
+   Specimen plate (Home in the new shell; claude/ui-direction.md).
+   Ink draws itself in, colour floods in when an item is done, figures settle
+   into place. All of it stops when motion is reduced or off.
+   --------------------------------------------------------------------------- */
+.plate-ink {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: plate-draw 1.9s ease-out forwards;
+}
+@keyframes plate-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.plate-paint {
+  transition: fill 900ms ease-out;
+}
+.plate-settle {
+  animation: plate-settle 700ms ease-out both;
+}
+@keyframes plate-settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.plate-press {
+  transition: transform 140ms ease-out;
+}
+.plate-press:active {
+  transform: scale(0.97);
+}
+.plate-press:focus-visible {
+  outline: 2px solid #ece6d2;
+  outline-offset: 3px;
+}
+[data-motion="off"] .plate-ink,
+[data-motion="reduced"] .plate-ink {
+  animation: none;
+  stroke-dashoffset: 0;
+}
+[data-motion="off"] .plate-paint,
+[data-motion="off"] .plate-press {
+  transition: none;
+}
+[data-motion="off"] .plate-settle,
+[data-motion="reduced"] .plate-settle {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .plate-ink {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .plate-paint,
+  .plate-press {
+    transition: none;
+  }
+  .plate-settle {
+    animation: none;
+  }
+}

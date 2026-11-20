@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter_Tight, JetBrains_Mono } from "next/font/google";
+import { Inter_Tight, JetBrains_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
 import { PrivacyProvider } from "@/lib/context/PrivacyContext";
 import { TransitionProvider } from "@/lib/context/TransitionContext";
@@ -7,6 +7,7 @@ import { TransitionOverlay } from "@/components/nav/TransitionOverlay";
 import { SoilGrain } from "@/components/dashboard/SoilGrain";
 import { MyceliumField } from "@/components/art/MyceliumField";
 import { SessionWatch } from "@/components/auth/SessionWatch";
+import { ShellPrefProvider } from "@/components/shell/ShellPref";
 import { createUserClient } from "@/lib/supabase/user";
 import { UI_PREFS_DEFAULTS, getUiPrefs } from "@/lib/settings/uiPrefs";
 
@@ -27,6 +28,15 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
   display: "swap",
+});
+
+// The Specimen plate's caption face (claude/ui-direction.md). Not preloaded: only Home in the new shell uses it.
+const newsreader = Newsreader({
+  variable: "--font-plate",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -55,10 +65,12 @@ export default async function RootLayout({
   // The login page renders inside this layout with no session; the query
   // then sees no rows under RLS and getUiPrefs returns the defaults.
   let motion = UI_PREFS_DEFAULTS.motion;
+  let shell = UI_PREFS_DEFAULTS.shell;
   try {
     const supabase = await createUserClient();
     const prefs = await getUiPrefs(supabase);
     motion = prefs.motion;
+    shell = prefs.shell === "new" ? "new" : "classic";
   } catch (err) {
     console.error("[layout/uiPrefs]", err);
   }
@@ -66,7 +78,8 @@ export default async function RootLayout({
     <html
       lang="en"
       data-motion={motion}
-      className={`${interTight.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      data-shell={shell}
+      className={`${interTight.variable} ${jetbrainsMono.variable} ${newsreader.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-ink-0 text-ink-4">
         <SoilGrain />
@@ -74,7 +87,9 @@ export default async function RootLayout({
         <SessionWatch />
         <TransitionProvider>
           <PrivacyProvider>
-            <div className="relative z-10 flex-1 flex flex-col">{children}</div>
+            <ShellPrefProvider value={shell}>
+              <div className="relative z-10 flex-1 flex flex-col">{children}</div>
+            </ShellPrefProvider>
           </PrivacyProvider>
           <TransitionOverlay />
         </TransitionProvider>

@@ -11,6 +11,12 @@ export type UiPrefs = {
   // don't require a migration. Shape: { prefs: DashCardPref[] }.
   dashboard_layout: Record<string, unknown>;
   dashboard_view: "today" | "everything";
+  /**
+   * Which shell: "classic" is the sidebar; "new" is the top menu bar with
+   * Specimen plate as Home (claude/ui-direction.md). The switch is in
+   * Settings → Appearance; the old shell stays until the new one is signed off.
+   */
+  shell: "classic" | "new";
   /** The daily loop's times and limits; read through lib/daily/settings.ts, which supplies the defaults. */
   daily?: Record<string, unknown>;
   ventures_incubator_expanded: boolean;
@@ -58,6 +64,7 @@ export type UiPrefs = {
 export const UI_PREFS_DEFAULTS: UiPrefs = {
   motion: "full",
   density: "comfortable",
+  shell: "classic",
   pinned_mobile_tabs: ["dashboard", "organisation", "fitness", "health"],
   hidden_sections: [],
   tickers_expanded: false,
