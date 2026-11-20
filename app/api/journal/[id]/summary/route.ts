@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { JOURNAL_SELECT, type JournalEntry } from "@/lib/journal/types";
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
 
 export const runtime = "nodejs";
 
@@ -30,6 +31,7 @@ async function generateSummary(entries: JournalEntry[]): Promise<string | null> 
       method: "POST",
       headers: {
         "x-api-key": apiKey,
+        [FEATURE_HEADER]: "journal.summary",
         "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },

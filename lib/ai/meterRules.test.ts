@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { capRefusalBody, meteredCall, overCap, requestFacts, thresholdsReached, usageFromAnthropicStream, usageFromJson, usageFromSpeech } from "./meterRules";
+import {
+  capRefusalBody,
+  featureName,
+  featureTag,
+  meteredCall,
+  overCap,
+  requestFacts,
+  spendByFeature,
+  thresholdsReached,
+  topFeaturesLine,
+  usageFromAnthropicStream,
+  usageFromJson,
+  usageFromSpeech,
+} from "./meterRules";
 import { costPence } from "./usage";
 
 describe("which calls are metered", () => {
@@ -120,6 +133,41 @@ describe("what a request says about itself", () => {
     form.set("model", "whisper-1");
     form.set("file", new Blob([new Uint8Array(1000)]), "a.m4a");
     expect(requestFacts(form)).toEqual({ model: "whisper-1", audioBytes: 1000 });
+  });
+});
+
+describe("the feature a call is filed under", () => {
+  it("a tag is lower case with dots and dashes, and never empty", () => {
+    expect(featureTag("Agents.Chat")).toBe("agents.chat");
+    expect(featureTag("  Health / Eye prescription ")).toBe("health-eye-prescription");
+    expect(featureTag("")).toBeNull();
+    expect(featureTag(null)).toBeNull();
+    expect(featureTag("---")).toBeNull();
+    expect(featureTag("x".repeat(80))).toHaveLength(60);
+  });
+  it("a per-item tag folds into its feature; spend is summed dearest first", () => {
+    const spend = spendByFeature([
+      { tag: "daylog:abc", cost_pence: 1.5 },
+      { tag: "daylog:def", cost_pence: 2 },
+      { tag: "ask", cost_pence: 0.4 },
+      { tag: "agents.chat", cost_pence: 230 },
+      { tag: "meter.openai.embeddings", cost_pence: 0 },
+    ]);
+    expect(spend.map((s) => s.feature)).toEqual(["agents.chat", "daylog", "ask", "meter.openai.embeddings"]);
+    expect(spend[1]).toEqual({ feature: "daylog", pence: 3.5, calls: 2 });
+  });
+  it("the alert names the dearest features in plain words, and nothing under a penny", () => {
+    expect(
+      topFeaturesLine([
+        { feature: "agents.chat", pence: 230, calls: 9 },
+        { feature: "capture.classify", pence: 110, calls: 40 },
+        { feature: "ask", pence: 40, calls: 2 },
+        { feature: "daylog", pence: 12, calls: 3 },
+      ]),
+    ).toBe("the Boys' chat £2.30, capture £1.10 and the ask box £0.40");
+    expect(topFeaturesLine([{ feature: "ask", pence: 40, calls: 2 }])).toBe("the ask box £0.40");
+    expect(topFeaturesLine([{ feature: "ask", pence: 0.4, calls: 2 }])).toBe("");
+    expect(featureName("something.new")).toBe("something.new");
   });
 });
 

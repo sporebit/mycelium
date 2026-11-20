@@ -80,7 +80,7 @@ export async function sweepCaptures(db: SupabaseClient, uid: string, opts: { lim
         continue;
       }
       const ext = row.audio_path.split(".").pop() ?? "m4a";
-      const text = await transcribeAudio(audio, `capture.${ext}`, `audio/${ext === "m4a" ? "mp4" : ext}`);
+      const text = await transcribeAudio(audio, `capture.${ext}`, `audio/${ext === "m4a" ? "mp4" : ext}`, { feature: "capture.transcribe" });
       await db.from("raw_captures").update({ process_attempts: row.process_attempts + 1 }).eq("id", row.id);
       const applied = await applyTranscript(db, uid, row.id, text, "whisper_cloud");
       if (applied === "used") out.transcribed += 1;

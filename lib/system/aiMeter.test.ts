@@ -1,18 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 import type { MeteredCall, Usage } from "@/lib/ai/meterRules";
-import { RECORDED_HEADER } from "@/lib/ai/meterRules";
+import { FEATURE_HEADER, RECORDED_HEADER } from "@/lib/ai/meterRules";
 import { createMeteredFetch, type MeterDeps } from "./aiMeter";
 
 const flush = () => new Promise((r) => setTimeout(r, 20));
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
 function rig(spent = 0, cap = 500) {
-  const recorded: Array<{ call: MeteredCall; usage: Usage }> = [];
+  const recorded: Array<{ call: MeteredCall; usage: Usage; feature: string | null }> = [];
   const sent: Array<{ url: string; headers: Headers }> = [];
   const deps: MeterDeps & { spentCalls: number } = {
     spentCalls: 0,
     capState: async () => ({ spent_pence: spent, cap_pence: cap }),
-    record: async (call, usage) => void recorded.push({ call, usage }),
+    record: async (call, usage, feature) => void recorded.push({ call, usage, feature }),
     spent: async () => void (deps.spentCalls += 1),
   };
   let reply: () => Response = () => json({ model: "claude-haiku-4-5", usage: { input_tokens: 1000, output_tokens: 100 } });
@@ -82,6 +82,23 @@ describe("the meter at the door", () => {
     // …and over the cap it is refused like any other.
     const over = rig(600, 500);
     expect((await over.fetch(CLAUDE, { method: "POST", headers: { [RECORDED_HEADER]: "1" }, body: "{}" })).status).toBe(429);
+  });
+
+  it("a site that names its feature is counted under that name, and the name does not travel", async () => {
+    const r = rig();
+    await r.fetch(CLAUDE, { method: "POST", headers: { "x-api-key": "k", [FEATURE_HEADER]: "Agents.Chat" }, body: "{}" });
+    await flush();
+    expect(r.recorded).toHaveLength(1);
+    expect(r.recorded[0].feature).toBe("agents.chat");
+    expect(r.sent[0].headers.get(FEATURE_HEADER)).toBeNull();
+    expect(r.sent[0].headers.get("x-api-key")).toBe("k");
+  });
+
+  it("a site that names nothing is still counted, with no feature", async () => {
+    const r = rig();
+    await r.fetch(CLAUDE, { method: "POST", body: "{}" });
+    await flush();
+    expect(r.recorded[0].feature).toBeNull();
   });
 
   it("a failed call costs nothing and is handed back as it came", async () => {

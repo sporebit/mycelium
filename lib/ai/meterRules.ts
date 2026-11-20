@@ -24,6 +24,96 @@ export type MeteredCall = { provider: "anthropic" | "openai" | "elevenlabs"; end
 /** Sent by a call site that records its own spend (with its own tag); the meter then gates but does not count it twice. */
 export const RECORDED_HEADER = "x-mycelium-recorded";
 
+/**
+ * Sent by a call site to say which feature is spending (`ask`,
+ * `agents.chat`, `capture.transcribe`); the meter files the cost under that
+ * tag instead of the bare provider and endpoint. One header, no counting at
+ * the site: the meter still reads the cost from the provider's reply.
+ */
+export const FEATURE_HEADER = "x-mycelium-feature";
+
+/** A feature tag the usage table can group by: lower case, dots and dashes, nothing else, never empty. */
+export function featureTag(raw: string | null | undefined): string | null {
+  const tag = (raw ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._:-]+/g, "-")
+    .replace(/^[-._:]+|[-._:]+$/g, "")
+    .slice(0, 60);
+  return tag || null;
+}
+
+/** Headers for a paid call from a feature: `{ ...feature("ask"), "x-api-key": ... }`. */
+export function feature(tag: string): Record<string, string> {
+  return { [FEATURE_HEADER]: tag };
+}
+
+/** The tag a usage row is grouped under: `daylog:<day id>` is one feature, `daylog`. */
+export function featureOf(tag: string): string {
+  return tag.split(":")[0] || tag;
+}
+
+/** How a feature tag reads in a message to a person. Unknown tags read as themselves. */
+export const FEATURE_NAMES: Record<string, string> = {
+  "agents.chat": "the Boys' chat",
+  "agents.tool": "a Boy running a tool",
+  "agents.session": "a chat's closing summary",
+  "agents.voice": "a Boy's cloud voice",
+  "agents.transcribe": "the chat's microphone",
+  ask: "the ask box",
+  "briefing.intro": "the briefing's opening line",
+  "capture.classify": "capture",
+  "capture.transcribe": "capture transcription",
+  "capture.embed": "capture memory",
+  "voice.transcribe": "voice typing",
+  "telegram.transcribe": "Telegram voice notes",
+  daylog: "the Day log",
+  "finance.categorise": "finance categorising",
+  "finance.snapshot": "the finance snapshot",
+  "finds.verdict": "finds verdicts",
+  "fitness.voice-parse": "workout voice notes",
+  "health.eye-prescription": "the eye prescription reader",
+  "health.recipes": "the recipe reader",
+  "journal.summary": "journal summaries",
+  "memory.embed": "memory search",
+  "nutrition.estimate": "nutrition estimates",
+  "nutrition.redistribute": "nutrition redistribution",
+  "nutrition.scan-label": "the label scanner",
+  "quotes.research": "quote research",
+  "receipts.parse": "receipts",
+  "tickets.rundown": "ticket rundowns",
+  "tickets.smart": "smart tickets",
+};
+
+export function featureName(tag: string): string {
+  return FEATURE_NAMES[featureOf(tag)] ?? featureOf(tag);
+}
+
+export type FeatureSpend = { feature: string; pence: number; calls: number };
+
+/** Spend by feature, dearest first, from the month's usage rows. Pure. */
+export function spendByFeature(rows: ReadonlyArray<{ tag: string; cost_pence: number }>): FeatureSpend[] {
+  const by = new Map<string, FeatureSpend>();
+  for (const r of rows) {
+    const key = featureOf(r.tag);
+    const cur = by.get(key) ?? { feature: key, pence: 0, calls: 0 };
+    cur.pence += Number(r.cost_pence) || 0;
+    cur.calls += 1;
+    by.set(key, cur);
+  }
+  return [...by.values()].sort((a, b) => b.pence - a.pence || a.feature.localeCompare(b.feature));
+}
+
+/** "the Boys' chat £2.30, capture £1.10 and the ask box £0.40" for an alert. Empty when nothing reaches a penny. */
+export function topFeaturesLine(spend: readonly FeatureSpend[], limit = 3): string {
+  const parts = spend
+    .filter((s) => s.pence >= 1)
+    .slice(0, limit)
+    .map((s) => `${featureName(s.feature)} £${(s.pence / 100).toFixed(2)}`);
+  if (parts.length <= 1) return parts[0] ?? "";
+  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+}
+
 /** Which paid service a URL is, or null for everything else. */
 export function meteredCall(url: string): MeteredCall | null {
   let u: URL;

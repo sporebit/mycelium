@@ -271,7 +271,7 @@ async function handleMessage(
       const { buffer, contentType } = await downloadFile(file.file_path);
 
       async function tryTranscribe(buf: ArrayBuffer, ct: string): Promise<string> {
-        return transcribeAudio(buf, `${fileId}.ogg`, message.voice?.mime_type ?? ct ?? "audio/ogg");
+        return transcribeAudio(buf, `${fileId}.ogg`, message.voice?.mime_type ?? ct ?? "audio/ogg", { feature: "telegram.transcribe" });
       }
 
       try {

@@ -1,8 +1,32 @@
 import { NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { getOwnProfile } from "@/lib/auth/session";
+import { cloudCapPence } from "@/lib/ai/budget";
+import { featureName } from "@/lib/ai/meterRules";
+import { monthSpendByFeature } from "@/lib/system/aiMeter";
 
 export const runtime = "nodejs";
+
+/**
+ * What the meter recorded this month, by feature (master run §9). This is
+ * the real figure the cap is enforced from; the estimates further down are
+ * the older guesswork from row counts, kept for the features that predate
+ * the meter.
+ */
+async function fetchRecordedUsage() {
+  try {
+    const spend = await monthSpendByFeature();
+    const spent = spend.reduce((s, f) => s + f.pence, 0);
+    return {
+      available: true,
+      cap_pence: cloudCapPence(),
+      spent_pence: Math.round(spent * 100) / 100,
+      by_feature: spend.map((f) => ({ feature: f.feature, name: featureName(f.feature), pence: Math.round(f.pence * 100) / 100, calls: f.calls })),
+    };
+  } catch (err) {
+    return { available: false, cap_pence: cloudCapPence(), spent_pence: 0, by_feature: [], error: err instanceof Error ? err.message : "usage could not be read" };
+  }
+}
 
 const USD_TO_GBP = 0.79;
 
@@ -184,10 +208,11 @@ export async function GET() {
       return NextResponse.json(cache.data);
     }
 
-    const [anthropic, openai, internal] = await Promise.all([
+    const [anthropic, openai, internal, recorded] = await Promise.all([
       fetchAnthropicUsage(),
       fetchOpenAIUsage(),
       fetchInternalUsage(),
+      fetchRecordedUsage(),
     ]);
 
     const estVisionTokens = internal.vision_scans * 2500;
@@ -206,6 +231,7 @@ export async function GET() {
     const result = {
       anthropic,
       openai,
+      recorded,
       internal: {
         ...internal,
         estimates: {

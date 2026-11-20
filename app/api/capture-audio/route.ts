@@ -3,7 +3,6 @@ import { after } from "next/server";
 import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { cloudAllowed } from "@/lib/ai/budget";
-import { costPence, recordUsage } from "@/lib/ai/usage";
 import { applyTranscript, queueTranscription } from "@/lib/capture/jobs";
 import { pcIsOn } from "@/lib/jobs/queue";
 import { processCapture, receiveCapture } from "@/lib/capture/pipeline";
@@ -18,12 +17,6 @@ export const maxDuration = 60;
 
 /** Every answer says in its body whether it worked: an iPhone Shortcut cannot read the status code. */
 const fail = (error: string, status: number, extra: Record<string, unknown> = {}) => NextResponse.json({ ok: false, status: "error", error, ...extra }, { status });
-
-/** Whisper's list price, for the monthly cap: $0.006 a minute. Length is estimated from size (AAC at about 64 kbit/s). */
-function whisperUsd(bytes: number): number {
-  const minutes = Math.max(0.25, bytes / (8_000 * 60));
-  return minutes * 0.006;
-}
 
 /**
  * POST /api/capture-audio — a recording, as a multipart form.
@@ -72,8 +65,8 @@ export async function POST(req: NextRequest) {
       return fail("transcription_unavailable", 503, { summary: "Voice typing is off for now (the month's AI allowance is used, or no key is set)." });
     }
     try {
-      const transcription = (await transcribeAudio(await audio.arrayBuffer(), audio.name || `speech.${ext}`, audio.type || `audio/${ext}`)).trim();
-      await recordUsage(supabase, { provider: "openai", tag: "voice.transcribe", model: "whisper-1", input_tokens: 0, output_tokens: 0, cost_pence: costPence(null, 0, 0, whisperUsd(audio.size)) });
+      // The meter counts the call under voice.transcribe (lib/system/aiMeter.ts).
+      const transcription = (await transcribeAudio(await audio.arrayBuffer(), audio.name || `speech.${ext}`, audio.type || `audio/${ext}`, { feature: "voice.transcribe" })).trim();
       return NextResponse.json({ ok: true, status: "ok", transcription });
     } catch (err) {
       console.error("[capture-audio] transcribe_only failed:", err);
@@ -100,8 +93,7 @@ export async function POST(req: NextRequest) {
         // for nothing. If it is off, do not leave the capture wordless until
         // the next sweep: transcribe now in the cloud, inside the month's cap.
         if (!hasText && !(await pcIsOn(supabase)) && process.env.OPENAI_API_KEY && (await cloudAllowed(supabase))) {
-          const words = await transcribeAudio(buffer, audio.name || `capture.${ext}`, audio.type || `audio/${ext}`);
-          await recordUsage(supabase, { provider: "openai", tag: "capture.transcribe", model: "whisper-1", input_tokens: 0, output_tokens: 0, cost_pence: costPence(null, 0, 0, whisperUsd(audio.size)) });
+          const words = await transcribeAudio(buffer, audio.name || `capture.${ext}`, audio.type || `audio/${ext}`, { feature: "capture.transcribe" });
           await applyTranscript(supabase, uid, received.id, words, "whisper_cloud");
         }
         await sweepCaptures(supabase, uid, { limit: 5 });

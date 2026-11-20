@@ -16,6 +16,7 @@ import { createUserClient } from "@/lib/supabase/user";
 import { MODEL_FAST } from "@/lib/config/models";
 import { buildMemory, type Known, recall, UNSURE_BELOW } from "./merchantMemory";
 import { TAXONOMY, type Category, isValidCategory } from "./taxonomy";
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
 
 export { TAXONOMY, type Category, isValidCategory };
 
@@ -104,6 +105,7 @@ async function aiCategorise(
       method: "POST",
       headers: {
         "x-api-key": apiKey,
+        [FEATURE_HEADER]: "finance.categorise",
         "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },

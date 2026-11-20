@@ -1,3 +1,5 @@
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
+
 function extractJson(text: string): unknown {
   const trimmed = text.trim();
   try {
@@ -17,6 +19,8 @@ function extractJson(text: string): unknown {
 }
 
 export async function callClaudeJSON<T>(opts: {
+  /** Which feature is spending: the tag the meter files the cost under (lib/system/aiMeter.ts). */
+  feature: string;
   systemPrompt: string;
   userMessage: string;
   validate: (obj: unknown) => T | null;
@@ -39,6 +43,7 @@ export async function callClaudeJSON<T>(opts: {
         "x-api-key": apiKey,
         "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
+        [FEATURE_HEADER]: opts.feature,
       },
       body: JSON.stringify({
         model,

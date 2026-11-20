@@ -10,6 +10,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { updateUserSettings } from "@/lib/settings/userSettingsRow";
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
 
 export type VoiceProvider = "elevenlabs" | "openai";
 export type AgentVoice = { provider: VoiceProvider; voice_id: string; voice_name: string | null; speaking_style: string | null };
@@ -102,7 +103,7 @@ export async function synthesize(text: string, voice: AgentVoice): Promise<Reada
   if (voice.provider === "elevenlabs" && elevenLabsConfigured()) {
     const res = await fetch(`${EL}/text-to-speech/${encodeURIComponent(voice.voice_id)}/stream?output_format=mp3_22050_32`, {
       method: "POST",
-      headers: { ...elHeaders(), "content-type": "application/json", accept: "audio/mpeg" },
+      headers: { ...elHeaders(), "content-type": "application/json", accept: "audio/mpeg", [FEATURE_HEADER]: "agents.voice" },
       body: JSON.stringify({ text, model_id: "eleven_flash_v2_5", voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.2, use_speaker_boost: true } }),
     });
     if (!res.ok || !res.body) throw new Error(`elevenlabs ${res.status}: ${(await res.text()).slice(0, 200)}`);
@@ -112,7 +113,7 @@ export async function synthesize(text: string, voice: AgentVoice): Promise<Reada
   if (!apiKey) throw new Error("OPENAI_API_KEY missing");
   const res = await fetch("https://api.openai.com/v1/audio/speech", {
     method: "POST",
-    headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
+    headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json", [FEATURE_HEADER]: "agents.voice" },
     body: JSON.stringify({ model: "tts-1", voice: voice.provider === "openai" ? voice.voice_id : "alloy", input: text, response_format: "mp3" }),
   });
   if (!res.ok || !res.body) throw new Error(`openai tts ${res.status}: ${(await res.text()).slice(0, 200)}`);

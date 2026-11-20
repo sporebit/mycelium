@@ -13,9 +13,12 @@
  *   3. followed by one alert at four-fifths of the cap and one at the cap.
  *
  * Call sites that record their own spend under their own tag mark the
- * request (RECORDED_HEADER); those are gated but not counted twice. Every
- * other site needs no change, including ones written later: the point of a
- * meter at the door is that nobody has to remember it.
+ * request (RECORDED_HEADER); those are gated but not counted twice. A site
+ * that wants its spend filed under its feature's name sends FEATURE_HEADER
+ * (lib/ai/meterRules.ts) and nothing else: the meter reads the cost. A
+ * site that sends neither is still counted, under its provider and
+ * endpoint: the point of a meter at the door is that nobody has to remember
+ * it.
  *
  * The cap is for the whole instance (one bill), so the month's spend is
  * read with the service role across every user.
@@ -24,12 +27,16 @@ import { cloudCapPence } from "@/lib/ai/budget";
 import {
   type CapState,
   capRefusalBody,
+  FEATURE_HEADER,
+  featureTag,
   type MeteredCall,
   meteredCall,
   overCap,
   RECORDED_HEADER,
   requestFacts,
+  spendByFeature,
   thresholdsReached,
+  topFeaturesLine,
   type Usage,
   usageFromAnthropicStream,
   usageFromJson,
@@ -40,8 +47,8 @@ import { createServiceClient } from "./serviceClient";
 export type MeterDeps = {
   /** This month's spend against the cap. May be a little stale; throws if it cannot be known at all. */
   capState: () => Promise<CapState>;
-  /** Write one usage row. Must not throw. */
-  record: (call: MeteredCall, usage: Usage) => Promise<void>;
+  /** Write one usage row, under the feature's tag when the site named one. Must not throw. */
+  record: (call: MeteredCall, usage: Usage, feature: string | null) => Promise<void>;
   /** Called after a recorded spend, and on a refusal: send any alert that is now due, once. Must not throw. */
   spent: () => Promise<void>;
 };
@@ -89,19 +96,22 @@ export function createMeteredFetch(inner: typeof fetch, deps: MeterDeps): typeof
       return new Response(capRefusalBody(state), { status: 429, headers: { "content-type": "application/json", "x-mycelium-cap": "reached" } });
     }
 
-    // The marker is for this meter only: it does not travel to the provider.
+    // The markers are for this meter only: they do not travel to the provider.
     const headers = new Headers(init?.headers ?? (typeof input === "object" && "headers" in input ? (input as Request).headers : undefined));
     const selfRecorded = headers.get(RECORDED_HEADER) === "1";
-    if (selfRecorded) headers.delete(RECORDED_HEADER);
+    const feature = featureTag(headers.get(FEATURE_HEADER));
+    const marked = headers.has(RECORDED_HEADER) || headers.has(FEATURE_HEADER);
+    headers.delete(RECORDED_HEADER);
+    headers.delete(FEATURE_HEADER);
     const facts = requestFacts(init?.body);
 
-    const res = await inner(input, selfRecorded ? { ...init, headers } : init);
+    const res = await inner(input, marked ? { ...init, headers } : init);
     if (!res.ok || selfRecorded) return res;
 
     const settle = (usage: Usage | null) => {
       if (!usage) return;
       void deps
-        .record(call, usage)
+        .record(call, usage, feature)
         .then(() => deps.spent())
         .catch(() => undefined);
     };
@@ -174,7 +184,7 @@ async function ownerOf(): Promise<{ id: string; space: string } | null> {
   return owner;
 }
 
-async function writeUsage(call: MeteredCall, usage: Usage): Promise<void> {
+async function writeUsage(call: MeteredCall, usage: Usage, feature: string | null): Promise<void> {
   try {
     // One bill, one payer: unattributed spend is filed under the instance owner.
     const who = await ownerOf();
@@ -182,13 +192,14 @@ async function writeUsage(call: MeteredCall, usage: Usage): Promise<void> {
     const { error } = await createServiceClient()
       .from("api_usage")
       .insert({
-        tag: `meter.${call.provider}.${call.endpoint}`,
+        // The feature's own name when the site gave one; otherwise the bare provider and endpoint.
+        tag: feature ?? `meter.${call.provider}.${call.endpoint}`,
         provider: call.provider,
         model: usage.model,
         input_tokens: Math.round(usage.input_tokens),
         output_tokens: Math.round(usage.output_tokens),
         cost_pence: usage.cost_pence,
-        meta: { ...usage.meta, ...(usage.estimated ? { estimated: true } : {}), via: "meter" },
+        meta: { ...usage.meta, ...(usage.estimated ? { estimated: true } : {}), via: "meter", endpoint: `${call.provider}.${call.endpoint}` },
         space_id: who.space,
         created_by: who.id,
       });
@@ -199,6 +210,13 @@ async function writeUsage(call: MeteredCall, usage: Usage): Promise<void> {
   }
 }
 
+/** This month's spend by feature, dearest first: what the usage page shows and the alert names. */
+export async function monthSpendByFeature(): Promise<ReturnType<typeof spendByFeature>> {
+  const { data, error } = await createServiceClient().from("api_usage").select("tag, cost_pence").gte("at", monthStart()).limit(20_000);
+  if (error) throw new Error(error.message);
+  return spendByFeature((data ?? []) as Array<{ tag: string; cost_pence: number }>);
+}
+
 async function alertIfDue(): Promise<void> {
   try {
     const state = await readCapState();
@@ -207,6 +225,10 @@ async function alertIfDue(): Promise<void> {
     const db = createServiceClient();
     const month = monthKey();
     const pounds = (p: number) => `£${(p / 100).toFixed(2)}`;
+    const where = await monthSpendByFeature()
+      .then((s) => topFeaturesLine(s))
+      .catch(() => "");
+    const breakdown = where ? ` Most of it: ${where}.` : "";
     for (const threshold of reached) {
       const { data } = await db.from("audit_log").select("id").eq("action", "ai_cap_alert").eq("metadata->>month", month).eq("metadata->>threshold", String(threshold)).limit(1);
       if (data?.length) continue;
@@ -217,8 +239,8 @@ async function alertIfDue(): Promise<void> {
       const { sendToPhil } = await import("@/lib/tickets/notify");
       await sendToPhil(
         threshold >= 100
-          ? `Cloud AI: this month's cap is spent (${pounds(state.spent_pence)} of ${pounds(state.cap_pence)}). Paid AI calls are stopped until the 1st. Capture, the PC's own model and everything free carry on.`
-          : `Cloud AI: ${pounds(state.spent_pence)} of this month's ${pounds(state.cap_pence)} cap is spent. At ${pounds(state.cap_pence)} paid calls stop until the 1st.`,
+          ? `Cloud AI: this month's cap is spent (${pounds(state.spent_pence)} of ${pounds(state.cap_pence)}).${breakdown} Paid AI calls are stopped until the 1st. Capture, the PC's own model and everything free carry on.`
+          : `Cloud AI: ${pounds(state.spent_pence)} of this month's ${pounds(state.cap_pence)} cap is spent.${breakdown} At ${pounds(state.cap_pence)} paid calls stop until the 1st.`,
       );
     }
   } catch (err) {

@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
   }
 
   const result = await callClaudeJSON<Estimate>({
+    feature: "nutrition.estimate",
     systemPrompt: SYSTEM_PROMPT,
     userMessage: text,
     validate,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { TASK_SELECT, serializeTask } from "@/lib/tasks";
 import type { Task } from "@/lib/types/task";
+import { FEATURE_HEADER } from "@/lib/ai/meterRules";
 
 export const runtime = "nodejs";
 
@@ -135,6 +136,7 @@ async function callClaude(
       method: "POST",
       headers: {
         "x-api-key": apiKey,
+        [FEATURE_HEADER]: "tickets.smart",
         "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },

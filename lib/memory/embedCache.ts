@@ -27,7 +27,7 @@ export async function getQueryEmbedding(query: string): Promise<number[]> {
   const key = normalize(query);
   const hit = cache.get(key);
   if (hit && hit.expiresAt > Date.now()) return hit.embedding;
-  const embedding = await generateEmbedding(query);
+  const embedding = await generateEmbedding(query, "memory.embed");
   cache.set(key, { embedding, expiresAt: Date.now() + TTL_MS });
   evictExpired();
   return embedding;

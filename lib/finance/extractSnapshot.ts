@@ -91,6 +91,7 @@ export async function extractSnapshot(
 ): Promise<FinanceSnapshot | null> {
   const userMessage = buildUserMessage(sheets);
   const result = await callClaudeJSON<FinanceSnapshot>({
+    feature: "finance.snapshot",
     systemPrompt: FINANCE_SYSTEM_PROMPT,
     userMessage,
     validate,
