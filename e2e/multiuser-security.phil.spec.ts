@@ -94,7 +94,7 @@ test("an invited admin is told to set up an authenticator, and enrols one on the
   await page.getByRole("button", { name: "Set up an authenticator" }).click();
 
   await page.waitForURL((u) => u.pathname === "/other/settings/security" && u.searchParams.get("enrol") === "totp");
-  await expect(page.getByText("Your role requires an authenticator app. Enrol one below")).toBeVisible();
+  await expect(page.getByText("this account needs an authenticator app before it can be used")).toBeVisible();
   await expect(page.getByText("First factor only.")).toBeVisible();
   // An admin, and no authenticator yet: nothing is readable until there is one.
   expect((await adm.request.get("/api/work/projects?status=all")).status()).toBeGreaterThanOrEqual(400);
@@ -125,7 +125,7 @@ test("someone who creates a team with no authenticator is sent to enrol when the
   const page = await context.newPage();
   await passwordSignIn(page, raw.email);
   await page.waitForURL((u) => u.pathname === "/other/settings/security" && u.searchParams.get("enrol") === "totp");
-  await expect(page.getByText("Your role requires an authenticator app. Enrol one below")).toBeVisible();
+  await expect(page.getByText("this account needs an authenticator app before it can be used")).toBeVisible();
   await expect(page.getByRole("button", { name: "Enrol an authenticator" })).toBeVisible();
   await context.close();
 });
@@ -144,7 +144,7 @@ test("SECURITY: an owner or admin with no authenticator cannot use the app until
 
   const direct = await rest("/rest/v1/projects?select=name", { token: raw!.session.access_token });
   expect(direct.status).toBe(403);
-  expect(((await direct.json()) as { hint: string }).hint).toBe("mfa_required");
+  expect(((await direct.json()) as { hint: string }).hint).toBe("enrol_required");
   expect((await rest("/rest/v1/teams?select=name", { token: raw!.session.access_token })).status).toBe(403);
   expect((await rest("/rest/v1/rpc/my_personal_space", { token: raw!.session.access_token, body: {} })).status).toBe(403);
   // The one question such a session may ask: must I enrol?
@@ -162,7 +162,7 @@ test("SECURITY: an owner or admin with no authenticator cannot use the app until
 // account, but nothing tells the person: pages still open, empty, the API
 // answers 500 rather than 403, and the one message that does surface says
 // "Enter your authenticator code" to someone who has no authenticator.
-test.fixme("an owner with no authenticator who opens a page is taken to enrol, and the API says 403 with a reason", async ({ browser, request }) => {
+test("an owner with no authenticator who opens a page is taken to enrol, and the API says 403 with a reason", async ({ browser, request }) => {
   const stuck = await joinByInvite(browser, request, "stuck");
   const t = await createTeam(stuck.request, "Stuck");
   try {
@@ -536,7 +536,7 @@ test("SECURITY: a device signed out remotely is refused on its next request", as
 // says "Could not load projects.", the dashboard shows grey placeholders,
 // and the API answers 500. It should land on the sign-in page, and the API
 // should say 401.
-test.fixme("a device signed out remotely is taken to the sign-in page, and the API says 401", async ({ browser }) => {
+test("a device signed out remotely is taken to the sign-in page, and the API says 401", async ({ browser }) => {
   const elsewhere = await secondSession(browser, adm!, { withCode: true });
   expect((await signedIn!.request.delete(`/api/auth/sessions/${sessionIdOf(await accessTokenOf(elsewhere))}`)).status()).toBe(200);
   expect((await elsewhere.request.get("/api/teams")).status()).toBe(401); // 500

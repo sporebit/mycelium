@@ -161,7 +161,8 @@ export default function SecuritySettingsPage() {
 
       {mustEnrol && (
         <div className="rounded-v2-md border border-glow/40 bg-surface-1 p-4 text-sm text-text-mid">
-          Your role requires an authenticator app. Enrol one below; sign-in will ask for its code from now on.
+          You are an owner or admin of a team, so this account needs an authenticator app before it can be used.
+          Set one up below. Sign-in will ask for its code from now on, and everything else opens again as soon as it is done.
         </div>
       )}
 

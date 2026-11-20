@@ -6,6 +6,7 @@ import { TransitionProvider } from "@/lib/context/TransitionContext";
 import { TransitionOverlay } from "@/components/nav/TransitionOverlay";
 import { SoilGrain } from "@/components/dashboard/SoilGrain";
 import { MyceliumField } from "@/components/art/MyceliumField";
+import { SessionWatch } from "@/components/auth/SessionWatch";
 import { createUserClient } from "@/lib/supabase/user";
 import { UI_PREFS_DEFAULTS, getUiPrefs } from "@/lib/settings/uiPrefs";
 
@@ -70,6 +71,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-ink-0 text-ink-4">
         <SoilGrain />
         <MyceliumField />
+        <SessionWatch />
         <TransitionProvider>
           <PrivacyProvider>
             <div className="relative z-10 flex-1 flex flex-col">{children}</div>

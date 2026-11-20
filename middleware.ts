@@ -127,6 +127,17 @@ export async function middleware(req: NextRequest) {
 
   if (claims?.sub) {
     const aal: AssuranceLevel = isAal2(claims.aal) ? "aal2" : "aal1";
+    // 5a. Will the database serve this session? It refuses one that was
+    // signed out from another device, and one whose role now requires an
+    // authenticator it does not have (0160). Without asking, the person saw
+    // empty pages and 500s; with the answer they are taken where they can
+    // act. The database remains the judge: if the question cannot be asked,
+    // the request goes on and the database answers it as before.
+    const state = await sessionState(supabase);
+    if (state === "session_ended") return sessionEnded(req);
+    if (state === "enrol_required" && !ENROL_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+      return withRefreshedCookies(enrolOwed(req));
+    }
     // 5b. A second factor that is enrolled is required. A password (or a
     // magic link) alone leaves the session at aal1; if this account has an
     // authenticator, that session may only finish signing in. The database
@@ -179,6 +190,62 @@ export async function middleware(req: NextRequest) {
   loginUrl.search = "";
   loginUrl.searchParams.set("next", pathname);
   return withRefreshedCookies(NextResponse.redirect(loginUrl));
+}
+
+/** Where someone who must set up an authenticator may still go: the page that does it, and signing out. */
+const ENROL_PATHS = ["/other/settings/security", "/login"];
+
+type SessionState = "ok" | "session_ended" | "enrol_required" | "mfa_required" | "anonymous";
+
+/**
+ * One question to the database per request. Not remembered between
+ * requests: a first version kept a "yes" for fifteen seconds, and in that
+ * window a session that had just been signed out, or a person who had just
+ * become an owner, still looked fine and got the empty pages this exists to
+ * prevent. Nothing the middleware can see says when a "yes" stops being
+ * true, so it asks each time. If the question cannot be asked in time the
+ * request goes on; the database still refuses what it must.
+ */
+async function sessionState(supabase: ReturnType<typeof createSsrServerClient>): Promise<SessionState> {
+  try {
+    const { data, error } = await supabase.rpc("session_state").abortSignal(AbortSignal.timeout(2_500));
+    if (error || typeof data !== "string") return "ok";
+    return data as SessionState;
+  } catch {
+    return "ok";
+  }
+}
+
+/** A session ended from elsewhere: APIs get 401, pages go to sign-in, and the dead cookies are dropped. */
+function sessionEnded(req: NextRequest): NextResponse {
+  const { pathname } = req.nextUrl;
+  let res: NextResponse;
+  if (isApiPath(pathname)) {
+    res = NextResponse.json({ error: "Unauthorized", reason: "session_ended" }, { status: 401 });
+  } else {
+    const url = req.nextUrl.clone();
+    url.pathname = "/login";
+    url.search = "";
+    url.searchParams.set("next", pathname);
+    res = NextResponse.redirect(url);
+  }
+  for (const c of req.cookies.getAll()) {
+    if (c.name.startsWith("sb-") && c.name.includes("-auth-token")) res.cookies.delete(c.name);
+  }
+  return res;
+}
+
+/** A role that requires an authenticator, and none set up: APIs get 403 with the reason, pages go to the page that sets one up. */
+function enrolOwed(req: NextRequest): NextResponse {
+  const { pathname } = req.nextUrl;
+  if (isApiPath(pathname)) {
+    return NextResponse.json({ error: "Forbidden", reason: "enrol_required" }, { status: 403 });
+  }
+  const url = req.nextUrl.clone();
+  url.pathname = "/other/settings/security";
+  url.search = "";
+  url.searchParams.set("enrol", "totp");
+  return NextResponse.redirect(url);
 }
 
 /** Continue to the route with the principal headers set (and any client-sent ones removed). */
