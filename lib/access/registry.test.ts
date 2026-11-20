@@ -67,7 +67,7 @@ describe("entity registry — internal consistency", () => {
       (g) => g.tables,
     );
     expect(financeTables.sort()).toEqual(
-      ["accounts", "bank_accounts", "finance_budgets", "finance_recurring_marks", "finance_snapshots", "investments", "paypal_payments", "transactions"].sort(),
+      ["accounts", "bank_accounts", "finance_budgets", "finance_holding_values", "finance_holdings", "finance_recurring_marks", "finance_snapshots", "investments", "paypal_payments", "transactions"].sort(),
     );
   });
 

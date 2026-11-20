@@ -263,6 +263,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
     tables: ["finance_budgets"],
     note: "A monthly budget per spending category (0173). The household budget in the family space is a different thing in a different section (organisation.family).",
   },
+  {
+    section: "finance",
+    group: "holdings",
+    tables: ["finance_holdings", "finance_holding_values"],
+    note: "By-hand holdings for net worth — the pension, the house, the mortgage, the cars — and every figure ever given for each, with the day it was true (0175). A value row must be in its holding's space; a trigger refuses the rest.",
+  },
 
   // -- studio ---------------------------------------------------------------
   {
