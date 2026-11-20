@@ -17,6 +17,8 @@
 --    Tokens the app mints for its own system work (crons, webhooks, API
 --    tokens; lib/system/jwt.ts) carry amr = [{method: "system"}] and are
 --    signed with the project secret, which no client holds; they pass.
+--    The same function refuses an owner or admin who has not enrolled an
+--    authenticator at all (1c), and a session that was signed out (1b).
 --
 -- 2. Functions that ran with the owner's rights but trusted their caller:
 --    - rate_limit_take: was callable with the public anon key and took the
@@ -55,11 +57,18 @@ as $$
 	select
 		coalesce(auth.jwt() ->> 'aal', 'aal1') = 'aal2'
 		or coalesce(auth.jwt() -> 'amr' -> 0 ->> 'method', '') = 'system'
-		or not exists (
-			select 1 from auth.mfa_factors f
-			where f.user_id = auth.uid() and f.status = 'verified'
+		or (
+			not exists (
+				select 1 from auth.mfa_factors f
+				where f.user_id = auth.uid() and f.status = 'verified'
+			)
+			-- 1c. "Mandatory" means mandatory. The instance owner and every team
+			-- owner or admin must have an authenticator (requires_totp(), 0112);
+			-- until 0160 that was a redirect on the sign-in page and nothing
+			-- more. Without one they can sign in and enrol, and that is all.
+			and not public.requires_totp()
 		)
-$$;
+$;
 
 revoke all on function app.second_factor_ok() from public;
 grant execute on function app.second_factor_ok() to authenticated, service_role;
@@ -368,3 +377,60 @@ $$;
 alter default privileges for role postgres in schema public revoke execute on functions from public;
 alter default privileges for role postgres in schema public revoke execute on functions from anon;
 alter default privileges for role postgres in schema app revoke execute on functions from public;
+
+-- 4. An invite never changes the role of someone already in the team ------
+-- accept_invite (0112) wrote the invite's role over an existing member's:
+-- an admin could invite the owner's own address as "viewer", and accepting
+-- it left the team with no owner. Read from the SQL on 2026-11-20, not seen
+-- happen. An existing member now keeps their role; the invite is still
+-- spent, and the answer carries the role they really have.
+create or replace function public.accept_invite(p_token text)
+returns table (team_id uuid, team_slug text, role text, requires_totp boolean)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+	v_me    uuid := auth.uid();
+	v_email text := lower(coalesce(auth.jwt() ->> 'email', ''));
+	v_inv   public.invites%rowtype;
+	v_space uuid;
+	v_slug  text;
+	v_role  text;
+begin
+	if v_me is null then raise exception 'Not signed in'; end if;
+	select * into v_inv from public.invites i
+		where i.token_hash = encode(extensions.digest(p_token, 'sha256'), 'hex')
+		for update;
+	if v_inv.id is null then raise exception 'No such invite'; end if;
+	if v_inv.accepted_at is not null then raise exception 'This invite has already been used'; end if;
+	if v_inv.expires_at <= now() then raise exception 'This invite has expired'; end if;
+	if v_inv.email <> v_email then raise exception 'This invite was sent to a different email address'; end if;
+
+	v_role := v_inv.role;
+	if v_inv.team_id is not null then
+		insert into public.team_members (team_id, user_id, role)
+		values (v_inv.team_id, v_me, v_inv.role)
+		on conflict (team_id, user_id) do nothing;
+		select tm.role into v_role from public.team_members tm where tm.team_id = v_inv.team_id and tm.user_id = v_me;
+		select slug into v_slug from public.teams where id = v_inv.team_id;
+	end if;
+
+	update public.invites set accepted_at = now(), accepted_by = v_me where id = v_inv.id;
+
+	-- First screen: Organisation, Fitness, Health. AI features are off by
+	-- column default (0111).
+	select personal_space_id into v_space from public.profiles where id = v_me;
+	if v_space is not null and not exists (select 1 from public.user_settings s where s.space_id = v_space) then
+		insert into public.user_settings (space_id, created_by, display_name, ui_prefs)
+		select v_space, v_me, p.display_name, jsonb_build_object('hidden_sections', app.default_hidden_sections())
+		from public.profiles p where p.id = v_me;
+	end if;
+
+	return query select v_inv.team_id, v_slug, v_role, public.requires_totp();
+end
+$$;
+
+revoke all on function public.accept_invite(text) from public, anon;
+grant execute on function public.accept_invite(text) to authenticated, service_role;
