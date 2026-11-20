@@ -39,6 +39,15 @@ fi
 echo "   build ok"
 
 echo "== 2/4 migrations"
+# The push applies the migration FILES in this folder, not the ones in the commit being shipped. A migration
+# written or committed since the build began would reach production without the code that goes with it
+# (nearly happened on 2026-11-20 with 0171). Refuse, rather than apply something this release does not contain.
+STRAY="$(git status --porcelain -- supabase/migrations; git diff --name-only "$SHA" HEAD -- supabase/migrations)"
+if [ -n "$STRAY" ]; then
+  echo "   migration files here are not the ones in $SHORT; commit them and ship again, or move them aside:"
+  echo "$STRAY" | sed 's/^/     /'
+  exit 1
+fi
 PENDING="$(supabase migration list --remote 2>/dev/null | grep -o '"local":"[0-9]*","remote":""' | grep -o '[0-9][0-9]*' | tr '\n' ' ' || true)"
 if [ -n "$PENDING" ]; then
   echo "   pending on hosted: $PENDING"
