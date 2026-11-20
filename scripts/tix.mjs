@@ -14,7 +14,7 @@
  *   tix comment KEY "text"           (session reports go here)
  *   tix link KEY URL [--kind commit] [--label text]
  *   tix answers KEY                  (steps answers; the checklists habit)
- *   tix steps KEY [--tick 1.3] [--untick 1.3] [--answer key=value] [--toggle route=direct]
+ *   tix steps KEY [--tick 1.3] [--untick 1.3] [--answer key=value] [--toggle route=direct] [--definition-file checklist.json]
  *   tix plan KEY [--body-file plan.md] (code rundown written by Claude Code)
  *   tix review                       (weekly-review counts)
  *   tix templates [--sync]
@@ -199,6 +199,8 @@ switch (cmd) {
   case "steps": {
     const key = pos[0] ?? die("tix steps KEY …");
     const patch = { steps: {}, answers: {}, toggles: {} };
+    // --definition-file sets the whole checklist (phases, steps, answer boxes) from a JSON file.
+    if (opts["definition-file"]) patch.definition = JSON.parse(readFileSync(String(opts["definition-file"]), "utf8"));
     const many = (v) => (Array.isArray(v) ? v : v === undefined ? [] : [v]);
     for (const id of many(opts.tick)) patch.steps[String(id)] = true;
     for (const id of many(opts.untick)) patch.steps[String(id)] = null;
