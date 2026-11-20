@@ -29,7 +29,8 @@ async function token(uid: string, email: string): Promise<string> {
   const k = `${uid}:${email}`;
   let t = tokens.get(k);
   if (!t) {
-    t = await mintUserJwt({ sub: uid, email, secret: env.jwtSecret, issuer: `${env.apiUrl}/auth/v1` });
+    // aal2: sharing a personal space needs a second factor in the session (0160).
+    t = await mintUserJwt({ sub: uid, email, secret: env.jwtSecret, issuer: `${env.apiUrl}/auth/v1`, aal: "aal2" });
     tokens.set(k, t);
   }
   return t;

@@ -7,8 +7,13 @@
  *
  * Fails open on a database error (logged): a broken limiter must not lock
  * everyone out. Fails closed only on an explicit "no tokens".
+ *
+ * The bucket function is callable by the service role only (0160). Before
+ * that it ran for the public anon key and took the bucket's size from the
+ * caller, so anyone could empty or refill another person's sign-in limiter.
+ * Every take therefore happens here, on the server, with sizes from LIMITS.
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createServiceClient } from "./serviceClient";
 
 export type Bucket = { capacity: number; refillPerMinute: number };
 
@@ -23,15 +28,8 @@ export const LIMITS = {
   ticketWrite: { capacity: 120, refillPerMinute: 60 } satisfies Bucket,
 } as const;
 
-/** A client with no session: rate_limit_take is callable by anon. */
-export function anonClient(): SupabaseClient {
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-  });
-}
-
-export async function takeToken(db: SupabaseClient, key: string, bucket: Bucket, cost = 1): Promise<boolean> {
-  const { data, error } = await db.rpc("rate_limit_take", {
+export async function takeToken(key: string, bucket: Bucket, cost = 1): Promise<boolean> {
+  const { data, error } = await createServiceClient().rpc("rate_limit_take", {
     p_key: key,
     p_capacity: bucket.capacity,
     p_refill_per_minute: bucket.refillPerMinute,

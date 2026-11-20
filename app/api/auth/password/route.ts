@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
-import { LIMITS, anonClient, clientIp, takeToken } from "@/lib/system/rateLimit";
+import { LIMITS, clientIp, takeToken } from "@/lib/system/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -17,11 +17,10 @@ export async function POST(req: NextRequest) {
   const password = typeof body.password === "string" ? body.password : "";
   if (!email || !password) return NextResponse.json({ error: "email and password are required" }, { status: 400 });
 
-  const limiter = anonClient();
   const ip = clientIp(req.headers);
   const [ipOk, emailOk] = await Promise.all([
-    takeToken(limiter, `login:ip:${ip}`, LIMITS.loginIp),
-    takeToken(limiter, `login:email:${email}`, LIMITS.loginEmail),
+    takeToken(`login:ip:${ip}`, LIMITS.loginIp),
+    takeToken(`login:email:${email}`, LIMITS.loginEmail),
   ]);
   if (!ipOk || !emailOk) {
     return NextResponse.json({ error: "Too many attempts. Try again in a few minutes." }, { status: 429 });
