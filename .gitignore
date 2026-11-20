@@ -68,5 +68,13 @@ screenshots/
 # Local scratch from the cutover rehearsal (Phil), never committed
 Claude outputs/
 
+# one stream at a time owns supabase/migrations (claude/worktree-setup.md)
+MIGRATIONS.lock
+
+# end-to-end checks: build output, sessions, results
+/.next-e2e/
+e2e/.auth/
+e2e/.results/
+
 # private imports (contacts etc.) — never committed
 imports/private/

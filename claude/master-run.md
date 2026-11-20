@@ -2,7 +2,7 @@
 
 *Written 2026-11-20 (Cowork chat with Phil; repo read at `6d9f736`, migrations through 0156, production live on `bce9e87`+). This is the single brief for a long Claude Code run on the PC at `A:\Projects\Mycelium`. Start it with: **"Read `claude/master-run.md` and execute it."** Every decision here is Phil's unless marked `[claude]`; the full decision record is the two "Intake" sections at the top of `claude/backlog.md`. Where this doc and the code disagree, the code wins: fix the doc and note the drift.*
 
-*Reconciled at run start, 2026-11-20 02:00: repo at `8274dd1`, hosted = local migrations through **0157**, production on `8274dd1`. Drift fixed in place below and marked `[run]`: the four research conflicts are decided (§0); Hours parts 2–4 are already built (§12); the Playwright library was already a dev dependency (§3).*
+*Drift noted by the run, 2026-11-20 (`[run]` marks below): at run start the repo was at `8274dd1`, migrations through **0157** on both sides, production on `8274dd1`. Hours parts 2–4 were already built (§12). The `playwright` library was already a dev dependency; the runner, config and browser were not (§3). A Cowork session writing this file from an older copy removes these notes; the run's reports under `docs/run/` are the durable record.*
 
 ## 0. What this run is for
 
@@ -13,7 +13,11 @@ Phil built Mycelium and does not use it. His words: capture is slow and unreliab
 **Research (landed 2026-11-20): `claude/nd-design-research.md`** — what helps ADHD and autistic minds get things done, as 32 numbered design rules, a wording table and eight personal measures. Read it before building the daily loop, nudges, dormant indicator or any UI. Phil asked for its findings to be implemented, so:
 
 - **Apply every rule that fits his decisions.** That is most of them, notably: zero-initiation entry and zero-debt return (1–2), sixty-second sessions (3), no shame mechanics and the wording table (5), sensory defaults (7), loop before landscape (8), the focus card with Start / Not now / Swap, a countdown and if-then first steps (9–12), a "now" line and a growth network that only grows (13, 15), the morning proposal prepared the night before and self-applying if untouched (16), the day won on item one (17), evening close of two minutes opening with what got done (18), split brain-dump items landing as ideas, not commitments (19, second half), parking with a "where I left off" note (21), finish-line exits including "good enough" and "drop" (22), feedback within 300 ms (24), week fill and lifetime totals with no breakable streak (25), nothing firing during a focus timer (27), short wall speech (29), Kirsty's nudges shaped as offers with wins shown first and a no-reason "Not today" (30), scroll friction via a Shortcuts automation (31), and the eight measures reviewed monthly in the close-out (§6 of the report).
-- **Four rules contradicted a decision Phil made. He decided each on 2026-11-20** `[run]` (recorded in the backlog Intake section; this replaces the earlier "in his queue" wording): **capture** — every capture goes to review, and anything unreviewed after 7 days files itself with the AI's guess and an "unreviewed" tag (rule 20 adopted, rule 19 first half not); **interruptions** — one budget of 3 a day across push + Telegram + wall speech (rule 26 adopted; Kirsty's nudges and anything Phil starts himself do not count); **the Boys** — all free to reply, no per-message guard, only the £5 monthly AI cap limits them (rule 28 not adopted); **dormant features** — his version stands: true history, marks in the nav and dashboard, the Boys ask why (rule 32 not adopted). `[claude]` check: the "return time" measure in the monthly close-out shows whether the dormant marks help or cost.
+- **Four rules contradicted a decision Phil had made. He was asked on 2026-11-20 and decided each; build these, not the rules:**
+  - Capture (rules 19–20): **every capture still goes to review; a card unreviewed after 7 days files itself** with the AI's guess and an "unreviewed" tag.
+  - Interruptions (rule 26): **adopted — one budget of three a day across push, Telegram and wall speech** for anything the app starts. Kirsty's nudges and anything Phil starts himself do not count.
+  - The Boys (rule 28): **all free to reply, no per-message guard.** Only the £5 monthly cloud-AI cap (§9) limits them.
+  - Dormant features (rule 32): **his version stands** — true history, dimmed in the nav, a dashboard card, and the Boys ask why. His words: the shame mechanic motivates him to do better. Do not soften this display. Rule 5 (no shame mechanics) still governs everything else.
 - Kirsty's nudges stay unlimited (his decision); rule 30 shapes them without capping them.
 
 ## 1. Standing rules
@@ -53,7 +57,7 @@ Phil chose **everything in parallel**. His own invariant says exactly one worktr
 1. `git status`: commit the doc edits made from Cowork on 2026-11-19/20 (`claude/backlog.md`, `context.md`, `spec-index.md`, this file). Move `.git/stale-maintenance-lock-claude` out of the way if present.
 2. Decide the uncommitted `.claude/skills` and `.claude/settings*` edits: commit what is intended, discard what is not, record which.
 3. Confirm hosted = local migrations, the nightly backup ran, production is on the latest commit.
-4. Install Playwright as a dev dependency (the repo has vitest and `npm run isolation-test` only). `[run]` The `playwright` library was already there for `scripts/screenshot.mjs`; what was missing is the test runner, a config and the browser.
+4. Install Playwright as a dev dependency (the repo has vitest and `npm run isolation-test` only).
 5. Create the **test account** (§6) so every later phase can be checked as a second user.
 
 ## 4. Phase 1 — test everything already built
@@ -74,7 +78,7 @@ Goal: Phil verifies in 15-minute sittings, not evenings.
 - **Edit before sending (Phil, 2026-11-20):** after dictation the Shortcut shows the text in an editable box, pre-filled, with Send as the default action. The audio is already saved to the inbox folder before the box appears, so abandoning the edit loses nothing; if he dismisses the box the unedited text is sent.
 - **Paragraphs:** long captures get line breaks between paragraphs. The server adds them (wording untouched) to the stored text and the review card; if a quick, free way to break paragraphs inside the Shortcut before the edit box exists, use it too.
 - **Feedback:** instant "Saved", then a push "Filed as …" with a fix link.
-- **Routing:** every capture goes to review; a card unreviewed for 7 days files itself with the AI's guess and an "unreviewed" tag `[run]`. Review is **swipe cards** (right = accept the suggested filing, left = fix), cleared **in the evening close**. Long captures are **split into separate items**, each its own card linked to the original recording.
+- **Routing:** every capture goes to review; a card left 7 days files itself with the AI's guess, tagged "unreviewed". Review is **swipe cards** (right = accept the suggested filing, left = fix), cleared **in the evening close**. Long captures are **split into separate items**, each its own card linked to the original recording.
 - **Other inputs:** share sheet (links, screenshots, text), photo capture, typed quick-note widget.
 
 ## 6. Stream B — daily loop, the Boys, dormant features
@@ -82,9 +86,9 @@ Goal: Phil verifies in 15-minute sittings, not evenings.
 - **Morning pick** fires when Phil's alarm stops (Shortcuts automation calling an endpoint); **evening close** when he plugs in, with a fallback time. The AI proposes today from dates, priority and energy; one tap accepts or swaps. Today holds **5 items**, the first marked as the one that makes the day a win.
 - **Evening close** (target: under a minute): done / moves / drops, capture review cards, low-confidence finance cards.
 - **Finishing aids:** every big item carries a five-minute next step; a finish-line view (80%+ done); a weekly close-out session that only finishes; a WIP limit that works as **park one to start one**.
-- **Chasing:** one budget of **3 app-initiated interruptions a day across push + Telegram + wall speech** `[run]`. Kirsty's nudges and anything Phil starts himself are outside it.
-- **The Boys group chat:** one Telegram bot per agent in one group, each posting as itself; server-side routing decides who answers. All may reply; no per-message guard `[run]` (Phil, 2026-11-20), only the AI cap in §9. Bots cannot read each other, and privacy mode must be off to see plain messages. The existing single-bot chat and Day log routing (`/c ` escape) must keep working. Creating bots in BotFather is Phil's (§14).
-- **Dormant features:** record a usage event whenever Phil *does something* in a feature (add, edit, complete; a page view does not count). Each feature has its own natural cadence (daily ones flag after a few days, monthly ones after about six weeks). Backfill **true history** from existing rows via the entity registry. Show it as a dimmed nav item and a "gone quiet" dashboard card, factual and low-key; the Boys raise it in the weekly close-out and ask why.
+- **Chasing:** push, Telegram and wall speaker share **one budget of three app-started interruptions a day**. Kirsty's nudges and replies to something Phil started are outside it.
+- **The Boys group chat:** one Telegram bot per agent in one group, each posting as itself; server-side routing decides who answers. All are free to reply, with no per-message guard (Phil, confirmed twice); the AI cap in §9 is the only limit. Bots cannot read each other, and privacy mode must be off to see plain messages. The existing single-bot chat and Day log routing (`/c ` escape) must keep working. Creating bots in BotFather is Phil's (§14).
+- **Dormant features:** record a usage event whenever Phil *does something* in a feature (add, edit, complete; a page view does not count). Each feature has its own natural cadence (daily ones flag after a few days, monthly ones after about six weeks). Backfill **true history** from existing rows via the entity registry. Show it as a dimmed nav item and a "gone quiet" dashboard card showing how long; the Boys raise it in the weekly close-out and ask why. Phil wants this one direct, not softened.
 - **Test account:** a dedicated user in every team Phil is in, with the same grants Kirsty will get, TOTP on, secret in `.env.local` only.
 
 ## 7. Stream C — Kirsty (build now, invite later)
@@ -149,7 +153,7 @@ Target: a touch A3-landscape screen with speakers (Phil's photo frame; model unk
 - **AI model list:** pulled daily from provider APIs; a model is selectable only once priced in `lib/config/models.ts`; Telegram nudge on new models and on retired-but-pinned ones; no auto-switching.
 - **Dashboard cards:** width=2 promotes to 3-wide; masonry flow.
 - **Other apps into Work:** import each repo under `A:\Projects` (PhirstMaxxing, phirstmaxxing-web, StreetGuesser, DropShipAuto, daytripper, polysnipe, mediaCleanUp) as a live Work project with open items harvested from its repo and docs. Read-only on those repos; ask Phil for folder access if needed.
-- Hours parts 2–4 were built on 2026-11-20 before this run started (MYC-176; Phil's live check is MYC-177) `[run]`, so nothing remains there. The backlog's committed items that need nothing from Phil.
+- `[run]` Hours parts 2–4 were built on 2026-11-20 before this run started (MYC-176; Phil's live check is MYC-177), so nothing remains there. The backlog's committed items that need nothing from Phil.
 
 ## 13. Stream I — UI rebuild: GATED
 
@@ -179,8 +183,7 @@ Create each as a dated ticket with the exact link and value, in the checklist fo
 10. UI examples and skills for the rebuild.
 11. Supabase Security Advisor review; retire the legacy Vercel env vars; revoke cutover tokens; decision 0.2 (`platform` owner-only).
 12. The 15-minute checklist chunks.
-13. ~~Decide the four places the research contradicts his choices~~ — decided 2026-11-20, see §0 `[run]`.
-14. Set up the scroll-friction automation from the guide (research rule 31), if he wants it.
+13. Set up the scroll-friction automation from the guide (research rule 31), if he wants it.
 
 ## 15. Done, and reporting
 

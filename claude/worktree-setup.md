@@ -47,3 +47,21 @@ Aug 2026: `refs/heads/main` was found corrupt (41 bytes of nulls) during setup �
 - Hooks: `${CLAUDE_PROJECT_DIR}` stays at the main checkout; worktree path arrives as `cwd`.
 - Subagents with `isolation: worktree` get no `node_modules` — fine for refactors, fails on anything that builds or tests.
 - `.env.local` copied by `.worktreeinclude` counts as untracked work, so cleanup prompts on trees that look clean.
+
+## Finished 2026-11-20 (master run, Phase 0)
+
+The open points from August, decided `[claude]` and applied:
+
+| Area | Decision |
+|---|---|
+| Base branch | `worktree.baseRef: "head"` is in the committed `.claude/settings.json`. Done. |
+| Gitignore | `.claude/worktrees/` is ignored. Done. |
+| Package manager | **Stay on npm.** Each worktree runs its own `npm ci` (about two minutes, about 1 GB). No symlinked `node_modules`, no pnpm migration: a lockfile and CI change for a problem a plain install already solves. |
+| `.next` | Never shared. Each worktree builds its own. |
+| Skills in a worktree | `.claude/skills` and `.claude/settings.json` are tracked, so a worktree checkout has them. Nothing to copy. |
+| Env files | `.worktreeinclude` copies `.env.local`, which points at the **hosted** database. A worktree must therefore never run a bare `next dev`: start it through the end-to-end environment (`e2e/support/env.ts`), which points at the local stack and blanks every paid or outward key. |
+| Ports | 3000 main checkout (hosted data, Phil's own use) · 3001–3003 worktrees · **3100 the end-to-end server** (`E2E_PORT` overrides it for a worktree). Sessions for tests come from the password grant, so no redirect allowlist entry is needed. |
+| Database | One local stack, shared by every worktree. That is why migrations are a single lane. |
+| Migrations lane | `MIGRATIONS.lock` in the main checkout names the stream that holds it. Take it, write the next number, merge to `main`, `db push`, delete the file. Untracked on purpose (it is a note between sessions, not history). |
+
+**Leftover from the old PC:** `.claude/worktrees/receipts` (2.3 GB) is a dead worktree. Its `.git` pointer still names `P:/Projects/Mycelium`, git does not list it, and its branch `worktree-receipts` is fully merged into `main`. It holds local edits to `.claude` files that could not be compared reliably, so it was left in place. Phil can delete the folder.
