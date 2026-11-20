@@ -88,4 +88,6 @@ Afterwards you sign in at `/login` with the same method (magic link, password, p
 9. **Decide about the authenticator.** Settings → Security → Enrol takes a minute with any authenticator app. Without one you can do everything except share your own things and see who has read them. With one, every sign-in asks for its code.
 10. **Share something back, if you want to.** Settings → People & teams → Share: the person's exact email, the section, what they may do. For the Day log, remember the switch on each day: sharing the section shows nothing until a day is switched to Shared.
 
+11. **The family space, once it exists.** Under Organisation, **Family**. The first time, it tells you that everything you add there is seen by the other person, and asks you to press **Understood**. That is true of everything in it: notes, letters, the lists, the budget. Your own space is not affected. If you would rather have somewhere in it that is yours alone, say so: it is a small change.
+
 **If it goes wrong:** the table in section 7 still applies. Two more: *pages open empty and an error mentions an authenticator* means your role now needs one (go to Settings → Security); *you were signed out without doing it* means the other person pressed "Sign out there" for your device (sign in again).

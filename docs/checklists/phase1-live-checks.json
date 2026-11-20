@@ -1051,6 +1051,194 @@
           ]
         }
       ]
+    },
+    {
+      "id": "13",
+      "title": "The family space (20 minutes, the two of you, after she has joined; drop 12, 11, 10 first)",
+      "lede_html": "Built and checked by automation with two test people. It lives in a team, so the first two steps are yours. Nothing here touches the finance section. Do not fill in <b>Born on</b> until it is true: it changes the page from weeks to the baby's age.",
+      "steps": [
+        {
+          "id": "13.1",
+          "title": "Make the team",
+          "actor": "you",
+          "where": {
+            "label": "People & teams",
+            "url": "https://mycelium.sporebit.com/other/settings/people",
+            "kind": "page"
+          },
+          "body_html": "People & teams → create a team (\"Family\" or your surname). It asks for your authenticator code. Invite her as <b>member</b> if she is not in it yet."
+        },
+        {
+          "id": "13.2",
+          "title": "Make it the family space",
+          "actor": "you",
+          "where": {
+            "label": "Family",
+            "url": "https://mycelium.sporebit.com/family",
+            "kind": "page"
+          },
+          "body_html": "Open <b>Family</b> (under Organisation; in the new shell under Life). It offers the team: press <b>Use …</b>. The page opens with three lists already filled in."
+        },
+        {
+          "id": "13.3",
+          "title": "The due date",
+          "actor": "you",
+          "where": {
+            "label": "Family",
+            "url": "https://mycelium.sporebit.com/family",
+            "kind": "page"
+          },
+          "body_html": "Press <b>Dates</b>, enter the due date, Save. The heading becomes <b>Week N</b> with the days to go and, on some weeks, a line from the standard NHS schedule. Is the week the one your midwife uses?",
+          "fields": [
+            {
+              "key": "family_week",
+              "label": "Right / off by how much"
+            }
+          ]
+        },
+        {
+          "id": "13.4",
+          "title": "Everything here is shared",
+          "actor": "you",
+          "body_html": "Each of you sees, once, a note that everything added here is seen by the other, with <b>Understood</b>. Ask her: is that what she wants, or would she like a switch for private notes? It is a small change if so.",
+          "fields": [
+            {
+              "key": "family_private_notes",
+              "label": "Fine as it is / she wants private notes"
+            }
+          ]
+        },
+        {
+          "id": "13.5",
+          "title": "A note and a picture",
+          "actor": "you",
+          "where": {
+            "label": "Timeline",
+            "url": "https://mycelium.sporebit.com/family?tab=timeline",
+            "kind": "page"
+          },
+          "body_html": "On her phone, Timeline: add a note, then a second entry with a photo from the camera roll. Both appear on yours within a few seconds, each marked with the week. A photo over 4 MB is refused in words; say if that bites."
+        },
+        {
+          "id": "13.6",
+          "title": "Say it instead",
+          "actor": "you",
+          "body_html": "Use the capture Shortcut and say <b>\"Family: we heard the heartbeat today\"</b>. It lands on the timeline in those words, not in your own captures. Then say something with the word family in the middle (\"book a family holiday\"): that one is filed as usual."
+        },
+        {
+          "id": "13.7",
+          "title": "An appointment",
+          "actor": "you",
+          "where": {
+            "label": "Timeline",
+            "url": "https://mycelium.sporebit.com/family?tab=timeline",
+            "kind": "page"
+          },
+          "body_html": "Add an appointment for tomorrow morning with a place. It shows under <b>Coming up</b>. You should each get a notification this evening from six, and another two hours before it.",
+          "fields": [
+            {
+              "key": "family_reminders",
+              "label": "Both arrived / which did not"
+            }
+          ]
+        },
+        {
+          "id": "13.8",
+          "title": "Names",
+          "actor": "you",
+          "where": {
+            "label": "Names",
+            "url": "https://mycelium.sporebit.com/family?tab=names",
+            "kind": "page"
+          },
+          "body_html": "Each add two names and vote on all four. A name you both like moves to the top with <b>you both like it</b>; one of you changing a vote moves it back."
+        },
+        {
+          "id": "13.9",
+          "title": "The lists",
+          "actor": "you",
+          "where": {
+            "label": "Lists",
+            "url": "https://mycelium.sporebit.com/family?tab=lists",
+            "kind": "page"
+          },
+          "body_html": "On the PC: click a price cell, type a price, press Enter (it moves down), Tab (it moves across). Tick one as bought. The running total under each heading follows. Type a new line at the bottom and press Enter.",
+          "fields": [
+            {
+              "key": "family_lists",
+              "label": "Anything missing from the starter lists"
+            }
+          ]
+        },
+        {
+          "id": "13.10",
+          "title": "A letter, aloud",
+          "actor": "you",
+          "where": {
+            "label": "Letters",
+            "url": "https://mycelium.sporebit.com/family?tab=letters",
+            "kind": "page"
+          },
+          "body_html": "On your phone, Letters: read this week's question, press <b>Answer aloud</b>, talk for half a minute, press Stop. The recording is there at once; its words appear beneath it within a few minutes while the PC is on. Then she answers the same question.",
+          "fields": [
+            {
+              "key": "family_letter",
+              "label": "Words appeared / did not / wrong words"
+            }
+          ]
+        },
+        {
+          "id": "13.11",
+          "title": "The baby log",
+          "actor": "you",
+          "where": {
+            "label": "Baby log",
+            "url": "https://mycelium.sporebit.com/family?tab=baby",
+            "kind": "page"
+          },
+          "body_html": "It works now, so try it: Baby log → Feed, Nappy, Asleep, then Awake. Each is one tap; <b>Undo</b> removes one. Do one from each phone: both show the same list. Is anything you would want at three in the morning more than one tap away?",
+          "fields": [
+            {
+              "key": "family_babylog",
+              "label": "What to add or move"
+            }
+          ]
+        },
+        {
+          "id": "13.12",
+          "title": "Household",
+          "actor": "you",
+          "where": {
+            "label": "Household",
+            "url": "https://mycelium.sporebit.com/family?tab=home",
+            "kind": "page"
+          },
+          "body_html": "Add your bins (pick any day one is collected, and how often): it says when the next one is. Add a warranty with its PDF or a photo of the receipt and the date it runs out."
+        },
+        {
+          "id": "13.13",
+          "title": "The budget",
+          "actor": "you",
+          "where": {
+            "label": "Budget",
+            "url": "https://mycelium.sporebit.com/family?tab=budget",
+            "kind": "page"
+          },
+          "body_html": "Each add two things you have paid this month. The top says what each of you paid and what would make it even. Check that nothing from your own Finance pages appears here, and nothing from here appears there."
+        },
+        {
+          "id": "13.14",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "family",
+              "label": "Anything wrong, missing or awkward"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

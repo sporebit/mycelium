@@ -60,3 +60,25 @@ Card grid ("Everything" view) with dnd + size picker, layout in `ui_prefs.dashbo
 ## Tickets (replaces Tasks; Habits and Reminders folded) — 2026-09-17; surfaces now under `/work`
 
 Tasks, Habits and Reminders are now one `tickets` table (migrations 0116–0120). The full model, routes and pages are in `claude/tickets-spec.md` and the build notes in `docs/tickets/README.md`. Habits = `kind = habit` series tickets with `ticket_completions` (the tile, heatmap and streak read those); Reminders = `kind = reminder` with `remind_at` (the `/reminders` page and `/api/reminders` keep their shape over tickets). ~~`/api/tasks/*` remain as compatibility routes for one release.~~ Retired 2026-09-25 with the merge (MYC-163).
+
+## Family (`/family`) — BUILT 2026-11-20 (0171; master run Stream D; MYC-186)
+
+*As built. The report is `docs/run/family-report.md`; the brief is `claude/master-run.md` §8.*
+
+**Where it lives.** In a team's space. The family space is the team space with a `family_profile` row; the page offers to make one from a team the person is in (never from a personal space). Access group `organisation.family`: a member reads and writes, a viewer reads, nobody outside the team sees anything. A name vote and the "everything here is shared" confirmation belong to the person who made them (restrictive rules).
+
+**The page.** Heading: the week of the pregnancy from the due date ("21+5", days to go, a line from the standard NHS schedule on the weeks that have one), or the baby's age once "Born on" is filled in. "Coming up": the next five appointments. A one-time note per person that everything here is shared. Seven tabs, the open one in the address (`?tab=`): Timeline, Names, Lists, Letters, Baby log, Household, Budget. Once the baby is born the Baby log comes first.
+
+- **Timeline** (`family_entries`): note, scan, appointment (needs a time), milestone, photo, letter. One file at most per entry (picture, PDF, recording; 4 MB). Each entry shows the week it fell in, worked out from the due date at read time.
+- **Names** (`family_names`, `family_name_votes`): one vote per person per name (love 2, like 1, not this one −1); names every member likes come first.
+- **Lists** (`family_lists`, `family_list_items`): a sheet edited in place; price, quantity, bought (who and when recorded by the server), link, note; a running total per list and overall. Starter lists: hospital bag, nursery, buying list.
+- **Letters**: one question a week from a fixed list of 52, starting at a place of the household's own and walking the list in order. Answered aloud (recorded in the browser, two minutes at most, written up by Whisper on the PC on the free lane) or typed. A letter keeps its question.
+- **Baby log** (`baby_log`): feed (left, right, both, bottle with optional ml), nappy (wet, dirty, both), sleep (start and stop on one row; one at a time). A tap can be put in up to a week late, never in the future. Today's totals count from London midnight; a sleep counts for the part of it that falls in today.
+- **Household** (`household_items`): document, warranty, bin, other; a file and a run-out date; a bin's schedule (any date it is collected, every 1 to 4 weeks) gives its next day.
+- **Budget** (`household_costs`): a cost has an amount, who paid, a date, a kind (bill, baby, house, food, other). A month shows the total, by kind, each person's payments, and for two people what would make it even. **Not the finance section**: separate tables, nothing shared in either direction.
+
+**Unprompted.** From `/api/cron/family` (every 15 minutes, via the tick): an appointment reminder to each member the evening before (from 18:00 London) and two hours before, sent whatever the hour or the day's count, never for a moment that had already come when the appointment was written down; the week's letter question on Sunday from 18:00 to anyone who has not answered it, within the daily three.
+
+**Capture.** A capture that begins by naming the family ("Family: …", "For the baby, …", "Baby: …") is put on the timeline in its own words, with its picture if it has one. Rule-based; anything else is filed as usual.
+
+**Not built:** the wall; appointments on the Calendar page; photos on R2; shrinking large photos; recurring costs that add themselves; editing an entry on the page; the baby log by voice; a private-notes switch.
