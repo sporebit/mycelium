@@ -70,6 +70,8 @@ test.afterAll(async ({ playwright }, info) => {
   const teardown = await playwright.request.newContext({ baseURL: info.project.use.baseURL, storageState: info.project.use.storageState as string });
   if (projectId) await teardown.delete(`/api/projects/${projectId}?hard=true`);
   if (personId) await teardown.delete(`/api/people/${personId}?hard=1`);
+  // the gift the typed form made (owner-only rows, no hard-delete route of their own)
+  localSql(`delete from public.gifts where title like '${T}%'`);
   // a Journal capture is appended to today's Day log; remove that row only if this spec made it and nothing else is in it
   if (!todayExisted) {
     const today = await appToday(teardown);
@@ -156,6 +158,15 @@ const FIXTURES: Record<TypedKind, Fixture> = {
     title: (f) => s(f.text),
     lands: "quotes",
     readBack: (id) => `select text || '|' || is_own || '|' || coalesce(context, '') from public.quotes where id = '${id}'`,
+  },
+  gift_idea: {
+    valid: () => ({ title: `${T} gift a decent chef knife`, for_person_id: "", for_label: "Jake", reason: "he cooks", url: "", target_price: "45", needed_by: "" }),
+    invalid: { title: "", target_price: "lots" },
+    errors: { title: "The gift is required", target_price: "Number" },
+    text: (f) => s(f.title),
+    title: (f) => s(f.title),
+    lands: "gifts",
+    readBack: (id) => `select title || '|' || coalesce(for_label, '') || '|' || status from public.gifts where id = '${id}'`,
   },
   account: {
     valid: () => ({ name: `${T} account Streamy`, status: "trial", category: "Other", cost_amount: "9.99", cost_period: "monthly", cost_currency: "" }),
@@ -252,7 +263,7 @@ test.describe("Typed capture · every entity in the registry", () => {
   test("the fixtures cover the registry, in the order the form offers it", () => {
     expect(Object.keys(FIXTURES).sort()).toEqual([...TYPED_KINDS].sort());
     expect(Object.keys(ENTITY_REGISTRY).sort()).toEqual([...TYPED_KINDS].sort());
-    expect([...TYPED_KINDS]).toEqual(["task", "ticket", "reminder", "purchase", "media", "quote", "journal", "idea", "decision", "note", "person", "account", "pain_log", "workout"]);
+    expect([...TYPED_KINDS]).toEqual(["task", "ticket", "reminder", "purchase", "media", "quote", "gift_idea", "journal", "idea", "decision", "note", "person", "account", "pain_log", "workout"]);
   });
 
   for (const kind of TYPED_KINDS) {
@@ -350,6 +361,7 @@ test.describe("Typed capture · every entity in the registry", () => {
         if (kind === "purchase") expect(got).toBe(`${fields.title}|4.5|GBP|need|this_week|shopping|home`);
         if (kind === "media") expect(got).toBe(`${fields.title}|read|A. Writer|backlog`);
         if (kind === "quote") expect(got).toBe(`${fields.text}|true|e2e`);
+        if (kind === "gift_idea") expect(got).toBe(`${fields.title}|Jake|idea`);
         if (kind === "account") expect(got).toBe(`${fields.name}|trial|9.99|monthly|GBP`);
         if (kind === "pain_log") expect(got).toBe(`${fields.notes}|4|mild|knee|standalone`);
         if (kind === "person") {
