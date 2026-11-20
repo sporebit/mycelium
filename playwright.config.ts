@@ -31,8 +31,6 @@ export default defineConfig({
     baseURL: E2E_ORIGIN,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    // No service worker in a test browser: its cache would answer for the server.
-    serviceWorkers: "block",
     timezoneId: "Europe/London",
     locale: "en-GB",
   },
