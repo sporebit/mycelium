@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
   try {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "ANTHROPIC_API_KEY missing" }, { status: 500 });
+      // No key is a state of the server, not a fault: answer 409 with words the form can show (same as lib/quotes/research.ts)
+      return NextResponse.json({ error: "Scanning is unavailable: no AI key is set on this server. Enter the recipe by hand." }, { status: 409 });
     }
 
     const formData = await req.formData();

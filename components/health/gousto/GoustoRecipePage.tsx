@@ -110,11 +110,15 @@ export function GoustoRecipePage({ slug }: { slug: string }) {
 					gousto.co.uk ↗
 				</a>
 			</div>
-			{!d && (
-				<p className="text-xs text-[#f5b56d] mt-3">
-					The ingredients and method for this recipe have not been pulled yet. Run <code className="font-[family-name:var(--font-mono)]">npm run gousto:sync</code> on the PC (favourites are fetched first), or read it on gousto.co.uk.
-				</p>
-			)}
+			{!d &&
+				(r.detail_fetched_at ? (
+					// the sync asked Gousto for this one and was told it is gone: running it again will not help
+					<p className="text-xs text-[#f5b56d] mt-3">Gousto no longer serves this recipe, so there are no ingredients or method to show. Only its listing is kept.</p>
+				) : (
+					<p className="text-xs text-[#f5b56d] mt-3">
+						The ingredients and method for this recipe have not been pulled yet. Run <code className="font-[family-name:var(--font-mono)]">npm run gousto:sync</code> on the PC (favourites are fetched first), or read it on gousto.co.uk.
+					</p>
+				))}
 			{(d?.description ?? r.description) && <p className="text-sm text-ink-4 mt-3 leading-relaxed">{d?.description ?? r.description}</p>}
 			{d && d.categories.length > 0 && (
 				<div className="flex flex-wrap gap-1 mt-3">

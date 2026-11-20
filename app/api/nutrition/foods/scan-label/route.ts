@@ -126,9 +126,10 @@ function coerce(obj: unknown): Extracted | null {
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
+    // No key is a state of the server, not a fault: answer 409 with words the form can show (same as lib/quotes/research.ts)
     return NextResponse.json(
-      { error: "ANTHROPIC_API_KEY not configured" },
-      { status: 500 },
+      { error: "Scanning is unavailable: no AI key is set on this server. Enter the values by hand." },
+      { status: 409 },
     );
   }
   let body: { image_base64?: string; media_type?: string };

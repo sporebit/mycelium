@@ -23,8 +23,10 @@ export const runtime = "nodejs";
 
 const TEMPLATE_SESSION_FIELDS =
   "id, programme_id, day_of_week, slot, kind, name, notes, position";
+// default_hold_seconds was missing here, so a hold exercise's card on Today
+// read "2×?" instead of "60s × 2" even once the seed wrote the column.
 const EXERCISE_FIELDS =
-  "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_distance_km, default_intensity, data_shape, with_weight";
+  "id, programme_session_id, position, name, notes, default_sets, default_reps, default_weight, default_weight_unit, rest_seconds, default_duration_min, default_hold_seconds, default_distance_km, default_intensity, data_shape, with_weight";
 const LIVE_SESSION_FIELDS =
   "id, slot, kind, name, programme_session_id, session_type, swapped_from_programme_session_id, started_at, completed_at, status, position, space_id";
 

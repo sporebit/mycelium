@@ -115,7 +115,10 @@ export function GoustoCookbook() {
 		await mutate((cur) => (cur ? { ...cur, favourites: cur.favourites + (next ? 1 : -1), recipes: cur.recipes.map((x) => (x.id === r.id ? { ...x, is_favourite: next } : x)) } : cur), { revalidate: false });
 		try {
 			await apiWrite(`/api/health/gousto/${encodeURIComponent(r.slug)}`, { method: "PATCH", ...jsonBody({ is_favourite: next }) });
-			if (favourites) await mutate();
+			// Always re-read: a heart tapped while a search, sort or filter was still loading had
+			// nothing to update optimistically, and the list that then arrived was read before the
+			// write, so the heart stayed unlit although the favourite was saved.
+			await mutate();
 		} catch (e) {
 			reportApiError(e, "Could not update the favourite");
 			await mutate();
