@@ -1,38 +1,10 @@
 import { DraggableCardGrid } from "@/components/dashboard/DraggableCardGrid";
 import { InvestmentsOverviewCard } from "@/components/finance/InvestmentsOverviewCard";
+import { sectionCards } from "@/lib/nav/cards";
 
-const CARDS = [
-  {
-    key: "snapshot",
-    label: "Snapshot",
-    href: "/finance/snapshot",
-    description: "Net worth, accounts, recent movement.",
-  },
-  {
-    key: "spending",
-    label: "Spending",
-    href: "/finance/spending",
-    description: "Import bank CSVs, view transactions, categorise.",
-  },
-  {
-    key: "analysis",
-    label: "Analysis",
-    href: "/finance/analysis",
-    description: "Category breakdowns, monthly trends, daily averages.",
-  },
-  {
-    key: "bills",
-    label: "Bills",
-    href: "/finance/bills",
-    description: "What leaves on a rhythm: bills, subscriptions, price rises.",
-  },
-  {
-    key: "budget",
-    label: "Budget",
-    href: "/finance/budget",
-    description: "What each month is meant to cost, against what has gone.",
-  },
-];
+// Every Finance page in the sidebar gets a box (lib/nav/cards.ts).
+// Investments is the live card in the suffix, so it is not a plain box as well.
+const CARDS = sectionCards("finance", { omit: ["/finance/investments"] });
 
 export default function FinanceOverviewPage() {
   return (

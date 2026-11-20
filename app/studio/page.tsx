@@ -1,14 +1,10 @@
 import { DraggableCardGrid } from "@/components/dashboard/DraggableCardGrid";
 import { PCOverviewCard } from "@/components/studio/PCOverviewCard";
+import { sectionCards } from "@/lib/nav/cards";
 
-const CARDS = [
-  {
-    key: "spotify",
-    label: "Spotify",
-    href: "/studio/spotify",
-    description: "Listening stats, top tracks, play history.",
-  },
-];
+// Every Studio page in the sidebar gets a box (lib/nav/cards.ts).
+// The PC build is the live card in the suffix, so it is not a plain box as well.
+const CARDS = sectionCards("studio", { omit: ["/studio/pc"] });
 
 export default function StudioPage() {
   return (

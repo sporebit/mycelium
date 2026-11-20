@@ -1,5 +1,6 @@
 import { createUserClient } from "@/lib/supabase/user";
-import { DraggableCardGrid, type DraggableCard } from "@/components/dashboard/DraggableCardGrid";
+import { DraggableCardGrid } from "@/components/dashboard/DraggableCardGrid";
+import { sectionCards } from "@/lib/nav/cards";
 
 async function fetchHealthSummary() {
   const supabase = await createUserClient();
@@ -44,32 +45,22 @@ export default async function HealthOverviewPage() {
   const { latestWeight, painCount, lastGut, activeListCount, uncheckedItems } =
     await fetchHealthSummary();
 
-  const CARDS: DraggableCard[] = [
-    {
-      key: "nutrition",
-      label: "Nutrition",
-      href: "/health/nutrition",
-      description: "Daily macros, meal groups, barcode scan, foods library.",
-    },
+  // Every Health page in the sidebar gets a box (lib/nav/cards.ts); these
+  // four carry a live figure, and Body Metrics lives under Fitness.
+  const CARDS = sectionCards("health", { custom: [
     {
       key: "body",
       label: "Body Metrics",
-      href: "/health/body",
+      href: "/fitness/body",
       description: "Weight, measurements, body composition over time.",
       detail: latestWeight
         ? `${latestWeight.weight} kg — ${new Date(latestWeight.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`
         : "No entries yet",
     },
     {
-      key: "supplements",
-      label: "Supplements",
-      href: "/health/supplements",
-      description: "Active supplement stack with one-tap dose logging.",
-    },
-    {
       key: "pain",
       label: "Pain Tracking",
-      href: "/fitness/body",
+      href: "/health/pain",
       description: "Standalone pain logs + recent session pain notes.",
       detail:
         painCount > 0
@@ -86,24 +77,6 @@ export default async function HealthOverviewPage() {
         : "No entries yet",
     },
     {
-      key: "blood_tests",
-      label: "Blood Tests",
-      href: "/health/blood-tests",
-      description: "Markers, ranges, and trends across sessions.",
-    },
-    {
-      key: "vision",
-      label: "Vision",
-      href: "/health/eye-prescription",
-      description: "Eye prescriptions and contact lens history.",
-    },
-    {
-      key: "recipes",
-      label: "Recipes",
-      href: "/health/recipes",
-      description: "Recipe library with vision scan, meal planner, and shopping lists.",
-    },
-    {
       key: "shopping_lists",
       label: "Shopping Lists",
       href: "/health/shopping-lists",
@@ -113,7 +86,7 @@ export default async function HealthOverviewPage() {
           ? `${activeListCount} list${activeListCount === 1 ? "" : "s"}, ${uncheckedItems} unchecked`
           : "No lists yet",
     },
-  ];
+  ] });
 
   return (
     <div className="flex flex-col gap-4">
