@@ -245,6 +245,21 @@ function DailySection() {
         />
         <ToggleSetting label="Sound on Done" description="A short chime when something is finished." value={d.chime} onToggle={(v) => save({ chime: v })} />
       </SectionCard>
+      <SectionCard title="THE WEEK — WHEN IT CLOSES">
+        <p className="text-sm text-text-lo">
+          The weekly close-out is the same slot every week: a forty-five-minute box, the plan said at the start and
+          reported at the end. A notice comes ten minutes before.
+        </p>
+        <div className="flex flex-col gap-1 py-2 text-sm">
+          <span className="text-text-mid">Day</span>
+          <SegmentedControl
+            value={String(d.closeout_day)}
+            onChange={(v) => save({ closeout_day: Number(v) })}
+            options={WEEKDAYS.map(([day, name]) => ({ value: String(day), label: name.slice(0, 3) }))}
+          />
+        </div>
+        <TextSetting label="Time (London)" value={d.closeout_time} type="time" onSave={(v) => save({ closeout_time: v })} />
+      </SectionCard>
     </div>
   );
 }

@@ -9,6 +9,7 @@ const LINKS: Array<{ href: string; label: string; hint: string }> = [
   { href: "/today", label: "Today", hint: "the one thing, and what comes next" },
   { href: "/finish", label: "Finish line", hint: "nearly done: close one" },
   { href: "/close", label: "Close the day", hint: "two minutes, in the evening" },
+  { href: "/closeout", label: "Close the week", hint: "forty-five minutes, same slot each week" },
 ];
 
 export function LoopLinks() {

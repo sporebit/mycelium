@@ -369,6 +369,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
   },
   {
     section: "platform",
+    group: "closeouts",
+    tables: ["weekly_closeouts"],
+    note: "The weekly close-out (0174): one row a week — the box, the plan and report, the week's fill, one quiet section's keep / pause / retire and why, and the month's measures. Personal, never in a share.",
+  },
+  {
+    section: "platform",
     group: "nudges",
     tables: ["nudges"],
     note: "A nudge from another person about one of your items (0168). Owned by the person who receives it; the sender never reads it.",

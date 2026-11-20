@@ -49,6 +49,13 @@ export type DecideInput = {
    * hours. A focus timer still holds it back.
    */
   atChosenTime?: boolean;
+  /**
+   * A notice before a scheduled switch (rule 27): the one thing that goes
+   * while a focus timer is running, because telling the person a switch is
+   * coming is what makes stopping the timer possible. Still weighed against
+   * quiet hours and the budget, still counted, still never repeated.
+   */
+  switchNotice?: boolean;
 };
 
 export function minutesOf(hhmm: string): number {
@@ -67,7 +74,7 @@ export function isQuietAt(minutesNow: number, from: string, to: string): boolean
 export function decide(input: DecideInput): Decision {
   if (input.origin !== "app") return { allow: true, counted: false };
   if (!input.atChosenTime && isQuietAt(input.minutesNow, input.quietFrom, input.quietTo)) return { allow: false, reason: "quiet" };
-  if (input.timerRunning) return { allow: false, reason: "focus" };
+  if (input.timerRunning && !input.switchNotice) return { allow: false, reason: "focus" };
   if (!input.essential && input.countedToday >= input.budget) return { allow: false, reason: "budget" };
   if (!input.essential && input.wording && input.recentUnanswered.includes(input.wording)) return { allow: false, reason: "repeat" };
   return { allow: true, counted: true };

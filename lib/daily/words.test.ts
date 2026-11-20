@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { about, bannedIn, BUTTONS, defaultFirstStep, eveningPrompt, finishLine, LABELS, morningPrompt, moved, nextUp, spoken, timeCheck, trimTitle } from "./words";
+import { about, bannedIn, BUTTONS, CLOSEOUT, closeoutNotice, defaultFirstStep, eveningPrompt, fillLine, finishLine, LABELS, lifetimeLine, morningPrompt, moved, nextUp, spoken, switchNotice, timeCheck, timerNotice, trimTitle } from "./words";
 
 const card = { title: "Boiler quote", firstStep: "Find the email from Dave.", minutes: 5 };
 
@@ -34,6 +34,18 @@ describe("the wording table (research §3)", () => {
       defaultFirstStep("Boiler quote"),
       about(5),
       about(75),
+      // the weekly close-out and the notices (Stream B, part 2)
+      ...Object.values(CLOSEOUT),
+      fillLine({ win_days: 0, finished: 0, started: 0 }),
+      fillLine({ win_days: 3, finished: 5, started: 7 }),
+      lifetimeLine({ win_days: 0, finished: 0, weeks_closed: 0 }),
+      switchNotice("Dentist", 9).title,
+      switchNotice("Dentist", 9).body,
+      switchNotice("Dentist", 2).body,
+      closeoutNotice(10).title,
+      closeoutNotice(10).body,
+      timerNotice(10) ?? "",
+      timerNotice(2) ?? "",
     ];
     for (const text of produced) expect(bannedIn(text), `"${text}"`).toBeNull();
   });

@@ -24,6 +24,9 @@ export type DailySettings = {
   quiet_to: string;
   /** Completion sound. */
   chime: boolean;
+  /** The weekly close-out's slot (research rule 23): ISO day (7 = Sunday) and "HH:MM" London. The same slot every week. */
+  closeout_day: number;
+  closeout_time: string;
 };
 
 export const DAILY_DEFAULTS: DailySettings = {
@@ -35,7 +38,12 @@ export const DAILY_DEFAULTS: DailySettings = {
   quiet_from: "22:00",
   quiet_to: "07:00",
   chime: true,
+  closeout_day: 7,
+  closeout_time: "18:00",
 };
+
+/** The close-out is a box, not a session that runs until it is done (research rule 23). */
+export const CLOSEOUT_MINUTES = 45;
 
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -51,7 +59,8 @@ export function mergeDailySettings(stored: unknown): DailySettings {
   }
   if (typeof s.wip_limit === "number" && s.wip_limit >= 1 && s.wip_limit <= 10) out.wip_limit = Math.round(s.wip_limit);
   if (typeof s.interruption_budget === "number" && s.interruption_budget >= 0 && s.interruption_budget <= 10) out.interruption_budget = Math.round(s.interruption_budget);
-  for (const key of ["evening_fallback", "morning_fallback", "quiet_from", "quiet_to"] as const) {
+  if (typeof s.closeout_day === "number" && s.closeout_day >= 1 && s.closeout_day <= 7) out.closeout_day = Math.round(s.closeout_day);
+  for (const key of ["evening_fallback", "morning_fallback", "quiet_from", "quiet_to", "closeout_time"] as const) {
     const v = s[key];
     if (typeof v === "string" && HHMM.test(v)) out[key] = v;
   }

@@ -57,6 +57,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
       { label: "Capture review", href: "/organisation/captures/review" },
       { label: "Finish line", href: "/finish" },
       { label: "Close the day", href: "/close" },
+      { label: "Close the week", href: "/closeout" },
       { label: "Weekly review", href: "/organisation/tickets/review" },
     ],
   },
