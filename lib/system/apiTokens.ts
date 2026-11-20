@@ -18,7 +18,8 @@ export const TOKEN_PREFIX = "mtk_";
 export const TOKEN_ROUTES: Record<string, string[]> = {
   tickets: ["/api/tickets", "/api/projects", "/api/habits", "/api/reminders"],
   people: ["/api/people"],
-  capture: ["/api/capture"],
+  // The three capture doors (words, a recording, a picture). Not /api/captures: a phone sends, it does not review.
+  capture: ["/api/capture", "/api/capture-audio", "/api/capture-photo"],
   // the morning and evening calls an iPhone automation makes (master run §6)
   daily: ["/api/daily"],
 };

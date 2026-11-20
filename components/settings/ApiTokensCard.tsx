@@ -26,6 +26,10 @@ export function ApiTokensCard() {
   const [name, setName] = useState("");
   const [projects, setProjects] = useState("MYC");
   const [write, setWrite] = useState(true);
+  // What the token is for decides which routes it may call. The phone's
+  // Shortcuts get capture and the daily prompts and nothing else, so a
+  // token copied off the phone cannot read or change tickets.
+  const [purpose, setPurpose] = useState<"tickets" | "shortcuts">("tickets");
   const [minted, setMinted] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -41,9 +45,9 @@ export function ApiTokensCard() {
         body: JSON.stringify({
           name,
           scopes: {
-            projects: projects.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean),
+            projects: purpose === "shortcuts" ? [] : projects.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean),
             verbs: write ? ["read", "write"] : ["read"],
-            routes: ["tickets"],
+            routes: purpose === "shortcuts" ? ["capture", "daily"] : ["tickets"],
           },
         }),
       });
@@ -92,6 +96,13 @@ export function ApiTokensCard() {
           <input className="rounded-sm bg-ink-2 px-2 py-1 text-sm text-text-0" value={name} onChange={(e) => setName(e.target.value)} placeholder="claude-code on the PC" />
         </label>
         <label className="flex flex-col gap-1 text-[11px] text-ink-3">
+          for
+          <select aria-label="What the token is for" className="rounded-sm bg-ink-2 px-2 py-1 text-sm text-text-0" value={purpose} onChange={(e) => setPurpose(e.target.value === "shortcuts" ? "shortcuts" : "tickets")}>
+            <option value="tickets">Tickets (tix, Claude Code)</option>
+            <option value="shortcuts">iPhone Shortcuts (capture and the daily prompts)</option>
+          </select>
+        </label>
+        <label className={`flex flex-col gap-1 text-[11px] text-ink-3 ${purpose === "shortcuts" ? "hidden" : ""}`}>
           projects (prefixes, comma)
           <input className="w-36 rounded-sm bg-ink-2 px-2 py-1 text-sm text-text-0" value={projects} onChange={(e) => setProjects(e.target.value)} />
         </label>
