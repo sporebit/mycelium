@@ -38,5 +38,8 @@ export async function POST(_req: NextRequest, ctx: Ctx) {
   const { data, error } = await db.rpc("accept_invite", { p_token: token });
   if (error) return NextResponse.json({ error: rpcMessage(error) }, { status: 409 });
   const row = Array.isArray(data) ? data[0] : data;
-  return NextResponse.json({ ok: true, ...row });
+  // "Your role needs an authenticator" is true of the role; whether THIS person still has one to set up is
+  // what the welcome should say. session_state() answers enrol_required only when they have none.
+  const { data: state } = await db.rpc("session_state");
+  return NextResponse.json({ ok: true, ...row, needs_authenticator: state === "enrol_required" });
 }

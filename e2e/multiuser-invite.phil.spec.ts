@@ -119,6 +119,31 @@ test("inviting an address shows the link (email is off) and lists it as pending"
   await expect(page.getByText(`${viewerEmail} · viewer · expires`)).toBeVisible();
 });
 
+test("an invite sent to the wrong address is cancelled from the page, and its link stops working at once (0170)", async ({ page, browser }) => {
+  const wrong = emailFor("mistyped");
+  await openTeam(page);
+  await page.getByRole("textbox", { name: "Invite by email" }).fill(wrong);
+  await page.getByRole("combobox", { name: "Invite role" }).selectOption("member");
+  await page.getByRole("button", { name: "Send invite" }).click();
+  await expect(page.getByText(`${wrong} · member · expires`)).toBeVisible();
+  const link = (await page.getByText(/\/invite\/[0-9a-f]{64}/).textContent())!.match(/http\S+\/invite\/([0-9a-f]{64})/)!;
+
+  const gone = page.waitForResponse((r) => /\/api\/teams\/[0-9a-f-]+\/invites\/[0-9a-f-]+$/.test(r.url()) && r.request().method() === "DELETE");
+  await page.getByRole("button", { name: `Cancel the invite for ${wrong}` }).click();
+  expect((await gone).status()).toBe(200);
+  await expect(page.getByText("Invite cancelled. Its link no longer works.")).toBeVisible();
+  await expect(page.getByText(`${wrong} · member · expires`)).toHaveCount(0);
+  // the first invite is untouched
+  await expect(page.getByText(`${viewerEmail} · viewer · expires`)).toBeVisible();
+
+  const context = await browser.newContext({ storageState: SIGNED_OUT });
+  expect((await context.request.get(`/api/invites/${link[1]}`)).status()).toBe(404);
+  const visitor = await context.newPage();
+  await visitor.goto(link[0]);
+  await expect(visitor.getByText("This invitation does not exist.")).toBeVisible();
+  await context.close();
+});
+
 test("a signed-out visitor sees who invited them, to which team, as what", async ({ browser }) => {
   const context = await browser.newContext({ storageState: SIGNED_OUT });
   const page = await context.newPage();
@@ -382,6 +407,19 @@ test("team membership never opens a member's personal space, not even to the own
 
 test("a new admin must enrol before acting; then invites members and viewers but not admins, and cannot touch the owner", async ({ page }) => {
   await openTeam(page);
+  // The member has no authenticator and the page says so, on the row and again before the promotion (0170).
+  await expect(page.getByText("no authenticator").first()).toBeVisible();
+  // Declined: nothing changes.
+  let asked = "";
+  page.once("dialog", (d) => {
+    asked = d.message();
+    void d.dismiss();
+  });
+  await page.getByRole("combobox", { name: `Role for ${memberName}` }).selectOption("admin");
+  await expect.poll(() => asked).toContain("has no authenticator app set up");
+  await expect(page.getByRole("combobox", { name: `Role for ${memberName}` })).toHaveValue("member");
+  // Accepted: promoted.
+  page.once("dialog", (d) => void d.accept());
   await page.getByRole("combobox", { name: `Role for ${memberName}` }).selectOption("admin");
   await expect(page.getByText("Role updated.")).toBeVisible();
   await expect(page.getByRole("combobox", { name: `Role for ${memberName}` })).toHaveValue("admin");

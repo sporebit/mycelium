@@ -17,7 +17,7 @@ type Preview = {
   status: "valid" | "expired" | "accepted";
 };
 
-type Accepted = { team_id: string | null; team_slug: string | null; role: string; requires_totp: boolean };
+type Accepted = { team_id: string | null; team_slug: string | null; role: string; requires_totp: boolean; needs_authenticator?: boolean };
 
 const INPUT =
   "w-full min-h-[44px] px-4 rounded-v2-md bg-surface-0 border border-hairline text-text-hi " +
@@ -132,9 +132,9 @@ function InviteFlow() {
         <Label>Welcome</Label>
         <p className="text-sm text-text-mid">
           You are in{preview.team_name ? ` ${preview.team_name}` : ""} as <span className="text-text-hi">{accepted.role}</span>.
-          To start with you see Organisation, Fitness and Health; the rest can be turned on in Settings.
+          To start with you see Work, Organisation, Fitness and Health; the rest can be turned on in Settings, under Sections.
         </p>
-        {accepted.requires_totp ? (
+        {(accepted.needs_authenticator ?? accepted.requires_totp) ? (
           <>
             <p className="text-sm text-text-mid">
               Your role requires an authenticator app. Set one up now; you will be asked for it at each sign-in.
