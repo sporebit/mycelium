@@ -37,6 +37,13 @@ Never merge during a ship (its migration guard stops it); the ship script now pa
 
 MYC-180 (cron-job.org jobs), MYC-181 (reconnect Google), MYC-182 (backup drive, due date, photo frame — the wall report has the costed frame table), MYC-192 (three UI choices), MYC-194 (email service), MYC-195 (Enable Banking), MYC-196 (rotate two secrets), MYC-197 (iPhone Shortcuts), MYC-198 (who may switch on paid AI), MYC-200 (Cloudflare R2), MYC-201 (an IMAP inbox), MYC-202 (GITHUB_TOKEN, optional), MYC-203 (the Boys' seven bots), MYC-204 (the two per-person model selects), MYC-205 (pair the wall); and the live checks MYC-193, chunks 14 to 22.
 
+## Still open, and why
+
+- **Stream I's other three home views (Core sample, Burrow, Colony)** stay unstarted: the brief gates them on Phil saying his usage limits have refreshed, and his "i've reset it" today was about this session's rate limit, not read as that word. One line from him starts them.
+- **Spoken lines are not rendered ahead** (`warmSpeech` exists; the briefing and the nudges do not call it), so the first time a line is said on the wall it is the browser's voice and the second time the PC's. Chunk 22 step 6 checks exactly that.
+- **The tick on production runs while the PC is on** (the worker knocks every few minutes; a dry run at 14:52 listed the slot's due jobs). When the PC is off, nothing sub-daily runs until MYC-180's cron-job.org job exists.
+- MYC-188 stays in *waiting*: the net-worth part is built, the feeds wait on Enable Banking (MYC-195) and the inbox on MYC-201.
+
 ## Not done from a terminal
 
 The project-side copies of `claude/context.md` and `claude/backlog.md` were not synced (no Projects tool here); the next Cowork session should copy them. `graphify update .` could not run (not installed on this PC).
