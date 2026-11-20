@@ -2,7 +2,7 @@
   "slug": "phase1-live-checks",
   "kind": "test",
   "title": "Live checks after the test pass: one surface per sitting",
-  "version": 3,
+  "version": 4,
   "intro": {
     "verdict_html": "Everything built so far was exercised by automation on 20 November: 482 end-to-end checks as two people, 821 unit and database checks, and a pass that opens all 220 page views. Faults found were fixed or are on the build list. What is left here is only what a machine cannot judge: look, feel, a real voice, a real receipt, a second person's phone. Each chunk is one surface and about fifteen minutes; do them in any order, on any day. Chunk 1 is five minutes and should be first.",
     "prerequisites": [
@@ -1439,6 +1439,119 @@
             {
               "key": "sheet_includes_investments",
               "label": "Includes them? (yes / no / not sure)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "title": "The weekly close-out, the month's measures, timed notices, the Boys' group (20 minutes; step 8 after MYC-203)",
+      "lede_html": "Built and checked by automation as Tess. The close-out is the one session that only finishes; nothing here keeps a streak that can break.",
+      "steps": [
+        {
+          "id": "16.1",
+          "title": "Set the week's slot",
+          "actor": "you",
+          "where": {
+            "label": "Settings → Today",
+            "url": "https://mycelium.sporebit.com/other/settings/today",
+            "kind": "page"
+          },
+          "body_html": "<b>The week — when it closes</b>: set a day and time you will keep (default Sunday 18:00). Ten minutes before it, one line arrives: <i>The week's close-out starts in 10 min.</i>, counted as one of the day's three."
+        },
+        {
+          "id": "16.2",
+          "title": "Begin the close-out",
+          "actor": "you",
+          "where": {
+            "label": "Close the week",
+            "url": "https://mycelium.sporebit.com/closeout",
+            "kind": "page"
+          },
+          "body_html": "Type one line for what the forty-five minutes will do, <b>Begin</b>. The box counts down; <b>This week</b> and <b>Lifetime</b> read right against what you remember (win days, finished of started; the totals).",
+          "fields": [
+            {
+              "key": "week_numbers",
+              "label": "Numbers right? (yes / which is off)"
+            }
+          ]
+        },
+        {
+          "id": "16.3",
+          "title": "Gone quiet: Keep / Pause / Retire",
+          "actor": "you",
+          "where": {
+            "label": "Close the week",
+            "url": "https://mycelium.sporebit.com/closeout",
+            "kind": "page"
+          },
+          "body_html": "The <b>Gone quiet</b> card names the section with the biggest gap and asks why. Write a sentence; press Keep, Pause or Retire. The dashboard still marks it quiet (a decision changes the question, not the marks). Next week it is not asked about again (four weeks for a pause)."
+        },
+        {
+          "id": "16.4",
+          "title": "A finish-line card",
+          "actor": "you",
+          "where": {
+            "label": "Close the week",
+            "url": "https://mycelium.sporebit.com/closeout",
+            "kind": "page"
+          },
+          "body_html": "Anything above 80% done and untouched for a fortnight is a card: Finish / Good enough / Drop. Swipe one."
+        },
+        {
+          "id": "16.5",
+          "title": "Close the week",
+          "actor": "you",
+          "where": {
+            "label": "Close the week",
+            "url": "https://mycelium.sporebit.com/closeout",
+            "kind": "page"
+          },
+          "body_html": "Type the week's Screen Time from the phone, one line for how it went, <b>Close the week</b>. Reload: <i>Week closed.</i> with the report under it. Close it again: nothing changes."
+        },
+        {
+          "id": "16.6",
+          "title": "The month, measured (first close-out of December)",
+          "actor": "you",
+          "where": {
+            "label": "Close the week",
+            "url": "https://mycelium.sporebit.com/closeout",
+            "kind": "page"
+          },
+          "body_html": "Eight rows for November beside a dash column (no October yet), and the two questions with Kirsty under the report box. Answer them; they are kept on the row and read back the month after.",
+          "fields": [
+            {
+              "key": "measures_read",
+              "label": "Do the eight rows make sense? (yes / which not)"
+            }
+          ]
+        },
+        {
+          "id": "16.7",
+          "title": "Notices before a timed ticket",
+          "actor": "you",
+          "where": {
+            "label": "Work",
+            "url": "https://mycelium.sporebit.com/work",
+            "kind": "page"
+          },
+          "body_html": "Give any ticket a time about ten minutes ahead. Two lines arrive, from about ten minutes out and about five, each with the true gap; on the Today card a running timer says <i>Ten minutes left.</i> and <i>Two minutes left. Find a stopping place.</i> Start a focus timer first: the ticket's notice still arrives; a morning briefing would not."
+        },
+        {
+          "id": "16.8",
+          "title": "The Boys' group (after MYC-203)",
+          "actor": "you",
+          "where": {
+            "label": "Tickets",
+            "url": "https://mycelium.sporebit.com/organisation/tickets",
+            "kind": "page"
+          },
+          "body_html": "After the bots exist (MYC-203: seven bots, one group, eight env names, one POST to the setup route): in the group, <i>Coach, what's tomorrow's session?</i> is answered by the Coach's bot as itself; <i>Morning all</i> by Da Boi alone; a spending question by The Advisor; a reply to a bot's message by that bot.",
+          "fields": [
+            {
+              "key": "boys_routing",
+              "label": "Who answered what? (right / wrong)"
             }
           ]
         }
