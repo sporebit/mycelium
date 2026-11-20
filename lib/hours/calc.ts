@@ -71,8 +71,11 @@ export function parseDuration(text: string | null | undefined): number | null {
 
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
+/** A real calendar date in `YYYY-MM-DD`: the shape, and the day exists (no 31 February rolling over). */
 export function isDateKey(s: unknown): s is string {
-  return typeof s === "string" && DATE_KEY.test(s) && !Number.isNaN(Date.parse(`${s}T00:00:00Z`));
+  if (typeof s !== "string" || !DATE_KEY.test(s)) return false;
+  const t = Date.parse(`${s}T00:00:00Z`);
+  return !Number.isNaN(t) && new Date(t).toISOString().slice(0, 10) === s;
 }
 
 export function addDays(key: string, n: number): string {

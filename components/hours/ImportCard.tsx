@@ -1,12 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Button, Label } from "@/components/ui";
+import { Button, Label, SegmentedControl } from "@/components/ui";
 import { Mono } from "@/components/dashboard/Mono";
 import { useApi } from "@/lib/data/useApi";
 import { fmtHm } from "@/lib/hours/calc";
 import type { HoursImportRun } from "@/lib/hours/types";
 import type { EntryFields, PlanConflict, PlanUpdate } from "@/lib/hours/import";
+import { INPUT } from "./kit";
 import { HOURS_BUNDLE_KEY } from "./useHours";
 import { mutate as globalMutate } from "swr";
 
@@ -22,56 +23,85 @@ type Summary = {
   error?: string;
 };
 
+type Source = "json" | "xlsx" | "paste";
+
 const RUNS_KEY = "/api/hours/import";
 
 function describe(f: EntryFields): string {
   return `${f.entry_date ?? "no date"} · ${f.minutes === null ? "open" : fmtHm(f.minutes)} · ${f.description || "(no description)"} · ${f.ticket_raw || "(no ticket)"}${f.logged ? " · logged" : ""}`;
 }
 
+function toBase64(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
 /**
- * Settings → Import (spec §6): a JSON file (the seed shape or a JSON
- * backup) goes through a dry run first — added / changed / unchanged /
- * conflicts, before-and-after for every change — then APPLY writes it in
- * one transaction. Conflicts need a side picked each. UNDO LAST reverses
- * the most recent applied import.
+ * Settings → Import (spec §6). Three sources, one planner: a JSON backup
+ * (the seed shape), the workbook's Log columns pasted straight from Excel
+ * (Date, Time Spent, Estimate, Description, Ticket, Logged — for the
+ * parallel run, D4), or an .xlsx whose Log sheet carries them (an export
+ * round-trips by Entry ID). Always a dry run first — added / changed /
+ * unchanged / conflicts with before-and-after — then APPLY writes it in one
+ * transaction. Conflicts need a side picked each. UNDO LAST reverses the
+ * most recent applied import. An import never deletes.
  */
 export function ImportCard() {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [file, setFile] = useState<{ name: string; json: unknown } | null>(null);
+  const [source, setSource] = useState<Source>("paste");
+  const [file, setFile] = useState<{ name: string; json?: unknown; xlsx?: string } | null>(null);
+  const [paste, setPaste] = useState("");
   const [summary, setSummary] = useState<Summary | null>(null);
   const [resolutions, setResolutions] = useState<Record<string, "file" | "db">>({});
   const [busy, setBusy] = useState<"plan" | "apply" | "undo" | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const { data: runs, mutate: refreshRuns } = useApi<{ runs: HoursImportRun[]; can_undo: boolean }>(RUNS_KEY);
 
-  const pick = async (f: File | undefined) => {
+  const reset = () => {
     setSummary(null);
     setResolutions({});
     setErr(null);
+  };
+
+  const pick = async (f: File | undefined) => {
+    reset();
     if (!f) return setFile(null);
     try {
-      setFile({ name: f.name, json: JSON.parse(await f.text()) });
+      if (source === "json") setFile({ name: f.name, json: JSON.parse(await f.text()) });
+      else setFile({ name: f.name, xlsx: toBase64(await f.arrayBuffer()) });
     } catch {
       setFile(null);
-      setErr("That file is not JSON.");
+      setErr(source === "json" ? "That file is not JSON." : "Could not read that workbook.");
     }
   };
 
+  const ready = source === "paste" ? paste.trim() !== "" : source === "json" ? !!file?.json : !!file?.xlsx;
+
   const post = async (dryRun: boolean, res: Record<string, "file" | "db"> = resolutions) => {
-    if (!file) return;
+    if (!ready) return;
     setBusy(dryRun ? "plan" : "apply");
     setErr(null);
+    const body: Record<string, unknown> = { dryRun, resolutions: res, format: source };
+    if (source === "paste") {
+      body.paste = paste;
+      body.filename = "paste";
+    } else if (source === "json") {
+      body.file = file!.json;
+      body.filename = file!.name;
+    } else {
+      body.xlsx = file!.xlsx;
+      body.filename = file!.name;
+    }
     try {
-      const r = await fetch("/api/hours/import", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ file: file.json, filename: file.name, format: "json", dryRun, resolutions: res }),
-      });
+      const r = await fetch("/api/hours/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
       const j = (await r.json()) as Summary;
       if (!r.ok && !j.counts) throw new Error(j.error ?? `${r.status}`);
       setSummary(j);
       if (!dryRun && r.ok) {
         await Promise.all([globalMutate(HOURS_BUNDLE_KEY), refreshRuns()]);
+        if (source === "paste") setPaste("");
       }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "failed");
@@ -109,15 +139,56 @@ export function ImportCard() {
     <section className="rounded-v2-lg border border-hairline p-4 flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
         <h2 className="text-sm font-semibold text-text-hi">Import</h2>
-        <span className="text-xs text-text-lo">JSON backup or the workbook extract. Dry run first; nothing is deleted by an import.</span>
+        <span className="text-xs text-text-lo">Dry run first; nothing is deleted by an import.</span>
       </div>
 
+      <SegmentedControl
+        options={[
+          { value: "paste", label: "Paste from the workbook" },
+          { value: "xlsx", label: ".xlsx" },
+          { value: "json", label: "JSON backup" },
+        ]}
+        value={source}
+        onChange={(v) => {
+          setSource(v as Source);
+          setFile(null);
+          reset();
+        }}
+      />
+
+      {source === "paste" ? (
+        <div className="flex flex-col gap-1">
+          <textarea
+            value={paste}
+            onChange={(e) => {
+              setPaste(e.target.value);
+              reset();
+            }}
+            rows={6}
+            placeholder={"Copy the Log rows in Excel and paste here.\nColumns: Date, Time Spent, Estimate, Description, Ticket, Logged (x). A header row is fine."}
+            className={`${INPUT} font-[family-name:var(--font-mono)] text-xs`}
+          />
+          <span className="text-[11px] text-text-lo">Rows identical to an entry already here count as unchanged; the rest are added. Dates as 19/11/2026 or 2026-11-19.</span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 flex-wrap">
+          <input
+            key={source}
+            ref={fileRef}
+            type="file"
+            accept={source === "json" ? ".json,application/json" : ".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+            className="hidden"
+            onChange={(e) => void pick(e.target.files?.[0])}
+          />
+          <Button size="sm" onClick={() => fileRef.current?.click()}>
+            {file ? file.name : "CHOOSE FILE"}
+          </Button>
+          <span className="text-[11px] text-text-lo">{source === "json" ? "A JSON backup from Export, or the seed shape." : "The workbook, or an .xlsx from Export (its Log sheet is read; Entry IDs make it an upsert)."}</span>
+        </div>
+      )}
+
       <div className="flex items-center gap-2 flex-wrap">
-        <input ref={fileRef} type="file" accept=".json,application/json" className="hidden" onChange={(e) => void pick(e.target.files?.[0])} />
-        <Button size="sm" onClick={() => fileRef.current?.click()}>
-          {file ? file.name : "CHOOSE FILE"}
-        </Button>
-        <Button size="sm" variant="primary" disabled={!file || busy !== null} loading={busy === "plan"} onClick={() => void post(true)}>
+        <Button size="sm" variant="primary" disabled={!ready || busy !== null} loading={busy === "plan"} onClick={() => void post(true)}>
           DRY RUN
         </Button>
         <Button size="sm" disabled={!summary || !summary.dry_run || !summary.can_apply || busy !== null} loading={busy === "apply"} onClick={() => void post(false)}>
