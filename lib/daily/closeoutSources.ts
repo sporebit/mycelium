@@ -3,6 +3,7 @@
  * get room. One line per feature (see closeoutCards.ts).
  */
 import type { CloseoutCardSource } from "./closeoutCards";
+import { answerFind, findsCloseoutCards } from "@/lib/finds/cards";
 import { exitFinishLine, finishLineFor } from "./finishServer";
 import { BUTTONS } from "./words";
 
@@ -37,7 +38,29 @@ export const finishLineSource: CloseoutCardSource = {
   },
 };
 
-export const SOURCES: readonly CloseoutCardSource[] = [
-  finishLineSource,
-  // the finds feed adds its top five here (lane H2)
-];
+/**
+ * The week's finds (master run §12): the top five unanswered, advisories
+ * first, then by verdict. Keep or Skip; the week's page holds the rest.
+ */
+export const findsSource: CloseoutCardSource = {
+  key: "finds",
+  label: "This week's finds",
+  async load(db, _uid, _week, room) {
+    const cards = await findsCloseoutCards(db, new Date(), Math.min(5, room));
+    return cards.map((c) => ({
+      id: c.id,
+      source: "finds",
+      title: c.title,
+      detail: `${c.badge}. ${c.line}`,
+      href: c.url,
+      right: c.right,
+      left: c.left,
+    }));
+  },
+  async answer(db, _uid, cardId, value) {
+    if (value !== "keep" && value !== "skip") return false;
+    return (await answerFind(db, cardId, value)) !== null;
+  },
+};
+
+export const SOURCES: readonly CloseoutCardSource[] = [finishLineSource, findsSource];
