@@ -15,12 +15,15 @@ import { getDaylogSettings } from "./settings";
 import { daylogKeyboard } from "./telegram";
 import { gatherSeeds, seedsLine } from "./seeds";
 import { monthlyAlert } from "./afterClose";
+import { eveningLineToCarry } from "@/lib/daily/prompts";
+import { interrupt } from "@/lib/nudges/interrupt";
+import { APP_URL } from "@/lib/tickets/notify";
 
 export type CronReport = { day: string; prompted: boolean; snoozed: boolean; closedIdle: string[]; skipped: string[]; seeds?: string[]; alert?: { spent_pence: number; sent: boolean }; note?: string };
 
 const IDLE_MS = 2 * 60 * 60_000;
 
-export async function daylogTick(db: SupabaseClient, now = new Date()): Promise<CronReport> {
+export async function daylogTick(db: SupabaseClient, now = new Date(), uid?: string): Promise<CronReport> {
   const s = await getDaylogSettings(db);
   const clock = londonClock(now);
   const day = currentDay(now, s.cutoff);
@@ -74,13 +77,34 @@ export async function daylogTick(db: SupabaseClient, now = new Date()): Promise<
   const known = seedsLine(seeds);
   const lines = [known ? `Evening. ${known} Talk, Quick or Skip?` : "Evening. How was the day? Talk, Quick or Skip?"];
   if (catchUp) lines.unshift(`Yesterday (${yday}) never got logged — buttons for it are below, then today's.`);
-  const ok = await sendToPhil(lines.join("\n"), daylogKeyboard(day));
-  if (catchUp) await sendToPhil(`Yesterday, ${yday}:`, daylogKeyboard(yday));
+  // One evening message, not two: if the evening close has not been offered yet, it is the first line here
+  // and the separate evening prompt says nothing. Sent at the time the person set for the Day log, so the
+  // default quiet hours do not stop it; a running focus timer does, and the next tick tries again.
+  let ok: boolean;
+  if (uid) {
+    const close = await eveningLineToCarry(db, uid).catch(() => null);
+    if (close) lines.unshift(`${close.line} ${APP_URL}/close`);
+    const res = await interrupt(db, uid, {
+      kind: close ? "evening" : "daylog",
+      essential: true,
+      atChosenTime: true,
+      title: `Day log ${day}`,
+      body: close?.line,
+      url: "/close",
+      channels: ["telegram"],
+      deliver: () => sendToPhil(lines.join("\n"), daylogKeyboard(day)),
+    });
+    ok = res.sent;
+    if (!res.sent) report.note = res.reason === "no_channel" ? "telegram send failed" : `held: ${res.reason}`;
+    if (ok && close) await close.taken();
+  } else {
+    ok = await sendToPhil(lines.join("\n"), daylogKeyboard(day));
+    if (!ok) report.note = "telegram send failed";
+  }
+  if (ok && catchUp) await sendToPhil(`Yesterday, ${yday}:`, daylogKeyboard(yday));
   if (ok) {
     await db.from("daylog_days").update({ status: "prompted", prompted_at: now.toISOString(), snoozed_until: null, seeds, updated_at: now.toISOString() }).eq("id", d.id);
     report.prompted = true;
-  } else {
-    report.note = "telegram send failed";
   }
   return report;
 }

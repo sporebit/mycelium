@@ -2,7 +2,7 @@
   "slug": "iphone-shortcuts",
   "kind": "setup",
   "title": "Build the iPhone Shortcuts: capture, retry, photo, and the daily prompts",
-  "version": 2,
+  "version": 3,
   "intro": {
     "verdict_html": "A Shortcut file cannot be made or signed on a Windows PC, so each one is built once on the phone from these steps. After that its iCloud link is the backup. Nothing is lost if a step goes wrong: the recording stays in iCloud Drive until the server says <b>saved</b>.",
     "prerequisites": [
@@ -354,7 +354,7 @@
           "notes": [
             {
               "kind": "info",
-              "html": "The server prepares today's proposal once and answers with one line: the one thing, its first step, about how long. If you do nothing for 45 minutes the proposal becomes the plan. Stopping the alarm twice changes nothing."
+              "html": "The server prepares today's proposal once and answers with one line: the one thing, its first step, about how long. The phone shows it; no push is sent on top. If you do nothing for 45 minutes the proposal becomes the plan. Stopping the alarm twice changes nothing. On a morning with no alarm the same line arrives at the top of the morning briefing, or as a push at the fallback time (08:30 unless changed)."
             }
           ]
         },
@@ -362,7 +362,7 @@
           "id": "5.2",
           "title": "Plugging in: send what was left, and offer the evening close",
           "actor": "you",
-          "body_html": "New automation: <b>Charger</b> → <b>Is Connected</b> → Run Immediately, Notify When Run off. Actions:<ol><li><b>Run Shortcut</b>: Capture retry.</li><li><b>Date</b>: Current Date. <b>Format Date</b>: Custom, <code>HH</code>.</li><li><b>If</b> <i>Formatted Date</i> <b>is greater than or equal to</b> 20.</li><li>Inside: <b>Get Contents of URL</b>: URL as below, POST, the Authorization header, Request Body JSON: <code>action</code> (Text) = <code>prompt</code>.</li><li><b>End If</b>.</li></ol>",
+          "body_html": "New automation: <b>Charger</b> → <b>Is Connected</b> → Run Immediately, Notify When Run off. Actions:<ol><li><b>Run Shortcut</b>: Capture retry.</li><li><b>Date</b>: Current Date. <b>Format Date</b>: Custom, <code>HH</code>.</li><li><b>If</b> <i>Formatted Date</i> <b>is greater than or equal to</b> 20.</li><li>Inside: <b>Get Contents of URL</b>: URL as below, POST, the Authorization header, Request Body JSON: <code>action</code> (Text) = <code>prompt</code>.</li><li><b>Get Dictionary Value</b>: <code>prompted</code>. <b>If</b> it <b>is</b> <code>1</code> (true): <b>Get Dictionary Value</b>: <code>say</code> from the same reply, then <b>Choose from Menu</b> with Prompt = that value and two items, <b>Close the day</b> and <b>Later</b>. Under Close the day: <b>Open URL</b> <code>https://mycelium.sporebit.com/close</code>. Under Later: nothing. <b>End If</b>.</li><li><b>End If</b>.</li></ol>",
           "blocks": [
             {
               "label": "URL",
@@ -372,7 +372,7 @@
           "notes": [
             {
               "kind": "info",
-              "html": "The server sends the evening prompt itself, once a day, so plugging in twice does nothing the second time. If the phone is never plugged in, the prompt still goes at the fallback time (21:30 unless you change it in Settings)."
+              "html": "The phone asks and the phone shows the answer; the server does not send a push on top. <code>prompted</code> is true only the first time each evening, so plugging in again later shows nothing. If the phone never goes on charge, the offer arrives at the fallback time instead (21:30 unless changed), as the first line of the Day log message or as a push."
             }
           ]
         },

@@ -17,7 +17,8 @@ async function run(req: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   try {
-    const report = await withUser(boundUser("cron"), (db) => daylogTick(db));
+    const uid = boundUser("cron");
+    const report = await withUser(uid, (db) => daylogTick(db, new Date(), uid));
     return NextResponse.json({ ok: true, ...report });
   } catch (err) {
     console.error("[cron/daylog]", err);

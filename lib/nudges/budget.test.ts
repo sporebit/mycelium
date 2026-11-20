@@ -71,6 +71,14 @@ describe("decide — the two prompts the loop is built on", () => {
   it("are sent even when other things spent the budget, and still count", () => {
     expect(decide({ ...base, countedToday: 3, essential: true })).toEqual({ allow: true, counted: true });
   });
+  it("are not held back by the same-words rule: the same first task two mornings running is still a morning", () => {
+    const w = wordingKey("morning", "Next up: boiler quote.", "t1");
+    expect(decide({ ...base, essential: true, wording: w, recentUnanswered: [w] })).toEqual({ allow: true, counted: true });
+  });
+  it("something sent at a time the person chose is not stopped by the default quiet hours, but waits for a focus timer", () => {
+    expect(decide({ ...base, atChosenTime: true, minutesNow: minutesOf("22:30") })).toEqual({ allow: true, counted: true });
+    expect(decide({ ...base, atChosenTime: true, minutesNow: minutesOf("22:30"), timerRunning: true })).toEqual({ allow: false, reason: "focus" });
+  });
   it("still wait for quiet hours and a focus timer", () => {
     expect(decide({ ...base, essential: true, minutesNow: minutesOf("06:00") })).toEqual({ allow: false, reason: "quiet" });
     expect(decide({ ...base, essential: true, timerRunning: true })).toEqual({ allow: false, reason: "focus" });

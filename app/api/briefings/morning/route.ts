@@ -10,6 +10,8 @@ import { gatherBriefingData } from "@/lib/briefings/data";
 import { generateIntro } from "@/lib/briefings/intro";
 import { composeMessage } from "@/lib/briefings/compose";
 import { refreshFinanceBestEffort } from "@/lib/briefings/refreshFinance";
+import { morningLineToCarry } from "@/lib/daily/prompts";
+import { interrupt } from "@/lib/nudges/interrupt";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -109,16 +111,46 @@ async function runBriefing(req: NextRequest): Promise<Response> {
       });
     }
 
-    // 5. Send to Telegram
-    try {
-      await sendMessage(chatId, message, { parse_mode: "HTML" });
-    } catch (err) {
-      console.error("[briefing] Telegram send failed:", err);
-      return NextResponse.json(
-        { error: "telegram send failed", detail: String(err) },
-        { status: 502 }
-      );
+    // 5. Send to Telegram, as the morning's one message. If nothing has
+    // offered today's pick yet (no alarm automation ran), the pick is the
+    // first line here and the separate morning prompt says nothing. It goes
+    // through the one door, so it is weighed (not during a focus timer) and
+    // counted against the day's three.
+    const uid = boundUser("cron");
+    const pick = await morningLineToCarry(supabase, uid).catch((err) => {
+      console.error("[briefing] morning pick unavailable:", err);
+      return null;
+    });
+    const escapeHtml = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const text = pick ? `<b>${escapeHtml(pick.line)}</b>\n\n${message}` : message;
+    let sendError: unknown = null;
+    const sent = await interrupt(supabase, uid, {
+      kind: pick ? "morning" : "briefing",
+      essential: true,
+      title: `Morning briefing ${local.dateKey}`,
+      body: pick?.line,
+      url: "/today",
+      ticketId: pick?.ticketId ?? null,
+      channels: ["telegram"],
+      deliver: async () => {
+        try {
+          await sendMessage(chatId, text, { parse_mode: "HTML" });
+          return true;
+        } catch (err) {
+          sendError = err;
+          return false;
+        }
+      },
+    });
+    if (!sent.sent) {
+      if (sendError) {
+        console.error("[briefing] Telegram send failed:", sendError);
+        return NextResponse.json({ error: "telegram send failed", detail: String(sendError) }, { status: 502 });
+      }
+      // Held back (a focus timer is running, or quiet hours): not sent, not recorded; the next tick tries again within the hour.
+      return NextResponse.json({ skipped: true, reason: `held: ${sent.reason}`, dateKey: local.dateKey });
     }
+    if (pick) await pick.taken();
 
     // 6. Audit
     await writeAuditLog(supabase, local.dateKey, {
@@ -132,6 +164,7 @@ async function runBriefing(req: NextRequest): Promise<Response> {
       },
       finance_included: !!data.finance,
       weather_included: !!data.weather,
+      carried_morning_pick: !!pick,
       forced: force,
     });
 

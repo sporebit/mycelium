@@ -38,9 +38,17 @@ export type DecideInput = {
    * The two prompts the loop itself is built on (morning pick, evening
    * close) are sent even when the budget is spent by other things, because
    * without them there is no loop; they still count, still respect quiet
-   * hours and still wait for a focus timer.
+   * hours and still wait for a focus timer. They are a daily ritual, not
+   * a chase, so the "same words" rule does not apply to them: the same
+   * first task two mornings running is still a morning prompt.
    */
   essential?: boolean;
+  /**
+   * Sent at a time the person chose themselves (the Day log prompt, a
+   * morning briefing hour): their own setting outranks the default quiet
+   * hours. A focus timer still holds it back.
+   */
+  atChosenTime?: boolean;
 };
 
 export function minutesOf(hhmm: string): number {
@@ -58,10 +66,10 @@ export function isQuietAt(minutesNow: number, from: string, to: string): boolean
 
 export function decide(input: DecideInput): Decision {
   if (input.origin !== "app") return { allow: true, counted: false };
-  if (isQuietAt(input.minutesNow, input.quietFrom, input.quietTo)) return { allow: false, reason: "quiet" };
+  if (!input.atChosenTime && isQuietAt(input.minutesNow, input.quietFrom, input.quietTo)) return { allow: false, reason: "quiet" };
   if (input.timerRunning) return { allow: false, reason: "focus" };
   if (!input.essential && input.countedToday >= input.budget) return { allow: false, reason: "budget" };
-  if (input.wording && input.recentUnanswered.includes(input.wording)) return { allow: false, reason: "repeat" };
+  if (!input.essential && input.wording && input.recentUnanswered.includes(input.wording)) return { allow: false, reason: "repeat" };
   return { allow: true, counted: true };
 }
 

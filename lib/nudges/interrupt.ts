@@ -40,6 +40,15 @@ export type InterruptInput = {
   channels?: Channel[];
   /** Also say it on the wall (twelve words or fewer; the caller supplies them). */
   speak?: string | null;
+  /** Sent at a time the person set themselves; see budget.ts. */
+  atChosenTime?: boolean;
+  /**
+   * The caller sends the message itself (a Telegram message with buttons or
+   * its own layout) and says whether it went. The decision and the ledger
+   * row are still made here, so it is weighed and counted like any other.
+   * `channels` should name the one channel it uses.
+   */
+  deliver?: () => Promise<boolean>;
 };
 
 export type InterruptResult =
@@ -100,6 +109,7 @@ export async function interrupt(db: SupabaseClient, uid: string, input: Interrup
     recentUnanswered: led.recentUnanswered,
     wording,
     essential: input.essential,
+    atChosenTime: input.atChosenTime,
   });
   if (!decision.allow) return { sent: false, reason: decision.reason };
 
@@ -107,7 +117,7 @@ export async function interrupt(db: SupabaseClient, uid: string, input: Interrup
   let used: Channel | null = null;
   for (const channel of input.channels ?? ["push", "telegram"]) {
     try {
-      if (await deliver(db, channel, input, isOwner)) {
+      if (input.deliver ? await input.deliver() : await deliver(db, channel, input, isOwner)) {
         used = channel;
         break;
       }

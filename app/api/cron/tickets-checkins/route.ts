@@ -5,6 +5,7 @@ import { withUser } from "@/lib/system/withUser";
 import { getUiPrefs, ticketPrefs } from "@/lib/settings/uiPrefs";
 import { londonNow } from "@/lib/tickets/categories";
 import { alreadyLogged, checkinKeyboard, logOnce, sendToPhil, APP_URL } from "@/lib/tickets/notify";
+import { interrupt } from "@/lib/nudges/interrupt";
 import { sendDueReminders } from "@/lib/tickets/reminders";
 import { isoWeekOf } from "@/lib/util/week";
 
@@ -36,7 +37,8 @@ export async function GET(req: NextRequest) {
   const out: Record<string, unknown> = { date: now.date, minutes: now.minutes };
 
   try {
-    await withUser(boundUser("cron"), async (db) => {
+    const uid = boundUser("cron");
+    await withUser(uid, async (db) => {
       // 1. reminders ------------------------------------------------------
       out.reminders = await sendDueReminders(db, now.date);
 
@@ -62,7 +64,17 @@ export async function GET(req: NextRequest) {
             items.length === 1
               ? `📍 Scheduled today: ${items[0].key} ${items[0].title}\nDone, or move it?`
               : `📍 Scheduled today (${items.length}):\n` + items.map((i) => `• ${i.key} ${i.title}`).join("\n");
-          const ok = await sendToPhil(text, checkinKeyboard(items.slice(0, 8)));
+          // The afternoon moment: weighed and counted like anything else the app starts. Held back by a focus
+          // timer or a spent budget, it is tried again on the next tick; the items are on Today either way.
+          const res = await interrupt(db, uid, {
+            kind: "checkin",
+            title: text,
+            url: "/today",
+            channels: ["telegram"],
+            deliver: () => sendToPhil(text, checkinKeyboard(items.slice(0, 8))),
+          });
+          const ok = res.sent;
+          out.checkin_held = res.sent ? undefined : res.reason;
           if (ok) {
             await db.from("tickets").update({ checkin_sent_on: now.date }).in("id", items.map((i) => i.id));
           }
@@ -77,9 +89,16 @@ export async function GET(req: NextRequest) {
       const week = `${iw.year}-W${String(iw.week).padStart(2, "0")}`;
       const reviewDue = force || (now.isoDay === prefs.review_day && now.minutes >= hm(prefs.review_time));
       if (reviewDue && !(await alreadyLogged(db, "tickets_review_reminder", "week", week))) {
-        const ok = await sendToPhil(`🗂 Weekly review time. ${APP_URL}/organisation/tickets/review`);
-        if (ok) await logOnce(db, "tickets_review_reminder", { week, sent_at: nowIso });
-        out.review_reminder = ok;
+        const reviewText = `🗂 Weekly review time. ${APP_URL}/organisation/tickets/review`;
+        const res = await interrupt(db, uid, {
+          kind: "review",
+          title: `Weekly review ${week}`,
+          url: "/organisation/tickets/review",
+          channels: ["telegram"],
+          deliver: () => sendToPhil(reviewText),
+        });
+        if (res.sent) await logOnce(db, "tickets_review_reminder", { week, sent_at: nowIso });
+        out.review_reminder = res.sent;
       }
     });
     return NextResponse.json({ ok: true, ...out });

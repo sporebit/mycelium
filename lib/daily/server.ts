@@ -71,6 +71,8 @@ export type PlanRow = {
   excluded: string[];
   proposed_at: string;
   prompted_at: string | null;
+  /** When the evening close was first offered, by any route (0165). */
+  evening_prompted_at: string | null;
   accepted_at: string | null;
   closed_at: string | null;
   summary: Record<string, unknown>;
@@ -81,7 +83,7 @@ export type PlanRow = {
 export type Plan = PlanRow & { items: PlanItemRow[] };
 
 const PLAN_SELECT =
-  "id, day, status, accepted_by, free_minutes, budget_minutes, bench, slipped, excluded, proposed_at, prompted_at, accepted_at, closed_at, summary, space_id, created_by";
+  "id, day, status, accepted_by, free_minutes, budget_minutes, bench, slipped, excluded, proposed_at, prompted_at, evening_prompted_at, accepted_at, closed_at, summary, space_id, created_by";
 const ITEM_SELECT =
   "id, plan_id, ticket_id, position, is_win, shown_minutes, why, first_step, state, started_at, timer_minutes, timer_ends_at, finished_at, moved_to, note";
 const TICKET_SELECT =
@@ -294,6 +296,17 @@ export async function ensurePlan(
 /** Mark that the morning prompt went out; the auto-accept clock starts here. */
 export async function markPrompted(db: SupabaseClient, planId: string, now: Date = new Date()): Promise<void> {
   await db.from("day_plans").update({ prompted_at: now.toISOString(), updated_at: now.toISOString() }).eq("id", planId).is("prompted_at", null);
+}
+
+/** Mark that the evening close was offered. Returns false when it already had been: the caller lost the race and says nothing. */
+export async function markEveningPrompted(db: SupabaseClient, planId: string, now: Date = new Date()): Promise<boolean> {
+  const { data } = await db
+    .from("day_plans")
+    .update({ evening_prompted_at: now.toISOString(), updated_at: now.toISOString() })
+    .eq("id", planId)
+    .is("evening_prompted_at", null)
+    .select("id");
+  return !!data?.length;
 }
 
 /** The item the focus card shows: the one in progress, else the first not yet dealt with. */

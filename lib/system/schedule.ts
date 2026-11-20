@@ -26,10 +26,14 @@ export type ScheduledJob = {
 };
 
 export const SCHEDULE: readonly ScheduledJob[] = [
+  // Order matters in a slot where several are due. The briefing carries the morning pick and the Day log
+  // prompt carries the evening close, so each runs before the daily prompts, which then find the moment
+  // already taken and say nothing.
+  { path: "/api/briefings/morning", everyMinutes: 5, londonHours: [7, 10], why: "the morning briefing at 07:00 London on weekdays and 09:00 at weekends (the route keeps its own hour and sends once)" },
+  { path: "/api/cron/daylog", everyMinutes: 15, londonHours: [18, 4], why: "the evening Day log prompt, its snooze and its idle close" },
   { path: "/api/cron/daily-prompts", everyMinutes: 5, londonHours: [6, 24], why: "the morning and evening prompts at their fallback times" },
   { path: "/api/cron/reminders", everyMinutes: 5, why: "a reminder goes out within five minutes of its time" },
   { path: "/api/cron/tickets-checkins", everyMinutes: 15, why: "the scheduled-day check-in and the weekly-review reminder" },
-  { path: "/api/cron/daylog", everyMinutes: 15, londonHours: [18, 4], why: "the evening Day log prompt, its snooze and its idle close" },
   { path: "/api/cron/quotes-research", everyMinutes: 30, why: "quote research that did not finish after its request" },
   { path: "/api/cron/rundowns", everyMinutes: 60, why: "weekly rundowns, sent in each team's hour" },
 ];

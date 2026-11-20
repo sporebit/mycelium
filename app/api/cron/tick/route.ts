@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { matchesBearer } from "@/lib/auth/gate";
 import { dueJobs } from "@/lib/system/schedule";
 import { londonNow } from "@/lib/tickets/categories";
+import { GET as briefing } from "../../briefings/morning/route";
 import { GET as dailyPrompts } from "../daily-prompts/route";
 import { GET as daylog } from "../daylog/route";
 import { GET as quotesResearch } from "../quotes-research/route";
@@ -15,6 +16,7 @@ export const maxDuration = 120;
 type Handler = (req: NextRequest) => Promise<Response>;
 
 const HANDLERS: Record<string, Handler> = {
+  "/api/briefings/morning": briefing,
   "/api/cron/daily-prompts": dailyPrompts,
   "/api/cron/reminders": reminders,
   "/api/cron/tickets-checkins": ticketsCheckins,
@@ -49,7 +51,7 @@ async function run(req: NextRequest) {
     const started = Date.now();
     let status = 0;
     try {
-      const res = await HANDLERS[job.path](new NextRequest(new URL(job.path, req.url), { headers: { authorization: authorization ?? "" } }));
+      const res = await HANDLERS[job.path](new NextRequest(new URL(job.path, req.url), { headers: new Headers(req.headers) }));
       status = res.status;
     } catch (err) {
       status = 500;

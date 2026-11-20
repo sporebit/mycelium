@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dueJobs, SCHEDULE, SLOT_MINUTES } from "./schedule";
 
-const at = (h: number, m: number) => dueJobs(h * 60 + m).map((j) => j.path.replace("/api/cron/", ""));
+const at = (h: number, m: number) => dueJobs(h * 60 + m).map((j) => j.path.replace("/api/cron/", "")).filter((p) => !p.startsWith("/api/briefings"));
 
 describe("the sub-daily schedule", () => {
   it("every interval is a whole number of slots", () => {
@@ -9,7 +9,7 @@ describe("the sub-daily schedule", () => {
   });
 
   it("on the hour, in the evening, everything is due", () => {
-    expect(at(21, 0)).toEqual(["daily-prompts", "reminders", "tickets-checkins", "daylog", "quotes-research", "rundowns"]);
+    expect(at(21, 0)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "quotes-research", "rundowns"]);
   });
 
   it("any minute inside a slot gives that slot's jobs", () => {
@@ -19,14 +19,22 @@ describe("the sub-daily schedule", () => {
   });
 
   it("quarter and half hours", () => {
-    expect(at(21, 15)).toEqual(["daily-prompts", "reminders", "tickets-checkins", "daylog"]);
-    expect(at(21, 30)).toEqual(["daily-prompts", "reminders", "tickets-checkins", "daylog", "quotes-research"]);
+    expect(at(21, 15)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins"]);
+    expect(at(21, 30)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "quotes-research"]);
   });
 
   it("the daily prompts rest from midnight to six; reminders never do", () => {
     expect(at(3, 5)).toEqual(["reminders"]);
     expect(at(5, 55)).toEqual(["reminders"]);
     expect(at(6, 5)).toEqual(["daily-prompts", "reminders"]);
+  });
+
+  it("the morning briefing is offered from seven to ten, before the daily prompts", () => {
+    const jobs = dueJobs(7 * 60 + 5).map((j) => j.path);
+    expect(jobs.indexOf("/api/briefings/morning")).toBe(0);
+    expect(jobs).toContain("/api/cron/daily-prompts");
+    expect(dueJobs(6 * 60 + 55).map((j) => j.path)).not.toContain("/api/briefings/morning");
+    expect(dueJobs(10 * 60).map((j) => j.path)).not.toContain("/api/briefings/morning");
   });
 
   it("the Day log runs from six in the evening to four in the morning", () => {

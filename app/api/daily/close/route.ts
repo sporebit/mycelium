@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
     const plan = await ensurePlan(db, uid, undefined, { freeMinutes: settings.free_minutes });
 
     if (body.action === "prompt") {
-      const res = await sendEveningPrompt(db, uid, plan);
+      const res = await sendEveningPrompt(db, uid, plan, { push: false });
       return NextResponse.json({ ok: true, status: "ok", prompted: res.prompted, say: res.say });
     }
 
