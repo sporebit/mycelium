@@ -75,7 +75,15 @@ export type WorkComponent = {
 	archived_at: string | null;
 };
 
-export type WorkPerson = { id: string; name: string };
+/** `spaces`: the spaces this person belongs to (their teams', and a personal space they own or are shared into). */
+export type WorkPerson = { id: string; name: string; spaces?: string[] };
+
+/** The people of one space: who can be assigned or listed there. With no space known, the caller alone. */
+export function peopleIn(meta: { people: WorkPerson[]; me: WorkPerson | null } | null | undefined, spaceId: string | null | undefined): WorkPerson[] {
+	if (!meta) return [];
+	if (!spaceId) return meta.me ? [meta.me] : [];
+	return meta.people.filter((p) => (p.spaces ?? []).includes(spaceId));
+}
 
 export type ProjectLink = { label: string; url: string };
 

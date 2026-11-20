@@ -5,6 +5,7 @@
  * project offers, which workflow its tickets use (the map), components,
  * and the board's type and columns.
  */
+import { peopleIn } from "@/lib/work/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -103,7 +104,7 @@ function Details({ data, reload }: { data: ProjectPayload; reload: () => Promise
 					<Picker label="Status" searchable={false} options={PROJECT_STATUSES} value={form.status} onChange={(v) => set("status", (v as typeof form.status) ?? "active")} disabled={p.is_default} />
 				</Field>
 				<Field label="Lead">
-					<Picker label="Lead" options={(meta?.people ?? []).map((x) => ({ value: x.id, label: x.name }))} value={form.lead_user_id} onChange={(v) => set("lead_user_id", v)} placeholder="Nobody" clearable />
+					<Picker label="Lead" options={peopleIn(meta, p.space_id).map((x) => ({ value: x.id, label: x.name }))} value={form.lead_user_id} onChange={(v) => set("lead_user_id", v)} placeholder="Nobody" clearable />
 				</Field>
 				<Field label="Colour" htmlFor="p-colour">
 					<div className="flex items-center gap-2">

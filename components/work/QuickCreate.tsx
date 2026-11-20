@@ -6,6 +6,7 @@
  * Enter, next); `CreateDialog` is the full form behind the "Create" button.
  * Both post to /api/work/tickets and refresh every Work list.
  */
+import { peopleIn } from "@/lib/work/types";
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui";
@@ -136,7 +137,7 @@ export function CreateDialog({
 	const typeId = type && types.some((t) => t.value === type) ? type : (meta?.types.find((t) => t.slug === (defaults.parent ? "subtask" : "task"))?.id ?? null);
 	const statuses = useMemo<Option[]>(() => statusesFor(meta, projectId, typeId).map((s) => ({ value: s.id, label: s.name })), [meta, projectId, typeId]);
 	const statusId = status && statuses.some((s) => s.value === status) ? status : null;
-	const people = useMemo<Option[]>(() => (meta?.people ?? []).map((p) => ({ value: p.id, label: p.name })), [meta]);
+	const people = useMemo<Option[]>(() => peopleIn(meta, meta?.space_id).map((p) => ({ value: p.id, label: p.name })), [meta]);
 
 	async function submit() {
 		const t = title.trim();

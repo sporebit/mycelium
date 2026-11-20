@@ -17,6 +17,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { after } from "next/server";
 import { APP_URL } from "@/lib/tickets/notify";
 import { deliverNotifications, type Outgoing } from "@/lib/system/notifyDeliver";
+import { spaceMemberIds } from "./server";
 import type { NotificationEvent } from "./types";
 
 export function workUrl(key: string): string {
@@ -52,6 +53,16 @@ export async function recordEvents(
 	ctx: { actorId: string | null; spaceId: string },
 	events: WorkEvent[],
 ): Promise<number> {
+	if (events.length === 0) return 0;
+	// Only people who belong to the space are told about what happens in it: a mention of someone outside it, or a
+	// watcher who has since left, gets nothing (the notification carries the title).
+	let members: Set<string>;
+	try {
+		members = new Set(await spaceMemberIds(supabase, ctx.actorId, ctx.spaceId));
+	} catch (err) {
+		console.error("[work] notification members lookup failed:", err);
+		return 0;
+	}
 	const seen = new Set<string>();
 	const rows: Array<Record<string, unknown>> = [];
 	const out: Outgoing[] = [];
@@ -60,7 +71,7 @@ export async function recordEvents(
 	for (const e of ordered) {
 		const scope = e.comment_id ?? e.doc_page_id ?? e.ticket_id ?? "";
 		for (const r of new Set(e.recipients)) {
-			if (!r || r === ctx.actorId) continue;
+			if (!r || r === ctx.actorId || !members.has(r)) continue;
 			const once = e.event === "mention" || e.event === "comment" ? `say:${scope}:${r}` : `${e.event}:${scope}:${r}`;
 			if (seen.has(once)) continue;
 			seen.add(once);

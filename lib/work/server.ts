@@ -58,6 +58,55 @@ export async function resolveSpace(supabase: SupabaseClient, uid: string | null,
 	return data ? { id: data.id as string, prefix: (data.ticket_prefix as string | null) ?? null } : null;
 }
 
+/**
+ * Who belongs to each space the caller can see. A team's space has the
+ * team's members. A personal space has its owner, the people the owner
+ * has shared Work or Docs with (a live share), and the caller when they
+ * are reading it through such a share. This is who can be assigned,
+ * mentioned and notified there. Being in ANOTHER team with the caller
+ * does not put someone in a space: assigning or mentioning sends them
+ * the title.
+ */
+export async function membersBySpace(supabase: SupabaseClient, uid: string | null, only?: string): Promise<Map<string, Set<string>>> {
+	const out = new Map<string, Set<string>>();
+	let q = supabase.from("spaces").select("id, owner_user_id, team_id").limit(200);
+	if (only) q = q.eq("id", only);
+	const { data } = await q;
+	const spaces = (data ?? []) as Array<{ id: string; owner_user_id: string | null; team_id: string | null }>;
+	if (spaces.length === 0) return out;
+	const teamIds = [...new Set(spaces.map((s) => s.team_id).filter((x): x is string => !!x))];
+	const owners = [...new Set(spaces.filter((s) => !s.team_id && s.owner_user_id).map((s) => s.owner_user_id as string))];
+	const [members, grants] = await Promise.all([
+		teamIds.length ? supabase.from("team_members").select("team_id, user_id").in("team_id", teamIds).limit(1000) : Promise.resolve({ data: [] }),
+		owners.length
+			? supabase.from("user_grants").select("grantor_id, grantee_id, entity_groups, expires_at").in("grantor_id", owners).eq("section", "organisation").is("revoked_at", null).limit(500)
+			: Promise.resolve({ data: [] }),
+	]);
+	const now = Date.now();
+	for (const s of spaces) {
+		const ids = new Set<string>();
+		if (s.team_id) {
+			for (const m of (members.data ?? []) as Array<{ team_id: string; user_id: string | null }>) if (m.team_id === s.team_id && m.user_id) ids.add(m.user_id);
+		} else {
+			if (s.owner_user_id) ids.add(s.owner_user_id);
+			if (uid) ids.add(uid);
+			for (const g of (grants.data ?? []) as Array<{ grantor_id: string; grantee_id: string; entity_groups: string[] | null; expires_at: string | null }>) {
+				if (g.grantor_id !== s.owner_user_id) continue;
+				if (g.expires_at && Date.parse(g.expires_at) <= now) continue;
+				const groups = g.entity_groups ?? [];
+				if (groups.length === 0 || groups.includes("tickets") || groups.includes("docs")) ids.add(g.grantee_id);
+			}
+		}
+		out.set(s.id, ids);
+	}
+	return out;
+}
+
+/** Who belongs to one space (see membersBySpace). */
+export async function spaceMemberIds(supabase: SupabaseClient, uid: string | null, spaceId: string): Promise<string[]> {
+	return [...((await membersBySpace(supabase, uid, spaceId)).get(spaceId) ?? [])];
+}
+
 // ---------------------------------------------------------------------
 // Projects
 // ---------------------------------------------------------------------
@@ -518,7 +567,11 @@ export async function setTicketComponents(
 
 /** Make someone a watcher; a no-op when they already are. */
 export async function watch(supabase: SupabaseClient, ticket: { id: string; space_id: string }, userIds: Array<string | null | undefined>): Promise<void> {
-	const ids = Array.from(new Set(userIds.filter((x): x is string => !!x && UUID_RE.test(x))));
+	const asked = Array.from(new Set(userIds.filter((x): x is string => !!x && UUID_RE.test(x))));
+	if (asked.length === 0) return;
+	// a mention of someone outside the space does not make them a watcher of it
+	const members = new Set(await spaceMemberIds(supabase, null, ticket.space_id));
+	const ids = asked.filter((id) => members.has(id));
 	if (ids.length === 0) return;
 	const { error } = await supabase
 		.from("ticket_watchers")
@@ -546,7 +599,7 @@ export type WorkWrite = {
 export async function workWriteFromBody(
 	supabase: SupabaseClient,
 	body: Record<string, unknown>,
-	ctx: { spaceId: string; projectId: string | null; typeId: string | null; ticketId?: string },
+	ctx: { spaceId: string; projectId: string | null; typeId: string | null; ticketId?: string; uid?: string | null },
 ): Promise<WorkWrite> {
 	const columns: Record<string, unknown> = {};
 	const fail = (error: string): WorkWrite => ({ columns: {}, labels: null, components: null, error });
@@ -589,6 +642,8 @@ export async function workWriteFromBody(
 	}
 	if ("assignee_id" in body) {
 		if (body.assignee_id !== null && !(typeof body.assignee_id === "string" && UUID_RE.test(body.assignee_id))) return fail("assignee_id is a user id.");
+		// only someone who belongs to the ticket's space: assigning tells them its title
+		if (typeof body.assignee_id === "string" && !(await spaceMemberIds(supabase, ctx.uid ?? null, ctx.spaceId)).includes(body.assignee_id)) return fail("That person is not in this space.");
 		columns.assignee_id = body.assignee_id;
 	}
 	if ("sprint_id" in body) {

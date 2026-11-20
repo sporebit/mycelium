@@ -6,6 +6,7 @@
  * ticket, archive, history. A save writes title and body together; the
  * database versions every change.
  */
+import { peopleIn } from "@/lib/work/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -337,7 +338,7 @@ export function DocPageView({ page, space, siblings, onChanged, onNewChild }: Pr
 						{!restriction.data.can_manage && <p className="text-text-mid">Only the page’s creator changes who can see it.</p>}
 						<p className="text-xs text-text-lo">Nobody listed means everyone in the space can see it. A listed person can always read; tick “edit” to let them change it.</p>
 						<ul className="flex flex-col gap-1">
-							{(meta?.people ?? [])
+							{peopleIn(meta, space.space_id)
 								.filter((p) => p.id !== meta?.me?.id)
 								.map((p) => {
 									const list = people ?? restriction.data?.people.map((x) => ({ id: x.id, can_edit: x.can_edit })) ?? [];
@@ -356,7 +357,7 @@ export function DocPageView({ page, space, siblings, onChanged, onNewChild }: Pr
 										</li>
 									);
 								})}
-							{(meta?.people ?? []).length <= 1 && <li className="text-text-lo">You are the only member of this space.</li>}
+							{peopleIn(meta, space.space_id).length <= 1 && <li className="text-text-lo">You are the only member of this space.</li>}
 						</ul>
 					</div>
 				)}

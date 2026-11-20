@@ -142,7 +142,7 @@ test("a page is made from the tree and edited in the rich editor; each save is a
   await article(page).getByRole("button", { name: "Save", exact: true }).click();
   expect((await saved).status()).toBe(200);
   await expect(title(page)).toHaveText(`${TAG} page one, titled`);
-  await expect(article(page).getByRole("link", { name: "v2" })).toBeVisible();
+  await expect(article(page).getByRole("link", { name: "v2", exact: true })).toBeVisible();
   const body = article(page).locator(".work-doc-static");
   await expect(body.locator("h3")).toHaveText("Purpose");
   await expect(body).toContainText(`First line ${RUN}.`);

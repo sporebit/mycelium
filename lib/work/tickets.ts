@@ -73,7 +73,7 @@ export async function createWorkTicket(
 		if (parent && !("type" in body) && !("type_id" in body)) body.type = "subtask";
 	}
 
-	const write = await workWriteFromBody(supabase, body, { spaceId, projectId, typeId: null });
+	const write = await workWriteFromBody(supabase, body, { spaceId, projectId, typeId: null, uid });
 	if (write.error) return { ok: false, status: 400, error: write.error };
 
 	const insert: Record<string, unknown> = {
@@ -138,6 +138,7 @@ export async function patchWorkTicket(
 		projectId: found.project_id,
 		typeId: found.type_id,
 		ticketId: found.id,
+		uid,
 	});
 	if (write.error) return { ok: false, status: 400, error: write.error };
 	if (Object.keys(write.columns).length === 0 && !write.labels && !write.components) {

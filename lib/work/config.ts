@@ -15,7 +15,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { NextResponse } from "next/server";
 import { JqlError, parseJql } from "./jql";
 import { canonicalField, FIELD_KIND, STATUS_CATEGORIES, STATUS_CATEGORY_LABEL, type StatusCategory, type WorkQuery } from "./query";
-import { bad, namesFor, resolveSpace, serializeStatus, STATUS_SELECT, UUID_RE, writeErrorMessage, type SpaceInfo } from "./server";
+import { bad, membersBySpace, namesFor, resolveSpace, serializeStatus, STATUS_SELECT, UUID_RE, writeErrorMessage, type SpaceInfo } from "./server";
 import type { SavedFilter, WorkLabelField, WorkPerson, WorkStatus, WorkType, WorkWorkflow, WorkflowMapRow } from "./types";
 
 // ---------------------------------------------------------------------
@@ -773,16 +773,18 @@ export async function loadFilter(supabase: SupabaseClient, ref: string, spaceId:
 // ---------------------------------------------------------------------
 
 /**
- * Who a ticket can be assigned to: the caller plus every member of the
- * caller's teams (RLS on team_members limits the rows), the caller first.
+ * Everyone the caller works with, the caller first, each with the spaces
+ * they belong to. A picker shows the people of the space it is in
+ * (peopleIn in lib/work/types.ts); the server refuses anyone else.
  */
 export async function loadPeople(supabase: SupabaseClient, uid: string | null): Promise<{ me: WorkPerson | null; people: WorkPerson[] }> {
-	const ids = new Set<string>();
-	if (uid) ids.add(uid);
-	const { data: members } = await supabase.from("team_members").select("user_id").limit(500);
-	for (const m of (members ?? []) as Array<{ user_id: string | null }>) if (m.user_id) ids.add(m.user_id);
-	const names = await namesFor(supabase, [...ids]);
-	const people = [...ids].map((id) => ({ id, name: names.get(id) ?? (id === uid ? "Me" : id.slice(0, 8)) }));
+	const bySpace = await membersBySpace(supabase, uid);
+	const spacesOf = new Map<string, string[]>();
+	if (uid) spacesOf.set(uid, []);
+	for (const [space, ids] of bySpace) for (const id of ids) spacesOf.set(id, [...(spacesOf.get(id) ?? []), space]);
+	const ids = [...spacesOf.keys()];
+	const names = await namesFor(supabase, ids);
+	const people = ids.map((id) => ({ id, name: names.get(id) ?? (id === uid ? "Me" : id.slice(0, 8)), spaces: spacesOf.get(id) ?? [] }));
 	people.sort((a, b) => Number(b.id === uid) - Number(a.id === uid) || a.name.localeCompare(b.name));
 	return { me: people.find((p) => p.id === uid) ?? null, people };
 }

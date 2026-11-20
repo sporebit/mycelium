@@ -6,6 +6,7 @@
  * revalidates this key and the Work lists. Steps stay on the old engine
  * (/api/tickets/[key]/steps); links and evidence on /api/tickets/[key]/links.
  */
+import { peopleIn } from "@/lib/work/types";
 import { NudgeButton } from "@/components/nudges/NudgeButton";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -87,7 +88,12 @@ export function IssuePage() {
 	const oldKey = t ? `/api/tickets/${encodeURIComponent(t.key ?? t.id)}` : "";
 
 	const typeOptions = useMemo<Option[]>(() => (meta?.types ?? []).filter((x) => !x.archived_at && (t?.parent ? x.level === -1 : x.level !== -1)).map((x) => ({ value: x.id, label: x.name, icon: <TypeIcon type={x} /> })), [meta, t?.parent]);
-	const people = useMemo<Option[]>(() => (meta?.people ?? []).map((p) => ({ value: p.id, label: p.name })), [meta]);
+	// the people of the ticket's own space, plus whoever holds it now (so the name still shows if they have since left)
+	const people = useMemo<Option[]>(() => {
+		const list = peopleIn(meta, t?.space_id).map((p) => ({ value: p.id, label: p.name }));
+		if (t?.assignee && !list.some((o) => o.value === t.assignee?.id)) list.push({ value: t.assignee.id, label: t.assignee.name });
+		return list;
+	}, [meta, t]);
 	const projectOptions = useMemo<Option[]>(() => (meta?.projects ?? []).map((p) => ({ value: p.key, label: p.name, hint: p.key, colour: p.colour })), [meta]);
 	const epics = useApi<{ tickets: Array<{ id: string; key: string | null; title: string }> }>(t?.project && t.type?.level !== 1 ? `/api/work/tickets?jql=${encodeURIComponent(`project = ${t.project.key} AND type = epic AND statusCategory != Done ORDER BY title ASC`)}&limit=100` : null);
 	const componentOptions = useApi<{ components: Array<{ id: string; name: string }> }>(t?.project ? `/api/work/projects/${encodeURIComponent(t.project.key)}/components` : null);

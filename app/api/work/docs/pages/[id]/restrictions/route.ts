@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { principalUid, readJson, ticketWriteGate } from "@/lib/tickets/server";
 import { chainOf, docsErrorMessage, docsErrorStatus, restrictionOf } from "@/lib/work/docs";
-import { bad, UUID_RE } from "@/lib/work/server";
+import { bad, spaceMemberIds, UUID_RE } from "@/lib/work/server";
 
 export const runtime = "nodejs";
 
@@ -64,9 +64,8 @@ export async function PUT(req: NextRequest, ctx: Ctx) {
 
 		const ids = [...wanted.keys()];
 		if (ids.length > 0) {
-			const { data: known, error: knownErr } = await supabase.from("profiles").select("id").in("id", ids);
-			if (knownErr) throw knownErr;
-			const seen = new Set(((known ?? []) as Array<{ id: string }>).map((p) => p.id.toLowerCase()));
+			// the people of the page's own space: someone from another team of yours is not in it
+			const seen = new Set((await spaceMemberIds(supabase, uid, page.space_id as string)).map((p) => p.toLowerCase()));
 			const missing = ids.filter((p) => !seen.has(p));
 			if (missing.length > 0) return bad("One of those people is not someone you can share with.", 400, { unknown: missing });
 		}
