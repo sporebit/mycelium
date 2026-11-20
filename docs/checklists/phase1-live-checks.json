@@ -76,7 +76,7 @@
     },
     {
       "id": "2",
-      "title": "Today and the evening close (15 minutes; drop 7, then 6)",
+      "title": "Today, the finish line and the evening close (15 minutes; drop 9, 8, then 7)",
       "lede_html": "The daily loop is new. Automation proves the rules (one win, up to four more, the soft limit, slipped dates, the 45-minute rule). Only you can say whether it feels right.",
       "steps": [
         {
@@ -143,6 +143,34 @@
         },
         {
           "id": "2.8",
+          "title": "The finish line",
+          "actor": "you",
+          "where": {
+            "label": "Finish line",
+            "url": "https://mycelium.sporebit.com/finish",
+            "kind": "page"
+          },
+          "body_html": "Up to three things that are four-fifths done or more (by checklist or sub-tasks), each saying what is left. Try <b>Good enough — close as is</b> on one you will never polish. Are these the right three?"
+        },
+        {
+          "id": "2.9",
+          "title": "Gone quiet",
+          "actor": "you",
+          "where": {
+            "label": "Dashboard",
+            "url": "https://mycelium.sporebit.com/",
+            "kind": "page"
+          },
+          "body_html": "The dashboard has a <b>Gone quiet</b> card and the matching menu entries are dimmed. It will name several things on day one, some months old: those are real gaps. Too blunt, about right, or are any of the rhythms wrong (a thing you do monthly marked after a week)?",
+          "fields": [
+            {
+              "key": "quiet_rhythms",
+              "label": "Any rhythm that is wrong"
+            }
+          ]
+        },
+        {
+          "id": "2.10",
           "title": "Anything to report",
           "actor": "you",
           "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
