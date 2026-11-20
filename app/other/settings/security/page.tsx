@@ -220,9 +220,9 @@ export default function SecuritySettingsPage() {
         )}
       </Card>
 
-      <AccessLogCard />
+      <AccessLogCard hasFactor={factors.some((f) => f.status === "verified")} />
 
-      <DeleteAccountCard email={email} />
+      <DeleteAccountCard email={email} hasFactor={factors.some((f) => f.status === "verified")} />
     </div>
   );
 }
@@ -278,16 +278,20 @@ function ReauthCard({ next }: { next: string }) {
 type AccessEvent = { id: number; at: string; actor_id: string | null; actor_name: string | null; action: string; section: string | null; entity_group: string | null; team_id: string | null; meta: Record<string, unknown> };
 
 /** "Who has seen my data": events where this account is the subject. */
-function AccessLogCard() {
+function AccessLogCard({ hasFactor }: { hasFactor: boolean }) {
   const [events, setEvents] = useState<AccessEvent[] | null>(null);
   const [needsReauth, setNeedsReauth] = useState(false);
+  const [needsFactor, setNeedsFactor] = useState(false);
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const res = await fetch("/api/account/access-log");
       if (cancelled) return;
       if (res.status === 403) {
-        setNeedsReauth(true);
+        // Without a second factor on this session, "confirm again" leads nowhere: say what is needed instead.
+        const j = (await res.json().catch(() => ({}))) as { reason?: string };
+        if (j.reason === "mfa_required") setNeedsFactor(true);
+        else setNeedsReauth(true);
         setEvents([]);
         return;
       }
@@ -300,7 +304,18 @@ function AccessLogCard() {
   }, []);
   return (
     <Card title="WHO HAS SEEN MY DATA">
-      {needsReauth ? (
+      {needsFactor ? (
+        <Note>
+          {hasFactor ? (
+            <>
+              This needs your authenticator code.{" "}
+              <a className="underline underline-offset-4" href="/login?step=mfa&next=%2Fother%2Fsettings%2Fsecurity">Enter it</a>
+            </>
+          ) : (
+            "This needs an authenticator app. Enrol one above, then come back."
+          )}
+        </Note>
+      ) : needsReauth ? (
         <Note>
           Confirm your authenticator to view this.{" "}
           <a className="underline underline-offset-4" href="/other/settings/security?reauth=1&next=%2Fother%2Fsettings%2Fsecurity">Confirm</a>
@@ -327,7 +342,7 @@ function AccessLogCard() {
 }
 
 /** Self-service deletion: re-auth (middleware) plus the typed email. */
-function DeleteAccountCard({ email }: { email: string | null }) {
+function DeleteAccountCard({ email, hasFactor }: { email: string | null; hasFactor: boolean }) {
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -339,6 +354,9 @@ function DeleteAccountCard({ email }: { email: string | null }) {
     setBusy(false);
     if (res.status === 403 && j.reason === "reauth_required") {
       return window.location.assign("/other/settings/security?reauth=1&next=%2Fother%2Fsettings%2Fsecurity");
+    }
+    if (res.status === 403 && j.reason === "mfa_required") {
+      return setErr(hasFactor ? "Sign in again with your authenticator code first." : "Deleting an account needs an authenticator app. Enrol one above first.");
     }
     if (!res.ok) return setErr(j.error ?? "Could not delete");
     window.location.assign("/login");

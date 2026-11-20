@@ -89,7 +89,12 @@ export default function PeopleAndTeamsPage() {
         await loadDetail(list[0].id);
       }
       setLoaded(true);
-    })().catch((e) => setMsg({ tone: "error", text: String(e.message ?? e) }));
+    })().catch((e) => {
+      if (cancelled) return;
+      // Show the page with the error rather than "Loading…" for ever.
+      setMsg({ tone: "error", text: String(e.message ?? e) });
+      setLoaded(true);
+    });
     return () => {
       cancelled = true;
     };
@@ -217,7 +222,7 @@ function TeamsCard({
       >
         <div className="flex flex-col gap-1 flex-1">
           <Label>New team</Label>
-          <input className={INPUT} placeholder="Team name" value={name} onChange={(e) => setName(e.target.value)} />
+          <input className={INPUT} aria-label="New team name" placeholder="Team name" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <Button type="submit" size="sm" variant="primary" disabled={!name.trim()}>
           Create
@@ -283,11 +288,11 @@ function TeamCard({
         >
           <div className="flex flex-col gap-1 flex-1 min-w-[200px]">
             <Label>Invite by email</Label>
-            <input className={INPUT} type="email" placeholder="person@example.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required />
+            <input className={INPUT} type="email" aria-label="Invite by email" placeholder="person@example.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Role</Label>
-            <select className={SELECT} value={inviteRole} onChange={(e) => setInviteRole(e.target.value as Exclude<TeamRole, "owner">)}>
+            <select className={SELECT} aria-label="Invite role" value={inviteRole} onChange={(e) => setInviteRole(e.target.value as Exclude<TeamRole, "owner">)}>
               {isOwner && <option value="admin">admin</option>}
               <option value="member">member</option>
               <option value="viewer">viewer</option>
@@ -311,6 +316,7 @@ function TeamCard({
             <Label>Successor (required before you can leave)</Label>
             <select
               className={SELECT}
+              aria-label="Successor"
               value={team.successor_user_id ?? ""}
               onChange={(e) =>
                 run(async () => {
@@ -488,6 +494,7 @@ function MemberRow({
 }) {
   const [open, setOpen] = useState(false);
   const editable = canManage && member.role !== "owner" && member.user_id !== me && (isOwner || member.role !== "admin");
+  const name = member.display_name ?? member.user_id.slice(0, 8);
 
   function toggle(section: string) {
     return member.sections.find((s) => s.section === section) ?? { section, can_view: true, can_edit: true, can_create_delete: true, can_share: true };
@@ -514,6 +521,7 @@ function MemberRow({
         {editable ? (
           <select
             className={SELECT}
+            aria-label={`Role for ${name}`}
             value={member.role}
             onChange={(e) =>
               run(async () => {
@@ -531,12 +539,13 @@ function MemberRow({
         )}
         {editable && (
           <>
-            <Button size="sm" onClick={() => setOpen((o) => !o)}>
+            <Button size="sm" aria-label={`${open ? "Hide sections" : "Sections"} for ${name}`} onClick={() => setOpen((o) => !o)}>
               {open ? "Hide sections" : "Sections"}
             </Button>
             <Button
               size="sm"
               variant="danger"
+              aria-label={`Remove ${name}`}
               onClick={() =>
                 run(async () => {
                   await api(`/api/teams/${team.id}/members/${member.user_id}`, { method: "DELETE" });
@@ -571,7 +580,7 @@ function MemberRow({
                     <td className="py-1 text-text-mid">{section}</td>
                     {(["can_view", "can_edit", "can_create_delete", "can_share"] as const).map((key) => (
                       <td key={key} className="text-center px-2">
-                        <input type="checkbox" checked={t[key]} onChange={(e) => setToggle(section, key, e.target.checked)} />
+                        <input type="checkbox" aria-label={`${section} ${key.replace("can_", "").replace("_", "/")}`} checked={t[key]} onChange={(e) => setToggle(section, key, e.target.checked)} />
                       </td>
                     ))}
                   </tr>
@@ -615,7 +624,7 @@ function ShareCard({
       <div className="flex flex-wrap gap-2 items-end">
         <div className="flex flex-col gap-1 flex-1 min-w-[200px]">
           <Label>Their email</Label>
-          <input className={INPUT} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="person@example.com" />
+          <input className={INPUT} type="email" aria-label="Their email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="person@example.com" />
         </div>
         <Button size="sm" onClick={lookup} disabled={!email.includes("@")}>
           Find
@@ -644,6 +653,7 @@ function ShareCard({
               <Label>Section</Label>
               <select
                 className={SELECT}
+                aria-label="Section"
                 value={section}
                 onChange={(e) => {
                   setSection(e.target.value);
@@ -681,7 +691,7 @@ function ShareCard({
             </div>
             <div className="flex flex-col gap-1">
               <Label>Expires (optional)</Label>
-              <input className={INPUT} type="date" value={expires} onChange={(e) => setExpires(e.target.value)} />
+              <input className={INPUT} type="date" aria-label="Expires" value={expires} onChange={(e) => setExpires(e.target.value)} />
             </div>
           </div>
           <div>
