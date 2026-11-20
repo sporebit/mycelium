@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { createUserClient } from "@/lib/supabase/user";
@@ -7,6 +7,7 @@ import { dailySettings } from "@/lib/daily/settings";
 import { cardOf, viewOf } from "@/lib/daily/view";
 import { sendEveningPrompt } from "@/lib/daily/prompts";
 import { markActed } from "@/lib/nudges/interrupt";
+import { queueFirstSteps } from "@/lib/daily/firstSteps";
 import { waitingForReview } from "@/lib/capture/queue";
 import { filedAs } from "@/lib/capture/pipeline";
 
@@ -99,6 +100,8 @@ export async function POST(req: NextRequest) {
       : [];
     const closed = await closeDay(db, uid, plan, decisions);
     void markActed(db, uid, { kind: "evening" }, "closed").catch(() => undefined);
+    // The day is closed: have the PC write tomorrow's first steps overnight.
+    after(() => queueFirstSteps(db, uid).then(() => undefined, (err) => console.error("[daily/close] first steps:", err)));
     return NextResponse.json({ ok: true, day: closed.day, status: closed.status, summary: closed.summary });
   } catch (err) {
     console.error("[daily/close POST]", err);

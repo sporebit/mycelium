@@ -13,6 +13,7 @@ import { expect as baseExpect, request as playwrightRequest, test as base, type 
 import { localSql, localStackEnv } from "../lib/access/introspect.ts";
 import { E2E_API_SECRET, E2E_ORIGIN } from "./support/env.ts";
 import { PASSWORD, PHIL, TESS } from "./support/users.ts";
+import { secondFactorSession } from "../lib/access/testSessions.ts";
 
 /**
  * The server closes an idle connection after a few seconds, and a request
@@ -301,7 +302,11 @@ test("what Tess uploads is hers alone, and stored photographs open only for thei
 
   // The bucket itself: each person's own session reads their own photo and is refused the other's.
   const tess = await tokenFor(TESS.email);
-  const philToken = await tokenFor(PHIL.email);
+  // Phil has an authenticator, so his session is password plus code. The file store is a separate door
+  // from the data API and now asks the same of it (0164): his password alone opens nothing, not even his own photo.
+  const philPasswordOnly = await tokenFor(PHIL.email);
+  expect(await readStoredPhoto(philPasswordOnly, philPhoto), "Phil's own photo, password only").toBeGreaterThanOrEqual(400);
+  const philToken = (await secondFactorSession(PHIL.email, PASSWORD, PHIL.id)).access_token;
   expect(await readStoredPhoto(tess, myPhoto), "Tess, her own photo").toBe(200);
   expect(await readStoredPhoto(philToken, philPhoto), "Phil, his own photo").toBe(200);
   expect(await readStoredPhoto(tess, philPhoto), "Tess, Phil's photo").toBeGreaterThanOrEqual(400);

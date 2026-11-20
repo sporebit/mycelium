@@ -120,7 +120,7 @@ async function capabilities() {
   const llm = await ollamaUp();
   const kinds = ["ping"];
   if (whisper) kinds.push("transcribe");
-  if (llm) kinds.push("classify", "llm");
+  if (llm) kinds.push("classify", "llm", "first_steps");
   return { kinds, whisper, llm, whisper_model: whisper ? config.whisperModel : null, llm_model: llm ? config.ollamaModel : null };
 }
 
@@ -185,6 +185,8 @@ const RUNNERS = {
   transcribe,
   classify: llm,
   llm,
+  // First steps for tomorrow's tasks (lib/daily/firstSteps.ts): a prompt in, text out; the cloud checks the answer.
+  first_steps: llm,
 };
 
 // ---------------------------------------------------------------------------

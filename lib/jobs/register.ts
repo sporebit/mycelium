@@ -5,3 +5,4 @@
  */
 import "./handlers";
 import "@/lib/capture/jobs";
+import "@/lib/daily/firstSteps";

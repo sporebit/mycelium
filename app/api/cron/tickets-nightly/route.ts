@@ -10,6 +10,7 @@ import { generateMissingRundowns } from "@/lib/tickets/rundown";
 import { autoFileStale } from "@/lib/capture/autofile";
 import { sweepCaptures } from "@/lib/capture/sweep";
 import { activeUserIds } from "@/lib/system/users";
+import { queueFirstSteps } from "@/lib/daily/firstSteps";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
       return { spawned, templates, rundowns, purgedPeople };
     });
     // Captures: per person, as that person. One user's failure does not stop the rest.
-    const captures = { swept: 0, transcribed: 0, auto_filed: 0, users: 0 };
+    const captures = { swept: 0, transcribed: 0, auto_filed: 0, users: 0, first_steps_asked: 0 };
     if (!dry) {
       for (const uid of await activeUserIds()) {
         try {
@@ -50,6 +51,11 @@ export async function GET(req: NextRequest) {
           captures.swept += done.sweep.processed;
           captures.transcribed += done.sweep.transcribed;
           captures.auto_filed += done.filed.filed;
+          // Tomorrow's first steps, for the PC's own model to write overnight (no cloud model, no cost).
+          captures.first_steps_asked += await withUser(uid, (db) => queueFirstSteps(db, uid)).catch((err) => {
+            console.error(`[cron/tickets-nightly] first steps for ${uid}:`, err);
+            return 0;
+          });
         } catch (err) {
           console.error(`[cron/tickets-nightly] captures for ${uid}:`, err);
         }
