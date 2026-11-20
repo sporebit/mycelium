@@ -272,9 +272,26 @@ function TeamCard({
         <div className="flex flex-col gap-1">
           <Label>Pending invites</Label>
           {team.invites.map((i) => (
-            <Mono key={i.id} className="text-[11px] text-text-lo">
-              {i.email} · {i.role} · expires {new Date(i.expires_at).toLocaleDateString()}
-            </Mono>
+            <div key={i.id} className="flex items-center gap-3">
+              <Mono className="text-[11px] text-text-lo">
+                {i.email} · {i.role} · expires {new Date(i.expires_at).toLocaleDateString()}
+              </Mono>
+              {canManage && (
+                <button
+                  type="button"
+                  className="text-[11px] text-text-lo underline hover:text-text-hi"
+                  aria-label={`Cancel the invite for ${i.email}`}
+                  onClick={() =>
+                    run(async () => {
+                      await api(`/api/teams/${team.id}/invites/${i.id}`, { method: "DELETE" });
+                      await refresh();
+                    }, "Invite cancelled. Its link no longer works.")
+                  }
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           ))}
         </div>
       )}
@@ -523,6 +540,11 @@ function MemberRow({
         <div className="flex-1 min-w-0">
           <span className="text-sm text-text-hi">{member.display_name ?? member.user_id.slice(0, 8)}</span>
           {member.user_id === me && <span className="text-[10px] uppercase tracking-[0.08em] text-ok ml-2">you</span>}
+          {member.has_authenticator === false && (
+            <span className="text-[10px] uppercase tracking-[0.08em] text-text-lo ml-2" title="An owner or admin needs an authenticator app. Without one the app shows them only the page to set it up.">
+              no authenticator
+            </span>
+          )}
           {team.successor_user_id === member.user_id && (
             <span className="text-[10px] uppercase tracking-[0.08em] text-text-lo ml-2">successor</span>
           )}
@@ -532,12 +554,22 @@ function MemberRow({
             className={SELECT}
             aria-label={`Role for ${name}`}
             value={member.role}
-            onChange={(e) =>
-              run(async () => {
-                await api(`/api/teams/${team.id}/members/${member.user_id}`, { method: "PATCH", body: JSON.stringify({ role: e.target.value }) });
+            onChange={(e) => {
+              const role = e.target.value;
+              // An admin must have an authenticator (0160). Say so before the change, not after they are locked out.
+              if (
+                role === "admin" &&
+                member.has_authenticator === false &&
+                !window.confirm(`${name} has no authenticator app set up. An admin needs one: until they set it up, the app will show them only the page to do it. Make them an admin anyway?`)
+              ) {
+                e.target.value = member.role;
+                return;
+              }
+              void run(async () => {
+                await api(`/api/teams/${team.id}/members/${member.user_id}`, { method: "PATCH", body: JSON.stringify({ role }) });
                 await refresh();
-              }, "Role updated.")
-            }
+              }, "Role updated.");
+            }}
           >
             {isOwner && <option value="admin">admin</option>}
             <option value="member">member</option>

@@ -36,6 +36,8 @@ export type TeamMember = {
   joined_at: string;
   display_name: string | null;
   sections: SectionToggle[];
+  /** Whether they have an authenticator app set up. Null when the reader is not this team's owner or admin (0170). */
+  has_authenticator: boolean | null;
 };
 
 export type PendingInvite = {
@@ -94,11 +96,16 @@ export async function getTeamDetail(db: SupabaseClient, me: string, teamId: stri
     .maybeSingle();
   if (!team) return null;
 
-  const [{ data: members }, { data: sections }, { data: invites }] = await Promise.all([
+  const [{ data: members }, { data: sections }, { data: invites }, { data: bare }] = await Promise.all([
     db.from("team_members").select("user_id, role, joined_at").eq("team_id", teamId).order("joined_at"),
     db.from("team_member_sections").select("user_id, section, can_view, can_edit, can_create_delete, can_share").eq("team_id", teamId),
     db.from("invites").select("id, email, role, expires_at, created_at").eq("team_id", teamId).is("accepted_at", null).order("created_at"),
+    // who has no authenticator: answered only for the team's owner or admin, empty for anyone else
+    db.rpc("team_members_without_totp", { p_team: teamId }),
   ]);
+  const without = new Set(((bare ?? []) as unknown[]).map((v) => String(v)));
+  const mine = (members ?? []).find((m) => m.user_id === me)?.role;
+  const mayKnow = mine === "owner" || mine === "admin";
   const ids = (members ?? []).map((m) => m.user_id as string);
   const { data: profiles } = ids.length
     ? await db.from("profiles").select("id, display_name").in("id", ids)
@@ -110,6 +117,7 @@ export async function getTeamDetail(db: SupabaseClient, me: string, teamId: stri
     role: m.role as TeamRole,
     joined_at: m.joined_at as string,
     display_name: names.get(m.user_id as string) ?? null,
+    has_authenticator: mayKnow ? !without.has(m.user_id as string) : null,
     sections: (sections ?? [])
       .filter((s) => s.user_id === m.user_id)
       .map((s) => ({
