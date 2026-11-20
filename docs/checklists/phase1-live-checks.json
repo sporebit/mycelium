@@ -2,7 +2,7 @@
   "slug": "phase1-live-checks",
   "kind": "test",
   "title": "Live checks after the test pass: one surface per sitting",
-  "version": 2,
+  "version": 3,
   "intro": {
     "verdict_html": "Everything built so far was exercised by automation on 20 November: 482 end-to-end checks as two people, 821 unit and database checks, and a pass that opens all 220 page views. Faults found were fixed or are on the build list. What is left here is only what a machine cannot judge: look, feel, a real voice, a real receipt, a second person's phone. Each chunk is one surface and about fifteen minutes; do them in any order, on any day. Chunk 1 is five minutes and should be first.",
     "prerequisites": [
@@ -1348,6 +1348,97 @@
             {
               "key": "finance_nudge",
               "label": "Arrived? named an amount? (no / yes)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "title": "Finance: net worth with by-hand holdings (10 minutes, on the PC)",
+      "lede_html": "Built and checked by automation as two people. Owner-only; nothing in the page until amounts are shown. A figure keeps the date it was true on, so the line is honest about how old each one is.",
+      "steps": [
+        {
+          "id": "15.1",
+          "title": "Net worth, hidden then shown",
+          "actor": "you",
+          "where": {
+            "label": "Snapshot",
+            "url": "https://mycelium.sporebit.com/finance/snapshot",
+            "kind": "page"
+          },
+          "body_html": "Finance → Snapshot. Amounts hidden: the <b>Net worth</b> panel shows no name and no figure, the chart is not drawn, <b>Add a holding</b> is greyed. Show amounts: the panel shows the sheet's latest figure as the total, no holdings yet.",
+          "fields": [
+            {
+              "key": "nw_hidden",
+              "label": "Anything readable while hidden? (no / what)"
+            }
+          ]
+        },
+        {
+          "id": "15.2",
+          "title": "Add the pension",
+          "actor": "you",
+          "where": {
+            "label": "Snapshot",
+            "url": "https://mycelium.sporebit.com/finance/snapshot",
+            "kind": "page"
+          },
+          "body_html": "Add a holding: kind <b>Pension</b>, its name, the figure from the latest statement, the statement's date as <b>True on</b>. The total rises by that amount; the row says how old the figure is."
+        },
+        {
+          "id": "15.3",
+          "title": "House, mortgage, cars",
+          "actor": "you",
+          "where": {
+            "label": "Snapshot",
+            "url": "https://mycelium.sporebit.com/finance/snapshot",
+            "kind": "page"
+          },
+          "body_html": "Add the house (<b>Property</b>) and the mortgage (<b>Mortgage</b>, typed as what is owed; the row reads <i>owed</i> and the total falls by it). Add each car as <b>Vehicle</b>."
+        },
+        {
+          "id": "15.4",
+          "title": "The monthly pension item",
+          "actor": "you",
+          "where": {
+            "label": "Tickets",
+            "url": "https://mycelium.sporebit.com/organisation/tickets",
+            "kind": "page"
+          },
+          "body_html": "One new recurring item <b>Update the pension figure</b>, due the 1st of next month, exactly once.",
+          "fields": [
+            {
+              "key": "pension_item",
+              "label": "Present once? (yes / no / twice)"
+            }
+          ]
+        },
+        {
+          "id": "15.5",
+          "title": "A new figure, in place",
+          "actor": "you",
+          "where": {
+            "label": "Snapshot",
+            "url": "https://mycelium.sporebit.com/finance/snapshot",
+            "kind": "page"
+          },
+          "body_html": "Type a new pension figure straight into its cell, Enter. The row reads <i>today</i>, the line gains a step at today, and the old figure still stands on the earlier part of the line."
+        },
+        {
+          "id": "15.6",
+          "title": "Does the sheet include Investments?",
+          "actor": "you",
+          "where": {
+            "label": "Snapshot",
+            "url": "https://mycelium.sporebit.com/finance/snapshot",
+            "kind": "page"
+          },
+          "body_html": "Say whether the sheet's net-worth figure already includes the Investments page's holdings. If it does not, a one-line change is ready to add today's Investments value to the line.",
+          "fields": [
+            {
+              "key": "sheet_includes_investments",
+              "label": "Includes them? (yes / no / not sure)"
             }
           ]
         }
