@@ -35,9 +35,15 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
+    ".next-e2e/types/**/*.ts",
+    ".next-e2e/dev/types/**/*.ts",
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "e2e",
+    "playwright.config.ts",
+    ".next-e2e",
+    "pc-worker/.venv"
   ]
 }

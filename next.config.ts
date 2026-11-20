@@ -8,6 +8,9 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
+  // The end-to-end server builds into its own directory, so clearing .next
+  // before a production build cannot pull the floor from under it.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   async redirects() {
     return [
       { source: "/crm", destination: "/organisation", permanent: true },

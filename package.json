@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "e2e": "playwright test",
     "verify:ownership": "node --experimental-strip-types --no-warnings scripts/verify-ownership.ts",
     "isolation-test": "node --experimental-strip-types --no-warnings scripts/isolation-test.ts",
     "tix": "node scripts/tix.mjs",
@@ -49,6 +50,7 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@sentropic/graphify": "^0.10.0",
     "@tailwindcss/postcss": "^4",
     "@types/leaflet": "^1.9.21",
