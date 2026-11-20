@@ -17,6 +17,7 @@ import { PrivacyToggle } from "@/components/dashboard/PrivacyToggle";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { SECTION_ICONS } from "./sectionIcons";
 import { NotificationBell } from "@/components/work/NotificationBell";
+import { useGoneQuiet } from "@/components/dashboard/GoneQuiet";
 
 function isSubActive(pathname: string, sp: SubPage): boolean {
   return pathname === sp.href || pathname.startsWith(sp.href + "/");
@@ -28,6 +29,8 @@ function openCapture() {
 }
 
 export function Sidebar() {
+  const { data: dormant } = useGoneQuiet();
+  const quietByHref = new Map((dormant?.quiet ?? []).map((f) => [f.href, f.how_long ?? ""]));
   const pathname = usePathname();
   const { prefs, setPrefs } = useUiPrefs();
   const collapsed = prefs.sidebar_collapsed;
@@ -116,17 +119,22 @@ export function Sidebar() {
                 <ul className="overflow-hidden ml-9 border-l border-hairline pl-2 py-0.5">
                   {section.subPages.map((sp) => {
                     const subActive = isSubActive(pathname, sp);
+                    // Gone quiet (master run §6): dimmed, with how long on hover. Still a working link.
+                    const quiet = quietByHref.get(sp.href);
                     return (
                       <li key={sp.href}>
                         <Link
                           href={sp.href}
+                          title={quiet ? `Untouched for ${quiet}` : undefined}
+                          data-quiet={quiet ? "true" : undefined}
                           className={`block px-2.5 py-1.5 rounded-v2-sm text-[13px] transition-colors duration-[var(--dur-fast)] [transition-timing-function:var(--ease-out)] ${
                             subActive
                               ? "bg-glow-wash text-text-hi"
                               : "text-text-lo hover:text-text-mid"
-                          }`}
+                          } ${quiet && !subActive ? "opacity-45" : ""}`}
                         >
                           {sp.label}
+                          {quiet ? <span className="sr-only"> (untouched for {quiet})</span> : null}
                         </Link>
                       </li>
                     );

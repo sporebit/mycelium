@@ -3,6 +3,7 @@ import { OperatorZone } from "@/components/dashboard/OperatorZone";
 import { TodayHeader } from "@/components/dashboard/today/TodayHeader";
 import { DashboardSwitcher } from "@/components/dashboard/today/DashboardSwitcher";
 import { LoopLinks } from "@/components/daily/LoopLinks";
+import { GoneQuiet } from "@/components/dashboard/GoneQuiet";
 import { createUserClient } from "@/lib/supabase/user";
 import {
   buildHeadlineContext,
@@ -24,6 +25,7 @@ export default async function DashboardPage() {
     <Shell active="HOME">
       <OperatorZone candidates={candidates} />
       <LoopLinks />
+      <GoneQuiet />
       <TodayHeader />
       <DashboardSwitcher />
     </Shell>
