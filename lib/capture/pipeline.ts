@@ -153,7 +153,7 @@ function cloudAsk(db: SupabaseClient, tag: string): AskModel {
     if (!apiKey) return null;
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "x-mycelium-recorded": "1", "content-type": "application/json" },
       body: JSON.stringify({ model: MODEL_FAST, max_tokens: 200, system, messages: [{ role: "user", content: user }] }),
       signal: AbortSignal.timeout(15_000),
     });

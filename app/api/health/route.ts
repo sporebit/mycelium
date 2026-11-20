@@ -14,5 +14,8 @@ export async function GET() {
     at: new Date().toISOString(),
     commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
     env: process.env.VERCEL_ENV ?? "local",
+    // True when the meter on paid AI calls was installed at server start (instrumentation.ts). If this is
+    // ever false on production, paid calls are going out uncounted and uncapped.
+    ai_meter: Boolean((globalThis as Record<symbol, unknown>)[Symbol.for("mycelium.aiMeter.installed")]),
   });
 }

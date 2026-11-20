@@ -67,3 +67,11 @@ test("the daily prompts job goes round every person and reports what it sent", a
   expect(body.users).toBeGreaterThanOrEqual(2);
   await sys.dispose();
 });
+
+test("the meter on paid AI calls is installed on the running server", async ({ playwright, baseURL }) => {
+  const anon = await playwright.request.newContext({ baseURL, ...signedOut });
+  const health = (await (await anon.get("/api/health")).json()) as { ok: boolean; ai_meter?: boolean };
+  expect(health.ok).toBe(true);
+  expect(health.ai_meter, "instrumentation.ts did not run: paid calls would go out uncounted").toBe(true);
+  await anon.dispose();
+});

@@ -599,6 +599,8 @@ function extractJson(text: string): unknown {
 async function classifyAnthropic(
   text: string,
   systemPrompt: string,
+  /** The caller records this call's usage under its own tag: the meter (lib/system/aiMeter.ts) must not count it again. */
+  selfRecorded = false,
 ): Promise<LlmAttempt> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   // Classification is a fixed-shape JSON task — the fast model is enough.
@@ -612,6 +614,7 @@ async function classifyAnthropic(
       "x-api-key": apiKey,
       "anthropic-version": "2023-06-01",
       "Content-Type": "application/json",
+      ...(selfRecorded ? { "x-mycelium-recorded": "1" } : {}),
     },
     body: JSON.stringify({
       model,
@@ -637,6 +640,7 @@ async function classifyAnthropic(
 async function classifyOpenAI(
   text: string,
   systemPrompt: string,
+  selfRecorded = false,
 ): Promise<LlmAttempt> {
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.OPENAI_CLASSIFIER_MODEL;
@@ -648,6 +652,7 @@ async function classifyOpenAI(
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
+      ...(selfRecorded ? { "x-mycelium-recorded": "1" } : {}),
     },
     body: JSON.stringify({
       model,
@@ -1112,7 +1117,7 @@ export async function classifyCapture(
   }
 
   try {
-    const anthropic = await classifyAnthropic(text, systemPrompt);
+    const anthropic = await classifyAnthropic(text, systemPrompt, !!rules?.usageTag);
     await account("anthropic", anthropic.usage);
     if (anthropic.classification) return dropIgnoredMentions({ classification: anthropic.classification, llm_source: "anthropic" }, rules);
   } catch (err) {
@@ -1120,7 +1125,7 @@ export async function classifyCapture(
   }
 
   try {
-    const openai = await classifyOpenAI(text, systemPrompt);
+    const openai = await classifyOpenAI(text, systemPrompt, !!rules?.usageTag);
     await account("openai", openai.usage);
     if (openai.classification) return dropIgnoredMentions({ classification: openai.classification, llm_source: "openai" }, rules);
   } catch (err) {

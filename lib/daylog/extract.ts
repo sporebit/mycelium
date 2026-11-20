@@ -51,7 +51,7 @@ async function haikuPatch(db: SupabaseClient, dayId: string, user: string, tag: 
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+      headers: { "content-type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01", "x-mycelium-recorded": "1" },
       signal: ctrl.signal,
       body: JSON.stringify({
         model: MODEL_FAST,
