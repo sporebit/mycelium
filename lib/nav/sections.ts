@@ -34,6 +34,7 @@ export const SECTIONS: SectionConfig[] = [
       { label: "Captures", href: "/organisation/captures", primary: true },
       { label: "People", href: "/organisation/people", primary: true },
       { label: "Calendar", href: "/organisation/calendar", primary: true },
+      { label: "Family", href: "/family", primary: true },
       { label: "Decisions", href: "/organisation/decisions", primary: false },
       { label: "Ideas", href: "/organisation/ideas", primary: false },
       { label: "Purchases", href: "/organisation/purchases", primary: false },

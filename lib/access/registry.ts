@@ -93,6 +93,23 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
   },
   {
     section: "organisation",
+    group: "family",
+    tables: [
+      "family_profile",
+      "family_acks",
+      "family_entries",
+      "family_names",
+      "family_name_votes",
+      "family_lists",
+      "family_list_items",
+      "baby_log",
+      "household_items",
+      "household_costs",
+    ],
+    note: "The family space (0171): a team's space that holds a family_profile row. One timeline, names with votes, prep lists, the baby log, household admin and the household budget (family data; nothing to do with the finance section). A vote and an acknowledgement belong to the person who made them (restrictive policies).",
+  },
+  {
+    section: "organisation",
     group: "people",
     tables: ["people", "people_mentions", "people_aliases", "entities", "person_phones", "person_emails", "person_vcards", "people_import_batches", "people_import_candidates", "people_ignored_terms"],
     note: "People contacts (0140): numbers, emails and raw vCards per person; import batches with a review list. people.tier / deleted_at / merged_into_id / archived_at live on people. people_ignored_terms (0149): terms that are never people.",

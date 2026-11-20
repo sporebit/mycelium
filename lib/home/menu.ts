@@ -29,6 +29,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     label: "Life",
     items: [
       { label: "Organisation", href: "/organisation" },
+      { label: "Family", href: "/family" },
       { label: "Journal", href: "/journal" },
       { label: "Places", href: "/places" },
     ],

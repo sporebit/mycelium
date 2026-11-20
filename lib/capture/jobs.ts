@@ -8,6 +8,7 @@
  * and never over a hand edit (lib/capture/transcript.ts).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { applyLetterTranscript, letterAudio } from "@/lib/family/files";
 import { enqueueJob } from "@/lib/jobs/queue";
 import { registerJobHandler } from "@/lib/jobs/handlers";
 import { signCaptureAudio } from "@/lib/storage/captures";
@@ -88,6 +89,12 @@ export async function applyTranscript(
 
 registerJobHandler("transcribe", {
   prepare: async (job, db) => {
+    // A letter to the baby, spoken (lib/family/files.ts): the same work on the PC, a different place for the words.
+    if (typeof job.payload.family_entry_id === "string") {
+      const audio = await letterAudio(db, job.payload.family_entry_id);
+      if (!audio) throw new Error("the letter has no recording");
+      return { ...audio, language: "en" };
+    }
     const captureId = String(job.payload.capture_id ?? "");
     const { data } = await db.from("raw_captures").select("id, audio_path").eq("id", captureId).maybeSingle();
     const path = (data as { audio_path: string | null } | null)?.audio_path;
@@ -97,8 +104,12 @@ registerJobHandler("transcribe", {
     return { audio_url: url, audio_ext: path.split(".").pop() ?? "m4a", language: "en" };
   },
   apply: async (job, result, db) => {
-    const captureId = String(job.payload.capture_id ?? "");
     const text = typeof result.text === "string" ? result.text : "";
+    if (typeof job.payload.family_entry_id === "string") {
+      await applyLetterTranscript(db, job.payload.family_entry_id, text);
+      return;
+    }
+    const captureId = String(job.payload.capture_id ?? "");
     if (!job.created_by) throw new Error("job has no owner");
     await applyTranscript(db, job.created_by, captureId, text, "whisper_pc");
   },
