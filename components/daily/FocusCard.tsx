@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button, Surface } from "@/components/ui";
 import { useApi } from "@/lib/data/useApi";
 import type { TodayCard, TodayView } from "@/lib/daily/view";
-import { about, BUTTONS, LABELS } from "@/lib/daily/words";
+import { about, BUTTONS, LABELS, timerNotice } from "@/lib/daily/words";
 import { playChime } from "./chime";
 
 type Wip = { limit: number; in_progress: Array<{ id: string; ticket_key: string | null; title: string }> };
@@ -149,6 +149,12 @@ export function FocusCard({ initial, chime = true }: { initial: TodayView | null
                 {clock(left)}
               </span>
             </div>
+          ) : null}
+          {/* The timer's own notices (research rule 27): ten and two minutes out, said here, where there is nothing to interrupt. */}
+          {card.state === "started" && left !== null && timerNotice(Math.ceil(left / 60)) ? (
+            <p className="text-sm text-text-mid" aria-live="polite" data-testid="timer-notice">
+              {timerNotice(Math.ceil(left / 60))}
+            </p>
           ) : null}
 
           {view.needs_ok && card.state === "planned" ? (

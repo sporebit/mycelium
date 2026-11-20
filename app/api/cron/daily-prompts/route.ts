@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { matchesBearer } from "@/lib/auth/gate";
+import { runNotices } from "@/lib/daily/noticesServer";
 import { runFallbacks } from "@/lib/daily/prompts";
 import { tellSendersOfDone } from "@/lib/system/nudges";
 import { activeUserIds } from "@/lib/system/users";
@@ -22,13 +23,21 @@ async function run(req: NextRequest) {
   }
   const now = londonNow();
   const time = `${String(Math.floor(now.minutes / 60)).padStart(2, "0")}:${String(now.minutes % 60).padStart(2, "0")}`;
-  const out = { users: 0, morning: 0, evening: 0, nudges_told: 0, failed: 0 };
+  const out = { users: 0, morning: 0, evening: 0, notices: 0, nudges_told: 0, failed: 0 };
   for (const uid of await activeUserIds()) {
     try {
       const sent = await withUser(uid, (db) => runFallbacks(db, uid, time));
       out.users += 1;
       if (sent.morning) out.morning += 1;
       if (sent.evening) out.evening += 1;
+      // Notices before a scheduled switch (research rule 27): a ticket with a time today, or the week's close-out at its slot.
+      out.notices += await withUser(uid, (db) => runNotices(db, uid)).then(
+        (r) => r.sent,
+        (err) => {
+          console.error(`[cron/daily-prompts] notices for ${uid}:`, err);
+          return 0;
+        },
+      );
       // Anyone who nudged this person about something now finished is told, once (research rule 30).
       out.nudges_told += await tellSendersOfDone(uid).catch((err) => {
         console.error(`[cron/daily-prompts] nudges for ${uid}:`, err);

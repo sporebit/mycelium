@@ -42,6 +42,8 @@ export type InterruptInput = {
   speak?: string | null;
   /** Sent at a time the person set themselves; see budget.ts. */
   atChosenTime?: boolean;
+  /** A notice before a scheduled switch: goes while a timer runs; see budget.ts. */
+  switchNotice?: boolean;
   /**
    * The caller sends the message itself (a Telegram message with buttons or
    * its own layout) and says whether it went. The decision and the ledger
@@ -110,6 +112,7 @@ export async function interrupt(db: SupabaseClient, uid: string, input: Interrup
     wording,
     essential: input.essential,
     atChosenTime: input.atChosenTime,
+    switchNotice: input.switchNotice,
   });
   if (!decision.allow) return { sent: false, reason: decision.reason };
 
