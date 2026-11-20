@@ -32,7 +32,19 @@ export const PUBLIC_PREFIXES: readonly string[] = [
  * principal was never set and the anon role did the work (0151 found it:
  * Gousto ingest with x-api-secret hit "permission denied").
  */
-export const PUBLIC_EXACT: readonly string[] = ["/api/health"];
+export const PUBLIC_EXACT: readonly string[] = [
+  "/api/health",
+  // The installable-app files. They hold nothing personal, and the browser
+  // fetches them on the sign-in and invite pages before anyone is signed
+  // in: behind the gate they answered with a redirect, and the service
+  // worker failed to register there (found 2026-11-20).
+  "/sw.js",
+  "/manifest.webmanifest",
+  "/manifest.json",
+];
+
+/** Static, impersonal files the installable app needs before sign-in (icons, the worker's own chunks). */
+export const PUBLIC_ASSET_PREFIXES: readonly string[] = ["/icons/", "/swe-worker-"];
 
 /** Reachable with PC_METRICS_SECRET as a bearer token, this path only. */
 export const PC_METRICS_PREFIX = "/api/studio/pc-metrics";
@@ -76,6 +88,7 @@ export type AssuranceLevel = "aal1" | "aal2";
 
 export function isPublicPath(pathname: string): boolean {
   if (PUBLIC_EXACT.includes(pathname.replace(/\/+$/, "") || "/")) return true;
+  if (PUBLIC_ASSET_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return true;
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { getSessionUser } from "@/lib/auth/session";
 import { LIMITS, clientIp, takeToken } from "@/lib/system/rateLimit";
+import { secondFactorFailed, secondFactorLocked, secondFactorSucceeded } from "@/lib/system/secondFactor";
 
 export const runtime = "nodejs";
 
@@ -19,11 +20,11 @@ export async function POST(req: NextRequest) {
 
   const supabase = await createUserClient();
 
-  const { data: locked } = await supabase.rpc("second_factor_locked");
+  const locked = await secondFactorLocked(me.id);
   if (locked === true) {
     return NextResponse.json({ error: "Too many failed codes. Try again in 15 minutes.", locked: true }, { status: 423 });
   }
-  if (!(await takeToken(supabase, `totp:ip:${clientIp(req.headers)}`, LIMITS.totpVerify))) {
+  if (!(await takeToken(`totp:ip:${clientIp(req.headers)}`, LIMITS.totpVerify))) {
     return NextResponse.json({ error: "Too many attempts. Slow down." }, { status: 429 });
   }
 
@@ -35,12 +36,12 @@ export async function POST(req: NextRequest) {
 
   const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: factor.id, code });
   if (error) {
-    const { data: nowLocked } = await supabase.rpc("second_factor_failed");
+    const nowLocked = await secondFactorFailed(me.id);
     return NextResponse.json(
       { error: nowLocked === true ? "Too many failed codes. Locked for 15 minutes." : "That code was not accepted", locked: nowLocked === true },
       { status: nowLocked === true ? 423 : 401 },
     );
   }
-  await supabase.rpc("second_factor_succeeded");
+  await secondFactorSucceeded(me.id);
   return NextResponse.json({ ok: true });
 }

@@ -25,7 +25,7 @@
  * try/catch keeps a render from throwing when it does occur.
  */
 import { createServerClient as createSsrServerClient } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
 import { PRINCIPAL_HEADER, PRINCIPAL_PATH_HEADER, PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { auditBreakGlass } from "@/lib/system/audit";
@@ -44,6 +44,17 @@ export async function createUserClient(): Promise<SupabaseClient> {
       auditBreakGlass(principalUser, h.get(PRINCIPAL_PATH_HEADER) ?? "?", h);
     }
     return clientForUser(principalUser);
+  }
+  if (principal === "system") {
+    // CRON_SECRET names no user. Without this, a request that carried the
+    // cron bearer AND a browser's cookies fell through to the cookie client
+    // below and acted as that browser's user, on a path the middleware had
+    // already waved through as "system" (found 2026-11-20). A system
+    // principal with no user acts as nobody: cron routes pick their users
+    // with withUser().
+    return createClient(supabaseUrl, anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
   }
 
   const cookieStore = await cookies();

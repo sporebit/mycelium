@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   }
 
   const db = await createUserClient();
-  if (!(await takeToken(db, `invite:user:${me.id}`, LIMITS.inviteUser))) {
+  if (!(await takeToken(`invite:user:${me.id}`, LIMITS.inviteUser))) {
     return NextResponse.json({ error: "Too many invites in a short time. Try again later." }, { status: 429 });
   }
   const { data: token, error } = await db.rpc("create_invite", { p_email: email, p_team: teamId, p_role: role });

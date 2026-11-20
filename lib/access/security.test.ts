@@ -30,12 +30,25 @@ async function token(uid: string, email: string) {
   const k = `${uid}:${email}`;
   let t = tokens.get(k);
   if (!t) {
-    t = await mintUserJwt({ sub: uid, email, secret: env.jwtSecret, issuer: `${env.apiUrl}/auth/v1` });
+    // aal2: sharing a personal space needs a second factor in the session (0160).
+    t = await mintUserJwt({ sub: uid, email, secret: env.jwtSecret, issuer: `${env.apiUrl}/auth/v1`, aal: "aal2" });
     tokens.set(k, t);
   }
   return t;
 }
 type Rest = { status: number; body: unknown };
+/** The server's own door: rate limits and the second-factor lockout are service-role only since 0160. */
+async function serviceRpc(fn: string, args: Record<string, unknown> = {}): Promise<Rest> {
+  const res = await fetch(`${env.apiUrl}/rest/v1/rpc/${fn}`, {
+    method: "POST",
+    headers: { apikey: env.serviceRoleKey, authorization: `Bearer ${env.serviceRoleKey}`, "content-type": "application/json" },
+    body: JSON.stringify(args),
+  });
+  const text = await res.text();
+  let parsed: unknown = text;
+  try { parsed = JSON.parse(text); } catch { /* text */ }
+  return { status: res.status, body: parsed };
+}
 async function rest(uid: string | null, method: string, path: string, body?: unknown, email = ""): Promise<Rest> {
   const headers: Record<string, string> = { apikey: env.anonKey, "content-type": "application/json", prefer: "return=representation" };
   if (uid) headers.authorization = `Bearer ${await token(uid, email || (uid === PHIL_AUTH_UID ? "phil@mycelium.local" : uid === VIC ? VIC_EMAIL : TESS_EMAIL))}`;
@@ -189,29 +202,55 @@ describe("rate limits and second-factor lockout", () => {
     const results: boolean[] = [];
     // Refill of 1 per minute: nothing meaningful comes back within the test.
     for (let i = 0; i < 4; i++) {
-      const r = await rpc(null, "rate_limit_take", { p_key: key, p_capacity: 3, p_refill_per_minute: 1, p_cost: 1 });
+      const r = await serviceRpc("rate_limit_take", { p_key: key, p_capacity: 3, p_refill_per_minute: 1, p_cost: 1 });
       results.push(r.body === true);
     }
     expect(results).toEqual([true, true, true, false]);
     // A minute later (backdated), one token has refilled.
     sql(`update public.rate_limits set updated_at = updated_at - interval '61 seconds' where key = '${key}'`);
-    const again = await rpc(null, "rate_limit_take", { p_key: key, p_capacity: 3, p_refill_per_minute: 1, p_cost: 1 });
+    const again = await serviceRpc("rate_limit_take", { p_key: key, p_capacity: 3, p_refill_per_minute: 1, p_cost: 1 });
     expect(again.body).toBe(true);
-    const andAgain = await rpc(null, "rate_limit_take", { p_key: key, p_capacity: 3, p_refill_per_minute: 1, p_cost: 1 });
+    const andAgain = await serviceRpc("rate_limit_take", { p_key: key, p_capacity: 3, p_refill_per_minute: 1, p_cost: 1 });
     expect(andAgain.body).toBe(false);
   });
 
+  it("the token bucket cannot be emptied or refilled by a stranger or by a signed-in user (0160)", async () => {
+    const key = `v5-own:${Date.now()}`;
+    expect((await serviceRpc("rate_limit_take", { p_key: key, p_capacity: 3, p_refill_per_minute: 1, p_cost: 1 })).body).toBe(true);
+    const before = sql(`select tokens from public.rate_limits where key = '${key}'`)[0][0];
+    // The attack: capacity 0 empties the bucket; a huge refill resets it. Neither caller may run the function at all.
+    for (const who of [null, TESS]) {
+      const drained = await rpc(who, "rate_limit_take", { p_key: key, p_capacity: 0, p_refill_per_minute: 0, p_cost: 0 });
+      const refilled = await rpc(who, "rate_limit_take", { p_key: key, p_capacity: 1000000, p_refill_per_minute: 1000000000, p_cost: 0 });
+      expect(ok(drained), `drain as ${who ?? "anon"}`).toBe(false);
+      expect(ok(refilled), `refill as ${who ?? "anon"}`).toBe(false);
+    }
+    expect(sql(`select tokens from public.rate_limits where key = '${key}'`)[0][0]).toBe(before);
+  });
+
   it("ten failures in fifteen minutes lock the second factor; success clears it", async () => {
-    for (let i = 0; i < 9; i++) expect((await rpc(TESS, "second_factor_failed")).body).toBe(false);
-    const tenth = await rpc(TESS, "second_factor_failed");
+    for (let i = 0; i < 9; i++) expect((await serviceRpc("second_factor_failed", { p_user: TESS })).body).toBe(false);
+    const tenth = await serviceRpc("second_factor_failed", { p_user: TESS });
     expect(tenth.body).toBe(true);
-    expect((await rpc(TESS, "second_factor_locked")).body).toBe(true);
+    expect((await serviceRpc("second_factor_locked", { p_user: TESS })).body).toBe(true);
     expect(auditCount("second_factor_locked", `and subject_user_id = '${TESS}'`)).toBeGreaterThanOrEqual(1);
     sql(`update public.second_factor_failures set at = at - interval '16 minutes' where user_id = '${TESS}'`);
-    expect((await rpc(TESS, "second_factor_locked")).body).toBe(false);
-    expect(ok(await rpc(TESS, "second_factor_failed"))).toBe(true);
-    expect(ok(await rpc(TESS, "second_factor_succeeded"))).toBe(true);
+    expect((await serviceRpc("second_factor_locked", { p_user: TESS })).body).toBe(false);
+    expect(ok(await serviceRpc("second_factor_failed", { p_user: TESS }))).toBe(true);
+    expect(ok(await serviceRpc("second_factor_succeeded", { p_user: TESS }))).toBe(true);
     expect(Number(sql(`select count(*) from public.second_factor_failures where user_id = '${TESS}'`)[0][0])).toBe(0);
+  });
+
+  it("nobody can clear their own lockout: the counters answer to the server only (0160)", async () => {
+    expect((await serviceRpc("second_factor_failed", { p_user: TESS })).body).toBe(false);
+    for (const args of [{}, { p_user: TESS }]) {
+      expect(ok(await rpc(TESS, "second_factor_succeeded", args)), "succeeded as the user").toBe(false);
+      expect(ok(await rpc(TESS, "second_factor_locked", args)), "locked as the user").toBe(false);
+      expect(ok(await rpc(TESS, "second_factor_failed", args)), "failed as the user").toBe(false);
+      expect(ok(await rpc(null, "second_factor_succeeded", args)), "succeeded as anon").toBe(false);
+    }
+    expect(Number(sql(`select count(*) from public.second_factor_failures where user_id = '${TESS}'`)[0][0])).toBe(1);
+    await serviceRpc("second_factor_succeeded", { p_user: TESS });
   });
 });
 

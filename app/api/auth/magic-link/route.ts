@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { safeNextPath } from "@/lib/auth/next-path";
-import { LIMITS, anonClient, clientIp, takeToken } from "@/lib/system/rateLimit";
+import { LIMITS, clientIp, takeToken } from "@/lib/system/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -17,12 +17,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "A valid email is required" }, { status: 400 });
   }
   const next = safeNextPath(typeof body.next === "string" ? body.next : null);
-
-  const limiter = anonClient();
   const ip = clientIp(req.headers);
   const [ipOk, emailOk] = await Promise.all([
-    takeToken(limiter, `magic:ip:${ip}`, LIMITS.magicLinkIp),
-    takeToken(limiter, `magic:email:${email}`, LIMITS.magicLinkEmail),
+    takeToken(`magic:ip:${ip}`, LIMITS.magicLinkIp),
+    takeToken(`magic:email:${email}`, LIMITS.magicLinkEmail),
   ]);
   if (!ipOk || !emailOk) {
     return NextResponse.json({ error: "Too many requests. Try again in a few minutes." }, { status: 429 });

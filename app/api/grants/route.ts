@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { REAUTH_COOKIE, verifyReauth } from "@/lib/auth/reauth";
 import { getSessionUser } from "@/lib/auth/session";
 import { createUserClient } from "@/lib/supabase/user";
 import { GROUPS_BY_SECTION, SHAREABLE_SECTIONS, VERBS, listGrants, rpcMessage } from "@/lib/access/teams";
@@ -21,10 +23,26 @@ export async function GET() {
  * Share part of MY personal space with a person: { grantee_id, section,
  * entity_groups?, verbs, expires_at?, reason? }. Finance and platform are
  * not offered here and are refused by the table's constraint anyway.
+ *
+ * Sharing opens your own data to someone else, so it needs your second
+ * factor, presented in this session and confirmed again in the last ten
+ * minutes (the same rule as account deletion). The database function
+ * requires the second factor too (0160); the fresh confirmation is checked
+ * here. Until 2026-11-20 neither was enforced, although the spec said so.
  */
 export async function POST(req: NextRequest) {
   const me = await getSessionUser();
   if (!me) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (me.aal !== "aal2") {
+    return NextResponse.json(
+      { error: "Sharing needs an authenticator. Set one up under Settings → Security, sign in with it, then share.", reason: "mfa_required" },
+      { status: 403 },
+    );
+  }
+  const fresh = await verifyReauth((await cookies()).get(REAUTH_COOKIE)?.value, me.id, process.env.SUPABASE_JWT_SECRET);
+  if (!fresh) {
+    return NextResponse.json({ error: "Confirm your authenticator code to share.", reason: "reauth_required" }, { status: 403 });
+  }
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const grantee = typeof body.grantee_id === "string" ? body.grantee_id : "";
   const section = typeof body.section === "string" ? body.section : "";

@@ -82,7 +82,7 @@ export async function ticketWriteGate(
   supabase: SupabaseClient,
   uid: string | null,
 ): Promise<NextResponse | null> {
-  const ok = await takeToken(supabase, `tickets:user:${uid ?? "anon"}`, LIMITS.ticketWrite);
+  const ok = await takeToken(`tickets:user:${uid ?? "anon"}`, LIMITS.ticketWrite);
   if (ok) return null;
   return NextResponse.json({ error: "rate limited" }, { status: 429 });
 }

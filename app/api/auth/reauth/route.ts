@@ -3,6 +3,7 @@ import { createUserClient } from "@/lib/supabase/user";
 import { getSessionUser } from "@/lib/auth/session";
 import { REAUTH_COOKIE, REAUTH_MAX_AGE, signReauth } from "@/lib/auth/reauth";
 import { LIMITS, clientIp, takeToken } from "@/lib/system/rateLimit";
+import { secondFactorFailed, secondFactorLocked, secondFactorSucceeded } from "@/lib/system/secondFactor";
 
 export const runtime = "nodejs";
 
@@ -24,9 +25,9 @@ export async function POST(req: NextRequest) {
   if (!/^\d{6}$/.test(code)) return NextResponse.json({ error: "Enter the six-digit code" }, { status: 400 });
 
   const supabase = await createUserClient();
-  const { data: locked } = await supabase.rpc("second_factor_locked");
+  const locked = await secondFactorLocked(me.id);
   if (locked === true) return NextResponse.json({ error: "Too many failed codes. Try again in 15 minutes.", locked: true }, { status: 423 });
-  if (!(await takeToken(supabase, `totp:ip:${clientIp(req.headers)}`, LIMITS.totpVerify))) {
+  if (!(await takeToken(`totp:ip:${clientIp(req.headers)}`, LIMITS.totpVerify))) {
     return NextResponse.json({ error: "Too many attempts. Slow down." }, { status: 429 });
   }
 
@@ -36,10 +37,10 @@ export async function POST(req: NextRequest) {
 
   const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: factor.id, code });
   if (error) {
-    const { data: nowLocked } = await supabase.rpc("second_factor_failed");
+    const nowLocked = await secondFactorFailed(me.id);
     return NextResponse.json({ error: "That code was not accepted", locked: nowLocked === true }, { status: nowLocked === true ? 423 : 401 });
   }
-  await supabase.rpc("second_factor_succeeded");
+  await secondFactorSucceeded(me.id);
 
   const token = await signReauth(me.id, secret);
   const res = NextResponse.json({ ok: true, expiresIn: REAUTH_MAX_AGE });

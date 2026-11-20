@@ -64,11 +64,15 @@ export async function middleware(req: NextRequest) {
     return passThrough(req, "system");
   }
 
-  // 3. System principals.
+  // 3. System principals. A shared secret is not a person with a second
+  // factor, so it never reaches a sensitive path (admin, account): before
+  // 2026-11-20 the secret was checked first and the sensitive check never ran.
   if (matchesBearer(authorization, process.env.CRON_SECRET)) {
+    if (isSensitivePath(pathname)) return forbiddenMfa(pathname);
     return passThrough(req, "system");
   }
   if (matchesSecret(req.headers.get("x-api-secret"), process.env.API_SECRET)) {
+    if (isSensitivePath(pathname)) return forbiddenMfa(pathname);
     return passThrough(req, "system", PHIL_AUTH_UID);
   }
 
@@ -123,6 +127,16 @@ export async function middleware(req: NextRequest) {
 
   if (claims?.sub) {
     const aal: AssuranceLevel = isAal2(claims.aal) ? "aal2" : "aal1";
+    // 5b. A second factor that is enrolled is required. A password (or a
+    // magic link) alone leaves the session at aal1; if this account has an
+    // authenticator, that session may only finish signing in. The database
+    // refuses such a session too (0160); this is so the person sees the
+    // code prompt instead of empty pages. Read from the session cookie, no
+    // network call.
+    if (!isAal2(aal)) {
+      const { data: level } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (level?.nextLevel === "aal2") return withRefreshedCookies(secondFactorOwed(req));
+    }
     // 6. Sensitive routes need a second factor, presented recently.
     if (isSensitivePath(pathname)) {
       if (!isAal2(aal)) return withRefreshedCookies(forbiddenMfa(pathname));
@@ -182,6 +196,20 @@ function passThrough(
   if (aal) headers.set(PRINCIPAL_AAL_HEADER, aal);
   if (scopes) headers.set(PRINCIPAL_SCOPES_HEADER, scopes);
   return NextResponse.next({ request: { headers } });
+}
+
+/** A session that still owes its second factor: APIs get 403, pages go to the code prompt. */
+function secondFactorOwed(req: NextRequest): NextResponse {
+  const { pathname } = req.nextUrl;
+  if (isApiPath(pathname)) {
+    return NextResponse.json({ error: "Forbidden", reason: "mfa_required" }, { status: 403 });
+  }
+  const url = req.nextUrl.clone();
+  url.pathname = "/login";
+  url.search = "";
+  url.searchParams.set("step", "mfa");
+  url.searchParams.set("next", pathname);
+  return NextResponse.redirect(url);
 }
 
 function forbiddenReauth(pathname: string): NextResponse {
