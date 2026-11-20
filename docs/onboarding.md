@@ -56,3 +56,36 @@ Afterwards you sign in at `/login` with the same method (magic link, password, p
 | Sign-in email never arrives | the address was mistyped on the invite, or it is in spam | check spam; ask the inviter to confirm the address and resend |
 | "Check your email" and nothing happens after clicking the link | the link opened on a different device or browser | open the invite link again where you are signed in |
 | Sent to "Enrol an authenticator" | you were invited as owner or admin | enrol; it takes a minute with any authenticator app |
+
+## 8. What changed on 2026-11-20
+
+*Added by the master run. Where this section and the ones above disagree, this one is right.*
+
+- **An authenticator, once set up, is asked for at every sign-in**, whichever way you sign in (password, magic link, Google). Until the code is given the app shows nothing. Before, a password alone opened everything.
+- **Owners and admins must have an authenticator.** If you become an owner or admin without one (promoted, named successor, or by creating a team) you are taken straight to Settings → Security to set one up, and everything opens again as soon as it is done. Do it before the promotion to avoid the detour.
+- **"Sign out there" is immediate.** A device signed out from another device lands on the sign-in page at its next tap.
+- **Sharing asks for your code and brings you back.** Press Share, confirm your authenticator code on the Security page, and you are returned to the share form to fill it in.
+- **Your Day log is private day by day.** Sharing your Day log with someone shows them nothing by itself. On any day's page there is a switch, **Private / Shared**. Only days you switch to Shared are visible to the people you share your Day log with, and they see the summary and the scenes: not the conversation, the facts pulled from it, the scores or anything else. Take the switch back and it is gone at once.
+- **Reading someone's shared days.** They appear on your own Journal page under **Shared with me**. They are never mixed into your own days.
+- **Nudge.** On an item that is someone else's and that you can see, a **Nudge** button offers four fixed wordings, all offers ("Want company for this?"). They get a notification that does not count against the app's own limit of three a day. They can answer **Not today** with one tap; you are not told about that. When they finish the thing, you are told.
+- **Your name.** A new account now starts with your own name, not the owner's. Changing it in Settings changes what everyone else sees.
+- **Today, Finish line, Close the day.** Three new pages for the day itself: the one next thing with a first step; up to three things that are nearly done; and a two-minute close in the evening.
+
+## 9. A first run for a partner
+
+*For the second person in a household, on her own phone. About fifteen minutes. The person inviting should read the two notes first.*
+
+**Before the invite (the person inviting):** the email service must be set up, or the invite is not emailed and the page shows a link to send by hand. Invite as **member**, not admin: an admin must set up an authenticator before the app will open.
+
+1. **Open the invite** from the email. It shows who invited you and to which team. Choose **Password**, set one, and confirm from the email it sends. If that lands you on the home page, open the invite link once more and press **Accept**.
+2. **Add it to the Home Screen.** In Safari: Share → Add to Home Screen. Open it from there from now on.
+3. **Allow notifications** when asked. Without them a nudge or a "finished" message has nowhere to go.
+4. **Set your name.** Settings → Profile. This is what the other person sees.
+5. **Look at what you have.** Your own space starts with Work, Fitness, Health and the Day log. Everything you make is yours and private until you share it. The team's space is separate: anything put there is seen by everyone in the team.
+6. **Capture one thing.** The + button: type something to do. It answers "Saved" at once and files it a moment later.
+7. **Open Today.** One card: the next thing, a first step, about how long. Start, Not now, or Swap.
+8. **See what has been shared with you.** Settings → People & teams → Shared with me lists it. Open one of the other person's items and try **Nudge**.
+9. **Decide about the authenticator.** Settings → Security → Enrol takes a minute with any authenticator app. Without one you can do everything except share your own things and see who has read them. With one, every sign-in asks for its code.
+10. **Share something back, if you want to.** Settings → People & teams → Share: the person's exact email, the section, what they may do. For the Day log, remember the switch on each day: sharing the section shows nothing until a day is switched to Shared.
+
+**If it goes wrong:** the table in section 7 still applies. Two more: *pages open empty and an error mentions an authenticator* means your role now needs one (go to Settings → Security); *you were signed out without doing it* means the other person pressed "Sign out there" for your device (sign in again).
