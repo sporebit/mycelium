@@ -6,7 +6,7 @@ import { Mono } from "@/components/dashboard/Mono";
 import { fmtHm, isOpenItem } from "@/lib/hours/calc";
 import { defaultEntryDate } from "@/lib/hours/entry";
 import { AddEntryBar } from "./AddEntryBar";
-import { EntryRow } from "./EntryRow";
+import { EntryHeader, EntryRow } from "./EntryRow";
 import { useHoursBundle } from "./useHours";
 
 /**
@@ -41,13 +41,14 @@ export function BacklogView() {
         </div>
       </div>
       <AddEntryBar defaultDate={defaultEntryDate(bundle.entries, today)} catchAll={catchAll} />
-      <p className="text-xs text-text-lo">Open work: anything with a description or ticket and no Time Spent. Click a row and fill in Time Spent when it is done; it then moves to the Log.</p>
+      <p className="text-xs text-text-lo">Open work: anything with a description or ticket and no Time Spent. Type into Time when it is done; it then moves to the Log. Enter saves and moves down, Tab across, Esc puts a cell back.</p>
       {open.length === 0 ? (
         <div className="rounded-v2-md border border-hairline p-6 text-center text-sm text-text-lo">No open items.</div>
       ) : (
-        <div>
+        <div data-hours-grid>
+          <EntryHeader showEstimate />
           {open.map((e) => (
-            <EntryRow key={e.id} entry={e} baseUrl={index.settings.ticketBaseUrl} showDate />
+            <EntryRow key={e.id} entry={e} baseUrl={index.settings.ticketBaseUrl} showEstimate />
           ))}
         </div>
       )}

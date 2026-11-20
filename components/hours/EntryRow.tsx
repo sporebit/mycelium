@@ -1,166 +1,230 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
-import { Button } from "@/components/ui";
+import { useRef, useState, type KeyboardEvent } from "react";
 import { entryState, fmtHm, parseDuration } from "@/lib/hours/calc";
 import type { HoursEntry } from "@/lib/hours/types";
-import { Field, INPUT_SM, StateDot, TicketLink } from "./kit";
+import { parseTicket } from "@/lib/hours/ticket";
+import { StateDot } from "./kit";
 import { useEntryMutations } from "./useEntryMutations";
 
 /**
- * One Log row (spec §5, §7: Date, Time Spent, Description, Ticket, Logged —
- * no visible id, no status column). Click the row to edit it in place; the
- * Logged tick and the ticket link work without opening it. `showDate` is
- * for lists that are not grouped by day (Backlog, search results).
+ * One Log row edited like a spreadsheet (Phil, 2026-11-20): every cell is an
+ * input that reads as text until it has focus. A change saves when the cell
+ * loses focus or on Enter; Enter and Shift+Enter move down and up the same
+ * column (Excel's habit), Tab moves across, Esc puts the cell back. The
+ * Logged tick saves at once. The row's ticket opens in a new tab from the
+ * small link beside the cell (D3). Spec §7: Date, Time Spent, Description,
+ * Ticket, Logged — no visible id or status column. `showEstimate` adds the
+ * Estimate cell (Backlog); `showDate` is on wherever rows are not grouped by day.
  */
-export function EntryRow({ entry, baseUrl, showDate = false, startOpen = false }: { entry: HoursEntry; baseUrl: string; showDate?: boolean; startOpen?: boolean }) {
-  const { patch } = useEntryMutations();
-  const [editing, setEditing] = useState(startOpen);
+export function EntryRow({ entry, baseUrl, showDate = true, showEstimate = false }: { entry: HoursEntry; baseUrl: string; showDate?: boolean; showEstimate?: boolean }) {
+  const { patch, remove } = useEntryMutations();
   const state = entryState(entry);
   const pending = entry.id.startsWith("tmp-");
+  const ticket = parseTicket(entry.ticket_raw, baseUrl);
 
-  if (editing) return <EntryEditor entry={entry} onClose={() => setEditing(false)} />;
+  const del = async () => {
+    if (!window.confirm(`Delete "${entry.description || entry.ticket_raw || "this entry"}"?`)) return;
+    await remove(entry.id);
+  };
+
+  const cols = `${showDate ? "9.5rem_" : ""}4.5rem_${showEstimate ? "4.5rem_" : ""}minmax(0,1fr)_10rem_auto_auto`;
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={() => !pending && setEditing(true)}
-      onKeyDown={(e) => {
-        if ((e.key === "Enter" || e.key === " ") && !pending) {
-          e.preventDefault();
-          setEditing(true);
-        }
-      }}
-      className={`group grid grid-cols-[auto_4.5rem_1fr_auto] sm:grid-cols-[auto_4.5rem_1fr_11rem_auto] items-center gap-x-3 gap-y-0.5 px-2 py-1.5 rounded-v2-md hover:bg-surface-1 cursor-pointer ${pending ? "opacity-60" : ""}`}
+      className={`group grid items-center gap-x-1 px-1 py-0.5 rounded-v2-md hover:bg-surface-1 focus-within:bg-surface-1 ${pending ? "opacity-60 pointer-events-none" : ""}`}
+      style={{ gridTemplateColumns: `auto ${cols.replace(/_/g, " ")}` }}
+      data-hours-row
     >
-      <StateDot state={state} />
-      <span className={`font-[family-name:var(--font-mono)] tabular-nums text-sm text-right ${entry.minutes === null ? "text-text-lo" : "text-text-hi"}`}>
-        {entry.minutes === null ? (entry.estimate_minutes !== null ? `~${fmtHm(entry.estimate_minutes)}` : "open") : fmtHm(entry.minutes)}
+      <span className="pl-1 pr-1">
+        <StateDot state={state} />
       </span>
-      <span className="min-w-0 truncate text-sm text-text-hi">
-        {showDate && entry.entry_date && <span className="text-text-lo mr-2 font-[family-name:var(--font-mono)] text-xs">{entry.entry_date}</span>}
-        {entry.description || <span className="text-v2-error/80 italic">no description</span>}
+      {showDate && (
+        <Cell
+          col="date"
+          type="date"
+          value={entry.entry_date ?? ""}
+          display={entry.entry_date ?? ""}
+          placeholder="no date"
+          onCommit={(v) => patch(entry.id, { entry_date: v || null })}
+          className="font-[family-name:var(--font-mono)] text-xs"
+        />
+      )}
+      <Cell
+        col="time"
+        value={entry.minutes === null ? "" : fmtHm(entry.minutes)}
+        display={entry.minutes === null ? "" : fmtHm(entry.minutes)}
+        placeholder="open"
+        inputMode="decimal"
+        validate={(v) => v.trim() === "" || parseDuration(v) !== null}
+        onCommit={(v) => patch(entry.id, { minutes: v.trim() === "" ? null : parseDuration(v) })}
+        className={`text-right font-[family-name:var(--font-mono)] tabular-nums ${entry.minutes === null ? "text-text-lo" : "text-text-hi"}`}
+      />
+      {showEstimate && (
+        <Cell
+          col="estimate"
+          value={entry.estimate_minutes === null ? "" : fmtHm(entry.estimate_minutes)}
+          display={entry.estimate_minutes === null ? "" : `~${fmtHm(entry.estimate_minutes)}`}
+          placeholder="est."
+          inputMode="decimal"
+          validate={(v) => v.trim() === "" || parseDuration(v) !== null}
+          onCommit={(v) => patch(entry.id, { estimate_minutes: v.trim() === "" ? null : parseDuration(v) })}
+          className="text-right font-[family-name:var(--font-mono)] tabular-nums text-text-mid"
+        />
+      )}
+      <Cell
+        col="description"
+        value={entry.description}
+        display={entry.description}
+        placeholder="description"
+        onCommit={(v) => patch(entry.id, { description: v.trim() })}
+        className={`${entry.description ? "text-text-hi" : "placeholder:text-v2-error/70"}`}
+      />
+      <span className="flex items-center min-w-0">
+        <Cell
+          col="ticket"
+          value={entry.ticket_raw}
+          display={ticket.isPlainLink ? "link" : (ticket.key ?? entry.ticket_raw)}
+          title={entry.ticket_raw}
+          placeholder="ticket"
+          onCommit={(v) => patch(entry.id, { ticket: v.trim() })}
+          className={`font-[family-name:var(--font-mono)] ${entry.ticket_raw ? "text-text-hi" : "placeholder:text-v2-error/70"}`}
+        />
+        {ticket.url && (
+          <a href={ticket.url} target="_blank" rel="noreferrer noopener" tabIndex={-1} className="shrink-0 px-1 text-xs text-glow hover:underline" title={`Open ${ticket.key ?? "link"}`}>
+            ↗
+          </a>
+        )}
       </span>
-      <span className="hidden sm:block min-w-0 truncate text-sm">
-        <TicketLink raw={entry.ticket_raw} baseUrl={baseUrl} />
-      </span>
-      <label
-        className="flex items-center gap-1.5 text-[11px] text-text-lo select-none justify-self-end"
-        onClick={(e) => e.stopPropagation()}
-        title="Ticked when this time is also in Jira"
-      >
-        <input type="checkbox" checked={entry.logged} disabled={pending} onChange={(e) => void patch(entry.id, { logged: e.target.checked })} />
-        <span className="hidden sm:inline">Logged</span>
+      <label className="flex items-center justify-center px-1.5 select-none" title="Ticked when this time is also in Jira">
+        <input type="checkbox" data-col="logged" checked={entry.logged} onChange={(e) => void patch(entry.id, { logged: e.target.checked })} onKeyDown={moveOnEnter} />
       </label>
-      <span className="sm:hidden col-start-3 col-span-2 text-xs">
-        <TicketLink raw={entry.ticket_raw} baseUrl={baseUrl} />
-      </span>
+      <button
+        type="button"
+        tabIndex={-1}
+        onClick={() => void del()}
+        className="w-6 text-center text-text-lo opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:text-v2-error text-sm leading-none"
+        title="Delete"
+        aria-label="Delete entry"
+      >
+        ×
+      </button>
     </div>
   );
 }
 
-/** In-place editor: the same five fields plus Estimate, with Save, Cancel and Delete. */
-export function EntryEditor({ entry, onClose }: { entry: HoursEntry; onClose: () => void }) {
-  const { patch, remove } = useEntryMutations();
-  const [date, setDate] = useState(entry.entry_date ?? "");
-  const [time, setTime] = useState(entry.minutes === null ? "" : fmtHm(entry.minutes));
-  const [estimate, setEstimate] = useState(entry.estimate_minutes === null ? "" : fmtHm(entry.estimate_minutes));
-  const [description, setDescription] = useState(entry.description);
-  const [ticket, setTicket] = useState(entry.ticket_raw);
-  const [logged, setLogged] = useState(entry.logged);
-  const [busy, setBusy] = useState<"save" | "delete" | null>(null);
+/** Column header that lines up with EntryRow's grid. */
+export function EntryHeader({ showDate = true, showEstimate = false }: { showDate?: boolean; showEstimate?: boolean }) {
+  const cols = `${showDate ? "9.5rem_" : ""}4.5rem_${showEstimate ? "4.5rem_" : ""}minmax(0,1fr)_10rem_auto_auto`;
+  const h = "px-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-text-lo";
+  return (
+    <div className="hidden sm:grid items-center gap-x-1 px-1 pb-1 border-b border-hairline mb-1" style={{ gridTemplateColumns: `auto ${cols.replace(/_/g, " ")}` }}>
+      <span className="w-[18px]" />
+      {showDate && <span className={h}>Date</span>}
+      <span className={`${h} text-right`}>Time</span>
+      {showEstimate && <span className={`${h} text-right`}>Est.</span>}
+      <span className={h}>Description</span>
+      <span className={h}>Ticket</span>
+      <span className={h}>Logged</span>
+      <span className="w-6" />
+    </div>
+  );
+}
 
-  const minutes = time.trim() === "" ? null : parseDuration(time);
-  const estimateMinutes = estimate.trim() === "" ? null : parseDuration(estimate);
-  const timeBad = time.trim() !== "" && minutes === null;
-  const estimateBad = estimate.trim() !== "" && estimateMinutes === null;
-  const empty = minutes === null && description.trim() === "" && ticket.trim() === "";
-  const canSave = busy === null && !timeBad && !estimateBad && !empty;
+// ---------------------------------------------------------------------
+// Cells and keyboard movement
+// ---------------------------------------------------------------------
 
-  const save = async () => {
-    if (!canSave) return;
-    setBusy("save");
-    const ok = await patch(entry.id, {
-      entry_date: date || null,
-      minutes,
-      estimate_minutes: estimateMinutes,
-      description: description.trim(),
-      ticket: ticket.trim(),
-      logged,
-    });
-    setBusy(null);
-    if (ok) onClose();
+/** Enter → same column in the next row; Shift+Enter → previous row. Works across day groups inside one [data-hours-grid]. */
+function moveToRow(el: HTMLElement, dir: 1 | -1) {
+  const col = el.getAttribute("data-col");
+  const grid = el.closest("[data-hours-grid]");
+  if (!col || !grid) return false;
+  const all = Array.from(grid.querySelectorAll<HTMLElement>(`[data-col="${col}"]`));
+  const i = all.indexOf(el);
+  const next = all[i + dir];
+  if (!next) return false;
+  next.focus();
+  if (next instanceof HTMLInputElement && next.type === "text") next.select();
+  return true;
+}
+
+function moveOnEnter(e: KeyboardEvent<HTMLElement>) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    moveToRow(e.currentTarget, e.shiftKey ? -1 : 1);
+  }
+}
+
+type CellProps = {
+  col: string;
+  value: string;
+  display: string;
+  placeholder?: string;
+  type?: "text" | "date";
+  inputMode?: "text" | "decimal";
+  title?: string;
+  className?: string;
+  validate?: (v: string) => boolean;
+  onCommit: (v: string) => Promise<unknown>;
+};
+
+/**
+ * A spreadsheet cell: an input that looks like text until focused. Local
+ * draft while editing; commits on blur and on Enter (then moves down),
+ * reverts on Esc. A value the validator refuses stays red and is not saved.
+ */
+function Cell({ col, value, display, placeholder, type = "text", inputMode, title, className = "", validate, onCommit }: CellProps) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const [focused, setFocused] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+  const shown = draft ?? (focused ? value : display);
+  // The draft only lives while a cell is being edited, or when it was refused (red) so the person can fix it.
+  const bad = draft !== null && validate ? !validate(draft) : false;
+
+  const commit = async () => {
+    if (draft === null) return true;
+    if (bad) return false;
+    if (draft !== value) await onCommit(draft);
+    setDraft(null);
+    return true;
   };
 
-  const del = async () => {
-    if (!window.confirm("Delete this entry?")) return;
-    setBusy("delete");
-    const ok = await remove(entry.id);
-    setBusy(null);
-    if (ok) onClose();
-  };
-
-  const onKey = (e: KeyboardEvent<HTMLElement>) => {
-    if (e.key === "Enter") {
+  const onKey = async (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
       e.preventDefault();
-      void save();
-    } else if (e.key === "Escape") {
+      setDraft(null);
+      e.currentTarget.blur();
+    } else if (e.key === "Enter") {
       e.preventDefault();
-      onClose();
+      const target = e.currentTarget;
+      if (await commit()) moveToRow(target, e.shiftKey ? -1 : 1);
     }
   };
 
   return (
-    <div className="rounded-v2-md border border-glow-dim bg-surface-1 p-3 flex flex-col gap-2" onKeyDown={onKey}>
-      <div className="grid grid-cols-2 sm:grid-cols-[9.5rem_6rem_6rem_1fr] gap-2">
-        <Field label="Date">
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={INPUT_SM} />
-        </Field>
-        <Field label="Time spent">
-          <input
-            autoFocus
-            value={time}
-            placeholder="open"
-            inputMode="decimal"
-            onChange={(e) => setTime(e.target.value)}
-            className={`${INPUT_SM} font-[family-name:var(--font-mono)] ${timeBad ? "border-v2-error" : ""}`}
-          />
-        </Field>
-        <Field label="Estimate">
-          <input
-            value={estimate}
-            placeholder="—"
-            inputMode="decimal"
-            onChange={(e) => setEstimate(e.target.value)}
-            className={`${INPUT_SM} font-[family-name:var(--font-mono)] ${estimateBad ? "border-v2-error" : ""}`}
-          />
-        </Field>
-        <Field label="Description" className="col-span-2 sm:col-span-1">
-          <input value={description} onChange={(e) => setDescription(e.target.value)} className={INPUT_SM} />
-        </Field>
-      </div>
-      <div className="grid grid-cols-[1fr_auto] gap-2 items-end">
-        <Field label="Ticket">
-          <input value={ticket} placeholder="ABC-123 or URL" onChange={(e) => setTicket(e.target.value)} className={`${INPUT_SM} font-[family-name:var(--font-mono)]`} />
-        </Field>
-        <label className="flex items-center gap-1.5 text-xs text-text-mid pb-2 select-none">
-          <input type="checkbox" checked={logged} onChange={(e) => setLogged(e.target.checked)} />
-          Logged
-        </label>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button size="sm" variant="danger" loading={busy === "delete"} disabled={busy !== null} onClick={() => void del()}>
-          DELETE
-        </Button>
-        <span className="mr-auto text-[11px] text-text-lo">{empty ? "An entry needs a time, a description or a ticket." : "Enter saves · Esc cancels"}</span>
-        <Button size="sm" disabled={busy !== null} onClick={onClose}>
-          CANCEL
-        </Button>
-        <Button size="sm" variant="primary" loading={busy === "save"} disabled={!canSave} onClick={() => void save()}>
-          SAVE
-        </Button>
-      </div>
-    </div>
+    <input
+      ref={ref}
+      data-col={col}
+      type={type}
+      inputMode={inputMode}
+      value={shown}
+      title={title}
+      placeholder={placeholder}
+      onChange={(e) => setDraft(e.target.value)}
+      onFocus={(e) => {
+        setFocused(true);
+        if (type === "text") e.target.select();
+      }}
+      onBlur={() => {
+        setFocused(false);
+        void commit();
+      }}
+      onKeyDown={(e) => void onKey(e)}
+      autoComplete="off"
+      className={`w-full min-w-0 rounded-sm border bg-transparent px-1.5 py-1 text-sm truncate outline-none transition-colors ${
+        bad ? "border-v2-error" : "border-transparent hover:border-hairline focus:border-glow-dim focus:bg-surface-0"
+      } ${className}`}
+    />
   );
 }

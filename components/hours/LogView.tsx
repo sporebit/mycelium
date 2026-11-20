@@ -7,7 +7,7 @@ import { addDays, dayTotals, entryState, fmtHm, isOpenItem, mondayOf, type Entry
 import { defaultEntryDate } from "@/lib/hours/entry";
 import type { HoursEntry } from "@/lib/hours/types";
 import { AddEntryBar } from "./AddEntryBar";
-import { EntryRow } from "./EntryRow";
+import { EntryHeader, EntryRow } from "./EntryRow";
 import { INPUT_SM, dateLabel } from "./kit";
 import { useHoursBundle } from "./useHours";
 
@@ -124,16 +124,16 @@ export function LogView() {
         </button>
       </div>
 
-      {monday && sunday && (
-        <div className="text-xs text-text-lo">
-          Week of {dateLabel(monday, true)} to {dateLabel(sunday)}
-        </div>
-      )}
+      <div className="text-xs text-text-lo">
+        {monday && sunday ? <>Week of {dateLabel(monday, true)} to {dateLabel(sunday)} · </> : null}
+        Click any cell to edit. Enter saves and moves down, Tab moves across, Esc puts it back.
+      </div>
 
       {groups.length === 0 ? (
         <div className="rounded-v2-md border border-hairline p-6 text-center text-sm text-text-lo">Nothing here for this filter.</div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4" data-hours-grid>
+          <EntryHeader />
           {groups.map((g) => (
             <DayGroup key={g.date || "undated"} date={g.date} entries={g.entries} baseUrl={baseUrl} index={index} />
           ))}
