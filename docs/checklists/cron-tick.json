@@ -1,0 +1,45 @@
+{
+  "slug": "cron-tick",
+  "kind": "setup",
+  "title": "One cron-job.org job, so the day's prompts fire when the PC is off",
+  "version": 2,
+  "intro": {
+    "verdict_html": "This used to be four jobs. It is now one. Everything that must happen during the day (reminders, the Day log prompt, the morning and evening prompts, check-ins, quote research, rundowns) hangs off a single address that works out for itself what is due. While the PC is on, the PC knocks on it every five minutes and nothing here is needed. This job is for when the PC is off or asleep. Running both does no harm.",
+    "prerequisites": [
+      "Your cron-job.org sign-in (the older jobs already live there; leave them as they are)",
+      "The CRON_SECRET value: Vercel → Mycelium → Settings → Environment Variables → CRON_SECRET → reveal"
+    ],
+    "time": ["3 minutes"],
+    "cost": ["Free"]
+  },
+  "phases": [
+    {
+      "id": "1",
+      "title": "The job",
+      "steps": [
+        {
+          "id": "1.1",
+          "title": "Create the job",
+          "actor": "you",
+          "where": { "label": "cron-job.org → Create cronjob", "url": "https://console.cron-job.org/jobs/create", "kind": "browser" },
+          "body_html": "Title: <b>Mycelium tick</b>. Schedule: <b>Every 5 minutes</b>. Under Advanced: Request method <b>GET</b>; Headers: add <b>Authorization</b> with the value <b>Bearer</b>, a space, then the CRON_SECRET. Save.",
+          "blocks": [{ "label": "URL", "text": "https://mycelium.sporebit.com/api/cron/tick" }],
+          "notes": [
+            { "kind": "security", "html": "The secret goes in the header box on cron-job.org and nowhere else. Do not type it into this checklist." },
+            { "kind": "info", "html": "The time zone setting does not matter for this job: the app keeps its own clock in London time." }
+          ]
+        },
+        {
+          "id": "1.2",
+          "title": "Check it answered",
+          "actor": "you",
+          "body_html": "After five minutes open the job's History: the last run should say <b>200 OK</b>. A 401 means the header value is wrong (the word Bearer, one space, the secret, nothing else)."
+        }
+      ]
+    }
+  ],
+  "troubleshooting": [
+    { "symptom": "401 Unauthorized", "cause": "The header value is not exactly Bearer, a space, and the secret.", "fix": "Re-copy the secret from Vercel; check for a trailing space or a line break." },
+    { "symptom": "Timeouts in the History", "cause": "A slot with several jobs due can take longer than cron-job.org waits (30 seconds on the free plan). The work still finishes on the server.", "fix": "Nothing to do. If every run times out, say so in the ticket." }
+  ]
+}
