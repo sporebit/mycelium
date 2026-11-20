@@ -165,3 +165,37 @@ test("the pages: nothing is in the page until amounts are shown; then the sheet 
   await expect(budgetPage.getByTestId("budget-row").filter({ hasText: "Groceries" })).not.toContainText("Heading over");
   expect((await budget("2026-05")).lines.find((l) => l.category === "Groceries")!.budget_pence).toBe(35000);
 });
+
+test("categorising without asking: a merchant placed by hand places its next payment; the unsure ones are cards in the evening close, his alone", async ({ playwright }) => {
+  // the grocer's payments were placed by hand; a fourth arrives uncategorised, and so does somewhere new
+  localSql(`update public.transactions set category_source = 'manual', category_locked = true where dedup_hash like '${RUN}-%' and description like 'ZZTESTGROCER%'`);
+  txn("2026-05-28", "ZZTESTGROCER ONE", 41.2);
+  const grocer = `${RUN}-${n}`;
+  txn("2026-05-29", "ZZTESTNEWPLACE CAFE", 12.5);
+  const cafe = `${RUN}-${n}`;
+  const run = await phil.post("/api/finance/categorise");
+  expect(run.status()).toBe(200);
+  expect((await run.json()) as { remembered: number; aiCategorised: number }).toMatchObject({ remembered: 1, aiCategorised: 0 });
+  // the model cannot be reached from this server: the new place is left for next time, not written down as a guess
+  expect(localSql(`select coalesce(category, '-'), coalesce(category_source, '-') from public.transactions where dedup_hash in ('${grocer}', '${cafe}') order by description`)).toEqual([
+    ["Groceries", "memory"],
+    ["-", "-"],
+  ]);
+
+  // a payment the model was unsure about is a card in the close, with its guess
+  txn("2026-05-30", "ZZTESTMYSTERY SHOP", 33, "Card Payment", "Shopping");
+  const mystery = `${RUN}-${n}`;
+  localSql(`update public.transactions set category_source = 'ai', ai_confidence = 0.35 where dedup_hash = '${mystery}'`);
+  type Close = { finance: Array<{ id: string; name: string; on: string; amount_pence: number; guess: string }> };
+  const close = (await (await phil.get("/api/daily/close")).json()) as Close;
+  const card = close.finance.find((f) => f.name === "Zztestmystery Shop");
+  expect(card).toMatchObject({ on: "2026-05-30", amount_pence: 3300, guess: "Shopping" });
+  // hers carries none of his
+  const tess = await playwright.request.newContext({ baseURL: E2E_ORIGIN, storageState: "e2e/.auth/tess.json" });
+  expect(((await (await tess.get("/api/daily/close")).json()) as Close).finance.filter((f) => f.name.startsWith("Zztest"))).toEqual([]);
+  await tess.dispose();
+  // placing it by hand ends the asking, and the memory counts it as his word
+  expect((await phil.post(`/api/finance/transactions/${card!.id}/category`, { data: { category: "Groceries" } })).status()).toBe(200);
+  expect(((await (await phil.get("/api/daily/close")).json()) as Close).finance.find((f) => f.id === card!.id)).toBeUndefined();
+  expect(localSql(`select category, category_source, category_locked::text from public.transactions where dedup_hash = '${mystery}'`)).toEqual([["Groceries", "manual", "true"]]);
+});

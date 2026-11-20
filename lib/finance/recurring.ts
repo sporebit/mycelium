@@ -92,6 +92,12 @@ const titled = (key: string) =>
     .map((w) => (w.length <= 2 || (w.length === 3 && !/[AEIOUY]/.test(w)) ? w : w.charAt(0) + w.slice(1).toLowerCase()))
     .join(" ");
 
+/** A merchant's name as a person would read it, from a statement line; the raw line when nothing readable is left. */
+export function merchantName(description: string | null, enriched: string | null = null): string {
+  const key = merchantKey(description, enriched);
+  return key ? titled(key) : (enriched?.trim() || description?.trim() || "A payment");
+}
+
 /** The same day next month (the 31st falls back to the month's last day). */
 function addMonths(day: string, months: number): string {
   const d = new Date(utc(day));
@@ -115,8 +121,11 @@ function nextAfter(last: string, cadence: Cadence): string {
  * first. `asOf` is the day the data runs to; left out, it is the newest
  * transaction's date.
  */
+/** Money that went out for something: not a transfer, a top-up, cash or a fee. */
+export const isSpend = (t: Pick<Txn, "amount" | "txn_type">): boolean => t.amount < 0 && !NOT_SPENDING.has((t.txn_type ?? "").toLowerCase());
+
 export function findRecurring(txns: readonly Txn[], asOf?: string): Recurring[] {
-  const spend = txns.filter((t) => t.amount < 0 && !NOT_SPENDING.has((t.txn_type ?? "").toLowerCase()));
+  const spend = txns.filter(isSpend);
   if (spend.length === 0) return [];
   const end = asOf ?? spend.reduce((m, t) => (t.txn_date > m ? t.txn_date : m), spend[0].txn_date);
 

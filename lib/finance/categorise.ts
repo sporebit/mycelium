@@ -1,5 +1,20 @@
+/**
+ * Categorising a payment (master run §10: "silent; only low-confidence ones
+ * become swipe cards in the evening close"). Three steps, cheapest first:
+ *
+ *   1. rules      transfers to the person's own accounts, cash, fees
+ *   2. memory     a merchant whose past payments all have one category
+ *                 gives the next payment the same one (merchantMemory.ts)
+ *   3. the model  everything left, in batches, with a confidence; below
+ *                 UNSURE_BELOW the payment is a card in the evening close
+ *
+ * Runs as the caller against the finance tables, which are theirs alone.
+ * The model call goes through the one meter like every other paid call.
+ */
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createUserClient } from "@/lib/supabase/user";
 import { MODEL_FAST } from "@/lib/config/models";
+import { buildMemory, type Known, recall, UNSURE_BELOW } from "./merchantMemory";
 import { TAXONOMY, type Category, isValidCategory } from "./taxonomy";
 
 export { TAXONOMY, type Category, isValidCategory };
@@ -22,7 +37,7 @@ function normaliseText(s: string): string {
     .trim();
 }
 
-type TxnRow = {
+export type TxnRow = {
   id: string;
   txn_type: string;
   description: string;
@@ -48,9 +63,14 @@ function applyRules(t: TxnRow): Category | null {
 
 const AI_BATCH_SIZE = 40;
 
+/**
+ * One batch to the model. Null when the batch could not be asked at all (no
+ * key, the cap spent, a bad reply): those payments are left uncategorised
+ * for the next run rather than written down as guesses.
+ */
 async function aiCategorise(
   batch: TxnRow[],
-): Promise<Map<string, { category: Category; confidence: number }>> {
+): Promise<Map<string, { category: Category; confidence: number }> | null> {
   const results = new Map<
     string,
     { category: Category; confidence: number }
@@ -59,7 +79,7 @@ async function aiCategorise(
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     console.error("[categorise/ai] ANTHROPIC_API_KEY not set");
-    return results;
+    return null;
   }
 
   const items = batch.map((t) => ({
@@ -126,45 +146,77 @@ async function aiCategorise(
       batch.map((t) => t.id),
       err,
     );
+    return null;
   }
 
   return results;
 }
 
+/** Every categorised payment the person has, for the merchant memory. Paged: the API returns a thousand rows at a time. */
+async function loadKnown(db: SupabaseClient): Promise<Known[]> {
+  const out: Known[] = [];
+  for (let start = 0; start < 10_000; start += 1000) {
+    const { data, error } = await db
+      .from("transactions")
+      .select("description, enriched_merchant, category, category_source, ai_confidence, category_locked")
+      .not("category", "is", null)
+      .order("txn_date", { ascending: false })
+      .order("id")
+      .range(start, start + 999);
+    if (error) throw new Error(error.message);
+    out.push(...((data ?? []) as Known[]));
+    if (!data || data.length < 1000) break;
+  }
+  return out;
+}
+
 export type CategoriseSummary = {
   ruleMatched: number;
+  /** Placed from the merchant memory: no model, no cost. */
+  remembered: number;
   aiCategorised: number;
+  /** Of those the model placed, how many it was not sure about: they become cards in the evening close. */
+  unsure: number;
   errors: string[];
 };
+
+const EMPTY: CategoriseSummary = { ruleMatched: 0, remembered: 0, aiCategorised: 0, unsure: 0, errors: [] };
 
 export async function categorise(
   rows: TxnRow[],
   dryRun = false,
+  client?: SupabaseClient,
 ): Promise<CategoriseSummary> {
-  const supabase = await createUserClient();
+  const supabase = client ?? (await createUserClient());
   const ruleResults: { id: string; category: Category }[] = [];
-  const aiCandidates: TxnRow[] = [];
+  const candidates: TxnRow[] = [];
 
   for (const row of rows) {
     const cat = applyRules(row);
     if (cat) {
       ruleResults.push({ id: row.id, category: cat });
     } else {
-      aiCandidates.push(row);
+      candidates.push(row);
     }
   }
 
+  // What is already known about these merchants places most of the rest.
+  const memory = buildMemory(await loadKnown(supabase));
+  const remembered = recall(memory, candidates);
+  const rememberedIds = new Set(remembered.map((r) => r.id));
+  const aiCandidates = candidates.filter((t) => !rememberedIds.has(t.id));
+
   if (dryRun) {
     return {
+      ...EMPTY,
       ruleMatched: ruleResults.length,
+      remembered: remembered.length,
       aiCategorised: aiCandidates.length,
-      errors: [],
     };
   }
 
   const errors: string[] = [];
 
-  // Write rule-matched rows
   for (const r of ruleResults) {
     const { error } = await supabase
       .from("transactions")
@@ -178,11 +230,32 @@ export async function categorise(
     if (error) errors.push(`rule update ${r.id}: ${error.message}`);
   }
 
+  let rememberedCount = 0;
+  for (const r of remembered) {
+    const { error } = await supabase
+      .from("transactions")
+      .update({
+        category: r.category,
+        category_source: "memory",
+        ai_confidence: null,
+        category_locked: false,
+      })
+      .eq("id", r.id);
+    if (error) errors.push(`memory update ${r.id}: ${error.message}`);
+    else rememberedCount++;
+  }
+
   // Batch AI categorisation
   let aiCount = 0;
+  let unsure = 0;
   for (let i = 0; i < aiCandidates.length; i += AI_BATCH_SIZE) {
     const batch = aiCandidates.slice(i, i + AI_BATCH_SIZE);
     const results = await aiCategorise(batch);
+    if (!results) {
+      // Left as they are: the next import or the next press of the button tries again.
+      errors.push(`${batch.length} payments could not be sent to the model and were left for next time`);
+      continue;
+    }
 
     for (const t of batch) {
       const result = results.get(t.id);
@@ -203,13 +276,35 @@ export async function categorise(
         errors.push(`ai update ${t.id}: ${error.message}`);
       } else {
         aiCount++;
+        if (confidence < UNSURE_BELOW) unsure++;
       }
     }
   }
 
   return {
     ruleMatched: ruleResults.length,
+    remembered: rememberedCount,
     aiCategorised: aiCount,
+    unsure,
     errors,
   };
+}
+
+/**
+ * The payments not yet categorised, placed without asking: run after an
+ * import and once a morning. `limit` keeps a run inside a function's time;
+ * what is left waits for the next morning, so a big import is placed over a
+ * few days rather than lost.
+ */
+export async function categoriseNew(db: SupabaseClient, limit = 400): Promise<CategoriseSummary> {
+  const { data, error } = await db
+    .from("transactions")
+    .select("id, txn_type, description, enriched_merchant, amount")
+    .is("category", null)
+    .eq("category_locked", false)
+    .order("txn_date", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  if (!data || data.length === 0) return { ...EMPTY };
+  return categorise(data as TxnRow[], false, db);
 }

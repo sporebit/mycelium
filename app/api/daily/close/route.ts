@@ -10,6 +10,7 @@ import { markActed } from "@/lib/nudges/interrupt";
 import { queueFirstSteps } from "@/lib/daily/firstSteps";
 import { waitingForReview } from "@/lib/capture/queue";
 import { filedAs } from "@/lib/capture/pipeline";
+import { unsureCards } from "@/lib/finance/unsure";
 
 export const runtime = "nodejs";
 
@@ -57,6 +58,13 @@ export async function GET() {
         created_at: c.created_at,
       };
     });
+    // Finance cards: the payments the model was not sure about, dearest
+    // first, in whatever room the deck has left. A finance error never
+    // stops the close.
+    const finance = await unsureCards(db, Math.max(0, room - captures.length)).catch((err) => {
+      console.error("[daily/close] finance cards:", err);
+      return [];
+    });
     return NextResponse.json({
       day: plan.day,
       status: plan.status,
@@ -64,6 +72,7 @@ export async function GET() {
       finished,
       open: open.slice(0, MAX_CLOSE_CARDS),
       captures,
+      finance,
       slipped: view.slipped.slice(0, Math.max(0, MAX_CLOSE_CARDS - open.length)),
       summary: plan.status === "closed" ? plan.summary : summarise(plan),
     });

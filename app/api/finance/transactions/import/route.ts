@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
+import { categoriseNew } from "@/lib/finance/categorise";
 import {
   type CsvBankParser,
   type NormalizedTxn,
@@ -257,6 +258,20 @@ export async function POST(req: NextRequest) {
 
   const totalImported = results.reduce((s, r) => s + r.imported, 0);
   const totalSkipped = results.reduce((s, r) => s + r.skipped, 0);
+
+  // Categorise what just arrived, after the reply has gone: rules, then the
+  // merchant memory, then the model for what is left (master run §10,
+  // "silent"). A failure here is logged and costs the import nothing.
+  if (totalImported > 0) {
+    after(() =>
+      categoriseNew(supabase).then(
+        (s) => {
+          if (s.errors.length) console.error("[import] categorise:", s.errors.slice(0, 3).join("; "));
+        },
+        (err) => console.error("[import] categorise:", err),
+      ),
+    );
+  }
   const flatErrors: string[] = [];
   for (const r of results) {
     for (const e of r.errors) {

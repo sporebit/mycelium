@@ -9,6 +9,7 @@ import { interrupt } from "@/lib/nudges/interrupt";
 import { budgetAlerts, budgetMonth, daysIn, type BudgetMonth } from "./budget";
 import { findRecurring, summarise, type Mark, type Recurring, type RecurringSummary, type Txn } from "./recurring";
 import { TAXONOMY } from "./taxonomy";
+import { unusualPayments, unusualTitle } from "./unusual";
 
 const MARKS: readonly Mark[] = ["keep", "cancel", "not_recurring"];
 export const isMark = (v: unknown): v is Mark => typeof v === "string" && (MARKS as readonly string[]).includes(v);
@@ -134,4 +135,28 @@ export async function runBudgetAlerts(db: SupabaseClient, uid: string, now: Date
     if (res.sent) count += 1;
   }
   return count;
+}
+
+/**
+ * One word the morning after an import that brought a payment larger than
+ * usual: a count, never an amount or a name, once a day, inside the day's
+ * three. "Usual" is the last six months of the person's own spending.
+ */
+export async function runUnusualAlert(db: SupabaseClient, uid: string, now: Date = new Date()): Promise<number> {
+  const since = new Date(now.getTime() - 36 * 3_600_000).toISOString();
+  const { data: fresh, error } = await db
+    .from("transactions")
+    .select("id, txn_date, description, enriched_merchant, amount, txn_type")
+    .gte("created_at", since)
+    .lt("amount", 0)
+    .limit(2000);
+  if (error) throw new Error(error.message);
+  if (!fresh || fresh.length === 0) return 0;
+  const hits = unusualPayments(fresh as Txn[], await loadSpend(db, 6));
+  if (hits.length === 0) return 0;
+  const day = londonClock(now).date;
+  const { data: already } = await db.from("interruptions").select("id").eq("kind", "unusual").eq("day", day).limit(1);
+  if (already && already.length > 0) return 0;
+  const res = await interrupt(db, uid, { kind: "unusual", title: unusualTitle(hits.length), url: "/finance/spending" }, now);
+  return res.sent ? 1 : 0;
 }

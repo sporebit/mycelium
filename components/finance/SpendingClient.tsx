@@ -304,7 +304,9 @@ export function SpendingClient() {
       const res = await fetch("/api/finance/categorise", { method: "POST" });
       const j = (await res.json()) as {
         ruleMatched?: number;
+        remembered?: number;
         aiCategorised?: number;
+        unsure?: number;
         errors?: string[];
         total?: number;
       };
