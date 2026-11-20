@@ -283,7 +283,7 @@ test("a share with an expiry stops by itself", async () => {
 // Nothing enforces it: /api/grants is not a sensitive prefix and
 // create_user_grant() checks only that the caller is signed in. bea has no
 // authenticator at all and can open her personal space to anyone.
-test.fixme("SECURITY: creating a grant without a fresh second factor is refused", async () => {
+test("SECURITY: creating a grant without a fresh second factor is refused", async () => {
   expect(sqlValue(`select count(*) from auth.mfa_factors where user_id = '${bea!.id}'`)).toBe("0");
   const res = await bea!.request.post("/api/grants", { data: { grantee_id: ann!.id, section: "journal", verbs: ["view", "edit", "create_delete"] } });
   if (res.ok()) await bea!.request.delete(`/api/grants/${((await res.json()) as { id: string }).id}`);
@@ -309,7 +309,7 @@ const direct = (path: string, body: unknown, accessToken?: string) => {
 // SECURITY. ann has a verified authenticator. A password grant alone gives an
 // aal1 token, and the database answers it exactly as it answers aal2: no
 // policy and no access function looks at the assurance level.
-test.fixme("SECURITY: a password-only token for someone with an authenticator reads nothing from the database", async () => {
+test("SECURITY: a password-only token for someone with an authenticator reads nothing from the database", async () => {
   expect(sqlValue(`select status from auth.mfa_factors where user_id = '${ann!.id}'`)).toBe("verified");
   const signIn = await direct("/auth/v1/token?grant_type=password", { email: ann!.email, password: "e2e-mu-password-1" });
   const token = ((await signIn.json()) as { access_token: string }).access_token;
@@ -322,7 +322,7 @@ test.fixme("SECURITY: a password-only token for someone with an authenticator re
 // refill and cost. Shown on a bucket of this spec's own: a stranger can empty
 // it (locking that key out) or refill it (resetting the limiter). The real
 // keys are login:email:<address>, login:ip:<ip>, totp:ip:<ip>, invite:user:<id>.
-test.fixme("SECURITY: an anonymous caller cannot empty or refill a rate-limit bucket", async () => {
+test("SECURITY: an anonymous caller cannot empty or refill a rate-limit bucket", async () => {
   const key = `e2e-mu-${RUN}:probe`;
   const take = (capacity: number, refill: number, cost: number) => direct("/rest/v1/rpc/rate_limit_take", { p_key: key, p_capacity: capacity, p_refill_per_minute: refill, p_cost: cost });
   const emptied = await take(0, 0, 0);
@@ -333,7 +333,7 @@ test.fixme("SECURITY: an anonymous caller cannot empty or refill a rate-limit bu
 // SECURITY. The ten-failure second-factor lockout is cleared by the function
 // the verify route calls on success, and any signed-in user can call it
 // directly, so a password-only session can wipe its own failures between guesses.
-test.fixme("SECURITY: a signed-in user cannot clear their own second-factor failures", async () => {
+test("SECURITY: a signed-in user cannot clear their own second-factor failures", async () => {
   await direct("/rest/v1/rpc/second_factor_failed", {}, bea!.session.access_token);
   expect(sqlValue(`select count(*) from public.second_factor_failures where user_id = '${bea!.id}'`)).toBe("1");
   const cleared = await direct("/rest/v1/rpc/second_factor_succeeded", {}, bea!.session.access_token);
@@ -345,7 +345,7 @@ test.fixme("SECURITY: a signed-in user cannot clear their own second-factor fail
 // user, and deletes binned people in EVERY space. Reproduced without touching
 // anyone else's bin: ann's binned person is aged to 1971 and the window asked
 // for is 49 years, so nothing but that row can qualify.
-test.fixme("SECURITY: one person cannot purge another person's binned people", async () => {
+test("SECURITY: one person cannot purge another person's binned people", async () => {
   const id = sqlValue(`select id from public.people where first_name = '${FRIEND}' and space_id = '${annSpace}'`)!;
   expect((await ann!.request.delete(`/api/people/${id}`)).status()).toBe(200);
   localSql(`update public.people set deleted_at = '1971-01-01' where id = '${id}'`);

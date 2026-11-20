@@ -145,7 +145,8 @@ export function MyceliumField() {
       // Ripples
       for (const r of ripples) {
         const t = (now - r.startedAt) / RIPPLE_DURATION_MS;
-        if (t > 1) continue;
+        // A ripple can be stamped a hair after this frame's clock: a negative radius makes arc() throw.
+        if (t > 1 || t < 0) continue;
         const radius = t * 260;
         const alpha = (1 - t) * 0.15;
         ctx2d.strokeStyle = `rgba(132,245,184,${alpha.toFixed(3)})`;

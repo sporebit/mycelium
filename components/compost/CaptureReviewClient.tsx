@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { routedLink } from "@/lib/capture/links";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
 import { QuoteReviewEditor, type DuplicateChoice, type QuoteDraft } from "@/components/quotes/QuoteReviewEditor";
@@ -102,23 +103,7 @@ function routedTarget(c: Capture): string {
 }
 
 function routedUrl(c: Capture): string | null {
-  if (!c.routed_to || !c.routed_id) return null;
-  switch (c.routed_to) {
-    case "media":
-      return `/organisation/media?focus=${c.routed_id}`;
-    case "task":
-      return `/work/browse/${c.routed_id}`;
-    case "journal":
-      return `/journal/${c.routed_id}`;
-    case "purchase":
-      return `/organisation/purchases?focus=${c.routed_id}`;
-    case "reminder":
-      return `/reminders?reminder=${c.routed_id}`;
-    case "people":
-      return `/organisation/people/${c.routed_id}`;
-    default:
-      return null;
-  }
+  return routedLink(c.routed_to, c.routed_id)?.href ?? null;
 }
 
 export function CaptureReviewClient({ initialTab = "needs_review", dayId = null }: { initialTab?: Tab; dayId?: string | null } = {}) {

@@ -5,55 +5,18 @@ import { useApi } from "@/lib/data/useApi";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Mono } from "@/components/dashboard/Mono";
+import { routedLink } from "@/lib/capture/links";
 
-/** Map routed_to (the supabase table name) to the user-facing link
- *  + label. Returning null hides the routed-to row entirely. */
+/** The link and label for where a capture went; null hides the row. */
 function routedToLink(
   routedTo: string | null,
   routedId: string | null,
   classification: Record<string, unknown> | null,
 ): { href: string; label: string; title: string } | null {
-  if (!routedTo || !routedId) return null;
-  const clsTitle =
-    typeof classification?.title === "string"
-      ? (classification.title as string)
-      : null;
-  switch (routedTo) {
-    case "tasks":
-      return {
-        href: `/work/browse/${routedId}`,
-        label: "Task",
-        title: clsTitle ?? "open",
-      };
-    case "purchases":
-      return {
-        href: `/organisation/purchases`,
-        label: "Purchase",
-        title: clsTitle ?? "open",
-      };
-    case "journal_entries":
-      return {
-        href: `/journal`,
-        label: "Journal",
-        title: clsTitle ?? "open",
-      };
-    case "daylog_days":
-      return {
-        href: `/journal/${routedId}`,
-        label: "Day log",
-        title: clsTitle ?? "open",
-      };
-    case "exercise_pain_logs":
-      return {
-        href: `/health/pain`,
-        label: "Pain log",
-        title: clsTitle ?? "open",
-      };
-    case "raw_captures":
-      return null;
-    default:
-      return null;
-  }
+  const link = routedLink(routedTo, routedId);
+  if (!link) return null;
+  const title = typeof classification?.title === "string" ? (classification.title as string) : "open";
+  return { ...link, title };
 }
 
 type Capture = {

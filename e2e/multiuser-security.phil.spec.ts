@@ -156,7 +156,7 @@ test("a wrong password is refused, and the page says so", async ({ browser }) =>
 // stays at aal1, and everything except /admin, /api/admin and /api/account
 // answers as if the code had been given. The second factor therefore does
 // not protect the data, only those three prefixes.
-test.fixme("SECURITY: a session that stopped before the code cannot read the person's data", async ({ browser }) => {
+test("SECURITY: a session that stopped before the code cannot read the person's data", async ({ browser }) => {
   const passwordOnly = await secondSession(browser, adm!); // password grant, no code: aal1
   const res = await passwordOnly.request.get("/api/work/projects?status=all");
   expect([401, 403]).toContain(res.status()); // answers 200 with the projects
@@ -169,7 +169,7 @@ test.fixme("SECURITY: a session that stopped before the code cannot read the per
 // SECURITY (reported, not fixed here). "Mandatory" second factor for owners
 // and admins is a redirect on the sign-in page, nothing more: the owner
 // below has no authenticator and the whole app answers.
-test.fixme("SECURITY: an owner or admin with no authenticator cannot use the app until they enrol", async () => {
+test("SECURITY: an owner or admin with no authenticator cannot use the app until they enrol", async () => {
   expect(sqlValue(`select count(*) from auth.mfa_factors where user_id = '${lead!.id}'`)).toBe("0");
   const res = await lead!.request.get("/api/work/projects?status=all");
   expect(res.status()).toBe(403); // answers 200
@@ -304,7 +304,7 @@ test("a re-auth belongs to the person who gave it, and no shared secret opens a 
 // cookies. So a request that carries the cron secret AND an ordinary
 // password-only session reads /api/account and /api/admin with no second
 // factor and no re-auth. Shown with Phil's ordinary session, read-only.
-test.fixme("SECURITY: the cron secret does not carry a browser session past the sensitive-path gate", async ({ request }) => {
+test("SECURITY: the cron secret does not carry a browser session past the sensitive-path gate", async ({ request }) => {
   expect((await request.get("/api/account/access-log")).status()).toBe(403);
   const res = await request.get("/api/account/access-log", { headers: CRON_HEADERS });
   expect(res.status()).toBeGreaterThanOrEqual(400); // answers 200 with Phil's access log
@@ -347,7 +347,7 @@ test("the Security page lists every session and signs the others out", async ({ 
 // row, but the access token that device already holds keeps working until
 // it expires (an hour by default): the gate checks the token's signature,
 // not whether its session still exists.
-test.fixme("SECURITY: a device signed out remotely is refused on its next request", async ({ browser }) => {
+test("SECURITY: a device signed out remotely is refused on its next request", async ({ browser }) => {
   const elsewhere = await secondSession(browser, adm!);
   const id = sessionIdOf(await currentAccessToken(elsewhere));
   expect((await signedIn!.request.delete(`/api/auth/sessions/${id}`)).status()).toBe(200);
