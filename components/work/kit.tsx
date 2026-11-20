@@ -166,7 +166,8 @@ export function IssueRow({
 			{leading}
 			<TypeIcon type={ticket.type} />
 			<KeyLink ticket={ticket} />
-			<Link href={issueHref(ticket.key, ticket.id)} className={`min-w-0 flex-1 truncate text-sm ${resolved ? "text-text-lo line-through decoration-text-lo/50" : "text-text-hi"} hover:underline`}>
+			{/* the title keeps a floor: chips and labels give way first, or a row with an epic, two labels and a due date showed no title at all */}
+			<Link href={issueHref(ticket.key, ticket.id)} className={`min-w-[7rem] flex-1 truncate text-sm ${resolved ? "text-text-lo line-through decoration-text-lo/50" : "text-text-hi"} hover:underline`}>
 				{ticket.title}
 			</Link>
 			{ticket.epic && (
@@ -178,7 +179,7 @@ export function IssueRow({
 					{ticket.epic.title}
 				</Link>
 			)}
-			<span className="hidden items-center gap-1 lg:flex">
+			<span className="hidden min-w-0 shrink items-center gap-1 overflow-hidden lg:flex [&>*]:shrink-0 [&>*]:whitespace-nowrap">
 				{ticket.labels.slice(0, 3).map((l) => (
 					<LabelChip key={l.id} label={l} />
 				))}

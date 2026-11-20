@@ -61,6 +61,10 @@ export function suggestionRenderer(title: string) {
 					pick?.(item);
 				});
 				b.addEventListener("mouseenter", () => {
+					// only when the pointer moved to another row: painting replaces the row under the
+					// pointer, the new row gets its own mouseenter, and without this the list repainted
+					// itself for as long as the pointer rested on it
+					if (index === i) return;
 					index = i;
 					paint();
 				});

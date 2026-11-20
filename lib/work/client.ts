@@ -53,9 +53,16 @@ export async function workFetch<T = unknown>(path: string, method: "GET" | "POST
 	return json as T;
 }
 
-/** Revalidate every cached Work list: searches, boards, backlogs, home, project lists. */
+/**
+ * Revalidate every cached Work list: searches, boards, backlogs, home, project lists.
+ *
+ * The matcher is the only argument on purpose. With a second argument of `undefined` SWR
+ * writes `undefined` into every matched entry before it refetches, so each write blanked
+ * the page it was made on to its skeleton and remounted it: the "Saved" note never showed
+ * and anything half-typed in another card was lost.
+ */
 export function refreshWork(): void {
-	void globalMutate((key) => typeof key === "string" && key.startsWith("/api/work/") && key !== META_KEY, undefined, { revalidate: true });
+	void globalMutate((key) => typeof key === "string" && key.startsWith("/api/work/") && key !== META_KEY);
 }
 
 export const issueHref = (key: string | null | undefined, id?: string) => `/work/browse/${encodeURIComponent(key ?? id ?? "")}`;

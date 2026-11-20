@@ -93,7 +93,7 @@ function Details({ data, reload }: { data: ProjectPayload; reload: () => Promise
 				<Field label="Name" htmlFor="p-name">
 					<input id="p-name" value={form.name} onChange={(e) => set("name", e.target.value)} className={INPUT} />
 				</Field>
-				<Field label="Key" htmlFor="p-key" hint={p.is_default ? "The default project keeps the space's keys." : "Changing it re-keys every ticket; old keys keep resolving."}>
+				<Field label="Key" htmlFor="p-key" hint={p.is_default ? "The default project keeps the space's keys." : "Free to change until a ticket carries it. After that the key is for good."}>
 					<input id="p-key" value={form.key} disabled={p.is_default} onChange={(e) => set("key", e.target.value.toUpperCase())} maxLength={5} className={`${INPUT} font-[family-name:var(--font-mono)] uppercase disabled:opacity-50`} />
 				</Field>
 				<Field label="Category">
@@ -424,7 +424,7 @@ function BoardSettings({ data, reload }: { data: ProjectPayload; reload: () => P
 				<div className="mb-2 flex items-center justify-between">
 					<span className="text-[11px] font-medium uppercase tracking-[0.1em] text-text-lo">Columns</span>
 					{columns === null ? (
-						<button type="button" onClick={() => setColumns(statuses.map((s) => ({ name: s.name, status_ids: [s.id] })))} className="text-xs text-text-mid hover:text-glow">
+						<button type="button" disabled={statuses.length === 0} onClick={() => setColumns(statuses.map((s) => ({ name: s.name, status_ids: [s.id] })))} className="text-xs text-text-mid hover:text-glow disabled:opacity-40" title={statuses.length === 0 ? "The statuses are still loading" : undefined}>
 							Lay out columns
 						</button>
 					) : (

@@ -27,7 +27,8 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
 		if (!project) return bad("not found", 404);
 		const [progress, components, offered, sprints, names] = await Promise.all([
 			progressOf(supabase, project.id),
-			componentsOf(supabase, project.id),
+			// archived ones too: Settings lists them struck through with Restore; the overview leaves them out itself
+			componentsOf(supabase, project.id, true),
 			typesOffered(supabase, project),
 			openSprints(supabase, project.id),
 			namesFor(supabase, [project.lead_user_id]),

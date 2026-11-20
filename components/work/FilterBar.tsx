@@ -6,7 +6,7 @@
  * through `parseJql`. A query the bar cannot show (an OR, a NOT, a range)
  * keeps the box open. Saved filters load into either.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Bookmark, Code2, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui";
 import { tryParseJql } from "@/lib/work/jql";
@@ -123,6 +123,31 @@ export function FilterBar({ query, onChange, mode, onMode, hide = [], filter = n
 	}
 
 	const b = bar ?? EMPTY_BAR;
+	// The search box keeps what is being typed in its own state and hands it to the query a
+	// moment after the last key. Bound straight to the query it lost every space as it was
+	// typed (the query trims its text) and, on a slow connection, the keys typed while the
+	// address was still catching up.
+	const [draft, setDraft] = useState(b.text);
+	const [typing, setTyping] = useState(false);
+	const [seenText, setSeenText] = useState(b.text);
+	if (seenText !== b.text) {
+		setSeenText(b.text);
+		// something else changed the query (Clear, a saved filter, the JQL box): follow it
+		if (!typing) setDraft(b.text);
+	}
+	const pending = useRef<ReturnType<typeof setTimeout> | null>(null);
+	useEffect(() => () => {
+		if (pending.current) clearTimeout(pending.current);
+	}, []);
+	function commitText(value: string, wait: number) {
+		if (pending.current) clearTimeout(pending.current);
+		const send = () => {
+			pending.current = null;
+			if (value.trim() !== b.text) setBar({ ...b, text: value });
+		};
+		if (wait === 0) send();
+		else pending.current = setTimeout(send, wait);
+	}
 	const show = (f: string) => !hide.includes(f);
 	const dirty = !!filter && filter.jql.trim() !== jql.trim();
 	const orderField = b.orderBy[0]?.field ?? "";
@@ -188,8 +213,19 @@ export function FilterBar({ query, onChange, mode, onMode, hide = [], filter = n
 			{mode === "bar" && meta && (
 				<div className="flex flex-wrap items-center gap-1.5">
 					<input
-						value={b.text}
-						onChange={(e) => setBar({ ...b, text: e.target.value })}
+						value={draft}
+						onChange={(e) => {
+							setDraft(e.target.value);
+							commitText(e.target.value, 300);
+						}}
+						onFocus={() => setTyping(true)}
+						onBlur={() => {
+							setTyping(false);
+							commitText(draft, 0);
+						}}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") commitText(draft, 0);
+						}}
 						placeholder="Search text…"
 						aria-label="Search text"
 						className="h-8 w-44 rounded-full border border-hairline-strong bg-surface-0 px-3 text-xs text-text-hi placeholder:text-text-lo focus:border-glow-dim focus:outline-none"

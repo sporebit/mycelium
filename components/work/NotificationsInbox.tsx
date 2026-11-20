@@ -25,7 +25,8 @@ type Payload = { notifications: WorkNotification[]; unread: number };
 
 function refreshBell() {
 	void globalMutate(UNREAD_KEY);
-	void globalMutate((k) => typeof k === "string" && k.startsWith("/api/work/notifications"), undefined, { revalidate: true });
+	// the matcher alone: a second argument of `undefined` would empty each list before refetching it
+	void globalMutate((k) => typeof k === "string" && k.startsWith("/api/work/notifications"));
 }
 
 export function NotificationsInbox() {

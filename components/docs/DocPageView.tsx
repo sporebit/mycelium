@@ -8,7 +8,7 @@
  */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { History, Lock, MoreHorizontal } from "lucide-react";
 import { DocView } from "@/components/editor/DocView";
 import { RichEditor } from "@/components/editor/RichEditor";
@@ -44,6 +44,24 @@ export function DocPageView({ page, space, siblings, onChanged, onNewChild }: Pr
 	const [restricting, setRestricting] = useState(false);
 	const restriction = useApi<DocRestriction>(restricting ? `/api/work/docs/pages/${page.id}/restrictions` : null);
 	const [people, setPeople] = useState<Array<{ id: string; can_edit: boolean }> | null>(null);
+
+	// the page menu closes on Escape and on a click anywhere else, as a menu does
+	const menuBox = useRef<HTMLDivElement | null>(null);
+	useEffect(() => {
+		if (!menu) return;
+		const key = (e: KeyboardEvent) => {
+			if (e.key === "Escape") setMenu(false);
+		};
+		const down = (e: MouseEvent) => {
+			if (menuBox.current && !menuBox.current.contains(e.target as Node)) setMenu(false);
+		};
+		document.addEventListener("keydown", key);
+		document.addEventListener("mousedown", down);
+		return () => {
+			document.removeEventListener("keydown", key);
+			document.removeEventListener("mousedown", down);
+		};
+	}, [menu]);
 
 	const pageApi = `/api/work/docs/pages/${page.id}`;
 	const canEdit = !page.restricted || page.restriction.can_manage || page.restriction.people.some((p) => p.id === meta?.me?.id && p.can_edit);
@@ -108,7 +126,7 @@ export function DocPageView({ page, space, siblings, onChanged, onNewChild }: Pr
 						{space.home_page_id === page.id && <span className="shrink-0 rounded-v2-sm border border-hairline-strong px-1.5 py-0.5 text-[10px] font-normal uppercase tracking-[0.08em] text-text-lo">Home</span>}
 					</h2>
 				)}
-				<div className="relative flex shrink-0 items-center gap-2">
+				<div ref={menuBox} className="relative flex shrink-0 items-center gap-2">
 					{editing ? (
 						<>
 							<Button size="sm" variant="primary" loading={busy} onClick={() => void save()}>
@@ -139,6 +157,15 @@ export function DocPageView({ page, space, siblings, onChanged, onNewChild }: Pr
 										{ label: "Link a ticket…", run: () => { setMenu(false); setLinking(true); } },
 										{ label: "Who can see this…", run: () => { setMenu(false); setPeople(null); setRestricting(true); } },
 										...(space.home_page_id !== page.id ? [{ label: "Make this the home page", run: () => { setMenu(false); void run(() => workFetch(`/api/work/docs/spaces/${encodeURIComponent(space.key)}`, "PATCH", { home_page_id: page.id })); } }] : []),
+										{
+											// the Templates page says a page's menu can do this; the route has taken `from_page` since Part F
+											label: "Save as a template…",
+											run: () => {
+												setMenu(false);
+												const name = window.prompt("Name the template", page.title || "Untitled")?.trim();
+												if (name) void run(() => workFetch("/api/work/docs/templates", "POST", { from_page: page.id, name }));
+											},
+										},
 										{
 											label: "Archive",
 											run: () => {

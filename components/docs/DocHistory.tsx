@@ -35,7 +35,9 @@ export function DocHistory({ spaceKey, pageId }: { spaceKey: string; pageId: str
 		setErr(null);
 		try {
 			await workFetch(`${base}/versions`, "POST", { restore: n });
-			await mutate();
+			// the page as well as its history: the page view reads the same cached entry, and went
+			// on showing the content from before the restore until something else refreshed it
+			await Promise.all([mutate(), page.mutate()]);
 			router.push(docHref(spaceKey, pageId));
 		} catch (e) {
 			setErr(e instanceof WorkError ? e.message : "Could not restore.");

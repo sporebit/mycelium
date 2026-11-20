@@ -134,7 +134,13 @@ export function RichEditor({
 	autoFocus = false,
 }: RichEditorProps) {
 	const headings = variant !== "comment";
-	const initial = useMemo<Doc>(() => (isDoc(value) ? value : textToDoc(fallbackText)), [value, fallbackText]);
+	const initial = useMemo<Doc>(() => {
+		const doc = isDoc(value) ? value : textToDoc(fallbackText);
+		// An empty document is given its one empty paragraph here. Opened on `content: []` the
+		// editor starts with the whole document selected, and stays that way until something is
+		// typed: Heading, a list or a divider from the toolbar was then replaced by the first key.
+		return doc.content.length > 0 ? doc : { type: "doc", content: [{ type: "paragraph" }] };
+	}, [value, fallbackText]);
 
 	// the callbacks change identity every render; the editor is made once
 	const onChangeRef = useRef(onChange);
@@ -152,6 +158,8 @@ export function RichEditor({
 			content: initial,
 			editable,
 			autofocus: autoFocus ? "end" : false,
+			// the toolbar reads the selection (bold on or off, undo available): keep it in step with it
+			shouldRerenderOnTransaction: true,
 			// the server renders nothing for the editor: it mounts on the client
 			immediatelyRender: false,
 			editorProps: {

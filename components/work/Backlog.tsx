@@ -21,10 +21,19 @@ import { QuickCreate } from "./QuickCreate";
 
 type BurndownPoint = { date: string; remaining: number; ideal: number };
 
-function plusDays(n: number): string {
-	const d = new Date(`${todayLondon()}T00:00:00`);
-	d.setDate(d.getDate() + n);
+/**
+ * A calendar day plus n days. Done in UTC on purpose: local midnight in
+ * British Summer Time is 23:00 the day before in UTC, so reading the result
+ * back with toISOString() lost a day from April to October.
+ */
+function addDays(day: string, n: number): string {
+	const d = new Date(`${day}T00:00:00Z`);
+	d.setUTCDate(d.getUTCDate() + n);
 	return d.toISOString().slice(0, 10);
+}
+
+function plusDays(n: number): string {
+	return addDays(todayLondon(), n);
 }
 
 function Burndown({ sprintId }: { sprintId: string }) {
@@ -299,9 +308,8 @@ function BacklogBody({ data }: { data: ProjectPayload }) {
 							value={null}
 							onChange={(v) => {
 								if (!v) return;
-								const d = new Date(`${starts}T00:00:00`);
-								d.setDate(d.getDate() + Number(v) - 1);
-								setEnds(d.toISOString().slice(0, 10));
+								if (!/^\d{4}-\d{2}-\d{2}$/.test(starts)) return;
+								setEnds(addDays(starts, Number(v) - 1));
 							}}
 							placeholder="Set the end from the start"
 						/>
