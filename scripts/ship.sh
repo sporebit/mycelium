@@ -51,7 +51,10 @@ else
 fi
 
 echo "== 3/4 push"
-git push origin main 2>&1 | tail -1
+# Exactly the commit that was built above, not whatever main has become since: a commit made while the
+# build was running must not ride out unbuilt (it did once, 2026-11-20).
+git push origin "$SHA:refs/heads/main" 2>&1 | tail -1
+if [ "$(git rev-parse HEAD)" != "$SHA" ]; then echo "   note: main has moved on to $(git rev-parse --short HEAD) since the build; that is not pushed. Run ship again for it."; fi
 
 echo "== 4/4 deploy"
 if [ "${1:-}" = "--no-wait" ]; then echo "   not waiting"; exit 0; fi
