@@ -1,5 +1,6 @@
 import ICAL from "ical.js";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { fetchFamilyAppointments } from "./family";
 
 type Feed = { name: string; colour: string; url: string };
 
@@ -26,9 +27,9 @@ const WINDOW_BACK_DAYS = 45;
 const WINDOW_FORWARD_DAYS = 45;
 const RECUR_SAFETY_LIMIT = 500;
 
-// Per-user: the feeds are shared configuration, but the tasks/birthdays/
-// bills merged in are the caller's, so one user's calendar must never be
-// served to another from the cache.
+// The feeds only: shared configuration, the same for everyone. Nothing of
+// the caller's (tasks, birthdays, bills, the family's appointments) is
+// cached, so one person's calendar is never served to another.
 const memoryCache = new Map<string, { data: CalendarData; expiresAt: number }>();
 
 function readFeeds(): Feed[] {
@@ -387,52 +388,58 @@ async function fetchDirectDebits(
   }
 }
 
+/**
+ * The Google feeds, fetched and parsed once every five minutes for the
+ * whole process: they are shared configuration, the same for everyone,
+ * and the slow part. Everything from the database is read fresh each
+ * time, as the caller, so a row written a moment ago is on the page.
+ */
+async function feedEvents(windowStart: Date, windowEnd: Date): Promise<CalendarData> {
+  const cached = memoryCache.get("feeds");
+  if (cached && cached.expiresAt > Date.now()) return cached.data;
+  const failed: string[] = [];
+  const events: CalendarEvent[] = [];
+  await Promise.all(
+    readFeeds().map(async (feed) => {
+      try {
+        const text = await fetchIcs(feed.url, FETCH_TIMEOUT_MS);
+        events.push(...parseFeed(text, feed, windowStart, windowEnd));
+      } catch (err) {
+        console.error(`[calendar] feed '${feed.name}' failed:`, err);
+        failed.push(feed.name);
+      }
+    }),
+  );
+  const data: CalendarData = { events, failedCalendars: failed };
+  memoryCache.set("feeds", { data, expiresAt: Date.now() + CACHE_TTL_MS });
+  return data;
+}
+
 export async function getCalendarData(
   supabase: SupabaseClient,
 ): Promise<CalendarData> {
-  const { data: who } = await supabase.auth.getUser();
-  const cacheKey = who.user?.id ?? "anon";
-  const cached = memoryCache.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now()) {
-    return cached.data;
-  }
-
-  const feeds = readFeeds();
   const now = new Date();
   const windowStart = new Date(now);
   windowStart.setDate(now.getDate() - WINDOW_BACK_DAYS);
   const windowEnd = new Date(now);
   windowEnd.setDate(now.getDate() + WINDOW_FORWARD_DAYS);
 
-  const failed: string[] = [];
-  const all: CalendarEvent[] = [];
-
-  const [, scheduledTasks, birthdayEvents, customEvents, directDebits] = await Promise.all([
-    Promise.all(
-      feeds.map(async (feed) => {
-        try {
-          const text = await fetchIcs(feed.url, FETCH_TIMEOUT_MS);
-          const parsed = parseFeed(text, feed, windowStart, windowEnd);
-          all.push(...parsed);
-        } catch (err) {
-          console.error(`[calendar] feed '${feed.name}' failed:`, err);
-          failed.push(feed.name);
-        }
-      }),
-    ),
+  const [feeds, scheduledTasks, birthdayEvents, customEvents, directDebits, familyAppointments] = await Promise.all([
+    feedEvents(windowStart, windowEnd),
     fetchScheduledTasks(supabase, windowStart, windowEnd),
     fetchBirthdays(supabase, windowStart, windowEnd),
     fetchEvents(supabase, windowStart, windowEnd),
     fetchDirectDebits(supabase, windowStart, windowEnd),
+    fetchFamilyAppointments(supabase, windowStart, windowEnd),
   ]);
+  const all: CalendarEvent[] = [...feeds.events];
   all.push(...scheduledTasks);
   all.push(...birthdayEvents);
   all.push(...customEvents);
   all.push(...directDebits);
+  all.push(...familyAppointments);
   all.push(...generatePaydays(windowStart, windowEnd));
 
   all.sort((a, b) => a.start.localeCompare(b.start));
-  const data: CalendarData = { events: all, failedCalendars: failed };
-  memoryCache.set(cacheKey, { data, expiresAt: Date.now() + CACHE_TTL_MS });
-  return data;
+  return { events: all, failedCalendars: feeds.failedCalendars };
 }

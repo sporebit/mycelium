@@ -46,6 +46,7 @@ const COLOUR_LEGEND = [
   { label: "Events", colour: "#6db8f5" },
   { label: "Bills", colour: "#6db8f5" },
   { label: "Payday", colour: "#84f5b8" },
+  { label: "Family", colour: "#c79bf5" },
 ];
 
 const EVENT_COLOURS = [
