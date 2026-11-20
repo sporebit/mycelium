@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
-import { DETAIL_SELECT, type GoustoRow } from "@/lib/health/gousto";
+import { recipeDetail } from "@/lib/health/recipeDetail";
 
 export const runtime = "nodejs";
 
@@ -11,9 +11,10 @@ const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,200}$/i;
 /**
  * /api/health/gousto/[slug] (0151) — one Gousto recipe.
  *
- * GET    the row with its cached detail, or `detail: null` with
- *        `needs_detail: true` when the PC sync has not fetched it yet
- *        (the server cannot reach Gousto; see lib/health/gousto.ts).
+ * GET    the row with its detail, through lib/health/recipeDetail.ts:
+ *        `held` says where the detail is (hosted, on the PC, or never
+ *        fetched) and `pending` that the PC has been asked for it;
+ *        `needs_detail: true` whenever there is none to show.
  * PATCH  `{is_favourite}` — the heart.
  */
 export async function GET(_req: NextRequest, ctx: Ctx) {
@@ -21,11 +22,9 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
 	if (!SLUG_RE.test(slug)) return NextResponse.json({ error: "not found" }, { status: 404 });
 	try {
 		const supabase = await createUserClient();
-		const { data, error } = await supabase.from("gousto_recipes").select(DETAIL_SELECT).eq("slug", slug).maybeSingle();
-		if (error) throw error;
-		if (!data) return NextResponse.json({ error: "not found" }, { status: 404 });
-		const row = data as unknown as GoustoRow;
-		return NextResponse.json({ recipe: row, needs_detail: !row.detail });
+		const answer = await recipeDetail(supabase, slug);
+		if (!answer) return NextResponse.json({ error: "not found" }, { status: 404 });
+		return NextResponse.json(answer);
 	} catch (err) {
 		console.error("[/api/health/gousto/:slug GET]", err);
 		return NextResponse.json({ error: "fetch failed" }, { status: 500 });
