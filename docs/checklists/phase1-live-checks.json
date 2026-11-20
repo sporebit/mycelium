@@ -10,7 +10,7 @@
       "Chunk 11 needs the email service set up and the partner's phone"
     ],
     "time": [
-      "Eleven chunks: one of 5 minutes, one of 10, nine of 15"
+      "Twelve chunks: one of 5 minutes, one of 10, ten of 15"
     ],
     "cost": [
       "Free, except Receipts: a few pence of cloud AI"
@@ -925,6 +925,111 @@
             {
               "key": "partner",
               "label": "Anything that confused her"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "title": "The new shell and Specimen plate (15 minutes, on the PC; drop 7 first)",
+      "lede_html": "Behind a switch, so nothing changes until you flip it, and Classic is one tap back. Checked by automation for behaviour; only you can say whether it is what you pictured.",
+      "steps": [
+        {
+          "id": "12.1",
+          "title": "Switch it on",
+          "actor": "you",
+          "where": {
+            "label": "Settings",
+            "url": "https://mycelium.sporebit.com/other/settings",
+            "kind": "page"
+          },
+          "body_html": "Settings → Appearance → Shell → <b>New</b>. The page reloads with a menu bar across the top and no sidebar."
+        },
+        {
+          "id": "12.2",
+          "title": "The menu bar",
+          "actor": "you",
+          "where": {
+            "label": "Home",
+            "url": "https://mycelium.sporebit.com/",
+            "kind": "page"
+          },
+          "body_html": "Open each dropdown. Is everything where you would look for it? The groups are one line of code each to change: say which to move.",
+          "fields": [
+            {
+              "key": "menu_groups",
+              "label": "Anything to regroup or rename"
+            }
+          ]
+        },
+        {
+          "id": "12.3",
+          "title": "The plate",
+          "actor": "you",
+          "where": {
+            "label": "Home",
+            "url": "https://mycelium.sporebit.com/",
+            "kind": "page"
+          },
+          "body_html": "Home is the day as a field-guide page: the win as the large specimen with its four notes, the rest as figures. Move the pointer across it: the threads lean away. Is this what you pictured? More, less, different?",
+          "fields": [
+            {
+              "key": "plate_verdict",
+              "label": "What to change"
+            }
+          ]
+        },
+        {
+          "id": "12.4",
+          "title": "Done",
+          "actor": "you",
+          "body_html": "Press <b>Done — colour it in</b> on something you have really finished. Colour floods in, new growth comes from the specimen, the spore print gains a ray. Is the moment big enough?"
+        },
+        {
+          "id": "12.5",
+          "title": "Bring a figure to the centre",
+          "actor": "you",
+          "body_html": "Click a small figure: it becomes the annotated specimen. <b>Not now</b> sets it aside; <b>Start with a timer</b> opens the focus card."
+        },
+        {
+          "id": "12.6",
+          "title": "An inner page",
+          "actor": "you",
+          "where": {
+            "label": "People",
+            "url": "https://mycelium.sporebit.com/organisation/people",
+            "kind": "page"
+          },
+          "body_html": "Open People or Hours: the page itself is unchanged, with its sub-pages as a row of chips under the bar. Anything now harder to reach than it was in the sidebar?"
+        },
+        {
+          "id": "12.7",
+          "title": "The phone",
+          "actor": "you",
+          "body_html": "On the phone Home is still the single next-thing card, and the tab bar is as before."
+        },
+        {
+          "id": "12.8",
+          "title": "Stay or switch back",
+          "actor": "you",
+          "body_html": "Leave it on New if you want to live with it; Classic is in the same place.",
+          "fields": [
+            {
+              "key": "shell_choice",
+              "label": "New / Classic for now"
+            }
+          ]
+        },
+        {
+          "id": "12.9",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "new_shell",
+              "label": "Anything broken or ugly"
             }
           ]
         }
