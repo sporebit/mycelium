@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await supabase
       .from("api_tokens")
       .insert({
-        user_id: uid,
+        // space_id and created_by default to the caller's own (the table has no user_id: 0120 adopted it).
         name,
         token_hash: await sha256Hex(token),
         token_prefix: token.slice(4, 12),

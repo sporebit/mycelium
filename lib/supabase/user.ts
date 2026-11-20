@@ -27,7 +27,7 @@
 import { createServerClient as createSsrServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
-import { PRINCIPAL_HEADER, PRINCIPAL_PATH_HEADER, PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
+import { PRINCIPAL_HEADER, PRINCIPAL_PATH_HEADER, PRINCIPAL_SCOPES_HEADER, PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { auditBreakGlass } from "@/lib/system/audit";
 import { clientForUser } from "@/lib/system/withUser";
 
@@ -43,6 +43,14 @@ export async function createUserClient(): Promise<SupabaseClient> {
       // One audit row per break-glass request (P12 Part 5 resolves Part 1's TODO).
       auditBreakGlass(principalUser, h.get(PRINCIPAL_PATH_HEADER) ?? "?", h);
     }
+    return clientForUser(principalUser);
+  }
+  // An API token (`Bearer mtk_…`) is a user with no browser session: the
+  // middleware resolved it to its owner and checked its route and verb
+  // scope. Until 2026-11-20 it fell through to the cookie client below,
+  // found no cookie and reached the database as nobody, so a token could
+  // pass the gate and then read and write nothing.
+  if (principal === "user" && principalUser && h.has(PRINCIPAL_SCOPES_HEADER)) {
     return clientForUser(principalUser);
   }
   if (principal === "system") {

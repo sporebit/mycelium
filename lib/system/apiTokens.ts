@@ -60,14 +60,15 @@ export async function resolveApiToken(bearer: string | null | undefined): Promis
   const db = createServiceClient();
   const { data } = await db
     .from("api_tokens")
-    .select("id, user_id, name, scopes, expires_at, revoked_at")
+    // The owner is created_by: adopting the table into the spaces model (0120) replaced its user_id column.
+    .select("id, created_by, name, scopes, expires_at, revoked_at")
     .eq("token_hash", hash)
     .maybeSingle();
-  if (!data || data.revoked_at) return null;
+  if (!data || data.revoked_at || !data.created_by) return null;
   if (data.expires_at && Date.parse(data.expires_at as string) < Date.now()) return null;
   // last_used_at: best-effort, throttled to once a minute by the caller's cadence
   void db.from("api_tokens").update({ last_used_at: new Date().toISOString() }).eq("id", data.id).then(() => {}, () => {});
-  return { id: data.id as string, user_id: data.user_id as string, name: data.name as string, scopes: normaliseScopes(data.scopes) };
+  return { id: data.id as string, user_id: data.created_by as string, name: data.name as string, scopes: normaliseScopes(data.scopes) };
 }
 
 /** Is this request inside the token's scope? (routes + verbs; projects are checked by the tickets routes). */
