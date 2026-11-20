@@ -102,7 +102,23 @@ export function LogView() {
         </div>
       </div>
 
-      <section className="rounded-v2-lg border border-dashed border-glow-dim p-2" data-hours-grid>
+      <div className="flex flex-wrap items-center gap-2">
+        <SegmentedControl
+          options={[
+            { value: "this", label: "This week" },
+            { value: "last", label: "Last week" },
+            { value: "pick", label: "Week of…" },
+            { value: "all", label: "All" },
+          ]}
+          value={range}
+          onChange={(v) => setRange(v as Range)}
+        />
+        {range === "pick" && <input aria-label="Any date in the week" type="date" value={pick} onChange={(e) => e.target.value && setPick(e.target.value)} className={`${INPUT_SM} w-40`} />}
+        <SegmentedControl options={STATE_OPTIONS} value={state} onChange={(v) => setState(v as StateFilter)} />
+        <input aria-label="Search" placeholder="Search description or ticket" value={q} onChange={(e) => setQ(e.target.value)} className={`${INPUT_SM} w-full sm:w-64 sm:ml-auto`} />
+      </div>
+
+      <section data-hours-grid>
         <div className="flex items-center gap-3 px-2 pb-1 border-b border-hairline mb-1">
           <span className="text-sm font-semibold text-text-hi">New entries</span>
           <span className="text-xs text-text-lo">
@@ -140,28 +156,14 @@ export function LogView() {
         <div className="px-2 pt-1 text-[11px] text-text-lo">Enter or leaving the row saves it here. Merge adds dated entries to their day below and dateless ones to the Backlog.</div>
       </section>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <SegmentedControl
-          options={[
-            { value: "this", label: "This week" },
-            { value: "last", label: "Last week" },
-            { value: "pick", label: "Week of…" },
-            { value: "all", label: "All" },
-          ]}
-          value={range}
-          onChange={(v) => setRange(v as Range)}
-        />
-        {range === "pick" && <input aria-label="Any date in the week" type="date" value={pick} onChange={(e) => e.target.value && setPick(e.target.value)} className={`${INPUT_SM} w-40`} />}
-        <SegmentedControl options={STATE_OPTIONS} value={state} onChange={(v) => setState(v as StateFilter)} />
-        <input aria-label="Search" placeholder="Search description or ticket" value={q} onChange={(e) => setQ(e.target.value)} className={`${INPUT_SM} w-full sm:w-64 sm:ml-auto`} />
+      <div className="flex items-baseline justify-between gap-3 text-xs text-text-lo">
+        <span>
+          {monday && sunday ? <>Week of {dateLabel(monday, true)} to {dateLabel(sunday)} · </> : null}
+          Click any cell to edit. Enter saves and moves down, Tab moves across, Esc puts it back.
+        </span>
         <button type="button" onClick={() => setSortAsc((v) => !v)} className="text-xs text-text-mid hover:text-text-hi whitespace-nowrap">
           {sortAsc ? "Oldest first ↑" : "Newest first ↓"}
         </button>
-      </div>
-
-      <div className="text-xs text-text-lo">
-        {monday && sunday ? <>Week of {dateLabel(monday, true)} to {dateLabel(sunday)} · </> : null}
-        Click any cell to edit. Enter saves and moves down, Tab moves across, Esc puts it back.
       </div>
 
       {groups.length === 0 ? (
