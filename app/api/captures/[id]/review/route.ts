@@ -45,6 +45,7 @@ type ReviewBody = {
 };
 
 const ALLOWED_KINDS = new Set([
+  "find",
   "task",
   "ticket",
   "person",

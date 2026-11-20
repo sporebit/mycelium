@@ -1,0 +1,28 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "fixture-lib": {
+      "name": "fixture-lib",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        { "source": 1000001, "name": "fixture-lib", "dependency": "fixture-lib", "title": "Fixture: prototype pollution in merge()", "url": "https://github.com/advisories/GHSA-fixt-ure0-0002", "severity": "moderate", "range": "<2.1.0" }
+      ],
+      "effects": [],
+      "range": "<2.1.0",
+      "nodes": ["node_modules/fixture-lib"],
+      "fixAvailable": true
+    },
+    "other-lib": {
+      "name": "other-lib",
+      "severity": "low",
+      "isDirect": true,
+      "via": ["fixture-lib"],
+      "effects": [],
+      "range": "*",
+      "nodes": ["node_modules/other-lib"],
+      "fixAvailable": false
+    }
+  },
+  "metadata": { "vulnerabilities": { "info": 0, "low": 1, "moderate": 1, "high": 0, "critical": 0, "total": 2 } }
+}

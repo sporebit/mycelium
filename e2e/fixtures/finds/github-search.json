@@ -1,0 +1,58 @@
+{
+  "total_count": 4,
+  "incomplete_results": false,
+  "items": [
+    {
+      "full_name": "e2e-finds/mcp-house-server",
+      "html_url": "https://github.com/e2e-finds/mcp-house-server",
+      "description": "An MCP server that exposes a home's sensors and switches to an agent. Fixture for the Finds feed tests.",
+      "stargazers_count": 120,
+      "language": "TypeScript",
+      "license": { "spdx_id": "MIT", "name": "MIT License" },
+      "topics": ["mcp-server", "home-automation", "agents"],
+      "created_at": "2026-11-14T09:00:00Z",
+      "pushed_at": "2026-11-19T18:00:00Z",
+      "archived": false,
+      "fork": false
+    },
+    {
+      "full_name": "someone/forked-copy",
+      "html_url": "https://github.com/someone/forked-copy",
+      "description": "A fork; never a find.",
+      "stargazers_count": 900,
+      "language": "TypeScript",
+      "license": null,
+      "topics": ["mcp-server"],
+      "created_at": "2026-11-15T09:00:00Z",
+      "pushed_at": "2026-11-15T09:00:00Z",
+      "archived": false,
+      "fork": true
+    },
+    {
+      "full_name": "tiny/too-few-stars",
+      "html_url": "https://github.com/tiny/too-few-stars",
+      "description": "Below every star floor.",
+      "stargazers_count": 3,
+      "language": "Python",
+      "license": { "spdx_id": "Apache-2.0", "name": "Apache License 2.0" },
+      "topics": ["claude-skills"],
+      "created_at": "2026-11-16T09:00:00Z",
+      "pushed_at": "2026-11-16T09:00:00Z",
+      "archived": false,
+      "fork": false
+    },
+    {
+      "full_name": "old/archived-thing",
+      "html_url": "https://github.com/old/archived-thing",
+      "description": "Archived; never a find.",
+      "stargazers_count": 500,
+      "language": "Go",
+      "license": { "spdx_id": "MIT", "name": "MIT License" },
+      "topics": ["design-system"],
+      "created_at": "2026-11-13T09:00:00Z",
+      "pushed_at": "2026-11-13T09:00:00Z",
+      "archived": true,
+      "fork": false
+    }
+  ]
+}

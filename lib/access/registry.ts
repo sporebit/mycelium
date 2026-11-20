@@ -281,6 +281,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
     group: "spotify",
     tables: ["spotify_tokens", "spotify_plays"],
   },
+  {
+    section: "studio",
+    group: "finds",
+    tables: ["finds", "find_sources"],
+    note: "The Finds feed (0178): posts, repos, skills and tools shared in or found by the watchers, each with the model's verdict and the person's Keep / Skip. A personal reading list.",
+  },
 
   // -- drops ----------------------------------------------------------------
   {

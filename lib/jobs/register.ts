@@ -6,3 +6,5 @@
 import "./handlers";
 import "@/lib/capture/jobs";
 import "@/lib/daily/firstSteps";
+import "@/lib/finds/verdict";
+import "@/lib/finds/audit";

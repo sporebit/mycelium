@@ -1,0 +1,20 @@
+[
+  {
+    "ghsa_id": "GHSA-e2ef-inds-0001",
+    "cve_id": "CVE-2026-00001",
+    "html_url": "https://github.com/advisories/GHSA-e2ef-inds-0001",
+    "summary": "Fixture: a made-up server-side request forgery in an image loader",
+    "severity": "high",
+    "published_at": "2026-11-18T12:00:00Z",
+    "vulnerabilities": [
+      { "package": { "ecosystem": "npm", "name": "next" }, "vulnerable_version_range": "< 15.99.1", "first_patched_version": "15.99.1" }
+    ]
+  },
+  {
+    "ghsa_id": "GHSA-no-summary",
+    "html_url": "https://github.com/advisories/GHSA-no-summary",
+    "summary": "",
+    "severity": "low",
+    "vulnerabilities": []
+  }
+]

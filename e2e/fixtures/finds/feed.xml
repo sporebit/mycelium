@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>E2E finds feed</title>
+  <link rel="self" href="https://feed.e2e-finds.example/atom.xml"/>
+  <updated>2026-11-19T08:00:00Z</updated>
+  <entry>
+    <title>Motion tokens: one easing table for a whole design system</title>
+    <link rel="alternate" type="text/html" href="https://blog.e2e-finds.example/motion-tokens?utm_campaign=feed"/>
+    <id>tag:blog.e2e-finds.example,2026:motion-tokens</id>
+    <summary type="html">&lt;p&gt;How we keep every transition under 300 ms with one table of &lt;b&gt;tokens&lt;/b&gt;.&lt;/p&gt;</summary>
+  </entry>
+  <entry>
+    <title>An entry from years ago</title>
+    <link rel="alternate" href="https://blog.e2e-finds.example/old-post"/>
+    <id>tag:blog.e2e-finds.example,2020:old</id>
+    <published>2020-01-01T00:00:00Z</published>
+    <content type="html"><![CDATA[<p>Old news.</p>]]></content>
+  </entry>
+</feed>

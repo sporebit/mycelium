@@ -89,9 +89,9 @@ function log(message) {
 // ---------------------------------------------------------------------------
 // What this PC can do
 
-function run(file, args, { timeoutMs = 600_000, env: extraEnv } = {}) {
+function run(file, args, { timeoutMs = 600_000, env: extraEnv, cwd, shell = false } = {}) {
   return new Promise((resolve) => {
-    execFile(file, args, { timeout: timeoutMs, maxBuffer: 32 * 1024 * 1024, windowsHide: true, env: { ...process.env, PYTHONIOENCODING: "utf-8", ...extraEnv } }, (error, stdout, stderr) => {
+    execFile(file, args, { timeout: timeoutMs, maxBuffer: 32 * 1024 * 1024, windowsHide: true, cwd, shell, env: { ...process.env, PYTHONIOENCODING: "utf-8", ...extraEnv } }, (error, stdout, stderr) => {
       resolve({ ok: !error, stdout: String(stdout ?? ""), stderr: String(stderr ?? ""), error });
     });
   });
@@ -120,7 +120,9 @@ async function capabilities() {
   const llm = await ollamaUp();
   const kinds = ["ping"];
   if (whisper) kinds.push("transcribe");
-  if (llm) kinds.push("classify", "llm", "first_steps");
+  if (llm) kinds.push("classify", "llm", "first_steps", "finds_verdict");
+  // `npm audit --json` in this checkout (the Finds feed, lib/finds/audit.ts): a package.json beside pc-worker/.
+  if (existsSync(path.join(HERE, "..", "package-lock.json"))) kinds.push("npm_audit");
   return { kinds, whisper, llm, whisper_model: whisper ? config.whisperModel : null, llm_model: llm ? config.ollamaModel : null };
 }
 
@@ -180,6 +182,21 @@ async function llm(payload) {
   return { text: body.message?.content ?? "", model: config.ollamaModel, seconds: Math.round((Date.now() - started) / 100) / 10 };
 }
 
+/**
+ * `npm audit --json` in the repo checkout this worker lives in (the Finds
+ * feed, lib/finds/audit.ts). Reads the lockfile only; installs nothing and
+ * changes nothing. npm exits 1 when it finds something, so the exit code is
+ * not an error here: the JSON is the result either way. On Windows npm is
+ * a .cmd, which needs a shell to start.
+ */
+async function npmAudit() {
+  const repo = path.join(HERE, "..");
+  const r = await run("npm", ["audit", "--json", "--omit=dev"], { timeoutMs: 180_000, cwd: repo, shell: process.platform === "win32", env: { npm_config_fund: "false", npm_config_update_notifier: "false" } });
+  const text = r.stdout.trim();
+  if (!text.startsWith("{")) throw new Error(`npm audit gave no JSON: ${(r.stderr || r.stdout).slice(-300)}`);
+  return { audit: text.slice(0, 2_000_000), at: new Date().toISOString() };
+}
+
 const RUNNERS = {
   ping: async () => ({ pong: true, at: new Date().toISOString() }),
   transcribe,
@@ -187,6 +204,9 @@ const RUNNERS = {
   llm,
   // First steps for tomorrow's tasks (lib/daily/firstSteps.ts): a prompt in, text out; the cloud checks the answer.
   first_steps: llm,
+  // A verdict on a find (lib/finds/verdict.ts): the cloud opens the page and writes the prompt as the job is claimed.
+  finds_verdict: llm,
+  npm_audit: npmAudit,
 };
 
 // ---------------------------------------------------------------------------

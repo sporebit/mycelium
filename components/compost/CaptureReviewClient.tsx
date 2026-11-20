@@ -62,6 +62,7 @@ const KIND_OPTIONS = [
   "idea",
   "capture",
   "note",
+  "find",
   "other",
 ];
 const URGENCY_OPTIONS = ["today", "this_week", "this_month", "someday"];
