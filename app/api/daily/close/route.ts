@@ -5,8 +5,8 @@ import { createUserClient } from "@/lib/supabase/user";
 import { closeDay, type CloseDecision, ensurePlan, FINISHED_STATES, summarise } from "@/lib/daily/server";
 import { dailySettings } from "@/lib/daily/settings";
 import { cardOf, viewOf } from "@/lib/daily/view";
-import { eveningPrompt } from "@/lib/daily/words";
-import { interrupt, markActed } from "@/lib/nudges/interrupt";
+import { sendEveningPrompt } from "@/lib/daily/prompts";
+import { markActed } from "@/lib/nudges/interrupt";
 import { waitingForReview } from "@/lib/capture/queue";
 import { filedAs } from "@/lib/capture/pipeline";
 
@@ -88,15 +88,8 @@ export async function POST(req: NextRequest) {
     const plan = await ensurePlan(db, uid, undefined, { freeMinutes: settings.free_minutes });
 
     if (body.action === "prompt") {
-      if (plan.status === "closed") return NextResponse.json({ ok: true, prompted: false, say: "Day closed." });
-      const s = summarise(plan);
-      const left = plan.items.filter((i) => i.state === "planned" || i.state === "started").length;
-      const words = eveningPrompt(s.done, left);
-      // Once a day: the charger and the fallback time may both fire.
-      const { data: already } = await db.from("interruptions").select("id").eq("created_by", uid).eq("kind", "evening").eq("day", plan.day).limit(1);
-      if (already?.length) return NextResponse.json({ ok: true, status: "ok", prompted: false, say: `${words.title}. ${words.body}` });
-      const res = await interrupt(db, uid, { kind: "evening", essential: true, title: words.title, body: words.body, url: "/close" });
-      return NextResponse.json({ ok: true, prompted: res.sent, say: `${words.title}. ${words.body}` });
+      const res = await sendEveningPrompt(db, uid, plan);
+      return NextResponse.json({ ok: true, status: "ok", prompted: res.prompted, say: res.say });
     }
 
     const decisions: CloseDecision[] = Array.isArray(body.decisions)

@@ -245,6 +245,51 @@ async function round() {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// ---------------------------------------------------------------------------
+// The five-minute knock
+//
+// Vercel's free plan runs a job once a day at most. Everything that must
+// happen during the day (reminders, the Day log prompt, the morning and
+// evening prompts, check-ins, quote research, rundowns) hangs off one
+// route, /api/cron/tick, which works out for itself what is due. This PC
+// knocks on it once per five-minute slot while it is on.
+
+const TICK_MS = 5 * 60_000;
+const TICK_ON = process.env.MYCELIUM_WORKER_TICK !== "0" && !ONCE;
+let lastSlot = -1;
+
+async function tick() {
+  if (!TICK_ON) return;
+  const slot = Math.floor(Date.now() / TICK_MS);
+  if (slot === lastSlot) return;
+  lastSlot = slot;
+  try {
+    const res = await api("/api/cron/tick", {});
+    const bad = (res.ran ?? []).filter((r) => r.status >= 400);
+    // Quiet when all is well: a line only for a job that failed.
+    for (const r of bad) log(`tick: ${r.path} answered ${r.status} after ${r.ms}ms`);
+  } catch (err) {
+    log(`tick failed: ${err instanceof Error ? err.message : err}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Saying so when it cannot work
+//
+// A worker that is refused (a wrong or rotated key) will be refused for
+// ever, and nobody reads its log: on 2026-11-20 it failed for ninety
+// minutes before anyone looked. A refusal is reported once, by Telegram
+// straight from this PC (the app is the thing that is not answering).
+
+let complained = false;
+function complainOnce(message) {
+  if (complained || /localhost|127.0.0.1/.test(config.url)) return;
+  complained = true;
+  const script = path.join(ROOT, "scripts", "run-notify.mjs");
+  if (!existsSync(script)) return;
+  execFile(process.execPath, [script, `The PC worker cannot reach Mycelium: ${message}. Captured audio waits on the PC until this is fixed. Log: %LOCALAPPDATA%\Mycelium\pc-worker.log`], { windowsHide: true, timeout: 60_000 }, () => undefined);
+}
+
 async function main() {
   if (!SECRETS.length) {
     log("CRON_SECRET is missing from .env.local; the worker cannot sign its requests. Stopping.");
@@ -262,11 +307,16 @@ async function main() {
     try {
       took = await round();
       failures = 0;
+      complained = false;
     } catch (err) {
       failures += 1;
+      const message = err instanceof Error ? err.message : String(err);
       // One line per failure for the first few, then once every ten, so an offline night does not fill the log.
-      if (failures <= 3 || failures % 10 === 0) log(`round failed (${failures}): ${err instanceof Error ? err.message : err}`);
+      if (failures <= 3 || failures % 10 === 0) log(`round failed (${failures}): ${message}`);
+      // Refused three times running is not a blip. (Offline is not reported: there is nothing to send it with.)
+      if (failures === 3 && / 40[13] /.test(` ${message} `)) complainOnce(message.slice(0, 120));
     }
+    if (failures === 0) await tick();
     if (ONCE) return;
     // More work may be waiting: go straight round again. Otherwise wait, longer while the cloud is unreachable.
     if (took === 0) await sleep(Math.min(config.pollSeconds * (failures > 3 ? 5 : 1), 600) * 1000);

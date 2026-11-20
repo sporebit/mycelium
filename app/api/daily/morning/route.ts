@@ -2,11 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { createUserClient } from "@/lib/supabase/user";
-import { ensurePlan, markPrompted } from "@/lib/daily/server";
-import { dailySettings } from "@/lib/daily/settings";
-import { viewOf } from "@/lib/daily/view";
-import { morningPrompt, spoken } from "@/lib/daily/words";
-import { interrupt } from "@/lib/nudges/interrupt";
+import { sendMorningPrompt } from "@/lib/daily/prompts";
 
 export const runtime = "nodejs";
 
@@ -25,32 +21,13 @@ export const runtime = "nodejs";
  */
 export async function POST() {
   const uid = (await headers()).get(PRINCIPAL_USER_HEADER);
-  if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!uid) return NextResponse.json({ ok: false, status: "error", error: "Unauthorized" }, { status: 401 });
   try {
     const db = await createUserClient();
-    const settings = await dailySettings(db);
-    const plan = await ensurePlan(db, uid, undefined, { freeMinutes: settings.free_minutes });
-    const view = await viewOf(db, plan);
-    const card = view.current ? { title: view.current.title, firstStep: view.current.first_step, minutes: view.current.minutes } : null;
-    const words = morningPrompt(card, Math.max(0, view.counts.left - 1));
-
-    let prompted = false;
-    if (!plan.prompted_at && plan.status !== "closed") {
-      await markPrompted(db, plan.id);
-      const res = await interrupt(db, uid, {
-        kind: "morning",
-        essential: true,
-        title: words.title,
-        body: words.body,
-        url: "/today",
-        ticketId: view.current?.ticket_id ?? null,
-        speak: card ? spoken(card) : null,
-      });
-      prompted = res.sent;
-    }
-    return NextResponse.json({ ok: true, prompted, say: `${words.title}. ${words.body}`, today: view });
+    const res = await sendMorningPrompt(db, uid);
+    return NextResponse.json({ ok: true, status: "ok", prompted: res.prompted, say: res.say, today: res.today });
   } catch (err) {
     console.error("[daily/morning POST]", err);
-    return NextResponse.json({ error: "Could not prepare today" }, { status: 500 });
+    return NextResponse.json({ ok: false, status: "error", error: "Could not prepare today" }, { status: 500 });
   }
 }
