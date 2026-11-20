@@ -221,7 +221,7 @@ export function FamilyClient({ initialTab }: { initialTab: FamilyTab }) {
         </Surface>
       ) : null}
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto whitespace-nowrap">
         <SegmentedControl ariaLabel="Family sections" options={order.map((t) => ({ value: t, label: TAB_LABEL[t] }))} value={tab} onChange={pick} />
       </div>
 

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { dueJobs, SCHEDULE, SLOT_MINUTES } from "./schedule";
 
@@ -9,7 +11,7 @@ describe("the sub-daily schedule", () => {
   });
 
   it("on the hour, in the evening, everything is due", () => {
-    expect(at(21, 0)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "quotes-research", "rundowns"]);
+    expect(at(21, 0)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "quotes-research", "rundowns"]);
   });
 
   it("any minute inside a slot gives that slot's jobs", () => {
@@ -19,8 +21,8 @@ describe("the sub-daily schedule", () => {
   });
 
   it("quarter and half hours", () => {
-    expect(at(21, 15)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins"]);
-    expect(at(21, 30)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "quotes-research"]);
+    expect(at(21, 15)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family"]);
+    expect(at(21, 30)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "quotes-research"]);
   });
 
   it("the daily prompts rest from midnight to six; reminders never do", () => {
@@ -44,5 +46,10 @@ describe("the sub-daily schedule", () => {
     expect(at(3, 45)).toContain("daylog");
     expect(at(4, 0)).not.toContain("daylog");
     expect(at(12, 0)).not.toContain("daylog");
+  });
+
+  it("every scheduled job has a handler in the tick (a job in the table with nothing to run it answers 500 every time it is due)", () => {
+    const tick = readFileSync(path.resolve(process.cwd(), "app/api/cron/tick/route.ts"), "utf8");
+    for (const job of SCHEDULE) expect(tick, job.path).toContain(`"${job.path}": `);
   });
 });

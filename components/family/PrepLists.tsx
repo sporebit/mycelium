@@ -7,6 +7,9 @@
  * a running total: all of it, what is bought, what is still to buy.
  */
 import { useRef, useState, type KeyboardEvent } from "react";
+
+/** One row of the sheet: tick, what it is, price, link (wide screens), remove. */
+const ROW = "grid grid-cols-[2rem_minmax(0,1fr)_4.5rem_1.75rem] items-center border-b border-hairline sm:grid-cols-[2rem_minmax(0,1fr)_6rem_13rem_4.5rem]";
 import { Label } from "@/components/ui";
 import { parsePounds, pounds } from "@/lib/family/money";
 import { useApi } from "@/lib/data/useApi";
@@ -40,25 +43,26 @@ function Row({ item, onSaved, onError }: { item: ListItem; onSaved: () => Promis
     }
   };
   // Enter moves to the same column in the next row, as in a spreadsheet.
-  const down = (e: KeyboardEvent<HTMLInputElement>) => {
+  const down = (e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (e.key !== "Enter") return;
     e.preventDefault();
     const col = e.currentTarget.dataset.col;
-    const rows = Array.from(e.currentTarget.closest("tbody")?.querySelectorAll<HTMLInputElement>(`input[data-col="${col}"]`) ?? []);
-    const next = rows[rows.indexOf(e.currentTarget) + 1] ?? document.querySelector<HTMLInputElement>(`[data-new-for="${item.list_id}"]`);
+    const rows = Array.from(e.currentTarget.closest("[data-sheet]")?.querySelectorAll<HTMLElement>(`[data-col="${col}"]`) ?? []);
+    const next = rows[rows.indexOf(e.currentTarget) + 1] ?? document.querySelector<HTMLElement>(`[data-new-for="${item.list_id}"]`);
     e.currentTarget.blur();
     next?.focus();
   };
 
   return (
-    <tr className={item.bought ? "opacity-60" : ""} data-testid="list-item">
-      <td className="w-9 text-center">
+    <div role="row" className={`${ROW} ${item.bought ? "opacity-60" : ""}`} data-testid="list-item">
+      <div className="text-center">
         <input type="checkbox" aria-label={`Bought: ${item.title}`} checked={item.bought} onChange={(e) => void save({ bought: e.target.checked })} className="h-4 w-4 accent-[var(--glow)]" />
-      </td>
-      <td>
-        <input data-col="title" aria-label="What it is" className={`${CELL} ${item.bought ? "line-through" : ""}`} value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={down} onBlur={() => title.trim() && title.trim() !== item.title && void save({ title })} />
-      </td>
-      <td className="w-24">
+      </div>
+      <div>
+        {/* a text area that grows with its words, so a long name wraps on a phone instead of being cut off */}
+        <textarea data-col="title" rows={1} aria-label="What it is" className={`${CELL} block resize-none py-2 [field-sizing:content] ${item.bought ? "line-through" : ""}`} value={title} onChange={(e) => setTitle(e.target.value.replace(/\n/g, " "))} onKeyDown={down} onBlur={() => title.trim() && title.trim() !== item.title && void save({ title })} />
+      </div>
+      <div>
         <input
           data-col="price"
           aria-label={`Price of ${item.title}`}
@@ -74,13 +78,13 @@ function Row({ item, onSaved, onError }: { item: ListItem; onSaved: () => Promis
             if (p !== item.price_pence) void save({ price_pence: p });
           }}
         />
-      </td>
-      <td className="hidden w-48 sm:table-cell">
+      </div>
+      <div className="hidden sm:block">
         <input data-col="link" aria-label={`Link for ${item.title}`} placeholder="https://" className={CELL} value={link} onChange={(e) => setLink(e.target.value)} onKeyDown={down} onBlur={() => (link.trim() || null) !== item.link && void save({ link: link.trim() || null })} />
-      </td>
-      <td className="w-16 text-right">
+      </div>
+      <div className="text-right">
         {item.link ? (
-          <a href={item.link} target="_blank" rel="noreferrer" className="mr-2 text-xs text-glow-2 hover:underline">
+          <a href={item.link} target="_blank" rel="noreferrer" className="mr-2 hidden text-xs text-glow-2 hover:underline sm:inline">
             Open
           </a>
         ) : null}
@@ -97,8 +101,8 @@ function Row({ item, onSaved, onError }: { item: ListItem; onSaved: () => Promis
         >
           ×
         </button>
-      </td>
-    </tr>
+      </div>
+    </div>
   );
 }
 
@@ -118,9 +122,9 @@ function NewRow({ listId, onSaved, onError }: { listId: string; onSaved: () => P
     }
   };
   return (
-    <tr>
-      <td />
-      <td colSpan={4}>
+    <div role="row" className="grid grid-cols-[2rem_minmax(0,1fr)]">
+      <div />
+      <div>
         <input
           ref={ref}
           data-new-for={listId}
@@ -136,8 +140,8 @@ function NewRow({ listId, onSaved, onError }: { listId: string; onSaved: () => P
             }
           }}
         />
-      </td>
-    </tr>
+      </div>
+    </div>
   );
 }
 
@@ -160,14 +164,12 @@ export function PrepLists() {
             <Label>{l.title}</Label>
             <Totals t={l.totals} />
           </div>
-          <table className="w-full border-collapse">
-            <tbody className="divide-y divide-hairline">
-              {l.items.map((i) => (
-                <Row key={`${i.id}:${i.title}:${i.price_pence}:${i.link}`} item={i} onSaved={refresh} onError={setError} />
-              ))}
-              <NewRow listId={l.id} onSaved={refresh} onError={setError} />
-            </tbody>
-          </table>
+          <div role="table" aria-label={l.title} data-sheet>
+            {l.items.map((i) => (
+              <Row key={`${i.id}:${i.title}:${i.price_pence}:${i.link}`} item={i} onSaved={refresh} onError={setError} />
+            ))}
+            <NewRow listId={l.id} onSaved={refresh} onError={setError} />
+          </div>
         </section>
       ))}
     </div>

@@ -8,7 +8,7 @@
  */
 import { useState } from "react";
 import { Label, Surface } from "@/components/ui";
-import { nextSide, span } from "@/lib/family/babylog";
+import { ago, lasted, nextSide, span } from "@/lib/family/babylog";
 import { useApi } from "@/lib/data/useApi";
 import { send, timeLabel, type LogRow, type LogSummary, type Overview } from "./api";
 
@@ -50,21 +50,21 @@ export function BabyLog({ family }: { family: Overview }) {
 
   return (
     <div className="flex flex-col gap-4" data-testid="baby-log">
-      <Surface className="grid grid-cols-3 gap-3 p-4 text-center">
+      <Surface className="grid grid-cols-3 gap-2 p-4 text-center">
         <div>
           <Label>Last feed</Label>
-          <p className="text-lg text-text-hi" data-testid="last-feed">{s?.last_feed ? `${span(s.last_feed.minutes_ago)} ago` : "None yet"}</p>
+          <p className="text-base text-text-hi sm:text-lg" data-testid="last-feed">{s?.last_feed ? ago(s.last_feed.minutes_ago) : "None yet"}</p>
           {s?.last_feed?.how ? <p className="text-xs text-text-lo">{s.last_feed.how}</p> : null}
         </div>
         <div>
           <Label>Last nappy</Label>
-          <p className="text-lg text-text-hi">{s?.last_nappy ? `${span(s.last_nappy.minutes_ago)} ago` : "None yet"}</p>
+          <p className="text-base text-text-hi sm:text-lg">{s?.last_nappy ? ago(s.last_nappy.minutes_ago) : "None yet"}</p>
           {s?.last_nappy?.what ? <p className="text-xs text-text-lo">{s.last_nappy.what}</p> : null}
         </div>
         <div>
           <Label>Sleep</Label>
-          <p className="text-lg text-text-hi">{s?.asleep ? `Asleep ${span(s.asleep.minutes)}` : "Awake"}</p>
-          <p className="text-xs text-text-lo">{span(s?.today.sleep_minutes ?? 0)} today</p>
+          <p className="text-base text-text-hi sm:text-lg">{s?.asleep ? `Asleep ${lasted(s.asleep.minutes)}` : "Awake"}</p>
+          <p className="text-xs text-text-lo">{lasted(s?.today.sleep_minutes ?? 0)} today</p>
         </div>
       </Surface>
 

@@ -5,6 +5,7 @@ import { londonNow } from "@/lib/tickets/categories";
 import { GET as briefing } from "../../briefings/morning/route";
 import { GET as dailyPrompts } from "../daily-prompts/route";
 import { GET as daylog } from "../daylog/route";
+import { GET as family } from "../family/route";
 import { GET as quotesResearch } from "../quotes-research/route";
 import { GET as reminders } from "../reminders/route";
 import { GET as rundowns } from "../rundowns/route";
@@ -21,6 +22,7 @@ const HANDLERS: Record<string, Handler> = {
   "/api/cron/reminders": reminders,
   "/api/cron/tickets-checkins": ticketsCheckins,
   "/api/cron/daylog": daylog,
+  "/api/cron/family": family,
   "/api/cron/quotes-research": quotesResearch,
   "/api/cron/rundowns": rundowns,
 };

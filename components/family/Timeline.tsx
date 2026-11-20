@@ -27,15 +27,15 @@ export function EntryCard({ e, who, onRemove }: { e: Entry; who: string; onRemov
   const media = `/api/family/entries/${e.id}/media`;
   return (
     <li className="rounded-v2-lg border border-hairline bg-surface-1 px-4 py-3" data-testid="family-entry">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="text-[11px] uppercase tracking-[0.08em] text-text-lo">{KIND_LABEL[e.kind]}</span>
-        <span className="min-w-0 flex-1 text-sm text-text-hi">{e.title}</span>
-        <span className="text-xs text-text-lo">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="shrink-0 text-[11px] uppercase tracking-[0.08em] text-text-lo">{KIND_LABEL[e.kind]}</span>
+        <span className="text-right text-xs text-text-lo">
           {dayLabelYear(e.happened_on)}
           {e.starts_at ? `, ${timeLabel(e.starts_at)}` : ""}
           {e.week !== null ? ` · week ${e.week}` : ""}
         </span>
       </div>
+      <p className="mt-1 break-words text-sm text-text-hi">{e.title}</p>
       {e.prompt ? <p className="mt-1 text-xs italic text-text-lo">{e.prompt}</p> : null}
       {e.place ? <p className="mt-1 text-xs text-text-mid">{e.place}</p> : null}
       {e.body ? <p className="mt-2 whitespace-pre-line text-sm text-text-mid">{e.body}</p> : null}

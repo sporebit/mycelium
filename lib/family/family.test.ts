@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { nextSide, span, summarise, tapToRow, type LogRow } from "./babylog";
+import { ago, lasted, nextSide, span, summarise, tapToRow, type LogRow } from "./babylog";
+import { parseFamilyCapture } from "./capture";
 import { fileKind } from "./files";
 import { LETTER_QUESTIONS, offsetFor, questionFor, weekIndex, weekStart } from "./letters";
 import { listTotals, monthMoney, nextBinDay, parseBinSchedule, parsePounds, pounds } from "./money";
+import { dueReminders, letterPromptDue, reminderKey, reminderWords, type Appointment } from "./remind";
 import { STARTER_LISTS } from "./starter";
 import { babyAge, pregnancyOn, signpostsFor, weekOf } from "./weeks";
 
@@ -100,6 +102,8 @@ describe("the baby log", () => {
 
   it("says how long ago in plain words, and offers the other side next", () => {
     expect([span(0), span(45), span(60), span(130)]).toEqual(["just now", "45 min", "1 h", "2 h 10 min"]);
+    expect([ago(0), ago(45), ago(130)]).toEqual(["just now", "45 min ago", "2 h 10 min ago"]);
+    expect([lasted(0), lasted(45)]).toEqual(["0 min", "45 min"]);
     expect([nextSide("left"), nextSide("right"), nextSide(null), nextSide("bottle")]).toEqual(["right", "left", "left", "left"]);
   });
 });
@@ -199,5 +203,81 @@ describe("what the family space keeps", () => {
     expect(fileKind("application/zip")).toBeNull();
     expect(fileKind("text/html")).toBeNull();
     expect(fileKind(null)).toBeNull();
+  });
+});
+
+describe("what the family space says unprompted", () => {
+  const ME = "7e0f1c2a-3b4d-4e5f-8a9b-0c1d2e3f4a5b";
+  const appt = (starts_at: string, created_at: string, reminded: Record<string, unknown> = {}): Appointment => ({ id: starts_at, title: "Anomaly scan", starts_at, place: "Maternity unit", reminded, created_at });
+  const which = (entries: Appointment[], now: string) => dueReminders(entries, new Date(now), ME).map((d) => d.which);
+
+  it("reminds the evening before, from six o'clock London time, once", () => {
+    const a = appt("2026-11-24T08:30:00Z", "2026-11-10T10:00:00Z");
+    expect(which([a], "2026-11-23T17:55:00Z")).toEqual([]);
+    expect(which([a], "2026-11-23T18:00:00Z")).toEqual(["day_before"]);
+    expect(which([a], "2026-11-22T19:00:00Z"), "two evenings before is too early").toEqual([]);
+    expect(which([appt(a.starts_at, a.created_at, { [reminderKey("day_before", ME)]: "2026-11-23T18:00:00Z" })], "2026-11-23T18:15:00Z")).toEqual([]);
+    // the other person's reminder having gone does not count as mine
+    expect(which([appt(a.starts_at, a.created_at, { [reminderKey("day_before", "f218ed69-6cbf-49ea-908a-8826f2f1178a")]: "x" })], "2026-11-23T18:15:00Z")).toEqual(["day_before"]);
+  });
+
+  it("reminds two hours before, and not for something that has started", () => {
+    const a = appt("2026-11-24T08:30:00Z", "2026-11-10T10:00:00Z");
+    expect(which([a], "2026-11-24T06:25:00Z")).toEqual([]);
+    expect(which([a], "2026-11-24T06:30:00Z")).toEqual(["two_hours"]);
+    expect(which([a], "2026-11-24T08:30:00Z")).toEqual([]);
+    expect(which([a], "2026-11-24T09:00:00Z")).toEqual([]);
+  });
+
+  it("says nothing about a moment that had already come when the appointment was written down", () => {
+    // booked an hour ahead
+    expect(which([appt("2026-11-24T08:30:00Z", "2026-11-24T07:30:00Z")], "2026-11-24T07:35:00Z")).toEqual([]);
+    // written down at nine the evening before: no evening-before reminder, but the two-hour one still comes
+    const late = appt("2026-11-24T08:30:00Z", "2026-11-23T21:00:00Z");
+    expect(which([late], "2026-11-23T21:15:00Z")).toEqual([]);
+    expect(which([late], "2026-11-24T06:45:00Z")).toEqual(["two_hours"]);
+  });
+
+  it("uses London's evening in summer too", () => {
+    const a = appt("2027-06-15T09:00:00Z", "2027-06-01T10:00:00Z"); // 10:00 BST
+    expect(which([a], "2027-06-14T16:55:00Z")).toEqual([]); // 17:55 BST
+    expect(which([a], "2027-06-14T17:00:00Z")).toEqual(["day_before"]); // 18:00 BST
+  });
+
+  it("words a reminder with the time in London and the place", () => {
+    const [d] = dueReminders([appt("2027-06-15T09:00:00Z", "2027-06-01T10:00:00Z")], new Date("2027-06-14T17:00:00Z"), ME);
+    expect(reminderWords(d)).toEqual({ title: "Tomorrow: Anomaly scan, 10:00", body: "Maternity unit" });
+  });
+
+  it("offers the week's letter question on Sunday evening and at no other time", () => {
+    expect(letterPromptDue(new Date("2026-11-22T18:00:00Z"))).toBe(true); // a Sunday
+    expect(letterPromptDue(new Date("2026-11-22T17:59:00Z"))).toBe(false);
+    expect(letterPromptDue(new Date("2026-11-21T19:00:00Z"))).toBe(false); // Saturday
+    expect(letterPromptDue(new Date("2026-11-23T00:30:00Z"))).toBe(false); // Monday already
+  });
+});
+
+describe("a capture addressed to the family", () => {
+  it("is one that names the family first, however it is punctuated", () => {
+    expect(parseFamilyCapture("Family: felt the first kick tonight")).toEqual({ title: "Felt the first kick tonight", body: null });
+    expect(parseFamilyCapture("for the baby, we chose the green paint.")).toEqual({ title: "We chose the green paint", body: null });
+    expect(parseFamilyCapture("Baby - 20 week scan all fine. Heartbeat was 150. Next one is in March.")).toEqual({ title: "20 week scan all fine", body: "Heartbeat was 150. Next one is in March." });
+    expect(parseFamilyCapture("  family timeline: booked the antenatal class")?.title).toBe("Booked the antenatal class");
+  });
+
+  it("is not one that merely mentions them, or says nothing after the opening", () => {
+    expect(parseFamilyCapture("Book a family holiday")).toBeNull();
+    expect(parseFamilyCapture("The baby monitor needs batteries")).toBeNull();
+    expect(parseFamilyCapture("Family dinner on Sunday: bring wine")).toBeNull();
+    expect(parseFamilyCapture("Family:")).toBeNull();
+    expect(parseFamilyCapture("Buy nappies")).toBeNull();
+  });
+
+  it("keeps a long ramble whole and gives it a short line to go by", () => {
+    const long = "Family: " + "we walked round the park and talked about names for an hour and a half ".repeat(3);
+    const p = parseFamilyCapture(long)!;
+    expect(p.title.length).toBeLessThanOrEqual(121);
+    expect(p.title.endsWith("…")).toBe(true);
+    expect(p.body).toContain("for an hour and a half we walked");
   });
 });

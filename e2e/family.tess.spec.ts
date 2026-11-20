@@ -258,6 +258,44 @@ test("a letter answers this week's question; one spoken aloud gets its words fro
   expect(localSql(`select transcribed::text, body from public.family_entries where id = '${id}'`)[0]).toEqual(["true", "Hello little one, it rained all day."]);
 });
 
+test("a capture that names the family first lands on the timeline in its own words; one that does not is filed as usual", async ({ request }) => {
+  const sent = await request.post("/api/capture", { data: { text: `Family: ${RUN} heard the heartbeat today. It was fast.`, source: "web" } });
+  expect(sent.status(), await sent.text()).toBeLessThan(300);
+  await expect
+    .poll(() => localSql(`select count(*) from public.family_entries where space_id = '${SPACE}' and title = '${RUN} heard the heartbeat today'`)[0][0], { timeout: 30_000 })
+    .toBe("1");
+  const [body, source, by, captureId] = localSql(`select body, source, created_by, capture_id from public.family_entries where title = '${RUN} heard the heartbeat today'`)[0];
+  expect([body, source, by]).toEqual(["It was fast.", "capture", TESS.id]);
+  expect(localSql(`select status, routed_to, llm_source from public.raw_captures where id = '${captureId}'`)[0]).toEqual(["processed", "family_entries", "regex"]);
+
+  // "family" in the middle of a sentence is an ordinary capture
+  await request.post("/api/capture", { data: { text: `${RUN} book a family holiday`, source: "web" } });
+  await expect.poll(() => localSql(`select count(*) from public.raw_captures where raw_text = '${RUN} book a family holiday' and status = 'processed'`)[0][0], { timeout: 60_000 }).toBe("1");
+  expect(localSql(`select count(*) from public.family_entries where space_id = '${SPACE}' and (title ilike '%family holiday%' or body ilike '%family holiday%')`)[0][0]).toBe("0");
+});
+
+test("an appointment two hours away is claimed for each of them once, however often the tick knocks", async ({ request }) => {
+  const soon = await request.post("/api/family/entries", { data: { space: SPACE, kind: "appointment", title: `${RUN} blood test`, starts_at: new Date(Date.now() + 90 * 60_000).toISOString() } });
+  expect(soon.status(), await soon.text()).toBe(201);
+  const id = ((await soon.json()) as { row: { id: string } }).row.id;
+  // written down this morning, not a minute ago
+  localSql(`update public.family_entries set created_at = now() - interval '5 hours' where id = '${id}'`);
+  const bearer = { authorization: `Bearer ${E2E_CRON_SECRET}` };
+  expect((await request.post("/api/cron/family")).status(), "the tick's own secret").toBe(401);
+
+  const first = await request.post("/api/cron/family", { headers: bearer });
+  expect(first.status(), await first.text()).toBe(200);
+  expect(((await first.json()) as { failed: number }).failed).toBe(0);
+  const read = () => JSON.parse(localSql(`select reminded::text from public.family_entries where id = '${id}'`)[0][0]) as Record<string, string>;
+  const marks = read();
+  expect(Object.keys(marks).sort()).toEqual([`two_hours_${PHIL.id.replace(/-/g, "")}`, `two_hours_${TESS.id.replace(/-/g, "")}`].sort());
+
+  await request.post("/api/cron/family", { headers: bearer });
+  expect(read(), "a second knock sends nothing again").toEqual(marks);
+  // the appointment three days off was left alone
+  expect(localSql(`select reminded::text from public.family_entries where title = '${RUN} midwife'`)[0][0]).toBe("{}");
+});
+
 test("the page: the week, the one-time note that it is shared, and each tab doing its one thing", async ({ page }) => {
   // Phil has not confirmed; Tess has. Show her the banner once more by taking her confirmation back.
   localSql(`delete from public.family_acks where space_id = '${SPACE}' and member_id = '${TESS.id}'`);

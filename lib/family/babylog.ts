@@ -116,6 +116,16 @@ export function span(mins: number): string {
   return m ? `${h} h ${m} min` : `${h} h`;
 }
 
+/** "2 h 10 min ago", "45 min ago", "just now". */
+export function ago(mins: number): string {
+  return mins < 1 ? "just now" : `${span(mins)} ago`;
+}
+
+/** A length of time: "2 h 10 min", "45 min", "0 min". */
+export function lasted(mins: number): string {
+  return mins < 1 ? "0 min" : span(mins);
+}
+
 /** The side to offer first: the other one from last time (a breastfeeding convention), else left. */
 export function nextSide(lastHow: string | null): "left" | "right" {
   return lastHow === "left" ? "right" : "left";

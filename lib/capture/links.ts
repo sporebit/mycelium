@@ -31,6 +31,8 @@ export function routedLink(routedTo: string | null | undefined, routedId: string
       return { href: `/organisation/people/${routedId}`, label: "Person" };
     case "body_metrics":
       return { href: `/fitness/body`, label: "Body" };
+    case "family_entries":
+      return { href: `/family`, label: "Family timeline" };
     // A note, a decision, an idea or an item still held: the capture is the thing itself.
     case "raw_captures":
     default:

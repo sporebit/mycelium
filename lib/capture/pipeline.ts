@@ -28,6 +28,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { cloudAllowed } from "@/lib/ai/budget";
 import { costPence, recordUsage } from "@/lib/ai/usage";
 import { MODEL_FAST } from "@/lib/config/models";
+import { fileToFamily } from "@/lib/family/capture";
 import { routeRawVoice } from "@/lib/fitness/voice-route";
 import { parseWeight } from "@/lib/health/parse-weight";
 import { interrupt } from "@/lib/nudges/interrupt";
@@ -247,6 +248,23 @@ export async function processCapture(db: SupabaseClient, uid: string, captureId:
       });
       if (opts.reply) await reply(db, uid, row.id, title, null);
       return { state: "done", kind: "note", title, routed_to: "body_metrics" };
+    }
+
+    // 1b. Something addressed to the family ("Family: …", "For the baby: …") goes on the family timeline in the
+    //     words it came in (lib/family/capture.ts). No model, nothing guessed; without a family space it falls through.
+    if (!forcedKind && !isChild) {
+      const photoPath = typeof row.classification?.photo_path === "string" ? row.classification.photo_path : null;
+      const filed = await fileToFamily(db, uid, { id: row.id, text, photoPath });
+      if (filed) {
+        await finish(db, row.id, {
+          classification: { ...(row.classification ?? {}), kind: "note", title: filed.title, summary: "", urgency: "someday", key: false, tags: ["family"], confidence: "high" },
+          llm_source: "regex",
+          routed_to: "family_entries",
+          routed_id: filed.id,
+        });
+        if (opts.reply) await reply(db, uid, row.id, `On the family timeline: ${filed.title}`, null);
+        return { state: "done", kind: "note", title: filed.title, routed_to: "family_entries" };
+      }
     }
 
     // 2. A long dump becomes separate items, each its own card.
