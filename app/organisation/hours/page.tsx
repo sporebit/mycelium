@@ -1,6 +1,8 @@
-import { redirect } from "next/navigation";
+import { DashboardView } from "@/components/hours/DashboardView";
 
-/** The Dashboard lands here with build part 3; until then the Log is the front page. */
+export const metadata = { title: "Hours — Mycelium" };
+
+/** The Four-Day Week Tracker's front page: the Dashboard (spec §5). */
 export default function HoursPage() {
-  redirect("/organisation/hours/log");
+  return <DashboardView />;
 }

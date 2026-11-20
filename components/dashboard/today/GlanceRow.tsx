@@ -11,6 +11,10 @@ type PendingCount = { count?: number };
 
 type SuppData = { progress: { taken: number; total: number } };
 
+type HoursGlance =
+  | { show: false }
+  | { show: true; banner: string; pill: string; banked: string; remaining: string; leftToday: string; met: boolean };
+
 export function GlanceRow() {
   const today = localDateKey();
   // habits are series tickets: today's done set comes from ticket_completions
@@ -20,6 +24,8 @@ export function GlanceRow() {
     useApi<PendingCount>("/api/captures/review/pending-count");
   const { data: supp } =
     useApi<SuppData>(`/api/supplements/daily?date=${today}`);
+  // Four-Day Week Tracker (spec O4): Mon–Thu only, and only where a tracker exists
+  const { data: hours } = useApi<HoursGlance>("/api/hours/glance");
 
   const doneCount = habitsToday?.done?.length ?? 0;
   const suppTaken = supp?.progress?.taken ?? 0;
@@ -58,6 +64,13 @@ export function GlanceRow() {
         <Tile href="/health/nutrition" caption="Nutrition" loading={false}>
           <span className="text-sm text-text-lo">Open →</span>
         </Tile>
+        {hours?.show && (
+          <Tile href="/organisation/hours" caption={hours.met ? "Hours · week met" : `Hours · ${hours.remaining} left this week`} loading={false}>
+            <span className={`font-[family-name:var(--font-jetbrains-mono)] tabular-nums text-sm ${hours.met ? "text-ok" : "text-text-hi"}`}>
+              {hours.pill}
+            </span>
+          </Tile>
+        )}
       </div>
     </div>
   );
