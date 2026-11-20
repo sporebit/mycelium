@@ -2,7 +2,7 @@
   "slug": "phase1-live-checks",
   "kind": "test",
   "title": "Live checks after the test pass: one surface per sitting",
-  "version": 1,
+  "version": 2,
   "intro": {
     "verdict_html": "Everything built so far was exercised by automation on 20 November: 482 end-to-end checks as two people, 821 unit and database checks, and a pass that opens all 220 page views. Faults found were fixed or are on the build list. What is left here is only what a machine cannot judge: look, feel, a real voice, a real receipt, a second person's phone. Each chunk is one surface and about fifteen minutes; do them in any order, on any day. Chunk 1 is five minutes and should be first.",
     "prerequisites": [
@@ -1235,6 +1235,119 @@
             {
               "key": "family",
               "label": "Anything wrong, missing or awkward"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "title": "Finance: bills, budget and the categorising (15 minutes, on the PC; drop 7, 6 first)",
+      "lede_html": "Built and checked by automation with seeded transactions. Owner-only: nothing here can be shared, and nothing is in a page until amounts are shown. The bank data on production stops on <b>17 July 2026</b>; a CSV import in step 5 brings it forward.",
+      "steps": [
+        {
+          "id": "14.1",
+          "title": "Bills, amounts hidden",
+          "actor": "you",
+          "where": {
+            "label": "Bills",
+            "url": "https://mycelium.sporebit.com/finance/bills",
+            "kind": "page"
+          },
+          "body_html": "Open <b>Finance → Bills</b> with amounts hidden (the eye in the top bar). Nothing readable: no merchant, no figure, anywhere on the page.",
+          "fields": [
+            {
+              "key": "bills_hidden",
+              "label": "Anything readable? (no / what)"
+            }
+          ]
+        },
+        {
+          "id": "14.2",
+          "title": "Bills, amounts shown",
+          "actor": "you",
+          "where": {
+            "label": "Bills",
+            "url": "https://mycelium.sporebit.com/finance/bills",
+            "kind": "page"
+          },
+          "body_html": "Show amounts. The list is what leaves each month, the subscriptions you have not said anything about first, costliest first. Do the amounts and rhythms match what you know? Anything missing, or anything that is not a bill?",
+          "fields": [
+            {
+              "key": "bills_right",
+              "label": "Right / wrong (which)"
+            }
+          ]
+        },
+        {
+          "id": "14.3",
+          "title": "Say Keep, Cancel it, Not a bill",
+          "actor": "you",
+          "where": {
+            "label": "Bills",
+            "url": "https://mycelium.sporebit.com/finance/bills",
+            "kind": "page"
+          },
+          "body_html": "Press <b>Keep</b> on one, <b>Cancel it</b> on one and <b>Not a bill</b> on one. The cancelled one moves to <b>To cancel</b>; the not-a-bill one leaves the totals and sits under a fold with <b>Put it back</b>. Reload: the three are remembered."
+        },
+        {
+          "id": "14.4",
+          "title": "Budget",
+          "actor": "you",
+          "where": {
+            "label": "Budget",
+            "url": "https://mycelium.sporebit.com/finance/budget",
+            "kind": "page"
+          },
+          "body_html": "<b>Finance → Budget</b>. With amounts shown, type a monthly figure for two categories (Enter moves down). Step back with ← to July: each category shows spent against budget up to the day the data reaches, and <b>Heading for</b> where the month was going.",
+          "fields": [
+            {
+              "key": "budget_clear",
+              "label": "Clear enough? (yes / what confused)"
+            }
+          ]
+        },
+        {
+          "id": "14.5",
+          "title": "Import, then the categories arrive by themselves",
+          "actor": "you",
+          "where": {
+            "label": "Spending",
+            "url": "https://mycelium.sporebit.com/finance/spending",
+            "kind": "page"
+          },
+          "body_html": "On <b>Spending</b>, import the most recent CSV from one bank. Give it a minute, reload: the new rows have categories without pressing <b>Categorise</b>. (A few pence of cloud AI for the ones the memory did not know.)",
+          "fields": [
+            {
+              "key": "import_categorised",
+              "label": "How many arrived uncategorised after a minute?"
+            }
+          ]
+        },
+        {
+          "id": "14.6",
+          "title": "The unsure ones at the evening close",
+          "actor": "you",
+          "where": {
+            "label": "Close",
+            "url": "https://mycelium.sporebit.com/close",
+            "kind": "page"
+          },
+          "body_html": "That evening, open the close. After today's items and any captures, <b>Spending to place</b>: a card per payment the model was unsure about, <i>Looks like Groceries?</i>. Yes on one, Fix on another (pick the category), Not now on a third. Next morning the first two no longer appear."
+        },
+        {
+          "id": "14.7",
+          "title": "A morning line",
+          "actor": "you",
+          "where": {
+            "label": "Telegram",
+            "kind": "app"
+          },
+          "body_html": "The morning after the import, at most one line about money: a category over four-fifths of its budget, or a payment larger than usual. It names a percentage or a count, never an amount. Did one arrive, and did it name an amount?",
+          "fields": [
+            {
+              "key": "finance_nudge",
+              "label": "Arrived? named an amount? (no / yes)"
             }
           ]
         }
