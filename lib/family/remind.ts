@@ -98,7 +98,7 @@ export async function runFamilyTick(db: SupabaseClient, uid: string, now: Date =
       .select("id");
     if (!claimed || claimed.length === 0) continue;
     const words = reminderWords(due);
-    const sent = await interrupt(db, uid, { kind: "family_appointment", title: words.title, body: words.body, url: "/family", essential: true, atChosenTime: true }, now);
+    const sent = await interrupt(db, uid, { kind: "family_appointment", title: words.title, body: words.body, url: "/family", essential: true, atChosenTime: true, speak: words.title }, now);
     if (sent.sent) out.appointments += 1;
   }
 
