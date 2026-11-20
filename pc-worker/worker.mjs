@@ -3,8 +3,10 @@
  *
  * The PC collects work from the cloud: once a minute it asks Mycelium for
  * jobs, does them here (Whisper on the graphics card, a local language
- * model through Ollama), and posts the results back. Nothing on the home
- * network is exposed: every connection is made outwards, by this script.
+ * model through Ollama, Kokoro for the spoken voice, the reference store for
+ * bulk data kept off the hosted database), and posts the results back.
+ * Nothing on the home network is exposed: every connection is made
+ * outwards, by this script.
  *
  *   node pc-worker/worker.mjs            run until stopped
  *   node pc-worker/worker.mjs --once     one round, then exit (for testing)
@@ -14,7 +16,8 @@
  * key) and may be overridden by pc-worker/config.json:
  *   { "url": "https://mycelium.sporebit.com", "name": "desktop",
  *     "pollSeconds": 60, "ollamaUrl": "http://127.0.0.1:11434",
- *     "ollamaModel": "qwen2.5:7b", "whisperModel": "large-v3-turbo" }
+ *     "ollamaModel": "qwen2.5:7b", "whisperModel": "large-v3-turbo",
+ *     "voice": "bf_emma" }
  *
  * Log: %LOCALAPPDATA%\Mycelium\pc-worker.log (kept under 2 MB).
  */
@@ -22,6 +25,7 @@ import { execFile } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import * as reference from "./reference.mjs";
 
 const HERE = import.meta.dirname;
 const ROOT = path.resolve(HERE, "..");
@@ -63,10 +67,13 @@ const config = {
   ollamaUrl: fileConfig.ollamaUrl ?? "http://127.0.0.1:11434",
   ollamaModel: fileConfig.ollamaModel ?? "qwen2.5:7b",
   whisperModel: fileConfig.whisperModel ?? "large-v3-turbo",
+  voice: fileConfig.voice ?? "bf_emma",
 };
 const SECRETS = process.env.MYCELIUM_WORKER_SECRET ? [process.env.MYCELIUM_WORKER_SECRET] : allValues(path.join(ROOT, ".env.local"), "CRON_SECRET");
 let secretIndex = 0;
 const PYTHON = path.join(HERE, ".venv", "Scripts", "python.exe");
+// Kokoro's two model files (pc-worker/setup.ps1 fetches them; speak.py reads the same place).
+const KOKORO_DIR = process.env.MYCELIUM_KOKORO_DIR ?? path.join(process.env.LOCALAPPDATA ?? os.tmpdir(), "Mycelium", "models", "kokoro");
 const STARTED_AT = new Date().toISOString();
 
 // ---------------------------------------------------------------------------
@@ -115,15 +122,33 @@ async function gpuInfo() {
   return { name, memory_mb: Number(total), used_mb: Number(used) };
 }
 
+function kokoroReady() {
+  return existsSync(PYTHON) && existsSync(path.join(HERE, "speak.py")) && existsSync(path.join(KOKORO_DIR, "kokoro-v1.0.onnx")) && existsSync(path.join(KOKORO_DIR, "voices-v1.0.bin"));
+}
+
 async function capabilities() {
   const whisper = existsSync(PYTHON) && existsSync(path.join(HERE, "transcribe.py"));
   const llm = await ollamaUp();
+  const voice = kokoroReady();
+  const store = reference.available();
   const kinds = ["ping"];
   if (whisper) kinds.push("transcribe");
   if (llm) kinds.push("classify", "llm", "first_steps", "finds_verdict");
   // `npm audit --json` in this checkout (the Finds feed, lib/finds/audit.ts): a package.json beside pc-worker/.
   if (existsSync(path.join(HERE, "..", "package-lock.json"))) kinds.push("npm_audit");
-  return { kinds, whisper, llm, whisper_model: whisper ? config.whisperModel : null, llm_model: llm ? config.ollamaModel : null };
+  // The spoken voice (lib/speech/server.ts) and the reference store (lib/reference/jobs.ts).
+  if (voice) kinds.push("speak");
+  if (store) kinds.push("reference_offload", "reference_get");
+  return {
+    kinds,
+    whisper,
+    llm,
+    voice,
+    reference_store: store ? reference.status() : null,
+    whisper_model: whisper ? config.whisperModel : null,
+    llm_model: llm ? config.ollamaModel : null,
+    voice_name: voice ? config.voice : null,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -197,6 +222,47 @@ async function npmAudit() {
   return { audit: text.slice(0, 2_000_000), at: new Date().toISOString() };
 }
 
+/**
+ * One spoken line (lib/speech/server.ts): the words in, a WAV rendered by
+ * Kokoro on this PC, put straight into the app's bucket through the signed
+ * link the cloud made. `payload`: { text, voice, upload_url, path } or
+ * { already: true } when another worker got there first.
+ */
+async function speak(payload) {
+  if (payload.already === true) return { already: true };
+  if (typeof payload.text !== "string" || !payload.text.trim()) throw new Error("no text in the job");
+  if (typeof payload.upload_url !== "string") throw new Error("no upload link in the job");
+  mkdirSync(TMP, { recursive: true });
+  const file = path.join(TMP, `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.wav`);
+  try {
+    const voice = /^[a-z]{2}_[a-z]+$/.test(String(payload.voice ?? "")) ? payload.voice : config.voice;
+    const out = await new Promise((resolve) => {
+      const child = execFile(PYTHON, [path.join(HERE, "speak.py"), "--out", file, "--voice", voice], { timeout: 300_000, maxBuffer: 4 * 1024 * 1024, windowsHide: true, env: { ...process.env, PYTHONIOENCODING: "utf-8", MYCELIUM_KOKORO_DIR: KOKORO_DIR } }, (error, stdout, stderr) =>
+        resolve({ ok: !error, stdout: String(stdout ?? ""), stderr: String(stderr ?? "") }),
+      );
+      child.stdin.end(payload.text);
+    });
+    const line = out.stdout.trim().split(/\r?\n/).filter(Boolean).pop() ?? "";
+    let info;
+    try {
+      info = JSON.parse(line);
+    } catch {
+      throw new Error(`speak gave no result: ${(out.stderr || out.stdout).slice(-300)}`);
+    }
+    if (info.error) throw new Error(`speak: ${info.error}`);
+    const wav = readFileSync(file);
+    const res = await fetch(payload.upload_url, { method: "PUT", headers: { "content-type": "audio/wav", "x-upsert": "true" }, body: wav, signal: AbortSignal.timeout(120_000) });
+    if (!res.ok) throw new Error(`upload ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    return { seconds: info.seconds, bytes: wav.length, sample_rate: info.sample_rate, voice, render_seconds: info.render_seconds };
+  } finally {
+    try {
+      unlinkSync(file);
+    } catch {
+      /* already gone */
+    }
+  }
+}
+
 const RUNNERS = {
   ping: async () => ({ pong: true, at: new Date().toISOString() }),
   transcribe,
@@ -207,6 +273,10 @@ const RUNNERS = {
   // A verdict on a find (lib/finds/verdict.ts): the cloud opens the page and writes the prompt as the job is claimed.
   finds_verdict: llm,
   npm_audit: npmAudit,
+  speak,
+  // Bulk reference data held on this PC instead of the hosted database (pc-worker/reference.mjs).
+  reference_offload: reference.offload,
+  reference_get: reference.get,
 };
 
 // ---------------------------------------------------------------------------
