@@ -50,6 +50,8 @@ export type DayRow = {
   snoozed_until: string | null;
   last_activity_at: string | null;
   closed_at: string | null;
+  /** Marked by its owner for the people they share their Day log with (0169). */
+  shared: boolean;
   legacy_journal_id: string | null;
   created_at: string;
   updated_at: string;
@@ -58,7 +60,7 @@ export type DayRow = {
 };
 
 export const DAY_SELECT =
-  "id, day, status, mode, persona_agent_id, transcript, summary, summary_edited_by_user, extraction, scores, open_thread, open_thread_asked_at, seeds, turn_count, cost_pence, prompted_at, snoozed_until, last_activity_at, closed_at, legacy_journal_id, created_at, updated_at";
+  "id, day, status, mode, persona_agent_id, transcript, summary, summary_edited_by_user, extraction, scores, open_thread, open_thread_asked_at, seeds, turn_count, cost_pence, prompted_at, snoozed_until, last_activity_at, closed_at, shared, legacy_journal_id, created_at, updated_at";
 
 export type TurnResult = {
   reply: string;

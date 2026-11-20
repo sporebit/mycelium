@@ -112,20 +112,24 @@ test("he sees them, and Not today is one tap that tells nobody; she cannot read 
 
 test("when he finishes it she is told, once", async () => {
   expect((await phil.post(`/api/tickets/${philsTicket.key}/move`, { data: { category: "done" } })).status()).toBe(200);
-  const told = () => Number(localSql(`select count(*) from public.interruptions where created_by = '${TESS.id}' and kind = 'nudge_done' and body like '%${RUN}%'`)[0][0]);
-  const before = told();
+  // The test server has no push or Telegram to deliver with, so what is checked is the telling itself: each
+  // of her nudges is marked told, exactly once, and nothing she receives is ever counted against a budget.
+  const untold = () => Number(localSql(`select count(*) from public.nudges where ticket_id = '${philsTicket.id}' and done_told_at is null`)[0][0]);
+  expect(untold()).toBe(2);
 
   const tick = (await (await cron.get("/api/cron/daily-prompts")).json()) as { ok: boolean; nudges_told: number };
   expect(tick.ok).toBe(true);
-  expect(tick.nudges_told).toBeGreaterThanOrEqual(1);
-  // Told about each nudge once at most; the one he set aside is told too (the thing she asked about is done).
-  const after = told();
-  expect(after).toBeGreaterThan(before);
-  expect(localSql(`select origin, counted::text from public.interruptions where created_by = '${TESS.id}' and kind = 'nudge_done' and body like '%${RUN}%' limit 1`)[0]).toEqual(["reply", "false"]);
+  // Both are told: the one still open, and the one he set aside (the thing she asked about is done either way).
+  expect(tick.nudges_told).toBe(2);
+  expect(untold()).toBe(0);
+  expect(localSql(`select coalesce(answer, ''), count(*)::text from public.nudges where ticket_id = '${philsTicket.id}' group by 1 order by 1`)).toEqual([
+    ["done", "1"],
+    ["not_today", "1"],
+  ]);
+  expect(Number(localSql(`select count(*) from public.interruptions where created_by = '${TESS.id}' and kind = 'nudge_done' and counted`)[0][0])).toBe(0);
 
-  await cron.get("/api/cron/daily-prompts");
-  expect(told(), "a second tick tells her nothing new").toBe(after);
-  expect(localSql(`select count(*) from public.nudges where ticket_id = '${philsTicket.id}' and done_told_at is null`)[0][0]).toBe("0");
+  const again = (await (await cron.get("/api/cron/daily-prompts")).json()) as { nudges_told: number };
+  expect(again.nudges_told, "a second tick tells her nothing new").toBe(0);
 
   // A finished thing cannot be nudged, and none are left waiting for him.
   const open = (await (await phil.get("/api/nudges")).json()) as { open: Array<{ ticket_id: string }> };

@@ -1,25 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { createUserClient } from "@/lib/supabase/user";
-import { sharedScenes } from "@/lib/daylog/linked";
-import { DATE_RE, daylogDay, shiftDate } from "@/lib/daylog/day";
 
 export const runtime = "nodejs";
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 /**
- * GET /api/journal/shared?from=&to= — as the viewer (daylog spec §5,
- * decision 30): the scenes another user's day log placed them in, through
- * their linked People row. Powers the "with …" cards on the viewer's own day
- * pages. Scene basics only; the SQL function (0133) is the wall.
+ * GET /api/journal/shared?from=&to= — Day log entries other people have
+ * marked shared with the caller (0169): the day, whose it is, their summary
+ * and their scenes. Read through one database function; the Day log's own
+ * tables never show another person's days, so this list and the caller's
+ * own journal cannot mix.
  */
 export async function GET(req: NextRequest) {
+  const uid = (await headers()).get(PRINCIPAL_USER_HEADER);
+  if (!uid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const sp = req.nextUrl.searchParams;
-  const today = daylogDay();
-  const to = DATE_RE.test(sp.get("to") ?? "") ? sp.get("to")! : today;
-  const from = DATE_RE.test(sp.get("from") ?? "") ? sp.get("from")! : shiftDate(to, -30);
+  const from = sp.get("from");
+  const to = sp.get("to");
+  if ((from && !DATE_RE.test(from)) || (to && !DATE_RE.test(to))) return NextResponse.json({ error: "bad date" }, { status: 400 });
   try {
     const supabase = await createUserClient();
-    const scenes = await sharedScenes(supabase, from, to);
-    return NextResponse.json({ scenes, window: { from, to } });
+    const { data, error } = await supabase.rpc("daylog_shared_with_me", { p_from: from, p_to: to });
+    if (error) throw new Error(error.message);
+    return NextResponse.json({ days: data ?? [] });
   } catch (err) {
     console.error("[/api/journal/shared GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });

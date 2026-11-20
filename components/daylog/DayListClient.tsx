@@ -1,5 +1,6 @@
 "use client";
 
+import { SharedWithMe } from "./SharedWithMe";
 import { useState } from "react";
 import Link from "next/link";
 import { useApi } from "@/lib/data/useApi";
@@ -82,6 +83,7 @@ export function DayListClient() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 flex flex-col gap-4">
+      <SharedWithMe />
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
         <h1 className="text-lg font-semibold text-text-hi">Journal</h1>
         <div className="flex items-center gap-2">

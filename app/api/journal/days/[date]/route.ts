@@ -31,7 +31,7 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
   }
 }
 
-/** PATCH whitelist (spec §5): summary, scores (1–5 on the configured keys), open_thread. Never transcript / extraction. */
+/** PATCH whitelist (spec §5): summary, scores (1–5 on the configured keys), open_thread, shared (0169). Never transcript / extraction. */
 export async function PATCH(req: NextRequest, ctx: Ctx) {
   const { date } = await ctx.params;
   const uid = await principalUid();
@@ -49,6 +49,10 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       if (body.summary !== null && typeof body.summary !== "string") return NextResponse.json({ error: "summary must be text" }, { status: 400 });
       update.summary = typeof body.summary === "string" ? body.summary.trim() || null : null;
       update.summary_edited_by_user = true;
+    }
+    if ("shared" in body) {
+      if (typeof body.shared !== "boolean") return NextResponse.json({ error: "shared must be true or false" }, { status: 400 });
+      update.shared = body.shared;
     }
     if ("open_thread" in body) update.open_thread = typeof body.open_thread === "string" && body.open_thread.trim() ? body.open_thread.trim() : null;
     if ("scores" in body) {

@@ -98,6 +98,21 @@ export function DayClient({ date }: { date: string }) {
       setBusy(false);
     }
   };
+  /** Mark the day for the people this person shares their Day log with, or take it back. They see the summary and the scenes, nothing else. */
+  const setShared = async (shared: boolean) => {
+    if (!day) return;
+    setBusy(true);
+    try {
+      const r = await fetch(key, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ shared }) });
+      const j = (await r.json()) as { day?: DayRow; error?: string };
+      if (!r.ok || !j.day) throw new Error(j.error ?? `${r.status}`);
+      void mutate((cur) => (cur ? { ...cur, day: j.day! } : cur), { revalidate: false });
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "failed");
+    } finally {
+      setBusy(false);
+    }
+  };
   const saveSummary = async () => {
     if (summaryDraft === null) return;
     setBusy(true);
@@ -133,6 +148,17 @@ export function DayClient({ date }: { date: string }) {
           </Link>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={day.shared}
+            disabled={busy}
+            onClick={() => void setShared(!day.shared)}
+            title={day.shared ? "The people you share your Day log with can read this day's summary and scenes." : "Private. Nobody you share your Day log with can read this day."}
+            className={`rounded-md border px-2 py-0.5 text-[11px] transition-colors disabled:opacity-60 ${day.shared ? "border-glow-2 text-glow-2" : "border-hairline text-text-lo hover:text-text-hi"}`}
+          >
+            {day.shared ? "Shared" : "Private"}
+          </button>
           <span className="rounded-md border border-text-hi px-1.5 py-0.5 text-[10px] uppercase tracking-[0.15em] text-text-lo font-[family-name:var(--font-mono)]">
             {day.status}
             {day.mode ? ` · ${day.mode}` : ""}
