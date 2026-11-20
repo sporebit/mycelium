@@ -159,8 +159,10 @@ export async function POST(req: NextRequest) {
       clientUuid: body.client_uuid,
       source: fromDevice ? "api" : "web",
       textSource: body.dictated || body.source === "shortcut" ? "dictation" : "typed",
-      // On the second send the stored words are corrected below, not here.
-      edited: body.edited === true && body.final !== true,
+      // On a second send that finds the first, the stored words are corrected below. When the first never
+      // arrived (no signal, or nothing was heard and the words were typed into the box), this send is the
+      // capture, and words typed by hand are marked so that no later transcription replaces them.
+      edited: body.edited === true,
     });
 
     after(async () => {

@@ -1,0 +1,482 @@
+{
+  "slug": "iphone-shortcuts",
+  "kind": "setup",
+  "title": "Build the iPhone Shortcuts: capture, retry, photo, and the daily prompts",
+  "version": 1,
+  "intro": {
+    "verdict_html": "A Shortcut file cannot be made or signed on a Windows PC, so each one is built once on the phone from these steps. After that its iCloud link is the backup. Nothing is lost if a step goes wrong: the recording stays in iCloud Drive until the server says <b>saved</b>.",
+    "prerequisites": [
+      "iPhone on iOS 26 or later, Shortcuts app installed",
+      "Signed in to Mycelium on the PC (to make the token)",
+      "Ten quiet minutes for the first Shortcut; the others are copies of its pattern"
+    ],
+    "time": [
+      "Capture: 15 minutes",
+      "Retry: 5 minutes",
+      "Photo: 5 minutes",
+      "Daily prompts: 10 minutes",
+      "Checks: 5 minutes"
+    ],
+    "cost": [
+      "Free"
+    ]
+  },
+  "phases": [
+    {
+      "id": "0",
+      "title": "Before you start",
+      "lede_html": "One token for the phone, one folder for recordings.",
+      "steps": [
+        {
+          "id": "0.1",
+          "title": "Make the phone's token",
+          "actor": "you",
+          "where": {
+            "label": "Settings → Security → API tokens",
+            "url": "https://mycelium.sporebit.com/other/settings/security",
+            "kind": "page"
+          },
+          "body_html": "Name it <b>iPhone Shortcuts</b>. In the <b>for</b> box choose <b>iPhone Shortcuts (capture and the daily prompts)</b>. Leave <b>write</b> ticked. Press Create and copy the value: it is shown once.",
+          "notes": [
+            {
+              "kind": "security",
+              "html": "This token can send captures and ask for the daily prompts. It cannot read tickets, review captures, or open settings, so a phone that is lost gives away nothing but the ability to add captures. Revoke it from the same page."
+            },
+            {
+              "kind": "info",
+              "html": "The old Shortcuts used the app's master secret. Once these are working, that secret gets rotated (a separate item in your queue) and the old Shortcuts stop working, which is the point."
+            }
+          ]
+        },
+        {
+          "id": "0.2",
+          "title": "Get the token onto the phone",
+          "actor": "you",
+          "body_html": "Paste it into a note in Apple Notes on the PC (icloud.com) or send it to yourself in a way you trust, and copy it on the phone. You paste it into each Shortcut once. Delete the note afterwards."
+        },
+        {
+          "id": "0.3",
+          "title": "Create the recordings folder",
+          "actor": "you",
+          "where": {
+            "label": "Files app → iCloud Drive → Shortcuts",
+            "kind": "decision"
+          },
+          "body_html": "In the Files app open <b>iCloud Drive</b>, then the <b>Shortcuts</b> folder, and make a new folder called exactly <b>Capture</b>.",
+          "notes": [
+            {
+              "kind": "warn",
+              "html": "The folder must exist before the Shortcut runs. Saving without a prompt only works inside iCloud Drive/Shortcuts, and the save fails if the sub-folder is missing."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "title": "The capture Shortcut",
+      "lede_html": "Speak, see your words, fix them if you want, done. The recording and the words both go up; the words go first, before the edit box, so closing the box loses nothing.",
+      "why_html": "Dictate Text keeps no audio and Record Audio makes no text, so the Shortcut records first and transcribes the recording. The server keeps the recording too and re-transcribes it on the PC, which is why a poor on-phone transcript is not a problem.",
+      "steps": [
+        {
+          "id": "1.1",
+          "title": "New Shortcut, named Capture",
+          "actor": "you",
+          "where": {
+            "label": "Shortcuts app → +",
+            "kind": "decision"
+          },
+          "body_html": "Create a new Shortcut and name it <b>Capture</b>. Add the actions below in order. Search for each by the name in bold."
+        },
+        {
+          "id": "1.2",
+          "title": "Make an id for this capture",
+          "actor": "you",
+          "body_html": "<ol><li><b>Date</b>: Current Date.</li><li><b>Format Date</b>: Date Format <b>Custom</b>, Format String as below.</li><li><b>Random Number</b>: between 1000 and 9999.</li><li><b>Text</b>: type <code>sc-</code>, insert <i>Formatted Date</i>, type <code>-</code>, insert <i>Random Number</i>.</li><li><b>Set Variable</b>: name it <b>id</b>.</li></ol>",
+          "blocks": [
+            {
+              "label": "Format String",
+              "text": "yyyyMMdd-HHmmss"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "info",
+              "html": "The id travels with the words and with the recording. It is how the server knows a re-send is the same capture and not a second one."
+            }
+          ]
+        },
+        {
+          "id": "1.3",
+          "title": "Record, and keep the recording",
+          "actor": "you",
+          "body_html": "<ol><li><b>Record Audio</b>: Audio Quality <b>Normal</b>, Start Recording <b>Immediately</b>, Finish Recording <b>On Tap</b>.</li><li><b>Set Name</b>: Name = the <i>id</i> variable (tap the field, choose Select Variable).</li><li><b>Save File</b>: turn <b>Ask Where to Save</b> off; Destination Path as below. Turn <b>Overwrite If File Exists</b> on.</li><li><b>Set Variable</b>: name it <b>file</b> (it holds the saved file).</li></ol>",
+          "blocks": [
+            {
+              "label": "Destination Path",
+              "text": "/Capture/"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "warn",
+              "html": "Normal, not Very High. Very High records uncompressed audio and a two-minute note becomes too large to send in one piece."
+            }
+          ]
+        },
+        {
+          "id": "1.4",
+          "title": "Turn the recording into words",
+          "actor": "you",
+          "body_html": "<ol><li><b>Transcribe Audio</b>: input is the <i>file</i> variable.</li><li><b>Set Variable</b>: name it <b>words</b>.</li></ol>",
+          "notes": [
+            {
+              "kind": "info",
+              "html": "If this comes back empty or wrong, carry on. The edit box in step 1.6 still opens, and the PC transcribes the recording anyway."
+            }
+          ]
+        },
+        {
+          "id": "1.5",
+          "title": "Send the words at once",
+          "actor": "you",
+          "body_html": "<ol><li><b>If</b>: <i>words</i> <b>has any value</b>.</li><li>Inside the If: <b>Get Contents of URL</b>. URL as below. Tap Show More: Method <b>POST</b>. Headers: add <b>Authorization</b> with the value below. Request Body <b>JSON</b>, with these four fields:<ul><li><code>text</code> (Text) = <i>words</i></li><li><code>client_uuid</code> (Text) = <i>id</i></li><li><code>source</code> (Text) = <code>shortcut</code></li><li><code>await_edit</code> (Boolean) = true</li></ul></li><li><b>End If</b>.</li></ol>",
+          "blocks": [
+            {
+              "label": "URL",
+              "text": "https://mycelium.sporebit.com/api/capture"
+            },
+            {
+              "label": "Authorization header value",
+              "text": "Bearer mtk_… (the word Bearer, one space, then your token)"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "tip",
+              "html": "Type the word Bearer, a space, then paste the token. The token is never typed into this checklist: answers here are stored with the ticket, and a token does not belong there."
+            }
+          ]
+        },
+        {
+          "id": "1.6",
+          "title": "The edit box",
+          "actor": "you",
+          "body_html": "<ol><li><b>Ask for Input</b>: Input Type <b>Text</b>, Prompt <code>Fix anything, then Done</code>. Tap Show More: Default Answer = <i>words</i>, and turn <b>Allow Multiple Lines</b> on.</li><li><b>Set Variable</b>: name it <b>final</b>.</li></ol>",
+          "notes": [
+            {
+              "kind": "info",
+              "html": "If you swipe the box away the Shortcut stops here. That is fine: the unedited words went up in step 1.5 and the capture is filed from them."
+            }
+          ]
+        },
+        {
+          "id": "1.7",
+          "title": "Send the answer to the edit box",
+          "actor": "you",
+          "body_html": "<ol><li><b>If</b>: <i>final</i> <b>is</b> <i>words</i>.</li><li>Inside: <b>Get Contents of URL</b>, same URL, POST, same Authorization header, JSON: <code>text</code> = <i>words</i>, <code>client_uuid</code> = <i>id</i>, <code>source</code> = <code>shortcut</code>, <code>final</code> (Boolean) = true.</li><li><b>Otherwise</b>: the same action again, but <code>text</code> = <i>final</i>, and one more field <code>edited</code> (Boolean) = true.</li><li><b>End If</b>.</li></ol>",
+          "notes": [
+            {
+              "kind": "tip",
+              "html": "Build the first Get Contents of URL, then long-press it and Duplicate for the second: only the text field changes and one field is added."
+            }
+          ]
+        },
+        {
+          "id": "1.8",
+          "title": "Send the recording, and delete it only when the server has it",
+          "actor": "you",
+          "body_html": "<ol><li><b>Get Contents of URL</b>: URL as below, POST, same Authorization header, Request Body <b>Form</b>, with two fields: <code>audio</code> (File) = <i>file</i>, and <code>client_uuid</code> (Text) = <i>id</i>.</li><li><b>Get Dictionary Value</b>: Get <b>Value</b> for <code>status</code> in <i>Contents of URL</i>.</li><li><b>If</b>: <i>Dictionary Value</i> <b>is</b> <code>saved</code>.</li><li>Inside: <b>Delete Files</b>: <i>file</i>, with <b>Confirm Before Deleting</b> off.</li><li><b>Otherwise</b>: <b>Show Notification</b>: <code>Kept on the phone. Run Retry later.</code></li><li><b>End If</b>.</li></ol>",
+          "blocks": [
+            {
+              "label": "URL",
+              "text": "https://mycelium.sporebit.com/api/capture-audio"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "warn",
+              "html": "A Shortcut cannot see whether a request succeeded, only what came back. That is why it reads <code>status</code> and deletes on the word <code>saved</code> and nothing else. No signal, an error page, anything unexpected: the file stays."
+            }
+          ]
+        },
+        {
+          "id": "1.9",
+          "title": "Let it run from the lock screen",
+          "actor": "you",
+          "body_html": "Tap the Shortcut's name at the top, then the <b>i</b>: under Privacy turn on <b>Allow Running When Locked</b>. Run the Shortcut once from the app and allow each permission it asks for (microphone, speech recognition, iCloud Drive, the website) with <b>Always Allow</b>."
+        }
+      ],
+      "verify_html": [
+        "Run it and say: <i>Remind me tomorrow at nine to ring the plumber.</i> The box shows your words. Press Done.",
+        "Within a few seconds a notification says what it was filed as.",
+        "Files → iCloud Drive → Shortcuts → Capture is empty again."
+      ]
+    },
+    {
+      "id": "2",
+      "title": "The Retry Shortcut",
+      "lede_html": "Sends anything still sitting in the Capture folder. Safe to run any number of times.",
+      "steps": [
+        {
+          "id": "2.1",
+          "title": "New Shortcut, named Capture retry",
+          "actor": "you",
+          "body_html": "<ol><li><b>Get Contents of Folder</b>: Folder = Shortcuts/Capture.</li><li><b>Repeat with Each</b> item in <i>Contents of Folder</i>.</li><li>Inside: <b>Get Details of Files</b>: Get <b>Name</b> from <i>Repeat Item</i>.</li><li><b>Get Contents of URL</b>: the capture-audio URL, POST, the Authorization header, Form: <code>audio</code> (File) = <i>Repeat Item</i>, <code>client_uuid</code> (Text) = <i>Name</i>.</li><li><b>Get Dictionary Value</b>: <code>status</code>.</li><li><b>If</b> it is <code>saved</code>: <b>Delete Files</b>: <i>Repeat Item</i>, Confirm Before Deleting off. <b>End If</b>.</li><li><b>End Repeat</b>.</li></ol>",
+          "blocks": [
+            {
+              "label": "URL",
+              "text": "https://mycelium.sporebit.com/api/capture-audio"
+            },
+            {
+              "label": "Authorization header value",
+              "text": "Bearer mtk_… (the word Bearer, one space, then your token)"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "info",
+              "html": "The file's name is the capture's id, so a recording whose words already arrived joins them, and one that never sent anything becomes a capture from the recording alone: the PC writes the words."
+            }
+          ]
+        },
+        {
+          "id": "2.2",
+          "title": "Run it by itself every morning",
+          "actor": "you",
+          "where": {
+            "label": "Shortcuts → Automation → +",
+            "kind": "decision"
+          },
+          "body_html": "New automation: <b>Time of Day</b>, 07:30, Daily, <b>Run Immediately</b>, Notify When Run off. Action: <b>Run Shortcut</b> → Capture retry."
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Ways to start a capture",
+      "steps": [
+        {
+          "id": "3.1",
+          "title": "Action Button",
+          "actor": "you",
+          "where": {
+            "label": "Settings → Action Button",
+            "kind": "decision"
+          },
+          "body_html": "Swipe to <b>Shortcut</b> and choose <b>Capture</b>. iPhone 15 Pro or later; skip if yours has no Action Button."
+        },
+        {
+          "id": "3.2",
+          "title": "Lock screen and Home Screen",
+          "actor": "you",
+          "body_html": "Lock screen: long-press → Customise → Lock Screen → replace one of the two bottom controls with <b>Shortcut → Capture</b>. Home Screen: in Shortcuts, long-press Capture → Add to Home Screen."
+        },
+        {
+          "id": "3.3",
+          "title": "By voice",
+          "actor": "you",
+          "body_html": "Nothing to set up: say <b>Hey Siri, Capture</b>. The Shortcut's name is the phrase."
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "Photo and share sheet",
+      "lede_html": "A photo, a screenshot or a web page, kept with a line of your own if you want one.",
+      "steps": [
+        {
+          "id": "4.1",
+          "title": "New Shortcut, named Capture photo",
+          "actor": "you",
+          "body_html": "Tap the <b>i</b>: turn on <b>Show in Share Sheet</b>; Share Sheet Types: <b>Images</b> only. Under \"If there's no input\" choose <b>Take Photo</b>. Then the actions:<ol><li>The id, exactly as step 1.2 (duplicate those five actions; start the text with <code>ph-</code>).</li><li><b>Convert Image</b>: <i>Shortcut Input</i> to <b>JPEG</b>, Quality about 80%.</li><li><b>Ask for Input</b>: Text, Prompt <code>Anything to add?</code> (leave empty and press Done to skip).</li><li><b>Get Contents of URL</b>: URL as below, POST, the Authorization header, Form: <code>image</code> (File) = <i>Converted Image</i>, <code>client_uuid</code> (Text) = <i>id</i>, <code>text</code> (Text) = <i>Provided Input</i>.</li><li><b>Get Dictionary Value</b>: <code>status</code>. <b>If</b> it is not <code>saved</code>: <b>Show Notification</b>: <code>Not saved. Share it again.</code></li></ol>",
+          "blocks": [
+            {
+              "label": "URL",
+              "text": "https://mycelium.sporebit.com/api/capture-photo"
+            },
+            {
+              "label": "Authorization header value",
+              "text": "Bearer mtk_… (the word Bearer, one space, then your token)"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "info",
+              "html": "No model reads the picture (that costs money). With words, the words are filed like any capture and the photo rides along; without, it waits in review as a photo and you say what it is."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "The daily prompts",
+      "lede_html": "Three automations. Each one calls the server and shows or speaks the single line that comes back.",
+      "steps": [
+        {
+          "id": "5.1",
+          "title": "Morning: when the alarm is stopped",
+          "actor": "you",
+          "where": {
+            "label": "Shortcuts → Automation → +",
+            "kind": "decision"
+          },
+          "body_html": "New automation: <b>Alarm</b> → <b>Is Stopped</b> → Wake-Up (or Any) → <b>Run Immediately</b>. Actions:<ol><li><b>Get Contents of URL</b>: URL as below, POST, the Authorization header, no body.</li><li><b>Get Dictionary Value</b>: <code>say</code>.</li><li><b>Show Notification</b>: <i>Dictionary Value</i>. (Or <b>Speak Text</b> if you would rather hear it.)</li><li><b>Open URL</b>: <code>https://mycelium.sporebit.com/today</code> (optional).</li></ol>",
+          "blocks": [
+            {
+              "label": "URL",
+              "text": "https://mycelium.sporebit.com/api/daily/morning"
+            },
+            {
+              "label": "Authorization header value",
+              "text": "Bearer mtk_… (the word Bearer, one space, then your token)"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "info",
+              "html": "The server prepares today's proposal once and answers with one line: the one thing, its first step, about how long. If you do nothing for 45 minutes the proposal becomes the plan. Stopping the alarm twice changes nothing."
+            }
+          ]
+        },
+        {
+          "id": "5.2",
+          "title": "Evening: when the phone goes on charge",
+          "actor": "you",
+          "body_html": "New automation: <b>Charger</b> → <b>Is Connected</b> → Run Immediately. Actions:<ol><li><b>Date</b>: Current Date. <b>Format Date</b>: Custom, <code>HH</code>.</li><li><b>If</b> <i>Formatted Date</i> <b>is greater than or equal to</b> 20.</li><li>Inside: <b>Get Contents of URL</b>: URL as below, POST, the Authorization header, Request Body JSON: <code>action</code> (Text) = <code>prompt</code>.</li><li><b>End If</b>.</li></ol>",
+          "blocks": [
+            {
+              "label": "URL",
+              "text": "https://mycelium.sporebit.com/api/daily/close"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "info",
+              "html": "The server sends the evening prompt itself, once a day, so plugging in twice does nothing the second time. If the phone is never plugged in, the prompt still goes at the fallback time (21:30 unless you change it in Settings)."
+            }
+          ]
+        },
+        {
+          "id": "5.3",
+          "title": "The pause before a scroll app (optional)",
+          "actor": "you",
+          "body_html": "One automation per app you want a pause on: <b>App</b> → choose the app → <b>Is Opened</b> → Run Immediately. Actions:<ol><li><b>Get Contents of URL</b>: URL as below, method GET, the Authorization header.</li><li><b>Get Dictionary Value</b>: <code>say</code>.</li><li><b>Choose from Menu</b>: Prompt = <i>Dictionary Value</i>; two items: <b>Close app</b> and <b>Continue</b>.</li><li>Under Close app: <b>Go to Home Screen</b>. Under Continue: nothing.</li></ol>",
+          "blocks": [
+            {
+              "label": "URL",
+              "text": "https://mycelium.sporebit.com/api/daily/say"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "warn",
+              "html": "Not verified in writing: whether the automation fires again when the app comes back to the front after Continue. If it nags, delete it; the rest does not depend on it."
+            },
+            {
+              "kind": "info",
+              "html": "It shows only what is next: the thing, its first step, about how long. No count of what is undone, no lecture."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "Check it end to end",
+      "steps": [
+        {
+          "id": "6.1",
+          "title": "A long one",
+          "actor": "you",
+          "body_html": "Run Capture and talk for a minute about three different things (something to buy, something to do, an idea). Press Done without editing. The notification should say it was saved as separate items, and tonight's review shows them as ideas with a suggestion each.",
+          "fields": [
+            {
+              "key": "long_capture",
+              "label": "What happened",
+              "placeholder": "e.g. 3 items, all right / one wrong: …"
+            }
+          ]
+        },
+        {
+          "id": "6.2",
+          "title": "An edited one",
+          "actor": "you",
+          "body_html": "Run Capture, say something, change a word in the box, Done. In Review the card shows your corrected words, not what was first heard, and it has a Play the recording link."
+        },
+        {
+          "id": "6.3",
+          "title": "No signal",
+          "actor": "you",
+          "body_html": "Aeroplane mode on. Run Capture, speak, Done. You get <i>Kept on the phone</i>. Aeroplane mode off, run <b>Capture retry</b>: the folder empties and the capture appears in Review a little later with words the PC wrote (the PC must be on; otherwise it waits)."
+        },
+        {
+          "id": "6.4",
+          "title": "Keep the links",
+          "actor": "you",
+          "body_html": "For each Shortcut: Share → Copy iCloud Link, and paste the four links here. They are how the Shortcuts come back after a new phone. Before sharing, open each Get Contents of URL and check the token is not in a link you would give anyone else.",
+          "fields": [
+            {
+              "key": "icloud_links",
+              "label": "iCloud links",
+              "placeholder": "Capture, Capture retry, Capture photo"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "security",
+              "html": "An iCloud link to a Shortcut contains everything typed into it, including the token. Keep the links to yourself; revoke the token if one gets out."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "troubleshooting": [
+    {
+      "symptom": "Every send says Kept on the phone",
+      "cause": "The Authorization header is wrong: a missing space after Bearer, or the token was cut short when pasted.",
+      "fix": "Open the Get Contents of URL action, retype Bearer, one space, paste the token again."
+    },
+    {
+      "symptom": "Save File fails",
+      "cause": "The Capture folder does not exist inside iCloud Drive/Shortcuts, or Ask Where to Save is still on.",
+      "fix": "Create the folder (step 0.3); switch Ask Where to Save off."
+    },
+    {
+      "symptom": "Transcribe Audio errors or gives one line of a long recording",
+      "cause": "Known on some iOS versions.",
+      "fix": "Carry on: type in the box if you want, or just press Done. The PC transcribes the recording and replaces poor words unless you edited them by hand."
+    },
+    {
+      "symptom": "The same capture appears twice",
+      "cause": "The id was not sent, or two different ids were made.",
+      "fix": "Check client_uuid is the id variable in every Get Contents of URL, and that the id is made once at the top."
+    },
+    {
+      "symptom": "The Shortcut stops when the phone is locked",
+      "cause": "Record Audio brings Shortcuts to the front and wants the phone unlocked.",
+      "fix": "Unlock with Face ID as it starts; Allow Running When Locked covers the rest."
+    },
+    {
+      "symptom": "A long recording does not upload",
+      "cause": "A single upload over about 4 MB is refused by the host (roughly eight minutes at Normal quality).",
+      "fix": "Keep one capture under five minutes for now. The file stays in the folder; a larger-upload path is on the build list."
+    }
+  ],
+  "links": [
+    {
+      "label": "Apple: request your first API",
+      "url": "https://support.apple.com/guide/shortcuts/request-your-first-api-apd58d46713f/ios"
+    },
+    {
+      "label": "Apple: personal automations",
+      "url": "https://support.apple.com/guide/shortcuts/add-automations-apdfbdbd7123/ios"
+    },
+    {
+      "label": "Apple: share Shortcuts",
+      "url": "https://support.apple.com/guide/shortcuts/share-shortcuts-apdf01f8c054/ios"
+    }
+  ]
+}

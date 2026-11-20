@@ -33,6 +33,9 @@ type Capture = {
   source: string;
   raw_text: string | null;
   audio_url: string | null;
+  /** The capture's own recording (0159). An item split from a longer recording plays its parent's. */
+  audio_path?: string | null;
+  parent_capture_id?: string | null;
   classification: Classification | null;
   llm_source: string | null;
   routed_to: string | null;
@@ -497,6 +500,14 @@ function ReviewCard({
           <span className="text-ink-3 italic">(no text)</span>
         )}
       </div>
+
+      {typeof capture.classification?.photo_path === "string" && (
+        // eslint-disable-next-line @next/next/no-img-element -- a signed, short-lived link; the image optimiser cannot fetch it
+        <img src={`/api/captures/${capture.id}/media?kind=photo`} alt="The captured picture" className="max-h-72 w-auto rounded-md border border-ink-2 object-contain" />
+      )}
+      {(capture.audio_path || capture.parent_capture_id) && (
+        <audio controls preload="none" src={`/api/captures/${capture.id}/media?kind=audio`} className="h-9 w-full" aria-label="The recording" />
+      )}
 
       {typed && (
         <>
