@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { entryState, fmtHm, parseDuration } from "@/lib/hours/calc";
 import type { HoursEntry } from "@/lib/hours/types";
 import { parseTicket } from "@/lib/hours/ticket";
@@ -36,6 +36,7 @@ export function EntryRow({ entry, baseUrl, showDate = true, showEstimate = false
       className={`group grid items-center gap-x-1 px-1 py-0.5 rounded-v2-md hover:bg-surface-1 focus-within:bg-surface-1 ${pending ? "opacity-60 pointer-events-none" : ""}`}
       style={{ gridTemplateColumns: `auto ${cols.replace(/_/g, " ")}` }}
       data-hours-row
+      data-entry-id={entry.id}
     >
       <span className="pl-1 pr-1">
         <StateDot state={state} />
@@ -98,7 +99,7 @@ export function EntryRow({ entry, baseUrl, showDate = true, showEstimate = false
         )}
       </span>
       <label className="flex items-center justify-center px-1.5 select-none" title="Ticked when this time is also in Jira">
-        <input type="checkbox" data-col="logged" checked={entry.logged} onChange={(e) => void patch(entry.id, { logged: e.target.checked })} onKeyDown={moveOnEnter} />
+        <input type="checkbox" data-col="logged" aria-label="Logged" checked={entry.logged} onChange={(e) => void patch(entry.id, { logged: e.target.checked })} onKeyDown={moveOnEnter} />
       </label>
       <button
         type="button"
@@ -196,6 +197,9 @@ function moveOnEnter(e: KeyboardEvent<HTMLElement>) {
   }
 }
 
+/** What a screen reader calls each cell; the same names the blank row uses. */
+const CELL_LABEL: Record<string, string> = { date: "Date", time: "Time spent", estimate: "Estimate", description: "Description", ticket: "Ticket" };
+
 type CellProps = {
   col: string;
   value: string;
@@ -215,18 +219,38 @@ type CellProps = {
  * reverts on Esc. A value the validator refuses stays red and is not saved.
  */
 function Cell({ col, value, display, placeholder, type = "text", inputMode, title, className = "", validate, onCommit }: CellProps) {
-  const [draft, setDraft] = useState<string | null>(null);
+  const [draft, setDraftState] = useState<string | null>(null);
   const [focused, setFocused] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
+  // The draft is also kept in a ref, because Esc and Enter end by blurring the cell inside the same event: the blur
+  // handler still holds the previous render's state, so with state alone Esc saved what it was meant to throw away,
+  // and Enter sent a second save whenever the typed text differed from the stored form ("1.5h" against "1:30").
+  const draftRef = useRef<string | null>(null);
+  const setDraft = (v: string | null) => {
+    draftRef.current = v;
+    setDraftState(v);
+  };
   const shown = draft ?? (focused ? value : display);
   // The draft only lives while a cell is being edited, or when it was refused (red) so the person can fix it.
   const bad = draft !== null && validate ? !validate(draft) : false;
 
+  // Arriving by keyboard (Tab, Enter, Shift+Enter) selects the whole cell, so typing replaces it as in a
+  // spreadsheet. This has to happen after the render that swaps the resting text ("~0:40", a ticket's key) for the
+  // stored one: that swap drops the selection, and what was typed was then added to the end of the old value.
+  // A click is left to the browser, which puts the cursor where the pointer is.
+  const byMouse = useRef(false);
+  useLayoutEffect(() => {
+    if (focused && type === "text" && !byMouse.current) ref.current?.select();
+  }, [focused, type]);
+
   const commit = async () => {
-    if (draft === null) return true;
-    if (bad) return false;
-    if (draft !== value) await onCommit(draft);
-    setDraft(null);
+    const d = draftRef.current;
+    if (d === null) return true;
+    if (validate && !validate(d)) return false;
+    draftRef.current = null; // taken: a blur that follows finds nothing left to save
+    if (d !== value) await onCommit(d);
+    // Leave alone anything typed into the cell while the save was in flight.
+    if (draftRef.current === null) setDraftState(null);
     return true;
   };
 
@@ -246,17 +270,19 @@ function Cell({ col, value, display, placeholder, type = "text", inputMode, titl
     <input
       ref={ref}
       data-col={col}
+      aria-label={CELL_LABEL[col] ?? col}
       type={type}
       inputMode={inputMode}
       value={shown}
       title={title}
       placeholder={placeholder}
       onChange={(e) => setDraft(e.target.value)}
-      onFocus={(e) => {
-        setFocused(true);
-        if (type === "text") e.target.select();
+      onMouseDown={() => {
+        byMouse.current = document.activeElement !== ref.current;
       }}
+      onFocus={() => setFocused(true)}
       onBlur={() => {
+        byMouse.current = false;
         setFocused(false);
         void commit();
       }}

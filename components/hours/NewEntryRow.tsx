@@ -157,7 +157,7 @@ export function NewEntryRow({ defaultDate, catchAll, showEstimate = false }: { d
         )}
       </span>
       <label className="flex items-center justify-center px-1.5 select-none" title="Ticked when this time is also in Jira">
-        <input type="checkbox" data-col="logged" checked={logged} onChange={(e) => setLogged(e.target.checked)} onKeyDown={onKey} />
+        <input type="checkbox" data-col="logged" aria-label="Logged" checked={logged} onChange={(e) => setLogged(e.target.checked)} onKeyDown={onKey} />
       </label>
       <span className="w-6" />
     </div>
