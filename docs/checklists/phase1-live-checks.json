@@ -2,7 +2,7 @@
   "slug": "phase1-live-checks",
   "kind": "test",
   "title": "Live checks after the test pass: one surface per sitting",
-  "version": 9,
+  "version": 10,
   "intro": {
     "verdict_html": "Everything built so far was exercised by automation on 20 November: 482 end-to-end checks as two people, 821 unit and database checks, and a pass that opens all 220 page views. Faults found were fixed or are on the build list. What is left here is only what a machine cannot judge: look, feel, a real voice, a real receipt, a second person's phone. Each chunk is one surface and about fifteen minutes; do them in any order, on any day. Chunk 1 is five minutes and should be first.",
     "prerequisites": [
@@ -2052,6 +2052,97 @@
               "label": "All seven? (yes / which missing)"
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "22",
+      "title": "Spend by feature, recipe details on the PC, the PC's voice (10 minutes)",
+      "lede_html": "Built and checked by automation, and with the real worker on this PC. Nothing paid: the voice is Kokoro on the PC, and the recipe details sit in a store the worker owns.",
+      "steps": [
+        {
+          "id": "22.1",
+          "title": "Spend by feature",
+          "actor": "you",
+          "where": {
+            "label": "API usage",
+            "url": "https://mycelium.sporebit.com/other/api-usage",
+            "kind": "page"
+          },
+          "body_html": "The first spend card is <i>This month, by feature</i>: a figure against the £5 cap and a short table naming features (the Boys' chat, capture, the ask box…), not provider endpoints. Anything you used today is there by name.",
+          "fields": [
+            {
+              "key": "spend_features",
+              "label": "Features named, not endpoints? (yes / no)"
+            }
+          ]
+        },
+        {
+          "id": "22.2",
+          "title": "One question, one more call",
+          "actor": "you",
+          "where": {
+            "label": "API usage",
+            "url": "https://mycelium.sporebit.com/other/api-usage",
+            "kind": "page"
+          },
+          "body_html": "Ask the ask box one question, then reload API usage. The ask box's row grows by one call. (If the month's cap is spent the question is answered from what is free and nothing changes; say so.)"
+        },
+        {
+          "id": "22.3",
+          "title": "A recipe's details come from the PC",
+          "actor": "you",
+          "where": {
+            "label": "Gousto cookbook",
+            "url": "https://mycelium.sporebit.com/health/recipes/gousto",
+            "kind": "page"
+          },
+          "body_html": "The grid, search and a recipe's picture, rating and times are as before. Open a recipe you have never opened, with the PC on: the ingredients and method appear within a minute (the page refreshes itself; a line says they are on their way while it waits). Open a favourite: instant, as before.",
+          "fields": [
+            {
+              "key": "recipe_detail_wait",
+              "label": "How long until the method appeared?"
+            }
+          ]
+        },
+        {
+          "id": "22.4",
+          "title": "The same with the PC off",
+          "actor": "you",
+          "where": {
+            "label": "Gousto cookbook",
+            "url": "https://mycelium.sporebit.com/health/recipes/gousto",
+            "kind": "page"
+          },
+          "body_html": "With the PC off (or the worker stopped): the recipe page shows the listing and one line saying the ingredients and method are kept on the PC and appear next time it is on. Nothing is broken, nothing spins."
+        },
+        {
+          "id": "22.5",
+          "title": "The voice, by hand",
+          "actor": "you",
+          "where": {
+            "label": "PC",
+            "url": "file:///A:/Projects/Mycelium/pc-worker",
+            "kind": "page"
+          },
+          "body_html": "On the PC: <code>echo \"Two minutes left.\" | pc-worker\\.venv\\Scripts\\python pc-worker\\speak.py --out test.wav</code>, then play <code>test.wav</code>. A British woman's voice (Emma). Try <code>--voice bm_george</code> for a man's. Say which you would like the wall to use; <code>pc-worker\\config.json</code> takes <code>\"voice\"</code>.",
+          "fields": [
+            {
+              "key": "voice_pick",
+              "label": "Which voice? (bf_emma / bm_george / other)"
+            }
+          ]
+        },
+        {
+          "id": "22.6",
+          "title": "On the wall",
+          "actor": "you",
+          "where": {
+            "label": "The wall",
+            "url": "https://mycelium.sporebit.com/wall",
+            "kind": "page"
+          },
+          "body_html": "The next spoken line comes in that voice when the PC is on, and in the browser's own voice when it is off. The second time the same line is said it is the PC's voice even if the PC has since gone off."
         }
       ]
     }
