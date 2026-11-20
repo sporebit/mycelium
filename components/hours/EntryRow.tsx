@@ -135,6 +135,13 @@ export function EntryHeader({ showDate = true, showEstimate = false }: { showDat
 // Cells and keyboard movement
 // ---------------------------------------------------------------------
 
+/** The look of a spreadsheet cell: plain text until hovered or focused; red border when refused. Shared with NewEntryRow. */
+export function cellClass(bad: boolean, extra = ""): string {
+  return `w-full min-w-0 rounded-sm border bg-transparent px-1.5 py-1 text-sm truncate outline-none transition-colors ${
+    bad ? "border-v2-error" : "border-transparent hover:border-hairline focus:border-glow-dim focus:bg-surface-0"
+  } ${extra}`;
+}
+
 /** Enter → same column in the next row; Shift+Enter → previous row. Works across day groups inside one [data-hours-grid]. */
 function moveToRow(el: HTMLElement, dir: 1 | -1) {
   const col = el.getAttribute("data-col");
@@ -222,9 +229,7 @@ function Cell({ col, value, display, placeholder, type = "text", inputMode, titl
       }}
       onKeyDown={(e) => void onKey(e)}
       autoComplete="off"
-      className={`w-full min-w-0 rounded-sm border bg-transparent px-1.5 py-1 text-sm truncate outline-none transition-colors ${
-        bad ? "border-v2-error" : "border-transparent hover:border-hairline focus:border-glow-dim focus:bg-surface-0"
-      } ${className}`}
+      className={cellClass(bad, className)}
     />
   );
 }

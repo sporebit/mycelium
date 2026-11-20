@@ -6,9 +6,9 @@ import { Mono } from "@/components/dashboard/Mono";
 import { addDays, dayTotals, entryState, fmtHm, isOpenItem, mondayOf, type EntryState } from "@/lib/hours/calc";
 import { defaultEntryDate } from "@/lib/hours/entry";
 import type { HoursEntry } from "@/lib/hours/types";
-import { AddEntryBar } from "./AddEntryBar";
 import { EntryHeader, EntryRow } from "./EntryRow";
 import { INPUT_SM, dateLabel } from "./kit";
+import { NewEntryRow } from "./NewEntryRow";
 import { useEntryMutations } from "./useEntryMutations";
 import { useHoursBundle } from "./useHours";
 
@@ -37,11 +37,13 @@ function matchesState(e: HoursEntry, f: StateFilter): boolean {
 }
 
 /**
- * The Log (spec §5): the only data-entry surface. Fast add at the top, then
+ * The Log (spec §5): the only data-entry surface. At the top, the holding
+ * section (0157): a blank spreadsheet row to type new entries into, the
+ * entries typed so far waiting beneath it, and MERGE. Below, the record:
  * entries grouped by day, newest day first, each day with its total (credits
  * included). Filters: a week (this, last, any week by date, or everything),
- * entry state, and a text search over description and ticket. Click a row
- * to edit it in place.
+ * entry state, and a text search over description and ticket. Every cell
+ * edits in place.
  */
 export function LogView() {
   const { bundle, index, today, isLoading } = useHoursBundle();
@@ -100,39 +102,43 @@ export function LogView() {
         </div>
       </div>
 
-      <AddEntryBar defaultDate={defaultEntryDate(bundle.entries, today)} catchAll={catchAll} />
-
-      {index.staged.length > 0 && (
-        <section className="rounded-v2-lg border border-dashed border-glow-dim p-2" data-hours-grid>
-          <div className="flex items-center gap-3 px-2 pb-1 border-b border-hairline mb-1">
-            <span className="text-sm font-semibold text-text-hi">New entries</span>
-            <span className="text-xs text-text-lo">
-              {index.staged.length} waiting · <Mono>{fmtHm(index.staged.reduce((s, e) => s + (e.minutes ?? 0), 0))}</Mono> · not counted until merged
-            </span>
-            <Button
-              size="sm"
-              variant="primary"
-              className="ml-auto"
-              loading={merging}
-              onClick={async () => {
-                setMerging(true);
-                await mergeAll();
-                setMerging(false);
-              }}
-            >
-              MERGE
-            </Button>
-          </div>
-          <EntryHeader />
-          {index.staged
-            .slice()
-            .sort((a, b) => (a.entry_date ?? "9999").localeCompare(b.entry_date ?? "9999") || a.created_at.localeCompare(b.created_at))
-            .map((e) => (
-              <EntryRow key={e.id} entry={e} baseUrl={baseUrl} showEstimate />
-            ))}
-          <div className="px-2 pt-1 text-[11px] text-text-lo">Merge adds dated entries to their day below and dateless ones to the Backlog.</div>
-        </section>
-      )}
+      <section className="rounded-v2-lg border border-dashed border-glow-dim p-2" data-hours-grid>
+        <div className="flex items-center gap-3 px-2 pb-1 border-b border-hairline mb-1">
+          <span className="text-sm font-semibold text-text-hi">New entries</span>
+          <span className="text-xs text-text-lo">
+            {index.staged.length === 0 ? (
+              "type into the blank row"
+            ) : (
+              <>
+                {index.staged.length} waiting · <Mono>{fmtHm(index.staged.reduce((s, e) => s + (e.minutes ?? 0), 0))}</Mono> · not counted until merged
+              </>
+            )}
+          </span>
+          <Button
+            size="sm"
+            variant="primary"
+            className="ml-auto"
+            disabled={index.staged.length === 0}
+            loading={merging}
+            onClick={async () => {
+              setMerging(true);
+              await mergeAll();
+              setMerging(false);
+            }}
+          >
+            MERGE
+          </Button>
+        </div>
+        <EntryHeader showEstimate />
+        <NewEntryRow defaultDate={defaultEntryDate(bundle.entries, today)} catchAll={catchAll} showEstimate />
+        {index.staged
+          .slice()
+          .sort((a, b) => b.created_at.localeCompare(a.created_at))
+          .map((e) => (
+            <EntryRow key={e.id} entry={e} baseUrl={baseUrl} showEstimate />
+          ))}
+        <div className="px-2 pt-1 text-[11px] text-text-lo">Enter or leaving the row saves it here. Merge adds dated entries to their day below and dateless ones to the Backlog.</div>
+      </section>
 
       <div className="flex flex-wrap items-center gap-2">
         <SegmentedControl
