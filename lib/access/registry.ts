@@ -451,10 +451,12 @@ export const DERIVED_RELATIONS: readonly string[] = ["pc_metrics_machines", "peo
  * scaffold; Part 3 team_members, team_member_sections, user_grants; Part 4
  * invites; Part 5 audit_events and rate limits; Part 6 the rundown tables.
  * Listed so the coverage test proves nothing was missed without forcing a
- * space_id onto them.
+ * space_id onto them. ai_models (0177) is instance-level the same way: the
+ * providers are the instance's, read by its owner, written by the cron.
  */
 export const ACCESS_TABLES: readonly string[] = [
   "profiles",
+  "ai_models",
   "spaces",
   "entity_groups",
   "teams",
