@@ -50,10 +50,9 @@ async function writeAuditLog(
 async function runBriefing(req: NextRequest): Promise<Response> {
   const chatId = process.env.TELEGRAM_USER_ID;
   if (!chatId) {
-    return NextResponse.json(
-      { error: "TELEGRAM_USER_ID missing" },
-      { status: 500 }
-    );
+    // No Telegram on this server: there is no briefing to send. Not an error (it used to answer 500, which
+    // made every scheduled knock on a server without Telegram look like a failure).
+    return NextResponse.json({ skipped: true, reason: "Telegram is not set up on this server" });
   }
 
   const url = new URL(req.url);

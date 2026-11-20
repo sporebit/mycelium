@@ -14,7 +14,7 @@ type SharedDay = { id: string; day: string; owner_id: string; owner_name: string
 const dayLabel = (iso: string) => new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
 
 export function SharedWithMe() {
-  const { data } = useApi<{ days: SharedDay[] }>("/api/journal/shared", { revalidateOnFocus: false });
+  const { data } = useApi<{ days: SharedDay[] }>("/api/journal/shared-days", { revalidateOnFocus: false });
   const days = data?.days ?? [];
   if (!days.length) return null;
   return (

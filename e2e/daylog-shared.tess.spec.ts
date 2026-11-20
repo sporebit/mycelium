@@ -35,7 +35,7 @@ test.afterAll(async () => {
   await phil.dispose();
 });
 
-const sharedWith = async (request: APIRequestContext) => ((await (await request.get("/api/journal/shared")).json()) as { days: Shared[] }).days.filter((d) => (d.summary ?? "").startsWith(RUN));
+const sharedWith = async (request: APIRequestContext) => ((await (await request.get("/api/journal/shared-days")).json()) as { days: Shared[] }).days.filter((d) => (d.summary ?? "").startsWith(RUN));
 
 test("a day is private by default, and marking it shared shows nothing to someone he has not shared his Day log with", async ({ request }) => {
   const day = (await (await phil.get(`/api/journal/days/${DATE}`)).json()) as { day: { id: string; shared: boolean } };
