@@ -2,7 +2,7 @@
   "slug": "phase1-live-checks",
   "kind": "test",
   "title": "Live checks after the test pass: one surface per sitting",
-  "version": 4,
+  "version": 5,
   "intro": {
     "verdict_html": "Everything built so far was exercised by automation on 20 November: 482 end-to-end checks as two people, 821 unit and database checks, and a pass that opens all 220 page views. Faults found were fixed or are on the build list. What is left here is only what a machine cannot judge: look, feel, a real voice, a real receipt, a second person's phone. Each chunk is one surface and about fifteen minutes; do them in any order, on any day. Chunk 1 is five minutes and should be first.",
     "prerequisites": [
@@ -1554,6 +1554,91 @@
               "label": "Who answered what? (right / wrong)"
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "title": "The Finds feed (10 minutes; step 6 optional)",
+      "lede_html": "Built and checked by automation against saved fixtures. No scraper and no paid API: posts come in by Share, and the watchers read GitHub, Hacker News, feeds and advisories on their own. Nothing is ever installed automatically.",
+      "steps": [
+        {
+          "id": "17.1",
+          "title": "Share a post in",
+          "actor": "you",
+          "where": {
+            "label": "Capture",
+            "url": "https://mycelium.sporebit.com/organisation/captures",
+            "kind": "page"
+          },
+          "body_html": "From the X app, share a post to Mycelium (or paste a GitHub link with three words into the capture box). The reply says <i>Kept as a find: …</i> and names the words you typed, not the URL."
+        },
+        {
+          "id": "17.2",
+          "title": "The find gets a verdict",
+          "actor": "you",
+          "where": {
+            "label": "Finds",
+            "url": "https://mycelium.sporebit.com/studio/finds",
+            "kind": "page"
+          },
+          "body_html": "Studio → Finds. The shared link is at the top of today with <i>no verdict yet</i>. With the PC on, within a few minutes it has a verdict badge; open the line and read what, cost, licence, cautions and which project. Say Keep or Skip.",
+          "fields": [
+            {
+              "key": "find_verdict",
+              "label": "Verdict fair? (yes / what was off)"
+            }
+          ]
+        },
+        {
+          "id": "17.3",
+          "title": "Your own feed",
+          "actor": "you",
+          "where": {
+            "label": "Finds",
+            "url": "https://mycelium.sporebit.com/studio/finds",
+            "kind": "page"
+          },
+          "body_html": "Switch the <i>Vercel blog</i> feed off and add one feed of your own (any RSS or Atom address). Tomorrow's turn reads it; the sources panel shows when it was last read and how many it saw."
+        },
+        {
+          "id": "17.4",
+          "title": "Export",
+          "actor": "you",
+          "where": {
+            "label": "Finds",
+            "url": "https://mycelium.sporebit.com/studio/finds",
+            "kind": "page"
+          },
+          "body_html": "Export. The Markdown opens with the same columns as the design-resources record, the three verdict lists, and the install advice at the end."
+        },
+        {
+          "id": "17.5",
+          "title": "Sunday's digest, and the close-out cards",
+          "actor": "you",
+          "where": {
+            "label": "Close the week",
+            "url": "https://mycelium.sporebit.com/closeout",
+            "kind": "page"
+          },
+          "body_html": "Sunday after five: one Telegram message, <i>This week's finds</i>, a count and a few lines, no amounts. In the weekly close-out, the top five are cards after the finish-line ones: Keep or Skip.",
+          "fields": [
+            {
+              "key": "finds_digest",
+              "label": "Arrived? cards shown? (yes / no)"
+            }
+          ]
+        },
+        {
+          "id": "17.6",
+          "title": "Optional: a GitHub token",
+          "actor": "you",
+          "where": {
+            "label": "Tickets",
+            "url": "https://mycelium.sporebit.com/organisation/tickets",
+            "kind": "page"
+          },
+          "body_html": "MYC-202: add <code>GITHUB_TOKEN</code> in Vercel and redeploy. Nothing visible changes; the daily turn is less likely to hit a rate limit."
         }
       ]
     }
