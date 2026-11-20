@@ -1,6 +1,6 @@
 # Master run — Stream B report, part 1 (the daily loop)
 
-*2026-11-20, 03:20–05:30 London. Claude Code on the PC. Tickets MYC-184 (daily loop) and MYC-187 (the tick). Status: **built and deployed**; Phil's live check is chunk 2 of MYC-193. Migrations 0161 and 0165. This is part 1: the loop itself. The Boys' group chat, dormant features, the finish line, the weekly close-out and the monthly measures are not built yet and are listed at the end.*
+*2026-11-20, 03:20–05:40 London. Claude Code on the PC. Tickets MYC-184 (daily loop) and MYC-187 (the tick). Status: **built and deployed**; Phil's live check is chunk 2 of MYC-193. Migrations 0161, 0165 and 0166. This is part 1: the loop itself, the finish line and features gone quiet. The Boys' group chat, the weekly close-out and the monthly measures are not built yet and are listed at the end.*
 
 ## What the brief asked for, and where each part stands
 
@@ -16,6 +16,8 @@
 | One budget of three app-started interruptions a day across push, Telegram and the wall | Yes, and the existing senders now go through it. See "Three moments". | `lib/nudges/budget.ts`, `lib/nudges/interrupt.ts` |
 | Nothing during a running focus timer; not the same nudge in the same words twice | Yes. | `lib/nudges/budget.ts` |
 | The wording table | Yes: one module, and a test fails on a banned phrase. | `lib/daily/words.ts` |
+| A finish-line view (80% done or more): three items, what is left, Finish / Good enough / Drop | Yes. "Nearly done" is read from a ticket's checklist, its sub-tasks, or it waiting to be checked; never guessed. | `/finish`, `lib/daily/finish.ts` |
+| Dormant features: a usage event when he does something (not a page view), each feature's own rhythm, true history, a dimmed nav item and a "gone quiet" card showing how long, direct | Yes, without an event table: the last time he added or changed something is read from the rows each feature keeps, so the history is true back to day one. 21 features, each with its own rhythm. | `lib/dormant/`, `components/dashboard/GoneQuiet.tsx`, 0166 |
 
 ## Three moments
 
@@ -56,16 +58,20 @@ When the phone's own automation asks (alarm stopped, charger connected), the pho
 - **When the phone asks, the phone shows.** A push on top of an automation's own notification is the same message twice on the same device.
 - **One tick route with the schedule on the server**, not a schedule in each knocker: the PC and cron-job.org need to know one address and nothing else, and changing a cadence is a code change in one table.
 - **Steps the model is not sure of are dropped, never shown as suggestions.** A suggestion still has to be read and judged at the moment the research says to ask for no judgement.
+- **"Gone quiet" reads the rows, not a log of clicks.** The brief asked for a usage event on every add, edit and complete, backfilled from history. Every row already carries when it was made and changed and by whom, so one database call answers the same question for all time with nothing new to write and nothing to forget to instrument. Tables written by a sync or an import are left out, so a bank feed never makes Finance look used.
+- **A feature never used is not "gone quiet".** There was nothing to stop. The card lists only what he used to do and no longer does.
+- **The finish line shows three, never a count of the rest.** A list of nearly-finished things is one more backlog.
 
 ## Not built yet (Stream B, part 2)
 
-The Boys' group chat (one bot per agent; creating the bots is Phil's); dormant features (usage events, true history, the nav and dashboard marks, the weekly question); the finish-line view; the weekly close-out; the eight monthly measures; ten-minute and two-minute notices before a scheduled switch; wall speech (the ledger rows are written, nothing reads them aloud yet).
+The Boys' group chat (one bot per agent; creating the bots is Phil's); the weekly close-out, where the Boys raise the biggest quiet feature and ask why (the question is written, `quietQuestion`; nothing asks it yet); the eight monthly measures; ten-minute and two-minute notices before a scheduled switch; wall speech (the ledger rows are written, nothing reads them aloud yet).
 
 ## For Phil
 
 - **Chunk 2 of MYC-193** is the live check: seven steps, fifteen minutes, best done across one real day.
 - The morning briefing will start arriving again. It now opens with today's one thing.
 - The Day log message at 21:30 now opens with the evening close and its link.
+- **Finish line** (`/finish`) and a **Gone quiet** card are on the dashboard now. Expect the card to name several things on day one: it is reporting real gaps, some of them months long. That is the direct version you asked for.
 - Settings → Today holds the times and limits if the defaults are wrong for you (morning 08:30, evening 21:30, quiet 22:00 to 07:00, three interruptions, three things in progress).
 - MYC-180 is now one cron-job.org job instead of four, and only matters when the PC is off.
 - This terminal cannot write the Claude project's copies of the state documents; `graphify update .` could not run.
