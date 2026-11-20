@@ -26,6 +26,8 @@ Each tester handed back: its specs, the faults it fixed (each proved by a check 
 
 A held check is a real fault written as a test that is switched off until the fault is fixed; each is named in the notes with its cause.
 
+**One full run of everything together** (04:47–05:05, on the build with the hardening, the file-store rule and the "right page" fixes): 700 passed, 13 held, 2 failed. Both failures were in the tests, not the app, and both are corrected: one fetched Phil's own stored photo with a password-only session, which the new file-store rule now rightly refuses (the test now proves that refusal and uses a proper session for the rest); the other shared a job queue with another suite's leftovers.
+
 ## The serious findings: access
 
 The multi-user tester found that the access rules were weaker than the product claimed. All of these were live on production at the start of the phase. All are fixed, proved at the database as well as through the app, and deployed.
