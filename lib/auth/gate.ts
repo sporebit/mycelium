@@ -23,7 +23,19 @@ export const PUBLIC_PREFIXES: readonly string[] = [
   // smoke check the Vercel webhook runs before it closes a ticket.
   "/api/tickets/github",
   "/api/tickets/vercel",
+  // The wall screen (master run §11). The page is a shell that shows "pair
+  // this wall" until the device cookie is set, and the pairing route takes
+  // a code shown once in Settings; both are deliberately public and hold
+  // nothing personal. Every other wall route needs the device cookie
+  // (middleware step 3c).
+  "/wall",
+  "/api/wall/pair",
 ];
+
+/** The cookie a paired wall holds: a scoped API token owned by the household device user (0176). */
+export const WALL_DEVICE_COOKIE = "mycelium_wall";
+/** The cookie a wall holds for ten minutes after a person's quick unlock: a signed, read-only capability for that person's wall view. */
+export const WALL_PERSON_COOKIE = "mycelium_wall_person";
 
 /**
  * Public paths matched exactly, not as prefixes. `/api/health` is the

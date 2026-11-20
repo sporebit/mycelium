@@ -7,6 +7,7 @@ import {
   PRINCIPAL_PATH_HEADER,
   PRINCIPAL_SCOPES_HEADER,
   PRINCIPAL_USER_HEADER,
+  WALL_DEVICE_COOKIE,
   isAal2,
   isApiPath,
   isPublicPath,
@@ -86,6 +87,25 @@ export async function middleware(req: NextRequest) {
     }
     if (isSensitivePath(pathname) || !tokenAllows(principal.scopes, req.method, pathname)) {
       console.warn(`[api-token] out of scope: ${principal.name} ${req.method} ${pathname}`);
+      return NextResponse.json({ error: "Forbidden", reason: "token_scope" }, { status: 403 });
+    }
+    return passThrough(req, "user", principal.user_id, "aal1", JSON.stringify(principal.scopes));
+  }
+
+  // 3c. A paired wall (master run §11; 0176). The wall holds its token in a
+  // cookie rather than a header because it is a page, not a script; the
+  // cookie is read only on the wall's own routes, so a wall token can never
+  // reach anything else even if the cookie were sent there. The token is
+  // the household device user's, scoped to routes ["wall"]: the same check
+  // as 3b, the same principal shape downstream.
+  const wallCookie = req.cookies.get(WALL_DEVICE_COOKIE)?.value;
+  if (wallCookie && (pathname === "/api/wall" || pathname.startsWith("/api/wall/"))) {
+    const principal = await resolveApiToken(wallCookie);
+    if (!principal) {
+      return NextResponse.json({ error: "Unauthorized", reason: "wall_unpaired" }, { status: 401 });
+    }
+    if (!principal.scopes.routes.includes("wall") || !tokenAllows(principal.scopes, req.method, pathname)) {
+      console.warn(`[wall] out of scope: ${principal.name} ${req.method} ${pathname}`);
       return NextResponse.json({ error: "Forbidden", reason: "token_scope" }, { status: 403 });
     }
     return passThrough(req, "user", principal.user_id, "aal1", JSON.stringify(principal.scopes));

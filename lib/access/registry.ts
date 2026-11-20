@@ -357,6 +357,18 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
   },
   {
     section: "platform",
+    group: "wall",
+    tables: ["wall_devices", "wall_pairings"],
+    note: "Paired wall screens (0176): a device user in the family team with a token scoped to the wall routes, and the pairing codes shown once. Service role only, through lib/system/wall.ts.",
+  },
+  {
+    section: "platform",
+    group: "quick_unlock",
+    tables: ["quick_unlocks"],
+    note: "A person's PIN for the wall, hashed, in their own space (0176). Set by the person; checked by the server (lib/system/quickUnlock.ts).",
+  },
+  {
+    section: "platform",
     group: "interruptions",
     tables: ["interruptions"],
     note: "Every time the app reaches for the person on its own (0161): the ledger the budget of three a day is counted from.",
