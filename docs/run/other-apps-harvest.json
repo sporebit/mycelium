@@ -1,0 +1,1071 @@
+{
+  "generated_at": "2026-11-20T03:18:03Z",
+  "repos": [
+    {
+      "folder": "PhirstMaxxing",
+      "path": "A:\\Projects\\PhirstMaxxing",
+      "name": "Phirstymaxxing",
+      "suggested_key": "PHM",
+      "summary": "Private, mobile-first planning PWA for Phil, Kirsty and Max the dog: shared free time, an idea bank with real door-to-door time and cost, suggestions that fit a free window, a shared budget, trips and memories. Two users, one Next.js app, one Postgres; live and in real use.",
+      "stack": "Next.js 15 App Router, TypeScript, pnpm, Tailwind v4 + shadcn (Base UI), Supabase, Drizzle, Serwist PWA, web-push, Vitest, Playwright, Vercel Hobby",
+      "state": {
+        "last_commit": "2026-09-11",
+        "last_commit_message": "Merge main into feat/r5-backups",
+        "dirty": false,
+        "status": "paused"
+      },
+      "notes": [
+        "Size: 81 commits, 270 tracked files, first commit 2026-08-29. Remote is sporebit/phirstymaxxing; the package and docs call it Phirstymaxxing.",
+        "Phases 0 to 6 are merged and the app is live; the repo has been quiet since 11 Sep 2026 because the roadmap deliberately waits on a month of real use (R7).",
+        "The checkout is on feat/r5-backups, three commits ahead of main. Neither local main nor origin/main (as last fetched) contains the R5 backup workflow, although the roadmap logs R5 as built in PR #31.",
+        "The git-ignored apps/ folder holds two things that are not this app: an older copy of the Daytripper site, and the newest copy of the 'Our Kirstianity Philgrimage' PHP and SQLite site (api.php dated 20 Oct 2026, with its database file). That site is not committed in any repo.",
+        "apps/daytripper/tripq/submit.php in the ignored folder does not carry the token placeholder on line 10, so it may hold a real queue token. Not opened.",
+        "docs/STATUS.md is dated 11 Sep 2026 and still says R4 component tests are missing for some screens in its Known gaps, while the roadmap log says PR #29 added them; the two files disagree slightly."
+      ],
+      "items": [
+        {
+          "title": "Calibrate travel estimates against five real door-to-door routes",
+          "detail": "R3, starred (plan first). Blocked until Phil supplies five real routes with actual evening-traffic minutes; tune the speed profile until all five are within 15 per cent, and only wire a routing API if that fails.",
+          "type": "task",
+          "size": null,
+          "source": "docs/ROADMAP.md#R3",
+          "inferred": false
+        },
+        {
+          "title": "Switch on nightly backups by adding the SUPABASE_DB_URL secret",
+          "detail": "R5 is built (encrypted nightly dump plus photos, restore rehearsed) but only goes live once the database URL secret is added to the repo's Actions secrets.",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/ROADMAP.md#R5",
+          "inferred": false
+        },
+        {
+          "title": "Merge feat/r5-backups into main",
+          "detail": "The backup workflow commits sit on feat/r5-backups only; main and origin/main do not contain them as of the last fetch. Check PR #31 and merge.",
+          "type": "chore",
+          "size": "S",
+          "source": "git log main..feat/r5-backups (3 commits)",
+          "inferred": true
+        },
+        {
+          "title": "Write up month-one frictions and turn them into the R7 spec",
+          "detail": "R7 is deliberately empty until Phil and Kirsty have used the app for about a month. Budget, Ideas detail, Our story and Trips have had no real-use feedback at all.",
+          "type": "task",
+          "size": null,
+          "source": "docs/ROADMAP.md#R7",
+          "inferred": false
+        },
+        {
+          "title": "Add the 'Our number' card to Home with a monthly push",
+          "detail": "R8: hours together this month and new things tried, from accepted holds, plans and memories. Small; do it once R7 confirms Home is looked at.",
+          "type": "task",
+          "size": "S",
+          "source": "docs/ROADMAP.md#R8",
+          "inferred": false
+        },
+        {
+          "title": "Draft the first real trip with live AI drafting and log what is wrong",
+          "detail": "R9: not code. Plan the coast weekend for real, note every place validation or the itinerary is wrong, and feed the list back as a fix item.",
+          "type": "task",
+          "size": null,
+          "source": "docs/ROADMAP.md#R9",
+          "inferred": false
+        },
+        {
+          "title": "Build Daytripper v1: share a plan as a message, public RSVP page",
+          "detail": "R12, two parts; part B touches the schema so plan first. Zero messaging spend, OS share sheet or wa.me, public read-only plan page that works without JavaScript. Queued behind R7.",
+          "type": "task",
+          "size": null,
+          "source": "docs/ROADMAP.md#R12; docs/claude_PROMPT_4_DAYTRIPPER_SHARE.md",
+          "inferred": false
+        },
+        {
+          "title": "Build the WhatsApp concierge (Phase 7)",
+          "detail": "R10, parked: needs the month of real use plus a Twilio account and WhatsApp sender. First intents: rota photo to shifts, pasted link to idea, spend message to expense, 'free tonight' to free block. Webhook signature validation is mandatory.",
+          "type": "task",
+          "size": null,
+          "source": "docs/ROADMAP.md#R10; CLAUDE.md:53",
+          "inferred": false
+        },
+        {
+          "title": "Decide the productisation gate",
+          "detail": "R11: a decision, not a build. If other couples are wanted after about three months: rotate every secret, move Vercel to a paid plan, adversarial RLS tests, onboarding and billing as their own guide.",
+          "type": "idea",
+          "size": null,
+          "source": "docs/ROADMAP.md#R11",
+          "inferred": false
+        },
+        {
+          "title": "Test web push on the iPhone",
+          "detail": "Keys are in place but iOS push has never been seen working. Needs the app installed to the home screen and a window or proposal that trips the cap.",
+          "type": "task",
+          "size": "S",
+          "source": "docs/STATUS.md#known-gaps",
+          "inferred": false
+        },
+        {
+          "title": "Try the AI features from a phone",
+          "detail": "Link to idea, trip drafts and booking emails are switched on but have not been exercised from a phone since the API key went in.",
+          "type": "task",
+          "size": "S",
+          "source": "docs/STATUS.md#known-gaps",
+          "inferred": false
+        },
+        {
+          "title": "Add ISS passes to the night-sky events table",
+          "detail": "Parked until the clear-night alert has fired correctly for a fortnight; still waits on an external feed or a computed layer.",
+          "type": "idea",
+          "size": null,
+          "source": "docs/ROADMAP.md#R6; docs/STATUS.md#known-gaps",
+          "inferred": false
+        },
+        {
+          "title": "Set git user.email so direct pushes deploy on Vercel",
+          "detail": "Commits pushed straight from Phil's machine are blocked by Vercel because the local git email does not match a GitHub account. Either set the email or keep merging through PRs.",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/STATUS.md#known-gaps",
+          "inferred": false
+        },
+        {
+          "title": "Reconcile STATUS.md known gaps with the roadmap log",
+          "detail": "STATUS.md still lists component coverage for Plans, Ideas, Budget, Story and Trips as missing; the roadmap log says PR #29 added it.",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/STATUS.md#known-gaps; docs/ROADMAP.md (log, R4)",
+          "inferred": true
+        },
+        {
+          "title": "Review the 'Later / not now' list",
+          "detail": "Parked ideas: rota OCR, campervan as a planning object, friend groups, a routing API behind the travel estimator, an astro events feed.",
+          "type": "idea",
+          "size": null,
+          "source": "CLAUDE.md#later--not-now",
+          "inferred": false
+        },
+        {
+          "title": "Confirm the October 2026 Philgrimage update is uploaded to Ionos",
+          "detail": "The update note lists four files to upload (accounts with email, reset links, new sign-in screens) and the steps to get Kirsty back in. Whether the upload happened cannot be told from the folder.",
+          "type": "chore",
+          "size": "S",
+          "source": "apps/kirstianityphilgrimige/UPDATE-OCT-2026.md (git-ignored folder)",
+          "inferred": true
+        }
+      ],
+      "left_out": { "count": 0, "what": "" }
+    },
+    {
+      "folder": "phirstmaxxing-web",
+      "path": "A:\\Projects\\phirstmaxxing-web",
+      "name": "phirstmaxxing-web (old Daytripper site repo)",
+      "suggested_key": "PMW",
+      "summary": "An earlier home for the Daytripper static trip guides plus the parked 'Our Kirstianity Philgrimage' site. Its Daytripper content is byte-identical to the site/ folder of the daytripper repo, which replaced it.",
+      "stack": "Static HTML, CSS and JS, one PHP endpoint, GitHub Actions SFTP deploy to IONOS",
+      "state": {
+        "last_commit": null,
+        "last_commit_message": null,
+        "dirty": true,
+        "status": "abandoned"
+      },
+      "notes": [
+        "Size: 101 files staged, about 40 KB outside apps/. The repo has no commits at all and no remote: everything is staged on main and was never committed.",
+        "README.md and .github/workflows/deploy.yml also have unstaged edits on top of the staged versions.",
+        "apps/daytripper is identical, file for file, to daytripper/site. The daytripper repo (two commits, pushed) is the live source of truth.",
+        "apps/kirstianityphilgrimige here is the September copy; a newer October copy sits in PhirstMaxxing's git-ignored apps/ folder. Neither is committed anywhere.",
+        "The README says nothing here deploys the PhirstMaxxing app; the name is misleading."
+      ],
+      "items": [
+        {
+          "title": "Retire this folder: it duplicates the daytripper repo",
+          "detail": "The Daytripper content matches daytripper/site exactly and this repo was never committed or pushed. Confirm nothing unique is left, then archive or delete it.",
+          "type": "chore",
+          "size": "S",
+          "source": "git status (no commits, 101 staged files); README.md",
+          "inferred": true
+        },
+        {
+          "title": "Give the Kirstianity Philgrimage site a version-controlled home",
+          "detail": "The README marks it 'parked, not deployed by anything'. Its only copies are staged-but-uncommitted here and git-ignored in PhirstMaxxing, where the October update lives.",
+          "type": "chore",
+          "size": null,
+          "source": "README.md#layout; apps/kirstianityphilgrimige/",
+          "inferred": true
+        },
+        {
+          "title": "Delete the dead landing page index.html",
+          "detail": "The README describes the root index.html as dead: a landing page for a plan that was dropped.",
+          "type": "chore",
+          "size": "S",
+          "source": "README.md#layout",
+          "inferred": false
+        },
+        {
+          "title": "Clear out _to_delete/",
+          "detail": "A folder named _to_delete holding one probe file is staged alongside the site.",
+          "type": "chore",
+          "size": "S",
+          "source": "_to_delete/_probe.txt",
+          "inferred": true
+        }
+      ],
+      "left_out": { "count": 0, "what": "" }
+    },
+    {
+      "folder": "StreetGuesser",
+      "path": "A:\\Projects\\StreetGuesser",
+      "name": "StreetGuesser",
+      "suggested_key": "SG",
+      "summary": "A label-free map game for Doncaster borough: one street is highlighted and you name it from memory or pick from four, with coverage per region, spaced repetition and an opt-in leaderboard. The answer key never reaches the browser.",
+      "stack": "Node 22, TypeScript, Fastify 5, Postgres 16, MapLibre GL + PMTiles, Vite, Docker Compose with Caddy, Python and Planetiler for data builds",
+      "state": {
+        "last_commit": "2026-11-05",
+        "last_commit_message": "Known = last answer correct; drop the typed-plus-three rule",
+        "dirty": false,
+        "status": "alive"
+      },
+      "notes": [
+        "Size: 5 commits, 74 tracked files, about 13 MB (mostly committed map data). All five commits are from one day, 5 Nov 2026. Branch is master, pushed to sporebit/StreetGuesser.",
+        "The deploy guide and test plan are checklists stored in the app's Postgres database; their tick state could not be read from the repo. deploy/push.ps1 already has a default server address, so a VPS probably exists and the early deploy phases may be done.",
+        "No task list file exists in the repo; the items below come from the seeded checklist content and from the code and data.",
+        "There is no .github folder, so nothing runs tests automatically."
+      ],
+      "items": [
+        {
+          "title": "Confirm deploy phases 1 to 3 are ticked (server, domain, app)",
+          "detail": "The deploy guide covers ordering and hardening the VPS, DNS and Resend sending domain, then build, import, seed and admin account. Tick state lives in the app database; check it at /admin/checklists/deploy.",
+          "type": "chore",
+          "size": null,
+          "source": "server/src/checklists/content.ts (deploy: 1. Server, 2. Domain, 3. App)",
+          "inferred": false
+        },
+        {
+          "title": "Set up the nightly Postgres backup on the VPS and verify a restore",
+          "detail": "Deploy phase 4: a cron pg_dump at 03:15 with 14-day pruning, then confirm a dump exists and pg_restore can list it.",
+          "type": "task",
+          "size": "S",
+          "source": "server/src/checklists/content.ts (deploy: ops-backup, ops-verify)",
+          "inferred": false
+        },
+        {
+          "title": "Run the manual test plan before release",
+          "detail": "Twenty manual checks across accounts (register, lockout, reset, passkey, deletion), game rounds, security headers and anti-cheat, privacy and leaderboard opt-in, plus three automated ones.",
+          "type": "task",
+          "size": null,
+          "source": "server/src/checklists/content.ts (test-plan)",
+          "inferred": false
+        },
+        {
+          "title": "Update the test plan for the missed/learning colours and new 'known' rule",
+          "detail": "The last two commits changed how missed and learning streets are shown and when a street counts as known, without touching the checklist content. CLAUDE.md says each feature should add its verification step.",
+          "type": "chore",
+          "size": "S",
+          "source": "server/src/checklists/content.ts (play-coverage); commits 4240c37, 3ef3f97; CLAUDE.md#checklists",
+          "inferred": true
+        },
+        {
+          "title": "Fix the 'Updating the app' step to match the push script",
+          "detail": "The checklist tells you to git pull on the server, but the code is shipped as a tar archive with no git checkout there; deploy/push.ps1 is the real update path. A read-only deploy key is mentioned as a later option.",
+          "type": "chore",
+          "size": "S",
+          "source": "server/src/checklists/content.ts (ops-updates, app-clone); deploy/push.ps1",
+          "inferred": true
+        },
+        {
+          "title": "Rebuild the data with current ONS wards and Code-Point Open postcodes",
+          "detail": "The committed import was built with the 2013 wards fallback and with postcode districts taken from OSM address tags, which the build tool itself labels as patchy. The README names the real sources.",
+          "type": "task",
+          "size": null,
+          "source": "data/import.json (regionSets[].source); README.md#rebuild-the-data; tools/build_data.py:336",
+          "inferred": true
+        },
+        {
+          "title": "Add CI for tests, typecheck and tile verification",
+          "detail": "No workflow exists. The API integration tests skip silently unless TEST_DATABASE_URL is set, so they need a Postgres service in CI to mean anything.",
+          "type": "chore",
+          "size": null,
+          "source": "server/test/api.test.ts:16; README.md#tests",
+          "inferred": true
+        }
+      ],
+      "left_out": { "count": 0, "what": "" }
+    },
+    {
+      "folder": "DropShipAuto",
+      "path": "A:\\Projects\\DropShipAuto",
+      "name": "DropShipAuto",
+      "suggested_key": "DSA",
+      "summary": "Multi-agent dropshipping automation: six Claude-powered agents (niche, product, brand, store, ads, UGC outreach) run end to end as a Mastra workflow with human review gates. Mid-way through a full front-end rebuild (UI v2) that has not yet been cut over to production.",
+      "stack": "Node.js, Express, PostgreSQL, Mastra, Anthropic SDK, Shopify Admin API; legacy Alpine.js UI plus new React 18, Vite, Tailwind v4, Zustand client in /client; PM2 on a VPS with webhook deploys",
+      "state": {
+        "last_commit": "2026-07-23",
+        "last_commit_message": "fix(v2-rail): coherent one-ring transition idle -> in progress -> review -> done",
+        "dirty": true,
+        "status": "paused"
+      },
+      "notes": [
+        "Size: 115 commits, 153 tracked files, first commit 2026-05-09. On develop; the only uncommitted thing is an untracked .claude/worktrees/ folder.",
+        "develop is 58 commits ahead of main: the whole UI v2 rebuild lives on the test environment only. Nothing merges to main until the Task 8 cutover.",
+        "Rebuild progress: Tasks 0 to 4 and 5a are done. PROMPTS.md ends with 'Awaiting scope resolution on Task 5'. History, Run detail and Replay routes in the new client are 10 to 12 line placeholders.",
+        "CLAUDE.md is partly stale: its architecture section describes the old orchestrator, and its stub table lists StoreBuilder theme stubs and a UgcSourcer SerpAPI stub that the code no longer shows.",
+        "CLAUDE.md contains the VPS address and SSH user in plain text. Not a secret on its own, but worth knowing it is committed.",
+        "A real .env file and an empty file named ProjectsDropShipAuto.env sit in the folder; neither was opened.",
+        "CODEBASE_AUDIT.md is dated 14 May 2026 and predates Mastra, HITL review and the theme builder; most of its gap table is out of date."
+      ],
+      "items": [
+        {
+          "title": "Settle Task 5 scope, then build 5b: inline editing for the other four agents",
+          "detail": "Task 5a shipped edit-and-approve for two agents; the review surface tells users editing for the rest 'arrives in Task 5b'. The original CodeMirror spec no longer fits and Task 5c is mentioned but never specified.",
+          "type": "task",
+          "size": null,
+          "source": "PROMPTS.md#task-5-scope-note; client/src/components/review-surface.tsx:163; client/src/lib/agent-edits/index.ts:9",
+          "inferred": false
+        },
+        {
+          "title": "Add name-suffixed output aliases for AdCreator and UgcSourcer steps",
+          "detail": "ADR-024 added self-aliases for NicheScout and BrandBuilder and says the other two get theirs in 5b.",
+          "type": "task",
+          "size": "S",
+          "source": "DECISIONS.md#ADR-024 (point 6)",
+          "inferred": false
+        },
+        {
+          "title": "Build Task 6: v2 History list and Run detail",
+          "detail": "Dense table and mobile cards with filters and sorting, run detail with the rail in completed state, self-eval breakdowns, retry history and a timing waterfall. Standardise on /api/runs rather than the legacy sessions list. Both routes are placeholders today.",
+          "type": "task",
+          "size": null,
+          "source": "PROMPTS.md#task-6; client/src/routes/History.tsx; client/src/routes/RunDetail.tsx; docs/UI_REBUILD_AUDIT.md#9 (risk 2)",
+          "inferred": false
+        },
+        {
+          "title": "Redirect completed runs to history and drop the disabled affordance",
+          "detail": "The Dashboard keeps a finished run on screen with a disabled 'View in history' control; two code comments mark this for removal once the history page ships.",
+          "type": "task",
+          "size": "S",
+          "source": "client/src/routes/Dashboard.tsx:64, :330",
+          "inferred": false
+        },
+        {
+          "title": "Build Task 7: Replay mode on the shared store",
+          "detail": "Pick a source run and starting agent, show inherited results with a 'from run' tag and fresh ones live, with no replay-only merge logic. The route is a placeholder today.",
+          "type": "task",
+          "size": null,
+          "source": "PROMPTS.md#task-7; client/src/routes/Replay.tsx",
+          "inferred": false
+        },
+        {
+          "title": "Task 8 polish pass: performance, accessibility, motion, copy, error states",
+          "detail": "Route-level code splitting, Lighthouse 90+ on mobile and desktop, keyboard paths and focus traps, nothing over 300 ms, copy audit, error and empty states for every data surface.",
+          "type": "task",
+          "size": null,
+          "source": "PROMPTS.md#task-8 (steps 1-5)",
+          "inferred": false
+        },
+        {
+          "title": "Task 8 cutover: move v2 to the root, regress on test, promote to main",
+          "detail": "Old UI moves to /legacy, full regression on the test environment, then a develop to main PR that Phil merges and a real run on production. develop is currently 58 commits ahead of main.",
+          "type": "task",
+          "size": null,
+          "source": "PROMPTS.md#task-8 (steps 6-9)",
+          "inferred": false
+        },
+        {
+          "title": "Task 8 clean-up: remove legacy UIs, dead routes and the old SSE endpoint",
+          "detail": "Delete both the Alpine UI and the older vanilla-JS UI, the legacy orchestrator routes they alone use, and write the closing ADR and doc updates.",
+          "type": "chore",
+          "size": null,
+          "source": "PROMPTS.md#task-8 (steps 10-11); docs/UI_REBUILD_AUDIT.md#1.5, #10 (F)",
+          "inferred": false
+        },
+        {
+          "title": "Rename result to output at the source and delete the dual-key fallback",
+          "detail": "The v2 store reads payload.output or payload.result because Mastra ships the step value under result. Clean up at the source as part of the cutover, with a coordinated check of the old UI.",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/BACKLOG.md#result--output-schema-rename; client/src/stores/pipeline-store.ts:512",
+          "inferred": false
+        },
+        {
+          "title": "Fix or replace the em-dash check script (Windows path bug)",
+          "detail": "The no-em-dash rule is enforced by manual grep; the script that should fail the commit has path and encoding bugs on Windows. Fix before the cutover so main cannot regress.",
+          "type": "bug",
+          "size": "S",
+          "source": "docs/BACKLOG.md#em-dash-check-script-windows-path-bug",
+          "inferred": false
+        },
+        {
+          "title": "Quieten the stall-warning log flood",
+          "detail": "The stall detector broadcasts a warning every 60 seconds while a run is silent, and search agents routinely go quiet for minutes. Raise the threshold, warn once per stall, or suppress for known-silent steps.",
+          "type": "bug",
+          "size": "S",
+          "source": "docs/BACKLOG.md#stall-warning-log-flood",
+          "inferred": false
+        },
+        {
+          "title": "Clear zombie activeRuns entries that keep firing stall warnings",
+          "detail": "The Task 0 audit found runs on production whose activeRuns entries and stall timers were never cleared, polluting the active-run endpoint and the logs.",
+          "type": "bug",
+          "size": null,
+          "source": "docs/UI_REBUILD_AUDIT.md#9 (risk 9)",
+          "inferred": false
+        },
+        {
+          "title": "Tighten pm2 dump file permissions on the VPS to 600",
+          "detail": "The pm2 dump file is mode 664 and contains process environment. A manual chmod in a maintenance window is enough.",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/BACKLOG.md#pm2-dump-file-permissions-664--600",
+          "inferred": false
+        },
+        {
+          "title": "Plumb an AbortSignal through the pipeline for sub-second stop",
+          "detail": "Stop currently resolves at the next loop boundary, up to 180 seconds if it lands mid model call. Thread the signal through Mastra step context, the call helpers and the agents' fetch and SDK calls.",
+          "type": "task",
+          "size": "M",
+          "source": "docs/BACKLOG.md#mid-anthropic-call-abort-via-sdk-abortsignal-plumbing",
+          "inferred": false
+        },
+        {
+          "title": "Tune agent web-search efficiency",
+          "detail": "The three search agents issue several related queries where one broader query might do. Not a bug; revisit when the app is in daily use.",
+          "type": "idea",
+          "size": null,
+          "source": "docs/BACKLOG.md#agent-search-efficiency-refinement-future-task",
+          "inferred": false
+        },
+        {
+          "title": "Implement the SerpAPI fallback in NicheScout and ProductHunter",
+          "detail": "Both agents carry a TODO where the SerpAPI search fallback should be.",
+          "type": "task",
+          "size": "S",
+          "source": "agents/nicheScout.js:316; agents/productHunter.js:351; CLAUDE.md#stub-todos",
+          "inferred": false
+        },
+        {
+          "title": "Bring CLAUDE.md up to date",
+          "detail": "The audit flags it as stale and assigns the fix to Task 8. The architecture section and the stub table no longer match the code.",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/UI_REBUILD_AUDIT.md#9 (risk 3), #10 (B, D, E); CLAUDE.md#stub-todos",
+          "inferred": false
+        },
+        {
+          "title": "Align workflow_agent_outputs.status values with what the code writes",
+          "detail": "The schema comment lists eight allowed values but the workflow writes a ninth ('completed').",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/UI_REBUILD_AUDIT.md#9 (risk 8)",
+          "inferred": false
+        },
+        {
+          "title": "Restrict CORS origins in production",
+          "detail": "The May audit recommends it and server.js still enables CORS globally with no origin restriction.",
+          "type": "chore",
+          "size": "S",
+          "source": "CODEBASE_AUDIT.md (dependency notes); server.js:26",
+          "inferred": false
+        },
+        {
+          "title": "Add CI workflows",
+          "detail": "CLAUDE.md states there are no GitHub workflows yet; 'CI green' currently means reading the webhook deploy log on the VPS.",
+          "type": "chore",
+          "size": null,
+          "source": "CLAUDE.md:118",
+          "inferred": true
+        },
+        {
+          "title": "Re-run npm audit and deal with the high-severity findings",
+          "detail": "The May audit recorded two pre-existing high-severity advisories. Not re-checked here; the count may have changed.",
+          "type": "chore",
+          "size": "S",
+          "source": "CODEBASE_AUDIT.md (dependency notes)",
+          "inferred": false
+        },
+        {
+          "title": "Build the customer service agent (Gemma and Tony)",
+          "detail": "Listed in the May audit as an agent with a full specification in the quality standards and no implementation. Still no file for it.",
+          "type": "idea",
+          "size": null,
+          "source": "CODEBASE_AUDIT.md#agent-8--customer-service--gemma--tony",
+          "inferred": false
+        },
+        {
+          "title": "Remove the stale claude/busy-ptolemy-d4133f branch and worktree",
+          "detail": "The branch's last commit is 14 May 2026 and it has nothing that develop lacks; an untracked .claude/worktrees folder for it is the only thing making the tree dirty.",
+          "type": "chore",
+          "size": "S",
+          "source": "git branch; .claude/worktrees/busy-ptolemy-d4133f",
+          "inferred": true
+        }
+      ],
+      "left_out": {
+        "count": 21,
+        "what": "Approximate: rows in the May 2026 CODEBASE_AUDIT gap tables (agent self-scoring, retries, schema fields, Liquid theme and similar), most of which were built since and were not verified one by one. The ClickUp seed scripts and DropShipAuto_Tracker.xlsx were not harvested, and QUALITY_STANDARDS.md and ADRs 1 to 23 were not read in full."
+      }
+    },
+    {
+      "folder": "daytripper",
+      "path": "A:\\Projects\\daytripper",
+      "name": "Daytripper",
+      "suggested_key": "DAY",
+      "summary": "Illustrated audio trip guides with maps, timelines and a tick-to-plan schedule, live at daytripper.sporebit.com. Five Yorkshire trips so far, each built by the trip-sites skill from a brief.",
+      "stack": "Hand-written static HTML, CSS and JS, Leaflet from a CDN, one PHP build-queue endpoint, GitHub Actions SFTP deploy to IONOS; deliberately no framework or build step",
+      "state": {
+        "last_commit": "2026-09-10",
+        "last_commit_message": "Retarget setup guide at Daytripper; fix README trip layout",
+        "dirty": false,
+        "status": "paused"
+      },
+      "notes": [
+        "Size: 2 commits, 66 tracked files, about 1.5 MB. Pushed to sporebit/daytripper. Trips: York, Knaresborough, Whitby, Robin Hood's Bay, Scarborough (newest built 2026-09-10).",
+        "The repo has no task list; CLAUDE.md and the README describe rules and trade-offs rather than work to do. Most items below are inferred.",
+        "Two other copies of the site exist: phirstmaxxing-web/apps/daytripper (identical, never committed) and PhirstMaxxing/apps/daytripper (older, git-ignored).",
+        "Not to be confused with 'Daytripper v1' in the PhirstMaxxing roadmap (R12), which is a share-a-plan feature inside that app."
+      ],
+      "items": [
+        {
+          "title": "Move York and Knaresborough images to Special:FilePath URLs",
+          "detail": "The two oldest trips still use direct upload.wikimedia.org thumbnail URLs; new work uses Special:FilePath, which hides itself on a 404.",
+          "type": "chore",
+          "size": null,
+          "source": "CLAUDE.md#images",
+          "inferred": false
+        },
+        {
+          "title": "Move the jobs queue out of the docroot, then let the deploy delete",
+          "detail": "The mirror never deletes, so renamed pages leave orphans reachable on the live site. The README says to move tripq/jobs out of the docroot first and then add the delete flag, if this starts to matter.",
+          "type": "idea",
+          "size": null,
+          "source": "README.md#two-deliberate-choices-and-what-they-cost",
+          "inferred": false
+        },
+        {
+          "title": "Bake MP3 narration for the five trips",
+          "detail": "Each trip has a narration-scripts.json and the player supports pre-baked MP3s with sentence marks, but every page sets an empty audio map and no audio files exist, so narration falls back to the browser's speech synthesis.",
+          "type": "idea",
+          "size": null,
+          "source": "site/assets/player.js:1-10; site/trips/*/audio/narration-scripts.json",
+          "inferred": true
+        },
+        {
+          "title": "Document or add the builder that works the trip build queue",
+          "detail": "The homepage says 'the builder will pick it up' and the endpoint has an update action for a poller, but no poller or schedule is in the repo.",
+          "type": "chore",
+          "size": null,
+          "source": "site/tripq/submit.php:1-9; site/index.html:182",
+          "inferred": true
+        }
+      ],
+      "left_out": { "count": 0, "what": "" }
+    },
+    {
+      "folder": "polysnipe",
+      "path": "A:\\Projects\\polysnipe",
+      "name": "Polysnipe",
+      "suggested_key": "POLY",
+      "summary": "Polymarket leader-tracking engine and notification product: it scores wallets, follows chosen leaders and either alerts users or copies trades for the founders' own wallets. Runs in dry-run on a VPS; live trading is flag-gated behind four launch gates.",
+      "stack": "TypeScript monorepo: engine (Node, Postgres, Redis), Next.js dashboard, PM2 and Caddy on a VPS, Docker Compose locally, GitHub Actions CI and staging deploy",
+      "state": {
+        "last_commit": "2026-07-24",
+        "last_commit_message": "fix(h4b test): cast mock.calls tuple to satisfy CI's stricter tsc",
+        "dirty": true,
+        "status": "paused"
+      },
+      "notes": [
+        "Size: 179 commits, 312 tracked files, 20 local branches, first commit 2026-07-13. Twelve intense days of work, then nothing since 24 Jul 2026.",
+        "The local working copy is incomplete: 142 tracked files show as deleted, namely the whole web/ folder (122 files) and scripts/ (20 files). They are intact in git; the folders simply are not on this disk. One settings file is also modified.",
+        "Checked out on h4b-per-founder-routing, which origin/main has already merged as PR #17; local main is three commits behind origin/main.",
+        "Where things stand: hardening prompts H0 to H3, H4a and H4b are shipped. H4c is open. Redesign phases 0 and 1 are done; prompts 2 to 7 have not been run.",
+        "docs/BUGS.md still lists 'Backups are same-disk only' as a known gap, while docs/LAUNCH-GATES.md records the off-host Backblaze pipeline as empirically closed on 2026-07-22. The bug entry looks stale.",
+        "The README's eight human-checkpoint boxes are all unticked although several (VPS, Telegram alerts, backups) are evidently done.",
+        "A real .env sits in the folder; not opened. The project has a strict rule against real wallet addresses in tracked files, so none are repeated here.",
+        "Not read in full: OPERATIONS.md (1,940 lines), USER-GUIDE.md, METHODOLOGY.md, TESTING-PLAN.md and CONTEXT_DUMP.md. They may hold further open items."
+      ],
+      "items": [
+        {
+          "title": "Build H4c: per-founder risk state, kill switch and bankroll isolation",
+          "detail": "All founders still share one global risk state, so one founder's daily-loss breach gates the other. Needs a per-user risk store map, per-user kill switch, per-user bankroll and a two-founder isolation test. Blocks live trading for either founder.",
+          "type": "task",
+          "size": "L",
+          "source": "docs/polysnipe-backlog.md#11-h4bh4c--dual-founder-engine-routing-split",
+          "inferred": false
+        },
+        {
+          "title": "Add TOTP two-factor to founder login",
+          "detail": "Encrypted secret and enabled flag on users, enrolment with QR and backup codes in Settings, a code field at login, and a founder-only reset tool. Blocks external onboarding.",
+          "type": "task",
+          "size": null,
+          "source": "docs/polysnipe-backlog.md#3-2fa-totp-on-founder-login",
+          "inferred": false
+        },
+        {
+          "title": "Add Telegram-based login and session linking",
+          "detail": "Link an account by chat id and sign in with a one-time code from the bot, with rate limit and code expiry. Removes the wallet-extension problem on Safari without adding a password.",
+          "type": "task",
+          "size": null,
+          "source": "docs/polysnipe-backlog.md#4-telegram-based-login--session-linking",
+          "inferred": false
+        },
+        {
+          "title": "Separate identity and execution wallets and make them editable in Settings",
+          "detail": "Settings forbids editing the wallet address because it conflates the sign-in wallet with the trading wallet. Split the two fields first. Blocked on H4c.",
+          "type": "task",
+          "size": null,
+          "source": "docs/polysnipe-backlog.md#5-wallet_address-editing-in-settings",
+          "inferred": false
+        },
+        {
+          "title": "Build the discoveries claim tool",
+          "detail": "Production carries 339 system-discovered follows with no owner. Add a founders-only page listing them with a Claim button and an audit row per claim.",
+          "type": "task",
+          "size": null,
+          "source": "docs/polysnipe-backlog.md#6-discoveries-claim-tool",
+          "inferred": false
+        },
+        {
+          "title": "Deploy Caddy access logging on the VPS and verify it",
+          "detail": "Config was authored on 24 Jul 2026; the operator still has to run the sudo steps, confirm log lines on production and staging, and check the footprint after a week. Should not wait for launch.",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/polysnipe-backlog.md#7-caddy-access-logging; infra/caddy/README.md",
+          "inferred": false
+        },
+        {
+          "title": "Reconcile the three phase-numbering schemes across docs",
+          "detail": "Build brief uses Stage 0-10, redesign brief Phase 0-7, prompts PROMPT 0-7. Pick one and add a translation table or renumber in a doc-only PR.",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/polysnipe-backlog.md#10-reconcile-three-competing-phase-numbering-schemes-across-docs",
+          "inferred": false
+        },
+        {
+          "title": "Fix login on Safari: add guidance or a WalletConnect fallback",
+          "detail": "The sign-in button reports no wallet on desktop and mobile Safari. Quick fix is Safari detection with clear guidance (about 30 lines); the real fix is WalletConnect v2 alongside the injected provider.",
+          "type": "bug",
+          "size": null,
+          "source": "docs/BUGS.md#login-page-hard-fails-on-safari-desktop--mobile--no-walletconnect-fallback",
+          "inferred": false
+        },
+        {
+          "title": "Validate the session cookie in edge middleware, not just its presence",
+          "detail": "A stale or forged cookie value gets past the middleware and reaches the page render; the redirect to login then happens client-side a round-trip later.",
+          "type": "bug",
+          "size": null,
+          "source": "docs/BUGS.md#auth-middleware-only-checks-cookie-presence-not-validity",
+          "inferred": false
+        },
+        {
+          "title": "Retry Telegram API app creation to unblock the ingest workstream",
+          "detail": "my.telegram.org returns a bare ERROR when creating the API app, probably a VPN or account-level block. Retry from a clean residential connection; Telegram source ingestion cannot start without the API id and hash. ingest/ holds a single file today.",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/BUGS.md#telegram-api-app-creation-returns-bare-error-on-mytelegramorg",
+          "inferred": false
+        },
+        {
+          "title": "Delete the scoring_queue row when a queued follow is removed",
+          "detail": "Unfollowing a wallet before the next rescore leaves an orphan queue row that costs one wasted scoring cycle. Cheap fix: delete in the same transaction and add a race test.",
+          "type": "bug",
+          "size": "S",
+          "source": "docs/BUGS.md#scoring_queue-rows-orphan-when-a-follow-is-deleted-before-rescore",
+          "inferred": false
+        },
+        {
+          "title": "Keep max-drawdown precision above the display cap",
+          "detail": "After the peak-zero fix, any drawdown above the bound shows as '100 %+' and the real figure is lost. Bounded by design, but the precision could be kept.",
+          "type": "idea",
+          "size": null,
+          "source": "docs/BUGS.md#max-drawdown-percentage--bounded-by-design-but-the-bound-loses-precision",
+          "inferred": false
+        },
+        {
+          "title": "Close or update the stale 'same-disk backups' entry in BUGS.md",
+          "detail": "The launch-gates doc records off-host dumps landing in Backblaze on 22 Jul 2026, but the bugs file still describes backups as same-disk only.",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/BUGS.md#backups-are-same-disk-only--no-off-host-destination; docs/LAUNCH-GATES.md#g3--off-host-backups",
+          "inferred": true
+        },
+        {
+          "title": "Finish G3 follow-ups: restore drill from Backblaze, alert test, key rotation",
+          "detail": "Still open after the pipeline closed: create the reader key just before the first staging restore drill, prove the failure alert reaches Telegram, and schedule writer-key rotation.",
+          "type": "chore",
+          "size": null,
+          "source": "docs/LAUNCH-GATES.md#g3--off-host-backups",
+          "inferred": false
+        },
+        {
+          "title": "Resolve G1: entity and tax structure for the trading capital",
+          "detail": "A documented answer on which legal entity holds the capital, which jurisdiction taxes the P&L and at what threshold treatment changes. One of four prerequisites for turning live trading on.",
+          "type": "task",
+          "size": null,
+          "source": "docs/LAUNCH-GATES.md#g1--entitytax-structure",
+          "inferred": false
+        },
+        {
+          "title": "Implement live order submission in AutoExecutor",
+          "detail": "The live path is intentionally unimplemented behind a human-checkpoint marker: it needs the CLOB client call, key-reference indirection and funder separate from signer, then a canary at 1 to 5 dollars notional with kill-switch drills.",
+          "type": "task",
+          "size": "L",
+          "source": "engine/src/executor/auto.ts:72; docs/LAUNCH-GATES.md#g1--entitytax-structure (point 3)",
+          "inferred": false
+        },
+        {
+          "title": "Commission the UAE legal opinion (gates G2 and G4)",
+          "detail": "The jurisdiction decision is made but a legal opinion is still required before onboarding anyone besides the founders, and G4 needs review of the per-user execution model.",
+          "type": "task",
+          "size": null,
+          "source": "docs/POLYSNIPE-HARDENING-PROMPTS.md#after-the-h-series; docs/LAUNCH-GATES.md#g2--jurisdiction, #g4--legal-clearance",
+          "inferred": false
+        },
+        {
+          "title": "Capture a jurisdiction attestation in the onboarding flow",
+          "detail": "G2 requires every non-founder user to attest their jurisdiction on the user row before any account write.",
+          "type": "task",
+          "size": null,
+          "source": "docs/LAUNCH-GATES.md#g2--jurisdiction",
+          "inferred": false
+        },
+        {
+          "title": "Decide the daily-loss reset timezone (Dubai or UTC)",
+          "detail": "Queued for Phil from the 23 Jul review. H2 was meant to ask in-session, so check whether it is already settled.",
+          "type": "task",
+          "size": "S",
+          "source": "docs/POLYSNIPE-HARDENING-PROMPTS.md#after-the-h-series",
+          "inferred": false
+        },
+        {
+          "title": "Schedule the pending production kernel reboot",
+          "detail": "Deferred on 23 Jul 2026 and listed as an open item for Phil.",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/POLYSNIPE-HARDENING-PROMPTS.md#after-the-h-series",
+          "inferred": false
+        },
+        {
+          "title": "Pin the pg_dump path in the backup script",
+          "detail": "Listed as an open item for Phil from the 23 Jul review (operations delta note).",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/POLYSNIPE-HARDENING-PROMPTS.md#after-the-h-series",
+          "inferred": false
+        },
+        {
+          "title": "Review the SIM-EV report and decide R1: add a fee model to fills",
+          "detail": "The dry-run sim ignores Polymarket taker fees, which probably flips its positive 30-day result negative. Recommended: a fee column on the audit log, filled from a per-market lookup.",
+          "type": "task",
+          "size": null,
+          "source": "docs/SIM-EV-REPORT.md#r1--ship-the-fee-model-confirm-with-phil",
+          "inferred": false
+        },
+        {
+          "title": "Store the mid-price at fill time in the audit log (R2)",
+          "detail": "The order-book snapshot is already fetched for the spread check and the mid is thrown away. Keeping it enables entry-lag cost analysis by category.",
+          "type": "task",
+          "size": "S",
+          "source": "docs/SIM-EV-REPORT.md#r2--add-mid-at-fill-time-snapshot-confirm-with-phil",
+          "inferred": false
+        },
+        {
+          "title": "Review the follow set (R3)",
+          "detail": "One followed leader wins about 92 per cent of the time yet is net negative over 30 days; two others have thin samples. Decide whether to drop, down-weight or wait another 30 days.",
+          "type": "task",
+          "size": "S",
+          "source": "docs/SIM-EV-REPORT.md#r3--follow-set-review-confirm-with-phil",
+          "inferred": false
+        },
+        {
+          "title": "Use per-market minimum order size in copy sizing (R4)",
+          "detail": "Sizing uses a global one-dollar minimum, but some markets have higher minimums. Wire the market lookup in with caching.",
+          "type": "task",
+          "size": null,
+          "source": "docs/SIM-EV-REPORT.md#r4--per-market-minimum-order-size-lookup-confirm-with-phil",
+          "inferred": false
+        },
+        {
+          "title": "Confirm the per-trade cap percentages for both bankrolls (R5)",
+          "detail": "Current constants give a 6 dollar cap on the 300 dollar bankroll and 16 on the 800 one. Changes are code constants, not config.",
+          "type": "task",
+          "size": "S",
+          "source": "docs/SIM-EV-REPORT.md#r5--consider-raising-per-trade-cap-on-lukes-bankroll-confirm-with-phil",
+          "inferred": false
+        },
+        {
+          "title": "Re-run the EV report monthly once fees are modelled (R6)",
+          "detail": "If the sim turns persistently negative under fee accounting, that is a stop signal for live execution.",
+          "type": "chore",
+          "size": null,
+          "source": "docs/SIM-EV-REPORT.md#r6--recompute-ev-at-30-day-intervals",
+          "inferred": false
+        },
+        {
+          "title": "Add realised-loss accounting to the fill path",
+          "detail": "The fill delta currently clamps realised losses on sells to zero. Real average-entry tracking needs its own hardening item.",
+          "type": "task",
+          "size": null,
+          "source": "docs/SIM-EV-REPORT.md#8-not-in-this-report",
+          "inferred": false
+        },
+        {
+          "title": "Run the deferred category PnL and post-re-base skip-rate queries",
+          "detail": "Both were left out of the report; the SQL is in the appendix. The skip-rate query was to be re-run 24 hours after the promote.",
+          "type": "chore",
+          "size": "S",
+          "source": "docs/SIM-EV-REPORT.md#8-not-in-this-report; appendix A5, A6",
+          "inferred": false
+        },
+        {
+          "title": "Run redesign PROMPT 2: realtime data layer",
+          "detail": "Replace polling with TanStack Query caching plus push. Safe to run any time; it does not conflict with the hardening series.",
+          "type": "task",
+          "size": null,
+          "source": "docs/POLYSNIPE-REDESIGN-PROMPTS.md#prompt-2--realtime-data-layer",
+          "inferred": false
+        },
+        {
+          "title": "Run redesign PROMPT 3: Overview, Leaderboard and Wallet detail screens",
+          "detail": "Third phase of the v2 redesign; phases 0 and 1 are logged as done, nothing after.",
+          "type": "task",
+          "size": null,
+          "source": "docs/POLYSNIPE-REDESIGN-PROMPTS.md#prompt-3--screens-a-overview-leaderboard-wallet-detail",
+          "inferred": false
+        },
+        {
+          "title": "Run redesign PROMPT 4: Portfolio, Follows, Strategies, tables, mobile pass",
+          "detail": "Fourth phase of the v2 redesign.",
+          "type": "task",
+          "size": null,
+          "source": "docs/POLYSNIPE-REDESIGN-PROMPTS.md#prompt-4--screens-b-portfolio-follows-strategies-tables-mobile-pass",
+          "inferred": false
+        },
+        {
+          "title": "Run redesign PROMPT 5: engine correctness and founder-only live canary",
+          "detail": "Only after H2, H3 and H4 are merged and G1 is resolved in-session. Canary per founder at 1 to 5 dollars notional, Phil first, with kill-switch drills before and after.",
+          "type": "task",
+          "size": null,
+          "source": "docs/POLYSNIPE-REDESIGN-PROMPTS.md#prompt-5--engine-correctness--live-execution-founder-only; docs/POLYSNIPE-HARDENING-PROMPTS.md#after-the-h-series",
+          "inferred": false
+        },
+        {
+          "title": "Run redesign PROMPT 6: friends onboarding (customers, no execution)",
+          "detail": "Friends join with the full intelligence surface and zero execution. Gates G2 and G3 apply.",
+          "type": "task",
+          "size": null,
+          "source": "docs/POLYSNIPE-REDESIGN-PROMPTS.md#prompt-6--friends-onboarding-customers-no-execution",
+          "inferred": false
+        },
+        {
+          "title": "Multi-user execution (PROMPT 7), gated on G4 legal clearance",
+          "detail": "Explicitly marked do-not-run without legal clearance of the per-user execution model.",
+          "type": "idea",
+          "size": null,
+          "source": "docs/POLYSNIPE-REDESIGN-PROMPTS.md#prompt-7; docs/LAUNCH-GATES.md#g4--legal-clearance",
+          "inferred": false
+        },
+        {
+          "title": "Persist Stripe subscription state in the billing routes",
+          "detail": "The webhook handlers and the status route carry TODOs where subscriptions should be written to and read from the database. Billing stays inert behind its flag until then.",
+          "type": "task",
+          "size": null,
+          "source": "web/src/app/api/billing/webhook/route.ts:39-66; web/src/app/api/billing/status/route.ts:11",
+          "inferred": false
+        },
+        {
+          "title": "Persist follow notification preferences (Telegram and email)",
+          "detail": "The follow route accepts the two notify flags but does not store them; the wallet card has the matching TODO for Phase 3.",
+          "type": "task",
+          "size": null,
+          "source": "web/src/app/api/wallet/[address]/follow/route.ts:14, :38; web/src/components/wallet-card.tsx:64",
+          "inferred": false
+        },
+        {
+          "title": "Implement the push notification channel",
+          "detail": "The push channel in the notify executor is a stub awaiting a provider such as Firebase Cloud Messaging.",
+          "type": "task",
+          "size": null,
+          "source": "engine/src/executor/channels/push.ts:3",
+          "inferred": false
+        },
+        {
+          "title": "Bring the README human-checkpoint list up to date",
+          "detail": "All eight boxes (wallet, key store, RPC, Telegram bot, SMTP, Stripe keys, live sign-off, VPS) are unticked, though the docs show several are done.",
+          "type": "chore",
+          "size": "S",
+          "source": "README.md#human-checkpoints",
+          "inferred": true
+        },
+        {
+          "title": "Restore web/ and scripts/ in the local working copy",
+          "detail": "142 tracked files are missing from disk on this PC. Nothing is lost (they are in git), but the checkout cannot build until they are restored.",
+          "type": "chore",
+          "size": "S",
+          "source": "git status (142 deletions under web/ and scripts/)",
+          "inferred": true
+        }
+      ],
+      "left_out": {
+        "count": 2,
+        "what": "Two stale human-checkpoint markers in infra/ about choosing and provisioning a VPS, which is already running. The verification procedures in TESTING-PLAN.md and anything in OPERATIONS.md were not itemised."
+      }
+    },
+    {
+      "folder": "mediaCleanUp",
+      "path": "A:\\Projects\\mediaCleanUp",
+      "name": "Media Clean-Up",
+      "suggested_key": "MCU",
+      "summary": "A working folder of scripts and logs for consolidating Phil's scattered photos, videos and documents into one correctly dated library, pushing it to iCloud Photos and preparing music, films and TV for a home Plex server, without ever losing an original. It stopped part-way through the iCloud upload.",
+      "stack": "Python scripts (hashing, perceptual matching, ffprobe, a local Flask swipe-review app with SQLite), PowerShell for reorganising and upload waves, exiftool, icloudpd",
+      "state": {
+        "last_commit": null,
+        "last_commit_message": null,
+        "dirty": null,
+        "status": "paused"
+      },
+      "notes": [
+        "Not a git repository. Last activity is 27 Jul 2026, taken from session_log.md and file dates.",
+        "Size: about 1.3 GB, of which 82 scripts are the code; the rest is caches, CSV and JSONL manifests, logs and a 41 MB review database. The manifests list personal file paths.",
+        "Where it stopped: library organised and backed up locally, music-production folder reorganised and its source deleted, then the iCloud Photos upload stalled on 27 Jul with server-side upload errors and Live Photo pairing problems. The upload orchestrator is stopped and several questions to Phil are unanswered.",
+        "The latest state exists only in session_log.md (8,800 lines). DECISIONS.md ends on 23 Jul and CONTEXT.md still describes the plan as of 16 Jul.",
+        "Everything refers to the old PC: P:\\Projects\\mediaCleanUp, a different Windows user folder, and drives E:, I:, D:, F: and G:. Nothing here can run on the new PC without those drives.",
+        "Hard safety rule from CONTEXT.md: nothing is deleted until the organised library exists in two places and has been eyeballed. The _ToDelete bin (about 4,600 files, 34 GB) has no backup at all and must wait for a verified iCloud upload.",
+        "Several scripts and logs deal with credentials found inside old documents (scan, pull and secure-delete). None of those files, nor any data file, was opened.",
+        "A stray file named 'P:ProjectsmediaCleanUprun.log' in the folder is the result of a mistyped path."
+      ],
+      "items": [
+        {
+          "title": "Check the iCloud storage quota to explain the upload failures",
+          "detail": "Uploads fail at Apple's storage service with a repeated put error that fits either a full quota or throttling. Only Phil can read the number from an Apple device or icloud.com; it is the fork in the road for everything else.",
+          "type": "task",
+          "size": "S",
+          "source": "session_log.md (2026-07-27 18:26 and 20:14 entries); DECISIONS.md#2026-07-23-0100--session-close-out (Priority 1)",
+          "inferred": false
+        },
+        {
+          "title": "Answer the open questions about the stray ExifTool notification",
+          "detail": "A Windows notification suggested ExifTool was syncing with iCloud Photos. Local checks were negative; still owed: check icloud.com for non-media files, the notification's source app, and whether iCloud Drive sync is configured.",
+          "type": "task",
+          "size": "S",
+          "source": "session_log.md (2026-07-27 21:16 entry)",
+          "inferred": false
+        },
+        {
+          "title": "Decide whether to restart the iCloud Photos client to unjam its file watcher",
+          "detail": "Twelve freshly copied test files were never scanned. A restart may clear the backlog but risks re-sending partial uploads. The last log entry says nothing proceeds until Phil confirms.",
+          "type": "task",
+          "size": "S",
+          "source": "session_log.md (2026-07-27 20:51 and 21:16 entries)",
+          "inferred": false
+        },
+        {
+          "title": "Verify that upload waves 1 to 3 actually reached iCloud",
+          "detail": "About 3,200 files were copied into the sync folder, but none had been confirmed uploaded after 15 hours. The Live Photo markers were stripped from about 680 stills so they upload as plain photos.",
+          "type": "task",
+          "size": null,
+          "source": "session_log.md (2026-07-27 18:26, 20:36, 21:16 entries)",
+          "inferred": false
+        },
+        {
+          "title": "Resume upload waves 4 to 21",
+          "detail": "Eighteen regenerated, pairing-aware waves remain: 8,789 files, about 198 GB. Do not restart the orchestrator until the quota and test batch are settled.",
+          "type": "task",
+          "size": "L",
+          "source": "session_log.md (2026-07-27 20:47 entry); wave_upload/plan_waves.ps1",
+          "inferred": false
+        },
+        {
+          "title": "Verify the iCloud library, then delete _ToDelete and tear down staging (Stage G)",
+          "detail": "Only after the upload is verified on the phone: delete the _ToDelete bin, remove the staging copy and finally the old originals. The bin has no backup, so the order matters.",
+          "type": "task",
+          "size": null,
+          "source": "CONTEXT.md#staged-plan (G); DECISIONS.md#2026-07-23-0100--session-close-out (Priority 1)",
+          "inferred": false
+        },
+        {
+          "title": "Push Documents and Documents_Organized to iCloud Drive",
+          "detail": "These go to iCloud Drive rather than iCloud Photos and are not part of the upload waves.",
+          "type": "task",
+          "size": "S",
+          "source": "DECISIONS.md#2026-07-23-0100--session-close-out (Priority 1)",
+          "inferred": false
+        },
+        {
+          "title": "Decide what happens to the _Unsure and _ToListen_Screenshots bins",
+          "detail": "244 files (18 GB) and 190 files respectively, held until Stage G is verified.",
+          "type": "task",
+          "size": null,
+          "source": "DECISIONS.md#2026-07-23-0100--session-close-out (Parked further out)",
+          "inferred": false
+        },
+        {
+          "title": "Deep-review E:\\Documents",
+          "detail": "3,230 files parked at Phil's call: about 253 real documents among synth skin images, lesson graphics and junk. Dates and structure need a manual pass.",
+          "type": "task",
+          "size": null,
+          "source": "DECISIONS.md#2026-07-23-0100--session-close-out (Priority 3)",
+          "inferred": false
+        },
+        {
+          "title": "Recover dates for about 226 videos with untrustworthy metadata",
+          "detail": "Videos from the 2015 folders and the unknown bin whose embedded dates cannot be trusted; use trip context and the matches now recorded beside dated photos.",
+          "type": "task",
+          "size": null,
+          "source": "DECISIONS.md#2026-07-23-0100--session-close-out (Parked further out)",
+          "inferred": false
+        },
+        {
+          "title": "Stage F: tag the music library with MusicBrainz Picard",
+          "detail": "Fix tags, embed art and arrange folders by artist and album. Local only, never to the cloud.",
+          "type": "task",
+          "size": null,
+          "source": "CONTEXT.md#staged-plan (F)",
+          "inferred": false
+        },
+        {
+          "title": "Stage F: rename films and TV to Plex naming and set up the Plex server",
+          "detail": "Plex naming scheme, let Plex scrape metadata; home server with remote access for Phil only.",
+          "type": "task",
+          "size": null,
+          "source": "CONTEXT.md#staged-plan (F)",
+          "inferred": false
+        },
+        {
+          "title": "Check the missing _SecretsCheck folder",
+          "detail": "The folder was reported absent on disk and one image pulled out on 19 Jul is not at its recorded path. A separate check is owed.",
+          "type": "chore",
+          "size": "S",
+          "source": "DECISIONS.md#2026-07-23-0100--session-close-out (Parked further out)",
+          "inferred": false
+        },
+        {
+          "title": "Run chkdsk on E: to clear the exFAT dirty flag",
+          "detail": "Flagged at the end of the production clean-up session as something to do when convenient.",
+          "type": "chore",
+          "size": "S",
+          "source": "session_log.md (2026-07-27 02:01 entry)",
+          "inferred": false
+        },
+        {
+          "title": "Bring CONTEXT.md and DECISIONS.md up to date with 24 to 27 July",
+          "detail": "Staging to D:, the production reorganisation and deletion, and the whole upload attempt are recorded only in the session log. A cold-start reader of DECISIONS.md would get a state that is four days out of date.",
+          "type": "chore",
+          "size": "S",
+          "source": "DECISIONS.md (last entry 2026-07-23); session_log.md",
+          "inferred": true
+        },
+        {
+          "title": "Put the scripts under version control, apart from data and logs",
+          "detail": "82 scripts sit loose among manifests, caches and databases with no git history, and several have hand-made .bak copies beside them.",
+          "type": "chore",
+          "size": null,
+          "source": "folder listing (no .git)",
+          "inferred": true
+        }
+      ],
+      "left_out": {
+        "count": 0,
+        "what": "session_log.md was read only for its last entries and DECISIONS.md for its headings and final snapshot; earlier entries may hold small open points that were not picked up."
+      }
+    }
+  ],
+  "not_found": [],
+  "added": []
+}
