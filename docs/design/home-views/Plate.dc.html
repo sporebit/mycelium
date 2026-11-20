@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mycelium desktop — Specimen plate</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+body{margin:0;background:#181a16}
+a{color:#ece6d2}a:hover{color:#fff}
+button{font:inherit}
+.press{transition:transform 140ms ease-out}
+.press:active{transform:scale(0.97)}
+.press:focus-visible,a:focus-visible{outline:2px solid #ece6d2;outline-offset:3px}
+.paint{transition:fill 900ms ease-out}
+.ink-a,.ink-b{stroke-dasharray:1;stroke-dashoffset:1;animation:drawa 1.9s ease-out forwards}
+.ink-b{animation-name:drawb}
+@keyframes drawa{to{stroke-dashoffset:0}}
+@keyframes drawb{to{stroke-dashoffset:0}}
+@keyframes settle{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.settle{animation:settle 700ms ease-out both}
+@media (prefers-reduced-motion: reduce){.press,.paint{transition:none}.ink-a,.ink-b{animation:none;stroke-dashoffset:0}.settle{animation:none}}
+</style>
+</helmet>
+<div onMouseMove="{{onMove}}" onMouseLeave="{{onLeave}}" style="position: relative; min-height: 960px; height: 100vh; overflow: hidden; background: #181a16; color: #ece6d2; font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; font-size: 15px; line-height: 1.4">
+<canvas ref="{{setCanvas}}" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%"></canvas>
+<div aria-hidden="true" style="position: absolute; left: 18px; right: 18px; top: 74px; bottom: 16px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(236,230,210,0.36), 0 0 0 5px #181a16, 0 0 0 6px rgba(236,230,210,0.16)"></div>
+<header style="position: absolute; left: 0; right: 0; top: 0; height: 60px; z-index: 50; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 0 20px; background: rgba(21,23,19,0.94); box-shadow: 0 1px 0 rgba(236,230,210,0.14); color: #e6e1cf">
+<div style="font-family: {{brandFont}}; font-weight: 700; font-size: 22px; margin-right: 12px">Mycelium</div>
+<nav aria-label="Main menu" style="display: flex; align-items: center; gap: 2px">
+<sc-for list="{{menu}}" as="g" hint-placeholder-count="9">
+<div style="position: relative">
+<button class="press" type="button" aria-expanded="{{g.open}}" onClick="{{g.toggle}}" style="display: flex; align-items: center; gap: 6px; border: 0; border-radius: 8px; padding: 0 12px; min-height: 44px; cursor: pointer; background: {{g.bg}}; color: #e6e1cf; font-weight: 700; font-size: 15px">
+<span>{{g.label}}</span>
+<sc-if value="{{g.multi}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></sc-if>
+</button>
+<sc-if value="{{g.open}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; left: 0; top: 52px; min-width: 232px; padding: 6px; border-radius: 12px; background: #24271f; box-shadow: 0 0 0 1px rgba(236,230,210,0.14), 0 18px 40px rgba(0,0,0,0.55); display: flex; flex-direction: column">
+<sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+<a href="#menu" style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 11px 12px; border-radius: 8px; text-decoration: none; color: #e6e1cf; font-size: 15px"><span>{{it.label}}</span><span style="font-size: 12.5px; color: #c2bda8">{{it.quiet}}</span></a>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</nav>
+<div style="flex: 1"></div>
+<div role="group" aria-label="Home view" style="display: flex; gap: 2px; padding: 3px; border-radius: 11px; box-shadow: 0 0 0 1px rgba(236,230,210,0.2)">
+<sc-for list="{{views}}" as="v" hint-placeholder-count="4">
+<a href="{{v.href}}" style="display: flex; align-items: center; padding: 0 12px; min-height: 38px; border-radius: 8px; text-decoration: none; white-space: nowrap; background: {{v.bg}}; color: {{v.fg}}; font-weight: 700; font-size: 14px">{{v.label}}</a>
+</sc-for>
+</div>
+<div role="group" aria-label="Whose day" style="display: flex; gap: 2px; margin-left: 8px">
+<sc-for list="{{people}}" as="p" hint-placeholder-count="3">
+<button class="press" type="button" aria-pressed="{{p.on}}" onClick="{{p.pick}}" style="border: 0; border-radius: 8px; padding: 0 12px; min-height: 44px; cursor: pointer; background: {{p.bg}}; color: {{p.fg}}; font-weight: 700; font-size: 14px">{{p.label}}</button>
+</sc-for>
+</div>
+<button class="press" type="button" style="margin-left: 8px; border: 0; border-radius: 10px; padding: 0 20px; min-height: 44px; cursor: pointer; background: #ece6d2; color: #1c1e18; font-weight: 700; font-size: 15px">Capture</button>
+</header>
+
+
+<div id="menu" style="position: absolute; left: 0; right: 0; top: 88px; text-align: center; text-shadow: 0 0 8px #181a16, 0 0 2px #181a16">
+<h1 style="margin: 0; font-family: 'Newsreader', serif; font-weight: 500; font-size: 40px; line-height: 1.05; letter-spacing: -0.01em">Wednesday 18 November</h1>
+<div style="margin-top: 4px; color: #cdc7b2">{{who}}'s plate for the day, drawn at <span style="font-family: 'JetBrains Mono', monospace; color: #ece6d2">14:10</span></div>
+</div>
+
+<aside aria-label="Around today" style="position: absolute; left: 48px; top: 178px; width: 262px; display: flex; flex-direction: column; gap: 22px; text-shadow: 0 0 8px #181a16, 0 0 2px #181a16">
+<div class="settle" style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-family: 'Newsreader', serif; font-size: 20px">Fig. 6 — Hours this week</div>
+<svg role="img" aria-label="34 hours 50 of 37 hours 30 banked" viewBox="0 0 262 44" width="262" height="44">
+<rect x="1" y="6" width="260" height="16" fill="none" stroke="#ece6d2" stroke-opacity="0.6"></rect>
+<rect x="1" y="6" width="241.5" height="16" fill="#ece6d2" fill-opacity="0.82"></rect>
+<path d="{{rulerTicks}}" stroke="#ece6d2" stroke-opacity="0.6" stroke-width="1"></path>
+</svg>
+<div><span style="font-family: 'JetBrains Mono', monospace; font-size: 22px">2:40</span> <span style="color: #cdc7b2">left of 37:30. Friday is clear if you reach it by Thursday.</span></div>
+</div>
+<div class="settle" style="display: flex; gap: 12px; animation-delay: 120ms">
+<svg aria-hidden="true" viewBox="0 0 60 80" width="48" height="64" style="flex: 0 0 auto"><g fill="none" stroke="#ece6d2" stroke-width="1.6" stroke-linecap="round"><path d="M30 78 C30 60 28 46 30 30"></path><path d="M30 44 C20 40 12 30 12 18 C24 20 30 30 30 44 Z"></path><path d="M30 34 C38 30 48 20 48 8 C36 10 30 20 30 34 Z"></path><path d="M14 78 H46"></path></g></svg>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Newsreader', serif; font-size: 20px">Fig. 7 — Family</div>
+<div>Midwife appointment, <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px">Fri 09:20</span></div>
+<div style="color: #cdc7b2">Prep list: <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #ece6d2">£412</span> still to buy</div>
+</div>
+</div>
+<div class="settle" style="display: flex; gap: 12px; animation-delay: 240ms">
+<svg aria-hidden="true" viewBox="0 0 60 60" width="48" height="48" style="flex: 0 0 auto"><g fill="none" stroke="#ece6d2" stroke-width="1.4"><circle cx="30" cy="30" r="24"></circle><circle cx="22" cy="24" r="3"></circle><circle cx="38" cy="22" r="2"></circle><circle cx="34" cy="38" r="4"></circle><circle cx="20" cy="38" r="2"></circle><circle cx="42" cy="32" r="2"></circle></g></svg>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Newsreader', serif; font-size: 20px">Fig. 8 — Finds</div>
+<div>3 new this week: 1 skill, 2 repos</div>
+<div style="color: #cdc7b2">Top five at Sunday's close-out</div>
+</div>
+</div>
+<sc-if value="{{showNote}}" hint-placeholder-val="{{true}}">
+<div class="settle" style="display: flex; flex-direction: column; gap: 8px; animation-delay: 360ms; padding-top: 14px; box-shadow: 0 -1px 0 rgba(236,230,210,0.2)">
+<div style="font-family: 'Newsreader', serif; font-size: 19px; color: #ecd0a0; text-wrap: pretty">Margin note, Kirsty, 13:52: “Want company for the boiler one?”</div>
+<button class="press" type="button" style="align-self: flex-start; border: 0; border-radius: 8px; min-height: 44px; padding: 0 14px; cursor: pointer; background: transparent; color: #ece6d2; box-shadow: 0 0 0 1px rgba(236,230,210,0.34)">Not today</button>
+</div>
+</sc-if>
+</aside>
+
+<main style="position: absolute; left: 340px; top: 166px; width: 700px; text-shadow: 0 0 8px #181a16, 0 0 2px #181a16">
+<div style="position: relative; width: 700px; height: 470px">
+<svg role="img" aria-label="Specimen for the selected item" viewBox="0 0 700 470" width="700" height="470" style="position: absolute; left: 0; top: 0">
+<g stroke="#ece6d2" stroke-opacity="0.55" stroke-width="1" fill="none"><path d="M250 122 L186 104"></path><path d="M452 150 L512 126"></path><path d="M368 318 L512 318"></path><path d="M334 270 L186 270"></path></g>
+<g transform="translate(200 24)">
+<defs><clipPath id="capMain"><path d="{{main.capD}}"></path></clipPath></defs>
+<path class="{{ink}}" pathLength="1" d="{{main.roots}}" stroke="#ece6d2" stroke-opacity="0.62" stroke-width="1.2" stroke-linecap="round" fill="none"></path>
+<path d="{{main.ground}}" stroke="#ece6d2" stroke-opacity="0.5" stroke-width="1" stroke-linecap="round" fill="none"></path>
+<path class="paint" d="{{main.stemD}}" stroke="#ece6d2" stroke-width="2" style="fill: {{main.stemFill}}"></path>
+<path class="{{ink}}" pathLength="1" d="{{main.stria}}" stroke="#ece6d2" stroke-opacity="0.4" stroke-width="1" fill="none"></path>
+<path class="paint" d="{{main.ring}}" stroke="#ece6d2" stroke-width="1.6" style="fill: {{main.stemFill}}"></path>
+<path d="{{main.underA}}" fill="#10120e" stroke="#ece6d2" stroke-width="1.6"></path>
+<path class="{{ink}}" pathLength="1" d="{{main.gills}}" stroke="#ece6d2" stroke-opacity="0.5" stroke-width="1" fill="none"></path>
+<path class="paint" d="{{main.capD}}" stroke="#ece6d2" stroke-width="2.2" style="fill: {{main.capFill}}"></path>
+<g clip-path="url(#capMain)">
+<path class="{{ink}}" pathLength="1" d="{{main.hatch}}" stroke="#ece6d2" stroke-opacity="0.36" stroke-width="1" fill="none"></path>
+<path d="{{main.stipple}}" stroke="#ece6d2" stroke-opacity="0.5" stroke-width="1.7" stroke-linecap="round" fill="none"></path>
+</g>
+<path d="{{main.underB}}" fill="#10120e" fill-opacity="0.55" stroke="#ece6d2" stroke-width="1.4"></path>
+<path d="{{main.capLines}}" stroke="#ece6d2" stroke-opacity="0.4" stroke-width="1" fill="none"></path>
+<path d="{{main.spots}}" stroke="#ece6d2" stroke-opacity="0.65" stroke-width="1.4" fill="none"></path>
+</g>
+</svg>
+<div style="position: absolute; right: 522px; top: 88px; width: 176px; text-align: right; font-family: 'Newsreader', serif; font-size: 18px">a. {{main.kind}}</div>
+<div style="position: absolute; left: 520px; top: 100px; width: 180px; font-family: 'Newsreader', serif; font-size: 18px; text-wrap: pretty">b. First step: {{main.step}}</div>
+<div style="position: absolute; left: 520px; top: 306px; width: 180px; font-family: 'Newsreader', serif; font-size: 18px">c. About <span style="font-family: 'JetBrains Mono', monospace; font-size: 15px">{{main.est}}</span>, {{main.when}}</div>
+<div style="position: absolute; right: 522px; top: 248px; width: 176px; text-align: right; font-family: 'Newsreader', serif; font-size: 18px; color: #cdc7b2">d. Grows under {{main.where}}</div>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+<h2 style="margin: 0; font-family: 'Newsreader', serif; font-weight: 500; font-size: 32px; line-height: 1.1; text-wrap: balance">Fig. 1 — {{main.title}}</h2>
+<sc-if value="{{mainOpen}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; gap: 10px">
+<button class="press" type="button" onClick="{{done}}" style="border: 0; border-radius: 10px; min-height: 48px; padding: 0 26px; cursor: pointer; background: {{main.capOn}}; color: #1c1e18; font-weight: 700; font-size: 16px; text-shadow: none">Done — colour it in</button>
+<button class="press" type="button" style="border: 0; border-radius: 10px; min-height: 48px; padding: 0 18px; cursor: pointer; background: #181a16; color: #ece6d2; box-shadow: 0 0 0 1px rgba(236,230,210,0.34)">Not now</button>
+</div>
+</sc-if>
+<sc-if value="{{mainDone}}" hint-placeholder-val="{{false}}">
+<div style="font-family: 'Newsreader', serif; font-size: 19px; color: #dfe8cf">Collected at 14:12 and coloured in.</div>
+</sc-if>
+</div>
+</main>
+
+<section aria-label="The rest of today" style="position: absolute; left: 340px; top: 782px; width: 700px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{figs}}" as="f" hint-placeholder-count="4">
+<button class="press settle" type="button" onClick="{{f.pick}}" style="display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 4px; min-height: 104px; border: 0; border-radius: 10px; cursor: pointer; text-align: left; color: #ece6d2; background: rgba(27,29,24,0.92); box-shadow: 0 0 0 1px rgba(236,230,210,0.2); animation-delay: {{f.delay}}">
+<svg aria-hidden="true" viewBox="0 0 300 440" width="62" height="91" style="flex: 0 0 auto">
+<path d="{{f.roots}}" stroke="#ece6d2" stroke-opacity="0.5" stroke-width="3" stroke-linecap="round" fill="none"></path>
+<path class="paint" d="{{f.stemD}}" stroke="#ece6d2" stroke-width="5" style="fill: {{f.stemFill}}"></path>
+<path d="{{f.underA}}" fill="#10120e" stroke="#ece6d2" stroke-width="4"></path>
+<path class="paint" d="{{f.capD}}" stroke="#ece6d2" stroke-width="6" style="fill: {{f.capFill}}"></path>
+<path d="{{f.underB}}" fill="#10120e" fill-opacity="0.55" stroke="#ece6d2" stroke-width="4"></path>
+</svg>
+<span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #cdc7b2">Fig. {{f.n}} · {{f.when}}</span>
+<span style="font-family: 'Newsreader', serif; font-size: 17px; line-height: 1.15">{{f.short}}</span>
+</span>
+</button>
+</sc-for>
+</section>
+
+<aside aria-label="Collected so far" style="position: absolute; right: 48px; top: 178px; width: 306px; display: flex; flex-direction: column; gap: 20px; text-shadow: 0 0 8px #181a16, 0 0 2px #181a16">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+<svg role="img" aria-label="Spore print of this week's finished items" viewBox="0 0 240 240" width="250" height="250">
+<circle cx="120" cy="120" r="114" fill="#181a16" fill-opacity="0.7" stroke="#ece6d2" stroke-opacity="0.22" stroke-width="1"></circle>
+<sc-for list="{{rays}}" as="r" hint-placeholder-count="60">
+<path class="{{r.cls}}" pathLength="1" d="{{r.d}}" stroke="#ece6d2" stroke-opacity="{{r.op}}" stroke-width="{{r.sw}}" stroke-linecap="round" fill="none" style="animation-delay: {{r.delay}}"></path>
+</sc-for>
+<circle cx="120" cy="120" r="9" fill="#181a16" stroke="#ece6d2" stroke-opacity="0.55" stroke-width="1"></circle>
+</svg>
+<div style="font-family: 'Newsreader', serif; font-size: 19px; text-align: center">Fig. 9 — Spore print. <span style="font-family: 'JetBrains Mono', monospace; font-size: 16px">{{weekCount}}</span> collected this week, <span style="font-family: 'JetBrains Mono', monospace; font-size: 16px">{{lifetime}}</span> since May.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-family: 'Newsreader', serif; font-size: 19px">The week so far</div>
+<div style="display: flex; gap: 6px">
+<sc-for list="{{week}}" as="d" hint-placeholder-count="7">
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px">
+<svg aria-hidden="true" viewBox="0 0 100 100" width="30" height="30"><circle cx="50" cy="50" r="44" fill="{{d.fill}}" stroke="#ece6d2" stroke-opacity="0.6" stroke-width="4"></circle><circle cx="50" cy="50" r="10" fill="#181a16" fill-opacity="{{d.dot}}"></circle></svg>
+<span style="font-size: 12.5px; color: {{d.fg}}">{{d.label}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="font-family: 'Newsreader', serif; font-size: 19px; color: #cdc7b2; text-wrap: pretty">Loose spores: <span style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: #ece6d2">7</span> captures, sorted at tonight's close.</div>
+</aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"threads":{"editor":"range","default":50,"min":0,"max":100,"step":5},"showQuiet":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+state = { person: 'phil', sel: 0, done: {}, tick: 0, menu: null };
+seed = 77; maxSegs = 2800; sporeCount = 34; sporeFall = -0.03; repel = 150; sporeColor = 'rgba(236,230,210,0.4)';
+layers = [{ color: 'rgba(236,230,210,0.44)', width: 1.4, sway: 0.4, par: 16, push: 30 }, { color: 'rgba(236,230,210,0.26)', width: 1, sway: 0.6, par: 9, push: 18 }, { color: 'rgba(236,230,210,0.14)', width: 0.8, sway: 0.8, par: 4, push: 10 }];
+caps = ['#d9a441', '#c9744a', '#9db88a', '#b08fb8', '#d8c9a0'];
+kinds = [
+{ capD: 'M22 190 C26 96 96 34 150 34 C204 34 274 96 278 190 C232 208 68 208 22 190 Z', underA: 'M22 190 C68 208 232 208 278 190 C240 228 60 228 22 190 Z', underB: '', stemD: 'M132 372 C136 320 128 270 134 206 L166 206 C172 270 164 320 170 372 C158 382 144 382 132 372 Z', ring: 'M124 236 C140 250 160 250 176 236 C170 258 130 258 124 236 Z', stria: 'M144 212 C142 260 146 316 142 368 M156 212 C158 260 154 316 158 368 M150 214 C151 270 149 320 150 370', gill: [40, 260, 200, 224, 0.3], box: [20, 280, 34, 206], spots: [[96, 112, 11], [150, 78, 9], [198, 118, 12], [128, 150, 7], [232, 160, 8], [62, 160, 7]], capLines: '' },
+{ capD: 'M8 196 C24 128 96 100 150 100 C204 100 276 128 292 196 C240 212 60 212 8 196 Z', underA: 'M8 196 C60 212 240 212 292 196 C250 232 50 232 8 196 Z', underB: '', stemD: 'M126 372 C132 330 128 280 132 214 L168 214 C172 280 168 330 174 372 C160 382 140 382 126 372 Z', ring: '', stria: 'M142 222 C140 270 144 320 140 368 M158 222 C160 270 156 320 160 368', gill: [24, 276, 206, 228, 0.28], box: [8, 292, 100, 212], spots: [[90, 150, 9], [150, 128, 8], [210, 152, 10], [250, 178, 6]], capLines: '' },
+{ capD: 'M66 214 C72 120 118 36 150 24 C182 36 228 120 234 214 C204 228 96 228 66 214 Z', underA: 'M66 214 C96 228 204 228 234 214 C212 240 88 240 66 214 Z', underB: '', stemD: 'M140 372 C142 330 139 290 142 226 L158 226 C161 290 158 330 160 372 C154 380 146 380 140 372 Z', ring: '', stria: 'M147 232 C146 280 148 330 146 368 M153 232 C154 280 152 330 154 368', gill: [78, 222, 222, 238, 0.3], box: [66, 234, 24, 226], spots: [], capLines: 'M150 28 C146 90 140 160 132 220 M150 28 C154 90 160 160 168 220 M150 28 C132 90 110 160 96 218 M150 28 C168 90 190 160 204 218' },
+{ capD: 'M34 104 C90 128 210 128 266 104 C250 170 196 214 170 262 L130 262 C104 214 50 170 34 104 Z', underA: '', underB: 'M34 104 C90 84 210 84 266 104 C210 128 90 128 34 104 Z', stemD: 'M130 262 C128 300 134 340 128 372 C142 382 158 382 172 372 C166 340 172 300 170 262 Z', ring: '', stria: '', gill: [52, 248, 118, 258, 0.16], box: [34, 266, 104, 262], spots: [], capLines: '' },
+{ capD: 'M64 250 C36 150 104 84 150 84 C196 84 264 150 236 250 C222 300 78 300 64 250 Z', underA: '', underB: '', stemD: 'M120 292 C118 330 124 356 116 372 C140 382 160 382 184 372 C176 356 182 330 180 292 Z', ring: '', stria: '', gill: null, box: [50, 250, 84, 298], spots: [[100, 130, 6], [130, 108, 5], [165, 104, 6], [198, 128, 6], [220, 165, 5], [84, 170, 5], [112, 160, 4], [150, 140, 5], [185, 160, 4], [205, 200, 5], [96, 210, 5], [140, 190, 4], [170, 200, 4]], capLines: '' } ];
+plan(w, h){ const B = [w * 0.472, h * 0.6]; const ends = [[0.26, 0.86], [0.38, 0.87], [0.5, 0.88], [0.62, 0.87], [0.2, 0.28], [0.2, 0.46], [0.2, 0.62], [0.86, 0.32], [0.86, 0.6], [0.5, 0.99], [0.02, 0.9], [0.98, 0.9], [0.35, 0.99], [0.7, 0.99]]; for (let i = 0; i < ends.length; i++) for (let k = 0; k < 2; k++) this.trunk([B, [(B[0] + ends[i][0] * w) / 2 + (this.r() - 0.5) * 120, (B[1] + ends[i][1] * h) / 2 + (this.r() - 0.5) * 90], [ends[i][0] * w, ends[i][1] * h]], (i + k) % 3, i * 110 + k * 200, 0.6); }
+specimen(kind, seed){ const K = this.kinds[kind]; const r = this.rnd(seed); const b = K.box; let gills = ''; if (K.gill) { const g = K.gill; for (let x = g[0]; x <= g[1]; x += 8) gills += 'M' + x + ' ' + g[2] + 'L' + (150 + (x - 150) * g[4]).toFixed(0) + ' ' + g[3]; } let hatch = ''; const hh = b[3] - b[2]; for (let c = 150 - hh * 0.3; c < b[1]; c += 7) hatch += 'M' + c.toFixed(0) + ' ' + b[2] + 'l' + (hh * 0.42).toFixed(0) + ' ' + hh; let stipple = ''; for (let k = 0; k < 150; k++) { const x = b[0] + r() * (150 - b[0]) * 1.05, y = b[2] + r() * hh; stipple += 'M' + x.toFixed(1) + ' ' + y.toFixed(1) + 'h0.1'; } let spots = ''; K.spots.forEach(([x, y, q]) => { spots += 'M' + (x - q) + ' ' + y + 'a' + q + ' ' + q + ' 0 1 0 ' + (2 * q) + ' 0a' + q + ' ' + q + ' 0 1 0 ' + (-2 * q) + ' 0'; }); let roots = ''; const walk = (x, y, a, n, gen) => { roots += 'M' + x.toFixed(1) + ' ' + y.toFixed(1); for (let i = 0; i < n; i++) { a += (r() - 0.5) * 0.7; x += Math.cos(a) * 11; y += Math.sin(a) * 9; roots += 'L' + x.toFixed(1) + ' ' + Math.min(438, y).toFixed(1); if (gen < 2 && r() < 0.3) walk(x, y, a + (r() < 0.5 ? -0.8 : 0.8), Math.round(n * 0.6), gen + 1); } }; for (let k = 0; k < 9; k++) walk(138 + r() * 24, 374, 0.25 + r() * 2.64, 6 + Math.round(r() * 7), 0); let ground = 'M40 374H260'; for (let x = 46; x < 258; x += 9 + r() * 10) ground += 'M' + x.toFixed(0) + ' 374l' + ((r() - 0.5) * 6).toFixed(1) + ' ' + (-5 - r() * 9).toFixed(1); return { capD: K.capD, underA: K.underA, underB: K.underB, stemD: K.stemD, ring: K.ring, stria: K.stria, capLines: K.capLines, gills, hatch, stipple, spots, roots, ground }; }
+data(){ return {
+phil: { who: 'Phil', items: [
+{ when: 'now', where: 'Organisation', short: 'Boiler quote reply', title: 'Reply about the boiler quote', kind: "The day's win", step: "open the installer's email and write the first line.", est: '5 min' },
+{ when: '15:00', where: 'Hours', short: 'Log afternoon hours', title: "Log this afternoon's hours", kind: 'If there is time', step: 'open Hours and add the two entries from the morning notes.', est: '8 min' },
+{ when: '17:30', where: 'Fitness', short: 'Upper body session', title: 'Upper body session', kind: 'If there is time', step: 'fill the water bottle; the kit is by the door.', est: '45 min' },
+{ when: 'evening', where: 'Work', short: 'Check the Work board', title: 'Check the Work board', kind: 'If there is time', step: 'drag one card and change one status.', est: '15 min' },
+{ when: 'no date', where: 'Family', short: 'Order blackout blind', title: 'Nursery: order the blackout blind', kind: 'If there is time', step: 'check the window width; the link is on the prep list.', est: '6 min' } ] },
+kirsty: { who: 'Kirsty', items: [
+{ when: 'now', where: 'Family', short: 'Nursery measurements', title: 'Send the nursery measurements', kind: "The day's win", step: 'find the tape measure.', est: '10 min' },
+{ when: '16:00', where: 'Fitness', short: 'Plan next week', title: 'Plan next week of sessions', kind: 'If there is time', step: 'open the programme and copy last week.', est: '20 min' },
+{ when: 'evening', where: 'Journal', short: 'Two name ideas', title: 'Add two name ideas', kind: 'If there is time', step: 'open the shared list.', est: '2 min' } ] },
+family: { who: 'Family', items: [
+{ when: 'now', where: 'Family', short: 'Pram shortlist', title: 'Choose the pram shortlist', kind: "The day's win", step: 'open the three saved prams side by side.', est: '15 min' },
+{ when: 'tonight', where: 'Organisation', short: 'Black bin out', title: 'Black bin out', kind: 'If there is time', step: 'collection is tomorrow morning.', est: '2 min' },
+{ when: 'Fri 09:20', where: 'Health', short: 'Midwife appointment', title: 'Midwife appointment', kind: 'Coming up', step: 'bring the notes folder; leave by 08:50.', est: '1 hr' } ] } }; }
+rnd(seed){ let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+seg(x1, y1, x2, y2, z, bt){ if (this.clipY && (y1 < this.clipY || y2 < this.clipY)) return; if (this.segs.length < this.maxSegs) this.segs.push({ x1, y1, x2, y2, z, bt, ph: this.r() * 6.283 }); }
+wander(x, y, ang, steps, z, bt, gen){ const st = 9 + this.r() * 5; for (let i = 0; i < steps; i++) { ang += (this.r() - 0.5) * 0.62; const nx = x + Math.cos(ang) * st, ny = y + Math.sin(ang) * st; this.seg(x, y, nx, ny, z, bt + i * 26); x = nx; y = ny; if (gen < 3 && this.r() < 0.085) this.wander(x, y, ang + (this.r() < 0.5 ? -1 : 1) * (0.5 + this.r() * 0.7), Math.round(steps * 0.6), z, bt + i * 26, gen + 1); } }
+trunk(pts, z, bt, sprout){ let t = bt; for (let k = 0; k < pts.length - 1; k++) { const ax = pts[k][0], ay = pts[k][1], bx = pts[k + 1][0], by = pts[k + 1][1]; const dx = bx - ax, dy = by - ay, d = Math.hypot(dx, dy) || 1; const n = Math.max(2, Math.round(d / 12)); const px = -dy / d, py = dx / d; let wob = 0, lx = ax, ly = ay; for (let i = 1; i <= n; i++) { const f = i / n; wob = wob * 0.86 + (this.r() - 0.5) * 9; const e = Math.sin(Math.PI * f); const x = ax + dx * f + px * wob * e, y = ay + dy * f + py * wob * e; this.seg(lx, ly, x, y, z, t); t += 16; if (this.r() < sprout) this.wander(x, y, Math.atan2(dy, dx) + (this.r() < 0.5 ? -1 : 1) * (0.6 + this.r() * 0.9), 5 + Math.round(this.r() * 16), Math.min(2, z + (this.r() < 0.5 ? 0 : 1)), t, 1); lx = x; ly = y; } } }
+build(w, h){ this.r = this.rnd(this.seed); this.segs = []; this.spores = []; this.w = w; this.h = h; this.plan(w, h); for (let i = 0; i < this.sporeCount; i++) this.spores.push({ x: this.r() * w, y: this.r() * h, vx: (this.r() - 0.5) * 0.12, vy: this.sporeFall + (this.r() - 0.5) * 0.1, s: 0.8 + this.r() * 1.8 }); }
+burst(nx, ny){ if (!this.w) return; const now = performance.now() - this.t0; const keep = this.maxSegs; this.maxSegs = this.segs.length + 260; for (let i = 0; i < 9; i++) this.wander(nx * this.w, ny * this.h, this.r() * 6.283, 8 + Math.round(this.r() * 12), i % 3, now + i * 40, 1); this.maxSegs = Math.max(keep, this.maxSegs); }
+frame(ts){ const cv = this.cv; if (cv && cv.clientWidth) { const w = cv.clientWidth, h = cv.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1); if (w !== this.w || h !== this.h) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); this.t0 = ts; this.build(w, h); } const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h); const now = this.still ? 1e9 : ts - this.t0; const mx = this.mx == null ? -9999 : this.mx, my = this.my == null ? -9999 : this.my; const pxn = this.mx == null ? 0 : this.mx / w - 0.5, pyn = this.my == null ? 0 : this.my / h - 0.5; if (this.under) this.under(c, w, h, now, pxn, pyn); for (let z = 2; z >= 0; z--) { const L = this.layers[z]; c.beginPath(); for (let i = 0; i < this.segs.length; i++) { const s = this.segs[i]; if (s.z !== z || s.bt > now) continue; const sw = this.still ? 0 : Math.sin(now * 0.0007 + s.ph) * L.sway; let x1 = s.x1 + sw - pxn * L.par, y1 = s.y1 - pyn * L.par, x2 = s.x2 + sw - pxn * L.par, y2 = s.y2 - pyn * L.par; const ddx = x2 - mx, ddy = y2 - my, dd = Math.hypot(ddx, ddy); if (dd < this.repel && dd > 0.01) { const p = Math.pow(1 - dd / this.repel, 2) * L.push; x2 += ddx / dd * p; y2 += ddy / dd * p; x1 += ddx / dd * p * 0.7; y1 += ddy / dd * p * 0.7; } c.moveTo(x1, y1); c.lineTo(x2, y2); } c.strokeStyle = L.color; c.lineWidth = L.width; c.lineCap = 'round'; c.stroke(); } c.fillStyle = this.sporeColor; for (let i = 0; i < this.spores.length; i++) { const p = this.spores[i]; if (!this.still) { p.x += p.vx + Math.sin(now * 0.0005 + i) * 0.08; p.y += p.vy; if (p.y > h + 4) { p.y = -4; p.x = this.r() * w; } if (p.y < -6) p.y = h + 4; if (p.x < -4) p.x = w + 4; if (p.x > w + 4) p.x = -4; } c.beginPath(); c.arc(p.x - pxn * 30, p.y - pyn * 30, p.s, 0, 6.283); c.fill(); } } if (!this.still || !this.w) this.raf = requestAnimationFrame((t) => this.frame(t)); }
+setCanvas = (el) => { if (el) this.cv = el; };
+onMove = (e) => { if (!this.cv) return; const b = this.cv.getBoundingClientRect(); this.mx = e.clientX - b.left; this.my = e.clientY - b.top; };
+onLeave = () => { this.mx = null; this.my = null; };
+componentDidMount(){ this.still = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); this.raf = requestAnimationFrame((t) => this.frame(t)); }
+componentWillUnmount(){ cancelAnimationFrame(this.raf); }
+
+menuGroups = [['Today'], ['Work', ['Work', 'Docs', 'Hours']], ['Life', ['Organisation', 'Family', 'Journal', 'Places']], ['Body', ['Fitness', 'Health']], ['Money', ['Finance']], ['Make', ['Studio', 'Drops', 'Ventures']], ['The Boys'], ['Review'], ['Settings']];
+menuQuiet = { Health: '3 wks', Studio: '9 wks', Drops: '14 wks', Ventures: '11 wks', Places: '6 wks' };
+menuVals(current, showQuiet){ const open = this.state.menu; return { menu: this.menuGroups.map(([label, items]) => ({ label, multi: !!items, open: !!items && open === label, bg: label === 'Today' || open === label ? 'rgba(236,230,210,0.12)' : 'transparent', toggle: () => this.setState({ menu: open === label ? null : label }), items: (items || []).map((n) => ({ label: n, quiet: showQuiet && this.menuQuiet[n] ? 'quiet ' + this.menuQuiet[n] : '' })) })), views: [['Plate', 'Plate.dc.html'], ['Core sample', 'Core.dc.html'], ['Burrow', 'Burrow.dc.html'], ['Colony', 'Main.dc.html']].map(([label, href]) => ({ label, href, bg: label === current ? '#ece6d2' : 'transparent', fg: label === current ? '#1c1e18' : '#e6e1cf' })) }; }
+
+renderVals() {
+const s = this.state; const set = this.data()[s.person]; const items = set.items;
+const key = (i) => s.person + ':' + i; const isDone = (i) => !!s.done[key(i)]; const showQuiet = this.props.showQuiet ?? true;
+const th = (this.props.threads ?? 50) / 50; this.layers[0].color = 'rgba(236,230,210,' + Math.min(0.9, 0.44 * th).toFixed(2) + ')'; this.layers[1].color = 'rgba(236,230,210,' + Math.min(0.6, 0.26 * th).toFixed(2) + ')'; this.layers[2].color = 'rgba(236,230,210,' + Math.min(0.4, 0.14 * th).toFixed(2) + ')';
+if (!this._specs) { this._specs = [0, 1, 2, 3, 4].map((k) => this.specimen(k, 11 + k * 7)); const r2 = this.rnd(9); this._ang = []; for (let k = 0; k < 60; k++) this._ang.push([k * 6.283 / 60 + (r2() - 0.5) * 0.05, 72 + r2() * 38]); this._ord = this._ang.map((_, k) => k).sort((a, b) => ((a * 37) % 60) - ((b * 37) % 60)); let t = ''; for (let k = 0; k <= 15; k++) t += 'M' + (1 + k * 17.33).toFixed(1) + ' 22v' + (k % 5 === 0 ? 14 : 7); this._ticks = t; }
+const count = Object.keys(s.done).length; const weekCount = 14 + count; const paper = '#1d1f1a';
+const shape = (it, i) => ({ ...it, ...this._specs[i % 5], capFill: isDone(i) ? this.caps[i % 5] : paper, capOn: this.caps[i % 5], stemFill: isDone(i) ? '#e3d9bd' : paper });
+const main = shape(items[s.sel] || items[0], s.sel);
+const figs = items.map((it, i) => ({ ...shape(it, i), pick: () => this.setState({ sel: i, tick: s.tick + 1 }) })).filter((_, i) => i !== s.sel).map((f, n) => ({ ...f, n: n + 2, delay: (n * 90) + 'ms' }));
+const ink = s.tick % 2 ? 'ink-b' : 'ink-a';
+const rays = this._ord.map((k, n) => { const a = this._ang[k][0], len = this._ang[k][1]; const on = n < weekCount; return { d: 'M' + (120 + 16 * Math.cos(a)).toFixed(1) + ' ' + (120 + 16 * Math.sin(a)).toFixed(1) + 'L' + (120 + len * Math.cos(a)).toFixed(1) + ' ' + (120 + len * Math.sin(a)).toFixed(1), cls: on ? 'ink-a' : '', op: on ? 0.92 : 0.14, sw: on ? 2.4 : 1.3, delay: on ? (n < 14 ? n * 60 : 0) + 'ms' : '0ms' }; });
+const dayWins = [1, 1, isDone(0) ? 1 : 0, 0, 0, 0, 0];
+const week = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label, i) => ({ label, fill: dayWins[i] ? '#d9a441' : '#181a16', dot: dayWins[i] ? 0.3 : 0, fg: i === 2 ? '#ece6d2' : '#cdc7b2' }));
+const people = [['phil', 'Phil'], ['kirsty', 'Kirsty'], ['family', 'Family']].map(([id, label]) => ({ label, on: s.person === id, bg: s.person === id ? 'rgba(236,230,210,0.16)' : 'transparent', fg: '#e6e1cf', pick: () => this.setState({ person: id, sel: 0, tick: s.tick + 1 }) }));
+return { ...this.menuVals('Plate', showQuiet), brandFont: "'Newsreader', serif", setCanvas: this.setCanvas, onMove: this.onMove, onLeave: this.onLeave, who: set.who, main, mainDone: isDone(s.sel), mainOpen: !isDone(s.sel), figs, ink, rays, week, people, rulerTicks: this._ticks, showNote: s.person === 'phil' && !s.done['phil:0'], weekCount, lifetime: (1284 + count).toLocaleString('en-GB'), done: () => { this.burst(0.472, 0.6); this.setState({ done: { ...s.done, [key(s.sel)]: true } }); } };
+}
+}
+</script>
+</body>
+</html>

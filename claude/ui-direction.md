@@ -1,0 +1,34 @@
+# Mycelium — UI direction
+
+*Decision record for the Home redesign, written 2026-11-20 from a Cowork session with Phil. It supersedes the UI lines in `claude/master-run.md` §13 and the "Terrain" lean recorded earlier the same night. **Build scope, Phil 2026-11-20 02:47: Specimen plate only for now. Core sample, Burrow and Colony are recorded here and wait until Phil says his usage limits have refreshed. The gate is lifted for Plate and the top menu bar; nothing else in the run is limited.** Mock-ups: https://claude.ai/artifact/KYdGhqrFcH4CjP2jTaKY99 (rejected first desktop set: https://claude.ai/artifact/23XHpEr4sUTZWXT3jbcLQk).*
+
+## What Phil decided
+
+1. **Home has four switchable views**, chosen with a toggle. Default and favourite: **Specimen plate**. The other three at launch: **Core sample**, **Burrow**, **Colony**. Forest floor and Mat were not picked.
+2. **The toggle applies to Home only.** Working pages (Work board, Finance, Hours and the rest) stay calm and flat. The phone keeps the single next-thing card. The wall screen follows Home.
+3. **Navigation is a classical top menu bar with dropdowns** — not a sidebar, and not sections scattered through the view. In the mock-ups the groups are Today · Work (Work, Docs, Hours) · Life (Organisation, Family, Journal, Places) · Body (Fitness, Health) · Money (Finance) · Make (Studio, Drops, Ventures) · The Boys · Review · Settings; grouping is a `[claude]` proposal for Phil to adjust. The bar also holds the view toggle, the person switcher (Phil / Kirsty / Family) and Capture. Every section stays reachable; dormant sections keep their "quiet N wks" marks in the dropdowns.
+4. **"Mycelial" means, in his words and picks:** the network is the interface (items are nodes on threads), a dense living backdrop (hundreds of threads, not a few lines), and fruiting bodies and spores as real elements (finished things fruit; captures arrive as spores). Bioluminescent glow was not picked: still no neon.
+5. **What made the first set fail:** flat, static, plain, and an ordinary sidebar-plus-panels layout. Restraint rules from the design skills and the research are floor-level craft only on Home (contrast, hit areas, reduced motion, press feedback, tabular numerals); they must not thin out the mycelium.
+6. **Specimen plate, next pass (all four asked for):** finer, more detailed engraving-style illustration with a different species per item; more of the network on the page; more on the page (hours, family, finds, Kirsty's notes, the week as annotated figures); more motion (specimens draw themselves in, the spore print fills line by line, colour floods in when an item is done).
+7. **Build order (02:47).** Phil: "keep note of the other 3 and just do plate until my limits refresh. limits are not an issue for anything else." So: build **Specimen plate only**. Core sample, Burrow and Colony stay decided but are **not started** until Phil says the limits have refreshed — the run cannot see his limits, so it waits for his word and does not start them on its own. Read as the go-ahead for Plate `[claude]`: he gave it while looking at the refined Plate board, without a separate "approved"; Phil was told this reading and can reverse it. The rest of the master run carries on at full pace.
+
+## The four views
+
+- **Specimen plate (default)** — the day as a field-guide page. The win is a large annotated specimen (a: what it is, b: first step, c: time, d: which section it grows under); the rest of today are smaller figures you can swap in; done colours the specimen in. Spore print = this week's finished count; hours as a ruler; family, finds and Kirsty's note as margin figures. Serif captions (Newsreader in the mock-up), mono for numbers.
+- **Core sample** — a slice through soil: finished things stand above ground as mushrooms, today's items hang below at a depth set by time, each under its section; done makes one break the surface.
+- **Burrow** — first-person inside a tunnel of threads: the next thing is the card in front, the rest recede; done sends it past you and pulls the next forward.
+- **Colony** — seen from above: you at the centre, sections radiating as trunks, items as caps on their trunk (nearer = sooner), the week's finished things further out.
+
+Shared by all four: a generated network of roughly 3,000–4,000 threads that grows in and moves away from the pointer, drifting spores for captures, a "fruits when done" moment with a burst of new growth, sample data in the mock-ups.
+
+## Build notes `[claude]`
+
+- Build Home on a **view registry** from day one: each view is a component fed by one shared "today" data contract (items with time, section, first step, estimate, done; week and lifetime counts; hours; family; finds; nudges). **Only Plate is registered now.** No visible view toggle while there is one view; it appears when the second view lands. No scaffolding, stubs or placeholder components for the other three — the registry and the data contract are the whole of the preparation.
+- **Plate ships behind the old/new shell switch in Settings**, with the new shell: the top menu bar with dropdowns (groups held in one config array so Phil can regroup in a line), person switcher, Capture. Desktop first; the wall follows Home; the phone keeps the single next-thing card. Inner pages are not restyled in this pass.
+- **Spend carefully on this stream only.** One view, no exploratory variants, no second illustration style. Everything else in the run is unaffected.
+- **Mock-up sources are in the repo** at `docs/design/home-views/` (Plate, Core, Burrow, Colony as published, plus a README). They are Claude Design component files: reference for layout, the specimen generator, the network engine and the motion, not runnable pages and not code to paste in. The other three are kept there so they can be built later without this session.
+- Each view must handle: no items, forty items, long titles, reduced motion, the wall screen, and a person switch.
+- The mock-ups draw mushrooms as simple code shapes. The real build needs proper illustration (drawn or generated artwork, one species per section or per item) — Phil was told the build improves motion, illustration and polish but not the concept. **For now `[claude]`:** port the mock-up's five code-drawn species as the first pass so Plate works end to end. The artwork source is Phil's open choice: public-domain mycology engravings (scans of pre-1900 plates, free) or generated artwork (costs money, so the run stops and asks first). Keep each specimen behind one component so the artwork can be swapped without touching the layout.
+- The network in the real app should come from real completion history, as decided earlier.
+- Pointer reaction is a desktop affordance; the wall and touch need a touch equivalent.
+- Not checked on screen: none of the mock-up boards was opened and inspected after publishing.

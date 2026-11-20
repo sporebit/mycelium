@@ -49,7 +49,7 @@ Phil chose **everything in parallel**. His own invariant says exactly one worktr
 
 - Finish worktree setup first (baseRef, gitignore, ports, pnpm decision, how `.claude/skills` reaches a worktree). Never symlink `node_modules` while any branch touches `package.json`; never symlink `.next`.
 - Run code streams in separate worktrees, in parallel.
-- **One migrations lane.** A stream that needs a migration takes the lock (a `MIGRATIONS.lock` note in the main checkout naming the stream), writes its migration with the next free number, merges to `main`, pushes, releases. Order of the queue: capture → daily loop → PC worker → Kirsty → family → finance → the rest.
+- **One migrations lane.** A stream that needs a migration takes the lock (a `MIGRATIONS.lock` note in the main checkout naming the stream), writes its migration with the next free number, merges to `main`, pushes, releases. Order of the queue: capture → daily loop → **UI: Specimen plate and the top menu bar (§13)** → PC worker → Kirsty → family → finance → the rest. `[run]` The UI stream was slotted in here on Phil's instruction, 2026-11-20; the PC worker's first migration (0159) had already gone in with the capture groundwork.
 - `main` is production. Merge a stream only when its build and tests pass.
 
 ## 3. Phase 0 — reconcile and housekeeping
@@ -154,18 +154,27 @@ Target: a touch A3-landscape screen with speakers (Phil's photo frame; model unk
 - **Dashboard cards:** width=2 promotes to 3-wide; masonry flow.
 - **Other apps into Work:** import each repo under `A:\Projects` (PhirstMaxxing, phirstmaxxing-web, StreetGuesser, DropShipAuto, daytripper, polysnipe, mediaCleanUp) as a live Work project with open items harvested from its repo and docs. Read-only on those repos; ask Phil for folder access if needed.
 - `[run]` Hours parts 2–4 were built on 2026-11-20 before this run started (MYC-176; Phil's live check is MYC-177), so nothing remains there. The backlog's committed items that need nothing from Phil.
+- **Finds feed (added 2026-11-20, after this run may have started):** posts shared from the X app through the share-sheet capture (no scraper, no paid API), plus watchers on GitHub, Hacker News, RSS/newsletters, skill directories and security advisories for Phil's own stack and repos. Every find is opened, summarised and given a verdict; nothing is installed automatically. Weekly: a Telegram digest, the top five as swipe cards in the close-out, and a page with the whole week. Details in the backlog; the reviewed starting set is `claude/design-resources.md`.
 
-## 13. Stream I — UI rebuild: GATED
+## 13. Stream I — UI rebuild: Specimen plate only
 
-**Do not rebuild the UI in this run.** Phil is bringing examples and skills; the direction is not final. Current lean: calmer dark (lower contrast, no neon), spatial-led; prototype B "Terrain" is the favourite for two reasons — the landscape as a place items live in, and growth from real completion history. Prototype links are in the backlog.
+**Changed 2026-11-20 02:47.** Phil: "keep note of the other 3 and just do plate until my limits refresh. limits are not an issue for anything else." The direction is settled in `claude/ui-direction.md`, which replaces the Terrain lean this section used to carry. The gate is lifted for Plate and the top menu bar only.
 
-Allowed now, because any direction needs it:
+Build now, behind the **old/new shell switch** in Settings (`ui_prefs`):
+- **New shell:** a classical top menu bar with dropdowns, the person switcher and Capture. Groups live in one config array; the grouping in `claude/ui-direction.md` is a `[claude]` proposal Phil may change. Every section stays reachable; dormant marks show in the dropdowns.
+- **Home = Specimen plate**, desktop first. The wall follows Home. The phone keeps the single next-thing card.
+- **View registry plus one shared "today" data contract**, with only Plate registered. No visible toggle while there is one view.
+- Specimens: port the mock-up's code-drawn species first, each behind one component. Real artwork is Phil's open choice; generated artwork costs money, so stop and ask.
 - Collapse the two stacked colour-token systems into one (700+ back-compat usages) without changing how anything looks.
-- An **old/new shell switch** in Settings (`ui_prefs`).
-- Phone opens on a single next-thing card; desktop and wall on the feed; every section stays in the nav.
-- Inner working pages stay calm and flat. Monospace for numbers only.
+- Inner working pages stay calm and flat and are not restyled in this pass. Monospace for numbers only.
 - Completion feedback hooks (motion, soft chime with a mute toggle, progress), behind the switch.
-- Items are placed by time; undated ones mid-distance by priority. Slipped items do not pile up at the front (research rule 14, replacing the earlier `[claude]` default): the front zone holds at most three, and anything slipped for seven days is offered once as Re-date / Someday / Drop. The word "overdue" is never shown.
+- Items are placed by time; undated ones mid-distance by priority. Slipped items do not pile up at the front (research rule 14): the front zone holds at most three, and anything slipped for seven days is offered once as Re-date / Someday / Drop. The word "overdue" is never shown.
+
+**Not now — Core sample, Burrow, Colony.** Decided, recorded in `claude/ui-direction.md`, sources kept in `docs/design/home-views/`. Do not start them, and do not scaffold or stub them, until Phil says his usage limits have refreshed. The run cannot see his limits: wait for his word.
+
+**Spend:** be economical on this stream only — one view, no exploratory variants. No other stream is limited.
+
+Mock-up (live): https://claude.ai/artifact/KYdGhqrFcH4CjP2jTaKY99
 
 ## 14. Phil's queue — the only things that need him
 
@@ -180,7 +189,7 @@ Create each as a dated ticket with the exact link and value, in the checklist fo
 7. Build the iPhone Shortcuts from the guide; set the alarm and plug-in automations.
 8. Name the second backup drive.
 9. Enter the due date; tell the run the photo frame's make and model when the box turns up.
-10. UI examples and skills for the rebuild.
+10. UI: say when usage limits have refreshed (starts Core sample, Burrow, Colony); choose the Plate artwork source; adjust the top menu grouping if wanted.
 11. Supabase Security Advisor review; retire the legacy Vercel env vars; revoke cutover tokens; decision 0.2 (`platform` owner-only).
 12. The 15-minute checklist chunks.
 13. Set up the scroll-friction automation from the guide (research rule 31), if he wants it.
