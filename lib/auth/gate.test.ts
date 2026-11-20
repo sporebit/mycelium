@@ -32,6 +32,15 @@ describe("route classification", () => {
     expect(isPublicPath("/api/healthz")).toBe(false);
   });
 
+  it("the installable-app files are reachable before sign-in, and nothing beside them", () => {
+    for (const p of ["/sw.js", "/manifest.webmanifest", "/manifest.json", "/icons/icon-192.png", "/swe-worker-abc123.js"]) {
+      expect(isPublicPath(p), p).toBe(true);
+    }
+    for (const p of ["/sw.json", "/swap", "/icons", "/iconset/x.png", "/manifest", "/images/photo.jpg", "/shortcuts/capture.shortcut"]) {
+      expect(isPublicPath(p), p).toBe(false);
+    }
+  });
+
   it("everything else is gated", () => {
     expect(isPublicPath("/")).toBe(false);
     expect(isPublicPath("/api/tasks")).toBe(false);

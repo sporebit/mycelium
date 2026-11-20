@@ -190,6 +190,28 @@ describe("an enrolled second factor is required", () => {
   });
 });
 
+describe("a session that was signed out is over at once", () => {
+  it("refuses a token whose session row is gone, long before the token expires", async () => {
+    const token = await passwordToken(TESS_EMAIL);
+    expect((await call(token, "POST", "/rest/v1/rpc/my_personal_space", {})).body).toBe(spaceOf(TESS));
+
+    // "Sign out there" on another device: the session row is deleted.
+    const session = String(claim(token, "session_id"));
+    sql(`delete from auth.sessions where id = '${session}'`);
+
+    const after = await call(token, "POST", "/rest/v1/rpc/my_personal_space", {});
+    expect(ok(after)).toBe(false);
+    expect(rows(await call(token, "GET", "/rest/v1/tickets?select=id&limit=1"))).toEqual([]);
+    // Her other session carries on.
+    expect((await call(tessPasswordOnly, "POST", "/rest/v1/rpc/my_personal_space", {})).body).toBe(spaceOf(TESS));
+  });
+
+  it("the access functions refuse it too, not only the request gate", () => {
+    const gone = "00000000-0000-4000-8000-00000000dead";
+    expect(accessFor({ sub: TESS, aal: "aal1", amr: [{ method: "password", timestamp: 1 }], session_id: gone })).toEqual({ personal: "none", spaces: 0 });
+  });
+});
+
 describe("functions that used to trust their caller", () => {
   it("emptying the people bin removes only what the caller may delete", async () => {
     const philSpace = spaceOf(PHIL_AUTH_UID);

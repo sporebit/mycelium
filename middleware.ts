@@ -64,11 +64,15 @@ export async function middleware(req: NextRequest) {
     return passThrough(req, "system");
   }
 
-  // 3. System principals.
+  // 3. System principals. A shared secret is not a person with a second
+  // factor, so it never reaches a sensitive path (admin, account): before
+  // 2026-11-20 the secret was checked first and the sensitive check never ran.
   if (matchesBearer(authorization, process.env.CRON_SECRET)) {
+    if (isSensitivePath(pathname)) return forbiddenMfa(pathname);
     return passThrough(req, "system");
   }
   if (matchesSecret(req.headers.get("x-api-secret"), process.env.API_SECRET)) {
+    if (isSensitivePath(pathname)) return forbiddenMfa(pathname);
     return passThrough(req, "system", PHIL_AUTH_UID);
   }
 

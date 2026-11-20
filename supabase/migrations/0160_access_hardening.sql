@@ -64,6 +64,45 @@ $$;
 revoke all on function app.second_factor_ok() from public;
 grant execute on function app.second_factor_ok() to authenticated, service_role;
 
+-- 1b. A session that was signed out is over at once.
+--     "Sign out there" (Settings → Security) deleted the row in
+--     auth.sessions, but the other device's access token stayed valid until
+--     it expired, up to an hour later: the middleware checks a token's
+--     signature, not whether its session still exists. Every GoTrue token
+--     names its session; this looks it up (a primary-key read). Tokens the
+--     app mints for system work name no session and pass.
+create or replace function app.session_live()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+	select
+		(auth.jwt() ->> 'session_id') is null
+		or exists (
+			select 1 from auth.sessions s
+			where s.id = app.uuid_or_null(auth.jwt() ->> 'session_id')
+		)
+$$;
+
+revoke all on function app.session_live() from public;
+grant execute on function app.session_live() to authenticated, service_role;
+
+-- Both rules as one question, for the access functions and the request gate.
+create or replace function app.session_ok()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+	select app.session_live() and app.second_factor_ok()
+$$;
+
+revoke all on function app.session_ok() from public;
+grant execute on function app.session_ok() to authenticated, service_role;
+
 create or replace function app.personal_space()
 returns uuid
 language sql
@@ -73,7 +112,7 @@ set search_path = ''
 as $$
 	select p.personal_space_id
 	from public.profiles p
-	where p.id = auth.uid() and p.disabled_at is null and app.second_factor_ok()
+	where p.id = auth.uid() and p.disabled_at is null and app.session_ok()
 $$;
 
 create or replace function app.accessible_spaces(p_entity_group text, p_verb text)
@@ -85,7 +124,7 @@ set search_path = ''
 as $$
 	with me as (
 		select p.id as uid from public.profiles p
-		where p.id = auth.uid() and p.disabled_at is null and app.second_factor_ok()
+		where p.id = auth.uid() and p.disabled_at is null and app.session_ok()
 	),
 	target as (
 		select split_part(p_entity_group, '.', 1) as section,
@@ -144,8 +183,11 @@ declare
 	v_path text := coalesce(current_setting('request.path', true), '');
 begin
 	if v_role <> 'authenticated' then return; end if;
-	if app.second_factor_ok() then return; end if;
+	if app.session_ok() then return; end if;
 	if v_path in ('/rpc/requires_totp') then return; end if;
+	if not app.session_live() then
+		raise exception 'This session has been signed out. Sign in again.' using errcode = '42501', hint = 'session_ended';
+	end if;
 	raise exception 'A second factor is required for this account. Enter your authenticator code to continue.'
 		using errcode = '42501', hint = 'mfa_required';
 end
