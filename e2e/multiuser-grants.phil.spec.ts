@@ -2,16 +2,16 @@
  * Direct grants: one person shares part of their personal space with
  * another. Two throwaway accounts, neither in any team:
  *
- *   ann — shares; has an authenticator and a fresh re-auth, as the app's
- *         own text says sharing requires
- *   bea — is shared with
+ *   ann — shares; has an authenticator and a fresh re-auth, which sharing
+ *         requires (enforced since 0160: the route wants both, the database
+ *         function wants the second factor)
+ *   bea — is shared with; has no authenticator, as a new member would not
  *
  * Tess is the bystander who must see none of it. Nothing of Phil's or
  * Tess's is ever shared here.
  */
 import { test, type Page } from "@playwright/test";
 import { localSql, localStackEnv } from "../lib/access/introspect.ts";
-import { TESS, storageStateFor } from "./support/users.ts";
 import {
   MU_TEST_TIMEOUT,
   RUN,
@@ -24,7 +24,13 @@ import {
   personalSpaceOf,
   projectNames,
   reauth,
+  rest,
+  roomForCodes,
+  secondSession,
+  accessTokenOf,
+  codeFor,
   sqlValue,
+  tessContext,
   sweepLeftovers,
   type Person,
 } from "./support/multiuser.ts";
@@ -82,6 +88,10 @@ test("before anything is shared, the other person sees none of it", async ({ bro
   await openPeople(page);
   await expect(page.getByText("Nobody has shared anything with you.")).toBeVisible();
   await page.close();
+
+  // ann is the one who shares: authenticator, signed in with it, code confirmed again just now.
+  await enrolTotp(ann);
+  await reauth(ann);
 });
 
 test("finance and platform cannot be shared: not offered, refused by the API, refused by the database", async () => {
@@ -132,9 +142,7 @@ test("finance and platform cannot be shared: not offered, refused by the API, re
 });
 
 test("ann shares the Work part of Organisation, view only, from the page", async () => {
-  // The app's text says sharing needs the authenticator code again; ann has just given it.
-  await enrolTotp(ann!);
-  await reauth(ann!);
+  // Sharing needs the authenticator code confirmed in the last ten minutes; ann gave it a moment ago.
 
   const page = await ann!.context.newPage();
   await openPeople(page);
@@ -176,7 +184,7 @@ test("the other person sees exactly that: listed under Shared with me, readable,
   await page.close();
 
   // A bystander sees nothing and cannot remove a grant they are not party to.
-  const tess = await browser.newContext({ storageState: storageStateFor(TESS) });
+  const tess = await tessContext(browser);
   expect(await projectNames(tess.request)).not.toContain(PLAN);
   expect((await tess.request.get(`/api/work/projects?space=${annSpace}`)).status()).toBe(404);
   const grantId = sqlValue(`select id from public.user_grants where grantor_id = '${ann!.id}' and revoked_at is null`)!;
@@ -278,23 +286,68 @@ test("a share with an expiry stops by itself", async () => {
   expect(activeGrants()).toEqual([]);
 });
 
-// SECURITY (reported, not fixed here). The spec (claude/spec-access.md), the
-// onboarding guide and the plan all say creating a grant requires re-auth.
-// Nothing enforces it: /api/grants is not a sensitive prefix and
-// create_user_grant() checks only that the caller is signed in. bea has no
-// authenticator at all and can open her personal space to anyone.
-test("SECURITY: creating a grant without a fresh second factor is refused", async () => {
+// S3, closed by 0160 and the route. Sharing opens a personal space to
+// someone else: it now needs a session with the second factor (checked by
+// the route AND by the database function) and that factor confirmed again in
+// the last ten minutes (checked by the route).
+test("SECURITY: creating a grant without a fresh second factor is refused", async ({ browser }) => {
+  const wanted = { grantee_id: ann!.id, section: "journal", verbs: ["view", "edit", "create_delete"] };
+
+  // No authenticator at all: refused, in words a person can act on.
   expect(sqlValue(`select count(*) from auth.mfa_factors where user_id = '${bea!.id}'`)).toBe("0");
-  const res = await bea!.request.post("/api/grants", { data: { grantee_id: ann!.id, section: "journal", verbs: ["view", "edit", "create_delete"] } });
-  if (res.ok()) await bea!.request.delete(`/api/grants/${((await res.json()) as { id: string }).id}`);
-  expect(res.status()).toBe(403); // answers 201
+  const none = await bea!.request.post("/api/grants", { data: wanted });
+  expect(none.status()).toBe(403);
+  expect(await none.json()).toMatchObject({ reason: "mfa_required", error: expect.stringContaining("Sharing needs an authenticator") });
+  // …and at the database, past the route.
+  const noneDirect = await rest("/rest/v1/rpc/create_user_grant", { token: bea!.session.access_token, body: { p_grantee: ann!.id, p_section: "journal", p_entity_groups: [], p_verbs: ["view"] } });
+  expect(noneDirect.status).toBe(403);
+  expect(((await noneDirect.json()) as { hint: string }).hint).toBe("mfa_required");
+  expect((await rest("/rest/v1/rpc/create_user_grant_unchecked", { token: bea!.session.access_token, body: { p_grantee: ann!.id, p_section: "journal", p_entity_groups: [], p_verbs: ["view"] } })).ok).toBe(false);
+
+  // An authenticator, but only the password given this time: refused at the gate.
+  const half = await secondSession(browser, ann!);
+  expect((await half.request.post("/api/grants", { data: { ...wanted, grantee_id: bea!.id } })).status()).toBe(403);
+  await half.close();
+
+  // Signed in with the code, but no confirmation in the last ten minutes: refused, and nothing is created.
+  await ann!.context.clearCookies({ name: "reauth" });
+  const stale = await ann!.request.post("/api/grants", { data: { grantee_id: bea!.id, section: "journal", verbs: ["view"] } });
+  expect(stale.status()).toBe(403);
+  expect(((await stale.json()) as { reason: string }).reason).toBe("reauth_required");
+  expect(localSql(`select 1 from public.user_grants where grantor_id in ('${ann!.id}', '${bea!.id}') and revoked_at is null and (expires_at is null or expires_at > now())`)).toEqual([]);
+
+  // On the page: Share sends her to confirm the code and brings her back; only then does a share go through.
+  await roomForCodes(2);
+  const page = await ann!.context.newPage();
+  await openPeople(page);
+  await page.getByRole("textbox", { name: "Their email" }).fill(bea!.email);
+  await page.getByRole("button", { name: "Find" }).click();
+  await page.getByRole("combobox", { name: "Section" }).selectOption("journal");
+  await page.getByRole("button", { name: "Share", exact: true }).click();
+  await page.waitForURL((u) => u.pathname === "/other/settings/security" && u.searchParams.get("reauth") === "1" && u.searchParams.get("next") === "/other/settings/people");
+  const form = page.locator("form", { has: page.getByRole("button", { name: "Confirm" }) });
+  await form.getByPlaceholder("000000").fill(codeFor(ann!));
+  await form.getByRole("button", { name: "Confirm" }).click();
+  await page.waitForURL((u) => u.pathname === "/other/settings/people");
+  await expect(page.getByRole("heading", { name: "People & teams" })).toBeVisible();
+  // Nothing was shared behind her back while she was away confirming.
+  expect(activeGrants()).toEqual([]);
+  await page.getByRole("textbox", { name: "Their email" }).fill(bea!.email);
+  await page.getByRole("button", { name: "Find" }).click();
+  await page.getByRole("combobox", { name: "Section" }).selectOption("journal");
+  await page.getByRole("button", { name: "Share", exact: true }).click();
+  await expect(page.getByText("Shared.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Revoke" }).click();
+  await expect(page.getByText("Revoked.", { exact: true })).toBeVisible();
+  await page.close();
+  expect(activeGrants()).toEqual([]);
 });
 
 // ---------------------------------------------------------------------------
 // Paths around the app. The anon key is public (it ships in the browser
 // bundle), so anything PostgREST will run for `anon` or for any signed-in
-// user is reachable without the Next routes that are supposed to stand in
-// front of it. Each of these is reported, not fixed here.
+// user is reachable without the Next routes that stand in front of it.
+// Each of these was open on 2026-11-20 and is closed by 0160.
 // ---------------------------------------------------------------------------
 
 const direct = (path: string, body: unknown, accessToken?: string) => {
@@ -306,51 +359,90 @@ const direct = (path: string, body: unknown, accessToken?: string) => {
   });
 };
 
-// SECURITY. ann has a verified authenticator. A password grant alone gives an
-// aal1 token, and the database answers it exactly as it answers aal2: no
-// policy and no access function looks at the assurance level.
+// S1 at the database. ann has a verified authenticator. A password grant
+// alone gives an aal1 token; the database used to answer it exactly as it
+// answers aal2.
 test("SECURITY: a password-only token for someone with an authenticator reads nothing from the database", async () => {
   expect(sqlValue(`select status from auth.mfa_factors where user_id = '${ann!.id}'`)).toBe("verified");
   const signIn = await direct("/auth/v1/token?grant_type=password", { email: ann!.email, password: "e2e-mu-password-1" });
   const token = ((await signIn.json()) as { access_token: string }).access_token;
   expect((JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8")) as { aal: string }).aal).toBe("aal1");
-  const rows = await direct("/rest/v1/projects?select=name", undefined, token);
-  expect(rows.ok ? ((await rows.json()) as unknown[]) : []).toEqual([]); // returns ann's projects
+  for (const path of ["/rest/v1/projects?select=name", "/rest/v1/user_settings?select=display_name", "/rest/v1/user_grants?select=id", "/rest/v1/profiles?select=id"]) {
+    const res = await direct(path, undefined, token);
+    expect(res.status, path).toBe(403);
+    expect(((await res.json()) as { hint: string }).hint, path).toBe("mfa_required");
+  }
+  expect((await direct("/rest/v1/rpc/my_personal_space", {}, token)).status).toBe(403);
+  // The same token with the code given reads as before.
+  const whole = await direct("/rest/v1/projects?select=name", undefined, ann!.session.access_token);
+  expect(whole.status).toBe(200);
+  expect(((await whole.json()) as Array<{ name: string }>).map((r) => r.name)).toContain(PLAN);
 });
 
-// SECURITY. rate_limit_take() runs for anon and trusts the caller's capacity,
-// refill and cost. Shown on a bucket of this spec's own: a stranger can empty
-// it (locking that key out) or refill it (resetting the limiter). The real
-// keys are login:email:<address>, login:ip:<ip>, totp:ip:<ip>, invite:user:<id>.
+// S4. rate_limit_take() ran for anon and trusted the caller's capacity,
+// refill and cost: a stranger could empty a sign-in bucket (locking that
+// address out) or refill it before each guess. Now only the server calls it.
 test("SECURITY: an anonymous caller cannot empty or refill a rate-limit bucket", async () => {
   const key = `e2e-mu-${RUN}:probe`;
   const take = (capacity: number, refill: number, cost: number) => direct("/rest/v1/rpc/rate_limit_take", { p_key: key, p_capacity: capacity, p_refill_per_minute: refill, p_cost: cost });
   const emptied = await take(0, 0, 0);
-  expect(emptied.ok).toBe(false); // 200: the bucket now holds nothing
+  expect(emptied.ok).toBe(false);
+  expect((await take(1_000_000, 1e12, 0)).ok).toBe(false);
+  // Signed in is no better than anonymous here.
+  for (const token of [bea!.session.access_token, ann!.session.access_token]) {
+    expect((await direct("/rest/v1/rpc/rate_limit_take", { p_key: key, p_capacity: 0, p_refill_per_minute: 0, p_cost: 0 }, token)).ok).toBe(false);
+  }
   expect(sqlValue(`select count(*) from public.rate_limits where key = '${key}'`)).toBe("0");
+  // The other maintenance functions the anon key could run are closed too.
+  expect((await direct("/rest/v1/rpc/pc_metrics_rollup", { hours_back: 0 })).ok).toBe(false);
+  expect((await direct("/rest/v1/rpc/pc_metrics_prune", {})).ok).toBe(false);
 });
 
-// SECURITY. The ten-failure second-factor lockout is cleared by the function
-// the verify route calls on success, and any signed-in user can call it
-// directly, so a password-only session can wipe its own failures between guesses.
-test("SECURITY: a signed-in user cannot clear their own second-factor failures", async () => {
-  await direct("/rest/v1/rpc/second_factor_failed", {}, bea!.session.access_token);
-  expect(sqlValue(`select count(*) from public.second_factor_failures where user_id = '${bea!.id}'`)).toBe("1");
-  const cleared = await direct("/rest/v1/rpc/second_factor_succeeded", {}, bea!.session.access_token);
-  expect(sqlValue(`select count(*) from public.second_factor_failures where user_id = '${bea!.id}'`)).toBe("1"); // 0
-  expect(cleared.ok).toBe(false);
+// S5. The ten-failure lockout on code entry was cleared by a function any
+// signed-in user could call for themselves, so the password-only session it
+// exists to stop could wipe its failures between guesses. The counters are
+// now written by the server alone, for a user the server names.
+test("SECURITY: a signed-in user cannot clear their own second-factor failures", async ({ browser }) => {
+  await roomForCodes(2);
+  const failures = () => sqlValue(`select count(*) from public.second_factor_failures where user_id = '${ann!.id}'`);
+  const half = await secondSession(browser, ann!); // password only: this is the session an attacker would hold
+  const right = codeFor(ann!);
+  const wrong = await half.request.post("/api/auth/mfa/verify", { data: { code: right === "000000" ? "000001" : "000000" } });
+  expect(wrong.status()).toBe(401);
+  expect(failures()).toBe("1");
+
+  const halfToken = await accessTokenOf(half);
+  for (const token of [halfToken, ann!.session.access_token, bea!.session.access_token, undefined]) {
+    for (const fn of ["second_factor_succeeded", "second_factor_failed", "second_factor_locked"]) {
+      for (const body of [{}, { p_user: ann!.id }]) {
+        expect((await direct(`/rest/v1/rpc/${fn}`, body, token)).ok, `${fn} ${JSON.stringify(body)}`).toBe(false);
+      }
+    }
+  }
+  expect(failures()).toBe("1");
+
+  // The honest way to clear it still works: the right code.
+  const ok = await half.request.post("/api/auth/mfa/verify", { data: { code: codeFor(ann!) } });
+  expect(ok.status()).toBe(200);
+  expect(failures()).toBe("0");
+  await half.close();
 });
 
-// SECURITY. people_purge_deleted() is SECURITY DEFINER, open to every signed-in
-// user, and deletes binned people in EVERY space. Reproduced without touching
-// anyone else's bin: ann's binned person is aged to 1971 and the window asked
-// for is 49 years, so nothing but that row can qualify.
+// S6. people_purge_deleted() ran with the owner's rights and no space filter:
+// any signed-in user could empty every user's bin for good. It now runs as
+// the caller. Checked without touching anyone else's bin: ann's binned person
+// is aged to 1971 and the window asked for is 49 years, so nothing but that
+// row can qualify.
 test("SECURITY: one person cannot purge another person's binned people", async () => {
   const id = sqlValue(`select id from public.people where first_name = '${FRIEND}' and space_id = '${annSpace}'`)!;
   expect((await ann!.request.delete(`/api/people/${id}`)).status()).toBe(200);
   localSql(`update public.people set deleted_at = '1971-01-01' where id = '${id}'`);
   const purged = await direct("/rest/v1/rpc/people_purge_deleted", { p_days: 18000 }, bea!.session.access_token);
-  const purgedCount = await purged.text();
-  expect(purgedCount).toBe("0"); // 1: bea deleted ann's row for good
+  expect(await purged.text()).toBe("0");
   expect(sqlValue(`select count(*) from public.people where id = '${id}'`)).toBe("1");
+  expect((await direct("/rest/v1/rpc/people_purge_deleted", { p_days: 18000 })).ok).toBe(false);
+  // The bin's owner can still empty it.
+  const own = await direct("/rest/v1/rpc/people_purge_deleted", { p_days: 18000 }, ann!.session.access_token);
+  expect(await own.text()).toBe("1");
+  expect(sqlValue(`select count(*) from public.people where id = '${id}'`)).toBe("0");
 });

@@ -24,6 +24,9 @@ import {
   joinByInvite,
   personalSpaceOf,
   projectNames,
+  reauth,
+  magicLinkPath,
+  MU_PASSWORD,
   retireTeam,
   sqlValue,
   sweepLeftovers,
@@ -63,7 +66,7 @@ test.afterAll(async ({ browser }) => {
 });
 
 test("set up: a family team, a view-only share of Work and Fitness, and a linked People row", async ({ browser, request }) => {
-  host = await joinByInvite(browser, request, "host");
+  host = await joinByInvite(browser, request, "host", { enrol: true }); // an owner, so an authenticator first (0160)
   team = await createTeam(host.request, "Household");
   partner = await joinByInvite(browser, host.request, "partner", { teamId: team.id, role: "member" });
 
@@ -76,6 +79,7 @@ test("set up: a family team, a view-only share of Work and Fitness, and a linked
   expect(person.ok()).toBe(true);
   personId = sqlValue(`select id from public.people where first_name = '${PARTNER_PERSON}' and space_id = '${personalSpaceOf(host.id)}'`)!;
 
+  await reauth(host); // sharing needs the code confirmed in the last ten minutes
   for (const data of [
     { grantee_id: partner.id, section: "organisation", entity_groups: ["tickets"], verbs: ["view"] },
     { grantee_id: partner.id, section: "fitness", verbs: ["view"] },
@@ -148,6 +152,53 @@ test("what was shared view-only stays the owner's: she cannot change it, and her
   expect((await createProject(partner!.request, `E2E-mu-${RUN} Family shopping`, team!.spaceId)).status()).toBe(201);
   // The link gives her nothing of the People row itself (that group was not shared).
   expect(await (await partner!.request.get("/api/people?tier=all&archived=all")).text()).not.toContain(PARTNER_PERSON);
+});
+
+test("a member needs no authenticator: she signs in with a password or a link and is never asked for a code", async ({ browser }) => {
+  expect(sqlValue(`select count(*) from auth.mfa_factors where user_id = '${partner!.id}'`)).toBe("0");
+  const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+  const page = await context.newPage();
+  await page.goto("/login?next=%2Fwork%2Fprojects");
+  await page.getByRole("radio", { name: "Password" }).click();
+  await page.locator('input[name="email"]').fill(partner!.email);
+  await page.locator('input[name="password"]').fill(MU_PASSWORD);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  // No code prompt, no "enrol first": straight to where she was going, with her data and what was shared.
+  await page.waitForURL((u) => u.pathname === "/work/projects");
+  await expect(page.getByRole("heading", { name: "Projects" })).toBeVisible();
+  expect(await projectNames(context.request)).toEqual(expect.arrayContaining([HOST_PLAN, TEAM_PLAN]));
+  expect((await createProject(context.request, `E2E-mu-${RUN} Partner own list`)).status()).toBe(201);
+  await context.close();
+
+  const byLink = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+  const linkPage = await byLink.newPage();
+  await linkPage.goto(await magicLinkPath(partner!.email, "/fitness/body"));
+  expect(new URL(linkPage.url()).pathname).toBe("/fitness/body");
+  expect((await byLink.request.get("/api/body-metrics?days=0")).status()).toBe(200);
+  await byLink.close();
+});
+
+test("without an authenticator she cannot share, and the page tells her what to do about it", async () => {
+  const res = await partner!.request.post("/api/grants", { data: { grantee_id: host!.id, section: "fitness", verbs: ["view"] } });
+  expect(res.status()).toBe(403);
+  expect(((await res.json()) as { reason: string }).reason).toBe("mfa_required");
+
+  const page = await partner!.context.newPage();
+  await page.goto("/other/settings/people");
+  await page.getByRole("textbox", { name: "Their email" }).fill(host!.email);
+  await page.getByRole("button", { name: "Find" }).click();
+  await page.getByRole("combobox", { name: "Section" }).selectOption("fitness");
+  await page.getByRole("button", { name: "Share", exact: true }).click();
+  const told = page.getByText("Sharing needs an authenticator. Set one up under Settings → Security, sign in with it, then share.");
+  await expect(told).toBeVisible();
+  // The Share button is at the foot of a long page and the message is at its head: it must come into view.
+  await expect(told).toBeInViewport();
+  // She stays where she is (no trip to a code prompt she could not answer), and nothing was shared.
+  expect(new URL(page.url()).pathname).toBe("/other/settings/people");
+  await page.close();
+  expect(sqlValue(`select count(*) from public.user_grants where grantor_id = '${partner!.id}'`)).toBe("0");
+  // She can still decline what was shared WITH her; that needs no authenticator. (Not done here: the shares are used below.)
+  expect((await partner!.request.get("/api/account/access-log")).status()).toBe(403);
 });
 
 test("with no authenticator, the Security page says what is needed instead of asking her to confirm a code she does not have", async () => {

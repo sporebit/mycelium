@@ -16,8 +16,10 @@ import path from "node:path";
 import { createServerClient } from "@supabase/ssr";
 import { expect as baseExpect, type APIRequestContext, type Browser, type BrowserContext } from "@playwright/test";
 import { localSql, localStackEnv } from "../../lib/access/introspect.ts";
+import { passwordSession, secondFactorSession } from "../../lib/access/testSessions.ts";
 import { totp } from "../../scripts/lib/totp.mjs";
 import { E2E_ORIGIN } from "./env.ts";
+import { PASSWORD, PHIL, TESS, storageStateFor, writeStorageState } from "./users.ts";
 
 /**
  * These checks open several people's pages against one dev server that the
@@ -90,6 +92,45 @@ async function sessionCookies(session: Session) {
   }));
 }
 
+/**
+ * Phil's and Tess's saved sign-ins are shared by every suite and reused for
+ * twenty minutes. Since 0160 a session whose row has been deleted is dead at
+ * once, so anything else on this machine that clears their sessions (the
+ * access suites rebuild their fixtures) leaves a saved sign-in that reads
+ * nothing. Before a file starts, make sure both still exist, and sign in
+ * again (the harness's own function) if one does not.
+ */
+export async function ensureSharedSessions(): Promise<void> {
+  for (const who of [PHIL, TESS]) {
+    let live = false;
+    try {
+      const state = JSON.parse(readFileSync(storageStateFor(who), "utf8")) as { cookies: Array<{ name: string; value: string }> };
+      const raw = state.cookies.filter((c) => /^sb-.*-auth-token/.test(c.name)).sort((a, b) => a.name.localeCompare(b.name)).map((c) => c.value).join("");
+      const token = (JSON.parse(Buffer.from(raw.slice(7), "base64url").toString("utf8")) as { access_token: string }).access_token;
+      const claims = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8")) as { session_id: string; exp: number };
+      live = claims.exp * 1000 > Date.now() + 10 * 60_000 && sqlValue(`select 1 from auth.sessions where id = '${claims.session_id}'`) === "1";
+    } catch {
+      live = false;
+    }
+    if (!live) {
+      console.warn(`[multiuser] ${who.name}'s saved sign-in is no longer a live session; signing in again`);
+      await writeStorageState(who);
+    }
+  }
+}
+
+/**
+ * Tess, the bystander, in a browser of her own with a sign-in made this
+ * moment. Her saved sign-in is shared with every other suite, and any of
+ * them signing her out ends it for all (0160); a check that only needs "a
+ * second, unrelated person" should not fail for that.
+ */
+export async function tessContext(browser: Browser): Promise<BrowserContext> {
+  const session = await passwordSession(TESS.email, PASSWORD);
+  const cookies = await sessionCookies({ ...session, user: { id: TESS.id, email: TESS.email } });
+  return browser.newContext({ storageState: { cookies, origins: [] } });
+}
+
 /** POST /api/invites as the inviter; email is off on this server, so the link comes back. */
 export async function createInvite(
   inviter: APIRequestContext,
@@ -115,15 +156,23 @@ export async function signUpInvited(browser: Browser, label: string): Promise<Pe
   return { label, email, id: session.user.id, context, request: context.request, session };
 }
 
-/** Invite, sign up and accept in one step: the common fixture. */
+/**
+ * Invite, sign up and accept in one step: the common fixture.
+ *
+ * Since 0160 a team owner or admin can do nothing until they have an
+ * authenticator. `enrol` gives the new person one before they accept (it is
+ * on by default for an admin invite); pass it for anyone who will go on to
+ * create a team. A plain member needs none.
+ */
 export async function joinByInvite(
   browser: Browser,
   inviter: APIRequestContext,
   label: string,
-  opts: { teamId?: string | null; role?: "admin" | "member" | "viewer" } = {},
+  opts: { teamId?: string | null; role?: "admin" | "member" | "viewer"; enrol?: boolean } = {},
 ): Promise<Person> {
-  const { token } = await createInvite(inviter, { email: emailFor(label), ...opts });
+  const { token } = await createInvite(inviter, { email: emailFor(label), teamId: opts.teamId, role: opts.role });
   const person = await signUpInvited(browser, label);
+  if (opts.enrol ?? opts.role === "admin") await enrolTotp(person);
   const res = await person.request.post(`/api/invites/${token}`);
   if (!res.ok()) throw new Error(`accepting as ${person.email} answered ${res.status()}: ${await res.text()}`);
   return person;
@@ -144,21 +193,31 @@ export async function personFromPassword(browser: Browser, label: string, passwo
  */
 export const KEEPER_EMAIL = "e2e-mu-keeper@mycelium.local";
 
+/**
+ * The keeper, signed in. It owns teams, so (0160) it must present an
+ * authenticator: the harness's own helper enrols one on first use and keeps
+ * the secret in e2e/.auth, as it does for Phil.
+ */
+export async function keeperContext(browser: Browser): Promise<{ id: string; context: BrowserContext }> {
+  let id = sqlValue(`select id from auth.users where email = '${KEEPER_EMAIL}'`);
+  // A first sign-up needs a live invite for the address; keeperJoins() has just made one.
+  if (!id) id = (await gotrue<Session>("/signup", { email: KEEPER_EMAIL, password: MU_PASSWORD })).user.id;
+  const session = await secondFactorSession(KEEPER_EMAIL, MU_PASSWORD, id);
+  const cookies = await sessionCookies({ ...session, user: { id, email: KEEPER_EMAIL } });
+  return { id, context: await browser.newContext({ storageState: { cookies, origins: [] } }) };
+}
+
 /** The keeper joins the team as a member (invited by its owner). Returns the keeper's user id. */
 export async function keeperJoins(browser: Browser, owner: APIRequestContext, teamId: string): Promise<string> {
   const { token } = await createInvite(owner, { email: KEEPER_EMAIL, teamId, role: "member" });
-  const exists = (await owner.get(`/api/users/lookup?email=${encodeURIComponent(KEEPER_EMAIL)}`)).ok();
-  const session = exists
-    ? await gotrue<Session>("/token?grant_type=password", { email: KEEPER_EMAIL, password: MU_PASSWORD })
-    : await gotrue<Session>("/signup", { email: KEEPER_EMAIL, password: MU_PASSWORD });
-  const context = await browser.newContext({ storageState: { cookies: await sessionCookies(session), origins: [] } });
+  const keeper = await keeperContext(browser);
   try {
-    const res = await context.request.post(`/api/invites/${token}`);
+    const res = await keeper.context.request.post(`/api/invites/${token}`);
     if (!res.ok()) throw new Error(`keeper could not join ${teamId}: ${res.status()} ${await res.text()}`);
   } finally {
-    await context.close();
+    await keeper.context.close();
   }
-  return session.user.id;
+  return keeper.id;
 }
 
 /** Hand a finished team to the keeper and leave it. Best effort: returns what went wrong, if anything. */
@@ -190,10 +249,58 @@ export async function retireStaleTeams(browser: Browser, phil: APIRequestContext
   }
 }
 
-/** A second, independent session for the same person (another "device"). */
-export async function secondSession(browser: Browser, person: Person): Promise<BrowserContext> {
-  const session = await gotrue<Session>("/token?grant_type=password", { email: person.email, password: MU_PASSWORD });
+/**
+ * A second, independent session for the same person (another "device").
+ * By default it is the password alone (aal1): for someone with an
+ * authenticator that is a session that still owes its code. `withCode`
+ * answers the challenge too, as a second device signed in properly would.
+ */
+export async function secondSession(browser: Browser, person: Person, opts: { withCode?: boolean } = {}): Promise<BrowserContext> {
+  let session = await gotrue<Session>("/token?grant_type=password", { email: person.email, password: MU_PASSWORD });
+  if (opts.withCode) {
+    const factorId = sqlValue(`select id from auth.mfa_factors where user_id = '${person.id}' and status = 'verified' limit 1`);
+    if (!factorId) throw new Error(`${person.email} has no authenticator`);
+    const challenge = await gotrue<{ id: string }>(`/factors/${factorId}/challenge`, {}, session.access_token);
+    const upgraded = await gotrue<Session>(`/factors/${factorId}/verify`, { challenge_id: challenge.id, code: codeFor(person) }, session.access_token);
+    session = { ...upgraded, user: session.user };
+  }
   return browser.newContext({ storageState: { cookies: await sessionCookies(session), origins: [] } });
+}
+
+/** The access token a context's session cookie carries. */
+export async function accessTokenOf(context: BrowserContext): Promise<string> {
+  const cookies = (await context.cookies()).filter((c) => /^sb-.*-auth-token(\.\d+)?$/.test(c.name)).sort((a, b) => a.name.localeCompare(b.name));
+  const raw = cookies.map((c) => c.value).join("");
+  const json = raw.startsWith("base64-") ? Buffer.from(raw.slice(7), "base64url").toString("utf8") : decodeURIComponent(raw);
+  return (JSON.parse(json) as { access_token: string }).access_token;
+}
+
+/** Straight at the database's REST door with the public key and, optionally, someone's token. */
+export function rest(pathname: string, opts: { token?: string; body?: unknown } = {}): Promise<Response> {
+  const env = localStackEnv();
+  return fetch(`${env.apiUrl}${pathname}`, {
+    method: opts.body === undefined ? "GET" : "POST",
+    headers: { apikey: env.anonKey, "content-type": "application/json", ...(opts.token ? { authorization: `Bearer ${opts.token}` } : {}) },
+    body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+  });
+}
+
+/**
+ * The path a sign-in email's link opens, for an existing account: the
+ * callback route with a one-time token hash, the shape the hosted email
+ * templates use. The token comes from the local auth server's admin API, so
+ * no email is sent (the local stack allows two an hour).
+ */
+export async function magicLinkPath(email: string, next: string): Promise<string> {
+  const env = localStackEnv();
+  const res = await fetch(`${env.apiUrl}/auth/v1/admin/generate_link`, {
+    method: "POST",
+    headers: { apikey: env.serviceRoleKey, authorization: `Bearer ${env.serviceRoleKey}`, "content-type": "application/json" },
+    body: JSON.stringify({ type: "magiclink", email }),
+  });
+  const body = (await res.json()) as { hashed_token?: string };
+  if (!res.ok || !body.hashed_token) throw new Error(`no sign-in link for ${email}: ${res.status}`);
+  return `/api/auth/callback?token_hash=${body.hashed_token}&type=magiclink&next=${encodeURIComponent(next)}`;
 }
 
 /**
@@ -216,7 +323,8 @@ export function remember(person: Person) {
   if (!person.totpSecret) return;
   writeLedger([...readLedger().filter((r) => r.email !== person.email), { email: person.email, secret: person.totpSecret }]);
 }
-const forget = (email: string) => writeLedger(readLedger().filter((r) => r.email !== email));
+/** Strike an account off the ledger (it has been deleted, here or through the page). */
+export const forget = (email: string) => writeLedger(readLedger().filter((r) => r.email !== email));
 
 /**
  * Remove this suite's accounts that an earlier, interrupted run left behind
@@ -225,6 +333,7 @@ const forget = (email: string) => writeLedger(readLedger().filter((r) => r.email
  * app deletes nobody who has no second factor.
  */
 export async function sweepLeftovers(browser: Browser): Promise<void> {
+  await ensureSharedSessions();
   const secrets = new Map(readLedger().map((r) => [r.email, r.secret]));
   const stale = localSql(`select email from auth.users where email like 'e2e-mu-%' and email <> '${KEEPER_EMAIL}' and email not like 'e2e-mu-${RUN}-%'`).flat();
   for (const email of secrets.keys()) if (!stale.includes(email) && !email.startsWith(`e2e-mu-${RUN}-`)) forget(email);
@@ -247,6 +356,9 @@ export async function sweepLeftovers(browser: Browser): Promise<void> {
         person.session = { ...upgraded, user: first.user };
         await context.clearCookies({ name: /^sb-.*-auth-token/ });
         await context.addCookies(await sessionCookies(person.session));
+      } else {
+        // An owner or admin with no authenticator can do nothing, not even hand a team over, until they enrol.
+        await enrolTotp(person);
       }
       for (const [teamId] of localSql(`select id from public.teams where owner_user_id = '${person.id}'`)) await retireTeam(browser, person.request, teamId);
       const gone = await deleteAccount(person);

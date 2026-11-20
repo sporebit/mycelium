@@ -1,7 +1,8 @@
 /**
  * Team lifecycle as the owner, the invite page in each of its states, a
  * brand-new person joining end to end, the role matrix, and the owner
- * leaving. Phil owns the team; the people who join are throwaway accounts.
+ * leaving. Phil owns the team (signed in with his authenticator, as an owner
+ * must be since 0160); the people who join are throwaway accounts.
  *
  * What the role matrix writes is a Work project in the team's space: the
  * one thing the app lets a caller create in a named space (`space`).
@@ -16,6 +17,7 @@ import {
   createInvite,
   createProject,
   emailFor,
+  enrolTotp,
   expect,
   getJson,
   joinByInvite,
@@ -26,6 +28,7 @@ import {
   retireStaleTeams,
   retireTeam,
   sqlValue,
+  tessContext,
   teamName,
   KEEPER_EMAIL,
   type Person,
@@ -145,7 +148,7 @@ test("a token that was never issued says the invitation does not exist", async (
 });
 
 test("a different signed-in account is refused, on the page and by the API", async ({ browser }) => {
-  const tess = await browser.newContext({ storageState: storageStateFor(TESS) });
+  const tess = await tessContext(browser);
   const page = await tess.newPage();
   await page.goto(inviteLink);
   await expect(page.getByText(`You are signed in as ${TESS.email}, but this invitation is for ${viewerEmail}.`)).toBeVisible();
@@ -377,12 +380,19 @@ test("team membership never opens a member's personal space, not even to the own
   expect(new Set(visible.projects.map((p) => p.space_id))).toEqual(new Set([memberSpace, teamSpace]));
 });
 
-test("an admin invites members and viewers but not admins, and cannot touch the owner", async ({ page }) => {
+test("a new admin must enrol before acting; then invites members and viewers but not admins, and cannot touch the owner", async ({ page }) => {
   await openTeam(page);
   await page.getByRole("combobox", { name: `Role for ${memberName}` }).selectOption("admin");
   await expect(page.getByText("Role updated.")).toBeVisible();
   await expect(page.getByRole("combobox", { name: `Role for ${memberName}` })).toHaveValue("admin");
   const admin = member!;
+
+  // An admin must have an authenticator (0160). The promotion takes effect at once: until the new admin
+  // enrols, their whole account answers nothing, their own personal space included.
+  expect((await admin.request.get("/api/work/projects?status=all")).status()).toBeGreaterThanOrEqual(400);
+  expect((await admin.request.post("/api/invites", { data: { email: emailFor("guest0"), team_id: teamId, role: "viewer" } })).status()).toBe(403);
+  await enrolTotp(admin);
+  expect(await projectNames(admin.request)).toEqual(expect.arrayContaining([`E2E-mu ${TEAM} member private`, `E2E-mu ${TEAM} member project`]));
 
   const asViewer = await admin.request.post("/api/invites", { data: { email: emailFor("guest"), team_id: teamId, role: "viewer" } });
   expect(asViewer.status()).toBe(201);

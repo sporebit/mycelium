@@ -77,3 +77,55 @@ Helper: `e2e/support/multiuser.ts`. The specs create their own users (`e2e-mu-<r
 6. **Sharing.** People & teams → Share with a person → her email → Organisation, tickets, view → Share (it now asks for your code first); repeat for Fitness. On her phone both appear under Shared with me, and she can open but not edit your project.
 7. **Phone layout.** People & teams and Security on her phone: the section-toggle table scrolls sideways, the share form is usable, the QR is large enough to scan from another screen.
 8. **Rundown email.** Switch the rundown on for the family team and trigger it: an email to each of you, each showing only what that person may see.
+
+---
+
+## Second round, 2026-11-20 04:30 — on the hardened build (0160)
+
+All five files green: **59 pass, 5 held**. All nine security findings are closed, each proved through the app and straight at the database. Nothing that passed before fails after the hardening (anonymous invite preview, a new user accepting, the welcome, the rundown cron, export, account deletion with a second factor and a fresh confirmation).
+
+| File | Pass | Held |
+|---|---|---|
+| `e2e/multiuser-invite.phil.spec.ts` | 15 | 1 |
+| `e2e/multiuser-security.phil.spec.ts` | 17 | 2 |
+| `e2e/multiuser-grants.phil.spec.ts` | 13 | 0 |
+| `e2e/multiuser-lifecycle.phil.spec.ts` | 7 | 0 |
+| `e2e/multiuser-firstday.phil.spec.ts` | 7 | 2 |
+
+### Each finding and the check that closes it
+
+| Finding | Closing check |
+|---|---|
+| A password-only session of an enrolled account read everything | "a session that stopped before the code cannot read the person's data" (security); "a password-only token … reads nothing from the database" (grants) |
+| "Mandatory" authenticator was only a redirect | "an owner or admin with no authenticator cannot use the app until they enrol" (security) |
+| A grant could be made with no fresh confirmation | "creating a grant without a fresh second factor is refused" (grants) |
+| The rate limiter could be called by anyone | "an anonymous caller cannot empty or refill a rate-limit bucket" (grants) |
+| A person could clear their own lockout | "a signed-in user cannot clear their own second-factor failures" (grants) |
+| One person could purge another's binned people | "one person cannot purge another person's binned people" (grants) |
+| The cron secret carried a browser session past the sensitive gate | "the cron secret does not carry a browser session past the sensitive-path gate" (security) |
+| Remote sign-out took up to an hour | "a device signed out remotely is refused on its next request" (security) |
+| An invite overwrote an existing member's role | "an invite never changes the role of someone already in the team" (security) |
+
+Added: a sign-in link for someone with an authenticator stops at the code prompt; a member needs no authenticator but cannot share without one, and the page says what to do; the role-kept check; other doors with a password-only token (GraphQL 403, Storage lists nothing, Realtime publication empty, the auth server refuses a password or email change).
+
+### Found in the hardening itself
+
+1. **Promotion lock-out.** Someone with no authenticator who becomes an owner or admin (promoted, invited as admin, or by creating a team) loses the whole account at once, personal space included. The owner sees "Role updated." and no warning. Her pages show placeholders and "Could not load…", the API answers 500, and the one message tells her to enter a code she does not have. Settings → Security still opens and enrolling restores everything; signing in again by password takes her to enrol, by magic link or Google it does not.
+2. **A remotely signed-out device gets errors, not the sign-in page.** The database refuses it correctly; the API answers 500 rather than 401, and some pages show "Could not load…" until a later navigation.
+3. **File storage does not pass through the new gate** (by reading the SQL). The Storage API is a separate door from the data API; the linked-teammate rule for Day log photos does not check the session, so a linked teammate with a password-only or signed-out session could still fetch the shareable photos of scenes they are in.
+4. The fresh confirmation for sharing is enforced by the route only; at the database a second-factor token is enough. As designed.
+5. The invite welcome tells an already-enrolled owner or admin to "set up an authenticator".
+
+Held checks: the two behind findings 1 and 2; `/sw.js` without a session (the test build has no service worker); "the name she sets in Settings is the name her team sees"; "reading the owner's shared Work leaves a line in the owner's access log".
+
+Fixed by the tester: a refused action on People & teams now scrolls to its message (`app/other/settings/people/page.tsx`); before, "Sharing needs an authenticator…" appeared out of view.
+
+Residue: `e2e-mu-keeper@mycelium.local` owns 52 `E2E-mu-…` teams on the local stack (the app has no way to delete a team; a full run adds about six).
+
+### Changes to "Needs Phil's eyes"
+
+- **Before anything else:** do not make her an admin, and do not name her successor, until she has set up an authenticator.
+- **Decide** whether she sets one up on day one. Without it she works normally but cannot share or open "Who has seen my data".
+- **Step 4 (authenticator):** after enrolling, also sign in once by magic link; it should stop at the code prompt.
+- **Step 6 (sharing):** pressing Share now sends him to Security to confirm his code and brings him back; he then fills in the share again.
+- **New, on her phone:** from his laptop press "Sign out there" for her phone's session. Her phone should stop showing data at once and land on the sign-in page.

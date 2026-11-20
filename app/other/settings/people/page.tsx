@@ -118,6 +118,10 @@ export default function PeopleAndTeamsPage() {
       if (okText) setMsg({ tone: "ok", text: okText });
     } catch (e) {
       setMsg({ tone: "error", text: e instanceof Error ? e.message : String(e) });
+      // The message sits at the top of a long page and the button that caused
+      // it may be at the bottom: bring a refusal into view rather than leave
+      // the person looking at a form that seems to have done nothing.
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
 

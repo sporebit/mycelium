@@ -12,7 +12,6 @@ import { readFileSync } from "node:fs";
 import JSZip from "jszip";
 import { test, type Page } from "@playwright/test";
 import { localSql } from "../lib/access/introspect.ts";
-import { TESS, storageStateFor } from "./support/users.ts";
 import {
   CRON_HEADERS,
   MU_PASSWORD,
@@ -24,13 +23,16 @@ import {
   createTeam,
   enrolTotp,
   expect,
+  forget,
   getJson,
   joinByInvite,
   personalSpaceOf,
   reauth,
+  rest,
   retireTeam,
   roomForCodes,
   sqlValue,
+  tessContext,
   sweepLeftovers,
   type Person,
 } from "./support/multiuser.ts";
@@ -75,7 +77,7 @@ test.afterAll(async ({ browser }) => {
 });
 
 test("the owner switches the weekly rundown on from the team's card; a member cannot", async ({ browser, request }) => {
-  own = await joinByInvite(browser, request, "own");
+  own = await joinByInvite(browser, request, "own", { enrol: true }); // an owner needs an authenticator before anything else (0160)
   team = await createTeam(own.request, "Rundown");
   mem = await joinByInvite(browser, own.request, "mem", { teamId: team.id, role: "member" });
   opt = await joinByInvite(browser, own.request, "opt", { teamId: team.id, role: "member" });
@@ -185,7 +187,7 @@ test("each recipient reads their own copy, rendered with what they may see; nobo
   await optPage.close();
   expect((await getJson<{ issues: unknown[] }>(opt!.request, "/api/rundowns")).body.issues).toEqual([]);
 
-  const tess = await browser.newContext({ storageState: storageStateFor(TESS) });
+  const tess = await tessContext(browser);
   const tessPage = await tess.newPage();
   expect((await tessPage.goto(url))?.status()).toBe(404);
   await expect(tessPage.locator("body")).not.toContainText(TEAM_PROJECT);
@@ -208,6 +210,7 @@ test("the export zip holds the caller's personal space and nothing from a team o
   expect((await own!.request.patch(`/api/teams/${team!.id}/members/${mem!.id}`, { data: { sections: [{ section: "organisation", can_view: true }] } })).status()).toBe(200);
   expect((await createProject(mem!.request, MEM_PERSONAL)).status()).toBe(201);
   expect((await own!.request.post("/api/body-metrics", { data: { date: "2019-07-08", weight: 80, notes: OWN_WEIGH_IN } })).status()).toBe(200);
+  await reauth(own!);
   const grant = await own!.request.post("/api/grants", { data: { grantee_id: mem!.id, section: "fitness", verbs: ["view"] } });
   expect(grant.status()).toBe(201);
   const visible = (await getJson<{ projects: Array<{ name: string }> }>(mem!.request, "/api/work/projects?status=all")).body;
@@ -263,6 +266,13 @@ test("the export zip holds the caller's personal space and nothing from a team o
 });
 
 test("deleting an account takes the second factor, a fresh re-auth and the typed email; the personal space goes, team work stays unsigned", async ({ browser }) => {
+  // With the password alone the database refuses outright, whichever door the call comes through.
+  const early = await rest("/rest/v1/rpc/delete_my_account", { token: mem!.session.access_token, body: {} });
+  expect(early.status).toBe(403);
+  expect(((await early.json()) as { hint: string }).hint).toBe("mfa_required");
+  expect((await mem!.request.post("/api/account/delete", { data: { confirm: mem!.email } })).status()).toBe(403);
+  expect(sqlValue(`select count(*) from auth.users where id = '${mem!.id}'`)).toBe("1");
+
   await enrolTotp(mem!);
   await roomForCodes(2);
   const teamRow = () => localSql(`select created_by is null from public.projects where space_id = '${team!.spaceId}' and name = '${MEM_TEAM_PROJECT}'`);
@@ -297,6 +307,7 @@ test("deleting an account takes the second factor, a fresh re-auth and the typed
   await page.getByRole("button", { name: "Delete my account" }).click();
   await page.waitForURL((u) => u.pathname === "/login");
   memDeleted = true;
+  forget(mem!.email);
 
   expect(sqlValue(`select count(*) from auth.users where id = '${mem!.id}'`)).toBe("0");
   expect(sqlValue(`select count(*) from public.profiles where id = '${mem!.id}'`)).toBe("0");
@@ -321,7 +332,6 @@ test("deleting an account takes the second factor, a fresh re-auth and the typed
 });
 
 test("an owner cannot delete their account while they own a team", async () => {
-  await enrolTotp(own!);
   await reauth(own!);
   const page = await own!.context.newPage();
   await page.goto("/other/settings/security");
