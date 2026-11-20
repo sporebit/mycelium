@@ -44,12 +44,18 @@ import { Glossary } from "./cards/Glossary";
 import { Supplements } from "./cards/Supplements";
 import { Bins } from "./cards/Bins";
 import { CARD_REGISTRY, type CardWidth } from "@/lib/dashboard/card-registry";
+import {
+  ALL_SIZES,
+  SIZE_CONFIG,
+  colSpanFor,
+  sizeToWidth,
+  type CardSize,
+} from "@/lib/dashboard/spans";
 
 // ---------------------------------------------------------------------------
-// Types & size configuration
+// Types & size configuration — the spans live in lib/dashboard/spans.ts so
+// the breakpoint mapping can be unit-tested.
 // ---------------------------------------------------------------------------
-
-type CardSize = "sm" | "tall" | "tall-3" | "tall-4" | "md" | "md-3" | "md-4" | "wide" | "lg" | "full";
 
 type DashCardPref = {
   id: string;
@@ -58,37 +64,11 @@ type DashCardPref = {
   hidden: boolean;
 };
 
-const SIZE_CONFIG: Record<CardSize, { colSpan: number; rowSpan: number }> = {
-  sm:       { colSpan: 3,  rowSpan: 1 },
-  tall:     { colSpan: 3,  rowSpan: 2 },
-  "tall-3": { colSpan: 3,  rowSpan: 3 },
-  "tall-4": { colSpan: 3,  rowSpan: 4 },
-  md:       { colSpan: 6,  rowSpan: 2 },
-  "md-3":   { colSpan: 6,  rowSpan: 3 },
-  "md-4":   { colSpan: 6,  rowSpan: 4 },
-  wide:     { colSpan: 9,  rowSpan: 1 },
-  lg:       { colSpan: 9,  rowSpan: 2 },
-  full:     { colSpan: 12, rowSpan: 1 },
-};
-
-const ALL_SIZES: CardSize[] = ["sm", "tall", "tall-3", "tall-4", "md", "md-3", "md-4", "wide", "lg", "full"];
-
 const SIZE_LABELS: Record<CardSize, string> = {
   sm: "SM", tall: "TALL", "tall-3": "TALL 3", "tall-4": "TALL 4",
   md: "MD", "md-3": "MD 3", "md-4": "MD 4",
   wide: "WIDE", lg: "LG", full: "FULL",
 };
-
-function sizeToWidth(size: CardSize): CardWidth {
-  const span = SIZE_CONFIG[size].colSpan;
-  if (span <= 3) return 1;
-  if (span <= 6) return 2;
-  return 3;
-}
-
-function mdColSpan(size: CardSize): number {
-  return SIZE_CONFIG[size].colSpan >= 6 ? 6 : 3;
-}
 
 // ---------------------------------------------------------------------------
 // Persistence — ui_prefs.dashboard_layout is source of truth.
@@ -438,7 +418,7 @@ function SortableCard({
   } = useSortable({ id: pref.id, disabled: !editing });
 
   const cfg = SIZE_CONFIG[pref.size];
-  const colSpan = cols === 12 ? cfg.colSpan : mdColSpan(pref.size);
+  const colSpan = colSpanFor(pref.size, cols);
 
   const Component = CARD_COMPONENTS[pref.id];
   if (!Component) return null;
