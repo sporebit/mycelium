@@ -41,6 +41,20 @@ function readEnvFile(file) {
   return out;
 }
 const env = { ...readEnvFile(path.join(ROOT, ".env.local")), ...process.env };
+
+/**
+ * Every value a key has in the env file, in file order. .env.local can hold
+ * the same key twice (an old value left beside a new one); only one of them
+ * is the one production accepts, so the worker tries each in turn on a 401.
+ */
+function allValues(file, key) {
+  if (!existsSync(file)) return [];
+  const out = [];
+  for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
+    if (line.startsWith(key + "=")) out.push(line.slice(key.length + 1).replace(/^"(.*)"$/, "$1"));
+  }
+  return [...new Set(out.filter(Boolean))];
+}
 const fileConfig = existsSync(path.join(HERE, "config.json")) ? JSON.parse(readFileSync(path.join(HERE, "config.json"), "utf8")) : {};
 const config = {
   url: process.env.MYCELIUM_WORKER_URL ?? fileConfig.url ?? "https://mycelium.sporebit.com",
@@ -49,8 +63,9 @@ const config = {
   ollamaUrl: fileConfig.ollamaUrl ?? "http://127.0.0.1:11434",
   ollamaModel: fileConfig.ollamaModel ?? "qwen2.5:7b",
   whisperModel: fileConfig.whisperModel ?? "large-v3-turbo",
-  secret: process.env.MYCELIUM_WORKER_SECRET ?? env.CRON_SECRET,
 };
+const SECRETS = process.env.MYCELIUM_WORKER_SECRET ? [process.env.MYCELIUM_WORKER_SECRET] : allValues(path.join(ROOT, ".env.local"), "CRON_SECRET");
+let secretIndex = 0;
 const PYTHON = path.join(HERE, ".venv", "Scripts", "python.exe");
 const STARTED_AT = new Date().toISOString();
 
@@ -176,12 +191,18 @@ const RUNNERS = {
 // Talking to Mycelium
 
 async function api(pathname, body) {
-  const res = await fetch(`${config.url}${pathname}`, {
-    method: "POST",
-    headers: { authorization: `Bearer ${config.secret}`, "content-type": "application/json" },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(60_000),
-  });
+  let res;
+  for (let tried = 0; tried < SECRETS.length; tried++) {
+    res = await fetch(`${config.url}${pathname}`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${SECRETS[secretIndex]}`, "content-type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(60_000),
+    });
+    if (res.status !== 401) break;
+    // Not the key this server accepts: try the next one and remember which works.
+    secretIndex = (secretIndex + 1) % SECRETS.length;
+  }
   const text = await res.text();
   let json = {};
   try {
@@ -225,7 +246,7 @@ async function round() {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function main() {
-  if (!config.secret) {
+  if (!SECRETS.length) {
     log("CRON_SECRET is missing from .env.local; the worker cannot sign its requests. Stopping.");
     process.exit(1);
   }
