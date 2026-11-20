@@ -1,0 +1,83 @@
+{
+  "slug": "enable-banking-check",
+  "kind": "setup",
+  "title": "Enable Banking: sign up and check your three banks are covered, before anything is built",
+  "version": 1,
+  "intro": {
+    "verdict_html": "The plan was to read Halifax, Revolut and AMEX through Enable Banking's free tier. Its public list of UK banks does not show any of the three. The list behind a sign-in may differ, and only you can sign up. This is ten minutes to find out; nothing gets built on it until the answer is known. If they are not covered, the fallback is the email and file import, which needs no bank link at all.",
+    "prerequisites": [
+      "An email address for the account"
+    ],
+    "time": [
+      "10 minutes"
+    ],
+    "cost": [
+      "Free. Do not enter card details anywhere; if it asks, stop and say so in the box below."
+    ]
+  },
+  "phases": [
+    {
+      "id": "1",
+      "title": "Sign up and look",
+      "steps": [
+        {
+          "id": "1.1",
+          "title": "Create the account",
+          "actor": "you",
+          "where": {
+            "label": "enablebanking.com → Sign up",
+            "url": "https://enablebanking.com/sign-in/",
+            "kind": "browser"
+          },
+          "body_html": "Sign up. Choose the free or restricted (personal use) option if asked."
+        },
+        {
+          "id": "1.2",
+          "title": "Look for the three banks",
+          "actor": "you",
+          "where": {
+            "label": "Enable Banking → Control Panel → ASPSPs / Banks",
+            "url": "https://enablebanking.com/cp/",
+            "kind": "browser"
+          },
+          "body_html": "Find the list of banks (it may be called ASPSPs), filter to <b>United Kingdom</b>, and look for <b>Halifax</b> (or Lloyds Banking Group), <b>Revolut</b> and <b>American Express</b>.",
+          "fields": [
+            {
+              "key": "eb_halifax",
+              "label": "Halifax",
+              "placeholder": "listed / not listed"
+            },
+            {
+              "key": "eb_revolut",
+              "label": "Revolut",
+              "placeholder": "listed / not listed"
+            },
+            {
+              "key": "eb_amex",
+              "label": "American Express",
+              "placeholder": "listed / not listed"
+            }
+          ]
+        },
+        {
+          "id": "1.3",
+          "title": "Anything it asked for",
+          "actor": "you",
+          "body_html": "Note anything unexpected: a card, a company number, a production approval step, a limit on how many accounts.",
+          "fields": [
+            {
+              "key": "eb_notes",
+              "label": "Notes"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "security",
+              "html": "Do not link a bank yet and do not create an application. That comes with the build, in its own checklist, once coverage is known."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
