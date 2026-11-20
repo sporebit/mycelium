@@ -287,7 +287,7 @@ function complainOnce(message) {
   complained = true;
   const script = path.join(ROOT, "scripts", "run-notify.mjs");
   if (!existsSync(script)) return;
-  execFile(process.execPath, [script, `The PC worker cannot reach Mycelium: ${message}. Captured audio waits on the PC until this is fixed. Log: %LOCALAPPDATA%\Mycelium\pc-worker.log`], { windowsHide: true, timeout: 60_000 }, () => undefined);
+  execFile(process.execPath, [script, `The PC worker cannot reach Mycelium: ${message}. Captured audio waits on the PC until this is fixed. Log: pc-worker.log in the Mycelium folder under %LOCALAPPDATA%`], { windowsHide: true, timeout: 60_000 }, () => undefined);
 }
 
 async function main() {
