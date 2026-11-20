@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Panel } from "@/components/dashboard/Panel";
 import { Mono } from "@/components/dashboard/Mono";
 import { Money } from "@/components/finance/Money";
+import { NetWorthPanel } from "@/components/finance/NetWorthPanel";
 import { usePrivacy } from "@/lib/context/PrivacyContext";
 import type {
   FinanceData,
@@ -367,6 +368,8 @@ export function FinancePageClient() {
         </div>
       )}
 
+      {/* Net worth over time, with the by-hand holdings (pension, house, mortgage, cars) */}
+      <NetWorthPanel />
       {/* History table */}
       <Panel title="SNAPSHOT HISTORY" topRight={<Mono>24 MONTHS</Mono>}>
         {history === null ? (
