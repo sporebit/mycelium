@@ -157,6 +157,7 @@ export const SECTIONS: SectionConfig[] = [
       { label: "Settings", href: "/other/settings", primary: true },
       { label: "Security", href: "/other/settings/security", primary: false },
       { label: "People & teams", href: "/other/settings/people", primary: false },
+      { label: "Teams", href: "/other/settings/teams", primary: false },
       { label: "Export", href: "/other/export", primary: true },
       { label: "API Usage", href: "/other/api-usage", primary: true },
     ],
@@ -183,4 +184,16 @@ export function sectionForPath(pathname: string): SectionConfig | null {
   }
   if (best) return best.section;
   return SECTIONS.find((s) => under(pathname, s.baseRoute)) ?? null;
+}
+
+/**
+ * The sub-page a path is on, as its href: the longest match wins, so
+ * /other/settings/security lights Security and not Settings as well.
+ */
+export function activeSubPageHref(pathname: string, subPages: readonly SubPage[]): string | null {
+  let best: string | null = null;
+  for (const sp of subPages) {
+    if (under(pathname, sp.href) && (best === null || sp.href.length > best.length)) best = sp.href;
+  }
+  return best;
 }

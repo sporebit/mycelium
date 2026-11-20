@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useId, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { resolveTab } from "@/lib/settings/tabs";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { daylogSettings, type DaylogSettings } from "@/lib/daylog/settings";
 import { type DailySettings, mergeDailySettings } from "@/lib/daily/settings";
 import { DEFAULT_FREE_MINUTES } from "@/lib/daily/propose";
@@ -107,7 +110,16 @@ export default function SettingsPage() {
  * Note this is NOT the same concept as ui_prefs.hidden_sections — that is app
  * navigation. These are the panels within this page.
  */
-function SettingsBody({
+function SettingsBody(props: { settings: Settings; stats: Stats | null; patch: (f: Record<string, unknown>) => void }) {
+  // useSearchParams() wants a Suspense boundary above it.
+  return (
+    <Suspense fallback={null}>
+      <SettingsPanels {...props} />
+    </Suspense>
+  );
+}
+
+function SettingsPanels({
   settings,
   stats,
   patch,
@@ -133,8 +145,21 @@ function SettingsBody({
     { key: "danger", label: "Danger zone", render: () => <DangerZoneSection /> },
   ];
 
-  const [active, setActive] = useState("profile");
-  const [sheetKey, setSheetKey] = useState<string | null>(null);
+  // The open panel is in the URL (?tab=), so it survives a reload and can be
+  // linked to; landing with no parameter opens the first (MYC-190). On
+  // touch the same parameter is the open Sheet.
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const keys = PANELS.map((x) => x.key);
+  const raw = params.get("tab");
+  const active = resolveTab(keys, raw);
+  const go = (key: string | null) => router.replace(key && key !== keys[0] ? `${pathname}?tab=${key}` : pathname, { scroll: false });
+  const setActive = (key: string) => go(key);
+  // The Sheet portals out of the page, so it is kept to touch widths here, not by a class.
+  const desktop = useMediaQuery("(min-width: 768px)", true);
+  const sheetKey = !desktop && raw && keys.includes(raw) ? raw : null;
+  const setSheetKey = (key: string | null) => router.replace(key ? `${pathname}?tab=${key}` : pathname, { scroll: false });
   const activePanel = PANELS.find((x) => x.key === active) ?? PANELS[0];
   const sheetPanel = PANELS.find((x) => x.key === sheetKey) ?? null;
 
@@ -177,6 +202,7 @@ function SettingsBody({
         ))}
       </div>
 
+      {/* Touch only: on desktop the same ?tab= is the pane, so the Sheet must not open as well. */}
       {sheetPanel && (
         <Sheet open onClose={() => setSheetKey(null)} title={sheetPanel.label} side="auto">
           <div className="pt-2">{sheetPanel.render()}</div>
@@ -371,10 +397,12 @@ function SelectSetting({
   options: { value: string; label: string }[];
   onSave: (v: string) => void;
 }) {
+  const id = useId();
   return (
     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
-      <label className="text-xs text-text-mid sm:w-48 shrink-0">{label}</label>
+      <label htmlFor={id} className="text-xs text-text-mid sm:w-48 shrink-0">{label}</label>
       <select
+        id={id}
         value={value}
         onChange={(e) => onSave(e.target.value)}
         className="flex-1 bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"

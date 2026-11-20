@@ -9,6 +9,20 @@ import { Mono } from "@/components/dashboard/Mono";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { usePasskeySupport } from "@/lib/auth/usePasskeySupport";
 import { ApiTokensCard } from "@/components/settings/ApiTokensCard";
+import { SubNav } from "@/components/settings/SubNav";
+import { buildTabs, resolveTab } from "@/lib/settings/tabs";
+
+/** The page's sub-sections (MYC-190): landing opens the first; the rest are ?tab=. */
+const TABS = [
+  { key: "signin", label: "Sign-in" },
+  { key: "sessions", label: "Sessions & tokens" },
+  { key: "access", label: "Access log" },
+  { key: "account", label: "Delete account" },
+] as const;
+const TAB_KEYS = TABS.map((t) => t.key);
+const HERE = "/other/settings/security";
+/** Back to a tab of this page after a code prompt, URL-encoded for a `next` parameter. */
+const backTo = (tab: (typeof TAB_KEYS)[number]) => encodeURIComponent(`${HERE}?tab=${tab}`);
 
 type Passkey = {
   id: string;
@@ -78,6 +92,8 @@ export default function SecuritySettingsPage() {
   const params = useSearchParams();
   const mustEnrol = params.get("enrol") === "totp";
   const reauthNext = params.get("reauth") === "1" ? (params.get("next") ?? "/admin") : null;
+  const tab = resolveTab(TAB_KEYS, params.get("tab"));
+  const tabs = buildTabs(HERE, TABS);
   const [supabase] = useState(() => createBrowserClient());
   const [email, setEmail] = useState<string | null>(null);
   const [aal, setAal] = useState<string>("aal1");
@@ -168,17 +184,25 @@ export default function SecuritySettingsPage() {
 
       {reauthNext && <ReauthCard next={reauthNext} />}
 
-      <PasswordCard supabase={supabase} />
+      <SubNav tabs={tabs} active={tab} label="Security sections" />
 
-      <TotpCard supabase={supabase} factors={factors} onChange={load} />
+      {tab === "signin" && (
+        <>
+          <PasswordCard supabase={supabase} />
 
-      <PasskeysCard
-        supabase={supabase}
-        passkeys={passkeys}
-        supported={passkeysSupported}
-        onChange={load}
-      />
+          <TotpCard supabase={supabase} factors={factors} onChange={load} />
 
+          <PasskeysCard
+            supabase={supabase}
+            passkeys={passkeys}
+            supported={passkeysSupported}
+            onChange={load}
+          />
+        </>
+      )}
+
+      {tab === "sessions" && (
+        <>
       {/* Tickets spec §14.4: scoped bearer tokens for the tix CLI and Claude Code */}
       <ApiTokensCard />
 
@@ -220,10 +244,12 @@ export default function SecuritySettingsPage() {
           </ul>
         )}
       </Card>
+        </>
+      )}
 
-      <AccessLogCard hasFactor={factors.some((f) => f.status === "verified")} />
+      {tab === "access" && <AccessLogCard hasFactor={factors.some((f) => f.status === "verified")} />}
 
-      <DeleteAccountCard email={email} hasFactor={factors.some((f) => f.status === "verified")} />
+      {tab === "account" && <DeleteAccountCard email={email} hasFactor={factors.some((f) => f.status === "verified")} />}
     </div>
   );
 }
@@ -310,16 +336,16 @@ function AccessLogCard({ hasFactor }: { hasFactor: boolean }) {
           {hasFactor ? (
             <>
               This needs your authenticator code.{" "}
-              <a className="underline underline-offset-4" href="/login?step=mfa&next=%2Fother%2Fsettings%2Fsecurity">Enter it</a>
+              <a className="underline underline-offset-4" href={`/login?step=mfa&next=${backTo("access")}`}>Enter it</a>
             </>
           ) : (
-            "This needs an authenticator app. Enrol one above, then come back."
+            "This needs an authenticator app. Enrol one under Sign-in, then come back."
           )}
         </Note>
       ) : needsReauth ? (
         <Note>
           Confirm your authenticator to view this.{" "}
-          <a className="underline underline-offset-4" href="/other/settings/security?reauth=1&next=%2Fother%2Fsettings%2Fsecurity">Confirm</a>
+          <a className="underline underline-offset-4" href={`${HERE}?reauth=1&next=${backTo("access")}`}>Confirm</a>
         </Note>
       ) : events === null ? (
         <Note>Loading…</Note>
@@ -354,10 +380,10 @@ function DeleteAccountCard({ email, hasFactor }: { email: string | null; hasFact
     const j = (await res.json().catch(() => ({}))) as { error?: string; reason?: string };
     setBusy(false);
     if (res.status === 403 && j.reason === "reauth_required") {
-      return window.location.assign("/other/settings/security?reauth=1&next=%2Fother%2Fsettings%2Fsecurity");
+      return window.location.assign(`${HERE}?reauth=1&next=${backTo("account")}`);
     }
     if (res.status === 403 && j.reason === "mfa_required") {
-      return setErr(hasFactor ? "Sign in again with your authenticator code first." : "Deleting an account needs an authenticator app. Enrol one above first.");
+      return setErr(hasFactor ? "Sign in again with your authenticator code first." : "Deleting an account needs an authenticator app. Enrol one under Sign-in first.");
     }
     if (!res.ok) return setErr(j.error ?? "Could not delete");
     window.location.assign("/login");

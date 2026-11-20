@@ -60,7 +60,15 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
       { label: "Weekly review", href: "/organisation/tickets/review" },
     ],
   },
-  { label: "Settings", items: [{ label: "Settings", href: "/other/settings" }] },
+  {
+    label: "Settings",
+    items: [
+      { label: "Settings", href: "/other/settings" },
+      { label: "Security", href: "/other/settings/security" },
+      { label: "People & teams", href: "/other/settings/people" },
+      { label: "Teams", href: "/other/settings/teams" },
+    ],
+  },
 ];
 
 /** Which group a path belongs to: the longest matching place wins ("/organisation/hours" is Work, not Life). */
@@ -73,6 +81,16 @@ export function groupForPath(pathname: string, groups: readonly MenuGroup[] = ME
     }
   }
   return best?.label ?? null;
+}
+
+/** The place a path is at, within one group's items: the longest match wins, so Security does not also light Settings. */
+export function placeForPath(pathname: string, items: ReadonlyArray<{ href: string }>): string | null {
+  let best: string | null = null;
+  for (const it of items) {
+    const hit = it.href === "/" ? pathname === "/" || pathname === "/today" : pathname === it.href || pathname.startsWith(it.href + "/");
+    if (hit && (best === null || it.href.length > best.length)) best = it.href;
+  }
+  return best;
 }
 
 /** Every place in the menu, once. */
