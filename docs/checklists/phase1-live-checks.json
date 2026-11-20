@@ -2,7 +2,7 @@
   "slug": "phase1-live-checks",
   "kind": "test",
   "title": "Live checks after the test pass: one surface per sitting",
-  "version": 7,
+  "version": 8,
   "intro": {
     "verdict_html": "Everything built so far was exercised by automation on 20 November: 482 end-to-end checks as two people, 821 unit and database checks, and a pass that opens all 220 page views. Faults found were fixed or are on the build list. What is left here is only what a machine cannot judge: look, feel, a real voice, a real receipt, a second person's phone. Each chunk is one surface and about fifteen minutes; do them in any order, on any day. Chunk 1 is five minutes and should be first.",
     "prerequisites": [
@@ -1653,10 +1653,10 @@
           "actor": "you",
           "where": {
             "label": "Settings → Security",
-            "url": "https://mycelium.sporebit.com/other/settings/security",
+            "url": "https://mycelium.sporebit.com/other/settings/security?tab=sessions",
             "kind": "page"
           },
-          "body_html": "<b>Quick unlock</b>: set a PIN. Ask Kirsty to set hers on her phone (same card)."
+          "body_html": "On the <b>Sessions &amp; tokens</b> tab, <b>Quick unlock</b>: set a PIN. Ask Kirsty to set hers on her phone (same card)."
         },
         {
           "id": "18.2",
@@ -1664,10 +1664,10 @@
           "actor": "you",
           "where": {
             "label": "Settings → Security",
-            "url": "https://mycelium.sporebit.com/other/settings/security",
+            "url": "https://mycelium.sporebit.com/other/settings/security?tab=sessions",
             "kind": "page"
           },
-          "body_html": "<b>Walls</b>: Team <i>Family</i>, name <i>Kitchen</i>, <b>Add wall</b>. An eight-digit code appears; it is shown once and lasts ten minutes."
+          "body_html": "On the <b>Sessions &amp; tokens</b> tab, <b>Walls</b>: Team <i>Family</i>, name <i>Kitchen</i>, <b>Add wall</b>. An eight-digit code appears; it is shown once and lasts ten minutes."
         },
         {
           "id": "18.3",
@@ -1731,10 +1731,10 @@
           "actor": "you",
           "where": {
             "label": "Settings → Security",
-            "url": "https://mycelium.sporebit.com/other/settings/security",
+            "url": "https://mycelium.sporebit.com/other/settings/security?tab=sessions",
             "kind": "page"
           },
-          "body_html": "<b>Walls → Revoke</b> when you are done with the phone, and pair the real frame with a new wall (MYC-205 has the pairing steps)."
+          "body_html": "<b>Sessions &amp; tokens → Walls → Revoke</b> when you are done with the phone, and pair the real frame with a new wall (MYC-205 has the pairing steps)."
         },
         {
           "id": "18.8",
@@ -1832,6 +1832,102 @@
               "label": "Team key seen? (e.g. WH)"
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "20",
+      "title": "Settings navigation, dashboard cards, the live AI model list (10 minutes; step 7 optional)",
+      "lede_html": "Built and checked by automation as both people. Nothing switches a model on its own: the list is a fact seen, the choice stays yours.",
+      "steps": [
+        {
+          "id": "20.1",
+          "title": "Security opens on Sign-in; tabs are addresses",
+          "actor": "you",
+          "where": {
+            "label": "Settings → Security",
+            "url": "https://mycelium.sporebit.com/other/settings/security",
+            "kind": "page"
+          },
+          "body_html": "From the sidebar: the OTHER group is open and only Security is lit; the page opens on <b>Sign-in</b>. Tap <b>Access log</b>: the address ends <code>?tab=access</code>; reload and it stays."
+        },
+        {
+          "id": "20.2",
+          "title": "Teams, People, Sharing",
+          "actor": "you",
+          "where": {
+            "label": "Settings → Teams",
+            "url": "https://mycelium.sporebit.com/other/settings/teams",
+            "kind": "page"
+          },
+          "body_html": "From the sidebar: Teams is lit, the Teams sub-section is open with your team. Tap <b>People</b>: the bin and the ignored words. Tap <b>Sharing</b>: the share form."
+        },
+        {
+          "id": "20.3",
+          "title": "The new shell's Settings dropdown",
+          "actor": "you",
+          "where": {
+            "label": "Settings → Appearance",
+            "url": "https://mycelium.sporebit.com/other/settings?tab=appearance",
+            "kind": "page"
+          },
+          "body_html": "Switch to the new shell. Open the Settings dropdown in the top bar: Settings, Security, People &amp; teams, Teams; the one you are on is marked. Switch back."
+        },
+        {
+          "id": "20.4",
+          "title": "Half-width cards on the tablet grid",
+          "actor": "you",
+          "where": {
+            "label": "Home → Everything",
+            "url": "https://mycelium.sporebit.com/",
+            "kind": "page"
+          },
+          "body_html": "On the phone or a window narrower than 1024px: the half-width cards are two thirds of the row with a third beside them, no empty rows. At full width nothing has moved.",
+          "fields": [
+            {
+              "key": "cards_tablet",
+              "label": "Holes gone? (yes / where not)"
+            }
+          ]
+        },
+        {
+          "id": "20.5",
+          "title": "Settings → AI offers only priced models",
+          "actor": "you",
+          "where": {
+            "label": "Settings → AI",
+            "url": "https://mycelium.sporebit.com/other/settings?tab=ai",
+            "kind": "page"
+          },
+          "body_html": "The two selects offer only the priced models with their prices; <i>In use now</i> names the models the code runs on; <i>Seen at the providers</i> is empty until the first 05:00 run. (MYC-204 asks whether the two selects should drive anything.)"
+        },
+        {
+          "id": "20.6",
+          "title": "The first model refresh",
+          "actor": "you",
+          "where": {
+            "label": "Settings → AI",
+            "url": "https://mycelium.sporebit.com/other/settings?tab=ai",
+            "kind": "page"
+          },
+          "body_html": "Wait for 05:00 the next morning, or in a terminal with your browser session run <code>curl -X POST https://mycelium.sporebit.com/api/ai/models</code>. Then Settings → AI lists both providers' models with first and last seen, all today. No Telegram line: the first run is the baseline.",
+          "fields": [
+            {
+              "key": "models_seen",
+              "label": "Both providers listed? (yes / which not)"
+            }
+          ]
+        },
+        {
+          "id": "20.7",
+          "title": "A new or retired model is one line",
+          "actor": "you",
+          "where": {
+            "label": "Telegram",
+            "url": "https://t.me",
+            "kind": "page"
+          },
+          "body_html": "The morning after a provider adds a model: one line <i>New Anthropic model: …</i> inside the day's three. To see the retired-and-pinned line without waiting: pin a model in Settings → AI, mark its row retired with the CLI's read-write query or the SQL editor (<code>update public.ai_models set retired_at = now() where model_id = '…'</code>), run step 6 again: one line <i>Retired AI model still pinned: …</i>, once."
         }
       ]
     }
