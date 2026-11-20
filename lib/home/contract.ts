@@ -69,8 +69,9 @@ export type HomeData = {
   captures_waiting: number;
   /** Features gone quiet, biggest gap first (lib/dormant). */
   quiet: Array<{ href: string; label: string; how_long: string }>;
-  /** Not built yet (family, finds, another person's nudges): null until they are. */
+  /** Not built yet (family, finds): null until they are. */
   family: null;
   finds: null;
-  nudges: Array<{ from: string; at: string; text: string }>;
+  /** Nudges from other people about this person's items, still unanswered (lib/system/nudges.ts). `at` is "13:52". */
+  nudges: Array<{ id: string; from: string; at: string; text: string }>;
 };

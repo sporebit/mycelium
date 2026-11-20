@@ -55,6 +55,14 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
   const [error, setError] = useState<string | null>(null);
   const [weekCount, setWeekCount] = useState(data.week.count);
   const [lifetime, setLifetime] = useState(data.lifetime.count);
+  const [notes, setNotes] = useState(data.nudges);
+  const notToday = async (id: string) => {
+    // One tap, no reason asked, nobody told (research rule 30). The note goes at once; if the save fails it comes back.
+    const before = notes;
+    setNotes((list) => list.filter((n) => n.id !== id));
+    const res = await fetch(`/api/nudges/${id}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "not_today" }) }).catch(() => null);
+    if (!res?.ok) setNotes(before);
+  };
   const network = useRef<NetworkHandle | null>(null);
 
   const shown = items.filter((i) => !gone.has(i.item_id));
@@ -140,6 +148,22 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
                 Close the day
               </Link>
             </div>
+
+            {notes.map((n) => (
+              <div key={n.id} className="plate-settle flex flex-col gap-2 pt-3" style={{ boxShadow: "0 -1px 0 rgba(236,230,210,0.2)" }} data-testid="plate-nudge">
+                <p className={`${SERIF} text-[19px] [text-wrap:pretty]`} style={{ color: "#ecd0a0" }}>
+                  Margin note, <span className={`${MONO} text-[15px] tabular-nums`}>{n.at}</span>: {n.text}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void notToday(n.id)}
+                  className="plate-press min-h-[44px] self-start rounded-[8px] px-3.5 [text-shadow:none]"
+                  style={{ background: "transparent", color: INK, boxShadow: "0 0 0 1px rgba(236,230,210,0.34)" }}
+                >
+                  Not today
+                </button>
+              </div>
+            ))}
 
             {data.quiet.length ? (
               <div className="plate-settle flex flex-col gap-1" data-testid="plate-quiet">

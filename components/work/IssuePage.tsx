@@ -6,6 +6,7 @@
  * revalidates this key and the Work lists. Steps stay on the old engine
  * (/api/tickets/[key]/steps); links and evidence on /api/tickets/[key]/links.
  */
+import { NudgeButton } from "@/components/nudges/NudgeButton";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -120,6 +121,10 @@ export function IssuePage() {
 
 	return (
 		<div className="mx-auto max-w-5xl">
+			{/* Shown only on someone else's open item that you can see. */}
+			<div className="float-right ml-3">
+				<NudgeButton ticketId={t.id} />
+			</div>
 			<nav aria-label="Breadcrumb" className="mb-1 flex flex-wrap items-center gap-1 text-[11px] text-text-lo">
 				<Link href="/work/projects" className="hover:text-text-hi">
 					Projects

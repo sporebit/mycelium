@@ -12,6 +12,7 @@ import { goneQuiet } from "@/lib/dormant/features";
 import { featureStatesFor } from "@/lib/dormant/server";
 import { addDays, buildIndex, fmtHm, mondayOf, weekSummary } from "@/lib/hours/calc";
 import { ABSENCE_SELECT, ENTRY_SELECT, HOLIDAY_SELECT, type HoursBundle, SETTINGS_SELECT } from "@/lib/hours/types";
+import { openNudges } from "@/lib/system/nudges";
 import { todayLondon } from "@/lib/tickets/when";
 import type { HomeData, HomeHours, HomeItem, HomeWeekDay } from "./contract";
 import { seedOf } from "./specimen";
@@ -109,12 +110,14 @@ export async function loadHome(db: SupabaseClient, uid: string, now: Date = new 
   const day = todayLondon(now);
   const settings = await dailySettings(db);
   const today = await viewOf(db, await ensurePlan(db, uid, undefined, { freeMinutes: settings.free_minutes }));
-  const [done, hrs, waiting, quiet, profile] = await Promise.all([
+  const hhmm = (iso: string) => new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
+  const [done, hrs, waiting, quiet, profile, nudges] = await Promise.all([
     quietly("finished", () => finished(db, uid, day), { week: [], count: 0, since: null }),
     quietly("hours", () => hours(db, day), null),
     quietly("captures", () => countWaiting(db), 0),
     quietly("quiet", async () => goneQuiet(await featureStatesFor(db, now)), []),
     quietly("profile", async () => (await db.from("profiles").select("display_name").eq("id", uid).maybeSingle()).data as { display_name: string | null } | null, null),
+    quietly("nudges", () => openNudges(db, now), []),
   ]);
   const days = weekDays(day, done.week);
   return {
@@ -131,6 +134,6 @@ export async function loadHome(db: SupabaseClient, uid: string, now: Date = new 
     quiet: quiet.map((q) => ({ href: q.href, label: q.label, how_long: q.how_long ?? "" })),
     family: null,
     finds: null,
-    nudges: [],
+    nudges: nudges.slice(0, 3).map((n) => ({ id: n.id, from: n.from, at: hhmm(n.at), text: n.text })),
   };
 }

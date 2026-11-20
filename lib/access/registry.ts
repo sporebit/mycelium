@@ -327,6 +327,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
   },
   {
     section: "platform",
+    group: "nudges",
+    tables: ["nudges"],
+    note: "A nudge from another person about one of your items (0168). Owned by the person who receives it; the sender never reads it.",
+  },
+  {
+    section: "platform",
     group: "jobs",
     tables: ["jobs"],
     note: "Work queued for the PC or the cloud (0159); owned by the user whose data it touches, claimed by the worker with the service role.",

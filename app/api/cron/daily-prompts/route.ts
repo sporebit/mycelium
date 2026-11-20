@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { matchesBearer } from "@/lib/auth/gate";
 import { runFallbacks } from "@/lib/daily/prompts";
+import { tellSendersOfDone } from "@/lib/system/nudges";
 import { activeUserIds } from "@/lib/system/users";
 import { withUser } from "@/lib/system/withUser";
 import { londonNow } from "@/lib/tickets/categories";
@@ -21,13 +22,18 @@ async function run(req: NextRequest) {
   }
   const now = londonNow();
   const time = `${String(Math.floor(now.minutes / 60)).padStart(2, "0")}:${String(now.minutes % 60).padStart(2, "0")}`;
-  const out = { users: 0, morning: 0, evening: 0, failed: 0 };
+  const out = { users: 0, morning: 0, evening: 0, nudges_told: 0, failed: 0 };
   for (const uid of await activeUserIds()) {
     try {
       const sent = await withUser(uid, (db) => runFallbacks(db, uid, time));
       out.users += 1;
       if (sent.morning) out.morning += 1;
       if (sent.evening) out.evening += 1;
+      // Anyone who nudged this person about something now finished is told, once (research rule 30).
+      out.nudges_told += await tellSendersOfDone(uid).catch((err) => {
+        console.error(`[cron/daily-prompts] nudges for ${uid}:`, err);
+        return 0;
+      });
     } catch (err) {
       // One person's failure does not stop the rest.
       out.failed += 1;
