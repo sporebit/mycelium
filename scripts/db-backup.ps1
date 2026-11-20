@@ -107,6 +107,27 @@ try {
     if ($tables -lt 100) { throw "only $tables TABLE DATA entries in the archive; the public schema alone has ~145 tables" }
     Log "ok: $tables tables, schema.sql ${schemaKb} KB, data.dump ${dataKb} KB"
 
+    # ---- 2b. the stored files ------------------------------------------------
+    # The dump holds the record of each uploaded file (storage.objects) but not
+    # the file itself (found by the restore test, 2026-11-20). Recordings,
+    # photos, receipt images and attachments are copied beside the dumps, into
+    # one folder that only ever grows: a file deleted in the app by mistake is
+    # still there. Incremental, so it is quick. A failure here is logged and
+    # does not fail the database backup, which is already safely written.
+    try {
+        $node = (Get-Command node -ErrorAction SilentlyContinue).Source
+        $storageScript = Join-Path $PSScriptRoot "storage-backup.mjs"
+        if ($node -and (Test-Path $storageScript)) {
+            $storageRoot = Join-Path (Split-Path -Parent $BackupRoot) "storage"
+            $out = & $node $storageScript --root $storageRoot 2>&1 | Select-Object -First 3
+            Log ("files " + (($out | ForEach-Object { "$_".Trim() }) -join " | "))
+        } else {
+            Log "files skipped: node or storage-backup.mjs not found"
+        }
+    } catch {
+        Log "files FAILED (the database backup above is unaffected): $($_.Exception.Message)"
+    }
+
     # ---- 3. retention --------------------------------------------------------
     $today = (Get-Date).Date
     $kept = 0; $removed = 0
