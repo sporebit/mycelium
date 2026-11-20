@@ -125,6 +125,8 @@ test("Done colours the specimen in, finishes the ticket, and the spore print gro
   await expect(plate.getByTestId("plate-title")).toContainText("then this");
   await expect(plate.getByText("a. If there is time")).toBeVisible();
   await plate.getByRole("button", { name: "Not now" }).click();
+  // Saved (not merely hidden): the centre goes back to the finished win, and the set-aside one is nowhere.
+  await expect(plate.getByTestId("plate-title")).toContainText("ring the plumber");
   await expect(plate.getByTestId("plate-figure").filter({ hasText: "then this" })).toHaveCount(0);
 
   // A reload draws the same day: the finished one is still coloured in.

@@ -164,15 +164,15 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
           <main className="flex min-w-0 flex-col items-center gap-4">
             {main ? (
               <>
-                <div className="grid w-full max-w-[700px] grid-cols-[1fr_minmax(220px,300px)_1fr] items-center gap-4">
-                  <div className={`${SERIF} flex flex-col gap-24 text-right text-[18px]`}>
+                <div className="grid w-full max-w-[700px] grid-cols-[1fr_minmax(200px,250px)_1fr] items-center gap-4">
+                  <div className={`${SERIF} flex flex-col gap-20 text-right text-[18px]`}>
                     <p>a. {main.is_win ? "The day's win" : "If there is time"}</p>
                     <p style={{ color: SOFT }}>d. Grows under {main.section ?? "no section yet"}</p>
                   </div>
                   <div className="aspect-[300/440] w-full" key={main.item_id}>
                     <Specimen species={speciesFor(main.section, main.seed)} seed={main.seed} done={main.state === "done"} title={`Specimen for ${main.title}`} />
                   </div>
-                  <div className={`${SERIF} flex flex-col gap-24 text-[18px]`}>
+                  <div className={`${SERIF} flex flex-col gap-20 text-[18px]`}>
                     <p className="[text-wrap:pretty]">b. First step: {main.first_step}</p>
                     <p>
                       c. <span className={`${MONO} text-[15px] tabular-nums`}>{about(main.minutes)}</span>
