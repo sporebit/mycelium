@@ -2,7 +2,7 @@
   "slug": "phase1-live-checks",
   "kind": "test",
   "title": "Live checks after the test pass: one surface per sitting",
-  "version": 8,
+  "version": 9,
   "intro": {
     "verdict_html": "Everything built so far was exercised by automation on 20 November: 482 end-to-end checks as two people, 821 unit and database checks, and a pass that opens all 220 page views. Faults found were fixed or are on the build list. What is left here is only what a machine cannot judge: look, feel, a real voice, a real receipt, a second person's phone. Each chunk is one surface and about fifteen minutes; do them in any order, on any day. Chunk 1 is five minutes and should be first.",
     "prerequisites": [
@@ -1928,6 +1928,130 @@
             "kind": "page"
           },
           "body_html": "The morning after a provider adds a model: one line <i>New Anthropic model: …</i> inside the day's three. To see the retired-and-pinned line without waiting: pin a model in Settings → AI, mark its row retired with the CLI's read-write query or the SQL editor (<code>update public.ai_models set retired_at = now() where model_id = '…'</code>), run step 6 again: one line <i>Retired AI model still pinned: …</i>, once."
+        }
+      ]
+    },
+    {
+      "id": "21",
+      "title": "Gifts, and the other apps in Work (15 minutes)",
+      "lede_html": "Built and checked by automation as both people. Owner-only by policy shape: a team member sees none of your gifts or occasions. The morning line is counts only and never names anyone.",
+      "steps": [
+        {
+          "id": "21.1",
+          "title": "A birthday becomes an occasion",
+          "actor": "you",
+          "where": {
+            "label": "People",
+            "url": "https://mycelium.sporebit.com/organisation/people",
+            "kind": "page"
+          },
+          "body_html": "Open someone whose birthday you know and set their date of birth if it is empty. Organisation → Gifts: press <b>Refresh occasions</b>. Their birthday appears under <i>By occasion</i> with the days left; Christmas and Valentine's Day are there too."
+        },
+        {
+          "id": "21.2",
+          "title": "A gift idea by voice or text",
+          "actor": "you",
+          "where": {
+            "label": "Telegram",
+            "url": "https://t.me",
+            "kind": "page"
+          },
+          "body_html": "Tell the bot: <i>Get &lt;their name&gt; a &lt;something&gt; for his birthday because &lt;reason&gt;</i>. The reply is <i>Saved for review — gift idea for &lt;name&gt;: \"…\" (birthday)</i>. Organisation → Entity review: the card shows the thing, them in <b>For</b>, their birthday in <b>Occasion</b>, the reason. Approve. It sits under their birthday on the Gifts page.",
+          "fields": [
+            {
+              "key": "gift_capture",
+              "label": "Recipient and occasion matched? (yes / which not)"
+            }
+          ]
+        },
+        {
+          "id": "21.3",
+          "title": "The same idea again: keep existing",
+          "actor": "you",
+          "where": {
+            "label": "Entity review",
+            "url": "https://mycelium.sporebit.com/organisation/review",
+            "kind": "page"
+          },
+          "body_html": "Say the same idea again and approve it with <b>keep existing</b> on the review card: no second idea."
+        },
+        {
+          "id": "21.4",
+          "title": "The duplicate warning by hand",
+          "actor": "you",
+          "where": {
+            "label": "Gifts",
+            "url": "https://mycelium.sporebit.com/organisation/gifts",
+            "kind": "page"
+          },
+          "body_html": "Add an idea by hand for the same person with the same words: the warning names the one you have. Cancel."
+        },
+        {
+          "id": "21.5",
+          "title": "Shortlist, then Buy this",
+          "actor": "you",
+          "where": {
+            "label": "Gifts",
+            "url": "https://mycelium.sporebit.com/organisation/gifts",
+            "kind": "page"
+          },
+          "body_html": "Open an idea: add a note, <b>Shortlist</b>, then <b>Buy this</b>. It is bought, the purchase is on the shopping list (Organisation → Purchases) with the retailer in its title, and the <i>purchase →</i> link on the gift opens it."
+        },
+        {
+          "id": "21.6",
+          "title": "A budget on the occasion",
+          "actor": "you",
+          "where": {
+            "label": "Gifts",
+            "url": "https://mycelium.sporebit.com/organisation/gifts",
+            "kind": "page"
+          },
+          "body_html": "Open the occasion (press its name) and give it a budget: the budget line shows committed and paid against it on the page and on the dashboard's Gifts card."
+        },
+        {
+          "id": "21.7",
+          "title": "The reminder task and the morning line",
+          "actor": "you",
+          "where": {
+            "label": "Work",
+            "url": "https://mycelium.sporebit.com/work",
+            "kind": "page"
+          },
+          "body_html": "If the birthday is inside 30 days: the morning after, a task <i>Gift for &lt;name&gt; — birthday, &lt;date&gt;</i> is in Next, due a week before. Thirty, seven and two days out the morning line says <i>N occasions in the next 30 days, M with nothing bought</i> and names nobody.",
+          "fields": [
+            {
+              "key": "gift_reminder",
+              "label": "Task made once? Line names nobody? (yes / no)"
+            }
+          ]
+        },
+        {
+          "id": "21.8",
+          "title": "Export",
+          "actor": "you",
+          "where": {
+            "label": "Gifts",
+            "url": "https://mycelium.sporebit.com/organisation/gifts",
+            "kind": "page"
+          },
+          "body_html": "Export from the Gifts page: the CSV opens with Title, For, Occasion, Needed By, Status columns."
+        },
+        {
+          "id": "21.9",
+          "title": "The seven imported projects",
+          "actor": "you",
+          "where": {
+            "label": "Work → Projects",
+            "url": "https://mycelium.sporebit.com/work/projects",
+            "kind": "page"
+          },
+          "body_html": "PHM, PMW, SG, DSA, DAY, POLY and MCU are there with their Backlogs; MCU's holds the harvested items beside the MCU tickets that were there before.",
+          "fields": [
+            {
+              "key": "harvest_projects",
+              "label": "All seven? (yes / which missing)"
+            }
+          ]
         }
       ]
     }

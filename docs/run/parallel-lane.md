@@ -26,3 +26,11 @@ A lane that needs no migration leaves its number unused; a gap in the sequence i
 5. **Phil's items:** anything only he can do becomes a ticket in his queue (`tix new … --category next`, title starting "Phil's queue:", the exact link and value needed, no secret values) and a line in the lane's report. Do not message him on Telegram: the integrator sends one message at the end.
 6. **Report:** `docs/run/<lane>-report.md` in the house format (what it is as a table against the brief, how it is put together, checked, found on the way, Phil's live check as a numbered chunk); the live-check chunk also appended to `docs/checklists/phase1-live-checks.json` as the next phase number **only by the integrator** (lanes put the steps in the report and the integrator numbers them, to avoid clashes). One line each in `claude/backlog.md` and `claude/context.md` written by the integrator from the report, not by the lane (the two files would conflict across eight branches).
 7. **The lane's final message** to the integrator lists: branch name; commits; migration used or not; spec files to run and the regression suites touched; anything left undone and why; Phil's tickets created.
+
+## Learned on the day
+
+- A lane that adds a table runs `e2e/multiuser-lifecycle.phil.spec.ts` too: the account export reads every registered entity table as the caller, so a table granted to the service role alone fails it (lane G's wall tables, fixed in 0182).
+- Never merge a lane while `scripts/ship.sh` is building: its migration guard compares the folder with the commit being shipped and stops (lane DC's 0180 landing during lane G's ship).
+- `supabase db push --local` refuses once a higher-numbered migration from another lane is in the shared local history; apply with psql and record the version by hand. On hosted, the ship script passes `--include-all` for the same reason.
+- A dev server under Playwright recompiles on every artefact written into the worktree; `next.config.ts` now ignores `.next-e2e*`, `e2e/.results` and `e2e/.auth` (lane H1).
+- The first request after a dev-server compile breaks the capture helper's one-second contract: hit the server once before judging a timing failure.
