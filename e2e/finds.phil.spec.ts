@@ -244,4 +244,12 @@ test("the page shows the week with verdicts, Keep and Skip in place, and the sou
   await expect(page.getByTestId("finds-sources")).toBeVisible();
   await expect(page.locator('[data-testid="find-source"][data-kind="imap"] input')).toBeDisabled();
   await expect(page.getByTestId("finds-export")).toHaveAttribute("href", "/api/finds/export?days=7");
+
+  // The capture that brought the find in waits in the review queue like any other, with "find" as its kind
+  // (before the fix the kind list had no "find", so the select fell back to its first entry, "task").
+  await page.goto("/organisation/captures/review");
+  const title = page.locator("input[value='look at this later']").first();
+  await expect(title).toBeVisible();
+  const card = title.locator("xpath=ancestor::*[.//select][1]");
+  await expect(card.locator("select").first()).toHaveValue("find");
 });
