@@ -14,7 +14,14 @@ import { projectHref, refreshWork, useWorkMeta, workFetch, WorkError } from "@/l
 import { Empty, ErrorNote, Field, INPUT, PageHeader, ProgressBar, SectionTitle } from "./kit";
 import { Dialog, Picker } from "./pickers";
 
-type Payload = { categories: Array<ProjectGroup<ProjectWithProgress>>; uncategorised: ProjectWithProgress[]; projects: ProjectWithProgress[] };
+type Payload = {
+	categories: Array<ProjectGroup<ProjectWithProgress>>;
+	uncategorised: ProjectWithProgress[];
+	projects: ProjectWithProgress[];
+	/** Whose space each project is in; more than one when something is shared with you or you are in a team. */
+	spaces?: Array<{ id: string; label: string; own: boolean }>;
+};
+const UUID_KEY = /^[0-9a-f]{8}-[0-9a-f]{4}-/i;
 
 function ProjectCard({ p }: { p: ProjectWithProgress }) {
 	const pr = p.progress;
@@ -23,7 +30,8 @@ function ProjectCard({ p }: { p: ProjectWithProgress }) {
 			<div className="flex items-center gap-2">
 				<span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: p.colour ?? "var(--text-lo)" }} />
 				<span className="min-w-0 flex-1 truncate text-sm font-medium text-text-hi">{p.name}</span>
-				<span className="font-[family-name:var(--font-mono)] text-[10px] text-text-lo">{p.key}</span>
+				{/* a project with no key of its own is addressed by its id, which is not worth reading */}
+				{!UUID_KEY.test(p.key) && <span className="font-[family-name:var(--font-mono)] text-[10px] text-text-lo">{p.key}</span>}
 			</div>
 			{p.description && <p className="line-clamp-2 text-xs text-text-mid">{p.description}</p>}
 			<ProgressBar todo={pr.todo} inProgress={pr.in_progress} done={pr.done} />
@@ -75,7 +83,22 @@ export function ProjectsList() {
 		}
 	}
 
-	const groups = data ? [...data.categories, ...(data.uncategorised.length > 0 ? [{ id: "none", name: "No category", colour: null, projects: data.uncategorised }] : [])] : [];
+	// With more than one space on the page every heading says whose it is, and another space's empty categories are left out.
+	const spaces = data?.spaces ?? [];
+	const several = spaces.length > 1;
+	const whose = (spaceId: string | null | undefined) => (several ? (spaces.find((s) => s.id === spaceId)?.label ?? null) : null);
+	const order = (spaceId: string | null | undefined) => {
+		const i = spaces.findIndex((s) => s.id === spaceId);
+		return i < 0 ? spaces.length : i;
+	};
+	const loose = new Map<string, ProjectWithProgress[]>();
+	for (const p of data?.uncategorised ?? []) loose.set(p.space_id, [...(loose.get(p.space_id) ?? []), p]);
+	const groups: Array<ProjectGroup<ProjectWithProgress>> = data
+		? [
+				...data.categories.filter((g) => !several || g.projects.length > 0 || spaces.find((s) => s.id === g.space_id)?.own),
+				...[...loose].map(([spaceId, projects]) => ({ id: `none-${spaceId}`, name: "No category", colour: null, projects, space_id: spaceId })),
+			].sort((a, b) => (several ? order(a.space_id) - order(b.space_id) : 0))
+		: [];
 
 	return (
 		<div className="mx-auto max-w-6xl">
@@ -98,11 +121,12 @@ export function ProjectsList() {
 			{data && data.projects.length === 0 && <Empty title="No projects yet">Every ticket lives in a project. The default one, General, is made for you.</Empty>}
 			<div className="flex flex-col gap-6">
 				{groups.map((g) => (
-					<section key={g.id}>
+					<section key={g.id} data-testid="project-group">
 						<SectionTitle count={g.projects.length}>
 							<span className="inline-flex items-center gap-2">
 								{g.colour && <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: g.colour }} />}
 								{g.name}
+								{whose(g.space_id) ? <span className="font-normal normal-case tracking-normal text-text-lo">· {whose(g.space_id)}</span> : null}
 							</span>
 						</SectionTitle>
 						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

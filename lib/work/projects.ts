@@ -102,8 +102,8 @@ export async function progressOf(supabase: SupabaseClient, projectId: string): P
 // Grouping for the projects page
 // ---------------------------------------------------------------------
 
-export type ProjectCategory = { id: string; name: string; colour: string | null; archived_at?: string | null };
-export type ProjectGroup<P> = { id: string; name: string; colour: string | null; projects: P[] };
+export type ProjectCategory = { id: string; name: string; colour: string | null; archived_at?: string | null; space_id?: string | null };
+export type ProjectGroup<P> = { id: string; name: string; colour: string | null; projects: P[]; space_id?: string | null };
 
 /**
  * Projects under their category, in the order the categories come in.
@@ -113,7 +113,7 @@ export function groupByCategory<P extends { category_id: string | null }>(
 	projects: readonly P[],
 	categories: readonly ProjectCategory[],
 ): { categories: Array<ProjectGroup<P>>; uncategorised: P[] } {
-	const groups = new Map<string, ProjectGroup<P>>(categories.map((c) => [c.id, { id: c.id, name: c.name, colour: c.colour, projects: [] }]));
+	const groups = new Map<string, ProjectGroup<P>>(categories.map((c) => [c.id, { id: c.id, name: c.name, colour: c.colour, projects: [], space_id: c.space_id ?? null }]));
 	const uncategorised: P[] = [];
 	for (const p of projects) {
 		const g = p.category_id ? groups.get(p.category_id) : undefined;

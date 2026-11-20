@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { principalUid, readJson, ticketWriteGate } from "@/lib/tickets/server";
 import { createProject, emptyProgress, groupByCategory, progressFor, PROJECT_STATUSES, type ProjectCategory, type ProjectWithProgress } from "@/lib/work/projects";
-import { bad, PROJECT_SELECT, resolveSpace, serializeProject } from "@/lib/work/server";
+import { bad, PROJECT_SELECT, resolveSpace, serializeProject, spaceLabels } from "@/lib/work/server";
 
 export const runtime = "nodejs";
 
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 		else if (status !== "all") q = q.eq("status", status);
 		if (space) q = q.eq("space_id", space.id);
 
-		let areas = supabase.from("areas").select("id, name, colour, archived_at").order("sort_order").order("name").limit(500);
+		let areas = supabase.from("areas").select("id, name, colour, archived_at, space_id").order("sort_order").order("name").limit(500);
 		if (space) areas = areas.eq("space_id", space.id);
 
 		const [rows, cats] = await Promise.all([q, areas]);
@@ -46,7 +46,9 @@ export async function GET(req: NextRequest) {
 		const progress = await progressFor(supabase, found.map((p) => p.id));
 		const projects: ProjectWithProgress[] = found.map((p) => ({ ...p, progress: progress.get(p.id) ?? emptyProgress() }));
 		const grouped = groupByCategory(projects, (cats.data ?? []) as ProjectCategory[]);
-		return NextResponse.json({ ...grouped, projects });
+		// whose space each project is in, for a page that shows more than one
+		const spaces = await spaceLabels(supabase, uid, projects.map((p) => p.space_id));
+		return NextResponse.json({ ...grouped, projects, spaces });
 	} catch (err) {
 		console.error("[/api/work/projects GET]", err);
 		return bad("fetch failed", 500);

@@ -15,7 +15,7 @@ import { ticketKeyFilter } from "@/lib/tickets/categories";
 import { checkDoc, docToText, EMPTY_DOC, isDoc, newRefs, refsIn, type Doc } from "./doc";
 import type { WorkEvent } from "./notify";
 import type { StatusCategory } from "./query";
-import { namesFor, resolveSpace, UUID_RE } from "./server";
+import { namesFor, resolveSpace, UUID_RE, spaceLabels } from "./server";
 import type { WorkPerson } from "./types";
 
 // ---------------------------------------------------------------------
@@ -35,6 +35,14 @@ export type DocSpace = {
 	updated_at: string;
 	/** Pages that are not archived. */
 	page_count: number;
+	/**
+	 * The address to link to: the key when that means one doc space to this
+	 * reader, else the id. Every space starts with a "HOME", so someone in
+	 * two spaces sees the key twice.
+	 */
+	ref?: string;
+	/** Whose space it is in ("Yours", a team's name, a person's name). */
+	owner?: string;
 };
 
 export type DocPageSummary = {
@@ -77,6 +85,7 @@ export type DocRestriction = {
 };
 
 export type DocPage = DocPageSummary & {
+	/** The doc space's address for this reader (see DocSpace.ref): a key, or an id when the key is ambiguous. */
 	doc_space_key: string;
 	body: Doc;
 	body_text: string;
@@ -369,9 +378,32 @@ export async function pageCount(supabase: SupabaseClient, docSpaceId: string): P
 	return count ?? 0;
 }
 
-export async function withPageCounts(supabase: SupabaseClient, rows: RawDocSpace[]): Promise<DocSpace[]> {
-	const counts = await Promise.all(rows.map((r) => pageCount(supabase, r.id)));
-	return rows.map((r, i) => ({ ...r, page_count: counts[i] }));
+export async function withPageCounts(supabase: SupabaseClient, rows: RawDocSpace[], uid: string | null = null): Promise<DocSpace[]> {
+	const [counts, refs, labels] = await Promise.all([
+		Promise.all(rows.map((r) => pageCount(supabase, r.id))),
+		docSpaceRefs(supabase, uid, rows.map((r) => r.id)),
+		spaceLabels(supabase, uid, rows.map((r) => r.space_id)),
+	]);
+	const owner = new Map(labels.map((l) => [l.id, l.label]));
+	return rows.map((r, i) => ({ ...r, page_count: counts[i], ref: refs.get(r.id) ?? r.id, owner: owner.get(r.space_id) }));
+}
+
+/**
+ * The address of some doc spaces for this reader, by id: the key when it
+ * is theirs or nothing else they can see shares it, else the id (which
+ * resolveDocSpace also takes).
+ */
+export async function docSpaceRefs(supabase: SupabaseClient, uid: string | null, ids: string[]): Promise<Map<string, string>> {
+	const out = new Map<string, string>();
+	if (ids.length === 0) return out;
+	const [{ data, error }, own] = await Promise.all([supabase.from("doc_spaces").select("id, key, space_id").limit(1000), resolveSpace(supabase, uid)]);
+	if (error) throw error;
+	const all = (data ?? []) as Array<{ id: string; key: string; space_id: string }>;
+	const seen = new Map<string, number>();
+	for (const d of all) seen.set(d.key, (seen.get(d.key) ?? 0) + 1);
+	const want = new Set(ids);
+	for (const d of all) if (want.has(d.id)) out.set(d.id, d.space_id === own?.id || seen.get(d.key) === 1 ? d.key : d.id);
+	return out;
 }
 
 /**
@@ -542,13 +574,13 @@ export async function loadDocPage(supabase: SupabaseClient, uid: string | null, 
 		chainOf(supabase, row.id),
 		pageTickets(supabase, row.id),
 		supabase.from("doc_pages").select("id", { count: "exact", head: true }).eq("parent_id", row.id).is("archived_at", null),
-		supabase.from("doc_spaces").select("key").eq("id", row.doc_space_id).maybeSingle(),
+		docSpaceRefs(supabase, uid, [row.doc_space_id]),
 		namesFor(supabase, [row.created_by, row.updated_by]),
 	]);
 	const person = (p: string | null): WorkPerson | null => (p ? { id: p, name: names.get(p) ?? p.slice(0, 8) } : null);
 	return {
 		...toSummary(row, (kids.count ?? 0) > 0),
-		doc_space_key: ((space.data as { key: string } | null)?.key ?? "") as string,
+		doc_space_key: space.get(row.doc_space_id) ?? row.doc_space_id,
 		body: isDoc(row.body) ? row.body : EMPTY_DOC,
 		body_text: row.body_text,
 		version: row.version,
@@ -624,18 +656,6 @@ export async function setArchived(supabase: SupabaseClient, page: { id: string; 
 		}
 	}
 	return changed;
-}
-
-/** The keys of some doc spaces, by id. */
-export async function docSpaceKeys(supabase: SupabaseClient, ids: string[]): Promise<Map<string, string>> {
-	const want = Array.from(new Set(ids));
-	const out = new Map<string, string>();
-	for (let i = 0; i < want.length; i += 100) {
-		const { data, error } = await supabase.from("doc_spaces").select("id, key").in("id", want.slice(i, i + 100));
-		if (error) throw error;
-		for (const d of (data ?? []) as Array<{ id: string; key: string }>) out.set(d.id, d.key);
-	}
-	return out;
 }
 
 // ---------------------------------------------------------------------

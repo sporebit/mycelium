@@ -22,6 +22,8 @@ export function DocsHome() {
 		const t = setTimeout(() => setDebounced(q.trim()), 250);
 		return () => clearTimeout(t);
 	}, [q]);
+	// with more than one space on the page, each card says whose it is
+	const severalSpaces = new Set((data?.spaces ?? []).map((s) => s.space_id)).size > 1;
 	const search = useApi<{ pages: DocSearchHit[] }>(debounced ? `/api/work/docs/pages?q=${encodeURIComponent(debounced)}` : null);
 
 	const [create, setCreate] = useState(false);
@@ -42,7 +44,7 @@ export function DocsHome() {
 			setKey("");
 			setName("");
 			setDescription("");
-			window.location.assign(docHref(res.space.key));
+			window.location.assign(docHref(res.space.ref ?? res.space.key));
 		} catch (e) {
 			setErr(e instanceof WorkError ? e.message : "Could not create the doc space.");
 		} finally {
@@ -100,10 +102,13 @@ export function DocsHome() {
 			{data && data.spaces.length === 0 && <Empty title="No doc spaces">Every space starts with one called Home.</Empty>}
 			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 				{data?.spaces.map((s) => (
-					<Link key={s.id} href={docHref(s.key)} className="flex flex-col gap-1 rounded-v2-lg border border-hairline bg-surface-1 p-4 hover:border-hairline-strong hover:bg-surface-2">
+					<Link key={s.id} href={docHref(s.ref ?? s.key)} data-testid="doc-space-card" className="flex flex-col gap-1 rounded-v2-lg border border-hairline bg-surface-1 p-4 hover:border-hairline-strong hover:bg-surface-2">
 						<span className="flex items-center gap-2">
 							<BookOpen size={14} aria-hidden className="text-text-lo" />
-							<span className="min-w-0 flex-1 truncate text-sm font-medium text-text-hi">{s.name}</span>
+							<span className="min-w-0 flex-1 truncate text-sm font-medium text-text-hi">
+								{s.name}
+								{severalSpaces && s.owner ? <span className="font-normal text-text-lo"> · {s.owner}</span> : null}
+							</span>
 							<span className="font-[family-name:var(--font-mono)] text-[10px] text-text-lo">{s.key}</span>
 						</span>
 						{s.description && <span className="line-clamp-2 text-xs text-text-mid">{s.description}</span>}

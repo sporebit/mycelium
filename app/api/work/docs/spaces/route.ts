@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 		if (sp.get("all") !== "1") q = q.is("archived_at", null);
 		const { data, error } = await q.order("name").limit(500);
 		if (error) throw error;
-		return NextResponse.json({ spaces: await withPageCounts(supabase, (data ?? []) as Raw[]) });
+		return NextResponse.json({ spaces: await withPageCounts(supabase, (data ?? []) as Raw[], uid) });
 	} catch (err) {
 		console.error("[/api/work/docs/spaces GET]", err);
 		return bad("fetch failed", 500);

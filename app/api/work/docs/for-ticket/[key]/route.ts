@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
-import { docSpaceKeys, type LinkSource } from "@/lib/work/docs";
+import { principalUid } from "@/lib/tickets/server";
+import { docSpaceRefs, type LinkSource } from "@/lib/work/docs";
 import { bad, resolveWorkRef } from "@/lib/work/server";
 
 export const runtime = "nodejs";
@@ -16,6 +17,7 @@ type Row = { source: LinkSource; page: PageRef | PageRef[] | null };
  */
 export async function GET(_req: NextRequest, ctx: Ctx) {
 	const { key } = await ctx.params;
+	const uid = await principalUid();
 	try {
 		const supabase = await createUserClient();
 		const ticket = await resolveWorkRef(supabase, key);
@@ -31,7 +33,7 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
 			const page = Array.isArray(r.page) ? (r.page[0] ?? null) : r.page;
 			if (page && !page.archived_at) found.push({ source: r.source, page });
 		}
-		const keys = await docSpaceKeys(supabase, found.map((f) => f.page.doc_space_id));
+		const keys = await docSpaceRefs(supabase, uid, found.map((f) => f.page.doc_space_id));
 		const pages = found
 			.map((f) => ({ id: f.page.id, title: f.page.title, doc_space_key: keys.get(f.page.doc_space_id) ?? "", source: f.source, updated_at: f.page.updated_at }))
 			.sort((a, b) => b.updated_at.localeCompare(a.updated_at));

@@ -6,7 +6,6 @@ import {
 	checkPageWrite,
 	checkParent,
 	checkPosition,
-	docSpaceKeys,
 	docsErrorMessage,
 	docsErrorStatus,
 	loadDocPage,
@@ -116,12 +115,11 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 
 		if (checked.value.body !== undefined) {
 			await syncPageLinks(supabase, { id: row.id, space_id: row.space_id }, checked.value.body);
-			const keys = await docSpaceKeys(supabase, [row.doc_space_id]);
 			const events = await mentionEvents(supabase, {
 				actorId: uid,
 				pageId: row.id,
 				title: checked.value.title ?? row.title,
-				url: docUrl(keys.get(row.doc_space_id) ?? row.doc_space_id, row.id),
+				url: docUrl(row.doc_space_id, row.id),
 				before: row.body,
 				after: checked.value.body,
 			});

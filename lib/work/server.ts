@@ -102,6 +102,33 @@ export async function membersBySpace(supabase: SupabaseClient, uid: string | nul
 	return out;
 }
 
+export type SpaceLabel = { id: string; label: string; own: boolean };
+
+/**
+ * What to call each space when more than one is on a page: "Yours" for the
+ * caller's own, the team's name for a team's, the owner's name for a
+ * personal space shared with the caller. The caller's own comes first.
+ */
+export async function spaceLabels(supabase: SupabaseClient, uid: string | null, spaceIds: Array<string | null | undefined>): Promise<SpaceLabel[]> {
+	const ids = [...new Set(spaceIds.filter((x): x is string => !!x))];
+	if (ids.length === 0) return [];
+	const { data } = await supabase.from("spaces").select("id, owner_user_id, team_id").in("id", ids.slice(0, 200));
+	const rows = (data ?? []) as Array<{ id: string; owner_user_id: string | null; team_id: string | null }>;
+	const teamIds = rows.map((r) => r.team_id).filter((x): x is string => !!x);
+	const [teams, names] = await Promise.all([
+		teamIds.length ? supabase.from("teams").select("id, name").in("id", teamIds) : Promise.resolve({ data: [] }),
+		namesFor(supabase, rows.filter((r) => !r.team_id).map((r) => r.owner_user_id)),
+	]);
+	const teamName = new Map(((teams.data ?? []) as Array<{ id: string; name: string }>).map((t) => [t.id, t.name]));
+	const out = rows.map((r) => {
+		const own = !r.team_id && !!uid && r.owner_user_id === uid;
+		const label = own ? "Yours" : r.team_id ? (teamName.get(r.team_id) ?? "A team") : ((r.owner_user_id ? names.get(r.owner_user_id) : null) ?? "Shared with you");
+		return { id: r.id, label, own };
+	});
+	out.sort((a, b) => Number(b.own) - Number(a.own) || a.label.localeCompare(b.label, "en-GB"));
+	return out;
+}
+
 /** Who belongs to one space (see membersBySpace). */
 export async function spaceMemberIds(supabase: SupabaseClient, uid: string | null, spaceId: string): Promise<string[]> {
 	return [...((await membersBySpace(supabase, uid, spaceId)).get(spaceId) ?? [])];

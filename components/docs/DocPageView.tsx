@@ -110,7 +110,7 @@ export function DocPageView({ page, space, siblings, onChanged, onNewChild }: Pr
 					{page.breadcrumbs.map((b, i) => (
 						<span key={b.id} className="inline-flex items-center gap-1">
 							{i > 0 && <span aria-hidden>/</span>}
-							<Link href={docHref(space.key, b.id)} className="hover:text-text-hi">
+							<Link href={docHref(space.ref ?? space.key, b.id)} className="hover:text-text-hi">
 								{b.title || "Untitled"}
 							</Link>
 						</span>
@@ -144,7 +144,7 @@ export function DocPageView({ page, space, siblings, onChanged, onNewChild }: Pr
 									Edit
 								</Button>
 							)}
-							<Link href={`${docHref(space.key, page.id)}/history`} className="inline-flex h-8 items-center gap-1 rounded-v2-md border border-hairline-strong px-3 text-sm text-text-mid hover:text-text-hi" title="History">
+							<Link href={`${docHref(space.ref ?? space.key, page.id)}/history`} className="inline-flex h-8 items-center gap-1 rounded-v2-md border border-hairline-strong px-3 text-sm text-text-mid hover:text-text-hi" title="History">
 								<History size={14} aria-hidden /> v{page.version}
 							</Link>
 							<button type="button" onClick={() => setMenu((m) => !m)} aria-haspopup="menu" aria-expanded={menu} aria-label="Page menu" className="inline-flex h-8 w-8 items-center justify-center rounded-v2-md border border-hairline-strong text-text-mid hover:text-text-hi">
@@ -173,7 +173,7 @@ export function DocPageView({ page, space, siblings, onChanged, onNewChild }: Pr
 												setMenu(false);
 												if (window.confirm(`Archive "${page.title || "Untitled"}" and everything under it?`)) {
 													void (async () => {
-														if (await run(() => workFetch(pageApi, "DELETE"))) router.push(docHref(space.key));
+														if (await run(() => workFetch(pageApi, "DELETE"))) router.push(docHref(space.ref ?? space.key));
 													})();
 												}
 											},

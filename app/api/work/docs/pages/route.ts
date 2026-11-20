@@ -7,7 +7,7 @@ import {
 	chainOf,
 	checkPageWrite,
 	checkParent,
-	docSpaceKeys,
+	docSpaceRefs,
 	docsErrorMessage,
 	docsErrorStatus,
 	excerptAround,
@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
 
 		const ids = rows.map((r) => r.id);
 		const [keys, kids] = await Promise.all([
-			docSpaceKeys(supabase, rows.map((r) => r.doc_space_id)),
+			docSpaceRefs(supabase, uid, rows.map((r) => r.doc_space_id)),
 			supabase.from("doc_pages").select("parent_id").in("parent_id", ids).is("archived_at", null).limit(1000),
 		]);
 		if (kids.error) throw kids.error;
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
 			actorId: uid,
 			pageId: made.id,
 			title: made.title,
-			url: docUrl(docSpace.key, made.id),
+			url: docUrl(docSpace.id, made.id),
 			before: EMPTY_DOC,
 			after: checked.value.body,
 		});

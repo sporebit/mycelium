@@ -107,10 +107,18 @@ export function DocSpaceView({ spaceKey, pageId }: { spaceKey: string; pageId: s
 
 	// the last doc space opened (ui_prefs.work.doc_space)
 	useEffect(() => {
-		if (!prefsLoading && data && work.doc_space !== data.space.key) void setWork({ doc_space: data.space.key });
+		const ref = data ? (data.space.ref ?? data.space.key) : null;
+		if (!prefsLoading && ref && work.doc_space !== ref) void setWork({ doc_space: ref });
 		// only when the space changes
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [data?.space.key, prefsLoading]);
+	}, [data?.space.id, prefsLoading]);
+
+	// A page opened under the wrong doc space (a link made for someone else, whose "HOME" is not yours): go to its own.
+	const strayRef = data && pageData && pageData.page.doc_space_id !== data.space.id ? pageData.page.doc_space_key : null;
+	useEffect(() => {
+		if (strayRef && pageData) router.replace(docHref(strayRef, pageData.page.id));
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [strayRef]);
 
 	const [open, setOpen] = useState<Set<string>>(new Set());
 	const [openedFor, setOpenedFor] = useState<string | null>(null);
@@ -157,12 +165,12 @@ export function DocSpaceView({ spaceKey, pageId }: { spaceKey: string; pageId: s
 		setBusy(true);
 		setErr(null);
 		try {
-			const res = await workFetch<{ page: DocPage }>("/api/work/docs/pages", "POST", { doc_space: data.space.key, parent_id: create.parent, title: title.trim() || undefined, template: template ?? undefined });
+			const res = await workFetch<{ page: DocPage }>("/api/work/docs/pages", "POST", { doc_space: data.space.id, parent_id: create.parent, title: title.trim() || undefined, template: template ?? undefined });
 			await mutate();
 			setCreate(null);
 			setTitle("");
 			setTemplate(null);
-			router.push(docHref(data.space.key, res.page.id));
+			router.push(docHref(data.space.ref ?? data.space.key, res.page.id));
 		} catch (e) {
 			setErr(e instanceof WorkError ? e.message : "Could not create the page.");
 		} finally {
@@ -216,7 +224,7 @@ export function DocSpaceView({ spaceKey, pageId }: { spaceKey: string; pageId: s
 						) : (
 							<ul className="flex flex-col gap-0.5">
 								{data.tree.map((n, i) => (
-									<TreeNode key={n.id} node={n} spaceKey={data.space.key} activeId={activeId} depth={0} open={open} toggle={toggle} index={i} count={data.tree.length} onMove={(node, index) => void movePage(node, index)} moving={moving} />
+									<TreeNode key={n.id} node={n} spaceKey={data.space.ref ?? data.space.key} activeId={activeId} depth={0} open={open} toggle={toggle} index={i} count={data.tree.length} onMove={(node, index) => void movePage(node, index)} moving={moving} />
 								))}
 							</ul>
 						)}

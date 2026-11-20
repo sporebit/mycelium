@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { principalUid, readJson, ticketWriteGate } from "@/lib/tickets/server";
-import { DOC_SPACE_SELECT, checkDocSpace, docsErrorMessage, docsErrorStatus, pageCount, resolveDocSpace, treeOf, type DocSpace } from "@/lib/work/docs";
+import { DOC_SPACE_SELECT, checkDocSpace, docsErrorMessage, docsErrorStatus, pageCount, resolveDocSpace, treeOf, withPageCounts, type DocSpace } from "@/lib/work/docs";
 import { bad, UUID_RE } from "@/lib/work/server";
 
 export const runtime = "nodejs";
@@ -26,8 +26,7 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 		const supabase = await createUserClient();
 		const found = await resolveDocSpace(supabase, uid, key, sp.get("space"));
 		if (!found) return bad("not found", 404);
-		const [tree, count] = await Promise.all([treeOf(supabase, found.id, sp.get("archived") === "1"), pageCount(supabase, found.id)]);
-		const space: DocSpace = { ...found, page_count: count };
+		const [tree, [space]] = await Promise.all([treeOf(supabase, found.id, sp.get("archived") === "1"), withPageCounts(supabase, [found], uid)]);
 		return NextResponse.json({ space, tree });
 	} catch (err) {
 		console.error("[/api/work/docs/spaces/:key GET]", err);
@@ -68,7 +67,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 			if (body.archived !== !!found.archived_at) update.archived_at = body.archived ? new Date().toISOString() : null;
 		}
 		if (Object.keys(update).length === 0) {
-			const same: DocSpace = { ...found, page_count: await pageCount(supabase, found.id) };
+			const [same] = await withPageCounts(supabase, [found], uid);
 			return NextResponse.json({ space: same });
 		}
 		update.updated_at = new Date().toISOString();
@@ -76,7 +75,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 		const { data, error } = await supabase.from("doc_spaces").update(update).eq("id", found.id).select(DOC_SPACE_SELECT);
 		if (error) return bad(docsErrorMessage(error), docsErrorStatus(error));
 		if (!data || data.length === 0) return bad("You do not have permission to do that.", 403);
-		const space: DocSpace = { ...(data[0] as Raw), page_count: await pageCount(supabase, found.id) };
+		const [space] = await withPageCounts(supabase, [data[0] as Raw], uid);
 		return NextResponse.json({ space });
 	} catch (err) {
 		console.error("[/api/work/docs/spaces/:key PATCH]", err);
