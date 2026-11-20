@@ -181,6 +181,16 @@ test("guest mode shows the clock, the weather and pictures only, and takes a lon
   await expect(page.getByTestId("wall")).toHaveAttribute("data-view", "board");
 });
 
+test("the PC's voice is asked through the wall's own route; the general one is closed to the device", async () => {
+  // lane E2's speaker on the wall (master run §9, §11): an answer the client can act on, never a wait on the PC
+  const res = await wall.request.post("/api/wall/speech", { data: { text: "Two minutes left." } });
+  expect(res.status()).toBe(200);
+  const body = (await res.json()) as { status: string };
+  expect(["ready", "queued", "off", "empty"]).toContain(body.status);
+  expect((await wall.request.post("/api/speech", { data: { text: "Two minutes left." } })).status()).not.toBe(200);
+  expect((await wall.request.post("/api/wall/speech", { data: { text: "  " } })).status()).toBe(400);
+});
+
 test("the device holds no session: its cookie opens nothing outside the wall's routes", async () => {
   for (const url of ["/api/family", "/api/tickets", "/api/settings/walls", "/api/settings/quick-unlock", "/api/finance/accounts"]) {
     const res = await wall.request.get(url, { maxRedirects: 0 });

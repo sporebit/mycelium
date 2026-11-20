@@ -21,7 +21,8 @@ import { playChime } from "@/components/daily/chime";
 import type { HomeItem } from "@/lib/home/contract";
 import type { WallGlance, WallPersonView, WallPhoto, WallSaying } from "@/lib/wall/contract";
 import { IDLE_AFTER_MS, LOCK_AFTER_MS, REFRESH_EVERY_MS, SAY_EVERY_MS, type WallMode, dimLevel, maySpeak, shouldLock, wallMode } from "@/lib/wall/schedule";
-import { canSpeak, hush, say } from "@/lib/wall/speak";
+import { pcSpeaker } from "@/lib/speech/client";
+import { browserSpeaker, canSpeak, hush, say, setSpeaker } from "@/lib/wall/speak";
 import { Ambient, Clock, Guest } from "./Ambient";
 import { Board } from "./Board";
 import { Keypad } from "./Keypad";
@@ -59,6 +60,11 @@ export function WallClient({ lockAfterMs = LOCK_AFTER_MS, idleAfterMs = IDLE_AFT
   }, [view]);
   useEffect(() => {
     lastTouch.current = Date.now();
+    // The PC's voice when it is on (lane E2, through the wall's own route); the browser's own when it is off.
+    const before = setSpeaker(pcSpeaker(browserSpeaker, undefined, "/api/wall/speech"));
+    return () => {
+      setSpeaker(before);
+    };
   }, []);
   const activeUid = view.kind === "keypad" || view.kind === "person" ? view.uid : null;
 

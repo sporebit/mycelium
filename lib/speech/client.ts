@@ -41,13 +41,13 @@ export function stopClip(): void {
   }
 }
 
-export function pcSpeaker(fallback: SpeakFallback, voice?: string): (text: string) => Promise<void> {
+export function pcSpeaker(fallback: SpeakFallback, voice?: string, endpoint = "/api/speech"): (text: string) => Promise<void> {
   return async (text: string) => {
     const line = text.trim();
     if (!line) return;
     let answer: Answer | null = null;
     try {
-      const res = await fetch("/api/speech", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: line, voice }) });
+      const res = await fetch(endpoint, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: line, voice }) });
       if (res.ok) answer = (await res.json()) as Answer;
     } catch {
       answer = null;
