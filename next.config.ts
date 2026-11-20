@@ -16,6 +16,21 @@ const nextConfig: NextConfig = {
   // The end-to-end server builds into its own directory, so clearing .next
   // before a production build cannot pull the floor from under it.
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  // The dev server rebuilds on any change to a file it watches, and a
+  // rebuild aborts a client-side navigation in flight. Next ignores .git,
+  // node_modules and ".next" by name, so a dist directory with another
+  // name (the end-to-end server builds into .next-e2e) is watched: every
+  // compile writes there, which starts the next compile, and a click on a
+  // tab never sees its URL change. Playwright's traces (e2e/.results) and
+  // sessions (e2e/.auth) are written mid-test as well. Found 2026-11-20
+  // (MYC-190). Next's default is a RegExp, so this is one too.
+  webpack: (config) => {
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: /(^|[\/])(\.git|\.next[^\/]*|node_modules|e2e[\/]\.results|e2e[\/]\.auth)([\/]|$)/,
+    };
+    return config;
+  },
   async redirects() {
     return [
       { source: "/crm", destination: "/organisation", permanent: true },

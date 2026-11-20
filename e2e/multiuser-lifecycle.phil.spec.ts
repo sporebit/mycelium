@@ -56,7 +56,7 @@ let memSpace = "";
 type Report = { week: string; teams: number; recipients: number; rendered: number; skipped: { optedOut: number; notNow: number; alreadySent: number }; delivered: Record<string, number>; errors: string[] };
 
 async function openPeople(page: Page) {
-  await page.goto("/other/settings/people");
+  await page.goto("/other/settings/teams");
   await expect(page.getByRole("heading", { name: "People & teams" })).toBeVisible();
   await expect(page.getByText("Weekly rundown", { exact: true })).toBeVisible();
 }
@@ -279,7 +279,7 @@ test("deleting an account takes the second factor, a fresh re-auth and the typed
   expect(teamRow()).toEqual([["f"]]);
 
   const page = await mem!.context.newPage();
-  await page.goto("/other/settings/security");
+  await page.goto("/other/settings/security?tab=account");
   const remove = page.getByRole("button", { name: "Delete my account" });
   await expect(remove).toBeDisabled();
   await page.getByPlaceholder(mem!.email).fill("someone-else@mycelium.local");
@@ -334,7 +334,7 @@ test("deleting an account takes the second factor, a fresh re-auth and the typed
 test("an owner cannot delete their account while they own a team", async () => {
   await reauth(own!);
   const page = await own!.context.newPage();
-  await page.goto("/other/settings/security");
+  await page.goto("/other/settings/security?tab=account");
   await page.getByPlaceholder(own!.email).fill(own!.email);
   await page.getByRole("button", { name: "Delete my account" }).click();
   await expect(page.getByText("This user still owns 1 team(s); transfer ownership first")).toBeVisible();

@@ -48,6 +48,16 @@ describe("the sub-daily schedule", () => {
     expect(at(12, 0)).not.toContain("daylog");
   });
 
+  it("the AI model list is read once a day, at five in the morning, and never sub-daily", () => {
+    expect(at(5, 0)).toContain("ai-models");
+    expect(at(5, 5)).not.toContain("ai-models");
+    expect(at(5, 30)).not.toContain("ai-models");
+    expect(at(6, 0)).not.toContain("ai-models");
+    expect(at(21, 0)).not.toContain("ai-models");
+    const hits = Array.from({ length: 24 * 12 }, (_, i) => at(Math.floor((i * 5) / 60), (i * 5) % 60)).filter((j) => j.includes("ai-models"));
+    expect(hits).toHaveLength(1);
+  });
+
   it("every scheduled job has a handler in the tick (a job in the table with nothing to run it answers 500 every time it is due)", () => {
     const tick = readFileSync(path.resolve(process.cwd(), "app/api/cron/tick/route.ts"), "utf8");
     for (const job of SCHEDULE) expect(tick, job.path).toContain(`"${job.path}": `);

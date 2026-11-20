@@ -17,7 +17,7 @@ import { usePathname } from "next/navigation";
 import { useGoneQuiet } from "@/components/dashboard/GoneQuiet";
 import { PrivacyToggle } from "@/components/dashboard/PrivacyToggle";
 import { NotificationBell } from "@/components/work/NotificationBell";
-import { groupForPath, MENU_GROUPS } from "@/lib/home/menu";
+import { groupForPath, MENU_GROUPS, placeForPath } from "@/lib/home/menu";
 
 function openCapture() {
   window.dispatchEvent(new Event("open-capture"));
@@ -105,7 +105,7 @@ export function TopMenu() {
                 >
                   {g.items.map((it) => {
                     const q = quiet.get(it.href);
-                    const current = pathname === it.href || pathname.startsWith(it.href + "/");
+                    const current = it.href === placeForPath(pathname, g.items);
                     return (
                       <Link
                         key={it.href}

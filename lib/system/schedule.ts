@@ -39,6 +39,7 @@ export const SCHEDULE: readonly ScheduledJob[] = [
   { path: "/api/cron/finds", everyMinutes: 60, londonHours: [8, 21], why: "the Finds feed: the watchers once a day, verdicts for what has waited, and on Sunday evening the week's digest" },
   { path: "/api/cron/quotes-research", everyMinutes: 30, why: "quote research that did not finish after its request" },
   { path: "/api/cron/rundowns", everyMinutes: 60, why: "weekly rundowns, sent in each team's hour" },
+  { path: "/api/cron/ai-models", everyMinutes: 60, londonHours: [5, 6], why: "once a day at five: the AI providers' model lists, first and last seen; a nudge on a new model and on a retired one still pinned (MYC-190)" },
 ];
 
 function inHours(hour: number, range: [number, number] | undefined): boolean {

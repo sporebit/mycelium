@@ -11,17 +11,13 @@ import {
   PlusCircle,
   MoreHorizontal,
 } from "lucide-react";
-import { SECTIONS, sectionForPath, type SubPage } from "@/lib/nav/sections";
+import { SECTIONS, activeSubPageHref, sectionForPath } from "@/lib/nav/sections";
 import { Wordmark } from "@/components/dashboard/Wordmark";
 import { PrivacyToggle } from "@/components/dashboard/PrivacyToggle";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { SECTION_ICONS } from "./sectionIcons";
 import { NotificationBell } from "@/components/work/NotificationBell";
 import { useGoneQuiet } from "@/components/dashboard/GoneQuiet";
-
-function isSubActive(pathname: string, sp: SubPage): boolean {
-  return pathname === sp.href || pathname.startsWith(sp.href + "/");
-}
 
 function openCapture() {
   if (typeof window === "undefined") return;
@@ -118,7 +114,7 @@ export function Sidebar() {
               >
                 <ul className="overflow-hidden ml-9 border-l border-hairline pl-2 py-0.5">
                   {section.subPages.map((sp) => {
-                    const subActive = isSubActive(pathname, sp);
+                    const subActive = sp.href === activeSubPageHref(pathname, section.subPages);
                     // Gone quiet (master run §6): dimmed, with how long on hover. Still a working link.
                     const quiet = quietByHref.get(sp.href);
                     return (
@@ -127,6 +123,7 @@ export function Sidebar() {
                           href={sp.href}
                           title={quiet ? `Untouched for ${quiet}` : undefined}
                           data-quiet={quiet ? "true" : undefined}
+                          aria-current={subActive ? "page" : undefined}
                           className={`block px-2.5 py-1.5 rounded-v2-sm text-[13px] transition-colors duration-[var(--dur-fast)] [transition-timing-function:var(--ease-out)] ${
                             subActive
                               ? "bg-glow-wash text-text-hi"

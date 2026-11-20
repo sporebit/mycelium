@@ -52,7 +52,7 @@ let teamProjectId = "";
 let philLeft = false;
 
 async function openPeople(page: Page) {
-  await page.goto("/other/settings/people");
+  await page.goto("/other/settings/teams");
   await expect(page.getByRole("heading", { name: "People & teams" })).toBeVisible();
 }
 

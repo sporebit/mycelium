@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useId, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { resolveTab } from "@/lib/settings/tabs";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { daylogSettings, type DaylogSettings } from "@/lib/daylog/settings";
 import { type DailySettings, mergeDailySettings } from "@/lib/daily/settings";
 import { DEFAULT_FREE_MINUTES } from "@/lib/daily/propose";
@@ -107,7 +110,16 @@ export default function SettingsPage() {
  * Note this is NOT the same concept as ui_prefs.hidden_sections — that is app
  * navigation. These are the panels within this page.
  */
-function SettingsBody({
+function SettingsBody(props: { settings: Settings; stats: Stats | null; patch: (f: Record<string, unknown>) => void }) {
+  // useSearchParams() wants a Suspense boundary above it.
+  return (
+    <Suspense fallback={null}>
+      <SettingsPanels {...props} />
+    </Suspense>
+  );
+}
+
+function SettingsPanels({
   settings,
   stats,
   patch,
@@ -133,8 +145,21 @@ function SettingsBody({
     { key: "danger", label: "Danger zone", render: () => <DangerZoneSection /> },
   ];
 
-  const [active, setActive] = useState("profile");
-  const [sheetKey, setSheetKey] = useState<string | null>(null);
+  // The open panel is in the URL (?tab=), so it survives a reload and can be
+  // linked to; landing with no parameter opens the first (MYC-190). On
+  // touch the same parameter is the open Sheet.
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const keys = PANELS.map((x) => x.key);
+  const raw = params.get("tab");
+  const active = resolveTab(keys, raw);
+  const go = (key: string | null) => router.replace(key && key !== keys[0] ? `${pathname}?tab=${key}` : pathname, { scroll: false });
+  const setActive = (key: string) => go(key);
+  // The Sheet portals out of the page, so it is kept to touch widths here, not by a class.
+  const desktop = useMediaQuery("(min-width: 768px)", true);
+  const sheetKey = !desktop && raw && keys.includes(raw) ? raw : null;
+  const setSheetKey = (key: string | null) => router.replace(key ? `${pathname}?tab=${key}` : pathname, { scroll: false });
   const activePanel = PANELS.find((x) => x.key === active) ?? PANELS[0];
   const sheetPanel = PANELS.find((x) => x.key === sheetKey) ?? null;
 
@@ -177,6 +202,7 @@ function SettingsBody({
         ))}
       </div>
 
+      {/* Touch only: on desktop the same ?tab= is the pane, so the Sheet must not open as well. */}
       {sheetPanel && (
         <Sheet open onClose={() => setSheetKey(null)} title={sheetPanel.label} side="auto">
           <div className="pt-2">{sheetPanel.render()}</div>
@@ -386,10 +412,12 @@ function SelectSetting({
   options: { value: string; label: string }[];
   onSave: (v: string) => void;
 }) {
+  const id = useId();
   return (
     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4">
-      <label className="text-xs text-text-mid sm:w-48 shrink-0">{label}</label>
+      <label htmlFor={id} className="text-xs text-text-mid sm:w-48 shrink-0">{label}</label>
       <select
+        id={id}
         value={value}
         onChange={(e) => onSave(e.target.value)}
         className="flex-1 bg-surface-0 border border-hairline rounded-v2-md text-sm text-text-hi px-3 py-1.5 outline-none focus:border-accent"
@@ -970,30 +998,94 @@ function CaptureSourcesSection({ settings, onPatch }: { settings: Settings; onPa
   );
 }
 
+type AiModelsPayload = {
+  priced: Array<{ id: string; label: string; provider: string; usdPerMTok: [number, number] }>;
+  in_use: Array<{ role: string; model: string }>;
+  models: Array<{ provider: string; model_id: string; display_name: string | null; released_at: string | null; first_seen: string; last_seen: string; retired_at: string | null }> | null;
+};
+
+/**
+ * Only a model priced in lib/config/models.ts can be chosen (MYC-190). The
+ * routes use the models the environment names; the two choices here are
+ * stored for routes that read a per-person model, and nothing switches on
+ * its own. The instance owner also sees the live list the daily tick keeps.
+ */
 function AIConfigSection({ settings, onPatch }: { settings: Settings; onPatch: (f: Record<string, unknown>) => void }) {
-  const models = [
-    { value: "claude-opus-4-6", label: "Claude Opus 4.6" },
-    { value: "claude-sonnet-4-20250514", label: "Claude Sonnet 4" },
-    { value: "claude-haiku-20240307", label: "Claude Haiku" },
-  ];
+  const [live, setLive] = useState<AiModelsPayload | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/ai/models")
+      .then((r) => (r.ok ? (r.json() as Promise<AiModelsPayload>) : null))
+      .then((j) => {
+        if (!cancelled && j) setLive(j);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const priced = live?.priced ?? [];
+  const options = priced.map((m) => ({ value: m.id, label: `${m.label} · $${m.usdPerMTok[0]}/$${m.usdPerMTok[1]} per MTok` }));
+  // A stored choice that is no longer priced stays visible, marked, until another is chosen.
+  const withCurrent = (v: string) => (options.some((o) => o.value === v) ? options : [{ value: v, label: `${v} (not priced: choose another)` }, ...options]);
+  const primary = String(settings.anthropic_model ?? "claude-sonnet-4-5");
+  const categorisation = String(settings.ai_spending_categorisation_model ?? "claude-haiku-4-5");
+  const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—");
+  const pricedIds = new Set(priced.map((m) => m.id));
 
   return (
     <SectionCard title="AI CONFIG">
-      <SelectSetting
-        label="Primary model"
-        value={String(settings.anthropic_model ?? "claude-sonnet-4-20250514")}
-        options={models}
-        onSave={(v) => onPatch({ anthropic_model: v })}
-      />
-      <SelectSetting
-        label="Categorisation model"
-        value={String(settings.ai_spending_categorisation_model ?? "claude-haiku-20240307")}
-        options={models}
-        onSave={(v) => onPatch({ ai_spending_categorisation_model: v })}
-      />
+      <SelectSetting label="Primary model" value={primary} options={withCurrent(primary)} onSave={(v) => onPatch({ anthropic_model: v })} />
+      <SelectSetting label="Categorisation model" value={categorisation} options={withCurrent(categorisation)} onSave={(v) => onPatch({ ai_spending_categorisation_model: v })} />
       <div className="text-[10px] text-text-lo italic font-[family-name:var(--font-display)]">
-        Model changes take effect on next API call.
+        Only models with a price on file can be chosen. Nothing switches on its own.
       </div>
+      {live && (
+        <div className="flex flex-col gap-1" data-testid="ai-in-use">
+          <Mono className="text-[10px] text-text-lo tracking-[0.12em]">IN USE NOW</Mono>
+          <ul className="text-xs text-text-mid">
+            {live.in_use.map((u) => (
+              <li key={u.role}>
+                {u.role}: <span className="font-[family-name:var(--font-mono)]">{u.model}</span>
+                {!pricedIds.has(u.model) && <span className="text-text-lo"> · not priced</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {live?.models && (
+        <div className="flex flex-col gap-1" data-testid="ai-live-list">
+          <Mono className="text-[10px] text-text-lo tracking-[0.12em]">SEEN AT THE PROVIDERS</Mono>
+          {live.models.length === 0 ? (
+            <p className="text-xs text-text-lo">Nothing yet: the list is read once a day, at five in the morning.</p>
+          ) : (
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-left text-text-lo">
+                  <th className="font-normal py-1 pr-2">Model</th>
+                  <th className="font-normal py-1 pr-2">First seen</th>
+                  <th className="font-normal py-1 pr-2">Last seen</th>
+                  <th className="font-normal py-1">State</th>
+                </tr>
+              </thead>
+              <tbody>
+                {live.models.map((m) => (
+                  <tr key={`${m.provider}/${m.model_id}`} className="border-t border-hairline text-text-mid">
+                    <td className="py-1 pr-2 font-[family-name:var(--font-mono)]">
+                      {m.model_id}
+                      <span className="text-text-lo"> · {m.provider}</span>
+                    </td>
+                    <td className="py-1 pr-2">{day(m.first_seen)}</td>
+                    <td className="py-1 pr-2">{day(m.last_seen)}</td>
+                    <td className="py-1">{m.retired_at ? `retired ${day(m.retired_at)}` : pricedIds.has(m.model_id) ? "priced" : "seen"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
     </SectionCard>
   );
 }

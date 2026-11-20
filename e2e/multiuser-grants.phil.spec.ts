@@ -49,7 +49,7 @@ const annName = () => ann!.email.split("@")[0];
 const beaName = () => bea!.email.split("@")[0];
 
 async function openPeople(page: Page) {
-  await page.goto("/other/settings/people");
+  await page.goto("/other/settings/people?tab=sharing");
   await expect(page.getByRole("heading", { name: "People & teams" })).toBeVisible();
 }
 const bodyNotes = async (who: Person) =>
@@ -324,7 +324,7 @@ test("SECURITY: creating a grant without a fresh second factor is refused", asyn
   await page.getByRole("button", { name: "Find" }).click();
   await page.getByRole("combobox", { name: "Section" }).selectOption("journal");
   await page.getByRole("button", { name: "Share", exact: true }).click();
-  await page.waitForURL((u) => u.pathname === "/other/settings/security" && u.searchParams.get("reauth") === "1" && u.searchParams.get("next") === "/other/settings/people");
+  await page.waitForURL((u) => u.pathname === "/other/settings/security" && u.searchParams.get("reauth") === "1" && u.searchParams.get("next") === "/other/settings/people?tab=sharing");
   const form = page.locator("form", { has: page.getByRole("button", { name: "Confirm" }) });
   await form.getByPlaceholder("000000").fill(codeFor(ann!));
   await form.getByRole("button", { name: "Confirm" }).click();

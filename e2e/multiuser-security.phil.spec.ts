@@ -367,7 +367,7 @@ test("sensitive paths need a fresh re-auth on top: verified at sign-in is not en
 test("the Security page asks for the code again, refuses a wrong one, and then opens the access log", async () => {
   await roomForCodes(3);
   const page = await signedIn!.newPage();
-  await page.goto("/other/settings/security");
+  await page.goto("/other/settings/security?tab=access");
   await expect(page.getByText("Verified with a second factor.")).toBeVisible();
   await expect(page.getByText("Confirm your authenticator to view this.")).toBeVisible();
   await page.getByRole("link", { name: "Confirm" }).click();
@@ -472,7 +472,7 @@ test("the Security page lists every session and signs the others out", async ({ 
   const elsewhereId = sessionIdOf(await accessTokenOf(elsewhere));
 
   const page = await signedIn!.newPage();
-  await page.goto("/other/settings/security");
+  await page.goto("/other/settings/security?tab=sessions");
   await expect(page.getByText("this device", { exact: true })).toHaveCount(1);
   const others = page.getByRole("button", { name: "Sign out there" });
   await expect(others.first()).toBeVisible();
@@ -566,7 +566,7 @@ test("after someone reads what was shared with them, the owner sees it under Who
     .toBeGreaterThan(0);
 
   const page = await lead!.context.newPage();
-  await page.goto("/other/settings/security");
+  await page.goto("/other/settings/security?tab=access");
   const admName = adm!.email.split("@")[0];
   await expect(page.getByText(`${admName} · cross user read · fitness.body`).first()).toBeVisible();
   await expect(page.getByText("/api/body-metrics").first()).toBeVisible();

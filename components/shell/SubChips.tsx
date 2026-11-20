@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { sectionForPath } from "@/lib/nav/sections";
+import { activeSubPageHref, sectionForPath } from "@/lib/nav/sections";
 
 /**
  * Sub-navigation as a chip row. Derives the active section from the current
@@ -15,6 +15,7 @@ export function SubChips({ desktop = false }: { desktop?: boolean } = {}) {
   const pathname = usePathname();
   const section = sectionForPath(pathname);
   if (!section) return null;
+  const current = activeSubPageHref(pathname, section.subPages);
 
   return (
     <nav
@@ -23,8 +24,7 @@ export function SubChips({ desktop = false }: { desktop?: boolean } = {}) {
     >
       <ul className="inline-flex items-center gap-2 px-4 sm:px-6 snap-x snap-mandatory">
         {section.subPages.map((sp) => {
-          const active =
-            pathname === sp.href || pathname.startsWith(sp.href + "/");
+          const active = sp.href === current;
           return (
             <li key={sp.href} className="snap-start shrink-0">
               <Link

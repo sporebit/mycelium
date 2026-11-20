@@ -125,9 +125,10 @@ test("she sees the team's work and what was shared, and People & teams says wher
   expect(((await shared.json()) as { scenes: unknown[] }).scenes).toEqual([]);
 
   const page = await partner!.context.newPage();
-  await page.goto("/other/settings/people");
+  await page.goto("/other/settings/teams");
   await expect(page.getByRole("heading", { name: "People & teams" })).toBeVisible();
   await expect(page.getByRole("button", { name: new RegExp(`${team!.name}\\s*member`) })).toBeVisible();
+  await page.goto("/other/settings/people?tab=sharing");
   const hostName = host!.email.split("@")[0];
   await expect(page.getByRole("listitem").filter({ hasText: hostName }).filter({ hasText: "organisation · tickets · view" })).toHaveCount(1);
   await expect(page.getByRole("listitem").filter({ hasText: hostName }).filter({ hasText: "fitness · whole section · view" })).toHaveCount(1);
@@ -184,7 +185,7 @@ test("without an authenticator she cannot share, and the page tells her what to 
   expect(((await res.json()) as { reason: string }).reason).toBe("mfa_required");
 
   const page = await partner!.context.newPage();
-  await page.goto("/other/settings/people");
+  await page.goto("/other/settings/people?tab=sharing");
   await page.getByRole("textbox", { name: "Their email" }).fill(host!.email);
   await page.getByRole("button", { name: "Find" }).click();
   await page.getByRole("combobox", { name: "Section" }).selectOption("fitness");
@@ -205,12 +206,15 @@ test("with no authenticator, the Security page says what is needed instead of as
   const page = await partner!.context.newPage();
   await page.goto("/other/settings/security");
   await expect(page.getByText("First factor only.")).toBeVisible();
-  await expect(page.getByText("This needs an authenticator app. Enrol one above, then come back.")).toBeVisible();
+  // The access log and the delete card are sub-sections of Security now.
+  await page.goto("/other/settings/security?tab=access");
+  await expect(page.getByText("This needs an authenticator app. Enrol one under Sign-in, then come back.")).toBeVisible();
   await expect(page.getByText("Confirm your authenticator to view this.")).toHaveCount(0);
 
+  await page.goto("/other/settings/security?tab=account");
   await page.getByPlaceholder(partner!.email).fill(partner!.email);
   await page.getByRole("button", { name: "Delete my account" }).click();
-  await expect(page.getByText("Deleting an account needs an authenticator app. Enrol one above first.")).toBeVisible();
+  await expect(page.getByText("Deleting an account needs an authenticator app. Enrol one under Sign-in first.")).toBeVisible();
   expect(new URL(page.url()).pathname).toBe("/other/settings/security");
   expect(sqlValue(`select count(*) from auth.users where id = '${partner!.id}'`)).toBe("1");
   await page.close();

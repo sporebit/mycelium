@@ -3,6 +3,7 @@ import { matchesBearer } from "@/lib/auth/gate";
 import { dueJobs } from "@/lib/system/schedule";
 import { londonNow } from "@/lib/tickets/categories";
 import { GET as briefing } from "../../briefings/morning/route";
+import { GET as aiModels } from "../ai-models/route";
 import { GET as dailyPrompts } from "../daily-prompts/route";
 import { GET as daylog } from "../daylog/route";
 import { GET as family } from "../family/route";
@@ -29,6 +30,7 @@ const HANDLERS: Record<string, Handler> = {
   "/api/cron/finds": finds,
   "/api/cron/quotes-research": quotesResearch,
   "/api/cron/rundowns": rundowns,
+  "/api/cron/ai-models": aiModels,
 };
 
 /**
