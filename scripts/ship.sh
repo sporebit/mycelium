@@ -52,7 +52,8 @@ PENDING="$(supabase migration list --remote 2>/dev/null | grep -o '"local":"[0-9
 if [ -n "$PENDING" ]; then
   echo "   pending on hosted: $PENDING"
   powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-backup.ps1 -BackupRoot 'A:\Backups\mycelium\on-demand' 2>&1 | grep -E '^(ok|FAIL|error)' || { echo "backup did not report ok"; exit 1; }
-  supabase db push --remote --yes 2>&1 | grep -E 'Applying|Finished|ERROR|error' || true
+  # --include-all: in a parallel run a lane's lower-numbered migration can land after a higher one is already on hosted; each is additive, so it is applied anyway.
+  supabase db push --remote --yes --include-all 2>&1 | grep -E 'Applying|Finished|ERROR|error' || true
   STILL="$(supabase migration list --remote 2>/dev/null | grep -o '"local":"[0-9]*","remote":""' || true)"
   if [ -n "$STILL" ]; then echo "migrations still pending after push"; exit 1; fi
 else
