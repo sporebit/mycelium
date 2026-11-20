@@ -36,6 +36,7 @@ export function Budget({ family }: { family: Overview }) {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("bill");
   const [paidBy, setPaidBy] = useState(me);
+  const [monthly, setMonthly] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const first = useRef<HTMLInputElement>(null);
   const name = (id: string | null) => family.members.find((m) => m.id === id)?.name ?? "Nobody yet";
@@ -48,9 +49,10 @@ export function Budget({ family }: { family: Overview }) {
       if (pence === null) throw new Error("The amount is a number, like 42.50.");
       // a cost added while looking at another month lands in that month
       const paid_on = month === family.today.slice(0, 7) ? family.today : `${month}-01`;
-      await send("POST", "/api/family/costs", { title, amount_pence: pence, category, paid_by: paidBy || null, paid_on });
+      await send("POST", "/api/family/costs", { title, amount_pence: pence, category, paid_by: paidBy || null, paid_on, recurs: monthly ? "monthly" : "none" });
       setTitle("");
       setAmount("");
+      setMonthly(false);
       await mutate();
       first.current?.focus();
     } catch (e) {
@@ -119,6 +121,10 @@ export function Budget({ family }: { family: Overview }) {
           <option value="">Not paid yet</option>
         </select>
       </div>
+      <label className="flex items-center gap-2 text-xs text-text-mid">
+        <input type="checkbox" checked={monthly} onChange={(e) => setMonthly(e.target.checked)} />
+        Every month: when the month turns, next month&apos;s line is added by itself, on the same day, for the same amount.
+      </label>
       <p className="text-xs text-text-lo">Enter adds the line and stays here for the next.</p>
       {error ? <p role="alert" className="text-sm text-v2-error">{error}</p> : null}
 
@@ -140,6 +146,21 @@ export function Budget({ family }: { family: Overview }) {
                       if (v && v !== c.title) void send("PATCH", `/api/family/costs/${c.id}`, { title: v }).then(() => mutate()).catch((err: Error) => setError(err.message));
                     }}
                   />
+                </td>
+                <td className="w-20 text-xs text-text-lo">
+                  {c.recurs_from ? (
+                    <span title="Added by itself from the bill marked monthly">monthly</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={`rounded-v2-sm border px-1.5 py-0.5 ${c.recurs === "monthly" ? "border-glow text-text-hi" : "border-transparent text-text-lo hover:border-hairline"}`}
+                      aria-label={`Every month: ${c.title}`}
+                      aria-pressed={c.recurs === "monthly"}
+                      onClick={() => void send("PATCH", `/api/family/costs/${c.id}`, { recurs: c.recurs === "monthly" ? "none" : "monthly" }).then(() => mutate()).catch((err: Error) => setError(err.message))}
+                    >
+                      {c.recurs === "monthly" ? "monthly" : "once"}
+                    </button>
+                  )}
                 </td>
                 <td className="hidden w-24 text-xs text-text-mid sm:table-cell">{name(c.paid_by)}</td>
                 <td className="w-24">

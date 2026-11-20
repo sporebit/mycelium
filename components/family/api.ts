@@ -26,7 +26,7 @@ export type NameRow = { id: string; name: string; note: string | null; votes: Ar
 export type ListItem = { id: string; list_id: string; title: string; price_pence: number | null; qty: number; bought: boolean; link: string | null; note: string | null };
 export type PrepList = { id: string; slug: string; title: string; items: ListItem[]; totals: ListTotals };
 export type HouseholdItem = { id: string; kind: "document" | "warranty" | "bin" | "other"; title: string; note: string | null; expires_on: string | null; has_file: boolean; next_on: string | null; schedule: { weekday: number; every_weeks: number; anchor_on: string } | null };
-export type CostRow = { id: string; title: string; amount_pence: number; paid_by: string | null; paid_on: string; category: string; recurs: string; note: string | null };
+export type CostRow = { id: string; title: string; amount_pence: number; paid_by: string | null; paid_on: string; category: string; recurs: string; note: string | null; /** The monthly bill this row was added from by the tick, when it was. */ recurs_from: string | null };
 
 export const INPUT =
   "min-h-[40px] px-3 rounded-v2-md bg-surface-0 border border-hairline text-text-hi text-sm placeholder:text-text-lo focus:outline-none focus:border-glow transition-colors";

@@ -308,7 +308,7 @@ export async function listRows(name: ResourceName, sp: URLSearchParams, ctx: Fam
       const next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
       const { data, error } = await supabase
         .from("household_costs")
-        .select("id, title, amount_pence, paid_by, paid_on, category, recurs, note, created_at")
+        .select("id, title, amount_pence, paid_by, paid_on, category, recurs, recurs_from, note, created_at")
         .eq("space_id", spaceId)
         .gte("paid_on", `${month}-01`)
         .lt("paid_on", `${next}-01`)
