@@ -1,6 +1,6 @@
 # Master run — Stream I report (UI: Specimen plate and the top menu bar)
 
-*2026-11-20, 05:25–06:10 London. Claude Code on the PC. Ticket MYC-191. Status: **built, behind the switch in Settings → Appearance (default: Classic)**; Phil's live check is chunk 12 of MYC-193. No migration. Scope as set at 02:47: Specimen plate only. Core sample, Burrow and Colony were not started, scaffolded or stubbed.*
+*2026-11-20, 05:25–06:25 London. Claude Code on the PC. Ticket MYC-191. Status: **built, behind the switch in Settings → Appearance (default: Classic)**; Phil's live check is chunk 12 of MYC-193. No migration. Scope as set at 02:47: Specimen plate only. Core sample, Burrow and Colony were not started, scaffolded or stubbed.*
 
 ## What was built
 
@@ -24,7 +24,7 @@ Handled, each with a check: no items (a blank plate), more lined up than fits (T
 
 1. **Today and Home came back empty on the first visit of any day that had items**, and had since Today was built. Inside a page render React remembers the answer to an identical request for the length of the render; "is there a plan for today?" was asked, answered no, the plan was created, and the same question asked again was answered "no" from memory. The Today page hid it: when its server-side read fails the card quietly loads itself in the browser. Found because Home has no such fallback on desktop. Fixed by reading the new plan back from the row just made (`lib/daily/server.ts`). API routes were never affected, which is why every check had passed.
 2. **The test server's log was empty** all night: its output was never captured, so a swallowed error could only be found by starting a second copy with its output attached. Noted for the harness.
-3. **The two colour-token systems are already one where it matters.** The old names (`ink-0` to `ink-4`) are defined as aliases of the new ones (`surface-*`, `text-*`), so nothing can drift apart. What remains is vocabulary: 3,356 uses of the old names in 202 files beside 1,791 of the new. See "Not done".
+3. **The two colour-token systems were already one where it matters**, and are now one in name too. The old names (`ink-0` to `ink-4`, `text-0` to `text-3`) were defined as aliases of the new ones (`surface-*`, `text-hi/mid/lo/ghost`). 4,152 class names in 212 files were renamed to the new vocabulary in one mechanical commit. Proof that nothing changed: twelve pages photographed before and after with everything that moves held still came out identical to the pixel (the comparison was first run twice on one build to show it was steady), and every page still opens. The aliases stay in the stylesheet for anything written in CSS by hand.
 4. **The app's global heading rule outranks utility classes**, so a heading cannot be restyled with a class alone. The plate sets its own headings in one scoped rule.
 
 ## Looked at on screen
@@ -43,7 +43,6 @@ The mock-ups were never opened and checked after publishing. This build was: scr
 
 ## Not done
 
-- **Renaming the old colour-token names to the new across 202 files.** It cannot change how anything looks, because the old names are aliases of the new. It was left out of this release so that a three-thousand-line mechanical change does not ride with a new shell; it is the next thing in this stream.
 - **Proper artwork.** The five species are simple code drawings, as agreed for a first pass. The source is Phil's choice (MYC-192): public-domain engravings are free; generated artwork costs money, so the run stops and asks before it.
 - Core sample, Burrow, Colony: waiting for Phil's word, as instructed.
 
