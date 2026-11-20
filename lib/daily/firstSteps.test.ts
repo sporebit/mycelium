@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { firstStepPrompt, FIRST_STEP_SYSTEM, MAX_STEP_CHARS, parseFirstSteps } from "./firstSteps";
 
 const ids = ["a1", "b2", "c3"];
-const answer = (steps: Array<{ id: unknown; step: unknown }>) => JSON.stringify({ steps });
+/** Entries are marked sure unless the test says otherwise. */
+const answer = (steps: Array<{ id: unknown; step: unknown; sure?: unknown }>) => JSON.stringify({ steps: steps.map((s) => ({ sure: true, ...s })) });
 
 describe("first steps from the PC's model", () => {
   it("keeps a good step and gives it a full stop", () => {
@@ -58,6 +59,19 @@ describe("first steps from the PC's model", () => {
     expect(out.size).toBe(0);
   });
 
+  it("keeps only what the model itself marked sure", () => {
+    const out = parseFirstSteps(
+      answer([
+        { id: "a1", step: "Find the key to the heating system.", sure: false },
+        { id: "b2", step: "Open the dentist's booking page and pick a date.", sure: true },
+        { id: "c3", step: "Open the first drive to format.", sure: "yes" },
+      ]),
+      ids,
+    );
+    expect([...out.keys()]).toEqual(["b2"]);
+    expect(parseFirstSteps(JSON.stringify({ steps: [{ id: "a1", step: "Open the loft hatch and put on gloves." }] }), ids).size, "no flag is not sure").toBe(0);
+  });
+
   it("strips quotation marks and stray space", () => {
     expect(parseFirstSteps(answer([{ id: "b2", step: '  "Put the form   on the desk by the keyboard."  ' }]), ids).get("b2")).toBe("Put the form on the desk by the keyboard.");
   });
@@ -82,5 +96,6 @@ describe("first steps from the PC's model", () => {
     expect(FIRST_STEP_SYSTEM).toContain('{"steps":[');
     expect(FIRST_STEP_SYSTEM).toContain("British English");
     expect(FIRST_STEP_SYSTEM).toContain("Never a reproach");
+    expect(FIRST_STEP_SYSTEM).toContain('"sure":true');
   });
 });

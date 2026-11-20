@@ -33,8 +33,19 @@ export const FIRST_STEP_SYSTEM = [
   "- Never 'think about', 'plan', 'consider', 'decide', 'research', 'start working on' or 'make a list'.",
   "- Never a reproach or a reminder: no 'don't forget', no 'you still need to', no 'overdue'.",
   "- British English. Fourteen words or fewer. One sentence. No quotation marks.",
+  "The step must be the obvious way to BEGIN that exact task. If you would have to guess what the task involves, do not guess.",
+  "Examples:",
+  "task: Book MOT for the car -> Open the garage's booking page and pick a date.",
+  "task: Fix the dripping tap in the bathroom -> Fetch the adjustable spanner and put it by the bathroom sink.",
+  "task: Write up notes from the school meeting -> Open a blank note and type the meeting's date as the heading.",
+  "task: Sort the garage -> Set a five-minute timer and clear one shelf in the garage.",
+  "task: Renew passport -> Find the old passport and put it on the desk.",
+  "task: Reply to Sam about the invoice -> Open Sam's email and write the first sentence of the reply.",
+  "task: Tax return -> Sign in to the tax return and open the first unfinished section.",
+  "task: Q3 synergy alignment -> Write one line saying what done looks like for Q3 synergy alignment.",
   "If a task is too vague to know its first action, give: Write one line saying what done looks like for <the task's own words>.",
-  'Answer with JSON only: {"steps":[{"id":"<the id given>","step":"<the step>"}]} with one entry per task, in the order given.',
+  "For each step also say whether you are SURE: true only if anyone doing this task would certainly begin exactly this way, with an object that certainly exists (do not invent an email, a form, a website or a tool the task does not mention or obviously need). Otherwise false.",
+  'Answer with JSON only: {"steps":[{"id":"<the id given>","step":"<the step>","sure":true}]} with one entry per task, in the order given.',
 ].join("\n");
 
 /** The user half of the prompt: the tasks, numbered by their own ids. Pure. */
@@ -49,9 +60,13 @@ export function firstStepPrompt(tickets: readonly StepTicket[]): string {
 
 /**
  * Read the model's answer. Pure, and strict: a step is kept only if it is
- * for a ticket that was asked about, is a plausible sentence, and breaks
- * none of the wording rules. Anything else is dropped (the generic line
- * stays for that ticket), never repaired.
+ * for a ticket that was asked about, the model itself marked it sure, it
+ * is a plausible sentence, and it breaks none of the wording rules.
+ * Anything else is dropped (the generic line stays for that ticket), never
+ * repaired. A small local model writes a wrong step about a third of the
+ * time ("measure the car's width" for booking an MOT); it flags most of
+ * those itself, and a wrong step on the focus card costs more trust than a
+ * plain one. Tried on this PC, 2026-11-20: about half are kept.
  */
 export function parseFirstSteps(text: string, askedIds: readonly string[]): Map<string, string> {
   const out = new Map<string, string>();
@@ -74,6 +89,7 @@ export function parseFirstSteps(text: string, askedIds: readonly string[]): Map<
     const id = typeof (entry as { id?: unknown })?.id === "string" ? (entry as { id: string }).id.trim() : "";
     const raw = typeof (entry as { step?: unknown })?.step === "string" ? (entry as { step: string }).step : "";
     if (!asked.has(id) || out.has(id)) continue;
+    if ((entry as { sure?: unknown }).sure !== true) continue;
     const step = raw
       .replace(/\s+/g, " ")
       .replace(/^["'“”‘’\s]+|["'“”‘’\s]+$/g, "")
