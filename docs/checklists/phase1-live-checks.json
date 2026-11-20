@@ -895,12 +895,29 @@
         },
         {
           "id": "11.7",
+          "title": "The Day log, day by day",
+          "actor": "you",
+          "where": {
+            "label": "Journal",
+            "url": "https://mycelium.sporebit.com/journal",
+            "kind": "page"
+          },
+          "body_html": "Share <b>Journal</b> with her (view). On her phone, Journal shows nothing of yours. Now open one of your finished days and press <b>Private</b> so it reads <b>Shared</b>: on her phone that day appears under <b>Shared with me</b> with your summary and scenes, and nothing else. Press it back to Private: it is gone."
+        },
+        {
+          "id": "11.8",
+          "title": "A nudge",
+          "actor": "you",
+          "body_html": "On her phone she opens one of your shared tickets and presses <b>Nudge</b> → <i>Want company for this?</i> You get a notification; on the new Home it is a margin note with <b>Not today</b>. Finish the ticket: within five minutes she is told."
+        },
+        {
+          "id": "11.9",
           "title": "Sign her phone out from your laptop",
           "actor": "you",
           "body_html": "Settings → Security → Sign out there for her phone's session. Her phone should stop showing data at once and land on the sign-in page."
         },
         {
-          "id": "11.8",
+          "id": "11.10",
           "title": "Admin",
           "actor": "you",
           "where": {
@@ -911,13 +928,13 @@
           "body_html": "/admin: a prompt to confirm the code, then the console listing both users, the family team, the grants and an audit tab."
         },
         {
-          "id": "11.9",
+          "id": "11.11",
           "title": "Phone layout",
           "actor": "you",
           "body_html": "People & teams and Security on her phone: the section table scrolls sideways, the share form is usable, the QR is large enough to scan from another screen."
         },
         {
-          "id": "11.10",
+          "id": "11.12",
           "title": "Anything to report",
           "actor": "you",
           "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
