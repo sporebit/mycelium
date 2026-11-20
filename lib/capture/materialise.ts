@@ -17,6 +17,7 @@ import { queuePendingPerson, recordMention, resolveMention } from "@/lib/people/
 import { ignoredTermKeys } from "@/lib/people/ignored";
 import { aliasKey } from "@/lib/people/normalise";
 import { createQuoteFromExtraction, extractionFromClassification } from "@/lib/quotes/server";
+import { createGiftFromClassification } from "@/lib/gifts/server";
 import { researchQuote } from "@/lib/quotes/research";
 import { appendCapture } from "@/lib/daylog/engine";
 import { technicalProjectIds } from "@/lib/tickets/area";
@@ -343,6 +344,12 @@ export async function createRoutedRow(
     const row = await createQuoteFromExtraction(supabase, ex, { raw_text: rawText, capture_id: rawCaptureId, said_by_person_id: pid });
     if (row.research_status === "pending") after(() => researchQuote(supabase, row.id).catch((e) => console.error("[quotes research]", e)));
     return { routedTo: "quotes", routedId: row.id };
+  }
+
+  // Gifts (spec §4.7): the gifts row is created on approve, origin capture; the person is never created.
+  if (kind === "gift_idea") {
+    const row = await createGiftFromClassification(supabase, classification, rawText, rawCaptureId);
+    return { routedTo: "gifts", routedId: row.id };
   }
 
   // decision / note / capture / workout / other — leave in raw_captures.

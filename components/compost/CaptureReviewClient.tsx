@@ -5,6 +5,7 @@ import { routedLink } from "@/lib/capture/links";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
 import { QuoteReviewEditor, type DuplicateChoice, type QuoteDraft } from "@/components/quotes/QuoteReviewEditor";
+import { GiftReviewEditor, type GiftDraft, type GiftDuplicateChoice } from "@/components/gifts/GiftReviewEditor";
 import { PendingEntitiesList } from "./PendingEntitiesList";
 import { parseWeight } from "@/lib/health/parse-weight";
 import { useApi } from "@/lib/data/useApi";
@@ -54,6 +55,7 @@ const KIND_OPTIONS = [
   "ticket",
   "person",
   "quote",
+  "gift_idea",
   "journal",
   "workout",
   "purchase",
@@ -190,6 +192,7 @@ export function CaptureReviewClient({ initialTab = "needs_review", dayId = null 
         if (draft.project_id !== undefined) body.project_id = draft.project_id;
         if (draft.person && typeof draft.person === "object") body.person = draft.person;
         if (draft.quote && typeof draft.quote === "object") body.quote = draft.quote;
+        if (draft.gift && typeof draft.gift === "object") body.gift = draft.gift;
         if (draft.duplicate) body.duplicate = draft.duplicate;
         // MYC-161: a typed capture's registry form travels as `fields`.
         if (draft.fields && typeof draft.fields === "object") body.fields = draft.fields;
@@ -378,6 +381,21 @@ function ReviewCard({
   });
   const [duplicate, setDuplicate] = useState<DuplicateChoice>(null);
   const quoteCandidates: string[] = Array.isArray(cls.quote_person_candidates) ? (cls.quote_person_candidates as string[]) : [];
+  // Gifts (spec §4.7): the extraction, the matched recipient and occasion; the reviewer corrects, never creates.
+  const [giftDraft, setGiftDraft] = useState<GiftDraft>(() => {
+    const g = (cls.gift as Partial<GiftDraft> | null | undefined) ?? {};
+    return {
+      title: typeof g.title === "string" && g.title ? g.title : (typeof cls.title === "string" ? cls.title : (capture.raw_text ?? "")),
+      person: typeof g.person === "string" ? g.person : null,
+      for_person_id: typeof cls.gift_person_id === "string" ? cls.gift_person_id : null,
+      occasion_id: typeof cls.gift_occasion_id === "string" ? cls.gift_occasion_id : null,
+      reason: typeof g.reason === "string" ? g.reason : null,
+      url: typeof g.url === "string" ? g.url : null,
+      target_price: typeof g.target_price === "number" ? g.target_price : null,
+    };
+  });
+  const [giftDuplicate, setGiftDuplicate] = useState<GiftDuplicateChoice>(null);
+  const giftCandidates: string[] = Array.isArray(cls.gift_person_candidates) ? (cls.gift_person_candidates as string[]) : [];
 
   // MYC-161: a typed capture shows its registry form, pre-filled, so APPROVE
   // is one tap. Changing the kind re-seeds the new kind's form from the text.
@@ -434,6 +452,7 @@ function ReviewCard({
       date_inferred: dateInferred || null,
       scheduled_at,
       ...(kind === "quote" ? { quote: quoteDraft, duplicate } : {}),
+      ...(kind === "gift_idea" ? { gift: giftDraft, duplicate: giftDuplicate } : {}),
       ...(kind === "ticket" ? { project_id: projectId || null } : {}),
       ...(kind === "person" ? { person: personDraft } : {}),
       ...(typed && getEntityDef(kind) ? { fields: typedFields, title: typeof typedFields[getEntityDef(kind)!.primary] === "string" ? (typedFields[getEntityDef(kind)!.primary] as string) : title } : {}),
@@ -632,6 +651,10 @@ function ReviewCard({
 
       {!typed && kind === "quote" && (
         <QuoteReviewEditor value={quoteDraft} onChange={setQuoteDraft} candidates={quoteCandidates} duplicate={duplicate} onDuplicate={setDuplicate} />
+      )}
+
+      {!typed && kind === "gift_idea" && (
+        <GiftReviewEditor value={giftDraft} onChange={setGiftDraft} candidates={giftCandidates} duplicate={giftDuplicate} onDuplicate={setGiftDuplicate} />
       )}
 
       {!typed && kind === "person" && (
