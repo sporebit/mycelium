@@ -316,6 +316,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
     tables: ["api_tokens"],
     note: "Scoped bearer tokens (tickets spec §14.4); hashes only, resolved by the middleware with the service role.",
   },
+  {
+    section: "platform",
+    group: "jobs",
+    tables: ["jobs"],
+    note: "Work queued for the PC or the cloud (0159); owned by the user whose data it touches, claimed by the worker with the service role.",
+  },
 ];
 
 export type SharedReferenceDef = {
@@ -332,6 +338,8 @@ export const SHARED_REFERENCE: readonly SharedReferenceDef[] = [
   { table: "blood_test_markers", readableBy: "authenticated" },
   { table: "cook_guides", readableBy: "authenticated" },
   { table: "weather_cache", readableBy: "authenticated" },
+  // 0159: one row per machine that collects jobs, with its last heartbeat ("is the PC on?"). Written by the service role.
+  { table: "workers", readableBy: "authenticated" },
 ];
 
 /**
