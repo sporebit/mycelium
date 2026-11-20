@@ -21,6 +21,10 @@ function buildContext(data: BriefingData): string {
   } else {
     lines.push("Calendar: empty");
   }
+  if (data.gifts && data.gifts.occasions > 0) {
+    // gifts spec §6: a count, never a name — the line may be read over a shoulder
+    lines.push(`Gift occasions in the next ${data.gifts.horizon_days} days: ${data.gifts.occasions}, ${data.gifts.nothing_bought} with nothing bought yet`);
+  }
   if (data.topTasks.length > 0) {
     lines.push(
       `Top tasks: ${data.topTasks.map((t) => t.title).join("; ")}`

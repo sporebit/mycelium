@@ -147,6 +147,12 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
   },
   {
     section: "organisation",
+    group: "gifts",
+    tables: ["gift_occasions", "gifts", "gift_bundles", "gift_comments"],
+    note: "Gifts phase 1 (0181): ideas, occasions, bundles (phase 2 FK) and the notes thread. Owner-only by policy shape (space_id = the reader's own personal space), never named in a share: a gift list is what the recipient must not read.",
+  },
+  {
+    section: "organisation",
     group: "events",
     tables: ["events"],
     note: "Calendar lives under Organisation in the nav. events has no user_id column; Part 2 backfills created_by from the space owner.",

@@ -74,7 +74,8 @@ export type TypedKind =
   | "idea"
   | "note"
   | "workout"
-  | "person";
+  | "person"
+  | "gift_idea";
 
 export type EntityDef = {
   kind: TypedKind;
@@ -759,10 +760,74 @@ const PERSON: EntityDef = {
 };
 
 // ---------------------------------------------------------------------------
+// gift idea (claude/gifts-spec.md §4, §9)
+// ---------------------------------------------------------------------------
+
+const GIFT: EntityDef = {
+  kind: "gift_idea",
+  label: "Gift idea",
+  description: "Something to give someone. Owner-only; never creates a person.",
+  primary: "title",
+  route: "/api/gifts",
+  postFields: ["title", "for_person_id", "for_label", "occasion_id", "reason", "url", "target_price", "needed_by", "description", "retailer", "category", "currency", "status", "force"],
+  fields: [
+    { name: "title", label: "Gift", type: "text", required: true, wide: true, placeholder: "e.g. decent chef's knife" },
+    { name: "for_person_id", label: "For", type: "person" },
+    { name: "for_label", label: "Or a name", type: "text", placeholder: "when they are not in People" },
+    { name: "reason", label: "Why it suits them", type: "text", wide: true, placeholder: "optional" },
+    { name: "url", label: "Link", type: "text" },
+    { name: "target_price", label: "Target price", type: "number", min: 0, step: 0.01 },
+    { name: "needed_by", label: "Needed by", type: "date" },
+    { name: "occasion_id", label: "Occasion", type: "text", hidden: true },
+    { name: "description", label: "Description", type: "textarea", hidden: true },
+    { name: "retailer", label: "Retailer", type: "text", hidden: true },
+    { name: "category", label: "Category", type: "text", hidden: true },
+    { name: "currency", label: "Currency", type: "text", hidden: true },
+    { name: "status", label: "Status", type: "select", hidden: true },
+    { name: "force", label: "Force (skip duplicate check)", type: "boolean", hidden: true },
+  ],
+  materialises: true,
+  validate: (v) => {
+    const e: FieldErrors = {};
+    if (!str(v.title)) e.title = "The gift is required";
+    if (v.target_price !== undefined && v.target_price !== "" && v.target_price !== null && num(v.target_price) === null) e.target_price = "Number";
+    return e;
+  },
+  toClassification: (v) => ({
+    kind: "gift_idea",
+    title: str(v.title),
+    gift: {
+      title: str(v.title),
+      person: strOrNull(v.for_label),
+      reason: strOrNull(v.reason),
+      occasion: null,
+      url: strOrNull(v.url),
+      target_price: num(v.target_price),
+      needed_by_relative: null,
+    },
+    gift_person_id: strOrNull(v.for_person_id),
+    gift_occasion_id: strOrNull(v.occasion_id),
+    gift_needed_by: DATE_RE.test(str(v.needed_by)) ? str(v.needed_by) : null,
+  }),
+  toPostBody: (v) => ({
+    title: str(v.title),
+    for_person_id: strOrNull(v.for_person_id),
+    for_label: strOrNull(v.for_label),
+    occasion_id: strOrNull(v.occasion_id),
+    reason: strOrNull(v.reason),
+    url: strOrNull(v.url),
+    target_price: num(v.target_price),
+    needed_by: DATE_RE.test(str(v.needed_by)) ? str(v.needed_by) : null,
+    force: bool(v.force),
+  }),
+};
+
+// ---------------------------------------------------------------------------
 // the registry
 // ---------------------------------------------------------------------------
 
 export const ENTITY_REGISTRY: Readonly<Record<TypedKind, EntityDef>> = {
+  gift_idea: GIFT,
   task: TASK,
   ticket: TICKET,
   reminder: REMINDER,
@@ -780,7 +845,7 @@ export const ENTITY_REGISTRY: Readonly<Record<TypedKind, EntityDef>> = {
 };
 
 /** Dropdown order on the capture screen. */
-export const TYPED_KINDS: readonly TypedKind[] = ["task", "ticket", "reminder", "purchase", "media", "quote", "journal", "idea", "decision", "note", "person", "account", "pain_log", "workout"];
+export const TYPED_KINDS: readonly TypedKind[] = ["task", "ticket", "reminder", "purchase", "media", "quote", "gift_idea", "journal", "idea", "decision", "note", "person", "account", "pain_log", "workout"];
 
 export function isTypedKind(v: unknown): v is TypedKind {
   return typeof v === "string" && Object.prototype.hasOwnProperty.call(ENTITY_REGISTRY, v);
@@ -842,6 +907,7 @@ export function classificationForTyped(kind: TypedKind, values: FieldValues, tex
     media: null,
     account: null,
     quote: null,
+    gift: null,
     context_where: null,
     context_device: null,
     context_energy: null,
