@@ -4,13 +4,19 @@
  * The one timeline: notes, scans, appointments, milestones, photos and
  * letters, newest first, each marked with the week of the pregnancy it
  * fell in. Adding is one line and a button; a picture or a scan is the
- * same line with a file. Everything here is seen by everyone in the
- * family space.
+ * same line with a file. An entry can be changed in place: Edit opens it
+ * as a form where it stands, Save sends what changed. Everything here is
+ * seen by everyone in the family space.
+ *
+ * A picture over 4 MB is made smaller in the browser before it goes
+ * (components/family/shrink.ts); the day it was taken is kept as the
+ * entry's day.
  */
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui";
 import { useApi } from "@/lib/data/useApi";
 import { INPUT, dayLabelYear, send, timeLabel, type Entry, type Overview } from "./api";
+import { prepareUpload } from "./shrink";
 
 const KINDS: Array<{ value: Entry["kind"]; label: string }> = [
   { value: "note", label: "Note" },
@@ -21,7 +27,15 @@ const KINDS: Array<{ value: Entry["kind"]; label: string }> = [
 ];
 const KIND_LABEL: Record<Entry["kind"], string> = { note: "Note", scan: "Scan", appointment: "Appointment", milestone: "Milestone", photo: "Photo", letter: "Letter" };
 
-export function EntryCard({ e, who, onRemove }: { e: Entry; who: string; onRemove?: () => void }) {
+/** An instant as the value a datetime-local input takes, in the browser's own time (the same clock `add` reads it back with). */
+export function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+export function EntryCard({ e, who, onRemove, onEdit }: { e: Entry; who: string; onRemove?: () => void; onEdit?: () => void }) {
   const image = e.has_media && (e.media_mime ?? "").startsWith("image/");
   const audio = e.has_media && (e.media_mime ?? "").startsWith("audio/");
   const media = `/api/family/entries/${e.id}/media`;
@@ -50,12 +64,90 @@ export function EntryCard({ e, who, onRemove }: { e: Entry; who: string; onRemov
       ) : null}
       <div className="mt-2 flex items-center justify-between text-xs text-text-lo">
         <span>{who}</span>
-        {onRemove ? (
-          <button type="button" className="underline hover:text-text-hi" aria-label={`Remove ${e.title}`} onClick={onRemove}>
-            Remove
-          </button>
-        ) : null}
+        <span className="flex gap-3">
+          {onEdit ? (
+            <button type="button" className="underline hover:text-text-hi" aria-label={`Edit ${e.title}`} onClick={onEdit}>
+              Edit
+            </button>
+          ) : null}
+          {onRemove ? (
+            <button type="button" className="underline hover:text-text-hi" aria-label={`Remove ${e.title}`} onClick={onRemove}>
+              Remove
+            </button>
+          ) : null}
+        </span>
       </div>
+    </li>
+  );
+}
+
+/** One entry opened as a form where it stands. Only what changed is sent. */
+function EditEntry({ e, onDone, onCancel }: { e: Entry; onDone: () => Promise<void> | void; onCancel: () => void }) {
+  const [title, setTitle] = useState(e.title);
+  const [body, setBody] = useState(e.body ?? "");
+  const [place, setPlace] = useState(e.place ?? "");
+  const [when, setWhen] = useState(e.starts_at ? toLocalInput(e.starts_at) : "");
+  const [day, setDay] = useState(e.happened_on);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const appointment = e.kind === "appointment";
+
+  const save = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const changes: Record<string, string | null> = {};
+      if (title.trim() !== e.title) changes.title = title.trim();
+      if (body.trim() !== (e.body ?? "")) changes.body = body.trim() || null;
+      if (appointment) {
+        if (!when) throw new Error("An appointment needs a date and time.");
+        const at = new Date(when).toISOString();
+        if (at !== e.starts_at) changes.starts_at = at;
+        if (place.trim() !== (e.place ?? "")) changes.place = place.trim() || null;
+      } else if (day !== e.happened_on) {
+        changes.happened_on = day;
+      }
+      if (!title.trim()) throw new Error("Give it a line to go by.");
+      if (Object.keys(changes).length > 0) await send("PATCH", `/api/family/entries/${e.id}`, changes);
+      await onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That did not save. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <li className="rounded-v2-lg border border-glow bg-surface-1 px-4 py-3" data-testid="family-entry-edit">
+      <form
+        className="flex flex-col gap-2"
+        onSubmit={(ev) => {
+          ev.preventDefault();
+          void save();
+        }}
+      >
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="shrink-0 text-[11px] uppercase tracking-[0.08em] text-text-lo">{KIND_LABEL[e.kind]}</span>
+          {appointment ? (
+            <input type="datetime-local" aria-label="Date and time" className={INPUT} value={when} onChange={(ev) => setWhen(ev.target.value)} />
+          ) : (
+            <input type="date" aria-label="The day" className={INPUT} value={day} onChange={(ev) => setDay(ev.target.value)} />
+          )}
+        </div>
+        <input className={INPUT} aria-label="A line to go by" value={title} maxLength={200} onChange={(ev) => setTitle(ev.target.value)} />
+        {appointment ? <input className={INPUT} aria-label="Where" placeholder="Where" value={place} onChange={(ev) => setPlace(ev.target.value)} /> : null}
+        {e.prompt ? <p className="text-xs italic text-text-lo">{e.prompt}</p> : null}
+        <textarea className={`${INPUT} min-h-[64px] py-2`} aria-label="More, if you want" placeholder="More, if you want" value={body} onChange={(ev) => setBody(ev.target.value)} />
+        <div className="flex items-center justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="primary" loading={busy}>
+            Save
+          </Button>
+        </div>
+        {error ? <p role="alert" className="text-sm text-v2-error">{error}</p> : null}
+      </form>
     </li>
   );
 }
@@ -69,6 +161,7 @@ export function Timeline({ family, onChanged }: { family: Overview; onChanged: (
   const [place, setPlace] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
   const file = useRef<HTMLInputElement>(null);
   const who = (id: string | null) => family.members.find((m) => m.id === id)?.name ?? "";
 
@@ -85,9 +178,12 @@ export function Timeline({ family, onChanged }: { family: Overview; onChanged: (
         if (place) fields.place = place;
       }
       if (f) {
+        // a big picture is made smaller here; the day it was taken becomes the entry's day
+        const prepared = await prepareUpload(f);
+        if (prepared.taken_on && kind !== "appointment") fields.happened_on = prepared.taken_on;
         const form = new FormData();
         for (const [k, v] of Object.entries(fields)) if (v) form.set(k, v);
-        form.set("file", f);
+        form.set("file", prepared.file);
         await send("POST", "/api/family/entries", form);
       } else {
         if (!title.trim()) throw new Error("Give it a line to go by.");
@@ -139,25 +235,40 @@ export function Timeline({ family, onChanged }: { family: Overview; onChanged: (
             Add to the timeline
           </Button>
         </div>
+        <p className="text-xs text-text-lo">A picture over 4 MB is made smaller here before it goes, and keeps the day it was taken.</p>
         {error ? <p role="alert" className="text-sm text-v2-error">{error}</p> : null}
       </form>
 
       {data && data.entries.length === 0 ? <p className="text-sm text-text-mid">Nothing on the timeline yet. The first note, scan or appointment starts it.</p> : null}
       <ul className="flex flex-col gap-2">
-        {(data?.entries ?? []).map((e) => (
-          <EntryCard
-            key={e.id}
-            e={e}
-            who={who(e.created_by)}
-            onRemove={() => {
-              if (!window.confirm(`Remove "${e.title}" from the timeline for everyone?`)) return;
-              void send("DELETE", `/api/family/entries/${e.id}`)
-                .then(() => mutate())
-                .then(onChanged)
-                .catch((err: Error) => setError(err.message));
-            }}
-          />
-        ))}
+        {(data?.entries ?? []).map((e) =>
+          editing === e.id ? (
+            <EditEntry
+              key={e.id}
+              e={e}
+              onCancel={() => setEditing(null)}
+              onDone={async () => {
+                setEditing(null);
+                await mutate();
+                onChanged();
+              }}
+            />
+          ) : (
+            <EntryCard
+              key={e.id}
+              e={e}
+              who={who(e.created_by)}
+              onEdit={() => setEditing(e.id)}
+              onRemove={() => {
+                if (!window.confirm(`Remove "${e.title}" from the timeline for everyone?`)) return;
+                void send("DELETE", `/api/family/entries/${e.id}`)
+                  .then(() => mutate())
+                  .then(onChanged)
+                  .catch((err: Error) => setError(err.message));
+              }}
+            />
+          ),
+        )}
       </ul>
     </div>
   );

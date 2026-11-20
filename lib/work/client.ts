@@ -19,6 +19,19 @@ export function useWorkMeta() {
 	return { meta: data ?? null, error, isLoading, reload: mutate };
 }
 
+/**
+ * The meta of the space a ticket is in. A ticket in a team's space offers
+ * that space's issue types, projects and label fields, not the reader's own
+ * (MYC-185). The reader's own meta is the answer until the ticket's space
+ * is known, and whenever it is the reader's own space.
+ */
+export function useSpaceMeta(spaceId: string | null | undefined) {
+	const own = useWorkMeta();
+	const elsewhere = !!spaceId && !!own.meta && spaceId !== own.meta.space_id;
+	const { data } = useApi<WorkMeta>(elsewhere ? `${META_KEY}?space=${encodeURIComponent(spaceId)}` : null, { revalidateOnFocus: false, dedupingInterval: 30_000 });
+	return { meta: elsewhere ? (data ?? null) : own.meta, own: own.meta, reload: own.reload };
+}
+
 export class WorkError extends Error {
 	readonly status: number;
 	readonly pos: number | null;
@@ -62,7 +75,7 @@ export async function workFetch<T = unknown>(path: string, method: "GET" | "POST
  * and anything half-typed in another card was lost.
  */
 export function refreshWork(): void {
-	void globalMutate((key) => typeof key === "string" && key.startsWith("/api/work/") && key !== META_KEY);
+	void globalMutate((key) => typeof key === "string" && key.startsWith("/api/work/") && !key.startsWith(META_KEY));
 }
 
 export const issueHref = (key: string | null | undefined, id?: string) => `/work/browse/${encodeURIComponent(key ?? id ?? "")}`;

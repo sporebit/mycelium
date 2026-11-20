@@ -11,6 +11,7 @@ import { randomUUID } from "node:crypto";
 import { expect, test, type APIRequestContext } from "@playwright/test";
 import { localSql } from "../lib/access/introspect.ts";
 import { E2E_API_SECRET, E2E_CRON_SECRET, E2E_ORIGIN } from "./support/env.ts";
+import { flatPng, jpegTakenOn } from "./support/images.ts";
 import { PHIL, personalSpace, TESS } from "./support/users.ts";
 
 const RUN = `E2E-fam-${Date.now().toString(36)}`;
@@ -131,6 +132,29 @@ test("the timeline takes a note, an appointment with a time, and a picture; both
     expect(file.status()).toBe(200);
     expect((await file.body()).equals(PNG)).toBe(true);
   }
+});
+
+test("the family's appointments are on the Calendar for both of them, marked as the family's; a note is not", async ({ request, page }) => {
+  type Cal = { events: Array<{ id: string; title: string; calendarName: string; location: string; start: string }> };
+  for (const who of [request, phil]) {
+    const cal = (await (await who.get("/api/calendar")).json()) as Cal;
+    const midwife = cal.events.find((e) => e.title === `${RUN} midwife`);
+    expect(midwife, "the appointment is on the calendar, the moment it was written").toMatchObject({ calendarName: "Family", location: "Health centre" });
+    expect(midwife!.id).toMatch(/^family-/);
+    expect(cal.events.some((e) => e.title === `${RUN} first kick`), "a note is not an appointment").toBe(false);
+  }
+  // the page: a timed appointment is a dot on its day and a line, marked Family, once the day is picked
+  const at = new Date(Date.now() + 3 * 86_400_000);
+  await page.goto("/organisation/calendar");
+  if (at.getMonth() !== new Date().getMonth()) await page.getByRole("button", { name: "→" }).click();
+  await page
+    .locator("button:not(.opacity-40)")
+    .filter({ has: page.locator("span", { hasText: new RegExp(`^${at.getDate()}$`) }) })
+    .first()
+    .click();
+  const line = page.getByRole("listitem").filter({ hasText: `${RUN} midwife` });
+  await expect(line).toContainText("Family");
+  await expect(line).toContainText("Health centre");
 });
 
 test("names: one of each, a vote each, and the ones they both like come first", async ({ request }) => {
@@ -296,7 +320,7 @@ test("an appointment two hours away is claimed for each of them once, however of
   expect(localSql(`select reminded::text from public.family_entries where title = '${RUN} midwife'`)[0][0]).toBe("{}");
 });
 
-test("the page: the week, the one-time note that it is shared, and each tab doing its one thing", async ({ page }) => {
+test("the page: the week, the one-time note that it is shared, and each tab doing its one thing", async ({ page, request }) => {
   // Phil has not confirmed; Tess has. Show her the banner once more by taking her confirmation back.
   localSql(`delete from public.family_acks where space_id = '${SPACE}' and member_id = '${TESS.id}'`);
   await page.goto("/family");
@@ -308,6 +332,26 @@ test("the page: the week, the one-time note that it is shared, and each tab doin
   await expect(ack).toHaveCount(0);
 
   await expect(page.getByTestId("family-timeline")).toContainText(`${RUN} first kick`);
+
+  // an entry is changed where it stands: the words and the day
+  await page.getByRole("button", { name: `Edit ${RUN} first kick` }).click();
+  const edit = page.getByTestId("family-entry-edit");
+  await edit.getByLabel("A line to go by").fill(`${RUN} first kick, on the sofa`);
+  await edit.getByLabel("The day").fill(day(-2));
+  await edit.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("family-entry-edit")).toHaveCount(0);
+  await expect(page.getByTestId("family-timeline")).toContainText(`${RUN} first kick, on the sofa`);
+  expect(localSql(`select happened_on::text, body from public.family_entries where title = '${RUN} first kick, on the sofa'`)[0]).toEqual([day(-2), "Felt it on the sofa."]);
+  // an appointment's time and place, too; Cancel leaves it alone
+  await page.getByRole("button", { name: `Edit ${RUN} midwife` }).click();
+  await page.getByTestId("family-entry-edit").getByLabel("Where").fill("Hospital, antenatal clinic");
+  await page.getByTestId("family-entry-edit").getByRole("button", { name: "Cancel" }).click();
+  expect(localSql(`select place from public.family_entries where title = '${RUN} midwife'`)[0][0]).toBe("Health centre");
+  await page.getByRole("button", { name: `Edit ${RUN} midwife` }).click();
+  await page.getByTestId("family-entry-edit").getByLabel("Where").fill("Hospital, antenatal clinic");
+  await page.getByTestId("family-entry-edit").getByRole("button", { name: "Save" }).click();
+  await expect(page.getByTestId("family-timeline")).toContainText("Hospital, antenatal clinic");
+  expect((await view(request)).family!.upcoming.find((u) => u.title === `${RUN} midwife`)).toMatchObject({ place: "Hospital, antenatal clinic" });
 
   await page.getByRole("radio", { name: "Baby log" }).click();
   await expect(page).toHaveURL(/\/family\?tab=baby/);
@@ -337,6 +381,68 @@ test("the page: the week, the one-time note that it is shared, and each tab doin
   // a reload lands on the same tab
   await page.goto("/family?tab=home");
   await expect(page.getByTestId("family-household")).toContainText(`${RUN} recycling`);
+});
+
+test("a bill marked monthly adds this month's line by itself once the month has turned: once, however many knocks, whoever's turn", async ({ request, page }) => {
+  const today = (await view(request)).family!.today;
+  const thisMonth = today.slice(0, 7);
+  const lastMonth = new Date(`${thisMonth}-01T00:00:00Z`);
+  lastMonth.setUTCMonth(lastMonth.getUTCMonth() - 1);
+  const made = await request.post("/api/family/costs", { data: { space: SPACE, title: `${RUN} broadband`, amount: "35", category: "bill", recurs: "monthly", paid_on: `${lastMonth.toISOString().slice(0, 7)}-15` } });
+  expect(made.status(), await made.text()).toBe(201);
+  const source = ((await made.json()) as { row: { id: string; recurs: string } }).row;
+  expect(source.recurs).toBe("monthly");
+  const bearer = { authorization: `Bearer ${E2E_CRON_SECRET}` };
+
+  const first = await request.post("/api/cron/family", { headers: bearer });
+  expect(first.status(), await first.text()).toBe(200);
+  expect(((await first.json()) as { bills: number; failed: number })).toMatchObject({ bills: 1, failed: 0 });
+  const rows = () => localSql(`select paid_on::text, amount_pence::text, category, recurs, paid_by from public.household_costs where space_id = '${SPACE}' and recurs_from = '${source.id}'`);
+  expect(rows()).toEqual([[`${thisMonth}-15`, "3500", "bill", "none", TESS.id]]);
+
+  const again = await request.post("/api/cron/family", { headers: bearer });
+  expect(((await again.json()) as { bills: number }).bills, "a second knock, and Phil's turn, write nothing more").toBe(0);
+  expect(rows()).toHaveLength(1);
+  // the database refuses a second row for the month even if the tick's own check were wrong
+  expect(() => localSql(`insert into public.household_costs (space_id, title, amount_pence, paid_on, recurs_from) values ('${SPACE}', 'twice', 1, '${thisMonth}-16', '${source.id}')`)).toThrow();
+
+  // the page: this month's line says it is the monthly one; a line added by hand can be made monthly with one press
+  await page.goto("/family?tab=budget");
+  const broadband = page.getByTestId("cost-row").filter({ has: page.getByLabel(`Amount of ${RUN} broadband`) });
+  await expect(broadband).toContainText("monthly");
+  const gas = page.getByRole("button", { name: `Every month: ${RUN} gas` });
+  await expect(gas).toHaveText("once");
+  await gas.click();
+  await expect(page.getByRole("button", { name: `Every month: ${RUN} gas` })).toHaveText("monthly");
+  expect(localSql(`select recurs from public.household_costs where title = '${RUN} gas'`)[0][0]).toBe("monthly");
+  // nothing of it is in the finance tables
+  expect(Number(localSql(`select count(*) from public.transactions where description like '${RUN}%'`)[0][0])).toBe(0);
+});
+
+test("pictures: a JPEG lands on the day it was taken; one over 4 MB is made smaller in the browser before it goes", async ({ page }) => {
+  await page.goto("/family");
+  const timeline = page.getByTestId("family-timeline");
+  const addPicture = async (title: string, file: { name: string; mimeType: string; buffer: Buffer }) => {
+    await timeline.getByLabel("What kind of entry").selectOption("photo");
+    await timeline.getByLabel("A line to go by").fill(title);
+    await timeline.getByLabel("A picture or a file").setInputFiles(file);
+    await timeline.getByRole("button", { name: "Add to the timeline" }).click();
+    await expect(timeline.getByTestId("family-entry").filter({ hasText: title })).toHaveCount(1);
+  };
+
+  await addPicture(`${RUN} summer picture`, { name: "summer.jpg", mimeType: "image/jpeg", buffer: jpegTakenOn("2026:08:14 09:12:33") });
+  expect(localSql(`select happened_on::text, media_mime from public.family_entries where title = '${RUN} summer picture'`)[0]).toEqual(["2026-08-14", "image/jpeg"]);
+
+  const big = flatPng(1400, 1100);
+  expect(big.length, "the picture is over the limit as it is").toBeGreaterThan(4 * 1024 * 1024);
+  await addPicture(`${RUN} big picture`, { name: "big.png", mimeType: "image/png", buffer: big });
+  const [mime, path, when] = localSql(`select media_mime, media_path, happened_on::text from public.family_entries where title = '${RUN} big picture'`)[0];
+  expect(mime, "re-encoded as a JPEG").toBe("image/jpeg");
+  expect(when, "no date inside it: today").toBe(day(0));
+  const size = Number(localSql(`select metadata->>'size' from storage.objects where bucket_id = 'family' and name = '${path}'`)[0][0]);
+  expect(size).toBeGreaterThan(0);
+  expect(size).toBeLessThan(4 * 1024 * 1024);
+  await expect(timeline.getByTestId("family-entry").filter({ hasText: `${RUN} big picture` }).getByRole("img")).toBeVisible();
 });
 
 test("once the baby is born the page counts their age and the baby log comes first", async ({ request, page }) => {

@@ -16,6 +16,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { londonClock, shiftDate } from "@/lib/daylog/day";
 import { interrupt } from "@/lib/nudges/interrupt";
+import { monthlyBillsDue, type BillRow } from "./bills";
 import { offsetFor, questionFor } from "./letters";
 import { familyCtx } from "./server";
 
@@ -72,13 +73,37 @@ export function letterPromptDue(now: Date): boolean {
   return weekday === 0 && clock.minutes >= EVENING;
 }
 
-export type FamilyTick = { appointments: number; letter: boolean };
+export type FamilyTick = { appointments: number; letter: boolean; bills: number };
+
+/**
+ * The month's rows for the household bills marked monthly (lib/family/bills.ts;
+ * 0180). Runs as whichever member's turn it is; the unique index makes a
+ * second member's turn, or a second knock, write nothing more. Returns how
+ * many rows this turn wrote.
+ */
+export async function addMonthlyBills(db: SupabaseClient, spaceId: string, now: Date): Promise<number> {
+  const { data } = await db
+    .from("household_costs")
+    .select("id, title, amount_pence, paid_by, paid_on, category, recurs, recurs_from")
+    .eq("space_id", spaceId)
+    .or("recurs.eq.monthly,recurs_from.not.is.null")
+    .order("paid_on")
+    .limit(500);
+  let wrote = 0;
+  for (const row of monthlyBillsDue((data ?? []) as BillRow[], londonClock(now).date)) {
+    const { error } = await db.from("household_costs").insert({ ...row, space_id: spaceId });
+    if (!error) wrote += 1;
+    else if (error.code !== "23505") console.error("[family] bill not added:", error.message); // 23505: another turn wrote this month's row first
+  }
+  return wrote;
+}
 
 /** One person's turn, as that person. */
 export async function runFamilyTick(db: SupabaseClient, uid: string, now: Date = new Date()): Promise<FamilyTick> {
-  const out: FamilyTick = { appointments: 0, letter: false };
+  const out: FamilyTick = { appointments: 0, letter: false, bills: 0 };
   const ctx = await familyCtx(db, uid);
   if (!ctx) return out;
+  out.bills = await addMonthlyBills(db, ctx.spaceId, now);
 
   const { data } = await db
     .from("family_entries")

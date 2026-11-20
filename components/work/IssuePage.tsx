@@ -20,7 +20,7 @@ import { ApiError, useApi } from "@/lib/data/useApi";
 import { RUNBOOK_KINDS } from "@/lib/tickets/categories";
 import type { SprintSummary } from "@/lib/tickets/sprints";
 import type { Doc } from "@/lib/work/doc";
-import { docHref, fmtDay, fmtWhen, issueHref, projectHref, refreshWork, useWorkMeta, useWorkPrefs, withRecent, workFetch, WorkError } from "@/lib/work/client";
+import { docHref, fmtDay, fmtWhen, issueHref, projectHref, refreshWork, useSpaceMeta, useWorkPrefs, withRecent, workFetch, WorkError } from "@/lib/work/client";
 import { STATUS_CATEGORY_LABEL } from "@/lib/work/query";
 import type { WorkTicketDetail } from "@/lib/work/types";
 import { Avatar, ErrorNote, IssueRow, KeyLink, LabelChip, SectionTitle, StatusPill, TypeIcon } from "./kit";
@@ -42,7 +42,8 @@ export function IssuePage() {
 	const router = useRouter();
 	const apiKey = `/api/work/tickets/${encodeURIComponent(urlKey)}`;
 	const { data, error, mutate } = useApi<WorkTicketDetail>(apiKey);
-	const { meta, reload: reloadMeta } = useWorkMeta();
+	// the ticket's own space's types, projects and label fields: a team ticket is not dressed in the reader's own (MYC-185)
+	const { meta, reload: reloadMeta } = useSpaceMeta(data?.ticket?.space_id);
 	const { work, setWork, isLoading: prefsLoading } = useWorkPrefs();
 	const t = data?.ticket ?? null;
 
