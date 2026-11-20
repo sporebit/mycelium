@@ -12,6 +12,7 @@
  * people are deleted afterwards and the captures are discarded.
  */
 import { test, type APIRequestContext, type Page } from "@playwright/test";
+import { processed } from "./capture.helpers.ts";
 import { createPerson, createQuote, expect, letters, PATIENT, PATIENT_USE, listQuotes, peopleNamed, removePerson, send, titleWord, type QuoteRow } from "./people.shared.ts";
 
 test.describe.configure(PATIENT);
@@ -39,13 +40,17 @@ async function person(api: APIRequestContext, body: Record<string, unknown>) {
 
 /** A text capture, as the Shortcut or the bot would send it. Returns the capture id. */
 async function capture(api: APIRequestContext, text: string): Promise<string> {
+  // Since the pipeline was rebuilt (2026-11-20) a capture is answered 202 "saved" at once and worked out
+  // afterwards: what it is and where it went are read from the row once it is processed.
   const res = await api.post("/api/capture", { data: { text } });
-  expect(res.status(), `capture: ${await res.text()}`).toBe(200);
-  const j = (await res.json()) as { kind: string; routed_to: string; routed_id: string };
-  expect(j.kind).toBe("quote");
-  expect(j.routed_to).toBe("raw_captures");
-  madeCaptures.push(j.routed_id);
-  return j.routed_id;
+  expect(res.status(), `capture: ${await res.text()}`).toBe(202);
+  const j = (await res.json()) as { status: string; capture_id: string };
+  expect(j.status).toBe("saved");
+  madeCaptures.push(j.capture_id);
+  const done = await processed(j.capture_id);
+  expect(done.classification.kind).toBe("quote");
+  expect(done.routed_to).toBe("raw_captures");
+  return j.capture_id;
 }
 
 const mine = async (api: APIRequestContext): Promise<QuoteRow[]> => (await listQuotes(api, "limit=500")).filter((q) => q.text.includes(RUN) || (q.raw_text ?? "").includes(RUN));
@@ -333,12 +338,10 @@ test("review path: a quote capture is not a quote until approved; Approve create
   expect((await mine(request)).filter((q) => q.text === said)).toHaveLength(1);
 });
 
-// FINDING (not fixed, outside this surface): GET /api/captures/review?tab=needs_review
-// and lib/captures/reviewCount.ts list every capture whose confidence is "low" whether
-// or not it has been reviewed. A quote capture is always stored with confidence "low",
-// so an approved quote comes back under NEEDS REVIEW on the next load and stays in the
-// dashboard's review count.
-test.fixme("review path: an approved quote capture leaves Needs review for good", async ({ page, request }) => {
+// Was a finding until the pipeline rebuild of 2026-11-20: the queue listed every capture whose
+// confidence is "low" whether or not it had been reviewed, and a quote is always stored that way,
+// so an approved quote came back under NEEDS REVIEW. The queue is now "not yet reviewed" for all.
+test("review path: an approved quote capture leaves Needs review for good", async ({ page, request }) => {
   const said = quoteText("stays");
   const raw = `I said a quote: ${said}`;
   const captureId = await capture(request, raw);

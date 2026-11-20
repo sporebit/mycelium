@@ -86,3 +86,46 @@ Residue on the local stack: 209 soft-deleted `raw_captures` rows and their `capt
 9. *(drop first)* **Linked user.** Needs a second account in a team with you.
 
 Not provable by automation: the idle close after two hours and the snooze; the monthly spend alert.
+
+---
+
+## Second round, 2026-11-20 04:30 — after the capture rebuild (Stream A)
+
+The capture specs were adapted to the rebuilt pipeline (202 and poll, a status word in every reply, one decision per card and ticket, split items held as ideas, audio with the spec playing the PC worker's part, the seven-day rule, the sweep). On the newest build: **113 passed, 0 failed, 1 held** (`daylog-1`, the hard-coded "phil"). Every earlier capture finding (capture-1 to capture-10) is now a live, passing check.
+
+| File | Person | Passing | Held |
+|---|---|---|---|
+| `e2e/capture.phil.spec.ts` | Phil | 77 | 0 |
+| `e2e/capture.tess.spec.ts` | Tess | 6 | 0 |
+| `e2e/daylog.phil.spec.ts` | Phil | 27 | 0 |
+| `e2e/daylog.tess.spec.ts` | Tess | 3 | 1 |
+| `e2e/quotes.phil.spec.ts` | Phil | 15 | 0 |
+
+New helper: `e2e/capture.helpers.ts`.
+
+### Bugs the round found in the new pipeline (all fixed, each proved by a check)
+
+1. **Reminders were never set from spoken times.** Only an ISO date was accepted, while the classifier gives "today", "tomorrow", a weekday or a number of minutes; "at 9am tomorrow" stayed a card. Fixed in `lib/capture/reminderDue.ts` (with tests); no time and no delay still waits for its card.
+2. **The sweep starved behind recordings.** Audio-only rows are skipped without counting an attempt, so a handful at the front blocked every capture with words behind them (`lib/capture/sweep.ts`, now two reads).
+3. **Recording first, words second was never processed** until a later sweep (`app/api/capture/route.ts`).
+4. **A workout capture left no learning row** (`lib/capture/pipeline.ts`).
+5. **capture-10:** a ticket leaving the Inbox by PATCH, bulk move, cancel or the Work pages left its capture card waiting. Fixed in the database (0163, a trigger on the ticket), so every route is covered.
+
+### Found, not fixed
+
+- Typed captures get no shadow prediction with cloud AI off (before the rebuild the pattern rules' guess was recorded). The spec pins the new behaviour.
+- `transcribe_only` success answers `status: "ok"`, not "saved" (by reading; unreachable with AI off).
+- Deleting a capture leaves its recording in the `captures` bucket (the row is soft-deleted only).
+- Every auto workout capture leaves a `pending_workout_routes` row when no session matches.
+
+### Additions to "Needs Phil's eyes" (capture; after the Shortcuts are built)
+
+1. **Shortcut, text.** Say a task. "Saved" comes back at once, then a push "Filed as a task" whose link opens that card.
+2. **Shortcut, long dump.** Three or four things with "also…" and "another thing…". The push says "Saved as N separate items"; the evening close shows each as "An idea for now. Suggested: …" with "from a longer recording".
+3. **Reminder by voice.** "Remind me to call the dentist at 9am tomorrow" appears in Reminders for tomorrow 09:00 and shows once as a card. "Remind me to water the plants" is only a card.
+4. **Recording with the PC on.** Audio only: within a minute or so the card carries the words and the recording plays from the card.
+5. **Hand edit wins.** Dictate, correct a word in the box, send. The stored text stays as corrected.
+6. **Evening close on the phone.** After the day's items, swipe a capture right (Accept) and left (Fix). The five choices fit under the thumb; "More choices" opens the full editor on that capture.
+7. *(drop first)* **Weight.** "Weight 82.4 kg": Body shows it for today; the card reads "Weight logged — 82.4 kg".
+
+Residue on the local stack: 13 transcription jobs under the spec's worker name, 13 audio objects in the `captures` bucket, 5 `pending_workout_routes` rows, soft-deleted captures and their learning rows.
