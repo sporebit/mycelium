@@ -35,8 +35,13 @@ export function SwipeDeck({
   empty,
 }: {
   cards: DeckCard[];
-  /** Resolve when the answer is saved; reject (or return false) to put the card back. */
-  onAnswer: (card: DeckCard, value: string) => Promise<boolean | void>;
+  /**
+   * Resolve when the answer is saved. Return false (or reject) when it did
+   * not save: the card comes back with a message. Return "stay" when the
+   * answer opens something else first (a card being fixed): the card stays,
+   * and nothing is said.
+   */
+  onAnswer: (card: DeckCard, value: string) => Promise<boolean | void | "stay">;
   empty?: ReactNode;
 }) {
   const [index, setIndex] = useState(0);
@@ -55,7 +60,7 @@ export function SwipeDeck({
       try {
         const ok = await onAnswer(card, value);
         if (ok === false) throw new Error("not saved");
-        setIndex((i) => i + 1);
+        if (ok !== "stay") setIndex((i) => i + 1);
       } catch {
         setFailed(true);
       } finally {

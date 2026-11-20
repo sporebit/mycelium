@@ -20,9 +20,16 @@ import { moveTicket } from "@/lib/tickets/server";
 export const QUEUE_SELECT =
   "id, source, raw_text, audio_url, audio_path, classification, llm_source, routed_to, routed_id, reviewed_at, discarded_at, created_at, space_id, parent_capture_id, segment_index, status, text_source, text_edited";
 
-/** Apply the "waiting for review" filter to a raw_captures query. */
-export function waitingForReview<T extends { is: (c: string, v: null) => T; eq: (c: string, v: string) => T }>(q: T): T {
-  return q.is("reviewed_at", null).is("discarded_at", null).is("deleted_at", null).is("auto_filed_at", null).eq("status", "processed");
+type Filterable = { is(column: string, value: null): Filterable; eq(column: string, value: string): Filterable };
+
+/**
+ * Apply the "waiting for review" filter to a raw_captures query. The query
+ * builder's own type is too deep to carry through a generic, so the filter
+ * is applied through the two methods it needs and the builder handed back
+ * as it came.
+ */
+export function waitingForReview<T>(q: T): T {
+  return (q as unknown as Filterable).is("reviewed_at", null).is("discarded_at", null).is("deleted_at", null).is("auto_filed_at", null).eq("status", "processed") as unknown as T;
 }
 
 export async function countWaiting(db: SupabaseClient): Promise<number> {

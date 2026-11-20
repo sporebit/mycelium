@@ -7,6 +7,8 @@ import { dailySettings } from "@/lib/daily/settings";
 import { cardOf, viewOf } from "@/lib/daily/view";
 import { eveningPrompt } from "@/lib/daily/words";
 import { interrupt, markActed } from "@/lib/nudges/interrupt";
+import { waitingForReview } from "@/lib/capture/queue";
+import { filedAs } from "@/lib/capture/pipeline";
 
 export const runtime = "nodejs";
 
@@ -31,12 +33,35 @@ export async function GET() {
     const view = await viewOf(db, plan);
     const finished = plan.items.filter((i) => FINISHED_STATES.includes(i.state)).map(cardOf);
     const open = plan.items.filter((i) => i.state === "planned" || i.state === "started").map(cardOf);
+    // Capture cards: oldest first, and only as many as keep the whole deck to ten.
+    const room = Math.max(0, MAX_CLOSE_CARDS - Math.min(open.length, MAX_CLOSE_CARDS));
+    const { data: waiting } = room
+      ? await waitingForReview(db.from("raw_captures").select("id, raw_text, classification, routed_to, audio_path, parent_capture_id, created_at").eq("created_by", uid)).order("created_at", { ascending: true }).limit(room)
+      : { data: [] };
+    const captures = ((waiting ?? []) as Array<{ id: string; raw_text: string | null; classification: Record<string, unknown> | null; routed_to: string | null; audio_path: string | null; parent_capture_id: string | null; created_at: string }>).map((c) => {
+      const cls = c.classification ?? {};
+      const kind = typeof cls.kind === "string" ? cls.kind : "capture";
+      const held = cls.held === true;
+      return {
+        id: c.id,
+        text: c.raw_text ?? "",
+        title: typeof cls.title === "string" ? cls.title : "",
+        kind,
+        held,
+        // What accepting does, in words: "Filed as a task" or, for an item out of a long dump, "An idea. Suggested: a task".
+        suggestion: held ? `An idea for now. Suggested: ${filedAs(kind).replace("Filed as ", "")}` : filedAs(kind),
+        has_audio: !!c.audio_path,
+        from_dump: !!c.parent_capture_id,
+        created_at: c.created_at,
+      };
+    });
     return NextResponse.json({
       day: plan.day,
       status: plan.status,
       won: view.won,
       finished,
       open: open.slice(0, MAX_CLOSE_CARDS),
+      captures,
       slipped: view.slipped.slice(0, Math.max(0, MAX_CLOSE_CARDS - open.length)),
       summary: plan.status === "closed" ? plan.summary : summarise(plan),
     });
