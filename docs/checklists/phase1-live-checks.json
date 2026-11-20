@@ -1,0 +1,906 @@
+{
+  "slug": "phase1-live-checks",
+  "kind": "test",
+  "title": "Live checks after the test pass: one surface per sitting",
+  "version": 1,
+  "intro": {
+    "verdict_html": "Everything built so far was exercised by automation on 20 November: 482 end-to-end checks as two people, 821 unit and database checks, and a pass that opens all 220 page views. Faults found were fixed or are on the build list. What is left here is only what a machine cannot judge: look, feel, a real voice, a real receipt, a second person's phone. Each chunk is one surface and about fifteen minutes; do them in any order, on any day. Chunk 1 is five minutes and should be first.",
+    "prerequisites": [
+      "Chunk 3 needs the iPhone Shortcuts built first (their own checklist)",
+      "Chunk 11 needs the email service set up and the partner's phone"
+    ],
+    "time": [
+      "Eleven chunks: one of 5 minutes, one of 10, nine of 15"
+    ],
+    "cost": [
+      "Free, except Receipts: a few pence of cloud AI"
+    ]
+  },
+  "phases": [
+    {
+      "id": "1",
+      "title": "Signing in after the hardening (5 minutes, do this first)",
+      "lede_html": "The database now refuses a session that has not given its authenticator code, and one that was signed out elsewhere. Your own sign-in is the one thing only you can prove.",
+      "steps": [
+        {
+          "id": "1.1",
+          "title": "Open the app on the PC",
+          "actor": "you",
+          "where": {
+            "label": "Mycelium",
+            "url": "https://mycelium.sporebit.com/",
+            "kind": "page"
+          },
+          "body_html": "If it asks for your authenticator code, enter it. That is the new rule working: a password alone no longer opens anything for an account that has an authenticator."
+        },
+        {
+          "id": "1.2",
+          "title": "Open the app on the phone",
+          "actor": "you",
+          "where": {
+            "label": "iPhone, the installed app",
+            "kind": "decision"
+          },
+          "body_html": "Same: one code prompt at most, then everything as before. The installed app may need closing and reopening once."
+        },
+        {
+          "id": "1.3",
+          "title": "Sign a device out from the other",
+          "actor": "you",
+          "where": {
+            "label": "Settings → Security",
+            "url": "https://mycelium.sporebit.com/other/settings/security",
+            "kind": "page"
+          },
+          "body_html": "Settings → Security → Sessions → <b>Sign out there</b> for the phone. The phone should land on the sign-in page at its next tap, not on empty cards."
+        },
+        {
+          "id": "1.4",
+          "title": "Telegram still answers",
+          "actor": "you",
+          "body_html": "Send the bot any short note. It should reply as before (it does not use a browser session, so nothing should have changed)."
+        },
+        {
+          "id": "1.5",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "signin",
+              "label": "Anything that locked you out or looked wrong"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Today and the evening close (15 minutes; drop 7, then 6)",
+      "lede_html": "The daily loop is new. Automation proves the rules (one win, up to four more, the soft limit, slipped dates, the 45-minute rule). Only you can say whether it feels right.",
+      "steps": [
+        {
+          "id": "2.1",
+          "title": "Read the proposal",
+          "actor": "you",
+          "where": {
+            "label": "Today",
+            "url": "https://mycelium.sporebit.com/today",
+            "kind": "page"
+          },
+          "body_html": "One card: today's one thing, a first step, about how long. Under it, what comes next. Is the win the thing you would have picked? Is the time believable (it is your guess plus half again)?"
+        },
+        {
+          "id": "2.2",
+          "title": "Looks right, then Start",
+          "actor": "you",
+          "where": {
+            "label": "Today",
+            "url": "https://mycelium.sporebit.com/today",
+            "kind": "page"
+          },
+          "body_html": "Press <b>Looks right</b>, then <b>Start</b>. A countdown runs and the ticket is in Doing. Press <b>10 more minutes</b> once."
+        },
+        {
+          "id": "2.3",
+          "title": "Done",
+          "actor": "you",
+          "body_html": "Press <b>Done</b>. The card says the day is won and the next thing comes forward, with no count of what is left undone anywhere on the page."
+        },
+        {
+          "id": "2.4",
+          "title": "Not now and Swap",
+          "actor": "you",
+          "body_html": "On the next card press <b>Not now</b>: it goes without asking why. On the one after, <b>Swap</b>: two alternatives, pick one."
+        },
+        {
+          "id": "2.5",
+          "title": "Park",
+          "actor": "you",
+          "body_html": "Start something, then <b>Park</b> with a few words about where you left it. Tomorrow's card for it should show those words."
+        },
+        {
+          "id": "2.6",
+          "title": "Close the day",
+          "actor": "you",
+          "where": {
+            "label": "Close",
+            "url": "https://mycelium.sporebit.com/close",
+            "kind": "page"
+          },
+          "body_html": "In the evening open Close. It opens with what got done. Swipe or press through what is left (Done, Tomorrow, Let it go), then any capture cards (Accept, Fix, Discard), then <b>Close the day</b>. It should take under two minutes."
+        },
+        {
+          "id": "2.7",
+          "title": "A slipped date",
+          "actor": "you",
+          "where": {
+            "label": "Today",
+            "url": "https://mycelium.sporebit.com/today",
+            "kind": "page"
+          },
+          "body_html": "If something dated a week or more ago exists, it appears once as a card with three choices (new date, someday, drop) rather than at the front of today."
+        },
+        {
+          "id": "2.8",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "daily",
+              "label": "What felt wrong, slow, or badly worded"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Capture (15 minutes; after the Shortcuts are built; drop 7 first)",
+      "lede_html": "Capture was rebuilt: it answers at once, files afterwards, and keeps the recording. 113 automated checks pass. These are the parts only a phone and a voice can show.",
+      "steps": [
+        {
+          "id": "3.1",
+          "title": "Shortcut, a task",
+          "actor": "you",
+          "where": {
+            "label": "iPhone → Capture Shortcut",
+            "kind": "decision"
+          },
+          "body_html": "Say a task. <b>Saved</b> comes back at once; a push follows saying what it was filed as, and its link opens that card."
+        },
+        {
+          "id": "3.2",
+          "title": "A long dump",
+          "actor": "you",
+          "body_html": "Three or four things with \"also…\" and \"another thing…\". The push says it was saved as separate items; the evening close shows each as <i>An idea for now. Suggested: …</i> with <i>from a longer recording</i>."
+        },
+        {
+          "id": "3.3",
+          "title": "A reminder by voice",
+          "actor": "you",
+          "where": {
+            "label": "Reminders",
+            "url": "https://mycelium.sporebit.com/reminders",
+            "kind": "page"
+          },
+          "body_html": "\"Remind me to call the dentist at 9am tomorrow\" appears in Reminders for tomorrow 09:00 and shows once as a card. \"Remind me to water the plants\" is only a card."
+        },
+        {
+          "id": "3.4",
+          "title": "A recording with the PC on",
+          "actor": "you",
+          "where": {
+            "label": "Capture review",
+            "url": "https://mycelium.sporebit.com/organisation/captures/review",
+            "kind": "page"
+          },
+          "body_html": "Send audio only (aeroplane mode, capture, then run Capture retry). Within a minute or so the card carries words the PC wrote, and the recording plays from the card."
+        },
+        {
+          "id": "3.5",
+          "title": "Hand edit wins",
+          "actor": "you",
+          "body_html": "Dictate, correct a word in the box, send. The stored text stays as you corrected it, even after the PC has transcribed the recording."
+        },
+        {
+          "id": "3.6",
+          "title": "The review queue",
+          "actor": "you",
+          "where": {
+            "label": "Capture review",
+            "url": "https://mycelium.sporebit.com/organisation/captures/review",
+            "kind": "page"
+          },
+          "body_html": "There were about 40 captures waiting when the new queue went live. Anything older than seven days files itself tonight, tagged <b>unreviewed</b>. Check the list looks like yours and that the count on the dashboard matches."
+        },
+        {
+          "id": "3.7",
+          "title": "Weight",
+          "actor": "you",
+          "where": {
+            "label": "Body",
+            "url": "https://mycelium.sporebit.com/fitness/body",
+            "kind": "page"
+          },
+          "body_html": "\"Weight 82.4 kg\": Body shows it for today; the card reads <i>Weight logged — 82.4 kg</i>."
+        },
+        {
+          "id": "3.8",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "capture",
+              "label": "Wrong filings, lost words, anything slow"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "Day log (15 minutes, an evening; drop 8 and 9 first)",
+      "lede_html": "Replaces the old live checks MYC-140, 142, 144 and 146. 30 automated checks pass; the conversation itself cannot be automated.",
+      "steps": [
+        {
+          "id": "4.1",
+          "title": "The Telegram prompt",
+          "actor": "you",
+          "where": {
+            "label": "Telegram",
+            "kind": "decision"
+          },
+          "body_html": "At 21:30 the bot message reads \"Evening. … Talk, Quick or Skip?\" with its buttons; any calendar or weather it quotes is right."
+        },
+        {
+          "id": "4.2",
+          "title": "A Talk night",
+          "actor": "you",
+          "body_html": "Tap Talk, answer four or five questions, name someone not in People. One question per turn, \"who's X?\" once, no filler, no facts you did not say. Say \"done\", reply \"4 3 5 2\": a recap with a link and \"N items to review\"."
+        },
+        {
+          "id": "4.3",
+          "title": "Today's entry",
+          "actor": "you",
+          "where": {
+            "label": "Day log",
+            "url": "https://mycelium.sporebit.com/journal",
+            "kind": "page"
+          },
+          "body_html": "The entry reads as your words (60 to 160 words, then one bullet per scene); scene cards in order with channel labels; cost at the bottom."
+        },
+        {
+          "id": "4.4",
+          "title": "Facts",
+          "actor": "you",
+          "body_html": "Open the \"N TO REVIEW\" badge; approve one fact and one who-was-there; edit that fact's text and kind on the day page, then delete it."
+        },
+        {
+          "id": "4.5",
+          "title": "Voice note and photo by Telegram",
+          "actor": "you",
+          "body_html": "While a day is open: the note appears as text; the photo lands on the scene you were describing after close."
+        },
+        {
+          "id": "4.6",
+          "title": "Capture form on the phone",
+          "actor": "you",
+          "where": {
+            "label": "iPhone, the + button",
+            "kind": "decision"
+          },
+          "body_html": "Tap +, pick Reminder, submit with no date: the message sits on the field, the keyboard does not cover the button, the Type dropdown works one-handed."
+        },
+        {
+          "id": "4.7",
+          "title": "Review card look",
+          "actor": "you",
+          "where": {
+            "label": "Capture review",
+            "url": "https://mycelium.sporebit.com/organisation/captures/review",
+            "kind": "page"
+          },
+          "body_html": "With a typed capture waiting: readable, and APPROVE reachable without scrolling on the phone."
+        },
+        {
+          "id": "4.8",
+          "title": "Carry-over",
+          "actor": "you",
+          "body_html": "The night after one with a loose end, the opener starts \"Last time you mentioned…\"."
+        },
+        {
+          "id": "4.9",
+          "title": "Linked user",
+          "actor": "you",
+          "body_html": "Needs a second account in a team with you; leave until the partner chunk."
+        },
+        {
+          "id": "4.10",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "daylog",
+              "label": "Anything the conversation got wrong"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "People and Quotes (15 minutes; drop 8, 7, 6 first)",
+      "lede_html": "Replaces MYC-136. 56 automated checks pass, including the rule that nothing ever creates a person by itself.",
+      "steps": [
+        {
+          "id": "5.1",
+          "title": "Clear the review queue",
+          "actor": "you",
+          "where": {
+            "label": "People",
+            "url": "https://mycelium.sporebit.com/organisation/people",
+            "kind": "page"
+          },
+          "body_html": "People → REVIEW NEEDED. KEEP any card that is a real person. Then SELECT → ALL → REJECT n and confirm: the list empties, with a notice giving the count and \"words now ignored\"."
+        },
+        {
+          "id": "5.2",
+          "title": "Where they went",
+          "actor": "you",
+          "where": {
+            "label": "People & teams",
+            "url": "https://mycelium.sporebit.com/other/settings/people",
+            "kind": "page"
+          },
+          "body_html": "Settings → People & teams: the Bin lists them with a \"gone on\" date; Ignored words lists their words as \"rejected person\"."
+        },
+        {
+          "id": "5.3",
+          "title": "A rejected word stays gone",
+          "actor": "you",
+          "where": {
+            "label": "Entity review",
+            "url": "https://mycelium.sporebit.com/organisation/captures/review",
+            "kind": "page"
+          },
+          "body_html": "Save a ticket whose title contains one of the rejected phrases; Entity review → NEW ENTITIES shows nothing new for it."
+        },
+        {
+          "id": "5.4",
+          "title": "Judge the queue's noise",
+          "actor": "you",
+          "body_html": "Look at what ticket titles have queued since 20 October. Tolerable, or should tickets link existing people only?",
+          "fields": [
+            {
+              "key": "people_noise",
+              "label": "Keep as is / link existing only"
+            }
+          ]
+        },
+        {
+          "id": "5.5",
+          "title": "One real voice quote",
+          "actor": "you",
+          "where": {
+            "label": "Quotes",
+            "url": "https://mycelium.sporebit.com/organisation/quotes",
+            "kind": "page"
+          },
+          "body_html": "Say \"Quote from <someone in People>: …\". The read-back; the review card with that person already picked; APPROVE; Quotes shows it at the top and the badge moves from \"researching\" to a verdict within a minute."
+        },
+        {
+          "id": "5.6",
+          "title": "Quotes on the phone",
+          "actor": "you",
+          "body_html": "The sheet comes up from the bottom, the text is large, the merch tick toggles in place."
+        },
+        {
+          "id": "5.7",
+          "title": "Export to the iPhone",
+          "actor": "you",
+          "body_html": "People → EXPORT .VCF, import on icloud.com: names, numbers and a custom label arrive intact."
+        },
+        {
+          "id": "5.8",
+          "title": "Review Needed on a touch screen",
+          "actor": "you",
+          "body_html": "KEEP / ARCHIVE / REJECT sit at reduced opacity until hover; check they are legible without one."
+        },
+        {
+          "id": "5.9",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "people",
+              "label": "Anything wrong"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "Hours (15 minutes on a working day; drop 10, 9, 8 first)",
+      "lede_html": "MYC-177 already covers History against the workbook and the seed import; none of that is repeated. Four of these are decisions.",
+      "steps": [
+        {
+          "id": "6.1",
+          "title": "The Log on the PC",
+          "actor": "you",
+          "where": {
+            "label": "Hours → Log",
+            "url": "https://mycelium.sporebit.com/organisation/hours/log",
+            "kind": "page"
+          },
+          "body_html": "Type three real entries into the blank row with Enter, change a Time and a Ticket by tabbing into them, press Esc on one edit, then MERGE. It should feel as fast as the workbook.",
+          "fields": [
+            {
+              "key": "hours_click",
+              "label": "A click places the cursor (now) / a click selects the cell"
+            }
+          ]
+        },
+        {
+          "id": "6.2",
+          "title": "The Log on the phone",
+          "actor": "you",
+          "body_html": "The Description is squeezed to nothing at phone width. Say how a row should look there.",
+          "fields": [
+            {
+              "key": "hours_phone",
+              "label": "How a phone row should look"
+            }
+          ]
+        },
+        {
+          "id": "6.3",
+          "title": "Dashboard beside the workbook",
+          "actor": "you",
+          "where": {
+            "label": "Hours",
+            "url": "https://mycelium.sporebit.com/organisation/hours",
+            "kind": "page"
+          },
+          "body_html": "Banner, Today pill, even pace and left today agree with the workbook's Dashboard.",
+          "fields": [
+            {
+              "key": "hours_922",
+              "label": "Daily target: 9:22 (spec) or 9:23 (now)"
+            }
+          ]
+        },
+        {
+          "id": "6.4",
+          "title": "Daily, a bank-holiday or leave day",
+          "actor": "you",
+          "where": {
+            "label": "Hours → Daily",
+            "url": "https://mycelium.sporebit.com/organisation/hours/daily",
+            "kind": "page"
+          },
+          "body_html": "Should \"Total logged\" include the day's credit (as now) or only ticked time (as the spec says)?",
+          "fields": [
+            {
+              "key": "hours_total",
+              "label": "Include credit / ticked time only"
+            }
+          ]
+        },
+        {
+          "id": "6.5",
+          "title": "Block-out email and calendar file",
+          "actor": "you",
+          "body_html": "OPEN BLOCK-OUT EMAIL and CALENDAR .ICS: the draft opens with the right people, subject and Friday's date; the file lands in Outlook as an all-day, free entry."
+        },
+        {
+          "id": "6.6",
+          "title": "Import a real week",
+          "actor": "you",
+          "where": {
+            "label": "Hours → Settings",
+            "url": "https://mycelium.sporebit.com/organisation/hours/settings",
+            "kind": "page"
+          },
+          "body_html": "Copy a real week of Log rows from the workbook; Settings → Import, paste, DRY RUN: \"To add\" plus \"Unchanged\" equals the rows copied, nothing rejected."
+        },
+        {
+          "id": "6.7",
+          "title": "The spreadsheet download",
+          "actor": "you",
+          "body_html": "Settings → DOWNLOAD .XLSX, open in Excel: something you would send your team lead?"
+        },
+        {
+          "id": "6.8",
+          "title": "Bank holidays",
+          "actor": "you",
+          "body_html": "Settings → REFRESH FROM GOV.UK: matches the real bank holidays."
+        },
+        {
+          "id": "6.9",
+          "title": "Ticket links",
+          "actor": "you",
+          "where": {
+            "label": "Hours → Tickets",
+            "url": "https://mycelium.sporebit.com/organisation/hours/tickets",
+            "kind": "page"
+          },
+          "body_html": "Click two ticket keys on the Tickets view: they open the right Jira pages."
+        },
+        {
+          "id": "6.10",
+          "title": "Look",
+          "actor": "you",
+          "body_html": "The Daily week summary strip, a History week opened to its days, the Today tile Monday to Thursday."
+        },
+        {
+          "id": "6.11",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "hours",
+              "label": "Anything else wrong"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "Receipts (15 minutes; uses cloud AI, a few pence; drop 8, 7, 6 first)",
+      "lede_html": "Receipts had never been run end to end before this pass; uploads could not have worked on production before today's storage fix.",
+      "steps": [
+        {
+          "id": "7.1",
+          "title": "One real till receipt",
+          "actor": "you",
+          "where": {
+            "label": "Receipts",
+            "url": "https://mycelium.sporebit.com/organisation/receipts",
+            "kind": "page"
+          },
+          "body_html": "Upload a photo. Retailer, date and lines match the paper; status PARSED or NEEDS REVIEW with a believable reason."
+        },
+        {
+          "id": "7.2",
+          "title": "The totals panel",
+          "actor": "you",
+          "body_html": "Ctrl+Shift+H: RECEIPT TOTAL matches the paper; DIFFERENCE is zero or explains itself."
+        },
+        {
+          "id": "7.3",
+          "title": "A long receipt as two overlapping photos",
+          "actor": "you",
+          "body_html": "No line appears twice."
+        },
+        {
+          "id": "7.4",
+          "title": "Correct a line",
+          "actor": "you",
+          "body_html": "Correct one wrong line total and click away: badge and DIFFERENCE update."
+        },
+        {
+          "id": "7.5",
+          "title": "Split with someone",
+          "actor": "you",
+          "body_html": "Add a real person under SPLIT WITH, tap their chip on two lines, right-click a chip and set a percentage: figures read sensibly and are easy to hit on the phone."
+        },
+        {
+          "id": "7.6",
+          "title": "Balances",
+          "actor": "you",
+          "body_html": "Record a payment, open the receipt from under the card."
+        },
+        {
+          "id": "7.7",
+          "title": "One HEIC photo",
+          "actor": "you",
+          "body_html": "Is the message clear?"
+        },
+        {
+          "id": "7.8",
+          "title": "The same receipt twice",
+          "actor": "you",
+          "body_html": "Upload it twice, tick both, Merge: wording clear, every page shown."
+        },
+        {
+          "id": "7.9",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "receipts",
+              "label": "Wrong lines, wrong totals, anything confusing"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "Gousto (15 minutes; drop 7, 6, 5 first)",
+      "lede_html": "The PC's weekly sync ran on 8 and 15 November and is next due 22 November at 03:00.",
+      "steps": [
+        {
+          "id": "8.1",
+          "title": "The cookbook",
+          "actor": "you",
+          "where": {
+            "label": "Gousto",
+            "url": "https://mycelium.sporebit.com/health/recipes/gousto",
+            "kind": "page"
+          },
+          "body_html": "About 12,000 recipes, \"SYNCED 15 Nov\" or later, real photos."
+        },
+        {
+          "id": "8.2",
+          "title": "Search and filter",
+          "actor": "you",
+          "body_html": "Search \"curry\", pick a category, then a cuisine: counts believable; no category twice as \"X\" and \"X Recipes\"."
+        },
+        {
+          "id": "8.3",
+          "title": "A recipe you have cooked",
+          "actor": "you",
+          "body_html": "Ingredients, allergens, nutrition and method match the Gousto card."
+        },
+        {
+          "id": "8.4",
+          "title": "A heart on the phone",
+          "actor": "you",
+          "body_html": "Tap a heart straight after typing a search: it lights and Favourites goes up."
+        },
+        {
+          "id": "8.5",
+          "title": "Save to my recipes",
+          "actor": "you",
+          "body_html": "SAVE TO MY RECIPES on one: it lands in My recipes and reaches a shopping list through a meal plan."
+        },
+        {
+          "id": "8.6",
+          "title": "Look on the phone",
+          "actor": "you",
+          "body_html": "Card grid, filter row, detail page."
+        },
+        {
+          "id": "8.7",
+          "title": "A recipe Gousto no longer serves",
+          "actor": "you",
+          "body_html": "Read the new wording."
+        },
+        {
+          "id": "8.8",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "gousto",
+              "label": "Anything wrong"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "Work (15 minutes; drop 6 first)",
+      "lede_html": "Replaces MYC-111 and MYC-159. 59 automated checks pass as you and 13 as a second person.",
+      "steps": [
+        {
+          "id": "9.1",
+          "title": "Issues on the phone",
+          "actor": "you",
+          "where": {
+            "label": "Work → Issues",
+            "url": "https://mycelium.sporebit.com/work/issues",
+            "kind": "page"
+          },
+          "body_html": "Rows with labels and a due date still show their title; type two words in \"Search text\" at normal speed and both stay."
+        },
+        {
+          "id": "9.2",
+          "title": "A board, desktop then phone",
+          "actor": "you",
+          "where": {
+            "label": "Work",
+            "url": "https://mycelium.sporebit.com/work",
+            "kind": "page"
+          },
+          "body_html": "Drag a card to another column and between two cards; it stays after reload. On the phone, see whether dragging works at all (the Status picker on the issue is the fallback)."
+        },
+        {
+          "id": "9.3",
+          "title": "An issue with no description",
+          "actor": "you",
+          "body_html": "Click Add, click Heading, type: it is a heading and the button is lit. Type @ and #: the list sits under the caret and a click picks. Judge the look of the chips."
+        },
+        {
+          "id": "9.4",
+          "title": "Project Settings",
+          "actor": "you",
+          "body_html": "Change the description, Save: \"Saved\" appears and the page does not flash. Archive a component: it stays, struck through, with Restore."
+        },
+        {
+          "id": "9.5",
+          "title": "Statuses and When",
+          "actor": "you",
+          "body_html": "Move a ticket through its statuses from the picker; set When to a date and to Someday. The lists it appears in should follow."
+        },
+        {
+          "id": "9.6",
+          "title": "Backlog with a running sprint",
+          "actor": "you",
+          "body_html": "The look of the sprint block and burndown. The line will not move yet: that is a known fault on the build list, not something to report."
+        },
+        {
+          "id": "9.7",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "work",
+              "label": "Anything wrong"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "title": "Docs and notifications (10 minutes)",
+      "lede_html": "14 automated checks pass.",
+      "steps": [
+        {
+          "id": "10.1",
+          "title": "History and restore",
+          "actor": "you",
+          "where": {
+            "label": "Docs",
+            "url": "https://mycelium.sporebit.com/docs",
+            "kind": "page"
+          },
+          "body_html": "Edit a page twice, open History: is the diff readable? Restore the older version: the page shows it at once."
+        },
+        {
+          "id": "10.2",
+          "title": "The page menu",
+          "actor": "you",
+          "body_html": "It closes on Escape and on a click outside; \"Save as a template…\" lists the page under Templates."
+        },
+        {
+          "id": "10.3",
+          "title": "Notification settings",
+          "actor": "you",
+          "where": {
+            "label": "Settings (Notifications section)",
+            "url": "https://mycelium.sporebit.com/other/settings",
+            "kind": "page"
+          },
+          "body_html": "Settings, the Notifications section: the Telegram, Email and Push columns can be ticked; \"Subscribe this device\" works on the phone. The inbox itself will be empty: with one member nothing produces a notification yet (on the build list)."
+        },
+        {
+          "id": "10.4",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "docs",
+              "label": "Anything wrong"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "title": "Before the partner joins (15 minutes, with her phone; needs the email service first)",
+      "lede_html": "59 automated checks pass and all nine access faults found by the test pass are closed. This chunk waits on the email service being set up (a separate item in your queue): until then invites are not emailed.",
+      "steps": [
+        {
+          "id": "11.1",
+          "title": "Read this first",
+          "actor": "you",
+          "body_html": "Do not make her an admin, and do not name her successor, until she has set up an authenticator. Owners and admins must have one; without it her account shows only the page that sets one up.",
+          "notes": [
+            {
+              "kind": "warn",
+              "html": "If it happens anyway, nothing is lost: she is taken to Settings → Security, sets up the authenticator, and everything opens again."
+            }
+          ]
+        },
+        {
+          "id": "11.2",
+          "title": "Decide: does she set one up on day one?",
+          "actor": "you",
+          "body_html": "Without an authenticator she works normally but cannot share with you or open \"Who has seen my data\".",
+          "fields": [
+            {
+              "key": "partner_totp",
+              "label": "Day one / later"
+            }
+          ]
+        },
+        {
+          "id": "11.3",
+          "title": "The invite email",
+          "actor": "you",
+          "where": {
+            "label": "People & teams",
+            "url": "https://mycelium.sporebit.com/other/settings/people",
+            "kind": "page"
+          },
+          "body_html": "People & teams → family team → invite her real address as member: \"Invite created.\" with no link shown; an email within a minute, not in spam; the link opens the production site."
+        },
+        {
+          "id": "11.4",
+          "title": "Joining on her phone",
+          "actor": "you",
+          "body_html": "She opens the link and chooses Password: \"Check your email\", a confirmation email, tapping it returns to the invite page signed in, Accept shows \"You are in … as member\". Repeat once opening the confirmation on a different device."
+        },
+        {
+          "id": "11.5",
+          "title": "A real authenticator",
+          "actor": "you",
+          "where": {
+            "label": "Settings → Security",
+            "url": "https://mycelium.sporebit.com/other/settings/security",
+            "kind": "page"
+          },
+          "body_html": "Settings → Security → Enrol: the QR scans, the code is accepted. Sign out, sign in with password: it asks for the code. Sign in once by magic link: it asks too."
+        },
+        {
+          "id": "11.6",
+          "title": "Sharing",
+          "actor": "you",
+          "body_html": "People & teams → Share with a person → her email → Organisation, tickets, view → Share. It sends you to Security to confirm your code and brings you back; fill in the share again. On her phone it appears under Shared with me, and she can open but not edit your project."
+        },
+        {
+          "id": "11.7",
+          "title": "Sign her phone out from your laptop",
+          "actor": "you",
+          "body_html": "Settings → Security → Sign out there for her phone's session. Her phone should stop showing data at once and land on the sign-in page."
+        },
+        {
+          "id": "11.8",
+          "title": "Admin",
+          "actor": "you",
+          "where": {
+            "label": "Admin",
+            "url": "https://mycelium.sporebit.com/admin",
+            "kind": "page"
+          },
+          "body_html": "/admin: a prompt to confirm the code, then the console listing both users, the family team, the grants and an audit tab."
+        },
+        {
+          "id": "11.9",
+          "title": "Phone layout",
+          "actor": "you",
+          "body_html": "People & teams and Security on her phone: the section table scrolls sideways, the share form is usable, the QR is large enough to scan from another screen."
+        },
+        {
+          "id": "11.10",
+          "title": "Anything to report",
+          "actor": "you",
+          "body_html": "A few words are enough. Leave empty if it was all fine. What you write here is read at the start of the next build session.",
+          "fields": [
+            {
+              "key": "partner",
+              "label": "Anything that confused her"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
