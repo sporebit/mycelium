@@ -68,7 +68,7 @@ as $$
 			-- more. Without one they can sign in and enrol, and that is all.
 			and not public.requires_totp()
 		)
-$;
+$$;
 
 revoke all on function app.second_factor_ok() from public;
 grant execute on function app.second_factor_ok() to authenticated, service_role;
@@ -325,8 +325,8 @@ create or replace function public.create_user_grant(
 	p_section       text,
 	p_entity_groups text[],
 	p_verbs         text[],
-	p_expires_at    timestamptz,
-	p_reason        text
+	p_expires_at    timestamptz default null,
+	p_reason        text default null
 )
 returns uuid
 language plpgsql

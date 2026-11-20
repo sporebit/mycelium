@@ -32,6 +32,7 @@ import { listPublicRelations, localSql, localStackEnv } from "../lib/access/intr
 import { registeredTables } from "../lib/access/registry.ts";
 import { PHIL_AUTH_UID } from "../lib/system/identity.ts";
 import { mintUserJwt } from "../lib/system/jwt.ts";
+import { secondFactorSession } from "../lib/access/testSessions.ts";
 
 const APP = process.env.APP_URL ?? "http://localhost:3000";
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -108,7 +109,8 @@ async function passwordSession(email: string) {
 }
 
 async function cookieHeaderFor(email: string): Promise<string> {
-  const session = await passwordSession(email);
+  // Phil is the instance owner: since 0160 his session needs the authenticator code as well.
+  const session = email === PHIL_EMAIL ? await secondFactorSession(email, PASSWORD, PHIL_AUTH_UID) : await passwordSession(email);
   const jar = new Map<string, string>();
   const client = createServerClient(env.apiUrl, env.anonKey, {
     cookies: {

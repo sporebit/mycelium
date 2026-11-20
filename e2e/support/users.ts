@@ -13,6 +13,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createServerClient } from "@supabase/ssr";
 import { localSql, localStackEnv } from "../../lib/access/introspect.ts";
+import { passwordSession, secondFactorSession } from "../../lib/access/testSessions.ts";
 import { PHIL_AUTH_UID } from "../../lib/system/identity.ts";
 import { E2E_ORIGIN } from "./env.ts";
 
@@ -51,15 +52,14 @@ export function personalSpace(who: Person): string {
   return row[0];
 }
 
-async function sessionCookies(email: string): Promise<{ name: string; value: string }[]> {
+/**
+ * Phil is the instance owner, and an owner must present an authenticator
+ * (0160): his session is password plus code. Tess holds no role that
+ * requires one, so hers is a password, as a new member's would be.
+ */
+async function sessionCookies(who: Person): Promise<{ name: string; value: string }[]> {
   const env = localStackEnv();
-  const res = await fetch(`${env.apiUrl}/auth/v1/token?grant_type=password`, {
-    method: "POST",
-    headers: { apikey: env.anonKey, "content-type": "application/json" },
-    body: JSON.stringify({ email, password: PASSWORD }),
-  });
-  if (!res.ok) throw new Error(`password sign-in failed for ${email}: ${res.status} ${await res.text()}`);
-  const session = (await res.json()) as { access_token: string; refresh_token: string };
+  const session = who.id === PHIL.id ? await secondFactorSession(who.email, PASSWORD, who.id) : await passwordSession(who.email, PASSWORD);
   const jar = new Map<string, string>();
   const client = createServerClient(env.apiUrl, env.anonKey, {
     cookies: {
@@ -68,13 +68,13 @@ async function sessionCookies(email: string): Promise<{ name: string; value: str
     },
   });
   const { error } = await client.auth.setSession(session);
-  if (error) throw new Error(`setSession failed for ${email}: ${error.message}`);
+  if (error) throw new Error(`setSession failed for ${who.email}: ${error.message}`);
   return [...jar].map(([name, value]) => ({ name, value }));
 }
 
 /** Sign the person in and write their Playwright storage state. */
 export async function writeStorageState(who: Person): Promise<string> {
-  const cookies = await sessionCookies(who.email);
+  const cookies = await sessionCookies(who);
   const host = new URL(E2E_ORIGIN).hostname;
   const state = {
     cookies: cookies.map((c) => ({

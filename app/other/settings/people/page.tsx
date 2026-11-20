@@ -40,7 +40,12 @@ function Note({ children, tone = "mid" }: { children: React.ReactNode; tone?: "m
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, { ...init, headers: { "content-type": "application/json", ...(init?.headers ?? {}) } });
-  const body = (await res.json().catch(() => ({}))) as T & { error?: string };
+  const body = (await res.json().catch(() => ({}))) as T & { error?: string; reason?: string };
+  // Sharing asks for a fresh authenticator code: go and confirm it, then come back here.
+  if (res.status === 403 && body.reason === "reauth_required") {
+    window.location.assign(`/other/settings/security?reauth=1&next=${encodeURIComponent("/other/settings/people")}`);
+    throw new Error("Confirm your authenticator code to share.");
+  }
   if (!res.ok) throw new Error(body.error ?? `${res.status}`);
   return body;
 }

@@ -2,7 +2,6 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { localSql, localStackEnv } from "./introspect";
 import { mintUserJwt } from "@/lib/system/jwt";
 import { PHIL_AUTH_UID } from "@/lib/system/identity";
-// @ts-expect-error plain JS helper shared with the scripts (no types needed for one function)
 import { totp } from "../../scripts/lib/totp.mjs";
 
 /**
@@ -79,11 +78,13 @@ const spaceOf = (uid: string) => sql(`select personal_space_id from public.profi
 /** What app.personal_space() and app.accessible_spaces() answer for a session with these claims. */
 function accessFor(claims: Record<string, unknown>): { personal: string; spaces: number } {
   const json = JSON.stringify({ role: "authenticated", ...claims }).replace(/'/g, "''");
+  // One psql -c call is one transaction, so the role and the claims last exactly as long as the question.
   const out = sql(
-    `begin; set local role authenticated; select set_config('request.jwt.claims', '${json}', true);
-     select coalesce(app.personal_space()::text, 'none') || '|' || (select count(*) from app.accessible_spaces('organisation.tickets', 'view')); commit`,
+    `set local role authenticated; select set_config('request.jwt.claims', '${json}', true);
+     select 'answer=' || coalesce(app.personal_space()::text, 'none') || '|' || (select count(*) from app.accessible_spaces('organisation.tickets', 'view'))`,
   );
-  const [personal, spaces] = String(out.at(-1)?.[0] ?? "none|0").split("|");
+  const answer = out.map((r) => r[0]).find((v) => v.startsWith("answer=")) ?? "answer=none|0";
+  const [personal, spaces] = answer.slice("answer=".length).split("|");
   return { personal, spaces: Number(spaces) };
 }
 

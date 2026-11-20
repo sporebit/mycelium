@@ -39,6 +39,11 @@ export async function POST(req: NextRequest) {
     const supabase = await createUserClient();
     const limited = await ticketWriteGate(supabase, uid);
     if (limited) return limited;
+    // The project must be one the caller can see and sit in the space the
+    // sprint will be written to: without this a sprint could name a project
+    // in somebody else's space (the row's own policy only tests its space).
+    const { data: project } = await supabase.from("projects").select("id, space_id").eq("id", body.project_id).maybeSingle();
+    if (!project) return NextResponse.json({ error: "No such project" }, { status: 404 });
     if (body.activate) {
       const { data: active } = await supabase.from("sprints").select("id").eq("project_id", body.project_id).eq("status", "active").limit(1);
       if (active?.length) return NextResponse.json({ error: "this project already has an active sprint; close it first" }, { status: 409 });
