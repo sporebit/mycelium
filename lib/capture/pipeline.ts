@@ -304,6 +304,8 @@ export async function processCapture(db: SupabaseClient, uid: string, captureId:
         routed_to: "raw_captures",
         routed_id: row.id,
       });
+      // Learned like every other kind (the old writer recorded a workout's prediction too).
+      await recordCaptureLearning(db, { captureId: row.id, text, source: row.source, predictedKind: kind, predictedFields: fieldsFromClassification(classification as unknown as Record<string, unknown>), predictedLlmSource: llm_source });
       if (opts.reply) await reply(db, uid, row.id, summary, null);
       return { state: "done", kind, title: classification.title, routed_to: "raw_captures" };
     }
