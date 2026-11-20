@@ -30,6 +30,7 @@ function optimisticEntry(input: EntryInput, now: string): HoursEntry {
     source: "manual",
     source_row: null,
     deleted_at: null,
+    merged_at: null,
     created_at: now,
     updated_at: now,
   };
@@ -136,5 +137,31 @@ export function useEntryMutations() {
     return ok;
   }, []);
 
-  return { add, patch, remove };
+  /** MERGE (0157): every held entry joins the dated list (or the Backlog when it has no date). */
+  const mergeAll = useCallback(async (): Promise<number | null> => {
+    let merged: number | null = null;
+    const now = new Date().toISOString();
+    await globalMutate<HoursBundle>(
+      HOURS_BUNDLE_KEY,
+      async (current) => {
+        try {
+          const r = await apiWrite<{ merged: number }>("/api/hours/entries/merge", { method: "POST" });
+          merged = r.merged;
+          return current ? { ...current, entries: current.entries.map((e) => (e.merged_at === null ? { ...e, merged_at: now } : e)) } : current;
+        } catch (e) {
+          reportApiError(e, "Could not merge the new entries");
+          throw e;
+        }
+      },
+      {
+        optimisticData: (current) => (current ? { ...current, entries: current.entries.map((e) => (e.merged_at === null ? { ...e, merged_at: now } : e)) } : (current as unknown as HoursBundle)),
+        rollbackOnError: true,
+        populateCache: true,
+        revalidate: true,
+      },
+    ).catch(() => undefined);
+    return merged;
+  }, []);
+
+  return { add, patch, remove, mergeAll };
 }

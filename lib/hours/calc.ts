@@ -132,10 +132,12 @@ export function resolveSettings(s: HoursSettings | null | undefined, today: stri
 
 export type HoursIndex = {
   settings: ResolvedSettings;
-  /** live entries with a date, by date */
+  /** live, merged entries with a date, by date */
   byDate: Map<string, HoursEntry[]>;
-  /** live entries (dated or not) */
+  /** live, merged entries (dated or not): what every figure is derived from */
   live: HoursEntry[];
+  /** live entries still waiting in the Log's holding section (0157): shown there, counted nowhere */
+  staged: HoursEntry[];
   absences: Map<string, number>;
   holidays: Map<string, string>;
 };
@@ -143,8 +145,13 @@ export type HoursIndex = {
 export function buildIndex(bundle: HoursBundle, today: string): HoursIndex {
   const byDate = new Map<string, HoursEntry[]>();
   const live: HoursEntry[] = [];
+  const staged: HoursEntry[] = [];
   for (const e of bundle.entries) {
     if (e.deleted_at) continue;
+    if (e.merged_at === null) {
+      staged.push(e);
+      continue;
+    }
     live.push(e);
     if (e.entry_date) {
       const list = byDate.get(e.entry_date) ?? [];
@@ -156,7 +163,7 @@ export function buildIndex(bundle: HoursBundle, today: string): HoursIndex {
   for (const a of bundle.absences) absences.set(a.absence_date, (absences.get(a.absence_date) ?? 0) + a.minutes);
   const holidays = new Map<string, string>();
   for (const h of bundle.bankHolidays) holidays.set(h.holiday_date, h.name);
-  return { settings: resolveSettings(bundle.settings, today), byDate, live, absences, holidays };
+  return { settings: resolveSettings(bundle.settings, today), byDate, live, staged, absences, holidays };
 }
 
 // ---------------------------------------------------------------------
@@ -341,6 +348,11 @@ export function bundleTotals(index: HoursIndex): BundleTotals {
 /** Backlog: an entry with a description or a ticket and no Time Spent. */
 export function isOpenItem(e: HoursEntry): boolean {
   return e.minutes === null && (e.description.trim() !== "" || e.ticket_raw.trim() !== "");
+}
+
+/** What the Backlog page lists: open items, and (Phil, 2026-11-20) anything merged without a date. */
+export function isBacklogItem(e: HoursEntry): boolean {
+  return isOpenItem(e) || (e.entry_date === null && (e.description.trim() !== "" || e.ticket_raw.trim() !== "" || e.minutes !== null));
 }
 
 // ---------------------------------------------------------------------

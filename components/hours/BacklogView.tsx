@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Skeleton } from "@/components/ui";
 import { Mono } from "@/components/dashboard/Mono";
-import { fmtHm, isOpenItem } from "@/lib/hours/calc";
+import { fmtHm, isBacklogItem, isOpenItem } from "@/lib/hours/calc";
 import { defaultEntryDate } from "@/lib/hours/entry";
 import { AddEntryBar } from "./AddEntryBar";
 import { EntryHeader, EntryRow } from "./EntryRow";
@@ -17,7 +17,7 @@ import { useHoursBundle } from "./useHours";
  */
 export function BacklogView() {
   const { bundle, index, today, isLoading } = useHoursBundle();
-  const open = useMemo(() => (index ? index.live.filter(isOpenItem).slice().sort((a, b) => (a.entry_date ?? "9999").localeCompare(b.entry_date ?? "9999") || a.created_at.localeCompare(b.created_at)) : []), [index]);
+  const open = useMemo(() => (index ? index.live.filter(isBacklogItem).slice().sort((a, b) => (a.entry_date ?? "9999").localeCompare(b.entry_date ?? "9999") || a.created_at.localeCompare(b.created_at)) : []), [index]);
 
   if (isLoading || !index || !bundle) {
     return (
@@ -28,7 +28,7 @@ export function BacklogView() {
     );
   }
   const estimated = open.reduce((s, e) => s + (e.estimate_minutes ?? 0), 0);
-  const withoutEstimate = open.filter((e) => e.estimate_minutes === null).length;
+  const withoutEstimate = open.filter((e) => isOpenItem(e) && e.estimate_minutes === null).length;
   const catchAll = (bundle.settings?.catch_all_tickets ?? []).map((t) => t.key);
 
   return (
@@ -41,7 +41,7 @@ export function BacklogView() {
         </div>
       </div>
       <AddEntryBar defaultDate={defaultEntryDate(bundle.entries, today)} catchAll={catchAll} />
-      <p className="text-xs text-text-lo">Open work: anything with a description or ticket and no Time Spent. Type into Time when it is done; it then moves to the Log. Enter saves and moves down, Tab across, Esc puts a cell back.</p>
+      <p className="text-xs text-text-lo">Open work: anything with no Time Spent, and anything merged without a date. Type into Time and Date when it is done; it then moves to the Log. Enter saves and moves down, Tab across, Esc puts a cell back.</p>
       {open.length === 0 ? (
         <div className="rounded-v2-md border border-hairline p-6 text-center text-sm text-text-lo">No open items.</div>
       ) : (

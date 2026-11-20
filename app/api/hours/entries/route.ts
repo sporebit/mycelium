@@ -11,7 +11,8 @@ export const runtime = "nodejs";
  * logged? }. Time fields take minutes or typed durations ("0:45", "1.5h").
  * The ticket key is derived here, never trusted from the client. The row
  * lands in the caller's personal space (the table default) as source
- * "manual". Returns { entry }.
+ * "manual" and waits in the Log's holding section (merged_at null, 0157)
+ * until MERGE. Returns { entry }.
  */
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
     const supabase = await createUserClient();
     const { data, error } = await supabase
       .from("hours_entries")
-      .insert({ ...read.fields, source: "manual" })
+      .insert({ ...read.fields, source: "manual", merged_at: null })
       .select(ENTRY_SELECT)
       .single();
     if (error) throw error;

@@ -45,6 +45,7 @@ export function exportJson(bundle: HoursBundle, exportedAt: string) {
         ticketRaw: e.ticket_raw,
         ticketKey: e.ticket_key,
         logged: e.logged,
+        mergedAt: e.merged_at,
         createdAt: e.created_at,
         updatedAt: e.updated_at,
       })),

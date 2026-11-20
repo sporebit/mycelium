@@ -7,6 +7,7 @@ import {
   byTicket,
   checkpoint,
   dayTotals,
+  isBacklogItem,
   entryState,
   fmtBoth,
   fmtHm,
@@ -40,6 +41,7 @@ function entry(date: string | null, minutes: number | null, extra: Partial<Hours
     source: "manual",
     source_row: null,
     deleted_at: null,
+    merged_at: "2026-01-01T00:00:00Z",
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
     ...extra,
@@ -277,5 +279,30 @@ describe("entry state and by ticket", () => {
     const all = byTicket(idx, null, null, null);
     expect(all.total).toBe(725);
     expect(all.rows[0].pct).toBeCloseTo(500 / 725);
+  });
+});
+
+describe("0157 holding section", () => {
+  const base = { estimate_minutes: null, description: "x", ticket_raw: "ABC-1", ticket_key: "ABC-1", logged: false, source: "manual" as const, source_row: null, deleted_at: null, created_at: "2026-11-19T10:00:00Z", updated_at: "2026-11-19T10:00:00Z" };
+  it("keeps unmerged entries out of every figure and lists them as staged", () => {
+    const bundle = {
+      settings: null,
+      entries: [
+        { ...base, id: "a", entry_date: "2026-11-19", minutes: 60, merged_at: "2026-11-19T10:00:00Z" },
+        { ...base, id: "b", entry_date: "2026-11-19", minutes: 90, merged_at: null },
+        { ...base, id: "c", entry_date: null, minutes: null, merged_at: null },
+      ],
+      absences: [],
+      bankHolidays: [],
+    };
+    const index = buildIndex(bundle, "2026-11-19");
+    expect(index.live.map((e) => e.id)).toEqual(["a"]);
+    expect(index.staged.map((e) => e.id)).toEqual(["b", "c"]);
+    expect(dayTotals(index, "2026-11-19").logged).toBe(60);
+  });
+  it("isBacklogItem covers open items and merged rows without a date", () => {
+    expect(isBacklogItem({ ...base, id: "d", entry_date: null, minutes: null, merged_at: "2026-11-19T10:00:00Z" })).toBe(true);
+    expect(isBacklogItem({ ...base, id: "e", entry_date: null, minutes: 30, merged_at: "2026-11-19T10:00:00Z" })).toBe(true);
+    expect(isBacklogItem({ ...base, id: "f", entry_date: "2026-11-19", minutes: 30, merged_at: "2026-11-19T10:00:00Z" })).toBe(false);
   });
 });

@@ -17,6 +17,7 @@ function dbEntry(id: string, over: Partial<HoursEntry> = {}): HoursEntry {
     source: "import",
     source_row: null,
     deleted_at: null,
+    merged_at: "2026-03-02T10:00:00Z",
     created_at: "2026-03-02T10:00:00Z",
     updated_at: "2026-03-02T10:00:00Z",
     ...over,

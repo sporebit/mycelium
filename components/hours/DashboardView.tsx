@@ -70,6 +70,11 @@ export function DashboardView() {
 
   return (
     <div className="flex flex-col gap-4">
+      {index.staged.length > 0 && (
+        <Link href={`${HOURS_BASE}/log`} className="text-xs text-v2-warn hover:underline">
+          {index.staged.length} new {index.staged.length === 1 ? "entry is" : "entries are"} waiting in the Log and not counted yet — open the Log to merge.
+        </Link>
+      )}
       <div
         className={`rounded-v2-lg border px-4 py-3 text-center font-[family-name:var(--font-mono)] text-sm sm:text-base font-semibold tracking-[0.06em] ${
           met ? "border-ok text-ok bg-ok/10" : ws.remaining <= 60 ? "border-v2-warn text-v2-warn" : "border-hairline-strong text-text-hi"

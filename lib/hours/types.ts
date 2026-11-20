@@ -34,6 +34,8 @@ export type HoursEntry = {
   source: "manual" | "import";
   source_row: number | null;
   deleted_at: string | null;
+  /** 0157: null while the entry waits in the Log's holding section; set by MERGE */
+  merged_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -76,7 +78,7 @@ export const SETTINGS_SELECT =
   "id, contracted_minutes_per_week, standard_day_minutes, checkpoint_threshold_minutes, checkpoint_label, tracking_start, review_length_weeks, wed_minutes_before_1300, wed_minutes_after_1300, ticket_base_url, catch_all_tickets, block_out_recipients, block_out_subject_template, block_out_body_lines, updated_at";
 
 export const ENTRY_SELECT =
-  "id, entry_date, minutes, estimate_minutes, description, ticket_raw, ticket_key, logged, source, source_row, deleted_at, created_at, updated_at";
+  "id, entry_date, minutes, estimate_minutes, description, ticket_raw, ticket_key, logged, source, source_row, deleted_at, merged_at, created_at, updated_at";
 
 export const ABSENCE_SELECT = "id, absence_date, type, minutes, note";
 export const HOLIDAY_SELECT = "id, holiday_date, name";
