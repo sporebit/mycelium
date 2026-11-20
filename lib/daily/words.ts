@@ -113,6 +113,68 @@ function stripStop(s: string): string {
   return s.replace(/\s+/g, " ").trim().replace(/[.!?…]+$/, "");
 }
 
+/* ------------------------------------------------------------------ */
+/* The weekly close-out (research rules 23, 25, 32) and the notices  */
+/* before a scheduled switch (rule 27).                                */
+/* ------------------------------------------------------------------ */
+
+export const CLOSEOUT = {
+  title: "The week, closed",
+  planAsk: "What will these forty-five minutes do? One line.",
+  planHint: "Said at the start, reported at the end. The box closes either way.",
+  begin: "Begin",
+  reportAsk: "How did it go? One line.",
+  finish: "Close the week",
+  closed: "Week closed.",
+  boxOver: "The forty-five minutes are up. Close the week whenever you're ready.",
+  fill: "This week",
+  lifetime: "Lifetime",
+  section: "Gone quiet",
+  keep: "Keep",
+  pause: "Pause",
+  retire: "Retire",
+  whyAsk: "Why?",
+  whyHint: "A sentence is plenty.",
+  screenAsk: "Screen Time this week, from the phone (minutes).",
+  partnerOne: "Are the nudges helping him?",
+  partnerTwo: "Are they costing her?",
+  measuresTitle: "The month, measured",
+  measuresHint: "Computed from what happened, once a month, kept so months compare. Not on the home screen.",
+  nothingQuiet: "Everything is in use. Nothing to raise.",
+  notYet: "The close-out is on",
+} as const;
+
+/** "4 win days. 11 finished of 14 started." — the week's fill as one line (rule 25: filled, never broken). */
+export function fillLine(fill: { win_days: number; finished: number; started: number }): string {
+  const days = `${fill.win_days} win ${fill.win_days === 1 ? "day" : "days"}`;
+  if (!fill.started) return `${days}. Nothing started yet this week.`;
+  return `${days}. ${fill.finished} finished of ${fill.started} started.`;
+}
+
+/** "212 win days, 1,480 things finished, 51 weeks closed." — totals that can grow and never reset. */
+export function lifetimeLine(t: { win_days: number; finished: number; weeks_closed: number }): string {
+  const n = (v: number) => v.toLocaleString("en-GB");
+  return `${n(t.win_days)} win ${t.win_days === 1 ? "day" : "days"}, ${n(t.finished)} ${t.finished === 1 ? "thing" : "things"} finished, ${n(t.weeks_closed)} ${t.weeks_closed === 1 ? "week" : "weeks"} closed.`;
+}
+
+/** The notice before a scheduled switch: what is next and how long until it. Never "hurry", never "late". */
+export function switchNotice(title: string, minutes: number): { title: string; body: string } {
+  const when = minutes <= 1 ? "in a minute" : `in ${minutes} min`;
+  return { title: `${trimTitle(title, 60)} ${when}.`, body: minutes > 5 ? "Time to find a stopping place." : "Time to stop and switch." };
+}
+
+/** The close-out's own notice, the same slot each week. */
+export function closeoutNotice(minutes: number): { title: string; body: string } {
+  return { title: `The week's close-out starts in ${minutes} min.`, body: "Forty-five minutes. Say what it will do at the start." };
+}
+
+/** The timer's own countdown, said on the screen it is already on. */
+export function timerNotice(minutesLeft: number): string | null {
+  if (minutesLeft === 10) return "Ten minutes left.";
+  if (minutesLeft === 2) return "Two minutes left. Find a stopping place.";
+  return null;
+}
+
 /**
  * Words the app never says to a person about their own work. Checked by the
  * test against everything above; exported so other features can check
