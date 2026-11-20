@@ -2,7 +2,7 @@
   "slug": "phase1-live-checks",
   "kind": "test",
   "title": "Live checks after the test pass: one surface per sitting",
-  "version": 5,
+  "version": 6,
   "intro": {
     "verdict_html": "Everything built so far was exercised by automation on 20 November: 482 end-to-end checks as two people, 821 unit and database checks, and a pass that opens all 220 page views. Faults found were fixed or are on the build list. What is left here is only what a machine cannot judge: look, feel, a real voice, a real receipt, a second person's phone. Each chunk is one surface and about fifteen minutes; do them in any order, on any day. Chunk 1 is five minutes and should be first.",
     "prerequisites": [
@@ -1639,6 +1639,119 @@
             "kind": "page"
           },
           "body_html": "MYC-202: add <code>GITHUB_TOKEN</code> in Vercel and redeploy. Nothing visible changes; the daily turn is less likely to hit a rate limit."
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "title": "The wall screen (15 minutes; needs a phone or the frame)",
+      "lede_html": "Built and checked by automation. The wall is an ordinary family-team member with one scoped token in a cookie; a person's own view needs their PIN and lasts ten minutes; the screen never holds anyone's session, and nothing from Finance reaches it.",
+      "steps": [
+        {
+          "id": "18.1",
+          "title": "A PIN each",
+          "actor": "you",
+          "where": {
+            "label": "Settings → Security",
+            "url": "https://mycelium.sporebit.com/other/settings/security",
+            "kind": "page"
+          },
+          "body_html": "<b>Quick unlock</b>: set a PIN. Ask Kirsty to set hers on her phone (same card)."
+        },
+        {
+          "id": "18.2",
+          "title": "Add a wall",
+          "actor": "you",
+          "where": {
+            "label": "Settings → Security",
+            "url": "https://mycelium.sporebit.com/other/settings/security",
+            "kind": "page"
+          },
+          "body_html": "<b>Walls</b>: Team <i>Family</i>, name <i>Kitchen</i>, <b>Add wall</b>. An eight-digit code appears; it is shown once and lasts ten minutes."
+        },
+        {
+          "id": "18.3",
+          "title": "Pair the screen",
+          "actor": "you",
+          "where": {
+            "label": "The wall",
+            "url": "https://mycelium.sporebit.com/wall",
+            "kind": "page"
+          },
+          "body_html": "On the frame (or the phone for now), open <code>/wall</code> and type the code. The family board appears: both names, the countdown, the week's appointments, weather and bins.",
+          "fields": [
+            {
+              "key": "wall_board",
+              "label": "Board right? (yes / what was missing)"
+            }
+          ]
+        },
+        {
+          "id": "18.4",
+          "title": "Your own view",
+          "actor": "you",
+          "where": {
+            "label": "The wall",
+            "url": "https://mycelium.sporebit.com/wall",
+            "kind": "page"
+          },
+          "body_html": "Tap your name, type your PIN. Your day appears with the next thing large. Tap <b>Done</b> on something: the chime. Tap <b>Read my morning</b>: the voice. Tap <b>Tap to talk</b>, say something, tap again: it is in Captures within a minute.",
+          "fields": [
+            {
+              "key": "wall_voice",
+              "label": "Voice and capture worked? (yes / which not)"
+            }
+          ]
+        },
+        {
+          "id": "18.5",
+          "title": "Leave it alone",
+          "actor": "you",
+          "where": {
+            "label": "The wall",
+            "url": "https://mycelium.sporebit.com/wall",
+            "kind": "page"
+          },
+          "body_html": "After two minutes it is back on the family board on its own; after three more it is the ambient plate; a touch brings the board back."
+        },
+        {
+          "id": "18.6",
+          "title": "Guest",
+          "actor": "you",
+          "where": {
+            "label": "The wall",
+            "url": "https://mycelium.sporebit.com/wall",
+            "kind": "page"
+          },
+          "body_html": "Tap <b>Guest</b>. Only the clock, the weather and the pictures; hold the faint mark top-right for two seconds to come back."
+        },
+        {
+          "id": "18.7",
+          "title": "Revoke and pair the real frame",
+          "actor": "you",
+          "where": {
+            "label": "Settings → Security",
+            "url": "https://mycelium.sporebit.com/other/settings/security",
+            "kind": "page"
+          },
+          "body_html": "<b>Walls → Revoke</b> when you are done with the phone, and pair the real frame with a new wall (MYC-205 has the pairing steps)."
+        },
+        {
+          "id": "18.8",
+          "title": "Which frame?",
+          "actor": "you",
+          "where": {
+            "label": "Report",
+            "url": "https://github.com/sporebit/mycelium/blob/main/docs/run/wall-report.md",
+            "kind": "page"
+          },
+          "body_html": "If the frame has no browser or no way to a kiosk app, pick a line from the report's costed table and say which (MYC-182).",
+          "fields": [
+            {
+              "key": "wall_frame",
+              "label": "Which frame? (line from the table)"
+            }
+          ]
         }
       ]
     }
