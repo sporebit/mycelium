@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter_Tight, JetBrains_Mono, Newsreader } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { PrivacyProvider } from "@/lib/context/PrivacyContext";
 import { TransitionProvider } from "@/lib/context/TransitionContext";
@@ -17,24 +17,34 @@ import { UI_PREFS_DEFAULTS, getUiPrefs } from "@/lib/settings/uiPrefs";
 // bailout for every route.
 export const dynamic = "force-dynamic";
 
-const interTight = Inter_Tight({
+// Fonts are self-hosted from app/fonts (woff2 from Fontsource, SIL OFL 1.1, licences beside them).
+// next/font/google fetched them from Google at build time, and one odd response failed CI #165.
+const interTight = localFont({
   variable: "--font-inter-tight",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  src: [
+    { path: "./fonts/inter-tight-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/inter-tight-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/inter-tight-latin-600-normal.woff2", weight: "600", style: "normal" },
+  ],
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const jetbrainsMono = localFont({
   variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
+  src: "./fonts/jetbrains-mono-latin-wght-normal.woff2",
+  weight: "100 800",
+  style: "normal",
   display: "swap",
 });
 
 // The Specimen plate's caption face (claude/ui-direction.md). Not preloaded: only Home in the new shell uses it.
-const newsreader = Newsreader({
+const newsreader = localFont({
   variable: "--font-plate",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  src: [
+    { path: "./fonts/newsreader-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/newsreader-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/newsreader-latin-600-normal.woff2", weight: "600", style: "normal" },
+  ],
   display: "swap",
   preload: false,
 });
