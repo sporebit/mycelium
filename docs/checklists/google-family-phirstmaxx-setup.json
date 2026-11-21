@@ -1,0 +1,718 @@
+{
+  "slug": "google-family-phirstmaxx-setup",
+  "kind": "setup",
+  "title": "Google, the Family calendar and PhirstMaxx: your steps",
+  "version": 1,
+  "toggles": {
+    "shell": {
+      "label": "Shell",
+      "options": {
+        "ps": "PowerShell",
+        "bash": "Git Bash"
+      },
+      "default": "ps"
+    }
+  },
+  "intro": {
+    "verdict_html": "<p>Publish the Google app. Publishing lets nobody into Mycelium and lets nobody read your calendar. It only stops Google ending your sign-in every seven days.</p><p>One real gap exists, and it is in Mycelium's own connect code, not in Google's setting. Claude Code closes it in this build (family calendar spec, section 4.5): a signed check on the sign-in and a list of allowed Google accounts with one entry, yours.</p><p>The rest of this page is the account and key setup the build would otherwise stop and ask you for. Phases 1 and 2 are the ones worth doing tonight.</p>",
+    "comparison": {
+      "columns": [
+        "Google app setting",
+        "Who can press Allow",
+        "How long your sign-in lasts",
+        "Verdict"
+      ],
+      "rows": [
+        {
+          "cells": [
+            "Testing",
+            "Only Google accounts you list as test users",
+            "Seven days, then Reconnect needed",
+            "What you have had. Rejected."
+          ]
+        },
+        {
+          "cells": [
+            "In production, unverified",
+            "Any Google account, for its own calendar only, and only someone already signed in to Mycelium can reach the button",
+            "Until you revoke it, or six months unused",
+            "Use this, with the code lock in spec 4.5"
+          ],
+          "pick": true
+        },
+        {
+          "cells": [
+            "Internal",
+            "Only accounts inside your Google Workspace organisation",
+            "Long-lived",
+            "Needs a paid Workspace. Not offered to a personal Gmail."
+          ]
+        }
+      ]
+    },
+    "prerequisites": [
+      "Sign-in to the Google account Mycelium is connected with",
+      "Kirsty and her phone, for five minutes",
+      "Sign-in to Supabase and Vercel",
+      "A card, only for phase 4 (real public-transport times)"
+    ],
+    "time": [
+      "About 45 minutes in all",
+      "Phases 1 and 2: 15 minutes"
+    ],
+    "cost": [
+      "£0",
+      "Phase 4 puts a card on file but stays at £0 with the caps in step 4.4"
+    ]
+  },
+  "phases": [
+    {
+      "id": "1",
+      "title": "Publish the Google app and lock it down",
+      "lede_html": "You have already reconnected. If that was before publishing, that sign-in still ends in seven days, so step 1.4 does it once more.",
+      "steps": [
+        {
+          "id": "1.1",
+          "title": "Find the right project",
+          "actor": "you",
+          "where": {
+            "label": "Google Cloud → Google Auth Platform → Clients",
+            "url": "https://console.cloud.google.com/auth/clients",
+            "kind": "dashboard"
+          },
+          "body_html": "Use the project picker in the top bar. The right project is the one whose Clients list has a <b>Web application</b> client with the redirect address below. Stay in that project for the whole phase, and type its name in the box.",
+          "blocks": [
+            {
+              "label": "The redirect address to look for",
+              "text": "https://mycelium.sporebit.com/api/google/callback"
+            }
+          ],
+          "fields": [
+            {
+              "key": "gcp_project",
+              "label": "Google Cloud project name",
+              "placeholder": "e.g. mycelium-123456"
+            }
+          ]
+        },
+        {
+          "id": "1.2",
+          "title": "Trim the redirect addresses",
+          "actor": "you",
+          "where": {
+            "label": "Google Auth Platform → Clients → your web client",
+            "url": "https://console.cloud.google.com/auth/clients",
+            "kind": "dashboard"
+          },
+          "body_html": "Open the web client. Under <b>Authorised redirect URIs</b> keep the production address below and any <code>http://localhost:…/api/google/callback</code> entries you use for local work. Delete every other host, old Vercel preview addresses included. <b>Authorised JavaScript origins</b> can be empty. Press <b>Save</b>.",
+          "blocks": [
+            {
+              "label": "Must be present, exactly",
+              "text": "https://mycelium.sporebit.com/api/google/callback"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "security",
+              "html": "Google delivers a sign-in code only to an address on this list. With your own domain as the only public entry, a code for this app cannot be sent anywhere else."
+            }
+          ]
+        },
+        {
+          "id": "1.3",
+          "title": "Publish the app",
+          "actor": "you",
+          "where": {
+            "label": "Google Auth Platform → Audience → Publishing status",
+            "url": "https://console.cloud.google.com/auth/audience",
+            "kind": "dashboard"
+          },
+          "body_html": "Press <b>Publish app</b>, then <b>Confirm</b>. The status changes to <b>In production</b>. Ignore any prompt to submit for verification: Google does not require it for a personal app with fewer than 100 users. If it already says In production, type that and move on.",
+          "fields": [
+            {
+              "key": "publish_status",
+              "label": "Publishing status now shown",
+              "placeholder": "In production"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "security",
+              "html": "What this changes: Google stops limiting sign-in to a test-user list, so tokens stop expiring weekly. What it does not change: Mycelium's own login still guards the connect button, and a Google sign-in only ever grants access to the calendar of the person who pressed Allow. Nobody gains a route to yours."
+            }
+          ]
+        },
+        {
+          "id": "1.4",
+          "title": "Reconnect once more, after publishing",
+          "actor": "you",
+          "where": {
+            "label": "Mycelium → Settings → Integrations → Google",
+            "url": "https://mycelium.sporebit.com/other/settings",
+            "kind": "page"
+          },
+          "body_html": "Press <b>RECONNECT</b> and choose your account. On <b>Google hasn't verified this app</b> press <b>Advanced</b>, then <b>Go to … (unsafe)</b>, then <b>Continue</b>. That screen means the app has not been through Google's public review, which a private app never needs. Skip this step only if tonight's reconnect came after step 1.3."
+        },
+        {
+          "id": "1.5",
+          "title": "Name the one Google account Mycelium may accept",
+          "actor": "you",
+          "where": {
+            "label": "This page",
+            "kind": "decision"
+          },
+          "body_html": "Type the Google address you connected with in 1.4. Claude Code makes it the only account the connect flow accepts, and step 6.1 puts it in the environment.",
+          "fields": [
+            {
+              "key": "google_account",
+              "label": "Your Google address",
+              "placeholder": "you@gmail.com"
+            }
+          ]
+        }
+      ],
+      "verify_html": [
+        "<a href='https://console.cloud.google.com/auth/audience'>Audience</a> shows <b>Publishing status: In production</b>.",
+        "Mycelium → Settings shows Google connected, with no Reconnect needed.",
+        "<a href='https://myaccount.google.com/connections'>myaccount.google.com/connections</a> lists your app with access to Google Calendar and nothing else.",
+        "Eight days from now it is still connected. The daily health check in the build (spec 4.4) messages you if it is not."
+      ],
+      "why_html": "A Google sign-in is a grant from one person to one app for that person's own data. Publishing widens who may give a grant; it never hands anyone somebody else's data. Your calendar is reachable only through the token held in Mycelium's database, and only Mycelium's server, which holds the client secret, can use that token. The seven-day expiry existed because Google treats a Testing app as a throwaway."
+    },
+    {
+      "id": "2",
+      "title": "Kirsty's account and the Family calendar",
+      "lede_html": "This works on both phones tonight, before any Mycelium build. The build then joins the same calendar to the Family calendar inside Mycelium.",
+      "steps": [
+        {
+          "id": "2.1",
+          "title": "Create Kirsty's Google account",
+          "actor": "you",
+          "where": {
+            "label": "accounts.google.com → Create account",
+            "url": "https://accounts.google.com/signup",
+            "kind": "browser"
+          },
+          "body_html": "Create the address below with Kirsty choosing the password. Add her mobile as the recovery phone, then turn on 2-Step Verification at <a href='https://myaccount.google.com/signinoptions/twosv'>myaccount.google.com/signinoptions/twosv</a>.",
+          "blocks": [
+            {
+              "label": "Address",
+              "text": "kirstykjpetco@gmail.com"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "security",
+              "html": "Her password stays with her. Mycelium never signs in as Kirsty; it only shares one calendar to her address."
+            }
+          ]
+        },
+        {
+          "id": "2.2",
+          "title": "Add the account to her Android phone",
+          "actor": "you",
+          "where": {
+            "label": "Kirsty's phone → Settings → Passwords & accounts → Add account → Google",
+            "kind": "browser"
+          },
+          "body_html": "Sign in with the new address and leave <b>Calendar</b> sync on. Open the Google Calendar app (install it from the Play Store if it is missing). Her email can stay in Outlook; this adds a calendar and nothing else."
+        },
+        {
+          "id": "2.3",
+          "title": "Create the Family calendar in your account",
+          "actor": "you",
+          "where": {
+            "label": "Google Calendar → Settings → Add calendar → Create new calendar",
+            "url": "https://calendar.google.com/calendar/u/0/r/settings/createcalendar",
+            "kind": "dashboard"
+          },
+          "body_html": "On a computer, signed in as <b>{{google_account}}</b> (check the avatar, top right). Time zone: <b>(GMT+00:00) United Kingdom Time</b>. Press <b>Create calendar</b>.",
+          "blocks": [
+            {
+              "label": "Name",
+              "text": "Family"
+            }
+          ]
+        },
+        {
+          "id": "2.4",
+          "title": "Share it to Kirsty with edit rights",
+          "actor": "you",
+          "where": {
+            "label": "Google Calendar → Settings → Family → Share with specific people or groups",
+            "url": "https://calendar.google.com/calendar/u/0/r/settings",
+            "kind": "dashboard"
+          },
+          "body_html": "In the left column under <b>Settings for my calendars</b> click <b>Family</b>, then <b>Share with specific people or groups</b> → <b>Add people and groups</b>. Paste her address, set the permission to <b>Make changes to events</b>, press <b>Send</b>.",
+          "blocks": [
+            {
+              "label": "Share with",
+              "text": "kirstykjpetco@gmail.com"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "security",
+              "html": "Not <b>Make changes and manage sharing</b>: that would let the calendar be shared onward or deleted from her side. Leave <b>Make available to public</b> unticked. Sharing this one calendar shows her nothing of your main calendar or any other."
+            }
+          ]
+        },
+        {
+          "id": "2.5",
+          "title": "Kirsty accepts",
+          "actor": "you",
+          "where": {
+            "label": "Kirsty's phone → Gmail → the email from Google Calendar",
+            "kind": "browser"
+          },
+          "body_html": "She taps <b>Add this calendar</b> in the email. Until she does, the calendar does not appear for her. Then in the Google Calendar app: menu (☰) → tick <b>Family</b>."
+        },
+        {
+          "id": "2.6",
+          "title": "Show it on your iPhone",
+          "actor": "you",
+          "where": {
+            "label": "calendar.google.com/calendar/u/0/syncselect",
+            "url": "https://calendar.google.com/calendar/u/0/syncselect",
+            "kind": "browser"
+          },
+          "body_html": "<b>Apple Calendar:</b> open the link, tick <b>Family</b>, press <b>Save</b>. Then Calendar app → <b>Calendars</b> → tick Family under your Google account. <b>Google Calendar app:</b> menu (☰) → tick <b>Family</b>; the link is not needed."
+        },
+        {
+          "id": "2.7",
+          "title": "Copy the calendar's ID",
+          "actor": "you",
+          "where": {
+            "label": "Google Calendar → Settings → Family → Integrate calendar",
+            "url": "https://calendar.google.com/calendar/u/0/r/settings",
+            "kind": "dashboard"
+          },
+          "body_html": "Copy <b>Calendar ID</b> into the box. It ends <code>@group.calendar.google.com</code>. It is an address, not a secret. Mycelium's picker will list your calendars anyway; this removes any doubt about which one.",
+          "fields": [
+            {
+              "key": "family_calendar_id",
+              "label": "Family calendar ID",
+              "placeholder": "…@group.calendar.google.com"
+            }
+          ]
+        }
+      ],
+      "verify_html": [
+        "Kirsty adds an event called Test to Family on her phone. It shows on your iPhone within a minute.",
+        "You move it by an hour on your phone. Hers follows.",
+        "On her phone, none of your other calendars is listed."
+      ],
+      "why_html": "Google shares calendars one at a time. Family is a separate container in your account, so edit rights on it say nothing about your primary calendar. Both phones talk straight to Google, which is why this works before Mycelium is involved. Mycelium then becomes a third reader and writer of the same calendar."
+    },
+    {
+      "id": "3",
+      "title": "Free keys: routing and YouTube",
+      "lede_html": "Neither needs a card. Keep each key in its tab or your password manager until phase 6.",
+      "steps": [
+        {
+          "id": "3.1",
+          "title": "OpenRouteService key",
+          "actor": "you",
+          "where": {
+            "label": "openrouteservice.org → Sign up",
+            "url": "https://openrouteservice.org/dev/#/signup",
+            "kind": "browser"
+          },
+          "body_html": "Create the account (it is a HeiGIT account), confirm the email, sign in. The dashboard shows a free <b>Standard</b> key; if it shows none, request a free token and name it Mycelium. The free plan allows 2,000 route requests a day and 40 a minute. Commercial use is not allowed on it, which is fine for a personal app.",
+          "notes": [
+            {
+              "kind": "security",
+              "html": "The key goes into phase 6 and nowhere else. Not this page, not a chat."
+            }
+          ]
+        },
+        {
+          "id": "3.2",
+          "title": "Turn on the YouTube Data API",
+          "actor": "you",
+          "where": {
+            "label": "Google Cloud → APIs & Services → Library → YouTube Data API v3",
+            "url": "https://console.cloud.google.com/apis/library/youtube.googleapis.com",
+            "kind": "dashboard"
+          },
+          "body_html": "Same project as phase 1 (<b>{{gcp_project}}</b>). Press <b>Enable</b>. No billing account is needed."
+        },
+        {
+          "id": "3.3",
+          "title": "Create a key that can only call YouTube",
+          "actor": "you",
+          "where": {
+            "label": "Google Cloud → APIs & Services → Credentials",
+            "url": "https://console.cloud.google.com/apis/credentials",
+            "kind": "dashboard"
+          },
+          "body_html": "<b>Create credentials</b> → <b>API key</b>. Under <b>API restrictions</b> choose <b>Restrict key</b> and tick only <b>YouTube Data API v3</b>. Leave <b>Application restrictions</b> on None: the calls come from Vercel, which has no fixed address. Save and copy the key.",
+          "blocks": [
+            {
+              "label": "Key name",
+              "text": "Mycelium YouTube"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "security",
+              "html": "An API key reads public YouTube information only. It carries no access to your Google account, and the restriction makes a leaked key useless for anything else."
+            }
+          ]
+        }
+      ],
+      "verify_html": [
+        "The OpenRouteService dashboard lists one key with the Standard plan.",
+        "<a href='https://console.cloud.google.com/apis/credentials'>Credentials</a> lists <b>Mycelium YouTube</b> with one API under Restrictions.",
+        "Both keys are tested for real in step 6.3."
+      ],
+      "why_html": "PhirstMaxx needs door-to-door times from each of your start points, and it needs a video's title, description and location tags to work out which place it is about. OpenRouteService answers the first for driving, walking and cycling from open map data. YouTube's own API answers the second without scraping a page."
+    },
+    {
+      "id": "4",
+      "title": "Google Maps key (optional, needs a card)",
+      "lede_html": "Only for real public-transport times and Google's place details. Without it PhirstMaxx still gives drive, walk and cycle times and estimates public transport from research. To leave it for now, answer 4.1 with <b>later</b> and tick the rest of the phase.",
+      "steps": [
+        {
+          "id": "4.1",
+          "title": "Decide: now or later",
+          "actor": "you",
+          "where": {
+            "label": "This page",
+            "kind": "decision"
+          },
+          "body_html": "Google gives each Maps product its own free allowance every month: 10,000 calls on the basic tier, 5,000 on Pro, 1,000 on Enterprise. Two people will not approach that. The catch is that Google issues the key only to a project with a billing account, and a billing account needs a card.",
+          "fields": [
+            {
+              "key": "maps_choice",
+              "label": "Google Maps key",
+              "placeholder": "now, in .env.local and Vercel / later"
+            }
+          ]
+        },
+        {
+          "id": "4.2",
+          "title": "Add a billing account",
+          "actor": "you",
+          "where": {
+            "label": "Google Cloud → Billing",
+            "url": "https://console.cloud.google.com/billing",
+            "kind": "dashboard"
+          },
+          "body_html": "Create a billing account (country United Kingdom, your card) and link it to <b>{{gcp_project}}</b>. Google may place a small temporary hold to check the card."
+        },
+        {
+          "id": "4.3",
+          "title": "Enable the two APIs",
+          "actor": "you",
+          "where": {
+            "label": "Google Cloud → APIs & Services → Library → Routes API",
+            "url": "https://console.cloud.google.com/apis/library/routes.googleapis.com",
+            "kind": "dashboard"
+          },
+          "body_html": "Press <b>Enable</b> on <b>Routes API</b>, then the same on <a href='https://console.cloud.google.com/apis/library/places.googleapis.com'>Places API (New)</a>. Enable nothing else."
+        },
+        {
+          "id": "4.4",
+          "title": "Cap it so the bill cannot leave £0",
+          "actor": "you",
+          "where": {
+            "label": "Google Maps Platform → Quotas",
+            "url": "https://console.cloud.google.com/google/maps-apis/quotas",
+            "kind": "dashboard"
+          },
+          "body_html": "For <b>Routes API</b> and <b>Places API (New)</b>, set every per-day request quota to <b>30</b>. That is at most 930 calls a month on each, under the smallest free allowance (1,000). Then at <a href='https://console.cloud.google.com/billing/budgets'>Billing → Budgets & alerts</a> create a budget of <b>£1</b> with email alerts at 50% and 100%. If an API offers only per-minute limits, leave it and say so to Claude Code: Mycelium also counts its own calls and stops at 900 a month per product.",
+          "notes": [
+            {
+              "kind": "security",
+              "html": "A budget only emails you. It does not stop spending. The quota is the hard stop: calls past it fail instead of billing."
+            }
+          ]
+        },
+        {
+          "id": "4.5",
+          "title": "Create a key that can only call those two",
+          "actor": "you",
+          "where": {
+            "label": "Google Maps Platform → Keys & Credentials",
+            "url": "https://console.cloud.google.com/google/maps-apis/credentials",
+            "kind": "dashboard"
+          },
+          "body_html": "<b>Create credentials</b> → <b>API key</b>. <b>API restrictions</b> → <b>Restrict key</b> → tick <b>Routes API</b> and <b>Places API (New)</b> only. Save and copy the key.",
+          "blocks": [
+            {
+              "label": "Key name",
+              "text": "Mycelium Maps"
+            }
+          ]
+        }
+      ],
+      "verify_html": [
+        "<a href='https://console.cloud.google.com/apis/dashboard'>Enabled APIs</a> lists Routes API and Places API (New).",
+        "Quotas shows 30 a day on each.",
+        "Budgets & alerts shows the £1 budget."
+      ],
+      "why_html": "Google bills per call above a free monthly allowance on each product. A hard daily cap that adds up to less than the smallest allowance means the charge cannot be more than nothing, whatever the app does. Mycelium's own counter is a second stop in case a console limit is ever changed."
+    },
+    {
+      "id": "5",
+      "title": "The old PhirstMaxxing database address",
+      "lede_html": "The importer reads the live old app so PhirstMaxx starts with your real blocks, plans and ideas. It runs on the PC only. The old repo has no local env file, so the address has to come from Supabase.",
+      "steps": [
+        {
+          "id": "5.1",
+          "title": "Copy the connection string",
+          "actor": "you",
+          "where": {
+            "label": "Supabase → the PhirstMaxxing project → Connect",
+            "url": "https://supabase.com/dashboard/project/_",
+            "kind": "dashboard"
+          },
+          "body_html": "Pick the <b>PhirstMaxxing</b> project, not Mycelium. Press <b>Connect</b> in the top bar, choose <b>Session pooler</b>, and copy the URI. It holds <code>[YOUR-PASSWORD]</code> as a placeholder."
+        },
+        {
+          "id": "5.2",
+          "title": "Put the database password in",
+          "actor": "you",
+          "where": {
+            "label": "Supabase → Database → Settings → Reset database password",
+            "url": "https://supabase.com/dashboard/project/_/database/settings",
+            "kind": "dashboard"
+          },
+          "body_html": "If you do not have that project's database password, press <b>Reset database password</b>, generate one made of letters and digits only, and save it in your password manager. The old app keeps working: it talks to Supabase with API keys, not this password. Replace <code>[YOUR-PASSWORD]</code> in the URI with it.",
+          "notes": [
+            {
+              "kind": "security",
+              "html": "This string is full access to the old database. It goes into <code>.env.local</code> on the PC in step 6.1 and nowhere else: not Vercel, not this page, not a chat."
+            }
+          ]
+        }
+      ],
+      "verify_html": [
+        "The finished URI starts <code>postgresql://postgres.</code> and contains <code>pooler.supabase.com:5432</code>.",
+        "It no longer contains square brackets.",
+        "Step 6.3 reads a row count through it."
+      ],
+      "why_html": "The session pooler is the address that works from a home connection without IPv6. A reset only affects things that hold the old connection string, and the old app holds none. Keeping the address on the PC means the most powerful secret in this guide never leaves your machine."
+    },
+    {
+      "id": "6",
+      "title": "Put the values where Mycelium reads them",
+      "steps": [
+        {
+          "id": "6.1",
+          "title": "The PC: .env.local",
+          "actor": "you",
+          "where": {
+            "label": "Terminal on the PC",
+            "kind": "terminal"
+          },
+          "body_html": "Open the file, add the lines below at the end, and paste each value straight after its <code>=</code> with no quotes and no spaces. Leave out <code>GOOGLE_MAPS_API_KEY</code> if you answered later in 4.1. Save.",
+          "blocks": [
+            {
+              "label": "Open the file",
+              "shells": {
+                "ps": "notepad A:\\Projects\\Mycelium\\.env.local",
+                "bash": "notepad /a/Projects/Mycelium/.env.local"
+              }
+            },
+            {
+              "label": "Lines to add",
+              "text": "GOOGLE_ALLOWED_ACCOUNTS={{google_account}}\nORS_API_KEY=\nYOUTUBE_API_KEY=\nGOOGLE_MAPS_API_KEY=\nPHIRSTMAXX_OLD_DB_URL="
+            }
+          ]
+        },
+        {
+          "id": "6.2",
+          "title": "Production: Vercel",
+          "actor": "you",
+          "where": {
+            "label": "Vercel → mycelium → Settings → Environment Variables",
+            "url": "https://vercel.com/dashboard",
+            "kind": "dashboard"
+          },
+          "body_html": "Add each name below with its value, Environment <b>Production</b>, and tick <b>Sensitive</b> on the three keys. Do not add the old database address here. No redeploy is needed: Claude Code's next push picks them up.",
+          "blocks": [
+            {
+              "label": "Names",
+              "text": "GOOGLE_ALLOWED_ACCOUNTS\nORS_API_KEY\nYOUTUBE_API_KEY\nGOOGLE_MAPS_API_KEY"
+            }
+          ]
+        },
+        {
+          "id": "6.3",
+          "title": "Test all three from the PC",
+          "actor": "you",
+          "where": {
+            "label": "Terminal on the PC",
+            "kind": "terminal"
+          },
+          "body_html": "Each command reads its value from <code>.env.local</code>, so nothing secret is typed or shown. The first routes Doncaster to York by car.",
+          "blocks": [
+            {
+              "label": "Routing: expect a distance near 60,000 metres and a duration near 3,300 seconds",
+              "shells": {
+                "ps": "cd A:\\Projects\\Mycelium\n$k=(Select-String -Path .env.local -Pattern '^ORS_API_KEY=(.+)$').Matches[0].Groups[1].Value\n(Invoke-RestMethod \"https://api.openrouteservice.org/v2/directions/driving-car?api_key=$k&start=-1.1285,53.5228&end=-1.0873,53.9600\").features[0].properties.summary",
+                "bash": "cd /a/Projects/Mycelium\nk=$(grep -E '^ORS_API_KEY=' .env.local | cut -d= -f2-)\ncurl -s \"https://api.openrouteservice.org/v2/directions/driving-car?api_key=$k&start=-1.1285,53.5228&end=-1.0873,53.9600\" | grep -o '\"summary\":{[^}]*}'"
+              }
+            },
+            {
+              "label": "YouTube: expect Me at the zoo",
+              "shells": {
+                "ps": "cd A:\\Projects\\Mycelium\n$k=(Select-String -Path .env.local -Pattern '^YOUTUBE_API_KEY=(.+)$').Matches[0].Groups[1].Value\n(Invoke-RestMethod \"https://www.googleapis.com/youtube/v3/videos?part=snippet&id=jNQXAC9IVRw&key=$k\").items[0].snippet.title",
+                "bash": "cd /a/Projects/Mycelium\nk=$(grep -E '^YOUTUBE_API_KEY=' .env.local | cut -d= -f2-)\ncurl -s \"https://www.googleapis.com/youtube/v3/videos?part=snippet&id=jNQXAC9IVRw&key=$k\" | grep -o '\"title\": \"[^\"]*\"' | head -1"
+              }
+            },
+            {
+              "label": "Old database: expect one number",
+              "shells": {
+                "ps": "cd A:\\Projects\\Mycelium\n$u=(Select-String -Path .env.local -Pattern '^PHIRSTMAXX_OLD_DB_URL=(.+)$').Matches[0].Groups[1].Value\npsql $u -c \"select count(*) from availability_blocks\"",
+                "bash": "cd /a/Projects/Mycelium\npsql \"$(grep -E '^PHIRSTMAXX_OLD_DB_URL=' .env.local | cut -d= -f2-)\" -c \"select count(*) from availability_blocks\""
+              }
+            }
+          ]
+        }
+      ],
+      "verify_html": [
+        "The routing command prints a distance and a duration.",
+        "The YouTube command prints a video title.",
+        "The database command prints a count of your availability blocks.",
+        "Vercel lists the names under Production."
+      ],
+      "why_html": "<code>.env.local</code> is what the PC worker, the importer and local builds read. Vercel's variables are what production reads. Splitting them this way gives each place only the secrets it uses."
+    },
+    {
+      "id": "7",
+      "title": "Hand back to Claude Code",
+      "steps": [
+        {
+          "id": "7.1",
+          "title": "Set the research spend",
+          "actor": "you",
+          "where": {
+            "label": "This page",
+            "kind": "decision"
+          },
+          "body_html": "Each drop's web research is one paid cloud AI call, a few pence. Either leave it inside the existing £5 monthly AI cap, or give PhirstMaxx a monthly figure of its own. Type your choice.",
+          "fields": [
+            {
+              "key": "research_cap",
+              "label": "Research spend",
+              "placeholder": "inside the £5 cap / £3 a month of its own"
+            }
+          ]
+        },
+        {
+          "id": "7.2",
+          "title": "Paste this to Claude Code",
+          "actor": "you",
+          "where": {
+            "label": "Claude Code, in A:\\Projects\\Mycelium",
+            "kind": "claude-code"
+          },
+          "body_html": "The block fills itself in from the boxes above. Anything still in angle brackets is a box you have not filled; either fill it or tell Claude Code it is missing.",
+          "blocks": [
+            {
+              "label": "Prompt",
+              "text": "The files you asked for are in the repo now. claude/family-calendar-spec.md is the Google rewrite (it has 4.4, and a new 4.5 that locks the Google sign-in to my account), and claude/backlog.md has the three sections. Re-read both and claude/phirstmaxx-spec.md, commit them, then build in the order I gave you.\n\nMy steps are already done. The checklist is docs/checklists/google-family-phirstmaxx-setup.json: ship it in-app, start its run and set these as its answers, with every step ticked except any marked missing below.\n- Google Cloud project: {{gcp_project}}. Publishing status: {{publish_status}}. I reconnected after publishing.\n- The only Google account allowed: {{google_account}}. GOOGLE_ALLOWED_ACCOUNTS is in .env.local and on Vercel.\n- Family calendar ID: {{family_calendar_id}}. Shared to kirstykjpetco@gmail.com with Make changes to events, and she has accepted.\n- ORS_API_KEY and YOUTUBE_API_KEY are in .env.local and on Vercel.\n- Google Maps key: {{maps_choice}}.\n- PHIRSTMAXX_OLD_DB_URL is in .env.local only.\n- Research spend: {{research_cap}}.\n\nDo not stop for any of those. Check each env name is present before relying on it, and stop only for what is missing."
+            }
+          ]
+        }
+      ],
+      "verify_html": [
+        "Claude Code reports that it has committed the three docs and started on the family calendar.",
+        "It does not ask again for anything listed in the prompt."
+      ],
+      "why_html": "Claude Code cannot see this page, so the answers travel in the prompt and it writes them into the in-app copy of this checklist, where they stay."
+    }
+  ],
+  "troubleshooting": [
+    {
+      "symptom": "Google shows Error 403: access_denied when you reconnect",
+      "cause": "The app is still in Testing and the account is not a listed test user",
+      "fix": "Step 1.3, then 1.4."
+    },
+    {
+      "symptom": "Google shows redirect_uri_mismatch",
+      "cause": "The address Mycelium sends is no longer in the client's list",
+      "fix": "Step 1.2: add the production address back exactly as written."
+    },
+    {
+      "symptom": "Reconnect needed comes back after a week",
+      "cause": "The last reconnect was made while the app was still in Testing",
+      "fix": "Check 1.3 says In production, then do 1.4 again."
+    },
+    {
+      "symptom": "Kirsty cannot see Family",
+      "cause": "She has not tapped Add this calendar, or it is unticked in the app's menu",
+      "fix": "Step 2.5. If the email is missing, remove her in 2.4 and add her again to send a new one."
+    },
+    {
+      "symptom": "Family is missing from Apple Calendar on your iPhone",
+      "cause": "Google does not pass a new calendar to Apple's app until it is ticked",
+      "fix": "Step 2.6, then pull down to refresh in Calendars."
+    },
+    {
+      "symptom": "The YouTube test says the key is not valid or the API is not enabled",
+      "cause": "The API was enabled in a different project from the key, or the key is restricted to another API",
+      "fix": "Steps 3.2 and 3.3 in the same project."
+    },
+    {
+      "symptom": "The routing test returns 401 or 403",
+      "cause": "The account email is unconfirmed, or the key was pasted with a space or a line break",
+      "fix": "Confirm the email, re-copy the key, fix the line in .env.local."
+    },
+    {
+      "symptom": "A Maps call returns PERMISSION_DENIED or REQUEST_DENIED",
+      "cause": "Billing is not linked to the project, or one of the two APIs is not enabled",
+      "fix": "Steps 4.2 and 4.3."
+    },
+    {
+      "symptom": "psql says password authentication failed",
+      "cause": "The placeholder is still in the address, or the password contains @ : / or #",
+      "fix": "Step 5.2 with a letters-and-digits password."
+    },
+    {
+      "symptom": "psql is not recognised",
+      "cause": "PostgreSQL's folder is not on the PATH",
+      "fix": "Use the full path: \"C:\\Program Files\\PostgreSQL\\18\\bin\\psql.exe\" in place of psql."
+    }
+  ],
+  "links": [
+    {
+      "label": "Google: publishing status and user types",
+      "url": "https://support.google.com/cloud/answer/15549945",
+      "note": "Where the seven-day rule for Testing apps is stated"
+    },
+    {
+      "label": "Google: unverified apps",
+      "url": "https://support.google.com/cloud/answer/7454865",
+      "note": "The warning screen and the 100-user limit"
+    },
+    {
+      "label": "Google Calendar: share your calendar",
+      "url": "https://support.google.com/calendar/answer/37082",
+      "note": "Permission levels and the acceptance email"
+    },
+    {
+      "label": "Your Google account: third-party connections",
+      "url": "https://myaccount.google.com/connections",
+      "note": "See or remove Mycelium's access at any time"
+    },
+    {
+      "label": "OpenRouteService plans",
+      "url": "https://openrouteservice.org/plans/",
+      "note": "Free plan limits"
+    },
+    {
+      "label": "Google Maps Platform pricing",
+      "url": "https://developers.google.com/maps/billing-and-pricing/pricing",
+      "note": "Free monthly allowance per product"
+    },
+    {
+      "label": "Spec: family calendar",
+      "url": "https://claude.ai/project/019e46ee-c5bf-7607-a213-e457da6db1a0",
+      "note": "claude/family-calendar-spec.md in the mycelium project; section 4.5 is the sign-in lock"
+    }
+  ]
+}
