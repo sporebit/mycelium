@@ -24,7 +24,7 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
     else return NextResponse.json({ error: "bad date" }, { status: 400 });
     if (!day) return NextResponse.json({ error: "not found" }, { status: 404 });
     const [settings, detail] = await Promise.all([getDaylogSettings(supabase), dayDetail(supabase, day.id)]);
-    return NextResponse.json({ day, score_keys: settings.scores, ...detail });
+    return NextResponse.json({ day, score_keys: settings.scores, enabled: settings.enabled, ...detail });
   } catch (err) {
     console.error("[/api/journal/days/:date GET]", err);
     return NextResponse.json({ error: "fetch failed" }, { status: 500 });

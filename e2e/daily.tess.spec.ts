@@ -350,6 +350,47 @@ test("the Close page: the deck answers by button, and the day closes", async ({ 
   expect(col(a.id, "scheduled_on")).toBe(london(1));
 });
 
+test("once the day is closed, the Day log's evening conversation follows on the same screen, as on Telegram", async ({ page }) => {
+  const clearDaylog = () => localSql(`delete from public.daylog_days where created_by = '${TESS.id}' and day = '${TODAY}'`);
+  clearDaylog();
+  try {
+    await ticket("close me, then the journal", { deadline_on: TODAY, minutes: 5 });
+    await today();
+    await page.goto("/close");
+    const close = page.getByTestId("close-day");
+    await expect(close.getByTestId("evening-journal"), "not offered before the day is closed").toHaveCount(0);
+    await close.getByTestId("close-the-day").click();
+    await expect(close.getByRole("heading", { name: "Day closed." })).toBeVisible();
+
+    // The bot's opening, and its three choices.
+    const journal = close.getByTestId("evening-journal");
+    await expect(journal.getByRole("listitem").first()).toContainText(/^Evening\..*Talk, Quick or Skip\?$/);
+    for (const name of ["Talk", "Quick", "Skip"]) await expect(journal.getByRole("button", { name, exact: true })).toBeVisible();
+    await expect(journal.getByRole("link", { name: "Open the day" })).toHaveAttribute("href", `/journal/${TODAY}`);
+
+    // Skip: the score line and nothing else, answered as digits, as on Telegram.
+    await journal.getByRole("button", { name: "Skip", exact: true }).click();
+    await expect(journal.getByRole("listitem").last()).toContainText("1–5");
+    await journal.getByRole("textbox", { name: "Your reply" }).fill("3 2 4 4");
+    await journal.getByRole("textbox", { name: "Your reply" }).press("Enter");
+    await expect(journal.getByText("Scores logged.")).toBeVisible();
+    await expect(journal.getByRole("link", { name: "Read the entry" })).toHaveAttribute("href", `/journal/${TODAY}`);
+    await expect(journal.getByRole("textbox")).toHaveCount(0);
+
+    // One record, the Day log's own: the same row the bot and /journal read.
+    const [[status, mode, scores]] = localSql(`select status, mode, scores::text from public.daylog_days where created_by = '${TESS.id}' and day = '${TODAY}'`);
+    expect({ status, mode }).toEqual({ status: "skipped", mode: "skip" });
+    expect(JSON.parse(scores)).toEqual({ mood: 3, energy: 2, sleep: 4, productivity: 4 });
+
+    // Coming back to the closed day shows where it was left, with no choices to make again.
+    await page.reload();
+    await expect(page.getByTestId("evening-journal").getByText("Scores logged.")).toBeVisible();
+    await expect(page.getByTestId("evening-journal").getByRole("button", { name: "Talk", exact: true })).toHaveCount(0);
+  } finally {
+    clearDaylog();
+  }
+});
+
 test("when the phone asks, it gets the line and nothing is pushed on top; each is offered once", async () => {
   await ticket("automation asks", { deadline_on: TODAY, minutes: 10 });
   const pushed = () => localSql(`select count(*) from public.interruptions where created_by = '${TESS.id}' and day = '${TODAY}' and kind in ('morning', 'evening')`)[0][0];

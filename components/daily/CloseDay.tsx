@@ -5,7 +5,8 @@
  * cards at most. It opens with what got done. Each item still open gets one
  * card: Done on the right, Tomorrow on the left, Drop underneath. "Close
  * the day" is always enabled: whatever is left undecided moves to tomorrow
- * with no tally kept.
+ * with no tally kept. Once it is closed, the Day log's evening conversation
+ * follows on the same screen (EveningJournal).
  */
 import { useCallback, useState } from "react";
 import { Money, PrivateText } from "@/components/finance/Money";
@@ -17,6 +18,7 @@ import { about, BUTTONS, LABELS } from "@/lib/daily/words";
 import { TAXONOMY } from "@/lib/finance/taxonomy";
 import type { UnsureCard } from "@/lib/finance/unsure";
 import { playChime } from "./chime";
+import { EveningJournal } from "./EveningJournal";
 import { type DeckCard, SwipeDeck } from "./SwipeDeck";
 
 type CloseView = {
@@ -314,6 +316,9 @@ export function CloseDay({ chime = true }: { chime?: boolean }) {
           <span className="font-mono tabular-nums">{view.summary.dropped ?? 0}</span> dropped
         </p>
       )}
+
+      {/* Once the day is closed, the Day log's evening conversation: the same one the Telegram bot has. */}
+      {closed ? <EveningJournal date={view.day} /> : null}
 
       {error ? (
         <p role="alert" className="text-sm text-v2-warn">
