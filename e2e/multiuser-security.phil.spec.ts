@@ -56,7 +56,6 @@ let signedIn: BrowserContext | undefined;
 
 async function passwordSignIn(page: Page, email: string, next = "/") {
   await page.goto(`/login?next=${encodeURIComponent(next)}`);
-  await page.getByRole("radio", { name: "Password" }).click();
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(MU_PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
@@ -209,7 +208,6 @@ test("a wrong password is refused, and the page says so", async ({ browser }) =>
   const context = await browser.newContext({ storageState: SIGNED_OUT });
   const page = await context.newPage();
   await page.goto("/login");
-  await page.getByRole("radio", { name: "Password" }).click();
   await page.locator('input[name="email"]').fill(adm!.email);
   await page.locator('input[name="password"]').fill("not-the-password");
   await page.getByRole("button", { name: "Sign in" }).click();

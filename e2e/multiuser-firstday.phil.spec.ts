@@ -160,7 +160,6 @@ test("a member needs no authenticator: she signs in with a password or a link an
   const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
   const page = await context.newPage();
   await page.goto("/login?next=%2Fwork%2Fprojects");
-  await page.getByRole("radio", { name: "Password" }).click();
   await page.locator('input[name="email"]').fill(partner!.email);
   await page.locator('input[name="password"]').fill(MU_PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();

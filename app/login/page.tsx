@@ -4,20 +4,12 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
-import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Surface } from "@/components/ui/Surface";
 import { safeNextPath } from "@/lib/auth/next-path";
 import { usePasskeySupport } from "@/lib/auth/usePasskeySupport";
 import { createBrowserClient } from "@/lib/supabase/client";
 
-type Method = "magic" | "password" | "passkey";
 type Step = "methods" | "sent" | "mfa";
-
-const METHODS: { value: Method; label: string }[] = [
-  { value: "magic", label: "Magic link" },
-  { value: "password", label: "Password" },
-  { value: "passkey", label: "Passkey" },
-];
 
 const INPUT =
   "w-full min-h-[44px] px-4 rounded-v2-md bg-surface-0 border border-hairline text-text-hi " +
@@ -38,7 +30,6 @@ function LoginForm() {
   const next = safeNextPath(searchParams.get("next"));
   const [supabase] = useState(() => createBrowserClient());
 
-  const [method, setMethod] = useState<Method>("magic");
   const [step, setStep] = useState<Step>(
     searchParams.get("step") === "mfa" ? "mfa" : "methods",
   );
@@ -88,8 +79,10 @@ function LoginForm() {
     return { ok: res.ok, status: res.status, ...json };
   }
 
-  async function sendMagicLink(e: React.FormEvent) {
-    e.preventDefault();
+  // A secondary route for anyone without a password: the same email field,
+  // a sign-in link instead.
+  async function sendMagicLink() {
+    if (!email) return setError("Enter your email first, then ask for a link.");
     setBusy(true);
     setError("");
     const r = await post("/api/auth/magic-link", { email, next });
@@ -172,7 +165,7 @@ function LoginForm() {
             setError("");
           }}
         >
-          Use another method
+          Back to sign in
         </Button>
       </div>
     );
@@ -209,91 +202,43 @@ function LoginForm() {
 
   return (
     <div className="flex flex-col gap-5">
-      <SegmentedControl
-        options={METHODS}
-        value={method}
-        onChange={(v) => {
-          setMethod(v as Method);
-          setError("");
-        }}
-        ariaLabel="Sign-in method"
-      />
-
-      {method === "magic" && (
-        <form onSubmit={sendMagicLink} className="flex flex-col gap-3">
-          <Label>Email</Label>
-          <input
-            name="email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            required
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={INPUT}
-          />
-          {error && <p className="text-sm text-v2-error">{error}</p>}
-          <Button type="submit" variant="primary" loading={busy}>
-            Email me a link
-          </Button>
-        </form>
-      )}
-
-      {method === "password" && (
-        <form onSubmit={signInWithPassword} className="flex flex-col gap-3">
-          <Label>Email</Label>
-          <input
-            name="email"
-            type="email"
-            autoComplete="username"
-            placeholder="you@example.com"
-            required
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={INPUT}
-          />
-          <Label>Password</Label>
-          <input
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            placeholder="Password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={INPUT}
-          />
-          {error && <p className="text-sm text-v2-error">{error}</p>}
-          <Button type="submit" variant="primary" loading={busy}>
-            Sign in
-          </Button>
-        </form>
-      )}
-
-      {method === "passkey" && (
-        <div className="flex flex-col gap-3">
-          <p className="text-sm text-text-mid">
-            Use a passkey saved on this device or in your password manager.
-          </p>
-          {!passkeysSupported && (
-            <p className="text-sm text-text-lo">
-              This browser does not support passkeys.
-            </p>
-          )}
-          {error && <p className="text-sm text-v2-error">{error}</p>}
-          <Button
-            type="button"
-            variant="primary"
-            loading={busy}
-            disabled={!passkeysSupported}
-            onClick={signInWithPasskey}
-          >
-            Continue with passkey
-          </Button>
-        </div>
-      )}
+      <form onSubmit={signInWithPassword} className="flex flex-col gap-3">
+        <Label>Email</Label>
+        <input
+          name="email"
+          type="email"
+          autoComplete="username webauthn"
+          placeholder="you@example.com"
+          required
+          autoFocus
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className={INPUT}
+        />
+        <Label>Password</Label>
+        <input
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          placeholder="Password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className={INPUT}
+        />
+        {error && <p className="text-sm text-v2-error">{error}</p>}
+        <Button type="submit" variant="primary" loading={busy}>
+          Sign in
+        </Button>
+        <button
+          type="button"
+          onClick={() => void sendMagicLink()}
+          disabled={busy}
+          className="self-center text-xs text-text-lo underline-offset-4 hover:text-text-mid hover:underline disabled:opacity-50"
+        >
+          No password? Email me a sign-in link
+        </button>
+      </form>
 
       <div className="flex items-center gap-3 text-text-lo">
         <span className="h-px flex-1 bg-hairline" />
@@ -301,9 +246,19 @@ function LoginForm() {
         <span className="h-px flex-1 bg-hairline" />
       </div>
 
-      <Button type="button" onClick={signInWithGoogle} disabled={busy}>
-        Continue with Google
-      </Button>
+      <div className="flex flex-col gap-2">
+        <Button type="button" onClick={signInWithGoogle} disabled={busy}>
+          Continue with Google
+        </Button>
+        <Button
+          type="button"
+          onClick={signInWithPasskey}
+          disabled={busy || !passkeysSupported}
+          title={passkeysSupported ? undefined : "This browser does not support passkeys"}
+        >
+          Sign in with a passkey
+        </Button>
+      </div>
     </div>
   );
 }
