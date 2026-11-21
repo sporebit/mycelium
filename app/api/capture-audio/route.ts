@@ -15,9 +15,10 @@ export const maxDuration = 60;
 const fail = (error: string, status: number, extra: Record<string, unknown> = {}) => NextResponse.json({ ok: false, status: "error", error, ...extra }, { status });
 
 /**
- * POST /api/capture-audio — a recording, as a multipart form.
+ * POST /api/capture-audio — a recording, as a multipart form or as the
+ * whole request body.
  *
- * Fields:
+ * Multipart fields:
  *   audio        the file (m4a, mp3, wav, mp4, webm, ogg …)
  *   client_uuid  the sender's id for this capture. The same id as the text
  *                sent to /api/capture joins the recording to that capture.
@@ -27,6 +28,12 @@ const fail = (error: string, status: number, extra: Record<string, unknown> = {}
  *   transcribe_only=1   do not capture: just return the words (the chat's
  *                microphone button)
  *
+ * Raw body (any Content-Type that is not multipart/form-data): the body is
+ * the recording, named `<client_uuid>.m4a`, typed by the Content-Type
+ * header (default audio/m4a, also for application/octet-stream); `client_uuid`, `text` and `kind` come from
+ * the query string. The iPhone Shortcuts are compiled with Cherri, which
+ * can only send a file as the whole body.
+ *
  * The recording is stored and the answer goes back at once, 202
  * `{ ok, status: "saved", capture_id }`. Whisper on the PC transcribes it
  * afterwards for nothing; if the device sent no words, that transcript is
@@ -35,28 +42,59 @@ const fail = (error: string, status: number, extra: Record<string, unknown> = {}
  * sent again stores nothing new, so a retry is always safe.
  *
  * A file over about 4 MB is refused by the host before it reaches this
- * code; a normal-quality voice note is about half a megabyte a minute.
+ * code, whichever way it is sent; a normal-quality voice note is about half
+ * a megabyte a minute.
  */
-export async function POST(req: NextRequest) {
-  const uid = (await headers()).get(PRINCIPAL_USER_HEADER);
-  if (!uid) return fail("Unauthorized", 401);
 
+type Incoming = { audio: File; text: string; clientUuid: string | null; forcedKind: string | null; transcribeOnly: boolean };
+
+/** The two ways a recording arrives, read into one shape; a string is the reason it was refused. */
+async function readIncoming(req: NextRequest): Promise<Incoming | string> {
+  const contentType = req.headers.get("content-type") ?? "";
+  if (!/^multipart\/form-data/i.test(contentType)) {
+    const q = req.nextUrl.searchParams;
+    const clientUuid = (q.get("client_uuid") ?? "").trim() || null;
+    // A missing or generic binary type says nothing about the audio.
+    const declared = contentType.split(";")[0].trim().toLowerCase();
+    const type = declared && declared !== "application/octet-stream" ? declared : "audio/m4a";
+    const bytes = await req.arrayBuffer().catch(() => new ArrayBuffer(0));
+    return {
+      audio: new File([bytes], `${clientUuid ?? "recording"}.m4a`, { type }),
+      text: (q.get("text") ?? "").trim(),
+      clientUuid,
+      forcedKind: (q.get("kind") ?? "").trim() || null,
+      transcribeOnly: false,
+    };
+  }
   let form: FormData;
   try {
     form = await req.formData();
   } catch {
-    return fail("expected multipart form", 400);
+    return "expected multipart form";
   }
   const audio = form.get("audio");
-  if (!(audio instanceof File) || audio.size === 0) return fail("audio file required", 400);
-  const text = ((form.get("text") as string | null) ?? "").trim();
-  const clientUuid = ((form.get("client_uuid") as string | null) ?? "").trim() || null;
-  const forcedKind = ((form.get("kind") as string | null) ?? "").trim() || null;
+  if (!(audio instanceof File)) return "audio file required";
+  return {
+    audio,
+    text: ((form.get("text") as string | null) ?? "").trim(),
+    clientUuid: ((form.get("client_uuid") as string | null) ?? "").trim() || null,
+    forcedKind: ((form.get("kind") as string | null) ?? "").trim() || null,
+    transcribeOnly: form.get("transcribe_only") === "1",
+  };
+}
+export async function POST(req: NextRequest) {
+  const uid = (await headers()).get(PRINCIPAL_USER_HEADER);
+  if (!uid) return fail("Unauthorized", 401);
+
+  const incoming = await readIncoming(req);
+  if (typeof incoming === "string") return fail(incoming, 400);
+  const { audio, text, clientUuid, forcedKind } = incoming;
+  if (audio.size === 0) return fail("audio file required", 400);
   const ext = audioExtension(audio.name, audio.type);
   const supabase = await createUserClient();
 
   // The chat's microphone: words back now, nothing stored.
-  if (form.get("transcribe_only") === "1") {
+  if (incoming.transcribeOnly) {
     if (!(await cloudAllowed(supabase)) || !process.env.OPENAI_API_KEY) {
       return fail("transcription_unavailable", 503, { summary: "Voice typing is off for now (the month's AI allowance is used, or no key is set)." });
     }

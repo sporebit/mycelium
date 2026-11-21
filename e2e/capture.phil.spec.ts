@@ -23,7 +23,7 @@ import { localSql } from "../lib/access/introspect.ts";
 import { ENTITY_REGISTRY, TYPED_KINDS, type TypedKind } from "../lib/capture/registry.ts";
 import { PHIL, personalSpace } from "./support/users.ts";
 import { CRON_AUTH, NO_SESSION, appToday, json, londonNow, readDay, shift, tag, watch } from "./daylog.helpers.ts";
-import { VOICE_NOTE, autoCapture, childrenOf, claimTranscription, finishTranscription, flat, jobsFor, processed, row, sendAudio, ticket, tidyCaptures, type Row } from "./capture.helpers.ts";
+import { VOICE_NOTE, autoCapture, childrenOf, claimTranscription, finishTranscription, flat, jobsFor, processed, row, sendAudio, ticket, tidyCaptures, type AudioSaved, type Row } from "./capture.helpers.ts";
 
 const T = tag("capture");
 
@@ -921,6 +921,48 @@ test.describe("Audio", () => {
     expect(after).toMatchObject({ audio_path: `${first.id}/audio.m4a`, raw_text: text, status: "processed", routed_id: first.routed_id });
     // the words are already there, so this is the free second opinion: it waits for the PC, and is queued once
     expect(jobsFor(first.id)).toMatchObject([{ kind: "transcribe", status: "queued", lane: "pc" }]);
+  });
+
+  test("a recording sent as the whole body (Cherri-built Shortcuts): fields from the query, typed by its header, sent twice stored once", async () => {
+    const client_uuid = crypto.randomUUID();
+    const text = `${T} decided the raw body works too`;
+    const send = () =>
+      api.post(`/api/capture-audio?client_uuid=${client_uuid}&text=${encodeURIComponent(text)}&kind=decision`, {
+        data: VOICE_NOTE,
+        headers: { "content-type": "audio/mp4" },
+      });
+    const res = await send();
+    expect(res.status(), (await res.text()).slice(0, 200)).toBe(202);
+    const saved = await json<AudioSaved>(res);
+    captures.push(saved.capture_id);
+    // the same answer as the multipart door
+    expect(saved).toMatchObject({ ok: true, status: "saved", audio: "stored", summary: "Saved", transcription: text });
+    expect(saved.deduplicated).toBeUndefined();
+
+    const stored = row(saved.capture_id)!;
+    expect(stored).toMatchObject({ raw_text: text, audio_path: `${saved.capture_id}/audio.m4a`, source: "api", client_uuid });
+    const [[mime, size]] = localSql(`select metadata->>'mimetype', metadata->>'size' from storage.objects where bucket_id = 'captures' and name = '${saved.capture_id}/audio.m4a'`);
+    expect(mime).toBe("audio/mp4");
+    expect(Number(size)).toBe(VOICE_NOTE.length);
+
+    const again = await json<AudioSaved>(await send());
+    expect(again).toMatchObject({ ok: true, capture_id: saved.capture_id, deduplicated: true });
+    expect(localSql(`select count(*) from public.raw_captures where client_uuid = '${client_uuid}'`)[0][0]).toBe("1");
+    expect(localSql(`select count(*) from storage.objects where bucket_id = 'captures' and name like '${saved.capture_id}/%'`)[0][0]).toBe("1");
+
+    // a generic binary type says nothing about the audio: typed audio/m4a
+    const bare = crypto.randomUUID();
+    const res2 = await api.post(`/api/capture-audio?client_uuid=${bare}`, { data: VOICE_NOTE, headers: { "content-type": "application/octet-stream" } });
+    expect(res2.status(), (await res2.text()).slice(0, 200)).toBe(202);
+    const bareSaved = await json<AudioSaved>(res2);
+    captures.push(bareSaved.capture_id);
+    expect(bareSaved).toMatchObject({ ok: true, status: "saved", summary: "Saved. The words will follow once it is transcribed." });
+    expect(localSql(`select metadata->>'mimetype' from storage.objects where bucket_id = 'captures' and name = '${bareSaved.capture_id}/audio.m4a'`)[0][0]).toBe("audio/m4a");
+
+    // an empty raw body is refused the same way as a missing file
+    const empty = await api.post(`/api/capture-audio?client_uuid=${crypto.randomUUID()}`, { data: Buffer.alloc(0), headers: { "content-type": "audio/m4a" } });
+    expect(empty.status()).toBe(400);
+    expect(await json(empty)).toEqual({ ok: false, status: "error", error: "audio file required" });
   });
 
   test("the recording first and the words second: the capture is worked out as soon as the words arrive", async () => {
