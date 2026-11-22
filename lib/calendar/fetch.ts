@@ -1,6 +1,6 @@
 import ICAL from "ical.js";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { fetchFamilyAppointments } from "./family";
+import { fetchFamilyAppointments, fetchFamilySyncLine, type FamilySyncLine } from "./family";
 
 type Feed = { name: string; colour: string; url: string };
 
@@ -19,6 +19,8 @@ export type CalendarEvent = {
 export type CalendarData = {
   events: CalendarEvent[];
   failedCalendars: string[];
+  /** The Family calendar on Google: "Last synced 3 min ago" and its colour; absent when not connected (0184). */
+  familySync?: FamilySyncLine | null;
 };
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -424,13 +426,14 @@ export async function getCalendarData(
   const windowEnd = new Date(now);
   windowEnd.setDate(now.getDate() + WINDOW_FORWARD_DAYS);
 
-  const [feeds, scheduledTasks, birthdayEvents, customEvents, directDebits, familyAppointments] = await Promise.all([
+  const [feeds, scheduledTasks, birthdayEvents, customEvents, directDebits, familyAppointments, familySync] = await Promise.all([
     feedEvents(windowStart, windowEnd),
     fetchScheduledTasks(supabase, windowStart, windowEnd),
     fetchBirthdays(supabase, windowStart, windowEnd),
     fetchEvents(supabase, windowStart, windowEnd),
     fetchDirectDebits(supabase, windowStart, windowEnd),
     fetchFamilyAppointments(supabase, windowStart, windowEnd),
+    fetchFamilySyncLine(supabase, now),
   ]);
   const all: CalendarEvent[] = [...feeds.events];
   all.push(...scheduledTasks);
@@ -441,5 +444,5 @@ export async function getCalendarData(
   all.push(...generatePaydays(windowStart, windowEnd));
 
   all.sort((a, b) => a.start.localeCompare(b.start));
-  return { events: all, failedCalendars: feeds.failedCalendars };
+  return { events: all, failedCalendars: feeds.failedCalendars, familySync };
 }

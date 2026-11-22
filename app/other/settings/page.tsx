@@ -727,13 +727,29 @@ function NotificationsSection({ settings, onPatch }: { settings: Settings; onPat
   );
 }
 
+/** What the Google callback sends back in `?google=` (app/api/google/callback), in words. */
+const GOOGLE_FLAGS: Record<string, string> = {
+  connected: "Google connected.",
+  not_allowed: "That Google account isn't allowed here. Only the account named in GOOGLE_ALLOWED_ACCOUNTS can connect; nothing was stored.",
+  bad_state: "That sign-in link was not one this app had just started, so it was refused. Press CONNECT again.",
+  no_account: "Google did not say which account that was, so nothing was stored. Press CONNECT again.",
+  denied: "Google sign-in was cancelled.",
+  exchange_failed: "Google refused the sign-in code. Try again; if it keeps happening the client secret on the server may be wrong.",
+  config_error: "GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is missing on the server.",
+  error: "Google sign-in failed. Try again.",
+};
+
 function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatch: (f: Record<string, unknown>) => void }) {
   const googleConnected = !!settings.google_refresh_token;
   // set by lib/google/calendar.ts when Google refuses the refresh token (0150, MYC-147)
   const googleSyncError = (settings as { google_sync_error?: string | null }).google_sync_error ?? null;
+  // which account connected (0184; family calendar spec §4.5)
+  const googleAccount = (settings as { google_account_email?: string | null }).google_account_email ?? null;
   const needsReconnect = googleConnected && !!googleSyncError;
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
+  const googleFlag = useSearchParams().get("google");
+  const googleNotice = googleFlag ? GOOGLE_FLAGS[googleFlag] ?? null : null;
 
   async function disconnectGoogle() {
     await onPatch({
@@ -741,6 +757,7 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
       google_access_token: null,
       google_token_expires_at: null,
       google_sync_error: null,
+      google_account_email: null,
     });
   }
 
@@ -766,13 +783,18 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
 
   return (
     <SectionCard title="INTEGRATIONS">
+      {googleNotice ? (
+        <p role="status" className={`mb-3 text-xs ${googleFlag === "connected" ? "text-ok" : "text-danger"}`} data-testid="google-notice">
+          {googleNotice}
+        </p>
+      ) : null}
       <IntegrationRow
         name="Google Calendar"
         description={
           needsReconnect
             ? `Google rejected the saved token (${googleSyncError}). Syncs do nothing until you reconnect.`
             : googleConnected
-              ? "OAuth write access — bidirectional sync"
+              ? `OAuth write access — bidirectional sync${googleAccount ? ` · ${googleAccount}` : ""}`
               : "Reading iCal feeds"
         }
         status={needsReconnect ? "Reconnect needed" : googleConnected ? "Connected" : "Not connected"}

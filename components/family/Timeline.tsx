@@ -45,8 +45,11 @@ export function EntryCard({ e, who, onRemove, onEdit }: { e: Entry; who: string;
         <span className="shrink-0 text-[11px] uppercase tracking-[0.08em] text-text-lo">{KIND_LABEL[e.kind]}</span>
         <span className="text-right text-xs text-text-lo">
           {dayLabelYear(e.happened_on)}
-          {e.starts_at ? `, ${timeLabel(e.starts_at)}` : ""}
+          {e.starts_at && !e.all_day ? `, ${timeLabel(e.starts_at)}` : ""}
+          {e.ends_at && !e.all_day ? `–${timeLabel(e.ends_at)}` : ""}
+          {e.all_day ? ", all day" : ""}
           {e.week !== null ? ` · week ${e.week}` : ""}
+          {e.on_google ? <span className="ml-1 text-[10px] uppercase tracking-[0.08em]" title="On the Family calendar on Google">· G</span> : null}
         </span>
       </div>
       <p className="mt-1 break-words text-sm text-text-hi">{e.title}</p>
@@ -87,6 +90,7 @@ function EditEntry({ e, onDone, onCancel }: { e: Entry; onDone: () => Promise<vo
   const [body, setBody] = useState(e.body ?? "");
   const [place, setPlace] = useState(e.place ?? "");
   const [when, setWhen] = useState(e.starts_at ? toLocalInput(e.starts_at) : "");
+  const [until, setUntil] = useState(e.ends_at ? toLocalInput(e.ends_at) : "");
   const [day, setDay] = useState(e.happened_on);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,6 +107,9 @@ function EditEntry({ e, onDone, onCancel }: { e: Entry; onDone: () => Promise<vo
         if (!when) throw new Error("An appointment needs a date and time.");
         const at = new Date(when).toISOString();
         if (at !== e.starts_at) changes.starts_at = at;
+        const end = until ? new Date(until).toISOString() : null;
+        if (end && end < at) throw new Error("The end comes after the start.");
+        if (end !== (e.ends_at ?? null)) changes.ends_at = end;
         if (place.trim() !== (e.place ?? "")) changes.place = place.trim() || null;
       } else if (day !== e.happened_on) {
         changes.happened_on = day;
@@ -129,7 +136,10 @@ function EditEntry({ e, onDone, onCancel }: { e: Entry; onDone: () => Promise<vo
         <div className="flex items-baseline justify-between gap-3">
           <span className="shrink-0 text-[11px] uppercase tracking-[0.08em] text-text-lo">{KIND_LABEL[e.kind]}</span>
           {appointment ? (
-            <input type="datetime-local" aria-label="Date and time" className={INPUT} value={when} onChange={(ev) => setWhen(ev.target.value)} />
+            <span className="flex flex-wrap gap-2">
+              <input type="datetime-local" aria-label="Date and time" className={INPUT} value={when} onChange={(ev) => setWhen(ev.target.value)} />
+              <input type="datetime-local" aria-label="Until" className={INPUT} value={until} min={when || undefined} onChange={(ev) => setUntil(ev.target.value)} />
+            </span>
           ) : (
             <input type="date" aria-label="The day" className={INPUT} value={day} onChange={(ev) => setDay(ev.target.value)} />
           )}
@@ -158,6 +168,7 @@ export function Timeline({ family, onChanged }: { family: Overview; onChanged: (
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [when, setWhen] = useState("");
+  const [until, setUntil] = useState("");
   const [place, setPlace] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -175,6 +186,10 @@ export function Timeline({ family, onChanged }: { family: Overview; onChanged: (
         if (!when) throw new Error("An appointment needs a date and time.");
         // the picker gives local time; send it as an instant
         fields.starts_at = new Date(when).toISOString();
+        if (until) {
+          if (new Date(until) < new Date(when)) throw new Error("The end comes after the start.");
+          fields.ends_at = new Date(until).toISOString();
+        }
         if (place) fields.place = place;
       }
       if (f) {
@@ -192,6 +207,7 @@ export function Timeline({ family, onChanged }: { family: Overview; onChanged: (
       setTitle("");
       setBody("");
       setWhen("");
+      setUntil("");
       setPlace("");
       if (file.current) file.current.value = "";
       await mutate();
@@ -225,6 +241,7 @@ export function Timeline({ family, onChanged }: { family: Overview; onChanged: (
         {kind === "appointment" ? (
           <div className="flex flex-wrap gap-2">
             <input type="datetime-local" aria-label="Date and time" className={INPUT} value={when} onChange={(e) => setWhen(e.target.value)} />
+            <input type="datetime-local" aria-label="Until" title="Until (optional; an hour if left blank)" className={INPUT} value={until} min={when || undefined} onChange={(e) => setUntil(e.target.value)} />
             <input className={`${INPUT} min-w-[10rem] flex-1`} aria-label="Where" placeholder="Where" value={place} onChange={(e) => setPlace(e.target.value)} />
           </div>
         ) : null}

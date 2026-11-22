@@ -1,32 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { updateUserSettings } from "@/lib/settings/userSettingsRow";
+import { allowedAccounts, connectedAccountEmail, decideCallback, revokeToken, STATE_COOKIE, stateMatches } from "@/lib/google/oauth";
 
 export const runtime = "nodejs";
 
+/**
+ * GET /api/google/callback — finish the Google sign-in (family calendar
+ * spec §4.5). The `state` must match the cookie the auth route set; the
+ * account that consented must be one named in GOOGLE_ALLOWED_ACCOUNTS.
+ * Anything else revokes the token on the spot and stores nothing, and the
+ * person is told in Settings in plain words. The address of the account
+ * that did connect is kept beside the tokens.
+ */
 export async function GET(req: NextRequest) {
+  const back = (flag: string) => {
+    const res = NextResponse.redirect(new URL(`/other/settings?google=${flag}`, req.nextUrl.origin));
+    res.cookies.set(STATE_COOKIE, "", { httpOnly: true, path: "/api/google/callback", maxAge: 0 });
+    return res;
+  };
   try {
     const code = req.nextUrl.searchParams.get("code");
     const error = req.nextUrl.searchParams.get("error");
+    const sentState = req.nextUrl.searchParams.get("state");
+    const storedState = req.cookies.get(STATE_COOKIE)?.value ?? null;
 
-    if (error) {
-      return NextResponse.redirect(
-        new URL("/other/settings?google=denied", req.nextUrl.origin),
-      );
-    }
-    if (!code) {
-      return NextResponse.redirect(
-        new URL("/other/settings?google=no_code", req.nextUrl.origin),
-      );
-    }
+    if (error) return back("denied");
+    // The state is checked before the code is spent, so a crafted link does not even reach Google.
+    if (!stateMatches(sentState, storedState)) return back("bad_state");
+    if (!code) return back("no_code");
 
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    if (!clientId || !clientSecret) {
-      return NextResponse.redirect(
-        new URL("/other/settings?google=config_error", req.nextUrl.origin),
-      );
-    }
+    if (!clientId || !clientSecret) return back("config_error");
 
     const origin = req.nextUrl.origin;
     const redirectUri = `${origin}/api/google/callback`;
@@ -46,16 +52,21 @@ export async function GET(req: NextRequest) {
     if (!res.ok) {
       const text = await res.text();
       console.error("[google/callback] token exchange failed", res.status, text);
-      return NextResponse.redirect(
-        new URL("/other/settings?google=exchange_failed", req.nextUrl.origin),
-      );
+      return back("exchange_failed");
     }
 
-    const tokens = await res.json();
-    const expiresAt = new Date(
-      Date.now() + (tokens.expires_in ?? 3600) * 1000,
-    ).toISOString();
+    const tokens = (await res.json()) as { access_token: string; refresh_token?: string; expires_in?: number };
+    const email = await connectedAccountEmail(tokens.access_token);
+    const decision = decideCallback({ sentState, storedState, email, allowed: allowedAccounts() });
+    if (!decision.ok) {
+      // Not ours: give the token back and keep nothing. The refresh token is
+      // what would outlive this request, so it is the one to revoke.
+      await revokeToken(tokens.refresh_token ?? tokens.access_token);
+      console.warn("[google/callback] refused a Google account:", decision.reason, email ? email.replace(/^(.).*(@.*)$/, "$1…$2") : "(no address)");
+      return back(decision.reason === "not_allowed" ? "not_allowed" : "no_account");
+    }
 
+    const expiresAt = new Date(Date.now() + (tokens.expires_in ?? 3600) * 1000).toISOString();
     const supabase = await createUserClient();
     await updateUserSettings(
       supabase,
@@ -64,17 +75,14 @@ export async function GET(req: NextRequest) {
         google_access_token: tokens.access_token,
         google_token_expires_at: expiresAt,
         google_sync_error: null,
+        google_account_email: decision.email,
       },
       { select: "id" },
     );
 
-    return NextResponse.redirect(
-      new URL("/other/settings?google=connected", req.nextUrl.origin),
-    );
+    return back("connected");
   } catch (err) {
     console.error("[google/callback]", err);
-    return NextResponse.redirect(
-      new URL("/other/settings?google=error", req.nextUrl.origin),
-    );
+    return back("error");
   }
 }

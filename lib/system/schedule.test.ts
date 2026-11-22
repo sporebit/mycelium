@@ -11,24 +11,24 @@ describe("the sub-daily schedule", () => {
   });
 
   it("on the hour, in the evening, everything is due", () => {
-    expect(at(21, 0)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "quotes-research", "rundowns"]);
+    expect(at(21, 0)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "family-calendar", "jobs", "quotes-research", "rundowns"]);
   });
 
   it("any minute inside a slot gives that slot's jobs", () => {
     expect(at(21, 3)).toEqual(at(21, 0));
     expect(at(21, 4)).toEqual(at(21, 0));
-    expect(at(21, 5)).toEqual(["daily-prompts", "reminders"]);
+    expect(at(21, 5)).toEqual(["daily-prompts", "reminders", "jobs"]);
   });
 
   it("quarter and half hours", () => {
-    expect(at(21, 15)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family"]);
-    expect(at(21, 30)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "quotes-research"]);
+    expect(at(21, 15)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "family-calendar", "jobs"]);
+    expect(at(21, 30)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "family-calendar", "jobs", "quotes-research"]);
   });
 
   it("the daily prompts rest from midnight to six; reminders never do", () => {
-    expect(at(3, 5)).toEqual(["reminders"]);
-    expect(at(5, 55)).toEqual(["reminders"]);
-    expect(at(6, 5)).toEqual(["daily-prompts", "reminders"]);
+    expect(at(3, 5)).toEqual(["reminders", "jobs"]);
+    expect(at(5, 55)).toEqual(["reminders", "jobs"]);
+    expect(at(6, 5)).toEqual(["daily-prompts", "reminders", "jobs"]);
   });
 
   it("the morning briefing is offered from seven to ten, before the daily prompts", () => {

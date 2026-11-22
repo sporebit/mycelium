@@ -30,6 +30,10 @@ export const PUBLIC_PREFIXES: readonly string[] = [
   // (middleware step 3c).
   "/wall",
   "/api/wall/pair",
+  // Google's push channel for the Family calendar (0184): Google posts here
+  // with no session. The route checks the channel id and token against the
+  // stored channel and only ever triggers a pull; it reads nothing back.
+  "/api/google/push",
 ];
 
 /** The cookie a paired wall holds: a scoped API token owned by the household device user (0176). */

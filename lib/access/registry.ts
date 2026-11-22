@@ -105,8 +105,10 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
       "baby_log",
       "household_items",
       "household_costs",
+      "family_calendar_sync",
+      "family_calendar_sync_log",
     ],
-    note: "The family space (0171): a team's space that holds a family_profile row. One timeline, names with votes, prep lists, the baby log, household admin and the household budget (family data; nothing to do with the finance section). A vote and an acknowledgement belong to the person who made them (restrictive policies).",
+    note: "The family space (0171): a team's space that holds a family_profile row. One timeline, names with votes, prep lists, the baby log, household admin and the household budget (family data; nothing to do with the finance section). A vote and an acknowledgement belong to the person who made them (restrictive policies). 0184: the Google Family calendar connection per space and its sync log.",
   },
   {
     section: "organisation",

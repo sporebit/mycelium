@@ -13,14 +13,18 @@ import { useApi } from "@/lib/data/useApi";
 import type { FamilyTab } from "@/lib/family/tabs";
 import { BabyLog } from "./BabyLog";
 import { Budget } from "./Budget";
+import { Calendar } from "./Calendar";
 import { Household } from "./Household";
 import { Letters } from "./Letters";
 import { Names } from "./Names";
 import { PrepLists } from "./PrepLists";
 import { Timeline } from "./Timeline";
+import Link from "next/link";
+import type { CalendarStatus } from "@/lib/family/calendar/sync";
 import { INPUT, dayLabelYear, send, whenLabel, type FamilyView, type Overview } from "./api";
 
-const TAB_LABEL: Record<FamilyTab, string> = { timeline: "Timeline", baby: "Baby log", names: "Names", lists: "Lists", letters: "Letters", home: "Household", budget: "Budget" };
+const TAB_LABEL: Record<FamilyTab, string> = { timeline: "Timeline", calendar: "Calendar", baby: "Baby log", names: "Names", lists: "Lists", letters: "Letters", home: "Household", budget: "Budget" };
+const SYNC_CLASS: Record<CalendarStatus["staleness"]["level"], string> = { ok: "text-text-lo", amber: "text-warn", red: "text-danger", never: "text-text-lo" };
 
 function SetUp({ candidates, onDone }: { candidates: Array<{ id: string; label: string }>; onDone: () => Promise<unknown> }) {
   const [busy, setBusy] = useState<string | null>(null);
@@ -104,7 +108,7 @@ function Dates({ family, onSaved }: { family: Overview; onSaved: () => Promise<u
   );
 }
 
-function Header({ family, onSaved }: { family: Overview; onSaved: () => Promise<unknown> }) {
+function Header({ family, sync, onSaved }: { family: Overview; sync: CalendarStatus | null; onSaved: () => Promise<unknown> }) {
   const [editing, setEditing] = useState(!family.profile.due_on && !family.profile.born_on);
   const p = family.pregnancy;
   const who = family.profile.baby_name || "The baby";
@@ -129,6 +133,15 @@ function Header({ family, onSaved }: { family: Overview; onSaved: () => Promise<
             </h1>
           )}
           <p className="text-xs text-text-lo">{family.members.map((m) => (m.me ? "You" : m.name)).join(" and ")}</p>
+          {sync?.connected ? (
+            // the Family calendar on Google: "Last synced 3 min ago", amber past an hour, red past a day (family calendar spec §4.4)
+            <p className={`text-xs ${sync.needs_reconnect ? "text-danger" : SYNC_CLASS[sync.staleness.level]}`} data-testid="family-sync-line">
+              <Link href="/family?tab=calendar" className="hover:underline">
+                Google · {sync.needs_reconnect ? "Reconnect needed" : sync.staleness.label}
+                {sync.queue_line ? ` · ${sync.queue_line}` : ""}
+              </Link>
+            </p>
+          ) : null}
         </div>
         <button type="button" className="text-xs text-text-lo underline hover:text-text-hi" onClick={() => setEditing((v) => !v)}>
           {editing ? "Close" : "Dates"}
@@ -178,6 +191,7 @@ function Header({ family, onSaved }: { family: Overview; onSaved: () => Promise<
 
 export function FamilyClient({ initialTab }: { initialTab: FamilyTab }) {
   const { data, error, mutate } = useApi<FamilyView>("/api/family", { revalidateOnFocus: false });
+  const { data: cal } = useApi<{ status: CalendarStatus }>("/api/family/calendar", { revalidateOnFocus: false });
   const [tab, setTab] = useState<FamilyTab>(initialTab);
   const [ackError, setAckError] = useState<string | null>(null);
   const refresh = () => mutate();
@@ -189,7 +203,7 @@ export function FamilyClient({ initialTab }: { initialTab: FamilyTab }) {
   const family = data.family;
   const me = family.members.find((m) => m.me);
   // The baby log leads once the baby is here; before that the timeline does.
-  const order: FamilyTab[] = family.baby ? ["baby", "timeline", "letters", "names", "lists", "home", "budget"] : ["timeline", "names", "lists", "letters", "baby", "home", "budget"];
+  const order: FamilyTab[] = family.baby ? ["baby", "timeline", "calendar", "letters", "names", "lists", "home", "budget"] : ["timeline", "calendar", "names", "lists", "letters", "baby", "home", "budget"];
   const pick = (t: string) => {
     setTab(t as FamilyTab);
     // the address says which tab, so a link or a reload lands on the same one
@@ -198,7 +212,7 @@ export function FamilyClient({ initialTab }: { initialTab: FamilyTab }) {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
-      <Header key={`${family.profile.due_on}:${family.profile.born_on}:${family.profile.baby_name}`} family={family} onSaved={refresh} />
+      <Header key={`${family.profile.due_on}:${family.profile.born_on}:${family.profile.baby_name}`} family={family} sync={cal?.status ?? null} onSaved={refresh} />
 
       {me && !me.acked ? (
         <Surface className="flex flex-wrap items-center gap-3 p-4" data-testid="family-ack">
@@ -226,6 +240,7 @@ export function FamilyClient({ initialTab }: { initialTab: FamilyTab }) {
       </div>
 
       {tab === "timeline" ? <Timeline family={family} onChanged={() => void refresh()} /> : null}
+      {tab === "calendar" ? <Calendar family={family} /> : null}
       {tab === "baby" ? <BabyLog family={family} /> : null}
       {tab === "names" ? <Names family={family} /> : null}
       {tab === "lists" ? <PrepLists /> : null}

@@ -9,6 +9,7 @@ import { tapToRow, type LogRow, summarise } from "./babylog";
 import { listTotals, monthMoney, nextBinDay, parseBinSchedule, parsePounds, type Cost } from "./money";
 import { londonToday, UUID_RE, type FamilyCtx } from "./server";
 import { isDate, weekOf } from "./weeks";
+import { afterEntryWrite } from "./calendar/sync";
 
 export type Result<T = unknown> = { ok: true; value: T; status?: number } | { ok: false; status: number; error: string };
 const fail = (error: string, status = 400): Result<never> => ({ ok: false, status, error });
@@ -96,7 +97,14 @@ async function columns(name: ResourceName, body: Body, ctx: FamilyCtx, partial: 
         const d = optDate(body.happened_on, "The date");
         if (d) c.happened_on = d;
       }
+      // the Family calendar (0184): an end and all-day travel to Google with the appointment
+      if (has("ends_at")) c.ends_at = optTime(body.ends_at, "The end");
+      if (has("all_day")) {
+        if (typeof body.all_day !== "boolean") bad("all_day is yes or no.");
+        c.all_day = body.all_day;
+      }
       if (!partial && c.kind === "appointment" && !c.starts_at) bad("An appointment needs a date and time.");
+      if (c.ends_at && c.starts_at && (c.ends_at as string) < (c.starts_at as string)) bad("The end comes after the start.");
       return c;
     }
     case "names": {
@@ -190,6 +198,8 @@ export async function createRow(name: ResourceName, body: Body, ctx: FamilyCtx, 
     }
     const { data, error } = await ctx.supabase.from(TABLE[name]).insert({ ...cols, ...extra, space_id: ctx.spaceId }).select("*").single();
     if (error || !data) return fail(writeMessage(name, error ?? {}), writeStatus(error?.code));
+    // an appointment goes to the Family calendar on Google straight away (0184); soft, never blocks the save
+    if (name === "entries" && (data as { kind?: string }).kind === "appointment") await afterEntryWrite(ctx.supabase, ctx.uid, ctx.spaceId, (data as { id: string }).id, "create");
     return done(data, 201);
   } catch (e) {
     if (e instanceof Bad) return fail(e.message);
@@ -206,7 +216,10 @@ export async function updateRow(name: ResourceName, id: string, body: Body, ctx:
     const { data, error } = await ctx.supabase.from(TABLE[name]).update(cols).eq("id", id).eq("space_id", ctx.spaceId).select("*");
     if (error) return fail(writeMessage(name, error), writeStatus(error.code));
     if (!data || data.length === 0) return fail("not found", 404);
-    return done(data[0]);
+    const row = data[0] as { id: string; kind?: string; ext_id?: string | null };
+    // a changed appointment, or a row that was one on Google and is not now, is brought in line over there (0184)
+    if (name === "entries" && (row.kind === "appointment" || row.ext_id)) await afterEntryWrite(ctx.supabase, ctx.uid, ctx.spaceId, row.id, "update");
+    return done(row);
   } catch (e) {
     if (e instanceof Bad) return fail(e.message);
     throw e;
@@ -217,15 +230,19 @@ export async function deleteRow(name: ResourceName, id: string, ctx: FamilyCtx):
   if (!UUID_RE.test(id)) return fail("not found", 404);
   // a file goes with its row
   let path: string | null = null;
+  let extId: string | null = null;
   if (name === "entries" || name === "household") {
     const col = name === "entries" ? "media_path" : "file_path";
-    const { data } = await ctx.supabase.from(TABLE[name]).select(col).eq("id", id).eq("space_id", ctx.spaceId).maybeSingle();
+    const { data } = await ctx.supabase.from(TABLE[name]).select(name === "entries" ? `${col}, ext_id` : col).eq("id", id).eq("space_id", ctx.spaceId).maybeSingle();
     path = ((data as Record<string, string | null> | null)?.[col] as string | null) ?? null;
+    extId = ((data as Record<string, string | null> | null)?.ext_id as string | null) ?? null;
   }
   const { data, error } = await ctx.supabase.from(TABLE[name]).delete().eq("id", id).eq("space_id", ctx.spaceId).select("id");
   if (error) return fail(writeMessage(name, error), writeStatus(error.code));
   if (!data || data.length === 0) return fail("not found", 404);
   if (path) await ctx.supabase.storage.from("family").remove([path]);
+  // the Google copy goes with the row (0184); the id is kept from before the delete
+  if (name === "entries" && extId) await afterEntryWrite(ctx.supabase, ctx.uid, ctx.spaceId, id, "delete", extId);
   return done({ ok: true });
 }
 
@@ -239,7 +256,7 @@ export async function listRows(name: ResourceName, sp: URLSearchParams, ctx: Fam
     case "entries": {
       let q = supabase
         .from("family_entries")
-        .select("id, kind, title, body, happened_on, starts_at, place, media_path, media_mime, prompt, transcribed, source, created_by, created_at")
+        .select("id, kind, title, body, happened_on, starts_at, ends_at, all_day, place, media_path, media_mime, prompt, transcribed, source, ext_id, created_by, created_at")
         .eq("space_id", spaceId)
         .order("happened_on", { ascending: false })
         .order("created_at", { ascending: false })
@@ -250,9 +267,9 @@ export async function listRows(name: ResourceName, sp: URLSearchParams, ctx: Fam
       if (before && isDate(before)) q = q.lt("happened_on", before);
       const { data, error } = await q;
       if (error) return fail(error.message, 500);
-      const rows = (data ?? []) as Array<Record<string, unknown> & { happened_on: string; media_path: string | null }>;
+      const rows = (data ?? []) as Array<Record<string, unknown> & { happened_on: string; media_path: string | null; ext_id: string | null }>;
       return done({
-        entries: rows.map(({ media_path, ...r }) => ({ ...r, has_media: !!media_path, week: weekOf(ctx.profile.due_on, r.happened_on) })),
+        entries: rows.map(({ media_path, ext_id, ...r }) => ({ ...r, has_media: !!media_path, on_google: !!ext_id, week: weekOf(ctx.profile.due_on, r.happened_on) })),
         more: rows.length === 80 ? rows[rows.length - 1].happened_on : null,
       });
     }

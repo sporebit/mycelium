@@ -295,12 +295,37 @@
               "placeholder": "…@group.calendar.google.com"
             }
           ]
+        },
+        {
+          "id": "2.8",
+          "title": "Verify the Mycelium domain for instant updates (optional)",
+          "actor": "you",
+          "where": {
+            "label": "Google Cloud Console → APIs & Services → Domain verification",
+            "url": "https://console.cloud.google.com/apis/credentials/domainverification",
+            "kind": "dashboard"
+          },
+          "body_html": "Google only sends push notifications (\"a change happened, come and look\") to a web address whose domain is verified in the Cloud project. Press <b>Add domain</b>, enter the Mycelium production domain (the host part of the Vercel URL, no https://), and follow the Search Console flow: the easiest proof is the TXT record it gives you, added at the DNS provider. Without this step the Family calendar still syncs; it polls Google every fifteen minutes instead of hearing within seconds, and Family → Calendar says so.",
+          "fields": [
+            {
+              "key": "push_domain",
+              "label": "Domain verified (or 'skipped')",
+              "placeholder": "mycelium.example.com"
+            }
+          ],
+          "notes": [
+            {
+              "kind": "info",
+              "html": "The TXT record is a proof of ownership, not a secret, and it can stay in DNS. Verification is per Cloud project, so it needs doing once."
+            }
+          ]
         }
       ],
       "verify_html": [
         "Kirsty adds an event called Test to Family on her phone. It shows on your iPhone within a minute.",
         "You move it by an hour on your phone. Hers follows.",
-        "On her phone, none of your other calendars is listed."
+        "On her phone, none of your other calendars is listed.",
+        "Family → Calendar in Mycelium says \"Instant updates from Google are on\" (after the build, once the calendar is chosen). If it says the 15-minute poll is doing the work, the domain is not verified yet."
       ],
       "why_html": "Google shares calendars one at a time. Family is a separate container in your account, so edit rights on it say nothing about your primary calendar. Both phones talk straight to Google, which is why this works before Mycelium is involved. Mycelium then becomes a third reader and writer of the same calendar."
     },
@@ -614,7 +639,7 @@
           "blocks": [
             {
               "label": "Prompt",
-              "text": "The files you asked for are in the repo now. claude/family-calendar-spec.md is the Google rewrite (it has 4.4, and a new 4.5 that locks the Google sign-in to my account), and claude/backlog.md has the three sections. Re-read both and claude/phirstmaxx-spec.md, commit them, then build in the order I gave you.\n\nMy steps are already done. The checklist is docs/checklists/google-family-phirstmaxx-setup.json: ship it in-app, start its run and set these as its answers, with every step ticked except any marked missing below.\n- Google Cloud project: {{gcp_project}}. Publishing status: {{publish_status}}. I reconnected after publishing.\n- The only Google account allowed: {{google_account}}. GOOGLE_ALLOWED_ACCOUNTS is in .env.local and on Vercel.\n- Family calendar ID: {{family_calendar_id}}. Shared to kirstykjpetco@gmail.com with Make changes to events, and she has accepted.\n- ORS_API_KEY and YOUTUBE_API_KEY are in .env.local and on Vercel.\n- Google Maps key: {{maps_choice}}.\n- PHIRSTMAXX_OLD_DB_URL is in .env.local only.\n- Research spend: {{research_cap}}.\n\nDo not stop for any of those. Check each env name is present before relying on it, and stop only for what is missing."
+              "text": "The files you asked for are in the repo now. claude/family-calendar-spec.md is the Google rewrite (it has 4.4, and a new 4.5 that locks the Google sign-in to my account), and claude/backlog.md has the three sections. Re-read both and claude/phirstmaxx-spec.md, commit them, then build in the order I gave you.\n\nMy steps are already done. The checklist is docs/checklists/google-family-phirstmaxx-setup.json: ship it in-app, start its run and set these as its answers, with every step ticked except any marked missing below.\n- Google Cloud project: {{gcp_project}}. Publishing status: {{publish_status}}. I reconnected after publishing.\n- The only Google account allowed: {{google_account}}. GOOGLE_ALLOWED_ACCOUNTS is in .env.local and on Vercel.\n- Family calendar ID: {{family_calendar_id}}. Shared to kirstykjpetco@gmail.com with Make changes to events, and she has accepted.\n- ORS_API_KEY and YOUTUBE_API_KEY are in .env.local and on Vercel.\n- Google Maps key: {{maps_choice}}.\n- PHIRSTMAXX_OLD_DB_URL is in .env.local only.\n- Research spend: {{research_cap}}.\n- Domain verified for Google push: {{push_domain}}.\n\nDo not stop for any of those. Check each env name is present before relying on it, and stop only for what is missing."
             }
           ]
         }

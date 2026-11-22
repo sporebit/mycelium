@@ -98,6 +98,8 @@ export function CalendarView() {
   const [selected, setSelected] = useState(() => ymd(today));
   const [events, setEvents] = useState<CalendarEvent[] | null>(null);
   const [failed, setFailed] = useState<string[]>([]);
+  // the Family calendar on Google: "Last synced 3 min ago", amber after an hour, red after a day (family calendar spec §4.4)
+  const [familySync, setFamilySync] = useState<{ label: string; level: "ok" | "amber" | "red" | "never"; error: string | null } | null>(null);
   const [weatherByDate, setWeatherByDate] = useState<Record<string, WeatherDay>>({});
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -116,9 +118,10 @@ export function CalendarView() {
   const load = useCallback(() => {
     fetch("/api/calendar")
       .then((r) => r.json())
-      .then((j: { events?: CalendarEvent[]; failedCalendars?: string[] }) => {
+      .then((j: { events?: CalendarEvent[]; failedCalendars?: string[]; familySync?: { label: string; level: "ok" | "amber" | "red" | "never"; error: string | null } | null }) => {
         setEvents(Array.isArray(j?.events) ? j.events : []);
         setFailed(Array.isArray(j?.failedCalendars) ? j.failedCalendars : []);
+        setFamilySync(j?.familySync ?? null);
       })
       .catch(() => setEvents([]));
   }, []);
@@ -462,6 +465,14 @@ export function CalendarView() {
       {failed.length > 0 && (
         <div className="text-[10px] uppercase tracking-[0.18em] text-warn font-[family-name:var(--font-mono)]">
           ⚠ Failed: {failed.join(", ")}
+        </div>
+      )}
+      {familySync && (
+        <div
+          data-testid="family-sync-line"
+          className={`text-[10px] uppercase tracking-[0.18em] font-[family-name:var(--font-mono)] ${familySync.level === "red" || familySync.error ? "text-danger" : familySync.level === "amber" ? "text-warn" : "text-text-lo"}`}
+        >
+          Family on Google · {familySync.error ? `Reconnect needed · ${familySync.error}` : familySync.label}
         </div>
       )}
 

@@ -20,6 +20,13 @@ import type { JobRow } from "@/lib/system/jobs";
 export type JobHandler = {
   /** Which lane may run it. The PC worker asks only for kinds it can do. */
   prepare?: (job: JobRow, db: SupabaseClient) => Promise<Record<string, unknown>>;
+  /**
+   * The work itself, done in the cloud (lib/jobs/cloud.ts) as the job's
+   * owner. A kind with `run` is one the cloud runner may claim (lane
+   * "cloud", or "any" once the PC's grace has passed); its result then goes
+   * through `apply` like a worker's would. Kinds without it are the PC's.
+   */
+  run?: (job: JobRow, db: SupabaseClient) => Promise<Record<string, unknown>>;
   apply: (job: JobRow, result: Record<string, unknown>, db: SupabaseClient) => Promise<void>;
   /** Called when the job has failed for the last time, so the feature can fall back. */
   onGiveUp?: (job: JobRow, error: string, db: SupabaseClient) => Promise<void>;
@@ -37,6 +44,11 @@ export function jobHandler(kind: string): JobHandler | null {
 
 export function knownJobKinds(): string[] {
   return [...HANDLERS.keys()];
+}
+
+/** The kinds the cloud runner may take: those whose handler can do the work itself. */
+export function cloudRunnableKinds(): string[] {
+  return [...HANDLERS.entries()].filter(([, h]) => typeof h.run === "function").map(([k]) => k);
 }
 
 /** A job that does nothing; proves the queue end to end (worker self-test, tests). */

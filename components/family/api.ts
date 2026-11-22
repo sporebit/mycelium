@@ -13,7 +13,11 @@ export type Entry = {
   body: string | null;
   happened_on: string;
   starts_at: string | null;
+  ends_at: string | null;
+  all_day: boolean;
   place: string | null;
+  /** On the Family calendar on Google (0184). */
+  on_google: boolean;
   media_mime: string | null;
   prompt: string | null;
   transcribed: boolean;
