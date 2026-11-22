@@ -34,6 +34,10 @@ export const PUBLIC_PREFIXES: readonly string[] = [
   // with no session. The route checks the channel id and token against the
   // stored channel and only ever triggers a pull; it reads nothing back.
   "/api/google/push",
+  // The PhirstMaxx inbox (0185; spec §5 "Anywhere"): POST only, the token
+  // in the path names the person and is checked by hash; the route defines
+  // no GET, so a GET is a 405 and reads nothing.
+  "/api/phirstmaxx/inbox/",
 ];
 
 /** The cookie a paired wall holds: a scoped API token owned by the household device user (0176). */

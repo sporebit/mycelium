@@ -30,6 +30,7 @@ import { isTicketCategory, moveTicket } from "@/lib/tickets/server";
 import { addDays } from "@/lib/tickets/recur";
 import { CAPTURE_ESCAPE, handleDaylogCallback, routeInbound, routeInboundPhoto } from "@/lib/daylog/telegram";
 import { uploadTicketAttachment } from "@/lib/storage/tickets";
+import { handlePmDrop, isPmCommand } from "@/lib/phirstmaxx/telegram";
 import { syncTicketToGoogle } from "@/lib/google/sync";
 
 export const runtime = "nodejs";
@@ -259,6 +260,13 @@ async function handleMessage(
   message: TgMessage,
 ): Promise<void> {
   const chatId = message.chat.id;
+
+  // /pm (PhirstMaxx spec §5): a link, words or a photo for the two of them;
+  // nothing else in this handler sees it.
+  if (isPmCommand(message.text ?? message.caption)) {
+    await handlePmDrop(supabase, userId, message);
+    return;
+  }
 
   let rawText: string | undefined;
   let audioUrl: string | null = null;
