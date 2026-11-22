@@ -1,0 +1,177 @@
+/*
+  Send to PhirstMaxx — the iPhone share-sheet door into Mycelium's PhirstMaxx
+  section (claude/phirstmaxx-spec.md §5 iPhone row, §2.1 "a drop is never lost").
+
+  Share a URL, text, a Safari page or a picture → one POST to
+  https://<host>/api/phirstmaxx/drops, the payload kept in
+  iCloud Drive/Shortcuts/Mycelium Inbox/ until the server answers with an id.
+  Every run first drains that folder, then sends what was just shared.
+
+  Build on a Mac:  cherri phirstmaxx-share.cherri        (README-phirstmaxx-share.md)
+  Host and token are Import Questions, asked once when the Shortcut is installed;
+  neither is in this file or in the compiled Shortcut file you share.
+
+  Written on Windows against https://cherrilang.org; the compiler could not be run.
+  Where an action name or an enum string could not be checked, the comment at
+  that line says so. Nothing here is invented beyond those marked spots.
+*/
+
+#define name Send to PhirstMaxx
+#define color green
+// Pick one at https://glyphs.cherrilang.org and uncomment; the compiler's default is fine meanwhile.
+// #define glyph paperplane
+#define from sharesheet
+// Cherri's content item types (language/types.html): there is no `url` type —
+// a shared link arrives as text and is pulled out with getURLs() below.
+#define inputs text, richtext, webpage, image
+#define noinput askfor text
+#define version 17
+
+// Two import questions. A question may be used once, as an action argument,
+// so each is copied into a Text action first (the documented pattern).
+#question hostQ "Your Mycelium host, no https:// (e.g. mycelium.example.com)" "mycelium.sporebit.com"
+#question tokenQ "Your Mycelium API token (Settings → Security → API tokens, scope: PhirstMaxx drops)" "mtk_"
+
+const host = text(hostQ)
+const token = text(tokenQ)
+@endpoint = "https://{host}/api/phirstmaxx/drops"
+// Mycelium reads API tokens from the Authorization header (middleware.ts 3b), not x-api-token.
+@headers = {
+    "Authorization": "Bearer {token}",
+    "Accept": "application/json"
+}
+
+/* ------------------------------------------------------------------------
+   1. Anything waiting from an earlier run goes first.
+   Paths are relative to iCloud Drive/Shortcuts/. getFile() on a folder path
+   is the documented way to get a folder item in Shortcuts; unchecked against
+   the compiler — if it refuses, a `#ref` to the folder (cherri --refs=) works.
+   ------------------------------------------------------------------------ */
+@inboxFolder = getFile("Mycelium Inbox", nil, false)
+if @inboxFolder {
+    @waiting = getFolderContents(@inboxFolder)
+    for queuedFile in @waiting {
+        @queuedName = getFileDetail(@queuedFile, "Name")
+        // Only the .json files are drops; a .jpg beside one is its picture.
+        if @queuedName endsWith ".json" {
+            @queued = getDictionary(@queuedFile)
+            @queuedId = @queued['client_id']
+            @queuedUrl = @queued['url']
+            @queuedText = @queued['text']
+            @queuedTitle = @queued['title']
+            @queuedPic = getFile("Mycelium Inbox/{@queuedId}.jpg", nil, false)
+            if @queuedPic {
+                // multipart: the file field is sent as a file when written "${@var}" at the top level (web.html, formRequest)
+                @reply = formRequest(@endpoint, "POST", {
+                    "client_id": "{@queuedId}",
+                    "source": "shortcut",
+                    "url": "{@queuedUrl}",
+                    "text": "{@queuedText}",
+                    "title": "{@queuedTitle}",
+                    "file": "${@queuedPic}"
+                }, @headers)
+            } else {
+                @reply = jsonRequest(@endpoint, "POST", @queued, @headers)
+            }
+            @replyId = @reply['id']
+            if @replyId {
+                deleteFiles(@queuedFile, true)
+                if @queuedPic {
+                    deleteFiles(@queuedPic, true)
+                }
+            }
+        }
+    }
+}
+
+/* ------------------------------------------------------------------------
+   2. What was just shared.
+   ------------------------------------------------------------------------ */
+
+// One client id per run, reused on every retry: the server folds repeats into
+// one drop. There is no documented UUID action in Cherri, so the id is a
+// SHA-256 of the instant and a random number (64 hex chars; the route allows 200).
+@salt = randomNumber(1, 999999999)
+@seed = "{CurrentDate}:{@salt}"
+@clientId = hash(@seed, "SHA256")
+
+@url = ""
+@text = ""
+@title = ""
+
+// typeOf() returns Shortcuts' type name. "Safari web page" and "Image" are the
+// names the Shortcuts app shows; unchecked against what typeOf() returns on
+// device. A wrong string only means the generic branch below runs.
+@kind = typeOf(ShortcutInput)
+
+if @kind == "Safari web page" {
+    @url = getWebPageDetail(ShortcutInput, "Page URL")
+    @title = getWebPageDetail(ShortcutInput, "Name")
+} else {
+    @images = getImages(ShortcutInput)
+    @imageCount = count(@images)
+    if @imageCount == 0 {
+        // text, rich text or a link: the first URL in it is the link, the rest is the caption
+        @urls = getURLs(ShortcutInput)
+        @urlCount = count(@urls)
+        if @urlCount > 0 {
+            @url = getFirstItem(@urls)
+        }
+        @text = getText(ShortcutInput)
+    }
+}
+
+@payload = {
+    "client_id": "{@clientId}",
+    "source": "shortcut",
+    "url": "{@url}",
+    "text": "{@text}",
+    "title": "{@title}"
+}
+
+// Keep it before sending: a dead network cannot lose the drop (spec §2.1).
+saveFile("Mycelium Inbox/{@clientId}.json", @payload, true)
+
+@hasPicture = false
+if @kind != "Safari web page" {
+    if @imageCount > 0 {
+        @hasPicture = true
+        @picture = getFirstItem(@images)
+        // the research pipeline reads EXIF for the place (spec §12), so metadata is kept
+        @jpeg = convertToJPEG(@picture, 85, true)
+        saveFile("Mycelium Inbox/{@clientId}.jpg", @jpeg, true)
+    }
+}
+
+if @hasPicture {
+    @reply = formRequest(@endpoint, "POST", {
+        "client_id": "{@clientId}",
+        "source": "shortcut",
+        "url": "{@url}",
+        "text": "{@text}",
+        "title": "{@title}",
+        "file": "${@jpeg}"
+    }, @headers)
+} else {
+    @reply = jsonRequest(@endpoint, "POST", @payload, @headers)
+}
+
+// The route answers 202 with the drop's id (spec §5). Shortcuts does not fail
+// on a 4xx/5xx body, so "has an id" is the success test; a network error stops
+// the Shortcut before this line and the files above stay for the next run.
+@replyId = @reply['id']
+if @replyId {
+    @sentJson = getFile("Mycelium Inbox/{@clientId}.json", nil, false)
+    if @sentJson {
+        deleteFiles(@sentJson, true)
+    }
+    if @hasPicture {
+        @sentJpeg = getFile("Mycelium Inbox/{@clientId}.jpg", nil, false)
+        if @sentJpeg {
+            deleteFiles(@sentJpeg, true)
+        }
+    }
+    showNotification("Saved — researching", "PhirstMaxx", false)
+} else {
+    showNotification("Kept on the phone; will send next time", "PhirstMaxx", false)
+}

@@ -24,6 +24,8 @@ export const TOKEN_ROUTES: Record<string, string[]> = {
   daily: ["/api/daily"],
   // the wall screen's own routes (master run §11); the token is the household device's, never a person's
   wall: ["/api/wall"],
+  // the PhirstMaxx share-sheet Shortcut's one door (phirstmaxx spec §5): a phone drops, it does not read
+  phirstmaxx_drops: ["/api/phirstmaxx/drops"],
 };
 
 function b64url(bytes: Uint8Array): string {
