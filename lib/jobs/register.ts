@@ -11,3 +11,4 @@ import "@/lib/finds/audit";
 import "@/lib/speech/server";
 import "@/lib/reference/jobs";
 import "@/lib/family/calendar/sync";
+import "@/lib/phirstmaxx/research/pipeline";

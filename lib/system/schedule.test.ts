@@ -11,7 +11,7 @@ describe("the sub-daily schedule", () => {
   });
 
   it("on the hour, in the evening, everything is due", () => {
-    expect(at(21, 0)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "family-calendar", "jobs", "quotes-research", "rundowns"]);
+    expect(at(21, 0)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "family-calendar", "jobs", "phirstmaxx", "quotes-research", "rundowns"]);
   });
 
   it("any minute inside a slot gives that slot's jobs", () => {
@@ -21,8 +21,8 @@ describe("the sub-daily schedule", () => {
   });
 
   it("quarter and half hours", () => {
-    expect(at(21, 15)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "family-calendar", "jobs"]);
-    expect(at(21, 30)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "family-calendar", "jobs", "quotes-research"]);
+    expect(at(21, 15)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "family-calendar", "jobs", "phirstmaxx"]);
+    expect(at(21, 30)).toEqual(["daylog", "daily-prompts", "reminders", "tickets-checkins", "family", "family-calendar", "jobs", "phirstmaxx", "quotes-research"]);
   });
 
   it("the daily prompts rest from midnight to six; reminders never do", () => {

@@ -9,6 +9,7 @@ import { GET as daylog } from "../daylog/route";
 import { GET as family } from "../family/route";
 import { GET as familyCalendar } from "../family-calendar/route";
 import { GET as jobs } from "../jobs/route";
+import { GET as phirstmaxx } from "../phirstmaxx/route";
 import { GET as finance } from "../finance/route";
 import { GET as finds } from "../finds/route";
 import { GET as giftOccasions } from "../gift-occasions/route";
@@ -33,6 +34,7 @@ const HANDLERS: Record<string, Handler> = {
   "/api/cron/family": family,
   "/api/cron/family-calendar": familyCalendar,
   "/api/cron/jobs": jobs,
+  "/api/cron/phirstmaxx": phirstmaxx,
   "/api/cron/finance": finance,
   "/api/cron/finds": finds,
   "/api/cron/gift-occasions": giftOccasions,

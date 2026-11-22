@@ -37,6 +37,7 @@ export const SCHEDULE: readonly ScheduledJob[] = [
   { path: "/api/cron/family", everyMinutes: 15, why: "an appointment in the family space, the evening before and two hours before; the week's letter question on Sunday evening" },
   { path: "/api/cron/family-calendar", everyMinutes: 15, why: "the Family calendar on Google: pull what changed (the net under the push channel), renew the channel, and once a day check the connection is alive (family calendar spec §4.2, §4.4)" },
   { path: "/api/cron/jobs", everyMinutes: 5, why: "the cloud lane of the job queue: calendar writes that failed and are owed a retry, research for a PhirstMaxx drop (lib/jobs/cloud.ts)" },
+  { path: "/api/cron/phirstmaxx", everyMinutes: 15, why: "PhirstMaxx upkeep: unanswered proposals expire at their window, accepted plans that no longer fit are flagged, the engine proposes into empty together-windows, due things are re-researched, leave-by reminders go out (phirstmaxx spec §6 upkeep, §7)" },
   { path: "/api/cron/finance", everyMinutes: 60, londonHours: [9, 10], why: "once a morning: a spending nudge when a category has passed 80% or all of its month's budget" },
   { path: "/api/cron/finds", everyMinutes: 60, londonHours: [8, 21], why: "the Finds feed: the watchers once a day, verdicts for what has waited, and on Sunday evening the week's digest" },
   { path: "/api/cron/gift-occasions", everyMinutes: 60, londonHours: [8, 9], why: "once a morning: birthday and fixed occasions seeded, annual ones rolled forward, dates of birth reconciled (gifts spec §5)" },
