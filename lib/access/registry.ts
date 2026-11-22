@@ -34,6 +34,7 @@ export const SECTIONS = [
   "places",
   "reminders",
   "media",
+  "phirstmaxx",
   "platform",
 ] as const;
 
@@ -416,6 +417,25 @@ export const ENTITY_GROUPS: readonly EntityGroupDef[] = [
     group: "jobs",
     tables: ["jobs"],
     note: "Work queued for the PC or the cloud (0159); owned by the user whose data it touches, claimed by the worker with the service role.",
+  },
+  // -- phirstmaxx -------------------------------------------------------------
+  {
+    section: "phirstmaxx",
+    group: "time",
+    tables: ["pm_people", "pm_places", "pm_block_types", "pm_blocks", "pm_waking", "pm_patterns", "pm_undo", "pm_pets"],
+    note: "PhirstMaxx (0185; claude/phirstmaxx-spec.md §3): the two people's busy time in the family team's space. People (waking hours, buffers, inbox token hash), start points, block types, half-hour blocks, waking overrides, saved week patterns, the ten-minute undo snapshots, pets.",
+  },
+  {
+    section: "phirstmaxx",
+    group: "things",
+    tables: ["pm_drops", "pm_things", "pm_thing_facts", "pm_research_runs", "pm_travel", "pm_api_calls"],
+    note: "What they drop in and what research makes of it: the raw drop (immutable), the real-world thing, one row per fact per source, the per-stage research runs, cached travel times, and the monthly count of Google calls that keeps the bill at £0.",
+  },
+  {
+    section: "phirstmaxx",
+    group: "plans",
+    tables: ["pm_plans", "pm_plan_responses", "pm_plan_legs", "pm_notifications"],
+    note: "Plans and holds, each person's answer, the legs (leave by, travel, time there, home) and the in-app notification list that backs every push.",
   },
 ];
 

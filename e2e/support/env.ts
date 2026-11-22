@@ -40,6 +40,12 @@ const SWITCHED_OFF = [
   "STREAMING_AVAILABILITY_API_KEY",
   "VAPID_PRIVATE_KEY",
   "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
+  // PhirstMaxx research (0185): routing, places, YouTube and the old app's database
+  "ORS_API_KEY",
+  "GOOGLE_MAPS_API_KEY",
+  "YOUTUBE_API_KEY",
+  "PHIRSTMAXX_OLD_DB_URL",
+  "GOOGLE_ALLOWED_ACCOUNTS",
 ] as const;
 
 export function e2eServerEnv(): Record<string, string> {

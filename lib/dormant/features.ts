@@ -56,6 +56,8 @@ export const FEATURES: readonly Feature[] = [
   { key: "places", label: "Places", href: "/places", tables: ["places"], quietAfterDays: SELDOM },
   // The family space (0171): quiet when neither a note, a name, a list, a cost nor a tap in the baby log for three weeks.
   { key: "family", label: "Family", href: "/family", tables: ["family_entries", "family_names", "family_name_votes", "family_list_items", "baby_log", "household_items", "household_costs"], quietAfterDays: WEEKLY },
+  // PhirstMaxx (0185): quiet when nobody has painted a block, dropped a thing or answered a plan for three weeks.
+  { key: "phirstmaxx", label: "PhirstMaxx", href: "/phirstmaxx", tables: ["pm_blocks", "pm_drops", "pm_plan_responses"], quietAfterDays: WEEKLY },
   { key: "clinical", label: "Health records", href: "/health", tables: ["blood_test_sessions", "gut_health_logs", "eye_prescriptions"], quietAfterDays: SELDOM },
 ];
 

@@ -138,6 +138,20 @@ export const SECTIONS: SectionConfig[] = [
     ],
   },
   {
+    // PhirstMaxx (0185): the two of them, their time together and the things they want to do with it
+    key: "phirstmaxx",
+    label: "PHIRSTMAXX",
+    colour: "#c79bf5",
+    baseRoute: "/phirstmaxx",
+    subPages: [
+      { label: "Home", href: "/phirstmaxx", primary: true },
+      { label: "Week", href: "/phirstmaxx/week", primary: true },
+      { label: "Things", href: "/phirstmaxx/things", primary: true },
+      { label: "Plans", href: "/phirstmaxx/plans", primary: true },
+      { label: "Settings", href: "/phirstmaxx/settings", primary: false },
+    ],
+  },
+  {
     key: "the-boys",
     label: "THE BOYS",
     colour: "#5de8e0",

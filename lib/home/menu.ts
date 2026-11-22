@@ -30,6 +30,7 @@ export const MENU_GROUPS: readonly MenuGroup[] = [
     items: [
       { label: "Organisation", href: "/organisation" },
       { label: "Family", href: "/family" },
+      { label: "PhirstMaxx", href: "/phirstmaxx" },
       { label: "Journal", href: "/journal" },
       { label: "Places", href: "/places" },
     ],

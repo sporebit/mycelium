@@ -22,6 +22,12 @@ export const PAGE_BLURBS: Record<string, string> = {
   "/organisation/people": "Rolodex of mentions, captures, and shared context.",
   "/organisation/calendar": "Your days and events, with what is planned around them.",
   "/family": "The family space: one timeline, the baby log, prep lists, letters, household admin.",
+  // PhirstMaxx (0185)
+  "/phirstmaxx": "Time together: the next window you are both free, what is on, proposals waiting, the newest researched drops.",
+  "/phirstmaxx/week": "Busy time painted on the week, both halves; the windows you are both free shaded across.",
+  "/phirstmaxx/things": "Everything dropped in, researched: how far, how long, when it is open, whether it fits.",
+  "/phirstmaxx/plans": "Proposals, holds and what is agreed, with leave-by times.",
+  "/phirstmaxx/settings": "Places, block types, waking hours, buffers, pets, your inbox link, research status.",
   "/organisation/decisions": "Choices you logged so you can find them later.",
   "/organisation/ideas": "Things you might build, make or try — captured before they fade.",
   "/organisation/purchases": "Shopping list, wishlist, and bills tracked together.",
