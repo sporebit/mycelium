@@ -113,7 +113,8 @@ export function Sidebar() {
                   active ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
                 } motion-safe:transition-[grid-template-rows] motion-safe:duration-[var(--dur-base)] motion-safe:[transition-timing-function:var(--ease-out)]`}
               >
-                <ul className="overflow-hidden ml-9 border-l border-hairline pl-2 py-0.5">
+                {/* A collapsed list is out of the tab order and the accessibility tree: two sections with a sub-page of the same name must not both answer. */}
+                <ul inert={!active} aria-hidden={!active} className="overflow-hidden ml-9 border-l border-hairline pl-2 py-0.5">
                   {section.subPages.map((sp) => {
                     const subActive = sp.href === activeSubPageHref(pathname, section.subPages);
                     // Gone quiet (master run §6): dimmed, with how long on hover. Still a working link.
