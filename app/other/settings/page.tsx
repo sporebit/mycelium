@@ -153,7 +153,8 @@ function SettingsPanels({
   const pathname = usePathname();
   const params = useSearchParams();
   const keys = PANELS.map((x) => x.key);
-  const raw = params.get("tab");
+  // A Google sign-in comes back with ?google=…; that belongs to Integrations even when no tab is named.
+  const raw = params.get("tab") ?? (params.get("google") !== null ? "integrations" : null);
   const active = resolveTab(keys, raw);
   const go = (key: string | null) => router.replace(key && key !== keys[0] ? `${pathname}?tab=${key}` : pathname, { scroll: false });
   const setActive = (key: string) => go(key);
@@ -755,14 +756,21 @@ function NotificationsSection({ settings, onPatch }: { settings: Settings; onPat
 /** What the Google callback sends back in `?google=` (app/api/google/callback), in words. */
 const GOOGLE_FLAGS: Record<string, string> = {
   connected: "Google connected.",
-  not_allowed: "That Google account isn't allowed here. Only the account named in GOOGLE_ALLOWED_ACCOUNTS can connect; nothing was stored.",
-  bad_state: "That sign-in link was not one this app had just started, so it was refused. Press CONNECT again.",
-  no_account: "Google did not say which account that was, so nothing was stored. Press CONNECT again.",
+  not_allowed: "That Google account isn't allowed here. Only the account named in GOOGLE_ALLOWED_ACCOUNTS on the server can connect; nothing was stored.",
+  bad_state: "Sign-in expired, try again. (The sign-in took more than ten minutes, or came back to a different browser from the one that started it.)",
+  no_account: "Google did not say which account that was, so nothing was stored. Try again.",
   denied: "Google sign-in was cancelled.",
   exchange_failed: "Google refused the sign-in code. Try again; if it keeps happening the client secret on the server may be wrong.",
   config_error: "GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is missing on the server.",
   error: "Google sign-in failed. Try again.",
 };
+
+/** The line for `?google=`: the connected address when there is one to name. */
+function googleNoticeFor(flag: string | null, account: string | null): string | null {
+  if (!flag) return null;
+  if (flag === "connected") return account ? `Reconnected as ${account}.` : "Google connected.";
+  return GOOGLE_FLAGS[flag] ?? null;
+}
 
 function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatch: (f: Record<string, unknown>) => void }) {
   const googleConnected = !!settings.google_refresh_token;
@@ -774,7 +782,7 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
   const googleFlag = useSearchParams().get("google");
-  const googleNotice = googleFlag ? GOOGLE_FLAGS[googleFlag] ?? null : null;
+  const googleNotice = googleNoticeFor(googleFlag, googleAccount);
 
   async function disconnectGoogle() {
     await onPatch({
@@ -819,7 +827,7 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
           needsReconnect
             ? `Google rejected the saved token (${googleSyncError}). Syncs do nothing until you reconnect.`
             : googleConnected
-              ? `OAuth write access — bidirectional sync${googleAccount ? ` · ${googleAccount}` : ""}`
+              ? `OAuth write access — bidirectional sync · ${googleAccount ? `connected as ${googleAccount}` : "account unknown, reconnect to confirm"}`
               : "Reading iCal feeds"
         }
         status={needsReconnect ? "Reconnect needed" : googleConnected ? "Connected" : "Not connected"}
@@ -827,13 +835,15 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
         action={
           googleConnected ? (
             <div className="flex items-center gap-2">
+              {/* Plain anchors, not <Link>: the router prefetches a Link's href and every prefetch of /api/google/auth
+                  minted a new state cookie, so reconnecting always came back as bad_state (lib/google/oauth.ts). */}
               {needsReconnect && (
-                <Link
+                <a
                   href="/api/google/auth"
                   className="text-[10px] text-accent hover:underline font-[family-name:var(--font-mono)]"
                 >
                   RECONNECT
-                </Link>
+                </a>
               )}
               {syncResult ? (
                 <Mono className="text-[10px] text-ok">{syncResult}</Mono>
@@ -856,12 +866,12 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
               </button>
             </div>
           ) : (
-            <Link
+            <a
               href="/api/google/auth"
               className="text-[10px] text-accent hover:underline font-[family-name:var(--font-mono)]"
             >
               CONNECT
-            </Link>
+            </a>
           )
         }
       />
@@ -874,12 +884,12 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
           settings.spotify_connected ? (
             <Mono className="text-[10px] text-text-lo">Connected</Mono>
           ) : (
-            <Link
+            <a
               href="/api/spotify/authorize"
               className="text-[10px] text-accent hover:underline font-[family-name:var(--font-mono)]"
             >
               CONNECT
-            </Link>
+            </a>
           )
         }
       />

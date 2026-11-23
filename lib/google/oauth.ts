@@ -16,6 +16,18 @@
  * GOOGLE_ALLOWED_ACCOUNTS, revokes the token and stores nothing. An unset
  * allowlist refuses everyone.
  *
+ * Why reconnecting failed with bad_state (found 2026-11-23): CONNECT and
+ * RECONNECT were Next `<Link>`s, and the app router prefetches a link's
+ * href as soon as it is on screen and again on hover, so /api/google/auth
+ * ran several times per visit to Settings → Integrations and each run
+ * replaced the cookie with a new nonce. The click itself went through the
+ * router too (one RSC fetch that follows the redirect to Google, then a
+ * full navigation), so by the time Google sent the person back the cookie
+ * held a different nonce from the one in the link. Three things close it:
+ * the links are plain anchors; the auth route answers a router fetch with
+ * 204 and no cookie; and the cookie keeps the last few nonces, so a second
+ * start (a second click, a second tab) does not break the first.
+ *
  * The decisions are pure functions here so they can be tested without a
  * request; the routes only sequence them.
  */
@@ -23,6 +35,52 @@
 export const STATE_COOKIE = "mycelium_google_state";
 /** The nonce lives this long: enough for the consent screen, not for a link kept for later. */
 export const STATE_MAX_AGE_SECONDS = 600;
+/** How many sign-ins may be in flight at once; the oldest nonce falls off. */
+export const STATES_KEPT = 5;
+/**
+ * The cookie's path: it must reach the callback, and the auth route too, so
+ * a second start can keep the nonces already waiting (a path of only the
+ * callback hid them from the auth route). Set and cleared with the same
+ * attributes; a clear with other attributes is a different cookie.
+ */
+export const STATE_COOKIE_PATH = "/api/google";
+/** Where the cookie lived before 2026-11-23; the callback clears that one too. */
+export const STATE_COOKIE_OLD_PATH = "/api/google/callback";
+/** The one place a sign-in comes back to (Settings → Integrations, which reads `?google=`). */
+export const SETTINGS_RETURN = "/other/settings?tab=integrations";
+
+export function settingsReturn(flag: string): string {
+  return `${SETTINGS_RETURN}&google=${encodeURIComponent(flag)}`;
+}
+
+/**
+ * A request the Next router makes on its own (a prefetch while the link is
+ * on screen or hovered, or the RSC fetch of a soft navigation) rather than
+ * a person arriving. Answered without a nonce, so it cannot disturb a
+ * sign-in that is under way.
+ */
+export function isRouterFetch(headers: { get(name: string): string | null }): boolean {
+  if (headers.get("next-router-prefetch") !== null) return true;
+  if (headers.get("rsc") !== null) return true;
+  const purpose = (headers.get("purpose") ?? headers.get("sec-purpose") ?? "").toLowerCase();
+  return purpose.includes("prefetch");
+}
+
+/** The nonces held in the cookie, newest first. A nonce is base64url, so "." can separate them. */
+export function unpackStates(cookie: string | null | undefined): string[] {
+  if (!cookie) return [];
+  return cookie.split(".").filter((s) => /^[A-Za-z0-9_-]{16,}$/.test(s));
+}
+
+/** The cookie value after a new start: the fresh nonce first, then the ones still waiting, at most STATES_KEPT. */
+export function packStates(existing: string | null | undefined, fresh: string): string {
+  return [fresh, ...unpackStates(existing).filter((s) => s !== fresh)].slice(0, STATES_KEPT).join(".");
+}
+
+/** Whether the state Google sent back is one this browser started. */
+export function stateAccepted(sent: string | null | undefined, cookie: string | null | undefined): boolean {
+  return unpackStates(cookie).some((s) => stateMatches(sent, s));
+}
 
 export function newState(): string {
   const bytes = new Uint8Array(24);
@@ -94,10 +152,11 @@ export type CallbackDecision =
 
 /**
  * The callback's decision, from what it has in hand. Pure: the routes fetch
- * the address and pass it in.
+ * the address and pass it in. `storedState` is the cookie as sent (one
+ * nonce or several).
  */
 export function decideCallback(input: { sentState: string | null; storedState: string | null; email: string | null; allowed: readonly string[] }): CallbackDecision {
-  if (!stateMatches(input.sentState, input.storedState)) return { ok: false, reason: "state" };
+  if (!stateAccepted(input.sentState, input.storedState)) return { ok: false, reason: "state" };
   if (!input.email) return { ok: false, reason: "no_account" };
   if (!accountAllowed(input.email, input.allowed)) return { ok: false, reason: "not_allowed" };
   return { ok: true, email: input.email.toLowerCase() };

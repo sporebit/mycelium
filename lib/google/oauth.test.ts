@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { accountAllowed, allowedAccounts, connectedAccountEmail, decideCallback, newState, revokeToken, stateMatches } from "./oauth";
+import { STATES_KEPT, accountAllowed, allowedAccounts, connectedAccountEmail, decideCallback, isRouterFetch, newState, packStates, revokeToken, settingsReturn, stateAccepted, stateMatches, unpackStates } from "./oauth";
 
 describe("the Google sign-in lock (family calendar spec §4.5)", () => {
   it("states are long, random and only match themselves", () => {
@@ -29,10 +29,40 @@ describe("the Google sign-in lock (family calendar spec §4.5)", () => {
 
   it("decides the callback: state first, then the account", () => {
     const allowed = ["phil@example.com"];
-    expect(decideCallback({ sentState: "a", storedState: "b", email: "phil@example.com", allowed })).toEqual({ ok: false, reason: "state" });
-    expect(decideCallback({ sentState: "a", storedState: "a", email: null, allowed })).toEqual({ ok: false, reason: "no_account" });
-    expect(decideCallback({ sentState: "a", storedState: "a", email: "kirsty@example.com", allowed })).toEqual({ ok: false, reason: "not_allowed" });
-    expect(decideCallback({ sentState: "a", storedState: "a", email: "Phil@Example.com", allowed })).toEqual({ ok: true, email: "phil@example.com" });
+    const a = newState();
+    const b = newState();
+    expect(decideCallback({ sentState: a, storedState: b, email: "phil@example.com", allowed })).toEqual({ ok: false, reason: "state" });
+    expect(decideCallback({ sentState: a, storedState: a, email: null, allowed })).toEqual({ ok: false, reason: "no_account" });
+    expect(decideCallback({ sentState: a, storedState: a, email: "kirsty@example.com", allowed })).toEqual({ ok: false, reason: "not_allowed" });
+    expect(decideCallback({ sentState: a, storedState: a, email: "Phil@Example.com", allowed })).toEqual({ ok: true, email: "phil@example.com" });
+    // The cookie may hold several nonces (a second click, a second tab): any of them is this browser's.
+    expect(decideCallback({ sentState: a, storedState: packStates(a, b), email: "Phil@Example.com", allowed })).toEqual({ ok: true, email: "phil@example.com" });
+  });
+
+  it("the cookie keeps the last few nonces, newest first, and only well-formed ones count", () => {
+    const states = Array.from({ length: STATES_KEPT + 2 }, () => newState());
+    let jar = "";
+    for (const s of states) jar = packStates(jar, s);
+    const kept = unpackStates(jar);
+    expect(kept).toHaveLength(STATES_KEPT);
+    expect(kept[0]).toBe(states[states.length - 1]);
+    expect(stateAccepted(states[states.length - 1], jar)).toBe(true);
+    expect(stateAccepted(states[0], jar)).toBe(false);
+    expect(packStates(jar, kept[1]).split(".")[0]).toBe(kept[1]); // a repeat moves to the front, not duplicated
+    expect(unpackStates("short.a b.;drop")).toEqual([]);
+    expect(unpackStates(undefined)).toEqual([]);
+    expect(stateAccepted(null, jar)).toBe(false);
+    expect(stateAccepted(states[0], "")).toBe(false);
+  });
+
+  it("knows a request the Next router made by itself from a person arriving", () => {
+    const h = (o: Record<string, string>) => new Headers(o);
+    expect(isRouterFetch(h({ "next-router-prefetch": "1", rsc: "1" }))).toBe(true);
+    expect(isRouterFetch(h({ rsc: "1" }))).toBe(true);
+    expect(isRouterFetch(h({ purpose: "prefetch" }))).toBe(true);
+    expect(isRouterFetch(h({ "sec-purpose": "prefetch;anonymous-client-ip" }))).toBe(true);
+    expect(isRouterFetch(h({ accept: "text/html" }))).toBe(false);
+    expect(settingsReturn("bad_state")).toBe("/other/settings?tab=integrations&google=bad_state");
   });
 
   it("asks Google which account consented, and gives a token back", async () => {

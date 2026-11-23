@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { updateUserSettings } from "@/lib/settings/userSettingsRow";
-import { allowedAccounts, connectedAccountEmail, decideCallback, revokeToken, STATE_COOKIE, stateMatches } from "@/lib/google/oauth";
+import { allowedAccounts, connectedAccountEmail, decideCallback, revokeToken, settingsReturn, STATE_COOKIE, STATE_COOKIE_OLD_PATH, STATE_COOKIE_PATH, stateAccepted } from "@/lib/google/oauth";
 
 export const runtime = "nodejs";
 
@@ -10,31 +10,38 @@ export const runtime = "nodejs";
  * spec §4.5). The `state` must match the cookie the auth route set; the
  * account that consented must be one named in GOOGLE_ALLOWED_ACCOUNTS.
  * Anything else revokes the token on the spot and stores nothing, and the
- * person is told in Settings in plain words. The address of the account
- * that did connect is kept beside the tokens.
+ * person is told in Settings → Integrations in plain words (`?google=`
+ * opens that tab). The address of the account that did connect is kept
+ * beside the tokens. The cookie may hold several nonces (a second click or
+ * tab); the one Google sends back must be among them.
  */
 export async function GET(req: NextRequest) {
+  const origin = req.nextUrl.origin;
   const back = (flag: string) => {
-    const res = NextResponse.redirect(new URL(`/other/settings?google=${flag}`, req.nextUrl.origin));
-    res.cookies.set(STATE_COOKIE, "", { httpOnly: true, path: "/api/google/callback", maxAge: 0 });
+    const res = NextResponse.redirect(new URL(settingsReturn(flag), origin));
+    res.headers.set("cache-control", "no-store");
+    const secure = origin.startsWith("https://");
+    res.cookies.set(STATE_COOKIE, "", { httpOnly: true, secure, sameSite: "lax", path: STATE_COOKIE_PATH, maxAge: 0 });
+    // The response cookie jar is keyed by name, so the clear for the old path goes on as a raw header.
+    res.headers.append("set-cookie", `${STATE_COOKIE}=; Path=${STATE_COOKIE_OLD_PATH}; Max-Age=0; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`);
     return res;
   };
   try {
     const code = req.nextUrl.searchParams.get("code");
     const error = req.nextUrl.searchParams.get("error");
     const sentState = req.nextUrl.searchParams.get("state");
-    const storedState = req.cookies.get(STATE_COOKIE)?.value ?? null;
+    // Every cookie of that name: the browser sends one per path it was set on.
+    const storedState = req.cookies.getAll(STATE_COOKIE).map((c) => c.value).join(".") || null;
 
     if (error) return back("denied");
     // The state is checked before the code is spent, so a crafted link does not even reach Google.
-    if (!stateMatches(sentState, storedState)) return back("bad_state");
+    if (!stateAccepted(sentState, storedState)) return back("bad_state");
     if (!code) return back("no_code");
 
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
     if (!clientId || !clientSecret) return back("config_error");
 
-    const origin = req.nextUrl.origin;
     const redirectUri = `${origin}/api/google/callback`;
 
     const res = await fetch("https://oauth2.googleapis.com/token", {

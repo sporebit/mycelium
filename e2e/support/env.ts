@@ -65,5 +65,8 @@ export function e2eServerEnv(): Record<string, string> {
     FINDS_FIXTURE_DIR: path.resolve(process.cwd(), "e2e/fixtures/finds"),
   };
   for (const key of SWITCHED_OFF) env[key] = "";
+  // A client id (not a secret) so /api/google/auth builds its redirect and sets its state cookie; the specs stub
+  // accounts.google.com, and with no client secret the callback stops at config_error after the state check.
+  env.GOOGLE_CLIENT_ID = "e2e-google-client";
   return env;
 }

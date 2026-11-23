@@ -62,6 +62,7 @@ Build:
 - Store the connected address as `user_settings.google_account_email` and show it in Settings → Integrations beside "Connected".
 - The same two checks apply to any future Google connect route (the Family calendar picker reuses this connection; it adds none).
 - Tests: no `state` → rejected; wrong `state` → rejected; a non-allowlisted account → nothing stored and the revoke call made; allowlisted → stored with its address.
+- **2026-11-23 (built; the reconnect that always came back `bad_state`):** the nonce cookie was being replaced behind the person's back — the CONNECT / RECONNECT `<Link>`s were prefetched by the Next router (on screen and on hover) and the click itself went through the router before the real navigation, each run of `/api/google/auth` minting a new nonce. Now: plain anchors; the auth route answers router-made requests 204 with no cookie; the cookie keeps the last five nonces so a second click or tab does not break the first sign-in; the callback returns to Settings → Integrations (`?tab=integrations&google=…`) and the tab opens on `?google=` alone. Round trip covered by `app/api/google/roundtrip.test.ts` and `e2e/google-connect.tess.spec.ts`. As built in `claude/spec-platform.md` (Google Calendar).
 
 ### 4.6 Privacy and tests
 - Phil's primary-calendar `events` never enter the family space and never go to the Family calendar. The Family calendar id is the only one the family sync reads.
