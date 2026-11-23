@@ -16,6 +16,7 @@
  */
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { seeded } from "@/lib/home/specimen";
+import { resolvedTheme } from "@/lib/theme";
 
 export type NetworkHandle = {
   /** New growth from a point, in 0–1 of the canvas each way. */
@@ -25,12 +26,14 @@ export type NetworkHandle = {
 type Seg = { x1: number; y1: number; x2: number; y2: number; z: number; bt: number; ph: number };
 type Spore = { x: number; y: number; vx: number; vy: number; s: number };
 
+// Alphas only: the ink is bone on dark paper and loam on cream (lib/theme.ts), chosen each frame.
 const LAYERS = [
-  { color: "rgba(236,230,210,0.44)", width: 1.4, sway: 0.4, par: 16, push: 30 },
-  { color: "rgba(236,230,210,0.26)", width: 1, sway: 0.6, par: 9, push: 18 },
-  { color: "rgba(236,230,210,0.14)", width: 0.8, sway: 0.8, par: 4, push: 10 },
+  { alpha: 0.44, width: 1.4, sway: 0.4, par: 16, push: 30 },
+  { alpha: 0.26, width: 1, sway: 0.6, par: 9, push: 18 },
+  { alpha: 0.14, width: 0.8, sway: 0.8, par: 4, push: 10 },
 ] as const;
-const SPORE_COLOUR = "rgba(236,230,210,0.4)";
+const PLATE_INK = { dark: "236,230,210", light: "30,32,25" } as const;
+const SPORE_ALPHA = 0.4;
 const REPEL = 150;
 /** Where the threads run to, as fractions of the canvas: toward the figures, the margins and off the page. */
 const ENDS: ReadonlyArray<readonly [number, number]> = [
@@ -148,6 +151,7 @@ class Engine {
     const my = this.my ?? -9999;
     const pxn = this.still || this.mx == null ? 0 : this.mx / w - 0.5;
     const pyn = this.still || this.my == null ? 0 : this.my / h - 0.5;
+    const ink = PLATE_INK[resolvedTheme()];
     for (let z = 2; z >= 0; z--) {
       const L = LAYERS[z];
       c.beginPath();
@@ -173,12 +177,12 @@ class Engine {
         c.moveTo(x1, y1);
         c.lineTo(x2, y2);
       }
-      c.strokeStyle = L.color;
+      c.strokeStyle = `rgba(${ink},${L.alpha})`;
       c.lineWidth = L.width;
       c.lineCap = "round";
       c.stroke();
     }
-    c.fillStyle = SPORE_COLOUR;
+    c.fillStyle = `rgba(${ink},${SPORE_ALPHA})`;
     for (const sp of this.spores) {
       if (!this.still) {
         sp.x += sp.vx;

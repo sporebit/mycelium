@@ -17,6 +17,7 @@ import { usePathname } from "next/navigation";
 import { useGoneQuiet } from "@/components/dashboard/GoneQuiet";
 import { PrivacyToggle } from "@/components/dashboard/PrivacyToggle";
 import { NotificationBell } from "@/components/work/NotificationBell";
+import { ThemeToggle } from "@/components/shell/ThemeToggle";
 import { groupForPath, MENU_GROUPS, placeForPath } from "@/lib/home/menu";
 
 function openCapture() {
@@ -127,6 +128,7 @@ export function TopMenu() {
       <div className="flex-1" />
       {/* finance amounts are hidden until this is pressed, as in the classic sidebar */}
       <PrivacyToggle />
+      <ThemeToggle />
       <NotificationBell />
       <button
         type="button"

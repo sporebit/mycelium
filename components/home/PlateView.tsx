@@ -24,9 +24,11 @@ import { Specimen } from "./Specimen";
 const SERIF = "font-[family-name:var(--font-plate)]";
 const MONO = "font-[family-name:var(--font-mono)]";
 /** The plate's own palette: ink on dark paper. Home only; working pages keep the app's tokens. */
-const INK = "#ece6d2";
-const SOFT = "#cdc7b2";
-const PAPER = "#181a16";
+// The plate tokens (globals.css, lib/theme.ts): bone ink on dark paper; loam ink on cream in light mode.
+const INK = "var(--plate-ink)";
+const SOFT = "var(--plate-soft)";
+const PAPER = "var(--plate-paper)";
+const ink = (pct: number) => `color-mix(in srgb, var(--plate-ink) ${pct}%, transparent)`;
 
 const hm = (minutes: number) => `${Math.floor(minutes / 60)}:${String(Math.round(minutes % 60)).padStart(2, "0")}`;
 
@@ -107,9 +109,9 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
   return (
     <div className="plate relative isolate min-h-[calc(100vh-76px)] overflow-hidden rounded-[6px]" style={{ background: PAPER, color: INK }} data-testid="home-plate">
       <Network ref={network} seed={data.who.id.length * 131 + 77} density={density} className="absolute inset-0 -z-10 h-full w-full" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-3 rounded-[4px]" style={{ boxShadow: `0 0 0 1px rgba(236,230,210,0.36), 0 0 0 5px ${PAPER}, 0 0 0 6px rgba(236,230,210,0.16)` }} />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-3 rounded-[4px]" style={{ boxShadow: `0 0 0 1px ${ink(36)}, 0 0 0 5px ${PAPER}, 0 0 0 6px ${ink(16)}` }} />
 
-      <div className="relative mx-auto flex max-w-[1380px] flex-col gap-6 px-10 pb-10 pt-8 [text-shadow:0_0_8px_#181a16,0_0_2px_#181a16]">
+      <div className="relative mx-auto flex max-w-[1380px] flex-col gap-6 px-10 pb-10 pt-8 [text-shadow:0_0_8px_var(--plate-paper),0_0_2px_var(--plate-paper)]">
         <header className="text-center">
           <h1 className={`${SERIF} text-[40px] font-medium leading-[1.05] tracking-[-0.01em]`}>{data.day_label}</h1>
           <p className="mt-1" style={{ color: SOFT }}>
@@ -150,15 +152,15 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
             </div>
 
             {notes.map((n) => (
-              <div key={n.id} className="plate-settle flex flex-col gap-2 pt-3" style={{ boxShadow: "0 -1px 0 rgba(236,230,210,0.2)" }} data-testid="plate-nudge">
-                <p className={`${SERIF} text-[19px] [text-wrap:pretty]`} style={{ color: "#ecd0a0" }}>
+              <div key={n.id} className="plate-settle flex flex-col gap-2 pt-3" style={{ boxShadow: `0 -1px 0 ${ink(20)}` }} data-testid="plate-nudge">
+                <p className={`${SERIF} text-[19px] [text-wrap:pretty]`} style={{ color: "var(--plate-warm)" }}>
                   Margin note, <span className={`${MONO} text-[15px] tabular-nums`}>{n.at}</span>: {n.text}
                 </p>
                 <button
                   type="button"
                   onClick={() => void notToday(n.id)}
                   className="plate-press min-h-[44px] self-start rounded-[8px] px-3.5 [text-shadow:none]"
-                  style={{ background: "transparent", color: INK, boxShadow: "0 0 0 1px rgba(236,230,210,0.34)" }}
+                  style={{ background: "transparent", color: INK, boxShadow: `0 0 0 1px ${ink(34)}` }}
                 >
                   Not today
                 </button>
@@ -207,7 +209,7 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
                   {main.title}
                 </h2>
                 {main.state === "done" ? (
-                  <p className={`${SERIF} text-[19px]`} style={{ color: "#dfe8cf" }} role="status" data-testid="plate-collected">
+                  <p className={`${SERIF} text-[19px]`} style={{ color: "var(--plate-fresh)" }} role="status" data-testid="plate-collected">
                     {main.is_win || won ? "Collected and coloured in. The day is won." : "Collected and coloured in."}
                   </p>
                 ) : (
@@ -217,7 +219,7 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
                       disabled={busy}
                       onClick={() => void act(main, "done")}
                       className="plate-press min-h-[48px] rounded-[10px] px-6 text-[16px] font-bold disabled:opacity-60"
-                      style={{ background: INK, color: "#1c1e18" }}
+                      style={{ background: INK, color: PAPER }}
                     >
                       Done — colour it in
                     </button>
@@ -226,7 +228,7 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
                       disabled={busy}
                       onClick={() => void act(main, "not_now")}
                       className="plate-press min-h-[48px] rounded-[10px] px-4 disabled:opacity-60"
-                      style={{ background: PAPER, color: INK, boxShadow: "0 0 0 1px rgba(236,230,210,0.34)" }}
+                      style={{ background: PAPER, color: INK, boxShadow: `0 0 0 1px ${ink(34)}` }}
                     >
                       Not now
                     </button>
@@ -236,7 +238,7 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
                   </div>
                 )}
                 {error ? (
-                  <p role="alert" className="text-[15px]" style={{ color: "#f0b8a8" }}>
+                  <p role="alert" className="text-[15px]" style={{ color: "var(--v2-error)" }}>
                     {error}
                   </p>
                 ) : null}
@@ -256,7 +258,7 @@ export function PlateView({ data, chime = true }: { data: HomeData; chime?: bool
                     type="button"
                     onClick={() => setPicked(f.item_id)}
                     className="plate-press plate-settle flex min-h-[104px] items-center gap-3 rounded-[10px] py-1.5 pl-2 pr-3 text-left"
-                    style={{ background: "rgba(27,29,24,0.92)", color: INK, boxShadow: "0 0 0 1px rgba(236,230,210,0.2)", animationDelay: `${n * 80}ms` }}
+                    style={{ background: "var(--plate-card)", color: INK, boxShadow: `0 0 0 1px ${ink(20)}`, animationDelay: `${n * 80}ms` }}
                     data-testid="plate-figure"
                   >
                     <Specimen species={speciesFor(f.section, f.seed)} seed={f.seed} done={f.state === "done"} size="small" />

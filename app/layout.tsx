@@ -10,6 +10,7 @@ import { SessionWatch } from "@/components/auth/SessionWatch";
 import { ShellPrefProvider } from "@/components/shell/ShellPref";
 import { createUserClient } from "@/lib/supabase/user";
 import { UI_PREFS_DEFAULTS, getUiPrefs } from "@/lib/settings/uiPrefs";
+import { THEME_COLOUR, isTheme, type Theme } from "@/lib/theme";
 
 // Every page is behind a session and the layout reads the request's
 // principal to load the caller's ui prefs, so nothing here can be static.
@@ -60,9 +61,7 @@ export const metadata: Metadata = {
   icons: {
     apple: "/icons/apple-touch-icon.png",
   },
-  other: {
-    "theme-color": "#0e1410",
-  },
+  // theme-color is rendered in <head> below: it follows the person's theme preference.
 };
 
 export default async function RootLayout({
@@ -76,11 +75,13 @@ export default async function RootLayout({
   // then sees no rows under RLS and getUiPrefs returns the defaults.
   let motion = UI_PREFS_DEFAULTS.motion;
   let shell = UI_PREFS_DEFAULTS.shell;
+  let theme: Theme = UI_PREFS_DEFAULTS.theme;
   try {
     const supabase = await createUserClient();
     const prefs = await getUiPrefs(supabase);
     motion = prefs.motion;
     shell = prefs.shell === "new" ? "new" : "classic";
+    if (isTheme(prefs.theme)) theme = prefs.theme;
   } catch (err) {
     console.error("[layout/uiPrefs]", err);
   }
@@ -89,8 +90,20 @@ export default async function RootLayout({
       lang="en"
       data-motion={motion}
       data-shell={shell}
+      data-theme={theme}
       className={`${interTight.variable} ${jetbrainsMono.variable} ${newsreader.variable} h-full antialiased`}
     >
+      <head>
+        {/* The browser chrome follows the theme; data-theme on <html> does the rest (globals.css). */}
+        {theme === "system" ? (
+          <>
+            <meta name="theme-color" media="(prefers-color-scheme: light)" content={THEME_COLOUR.light} />
+            <meta name="theme-color" media="(prefers-color-scheme: dark)" content={THEME_COLOUR.dark} />
+          </>
+        ) : (
+          <meta name="theme-color" content={THEME_COLOUR[theme]} />
+        )}
+      </head>
       <body className="min-h-full flex flex-col bg-surface-0 text-text-hi">
         <SoilGrain />
         <MyceliumField />

@@ -10,6 +10,7 @@ import { DEFAULT_FREE_MINUTES } from "@/lib/daily/propose";
 import { Sheet } from "@/components/ui/Sheet";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
+import { applyTheme, isTheme, type Theme } from "@/lib/theme";
 import { SECTIONS } from "@/lib/nav/sections";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
@@ -534,6 +535,30 @@ function AppearanceSection({ settings, onPatch }: { settings: Settings; onPatch:
   const { prefs, setPrefs } = useUiPrefs();
   return (
     <SectionCard title="APPEARANCE">
+      <div className="flex items-center justify-between gap-4 py-2 flex-wrap">
+        <div className="min-w-0">
+          <div className="text-sm text-text-hi">Theme</div>
+          <div className="text-[11px] text-text-lo">
+            Dark is loam and glow; light is paper and moss. System follows the device. The sun and moon in the shell flip between the two.
+          </div>
+        </div>
+        <SegmentedControl
+          size="sm"
+          ariaLabel="Theme"
+          value={isTheme(prefs.theme) ? prefs.theme : "dark"}
+          onChange={(v) => {
+            const theme: Theme = isTheme(v) ? v : "dark";
+            applyTheme(theme);
+            void setPrefs({ theme });
+          }}
+          options={[
+            { value: "dark", label: "Dark" },
+            { value: "light", label: "Light" },
+            { value: "system", label: "System" },
+          ]}
+        />
+      </div>
+
       <div className="flex items-center justify-between gap-4 py-2 flex-wrap">
         <div className="min-w-0">
           <div className="text-sm text-text-hi">Shell</div>

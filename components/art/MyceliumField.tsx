@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { CANVAS_GLOW, CANVAS_INK, resolvedTheme } from "@/lib/theme";
 import { onFieldPulse } from "@/lib/motion";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 
@@ -102,8 +103,18 @@ export function MyceliumField() {
     let hasPointer = false;
     let ripples: Ripple[] = [];
 
+    // Bone on dark, loam on light (lib/theme.ts); read per frame so the sun/moon takes effect at once.
+    let ink: string = CANVAS_INK.dark;
+    let glow: string = CANVAS_GLOW.dark;
+    function readTheme() {
+      const t = resolvedTheme();
+      ink = CANVAS_INK[t];
+      glow = CANVAS_GLOW[t];
+    }
+
     function drawEdges() {
-      ctx2d.strokeStyle = "rgba(232,230,221,0.05)";
+      readTheme();
+      ctx2d.strokeStyle = `rgba(${ink},0.05)`;
       ctx2d.lineWidth = 0.5;
       for (const [a, b] of edges) {
         ctx2d.beginPath();
@@ -115,7 +126,7 @@ export function MyceliumField() {
 
     function drawNodes() {
       for (const n of nodes) {
-        ctx2d.fillStyle = `rgba(232,230,221,${n.opacity.toFixed(3)})`;
+        ctx2d.fillStyle = `rgba(${ink},${n.opacity.toFixed(3)})`;
         ctx2d.beginPath();
         ctx2d.arc(n.x, n.y, 1.3, 0, Math.PI * 2);
         ctx2d.fill();
@@ -149,7 +160,7 @@ export function MyceliumField() {
         if (t > 1 || t < 0) continue;
         const radius = t * 260;
         const alpha = (1 - t) * 0.15;
-        ctx2d.strokeStyle = `rgba(132,245,184,${alpha.toFixed(3)})`;
+        ctx2d.strokeStyle = `rgba(${glow},${alpha.toFixed(3)})`;
         ctx2d.lineWidth = 1.5;
         ctx2d.beginPath();
         ctx2d.arc(r.x, r.y, radius, 0, Math.PI * 2);
@@ -170,7 +181,7 @@ export function MyceliumField() {
           const n = nodes[withDist[k].i];
           n.tendrilX += (pointerX - n.tendrilX) * TENDRIL_LERP;
           n.tendrilY += (pointerY - n.tendrilY) * TENDRIL_LERP;
-          ctx2d.strokeStyle = "rgba(132,245,184,0.15)";
+          ctx2d.strokeStyle = `rgba(${glow},0.15)`;
           ctx2d.lineWidth = 0.5;
           ctx2d.beginPath();
           ctx2d.moveTo(n.x, n.y);

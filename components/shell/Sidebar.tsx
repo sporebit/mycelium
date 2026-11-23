@@ -17,6 +17,7 @@ import { PrivacyToggle } from "@/components/dashboard/PrivacyToggle";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { SECTION_ICONS } from "./sectionIcons";
 import { NotificationBell } from "@/components/work/NotificationBell";
+import { ThemeToggle } from "@/components/shell/ThemeToggle";
 import { useGoneQuiet } from "@/components/dashboard/GoneQuiet";
 
 function openCapture() {
@@ -164,6 +165,7 @@ export function Sidebar() {
             >
               <SettingsIcon size={18} />
             </Link>
+            <ThemeToggle />
             <div className="flex justify-center">
               <PrivacyToggle />
             </div>
@@ -196,6 +198,7 @@ export function Sidebar() {
             >
               <SettingsIcon size={18} />
             </Link>
+            <ThemeToggle />
             <div className="inline-flex items-center">
               <PrivacyToggle />
             </div>

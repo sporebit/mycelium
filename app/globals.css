@@ -5,6 +5,10 @@
    --------------------------------------------------------------------------- */
 
 :root {
+  /* THEME — ui_prefs.theme, server-rendered as data-theme on <html>
+     (app/layout.tsx; lib/theme.ts). color-scheme picks the side of every
+     light-dark(light, dark) pair below, so a theme change moves nothing but this. No
+     attribute (an error page, a stray static route) is dark, as before. */
   color-scheme: dark;
 
   /* ================= Loam & Glow v2 — canonical tokens =================
@@ -14,22 +18,22 @@
      --v2-radius-sm, --v2-radius-md (existing --warn/--error/--info have
      the same semantic but different rendering; --radius-sm/md exist with
      smaller values). All other v2 names had no collision. */
-  --surface-0: #0b100d;
-  --surface-1: #10160f;
-  --surface-2: #161d15;
-  --surface-3: #1c241b;
-  --hairline: rgba(232, 230, 221, 0.08);
-  --hairline-strong: rgba(232, 230, 221, 0.14);
-  --text-hi: #ecebe3;
-  --text-mid: #a8a89d;
-  --text-lo: #6d6f64;
-  --text-ghost: #454840;
-  --glow: #84f5b8;
-  --glow-dim: #4fae7f;
-  --glow-wash: rgba(132, 245, 184, 0.07);
-  --v2-warn: #f5b56d;
-  --v2-error: #e07a5f;
-  --v2-info: #95b4d6;
+  --surface-0: light-dark(#f4f3ec, #0b100d);
+  --surface-1: light-dark(#ecebe2, #10160f);
+  --surface-2: light-dark(#e2e1d6, #161d15);
+  --surface-3: light-dark(#d7d6ca, #1c241b);
+  --hairline: light-dark(rgba(27, 31, 26, 0.1), rgba(232, 230, 221, 0.08));
+  --hairline-strong: light-dark(rgba(27, 31, 26, 0.18), rgba(232, 230, 221, 0.14));
+  --text-hi: light-dark(#1b1f1a, #ecebe3);
+  --text-mid: light-dark(#4b5047, #a8a89d);
+  --text-lo: light-dark(#6f746a, #6d6f64);
+  --text-ghost: light-dark(#9a9e93, #454840);
+  --glow: light-dark(#1f8a55, #84f5b8);
+  --glow-dim: light-dark(#4fae7f, #4fae7f);
+  --glow-wash: light-dark(rgba(31, 138, 85, 0.1), rgba(132, 245, 184, 0.07));
+  --v2-warn: light-dark(#a9661a, #f5b56d);
+  --v2-error: light-dark(#b5462a, #e07a5f);
+  --v2-info: light-dark(#3d6a99, #95b4d6);
   --ease-out: cubic-bezier(0.2, 0, 0, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --dur-fast: 120ms;
@@ -65,17 +69,17 @@
   --glow-0: var(--glow);
   --glow-1: var(--glow-dim);
   --glow-2: #2a8b56;
-  --glow-3: #1a3d2a;
+  --glow-3: light-dark(#d3ecdd, #1a3d2a);
 
   /* EARTH — semantic warnings, never aggressive */
-  --warn: #f5b56d;           /* amber, dried polypore */
-  --warn-bg: #3d2e1a;        /* warning background */
-  --error: #e07a5f;          /* burnt umber */
-  --error-bg: #3a1f17;       /* error background */
-  --info: #95b4d6;           /* dawn-mist blue, rare */
-  --info-bg: #1a2330;        /* info background */
-  --good: #84f5b8;           /* same as glow-0 — health is glow */
-  --good-bg: #1a3d2a;        /* same as glow-3 */
+  --warn: light-dark(#a9661a, #f5b56d);           /* amber, dried polypore */
+  --warn-bg: light-dark(#f5e6cf, #3d2e1a);        /* warning background */
+  --error: light-dark(#b5462a, #e07a5f);          /* burnt umber */
+  --error-bg: light-dark(#f6ddd5, #3a1f17);       /* error background */
+  --info: light-dark(#3d6a99, #95b4d6);           /* dawn-mist blue, rare */
+  --info-bg: light-dark(#dde7f2, #1a2330);        /* info background */
+  --good: light-dark(#1f8a55, #84f5b8);           /* same as glow-0 — health is glow */
+  --good-bg: light-dark(#d3ecdd, #1a3d2a);        /* same as glow-3 */
 
   /* SIZES (modular ratio 1.25). --text-52 added in D2 to compensate for
      Inter Tight's slightly shorter rendering vs the previous Geist. */
@@ -118,7 +122,26 @@
      at low alpha; the visual hierarchy is carried by per-segment
      stroke-width tapering, not by tiered opacity. Not teal — glow-2
      owns the living register; these threads are the substrate. */
-  --hyphal-stroke: rgba(232, 230, 221, 0.15);
+  --hyphal-stroke: light-dark(rgba(27, 31, 26, 0.16), rgba(232, 230, 221, 0.15));
+
+  /* PLATE — the Specimen plate (components/home/PlateView.tsx, Specimen.tsx,
+     Network.tsx). Dark: bone ink on near-black paper. Light: loam ink on
+     cream. The canvases read the same pair through lib/theme.ts. */
+  --plate-paper: light-dark(#f1ecdc, #181a16);
+  --plate-ink: light-dark(#1e2019, #ece6d2);
+  --plate-soft: light-dark(#5a5c50, #cdc7b2);
+  --plate-warm: light-dark(#8a5a14, #ecd0a0);
+  --plate-fresh: light-dark(#2f6b3f, #dfe8cf);
+  --plate-card: light-dark(rgba(241, 236, 220, 0.92), rgba(27, 29, 24, 0.92));
+  --plate-shade: light-dark(#d9d2bf, #10120e);
+}
+
+/* The two sides of the theme preference. "system" follows the OS. */
+[data-theme="light"] {
+  color-scheme: light;
+}
+[data-theme="system"] {
+  color-scheme: light dark;
 }
 
 /* Display face: Inter Tight weight 600 with tighter tracking.
@@ -876,7 +899,7 @@ a.work-chip:hover {
   transform: scale(0.97);
 }
 .plate-press:focus-visible {
-  outline: 2px solid #ece6d2;
+  outline: 2px solid var(--plate-ink);
   outline-offset: 3px;
 }
 [data-motion="off"] .plate-ink,

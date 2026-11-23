@@ -2,6 +2,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type UiPrefs = {
   motion: "full" | "reduced" | "off";
+  /**
+   * Light or dark (Settings → Appearance → Theme; the sun/moon in the shells).
+   * Server-rendered as data-theme on <html>; the colours are light-dark()
+   * pairs in globals.css (lib/theme.ts). "system" follows the OS.
+   */
+  theme: "dark" | "light" | "system";
   density: "comfortable" | "compact";
   pinned_mobile_tabs: string[];
   hidden_sections: string[];
@@ -63,6 +69,7 @@ export type UiPrefs = {
 
 export const UI_PREFS_DEFAULTS: UiPrefs = {
   motion: "full",
+  theme: "dark",
   density: "comfortable",
   shell: "classic",
   pinned_mobile_tabs: ["dashboard", "organisation", "fitness", "health"],
