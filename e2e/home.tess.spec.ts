@@ -89,9 +89,14 @@ test("the top menu bar: every group, dropdowns that open and close, and no sideb
 });
 
 test("Home is the Specimen plate: the win in the centre with its four notes, the rest as figures", async ({ page }) => {
-  await ticket("reply about the boiler quote", { deadline_on: TODAY });
-  await ticket("order the hinges", { scheduled_on: TODAY });
-  await ticket("post the letter", { scheduled_on: TODAY });
+  const ids = [
+    await ticket("reply about the boiler quote", { deadline_on: TODAY }),
+    await ticket("order the hinges", { scheduled_on: TODAY }),
+    await ticket("post the letter", { scheduled_on: TODAY }),
+  ];
+  // The day's budget is half the free minutes (90 on a weekday, lib/daily/propose.ts): three guessed
+  // 45-minute tickets fit only Friday to Sunday. Short estimates make the plate the same every day.
+  localSql(`update public.tickets set time_estimate_min = 20 where id in (${ids.map((i) => `'${i}'`).join(",")})`);
   await page.goto("/");
   const plate = page.getByTestId("home-plate");
   await expect(plate).toBeVisible();
