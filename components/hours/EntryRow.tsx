@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef, useState, type KeyboardEvent } from "react";
 import { entryState, fmtHm, parseDuration } from "@/lib/hours/calc";
 import type { HoursEntry } from "@/lib/hours/types";
 import { parseTicket } from "@/lib/hours/ticket";
-import { StateDot } from "./kit";
+import { BacklogTag, SelectBox, StateDot } from "./kit";
 import { entryColumns, FilterInput, FunnelButton, GridHead, type TableState } from "./table";
 import { useEntryMutations } from "./useEntryMutations";
 
@@ -17,8 +17,12 @@ import { useEntryMutations } from "./useEntryMutations";
  * small link beside the cell (D3). Spec §7: Date, Time Spent, Description,
  * Ticket, Logged — no visible id or status column. `showEstimate` adds the
  * Estimate cell (Backlog); `showDate` is on wherever rows are not grouped by day.
+ * `select` (Phil, 2026-11-23) puts a tick box at the start of the row for
+ * bulk delete and merge; `backlog` tints a Log row that is still open work.
  */
-export function EntryRow({ entry, baseUrl, showDate = true, showEstimate = false }: { entry: HoursEntry; baseUrl: string; showDate?: boolean; showEstimate?: boolean }) {
+export type RowSelect = { checked: boolean; onChange: (on: boolean) => void };
+
+export function EntryRow({ entry, baseUrl, showDate = true, showEstimate = false, select, backlog = false }: { entry: HoursEntry; baseUrl: string; showDate?: boolean; showEstimate?: boolean; select?: RowSelect; backlog?: boolean }) {
   const { patch, remove } = useEntryMutations();
   const state = entryState(entry);
   const pending = entry.id.startsWith("tmp-");
@@ -30,14 +34,18 @@ export function EntryRow({ entry, baseUrl, showDate = true, showEstimate = false
   };
 
   const cols = `${showDate ? "9.5rem_" : ""}4.5rem_${showEstimate ? "4.5rem_" : ""}minmax(0,1fr)_10rem_auto_auto`;
+  const tint = select?.checked ? "bg-glow-wash" : backlog ? "bg-v2-info/10 hover:bg-v2-info/15 focus-within:bg-v2-info/15" : "hover:bg-surface-1 focus-within:bg-surface-1";
 
   return (
     <div
-      className={`group grid items-center gap-x-1 px-1 py-0.5 rounded-v2-md hover:bg-surface-1 focus-within:bg-surface-1 ${pending ? "opacity-60 pointer-events-none" : ""}`}
-      style={{ gridTemplateColumns: `auto ${cols.replace(/_/g, " ")}` }}
+      className={`group grid items-center gap-x-1 px-1 py-0.5 rounded-v2-md ${tint} ${pending ? "opacity-60 pointer-events-none" : ""}`}
+      style={{ gridTemplateColumns: `${select ? "auto " : ""}auto ${cols.replace(/_/g, " ")}` }}
       data-hours-row
       data-entry-id={entry.id}
+      data-backlog={backlog ? "true" : undefined}
+      data-selected={select?.checked ? "true" : undefined}
     >
+      {select && <SelectBox checked={select.checked} onChange={select.onChange} label={`Select ${entry.description || entry.ticket_raw || "entry"}`} />}
       <span className="pl-1 pr-1">
         <StateDot state={state} />
       </span>
@@ -74,14 +82,17 @@ export function EntryRow({ entry, baseUrl, showDate = true, showEstimate = false
           className="text-right font-[family-name:var(--font-mono)] tabular-nums text-text-mid"
         />
       )}
-      <Cell
-        col="description"
-        value={entry.description}
-        display={entry.description}
-        placeholder="description"
-        onCommit={(v) => patch(entry.id, { description: v.trim() })}
-        className={`${entry.description ? "text-text-hi" : "placeholder:text-v2-error/70"}`}
-      />
+      <span className="flex items-center gap-1 min-w-0">
+        <Cell
+          col="description"
+          value={entry.description}
+          display={entry.description}
+          placeholder="description"
+          onCommit={(v) => patch(entry.id, { description: v.trim() })}
+          className={`${entry.description ? "text-text-hi" : "placeholder:text-v2-error/70"}`}
+        />
+        {backlog && <BacklogTag />}
+      </span>
       <span className="flex items-center min-w-0">
         <Cell
           col="ticket"
@@ -118,15 +129,20 @@ export function EntryRow({ entry, baseUrl, showDate = true, showEstimate = false
 /**
  * Column header that lines up with EntryRow's grid. With a `table` (from
  * useTable) the labels sort on click and the funnel at the end opens a row
- * of per-column filter inputs; without one it is a plain header.
+ * of per-column filter inputs; without one it is a plain header. `select`
+ * adds the tick that selects or clears every row on view.
  */
-export function EntryHeader({ showDate = true, showEstimate = false, table }: { showDate?: boolean; showEstimate?: boolean; table?: TableState<HoursEntry> }) {
+export type HeaderSelect = { all: boolean; some: boolean; onChange: (on: boolean) => void };
+
+export function EntryHeader({ showDate = true, showEstimate = false, table, select }: { showDate?: boolean; showEstimate?: boolean; table?: TableState<HoursEntry>; select?: HeaderSelect }) {
   const cols = `${showDate ? "9.5rem_" : ""}4.5rem_${showEstimate ? "4.5rem_" : ""}minmax(0,1fr)_10rem_auto_auto`;
-  const grid = { gridTemplateColumns: `auto ${cols.replace(/_/g, " ")}` };
+  const grid = { gridTemplateColumns: `${select ? "auto " : ""}auto ${cols.replace(/_/g, " ")}` };
   const h = "px-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-text-lo";
+  const selectAll = select ? <SelectBox checked={select.all} some={select.some} onChange={select.onChange} label="Select all rows" /> : null;
   if (!table) {
     return (
       <div className="hidden sm:grid items-center gap-x-1 px-1 pb-1 border-b border-hairline mb-1" style={grid}>
+        {selectAll}
         <span className="w-[18px]" />
         {showDate && <span className={h}>Date</span>}
         <span className={`${h} text-right`}>Time</span>
@@ -142,6 +158,7 @@ export function EntryHeader({ showDate = true, showEstimate = false, table }: { 
   return (
     <div className="hidden sm:block border-b border-hairline mb-1">
       <div className="grid items-center gap-x-1 px-1 pb-1" style={grid}>
+        {selectAll}
         <span className="w-[18px]" />
         {columns.map((c) => (
           <GridHead key={c.key} col={c} table={table} className={c.key === "logged" ? "text-center" : ""} />
@@ -150,6 +167,7 @@ export function EntryHeader({ showDate = true, showEstimate = false, table }: { 
       </div>
       {table.showFilters && (
         <div className="grid items-center gap-x-1 px-1 pb-1" style={grid}>
+          {select && <span className="w-[18px]" />}
           <span className="w-[18px]" />
           {columns.map((c) => (
             <span key={c.key} className="px-0.5">

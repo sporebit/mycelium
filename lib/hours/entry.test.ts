@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultEntryDate, readEntryInput, readMinutes } from "./entry";
+import { MAX_IDS, defaultEntryDate, readEntryInput, readIdList, readMinutes } from "./entry";
 
 describe("readMinutes", () => {
   it("accepts minutes, durations and empties", () => {
@@ -74,5 +74,22 @@ describe("defaultEntryDate", () => {
     ];
     expect(defaultEntryDate(entries, "2026-11-20")).toBe("2026-11-12");
     expect(defaultEntryDate([], "2026-11-20")).toBe("2026-11-20");
+  });
+});
+
+describe("readIdList", () => {
+  const a = "11111111-1111-4111-8111-111111111111";
+  const b = "22222222-2222-4222-8222-222222222222";
+  it("takes a list of uuids, lower-cased and without duplicates", () => {
+    expect(readIdList({ ids: [a, b.toUpperCase(), a] })).toEqual({ ok: true, ids: [a, b] });
+  });
+  it("refuses no body, no list, an empty list, a non-uuid and too many", () => {
+    expect(readIdList(null).ok).toBe(false);
+    expect(readIdList({ ids: "x" }).ok).toBe(false);
+    expect(readIdList({ ids: [] })).toEqual({ ok: false, error: "Nothing selected." });
+    expect(readIdList({ ids: [a, "tmp-1"] }).ok).toBe(false);
+    expect(readIdList({ ids: [a, 7] }).ok).toBe(false);
+    const many = Array.from({ length: MAX_IDS + 1 }, (_, i) => `${String(i).padStart(8, "0")}-0000-4000-8000-000000000000`);
+    expect(readIdList({ ids: many }).ok).toBe(false);
   });
 });

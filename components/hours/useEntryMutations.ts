@@ -137,24 +137,60 @@ export function useEntryMutations() {
     return ok;
   }, []);
 
-  /** MERGE (0157): every held entry joins the dated list (or the Backlog when it has no date). */
-  const mergeAll = useCallback(async (): Promise<number | null> => {
-    let merged: number | null = null;
-    const now = new Date().toISOString();
+  /**
+   * Delete the ticked rows in one call (Phil, 2026-11-23). The same soft
+   * delete as `remove`, for many ids at once; the cache drops them first.
+   */
+  const removeMany = useCallback(async (ids: string[]): Promise<boolean> => {
+    if (ids.length === 0) return true;
+    const gone = new Set(ids);
+    let ok = true;
     await globalMutate<HoursBundle>(
       HOURS_BUNDLE_KEY,
       async (current) => {
         try {
-          const r = await apiWrite<{ merged: number }>("/api/hours/entries/merge", { method: "POST" });
+          await apiWrite("/api/hours/entries", { method: "DELETE", ...jsonBody({ ids }) });
+          return current ? { ...current, entries: current.entries.filter((e) => !gone.has(e.id)) } : current;
+        } catch (e) {
+          ok = false;
+          reportApiError(e, "Could not delete the selected entries");
+          throw e;
+        }
+      },
+      {
+        optimisticData: (current) => (current ? { ...current, entries: current.entries.filter((e) => !gone.has(e.id)) } : (current as unknown as HoursBundle)),
+        rollbackOnError: true,
+        populateCache: true,
+        revalidate: true,
+      },
+    ).catch(() => undefined);
+    return ok;
+  }, []);
+
+  /**
+   * MERGE (0157): every held entry joins the dated list (or the Backlog when
+   * it has no date). With `ids` (Phil, 2026-11-23) only the ticked held rows
+   * merge; the rest keep waiting.
+   */
+  const merge = useCallback(async (ids?: string[]): Promise<number | null> => {
+    let merged: number | null = null;
+    const now = new Date().toISOString();
+    const chosen = ids ? new Set(ids) : null;
+    const stamp = (e: HoursEntry) => (e.merged_at === null && (!chosen || chosen.has(e.id)) ? { ...e, merged_at: now } : e);
+    await globalMutate<HoursBundle>(
+      HOURS_BUNDLE_KEY,
+      async (current) => {
+        try {
+          const r = await apiWrite<{ merged: number }>("/api/hours/entries/merge", { method: "POST", ...(ids ? jsonBody({ ids }) : {}) });
           merged = r.merged;
-          return current ? { ...current, entries: current.entries.map((e) => (e.merged_at === null ? { ...e, merged_at: now } : e)) } : current;
+          return current ? { ...current, entries: current.entries.map(stamp) } : current;
         } catch (e) {
           reportApiError(e, "Could not merge the new entries");
           throw e;
         }
       },
       {
-        optimisticData: (current) => (current ? { ...current, entries: current.entries.map((e) => (e.merged_at === null ? { ...e, merged_at: now } : e)) } : (current as unknown as HoursBundle)),
+        optimisticData: (current) => (current ? { ...current, entries: current.entries.map(stamp) } : (current as unknown as HoursBundle)),
         rollbackOnError: true,
         populateCache: true,
         revalidate: true,
@@ -163,5 +199,5 @@ export function useEntryMutations() {
     return merged;
   }, []);
 
-  return { add, patch, remove, mergeAll };
+  return { add, patch, remove, removeMany, merge };
 }

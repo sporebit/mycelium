@@ -180,7 +180,7 @@ test("an entry with no date can be held", async ({ page }) => {
   const row = rowOf(holding(page), D3);
   await expect(row).toBeVisible();
   await expect(cell(row, "date")).toHaveValue("");
-  await expect(row.getByLabel("Open — no time yet")).toBeVisible();
+  await expect(row.getByLabel("Backlog — open, no time yet")).toBeVisible();
   await expect(holding(page)).toContainText("3 waiting · 2:15 · not counted until merged");
   // Newest first beneath the blank row.
   expect(await descriptions(holding(page))).toEqual([D3, D2, D1]);
@@ -367,7 +367,7 @@ test("the Log narrows by week, state and search", async ({ page }) => {
   await expect.poll(async () => (await descriptions(rec)).sort()).toEqual([D2E, D3].sort());
   await range("Incomplete").click();
   await expect.poll(() => descriptions(rec)).toEqual([D2E]);
-  await range("Open").click();
+  await range("Backlog").click();
   await expect(rec).toContainText("Nothing here for this filter.");
   await page.getByRole("radio", { name: "All", exact: true }).nth(1).click();
 

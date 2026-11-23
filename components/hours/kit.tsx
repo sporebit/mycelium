@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { WEEKDAY_SHORT, weekdayIndex, type EntryState } from "@/lib/hours/calc";
 import { parseTicket } from "@/lib/hours/ticket";
 
@@ -25,19 +25,40 @@ export const STATE_DOT: Record<EntryState, string> = {
   green: "bg-ok",
   amber: "bg-v2-warn",
   red: "bg-v2-error",
-  open: "border border-hairline-strong",
+  open: "border-2 border-v2-info",
 };
 
 export const STATE_TITLE: Record<EntryState, string> = {
   green: "Complete and logged in Jira",
   amber: "Has time, not yet ticked Logged",
   red: "Missing a description or a ticket",
-  open: "Open — no time yet",
+  open: "Backlog — open, no time yet",
 };
 
 /** The colour pip at the start of a Log row (spec §3 "Entry state"). */
 export function StateDot({ state }: { state: EntryState }) {
   return <span aria-label={STATE_TITLE[state]} title={STATE_TITLE[state]} className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${STATE_DOT[state]}`} />;
+}
+
+/** The word on a Log row that is still open work: blue, like the pip (Phil, 2026-11-23: show backlog rows on the Log "indicating with colour"). */
+export function BacklogTag() {
+  return <span className="shrink-0 rounded-sm bg-v2-info/15 px-1.5 py-px text-[10px] font-medium uppercase tracking-[0.08em] text-v2-info select-none">backlog</span>;
+}
+
+/**
+ * The tick at the start of a row (Phil, 2026-11-23), and the one in the
+ * header that ticks every row on view: `some` shows the half state.
+ */
+export function SelectBox({ checked, some = false, onChange, label }: { checked: boolean; some?: boolean; onChange: (on: boolean) => void; label: string }) {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (ref.current) ref.current.indeterminate = some && !checked;
+  }, [some, checked]);
+  return (
+    <span className="flex w-[18px] items-center justify-center">
+      <input ref={ref} type="checkbox" data-select aria-label={label} checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-3.5 w-3.5 accent-[var(--glow)] cursor-pointer" />
+    </span>
+  );
 }
 
 /**

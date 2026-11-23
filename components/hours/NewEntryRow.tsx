@@ -17,7 +17,7 @@ import { useEntryMutations } from "./useEntryMutations";
  * the person picks one. Cells carry data-col so Shift+Enter from the first
  * held row lands here.
  */
-export function NewEntryRow({ defaultDate, catchAll, showEstimate = false }: { defaultDate: string; catchAll: string[]; showEstimate?: boolean }) {
+export function NewEntryRow({ defaultDate, catchAll, showEstimate = false, selectable = false }: { defaultDate: string; catchAll: string[]; showEstimate?: boolean; selectable?: boolean }) {
   const { add } = useEntryMutations();
   const [date, setDate] = useState(defaultDate);
   const [time, setTime] = useState("");
@@ -82,10 +82,11 @@ export function NewEntryRow({ defaultDate, catchAll, showEstimate = false }: { d
       ref={rowRef}
       onBlur={onRowBlur}
       className={`group grid items-center gap-x-1 px-1 py-0.5 rounded-v2-md bg-glow-wash/40 focus-within:bg-surface-1 ${busy ? "opacity-60" : ""}`}
-      style={{ gridTemplateColumns: `auto ${cols}` }}
+      style={{ gridTemplateColumns: `${selectable ? "auto " : ""}auto ${cols}` }}
       data-hours-row
       data-hours-new-row
     >
+      {selectable && <span className="w-[18px]" aria-hidden />}
       <span className="pl-1 pr-1 w-[18px] text-center text-text-lo text-xs select-none" title="New entry">
         +
       </span>

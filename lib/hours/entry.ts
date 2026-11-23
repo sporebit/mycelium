@@ -30,6 +30,31 @@ export type EntryRead = { ok: true; fields: Partial<EntryWrite> } | { ok: false;
 
 const MAX_DESCRIPTION = 2000;
 const MAX_TICKET = 500;
+/** How many rows one bulk call (select-and-delete, select-and-merge) may name. */
+export const MAX_IDS = 500;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export type IdListRead = { ok: true; ids: string[] } | { ok: false; error: string };
+
+/**
+ * Read `{ ids: string[] }` from a bulk request (Phil, 2026-11-23: tick rows
+ * on the Log, the Backlog and the holding section, then delete or merge the
+ * ticked ones). Every id must be a uuid; duplicates collapse; an empty list
+ * is refused, and so is one over MAX_IDS.
+ */
+export function readIdList(body: unknown): IdListRead {
+  if (!body || typeof body !== "object") return { ok: false, error: "Send a JSON object with ids." };
+  const ids = (body as Record<string, unknown>).ids;
+  if (!Array.isArray(ids)) return { ok: false, error: "ids must be a list." };
+  const out = new Set<string>();
+  for (const id of ids) {
+    if (typeof id !== "string" || !UUID_RE.test(id)) return { ok: false, error: "Every id must be a uuid." };
+    out.add(id.toLowerCase());
+  }
+  if (out.size === 0) return { ok: false, error: "Nothing selected." };
+  if (out.size > MAX_IDS) return { ok: false, error: `At most ${MAX_IDS} rows at once.` };
+  return { ok: true, ids: Array.from(out) };
+}
 
 /** Minutes from a number, a duration string, or null/empty. `undefined` = unreadable. */
 export function readMinutes(v: unknown): number | null | undefined {
