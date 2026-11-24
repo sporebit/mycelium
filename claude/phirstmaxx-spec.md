@@ -11,7 +11,7 @@ Merge PhirstMaxxing into Mycelium as a section called **PhirstMaxx** — databas
 | # | Decision |
 |---|---|
 | D1 | **Full rewrite inside Mycelium.** Not a port, not a lift-and-shift. |
-| D2 | **Kirsty's Mycelium invite still waits for the UI rebuild.** Until then the old app at phirstmaxxing.sporebit.com stays live and is what the two of them use together. |
+| D2 | **Kirsty's Mycelium invite still waits for the UI rebuild.** Until then the old app at phirstmaxxing.sporebit.com stays live and is what the two of them use together. **Superseded 2026-11-24 23:20 (Phil): no old data is wanted.** The old PhirstMaxxing Supabase project is being deleted, so the old app at phirstymaxxing.sporebit.com **stops working**; PhirstMaxx starts empty. Removing its Vercel project, its IONOS DNS record and the PWA from both phones is **MYC-211**. |
 | D3 | **Travel time: both** — free routing (OpenRouteService) for drive / walk / cycle, with researched public transport, **and** Google Routes for real transit times. |
 | D4 | Calendar: plans land on the Google **Family** calendar (`claude/family-calendar-spec.md`). |
 | D5 | Section name **PhirstMaxx**. Lives in the family team's space (Phil, Kirsty, the test account). |
@@ -29,7 +29,7 @@ Consequence of D2 `[claude]`: until Kirsty joins, PhirstMaxx in Mycelium is used
 5. **The engine is pure functions with fixtures** (windows, travel, fit, scoring). No database or network inside it.
 6. **Saves are atomic.** A painted week saves as one transaction or not at all.
 7. **It tells you when it is unwell.** Research queue depth, last successful run per source, and stuck drops are on the section's status line and in the daily health check.
-8. **Nothing retires until proven.** The old app is switched off only after a parallel run (§10).
+8. **Nothing retires until proven.** The old app is switched off only after a parallel run (§10). *Overtaken 2026-11-24: Phil decided the old data is not worth keeping, so there is no parallel run; the old project is deleted and the app stops (§10, MYC-211).*
 
 ## 3. Section and data model
 
@@ -120,22 +120,25 @@ Upkeep: opening hours and prices re-checked every 90 days and 48 h before an acc
 
 1. **Core:** section, schema, engine with the ported fixtures, grid, drops, research stages 1–6, fit, plans + notifications, calendar write, importer (§10) for all old data.
 2. **The rest of the old app:** trips (multi-day), budget (folded into the family household budget), Our story (folded into the family timeline), night sky + clear-night alert, booking-email drafts.
-3. **Cutover** (§10) once Kirsty is on Mycelium.
+3. ~~**Cutover** (§10) once Kirsty is on Mycelium.~~ Dropped 2026-11-24: no cutover, PhirstMaxx starts empty (§10).
 
 ## 10. Old app → PhirstMaxx
 
+**Decided 2026-11-24 23:20 (Phil): no old data is wanted.** The old PhirstMaxxing app holds nothing worth keeping, so the old Supabase project is being deleted, checklist phase 5 is skipped, `PHIRSTMAXX_OLD_DB_URL` is not needed anywhere, the importer is never run against the old project, and the nightly mirror and the cutover below are **dropped**. PhirstMaxx starts empty. Deleting the project breaks the old app at **phirstymaxxing.sporebit.com**, which stops working; removing its Vercel project, its IONOS DNS record and the PWA from both phones is **MYC-211** (Phil's). The importer itself stays in the repo as proven against `docs/fixtures/phirstmaxx-old-dump.json` (as-built spec §10), in case a dump ever turns up.
+
+*What this section said before that decision, kept for the record:*
 - `scripts/phirstmaxx-import.mjs` reads the old Supabase project (DB URL in env) and writes `pm_*`: dry run, conflicts report, undo — the Hours importer pattern. Idempotent on the old row id, so it can run nightly.
-- **Mirror period (now → Kirsty's invite):** the old app is the source for blocks and plans, imported nightly and on demand; PhirstMaxx screens show them and Phil can use drops/research/fit against real data. Blocks and plans created in Mycelium during the mirror period are marked local and survive imports. Old ideas import as things and are re-researched by the new pipeline.
-- **Cutover:** final import → Kirsty mapped to her Mycelium user by email → old app set read-only with a banner linking to Mycelium → two-week parallel check → Phil says retire → old Vercel project and Supabase project kept, paused, for 90 days. Nothing in `A:\Projects\PhirstMaxxing` is changed before cutover except the read-only banner.
+- ~~**Mirror period (now → Kirsty's invite):** the old app is the source for blocks and plans, imported nightly and on demand; PhirstMaxx screens show them and Phil can use drops/research/fit against real data.~~
+- ~~**Cutover:** final import → Kirsty mapped to her Mycelium user by email → old app set read-only with a banner → two-week parallel check → Phil says retire → old Vercel project and Supabase project kept, paused, for 90 days.~~
 
 ## 11. Things only Phil can do (in-app checklist, answer boxes, no secrets in boxes)
 
 *Guide for items 1–5, written 2026-11-21: https://claude.ai/artifact/SGRf5YDSCPN2ZumyoiDGro ; definition in the repo at `docs/checklists/google-family-phirstmaxx-setup.json` (one checklist covers this spec and the family calendar spec). The old repo has no `.env.local`, so the old database address comes from the Supabase dashboard (guide phase 5).*
 
-1. OpenRouteService key — free, no card: https://openrouteservice.org/dev/#/signup → `ORS_API_KEY`.
-2. **Google Maps Platform key (Routes + Places)** — has a free monthly allowance but **needs a billing account with a card**. Money-adjacent: the run stops and asks. Set a budget alert and a daily quota cap at creation. → `GOOGLE_MAPS_API_KEY`. Until it exists everything runs on the free route. **The bill must not be able to leave £0:** Mycelium counts its own calls per Google product per calendar month (table or `api_usage`) and refuses any call past **900**, falling back to the free route; Phil also sets console quotas of 30 a day on Routes API and Places API (New) and a £1 budget alert. The smallest free allowance is 1,000 a month (Enterprise tier, which Place Details with opening hours falls under), so 900 is under every tier.
+1. OpenRouteService key — free, no card: https://openrouteservice.org/dev/#/signup → `ORS_API_KEY`. The API now lives at `https://api.heigit.org/openrouteservice/v2/…` (HeiGIT's unified address; `api.openrouteservice.org` answered 410 Gone on 2026-11-24 and the code moved that day).
+2. **Google Maps Platform key (Routes + Places)** — has a free monthly allowance but **needs a billing account with a card**. Money-adjacent: the run stops and asks. Set a budget alert and a daily quota cap at creation. → `GOOGLE_MAPS_API_KEY`. Until it exists everything runs on the free route. **The bill must not be able to leave £0:** Mycelium counts its own calls per Google product per calendar month (table or `api_usage`) and refuses any call past **900**, falling back to the free route; Phil also sets console quotas of 30 a day on Routes API and Places API (New) and a £1 budget alert. The smallest free allowance is 1,000 a month (Enterprise tier, which Place Details with opening hours falls under), so 900 is under every tier. **Done 2026-11-24 (Phil):** the key "Mycelium Maps" in the `mycelium` Google Cloud project, restricted to Routes API and Places API (New), both enabled, billing linked; **per-day quotas could not be lowered** (Google marks them not adjustable), so Mycelium's 900-a-month counter per product is the hard stop; a £1 budget alerts at 50/90/100/150%. The billing account is on a **free trial that ends in about 90 days (late February 2027)**; when billing pauses Google answers 403 and both readers fall to the free route by design (`fetchJson` returns null on any non-2xx, `routeWithFallback` goes to OpenRouteService then the estimate, `resolve`/`enrich` keep Nominatim and Overpass) — each refused call still costs one count of the 900.
 3. YouTube Data API key — free, same Google Cloud project → `YOUTUBE_API_KEY`.
-4. Old app's database URL for the importer → `PHIRSTMAXX_OLD_DB_URL`.
+4. ~~Old app's database URL for the importer → `PHIRSTMAXX_OLD_DB_URL`.~~ Not needed: no old data wanted (2026-11-24, §10).
 5. **Research spend.** The web-search-grounded step is a cloud model call per drop and cannot run on the PC's local model. It sits under the £5 monthly AI cap unless Phil gives PhirstMaxx its own figure; the run asks before the first paid call and shows cost per drop on the status line.
 6. Install the share Shortcut from its import link.
 
