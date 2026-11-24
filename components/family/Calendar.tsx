@@ -24,7 +24,7 @@ import type { CalendarChoice, CalendarStatus } from "@/lib/family/calendar/sync"
 import { FAMILY_CALENDAR_NAME } from "@/lib/family/calendar/map";
 import { INPUT, send, type Overview } from "./api";
 
-type View = { status: CalendarStatus; calendars?: CalendarChoice[]; picker_error?: string | null; acl?: Array<{ email: string; role: string }> };
+type View = { status: CalendarStatus; calendars?: CalendarChoice[]; picker_error?: string | null; acl?: Array<{ who: string; role: string; scope: string; stranger: boolean }> };
 
 const LEVEL_CLASS: Record<CalendarStatus["staleness"]["level"], string> = { ok: "text-text-mid", amber: "text-warn", red: "text-danger", never: "text-text-lo" };
 
@@ -79,7 +79,18 @@ export function Calendar({ family }: { family: Overview }) {
             <p className="text-sm text-text-mid">
               <span className="text-text-hi">{s.calendar.summary}</span> in {ownerName === "you" ? "your" : `${ownerName}'s`} Google account. Appointments added here appear there within seconds, and the other way within {s.channel.on ? "seconds" : "fifteen minutes"}.
             </p>
-            {s.needs_reconnect || s.health.ok === false ? (
+            {s.acl_blocked ? (
+              <p role="alert" className="rounded-v2-md border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger" data-testid="family-calendar-acl-blocked">
+                Writing has stopped. {s.acl_blocked}{" "}
+                {s.owner_is_me ? (
+                  <a href="https://calendar.google.com/calendar/u/0/r/settings" target="_blank" rel="noreferrer" className="underline">
+                    Open Google Calendar settings
+                  </a>
+                ) : (
+                  <>Only {ownerName} can change who it is shared with.</>
+                )}
+              </p>
+            ) : s.needs_reconnect || s.health.ok === false ? (
               <p role="alert" className="rounded-v2-md border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger" data-testid="family-calendar-reconnect">
                 Reconnect needed. {s.health.error ?? s.last_error ?? "Google refused the connection."}{" "}
                 {s.owner_is_me ? (
@@ -129,8 +140,9 @@ export function Calendar({ family }: { family: Overview }) {
             {data.acl && data.acl.length ? (
               <ul className="mt-1 flex flex-col gap-1 text-sm text-text-mid">
                 {data.acl.map((a) => (
-                  <li key={a.email}>
-                    <span className="text-text-hi">{a.email}</span> · {a.role === "owner" ? "owner" : a.role === "writer" ? "can change events" : a.role}
+                  <li key={`${a.scope}:${a.who}`} className={a.stranger ? "text-danger" : undefined} data-testid={a.stranger ? "family-calendar-acl-stranger" : undefined}>
+                    <span className={a.stranger ? "" : "text-text-hi"}>{a.who}</span> · {a.role === "owner" ? "owner" : a.role === "writer" ? "can change events" : a.role === "reader" ? "sees all details" : a.role === "freeBusyReader" ? "sees free/busy only" : a.role}
+                    {a.stranger ? " · should not be here" : ""}
                   </li>
                 ))}
               </ul>

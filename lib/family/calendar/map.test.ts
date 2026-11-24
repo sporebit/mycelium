@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decideIncoming, ENTRY_PROP, entryColumnsFromEvent, eventFromEntry, londonMidnight, nextDate, queueLine, staleness, syncWindow } from "./map";
+import { aclRefusal, aclStrangers, decideIncoming, describeScope, ENTRY_PROP, entryColumnsFromEvent, eventFromEntry, londonMidnight, nextDate, queueLine, readAcl, roleWords, staleness, syncWindow } from "./map";
 
 describe("a Google event becomes a family appointment (spec §4.2)", () => {
   it("a timed event keeps its instant, its end, its place and its ids", () => {
@@ -139,5 +139,54 @@ describe("the status line (spec §4.4)", () => {
     expect(londonMidnight("2026-01-15")).toBe("2026-01-15T00:00:00.000Z");
     expect(londonMidnight("2026-07-15")).toBe("2026-07-14T23:00:00.000Z");
     expect(nextDate("2026-12-31")).toBe("2027-01-01");
+  });
+});
+
+describe("reading a calendar's ACL (decision D7, spec §4.1)", () => {
+  const allowed = ["pwhelanonline@gmail.com", "kirstykjpetco@gmail.com"];
+  const phil = { role: "owner", scope: { type: "user", value: "pwhelanonline@gmail.com" } };
+  const kirsty = { role: "writer", scope: { type: "user", value: "Kirstykjpetco@gmail.com" } };
+
+  it("the two allowed addresses are not strangers, whatever their case; a removed entry (role none) is ignored", () => {
+    expect(aclStrangers([phil, kirsty, { role: "none", scope: { type: "user", value: "gone@example.com" } }], allowed)).toEqual([]);
+    expect(readAcl([phil, kirsty], allowed).map((e) => e.stranger)).toEqual([false, false]);
+  });
+
+  it("anyone else is a stranger and is named with what they may do", () => {
+    const rules = [
+      phil,
+      kirsty,
+      { role: "reader", scope: { type: "user", value: "dave@example.com" } },
+      { role: "writer", scope: { type: "group", value: "friends@googlegroups.com" } },
+      { role: "reader", scope: { type: "domain", value: "example.com" } },
+      { role: "freeBusyReader", scope: { type: "default" } },
+    ];
+    expect(aclStrangers(rules, allowed)).toEqual([
+      "dave@example.com (sees all details)",
+      "the group friends@googlegroups.com (can change events)",
+      "everyone at example.com (sees all details)",
+      "the public (anyone with the link) (sees free/busy only)",
+    ]);
+  });
+
+  it("a group or domain is a stranger even when its name is an allowed address: Mycelium cannot see who is behind it", () => {
+    expect(aclStrangers([{ role: "reader", scope: { type: "group", value: "kirstykjpetco@gmail.com" } }], allowed)).toEqual(["the group kirstykjpetco@gmail.com (sees all details)"]);
+  });
+
+  it("scopes and roles are said in the Share dialog's words", () => {
+    expect(describeScope({ type: "user" })).toBe("an unnamed account");
+    expect(describeScope({ type: "default" })).toBe("the public (anyone with the link)");
+    expect(roleWords("writer")).toBe("can change events");
+    expect(roleWords("something-new")).toBe("something-new");
+  });
+
+  it("the refusal names them and says what to do next, differently on choose and in the daily check", () => {
+    const choose = aclRefusal(["dave@example.com (sees all details)"], "choose");
+    expect(choose).toContain("Phirsty Life may be shared with the two of you and nobody else, but this calendar is also shared with dave@example.com (sees all details).");
+    expect(choose).toMatch(/then choose it again\.$/);
+    const health = aclRefusal(["dave@example.com (sees all details)", "the public (anyone with the link) (sees free/busy only)"], "health");
+    expect(health).toContain("dave@example.com (sees all details), the public (anyone with the link) (sees free/busy only)");
+    expect(health).toMatch(/stopped writing to it; new appointments wait/);
+    expect(health).toMatch(/then press Sync now\.$/);
   });
 });

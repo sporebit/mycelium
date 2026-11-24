@@ -137,7 +137,7 @@ function Header({ family, sync, onSaved }: { family: Overview; sync: CalendarSta
             // the Family calendar on Google: "Last synced 3 min ago", amber past an hour, red past a day (family calendar spec §4.4)
             <p className={`text-xs ${sync.needs_reconnect ? "text-danger" : SYNC_CLASS[sync.staleness.level]}`} data-testid="family-sync-line">
               <Link href="/family?tab=calendar" className="hover:underline">
-                Google · {sync.needs_reconnect ? "Reconnect needed" : sync.staleness.label}
+                Google · {sync.acl_blocked ? "Shared with someone else; writing stopped" : sync.needs_reconnect ? "Reconnect needed" : sync.staleness.label}
                 {sync.queue_line ? ` · ${sync.queue_line}` : ""}
               </Link>
             </p>

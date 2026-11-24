@@ -32,16 +32,19 @@ import { interrupt } from "@/lib/nudges/interrupt";
 import { londonClock } from "@/lib/daylog/day";
 import { statusIdFor } from "@/lib/tickets/server";
 import { withUser } from "@/lib/system/withUser";
-import { decideIncoming, ENTRY_PROP, entryColumnsFromEvent, eventFromEntry, FAMILY_CALENDAR_NAME, GUARDED_CALENDAR_ERROR, isGuardedCalendar, queueLine, staleness, syncWindow, type EntryRow, type Staleness } from "./map";
+import { allowedAccounts } from "@/lib/google/oauth";
+import { aclRefusal, aclStrangers, decideIncoming, ENTRY_PROP, entryColumnsFromEvent, eventFromEntry, FAMILY_CALENDAR_NAME, FAMILY_PARTNER_ACCOUNT, GUARDED_CALENDAR_ERROR, isGuardedCalendar, queueLine, readAcl, staleness, syncWindow, type AclEntry, type EntryRow, type Staleness } from "./map";
 
 export const PUSH_JOB = "family_calendar_push";
-const SYNC_COLS = "id, space_id, calendar_id, calendar_summary, owner_user_id, sync_token, last_synced_at, last_sync_error, last_sync_error_at, channel_id, channel_resource_id, channel_token, channel_expires_at, channel_error, google_reminders, health_checked_at, health_ok, health_error, health_nudged_on, updated_at";
+const SYNC_COLS = "id, space_id, calendar_id, calendar_summary, owner_user_id, sync_token, last_synced_at, last_sync_error, last_sync_error_at, channel_id, channel_resource_id, channel_token, channel_expires_at, channel_error, google_reminders, health_checked_at, health_ok, health_error, health_nudged_on, acl_blocked, updated_at";
 const ENTRY_COLS = "id, title, body, place, starts_at, ends_at, all_day, ext_id, ext_etag, ext_updated_at, updated_at, kind, source";
 /** The push channel is renewed when it has less than this left. */
 const RENEW_BEFORE_MS = 2 * 24 * 3_600_000;
 /** The health check runs when the last one is older than this (so once a day, from a 15-minute tick). */
 const HEALTH_EVERY_MS = 20 * 3_600_000;
 export const HEALTH_TICKET_MARK = { family_calendar: "reconnect" } as const;
+/** The ticket the daily ACL check raises when someone else has been given the calendar (D7). */
+export const ACL_TICKET_MARK = { family_calendar: "acl" } as const;
 
 export type SyncRow = {
   id: string;
@@ -63,6 +66,8 @@ export type SyncRow = {
   health_ok: boolean | null;
   health_error: string | null;
   health_nudged_on: string | null;
+  /** Who else holds the calendar, when the ACL check found a stranger (0187). Writes stop while set. */
+  acl_blocked: string | null;
   updated_at: string;
 };
 
@@ -126,6 +131,9 @@ export async function chooseCalendar(db: SupabaseClient, uid: string, spaceId: s
   const got = await getCalendar(db, calendarId);
   if (got.status === 401 || got.status === 403) return { ok: false, status: 409, error: "Google is not connected, or needs reconnecting, in Settings → Integrations." };
   if (!got.body) return { ok: false, status: 404, error: "Google has no calendar with that id." };
+  // D7: who else holds it? Refused, naming them, before anything is saved.
+  const acl = await checkAcl(db, calendarId);
+  if (!acl.ok) return { ok: false, status: acl.status, error: acl.error };
   const have = await ensureSyncRow(db, spaceId);
   if (have.channel_id && have.channel_resource_id) await stopChannel(db, { id: have.channel_id, resourceId: have.channel_resource_id }).catch(() => undefined);
   await patchSync(db, have.id, {
@@ -143,6 +151,7 @@ export async function chooseCalendar(db: SupabaseClient, uid: string, spaceId: s
     health_ok: true,
     health_error: null,
     health_checked_at: now.toISOString(),
+    acl_blocked: null,
   });
   let row = (await getSyncRow(db, spaceId))!;
   const pulled = await pullFamilyCalendar(db, row, now);
@@ -167,10 +176,43 @@ export async function shareCalendar(ownerDb: SupabaseClient, row: SyncRow, email
   return { ok: true };
 }
 
-export async function currentAcl(ownerDb: SupabaseClient, row: SyncRow): Promise<Array<{ email: string; role: string }>> {
+/** The share list as the owner sees it on the tab: everyone on the ACL, strangers marked, so Phil can see Kirsty has it and nobody else does (D7). */
+export async function currentAcl(ownerDb: SupabaseClient, row: SyncRow): Promise<AclEntry[]> {
   if (!row.calendar_id) return [];
-  const r = await listAcl(ownerDb, row.calendar_id);
-  return (r.body ?? []).filter((a: GoogleAclRule) => a.scope.type === "user" && a.scope.value).map((a) => ({ email: a.scope.value!, role: a.role }));
+  const [r, allowed] = await Promise.all([listAcl(ownerDb, row.calendar_id), familyAclAllowed(ownerDb)]);
+  return readAcl((r.body ?? []) as GoogleAclRule[], allowed);
+}
+
+/**
+ * The two addresses the calendar may be shared with: the connected account
+ * (GOOGLE_ALLOWED_ACCOUNTS, and the address Google reported at connect time,
+ * which is the same person) and Kirsty's (FAMILY_PARTNER_ACCOUNT). `db` is
+ * the owner's client.
+ */
+export async function familyAclAllowed(ownerDb: SupabaseClient): Promise<string[]> {
+  const { data } = await ownerDb.from("user_settings").select("google_account_email").maybeSingle();
+  const own = ((data as { google_account_email?: string | null } | null)?.google_account_email ?? "").trim().toLowerCase();
+  return Array.from(new Set([...allowedAccounts(), ...(own ? [own] : []), FAMILY_PARTNER_ACCOUNT.toLowerCase()]));
+}
+
+export type AclCheck = { ok: true; acl: AclEntry[] } | { ok: false; status: number; error: string; strangers: string[] };
+
+/**
+ * D7, the rule itself: read the calendar's ACL and refuse it if anyone but
+ * the two allowed accounts holds it — a user, a group, a domain or the public
+ * — naming who. An ACL Google will not show (a calendar shared *to* the owner
+ * rather than owned) is refused too: only a calendar of the owner's own can
+ * be the Family calendar (D2). `db` is the owner's client.
+ */
+export async function checkAcl(ownerDb: SupabaseClient, calendarId: string, when: "choose" | "health" = "choose"): Promise<AclCheck> {
+  const [r, allowed] = await Promise.all([listAcl(ownerDb, calendarId), familyAclAllowed(ownerDb)]);
+  if (r.status === 401) return { ok: false, status: 409, error: "Google is not connected, or needs reconnecting, in Settings → Integrations.", strangers: [] };
+  if (r.status === 403 || r.status === 404) return { ok: false, status: 409, error: `Google will not show who this calendar is shared with (${r.status}); only a calendar in your own account can be the Family calendar.`, strangers: [] };
+  if (!r.body) return { ok: false, status: 502, error: `Google did not answer about the calendar's sharing (${r.status}).`, strangers: [] };
+  const rules = r.body as GoogleAclRule[];
+  const strangers = aclStrangers(rules, allowed);
+  if (strangers.length) return { ok: false, status: 403, error: aclRefusal(strangers, when), strangers };
+  return { ok: true, acl: readAcl(rules, allowed) };
 }
 
 /** Forget the calendar: stop the channel, clear the row. Rows already here stay; their ext ids are kept so a reconnect finds them. */
@@ -308,6 +350,8 @@ export async function pushEntry(db: SupabaseClient, row: SyncRow, entryId: strin
   if (!row.calendar_id) return { done: true, action };
   // never written, and not retried either: the row is wrong, not Google (D7)
   if (isGuardedCalendar(row.calendar_id)) return { done: true, action, error: GUARDED_CALENDAR_ERROR };
+  // the daily check found a stranger on the calendar (D7): nothing is written until they are gone; the change waits on the queue
+  if (row.acl_blocked) return { done: false, action, status: 423, error: row.acl_blocked };
   const cal = row.calendar_id;
 
   if (action === "delete") {
@@ -475,16 +519,18 @@ export async function ensureChannel(db: SupabaseClient, row: SyncRow, now: Date 
 // ---------------------------------------------------------------------------
 // Health (spec §4.4)
 
-export type HealthResult = { ok: boolean; error?: string; nudged: boolean; ticket: boolean };
+export type HealthResult = { ok: boolean; error?: string; nudged: boolean; ticket: boolean; acl_blocked?: string | null };
 
 /**
- * Refresh the token and read one page. On failure: write it down, tell the
- * owner once a day (a push with the reconnect link, inside the budget) and
- * raise one ticket. `db` is the owner's client.
+ * Refresh the token, read one page, and read the ACL again (D7). On failure:
+ * write it down, tell the owner once a day (a push with the link, inside the
+ * budget) and raise one ticket. A stranger on the ACL also stops every write
+ * until the next check finds them gone. `db` is the owner's client.
  */
 export async function healthCheck(db: SupabaseClient, row: SyncRow, now: Date = new Date()): Promise<HealthResult> {
   if (!row.calendar_id || !row.owner_user_id) return { ok: true, nudged: false, ticket: false };
   let error: string | null = null;
+  let aclBlocked: string | null = null;
   const token = await getAccessToken(db);
   if (!token) {
     const { data } = await db.from("user_settings").select("google_sync_error, google_refresh_token").maybeSingle();
@@ -494,36 +540,62 @@ export async function healthCheck(db: SupabaseClient, row: SyncRow, now: Date = 
     const page = await listEventsPage(db, row.calendar_id, { maxResults: 1, ...syncWindow(now) });
     if (page.status === 401 || page.status === 403) error = `Google refused the Family calendar (${page.status}).`;
     else if (!page.body) error = `Google did not answer (${page.status}).`;
+    else {
+      const acl = await checkAcl(db, row.calendar_id, "health");
+      if (!acl.ok) {
+        error = acl.error;
+        if (acl.strangers.length) aclBlocked = acl.error.slice(0, 1000);
+      }
+    }
   }
   const checkedAt = now.toISOString();
   if (!error) {
-    await patchSync(db, row.id, { health_checked_at: checkedAt, health_ok: true, health_error: null });
-    await log(db, row.space_id, { direction: "in", action: "health", detail: { ok: true } });
-    return { ok: true, nudged: false, ticket: false };
+    await patchSync(db, row.id, { health_checked_at: checkedAt, health_ok: true, health_error: null, acl_blocked: null });
+    await log(db, row.space_id, { direction: "in", action: "health", detail: { ok: true, ...(row.acl_blocked ? { acl_cleared: true } : {}) } });
+    return { ok: true, nudged: false, ticket: false, acl_blocked: null };
   }
   const today = londonClock(now).date;
   const nudge = row.health_nudged_on !== today;
-  await patchSync(db, row.id, { health_checked_at: checkedAt, health_ok: false, health_error: error.slice(0, 300), ...(nudge ? { health_nudged_on: today } : {}) });
-  await log(db, row.space_id, { direction: "in", action: "health", detail: { ok: false, error: error.slice(0, 300) } });
+  await patchSync(db, row.id, { health_checked_at: checkedAt, health_ok: false, health_error: error.slice(0, 300), acl_blocked: aclBlocked, ...(nudge ? { health_nudged_on: today } : {}) });
+  await log(db, row.space_id, { direction: "in", action: "health", detail: { ok: false, error: error.slice(0, 300), ...(aclBlocked ? { acl_blocked: true } : {}) } });
   let nudged = false;
   let ticket = false;
   if (nudge) {
-    const sent = await interrupt(db, row.owner_user_id, { kind: "family_calendar_reconnect", title: "The Family calendar needs Google reconnecting", body: error, url: "/other/settings?tab=integrations" }, now).catch(() => null);
+    const sent = aclBlocked
+      ? await interrupt(db, row.owner_user_id, { kind: "family_calendar_acl", title: `${FAMILY_CALENDAR_NAME} is shared with someone else`, body: error, url: "/family" }, now).catch(() => null)
+      : await interrupt(db, row.owner_user_id, { kind: "family_calendar_reconnect", title: "The Family calendar needs Google reconnecting", body: error, url: "/other/settings?tab=integrations" }, now).catch(() => null);
     nudged = !!sent && sent.sent;
-    ticket = await ensureReconnectTicket(db, row.owner_user_id, error, today).catch(() => false);
+    ticket = await (aclBlocked ? ensureAclTicket(db, row.owner_user_id, error, today) : ensureReconnectTicket(db, row.owner_user_id, error, today)).catch(() => false);
   }
-  return { ok: false, error, nudged, ticket };
+  return { ok: false, error, nudged, ticket, acl_blocked: aclBlocked };
 }
 
 /** One open ticket at a time about this; dated today so it sits in the queue. */
 async function ensureReconnectTicket(db: SupabaseClient, uid: string, error: string, today: string): Promise<boolean> {
-  const { data: open } = await db.from("tickets").select("id").contains("meta", HEALTH_TICKET_MARK).is("deleted_at", null).is("completed_at", null).is("cancelled_at", null).limit(1);
+  return ensureHealthTicket(db, uid, today, {
+    mark: HEALTH_TICKET_MARK,
+    title: "Reconnect Google for the Family calendar",
+    description: `The daily check found the Family calendar's Google connection is not working: ${error}\n\nSettings → Integrations → RECONNECT (sign in as the one allowed account). Then open Family → Calendar and press Sync now.\n\n/other/settings?tab=integrations`,
+  });
+}
+
+/** D7: someone else has been given the calendar since it was chosen. One open ticket at a time; dated today. */
+async function ensureAclTicket(db: SupabaseClient, uid: string, error: string, today: string): Promise<boolean> {
+  return ensureHealthTicket(db, uid, today, {
+    mark: ACL_TICKET_MARK,
+    title: `${FAMILY_CALENDAR_NAME} is shared with someone it should not be`,
+    description: `The daily check (${today}) read the calendar's sharing list. ${error}\n\nMycelium has stopped writing to the calendar until they are removed; appointments made meanwhile wait on the queue. Google Calendar → Settings → ${FAMILY_CALENDAR_NAME} → Share with specific people → remove everyone but the two of you (and nothing under "Access permissions for events"). Then Family → Calendar → Sync now.\n\n/family`,
+  });
+}
+
+async function ensureHealthTicket(db: SupabaseClient, uid: string, today: string, t: { mark: Record<string, string>; title: string; description: string }): Promise<boolean> {
+  const { data: open } = await db.from("tickets").select("id").contains("meta", t.mark).is("deleted_at", null).is("completed_at", null).is("cancelled_at", null).limit(1);
   if (open && open.length > 0) return false;
   const { data: profile } = await db.from("profiles").select("personal_space_id").eq("id", uid).maybeSingle();
   const spaceId = (profile as { personal_space_id?: string | null } | null)?.personal_space_id ?? null;
   const row: Record<string, unknown> = {
-    title: "Reconnect Google for the Family calendar",
-    description: `The daily check found the Family calendar's Google connection is not working: ${error}\n\nSettings → Integrations → RECONNECT (sign in as the one allowed account). Then open Family → Calendar and press Sync now.\n\n/other/settings?tab=integrations`,
+    title: t.title,
+    description: t.description,
     kind: "task",
     where_ctx: "anywhere",
     tools: ["phone", "pc"],
@@ -533,7 +605,7 @@ async function ensureReconnectTicket(db: SupabaseClient, uid: string, error: str
     source: "claude",
     owner: uid,
     priority_score: 0.8,
-    meta: HEALTH_TICKET_MARK,
+    meta: t.mark,
   };
   if (spaceId) {
     row.space_id = spaceId;
@@ -585,6 +657,8 @@ export type CalendarStatus = {
   queue: number;
   queue_line: string | null;
   health: { ok: boolean | null; error: string | null; checked_at: string | null };
+  /** D7: who else holds the calendar, when the daily check found someone; writes are stopped while set. */
+  acl_blocked: string | null;
   channel: { on: boolean; expires_at: string | null; error: string | null };
   google_reminders: boolean;
   /** Whether this person has a Google connection of their own (so they could choose a calendar). */
@@ -613,6 +687,7 @@ export async function calendarStatus(db: SupabaseClient, uid: string, spaceId: s
     queue,
     queue_line: queueLine(queue),
     health: { ok: row?.health_ok ?? null, error: row?.health_error ?? null, checked_at: row?.health_checked_at ?? null },
+    acl_blocked: row?.acl_blocked ?? null,
     channel: { on: !!row?.channel_id && !row.channel_error, expires_at: row?.channel_expires_at ?? null, error: row?.channel_error ?? null },
     google_reminders: row?.google_reminders ?? false,
     google_connected: googleConnected,

@@ -176,6 +176,87 @@ export function isGuardedCalendar(id: string | null | undefined): boolean {
 }
 export const GUARDED_CALENDAR_ERROR = "That is Google's own family-group calendar; Mycelium never reads or writes it. Choose Phirsty Life.";
 
+/**
+ * The second of the two accounts Phirsty Life may be shared with (decision
+ * D8, 2026-11-23: Kirsty's Gmail is her Mycelium login and her calendar
+ * address). The first is the connected account itself, the one named in
+ * GOOGLE_ALLOWED_ACCOUNTS. Nobody else, ever (D7).
+ */
+export const FAMILY_PARTNER_ACCOUNT = "kirstykjpetco@gmail.com";
+
+/** One entry of a Google calendar's ACL, as acl.list returns it. */
+export type AclRule = { role: string; scope: { type: string; value?: string } };
+
+/** The share list as people read it: who, and what they may do. `stranger` is true for anyone outside `allowed`. */
+export type AclEntry = { who: string; role: string; scope: string; stranger: boolean };
+
+/** A human name for an ACL scope: the address for a user, "group …", "everyone at …", or "anyone with the link / the public". */
+export function describeScope(scope: AclRule["scope"]): string {
+  const v = (scope.value ?? "").trim();
+  switch (scope.type) {
+    case "user":
+      return v || "an unnamed account";
+    case "group":
+      return `the group ${v || "(unnamed)"}`;
+    case "domain":
+      return `everyone at ${v || "(unnamed domain)"}`;
+    case "default":
+      return "the public (anyone with the link)";
+    default:
+      return `${scope.type} ${v}`.trim();
+  }
+}
+
+/**
+ * Read an ACL the way D7 wants it read: every entry is either one of the
+ * allowed addresses (a `user` scope, matched case-insensitively) or a
+ * stranger. A group, a domain or the public is always a stranger, whatever it
+ * is called, because Mycelium cannot see who is behind it. Google lists the
+ * owner on their own calendar too; the owner is in `allowed`.
+ */
+export function readAcl(rules: readonly AclRule[], allowed: readonly string[]): AclEntry[] {
+  const ok = new Set(allowed.map((a) => a.trim().toLowerCase()).filter(Boolean));
+  return rules
+    .filter((r) => r.role && r.role !== "none") // "none" is Google's way of saying "removed"
+    .map((r) => {
+      const who = describeScope(r.scope);
+      const stranger = !(r.scope.type === "user" && ok.has((r.scope.value ?? "").trim().toLowerCase()));
+      return { who, role: r.role, scope: r.scope.type, stranger };
+    });
+}
+
+/** The strangers on an ACL, named with their role, for the refusal and the ticket. */
+export function aclStrangers(rules: readonly AclRule[], allowed: readonly string[]): string[] {
+  return readAcl(rules, allowed)
+    .filter((e) => e.stranger)
+    .map((e) => `${e.who} (${roleWords(e.role)})`);
+}
+
+/** Google's role names in the words the Share dialog uses. */
+export function roleWords(role: string): string {
+  switch (role) {
+    case "owner":
+      return "owner";
+    case "writer":
+      return "can change events";
+    case "reader":
+      return "sees all details";
+    case "freeBusyReader":
+      return "sees free/busy only";
+    default:
+      return role;
+  }
+}
+
+/** The sentence that refuses a calendar, or stops writing to one, because of who else holds it. */
+export function aclRefusal(strangers: readonly string[], when: "choose" | "health"): string {
+  const list = strangers.join(", ");
+  const head = `${FAMILY_CALENDAR_NAME} may be shared with the two of you and nobody else, but this calendar is also shared with ${list}.`;
+  return when === "choose"
+    ? `${head} Remove them in Google Calendar (Settings → Share with specific people), then choose it again.`
+    : `${head} Mycelium has stopped writing to it; new appointments wait. Remove them in Google Calendar (Settings → Share with specific people), then press Sync now.`;
+}
+
 export type Staleness = { label: string; level: "ok" | "amber" | "red" | "never" };
 
 /** "Last synced 3 min ago", coloured by how stale it is (spec §4.4: over an hour amber, over a day red). */

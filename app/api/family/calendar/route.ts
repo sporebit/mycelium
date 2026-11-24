@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createUserClient } from "@/lib/supabase/user";
 import { principalUid, readJson } from "@/lib/tickets/server";
 import { familyCtx } from "@/lib/family/server";
-import { calendarsForPicker, calendarStatus, chooseCalendar, createFamilyCalendar, currentAcl, disconnectCalendar, getSyncRow, pullFamilyCalendar, shareCalendar } from "@/lib/family/calendar/sync";
+import { calendarsForPicker, calendarStatus, chooseCalendar, createFamilyCalendar, currentAcl, disconnectCalendar, getSyncRow, healthCheck, pullFamilyCalendar, shareCalendar } from "@/lib/family/calendar/sync";
 import { withUser } from "@/lib/system/withUser";
 
 export const runtime = "nodejs";
@@ -82,7 +82,10 @@ export async function POST(req: NextRequest) {
     }
     if (action === "sync") {
       if (!row?.calendar_id || !row.owner_user_id) return bad("The Family calendar is not connected.", 409);
-      const pulled = row.owner_user_id === uid ? await pullFamilyCalendar(supabase, row) : await withUser(row.owner_user_id, (db) => pullFamilyCalendar(db, row));
+      const asOwner = <T>(fn: (db: typeof supabase) => Promise<T>) => (row.owner_user_id === uid ? fn(supabase) : withUser(row.owner_user_id!, fn));
+      // while the daily check has writes stopped over the share list (D7), Sync now re-reads it so the fix takes effect at once
+      const current = row.acl_blocked ? ((await asOwner((db) => healthCheck(db, row))), (await getSyncRow(supabase, ctx.spaceId)) ?? row) : row;
+      const pulled = await asOwner((db) => pullFamilyCalendar(db, current));
       return NextResponse.json({ pulled, status: await calendarStatus(supabase, uid, ctx.spaceId) });
     }
     if (action === "reminders") {

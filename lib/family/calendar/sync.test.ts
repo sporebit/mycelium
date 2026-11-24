@@ -5,7 +5,9 @@
  * builder to serve this module. The point is the rules: what a pull does
  * with a new, changed, cancelled or lapsed event; what a push does with a
  * 412 and a 404; that a failed push is queued rather than lost; what the
- * health check writes down and when it nudges.
+ * health check writes down and when it nudges; and the D7 ACL guard: a
+ * calendar shared beyond the two allowed accounts is refused on choose and
+ * stops writes when the daily check finds a newcomer.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -120,6 +122,7 @@ const google = {
   remove: { status: 204, body: null, etag: null } as Resp<null>,
   watch: { status: 403, body: null, etag: null } as Resp<Row>,
   calendars: [] as Row[],
+  acl: { status: 200, body: [] as Row[], etag: null } as Resp<Row[]>,
   token: "tok" as string | null,
   calls: [] as string[],
 };
@@ -156,7 +159,10 @@ vi.mock("@/lib/google/calendar", () => ({
     google.calls.push(`getCalendar ${id}`);
     return ok({ id, summary: "Family" });
   },
-  listAcl: async () => ok([]),
+  listAcl: async (_db: unknown, id: string) => {
+    google.calls.push(`acl ${id}`);
+    return google.acl;
+  },
   insertAcl: async () => ok({}),
 }));
 const nudges: Row[] = [];
@@ -165,7 +171,9 @@ vi.mock("@/lib/system/withUser", () => ({ withUser: async (_uid: string, fn: (db
 vi.mock("@/lib/tickets/server", () => ({ statusIdFor: async () => "status-next" }));
 vi.mock("@/lib/jobs/handlers", () => ({ registerJobHandler: () => undefined }));
 
-const { afterEntryWrite, calendarsForPicker, chooseCalendar, healthCheck, pullFamilyCalendar, pushEntry, queuedPushes, PUSH_JOB } = await import("./sync");
+// the one account allowed to connect (lib/google/oauth allowedAccounts reads it when called)
+process.env.GOOGLE_ALLOWED_ACCOUNTS = "pwhelanonline@gmail.com";
+const { afterEntryWrite, calendarsForPicker, chooseCalendar, currentAcl, healthCheck, pullFamilyCalendar, pushEntry, queuedPushes, PUSH_JOB } = await import("./sync");
 
 const SPACE = "space-1";
 const OWNER = "phil";
@@ -191,13 +199,14 @@ const syncRow = () =>
     health_ok: null,
     health_error: null,
     health_nudged_on: null,
+    acl_blocked: null,
     updated_at: now.toISOString(),
   }) as Row;
 
 beforeEach(() => {
   for (const k of Object.keys(tables)) tables[k] = [];
   tables.family_calendar_sync.push(syncRow());
-  tables.user_settings.push({ google_refresh_token: "r", google_sync_error: null });
+  tables.user_settings.push({ google_refresh_token: "r", google_sync_error: null, google_account_email: "pwhelanonline@gmail.com" });
   tables.profiles.push({ id: OWNER, personal_space_id: "phil-space" });
   google.pages = [];
   google.patch = [];
@@ -207,8 +216,12 @@ beforeEach(() => {
   google.get = ok({});
   google.remove = { status: 204, body: null, etag: null };
   google.calendars = [];
+  google.acl = { status: 200, body: [], etag: null };
   nudges.length = 0;
 });
+
+const PHIL_RULE = { id: "user:pwhelanonline@gmail.com", role: "owner", scope: { type: "user", value: "pwhelanonline@gmail.com" } };
+const KIRSTY_RULE = { id: "user:kirstykjpetco@gmail.com", role: "writer", scope: { type: "user", value: "kirstykjpetco@gmail.com" } };
 
 const GROUP_CAL = "family0876abcdef0123456789abcdef0123456789abcdef0123456789abcdef01@group.calendar.google.com";
 const PHIRSTY = "c68f629139fcaf595bb3f9c529fae1bf7d5b0a2965a311e5639dfffbc6f6e209@group.calendar.google.com";
@@ -254,6 +267,110 @@ describe("Google's family-group calendar is never touched (decision D7, 2026-11-
 
 const sync = () => tables.family_calendar_sync[0] as ReturnType<typeof syncRow> & import("./sync").SyncRow;
 const logActions = () => tables.family_calendar_sync_log.map((l) => `${l.direction}:${l.action}`);
+
+describe("the ACL guard: Phirsty Life is shared with Phil and Kirsty and nobody else (D7, spec §4.1 and §4.4)", () => {
+  it("a calendar held by the two of them is chosen; the share list shows both and marks nobody", async () => {
+    google.acl = ok([PHIL_RULE, KIRSTY_RULE]);
+    const r = await chooseCalendar(fakeDb(), OWNER, SPACE, PHIRSTY, now);
+    expect(r.ok).toBe(true);
+    expect(sync()).toMatchObject({ calendar_id: PHIRSTY, acl_blocked: null });
+    expect(google.calls.slice(0, 2)).toEqual([`getCalendar ${PHIRSTY}`, `acl ${PHIRSTY}`]);
+    const list = await currentAcl(fakeDb(), sync());
+    expect(list).toEqual([
+      { who: "pwhelanonline@gmail.com", role: "owner", scope: "user", stranger: false },
+      { who: "kirstykjpetco@gmail.com", role: "writer", scope: "user", stranger: false },
+    ]);
+  });
+
+  it("a third person on the calendar: refused with a 403 that names them, and nothing is saved", async () => {
+    google.acl = ok([PHIL_RULE, KIRSTY_RULE, { role: "reader", scope: { type: "user", value: "dave@example.com" } }]);
+    const r = await chooseCalendar(fakeDb(), OWNER, SPACE, PHIRSTY, now);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.status).toBe(403);
+    expect(r.error).toContain("dave@example.com (sees all details)");
+    expect(r.error).toMatch(/Remove them in Google Calendar/);
+    expect(sync().calendar_id).toBe("cal-1"); // the old choice stands
+    expect(google.calls).toEqual([`getCalendar ${PHIRSTY}`, `acl ${PHIRSTY}`]); // no pull, no channel
+  });
+
+  it("a group, a domain and the public are strangers too, whatever they are called, and all are named", async () => {
+    google.acl = ok([
+      PHIL_RULE,
+      KIRSTY_RULE,
+      { role: "writer", scope: { type: "group", value: "the-whelans@googlegroups.com" } },
+      { role: "reader", scope: { type: "domain", value: "sporebit.com" } },
+      { role: "freeBusyReader", scope: { type: "default" } },
+    ]);
+    const r = await chooseCalendar(fakeDb(), OWNER, SPACE, PHIRSTY, now);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.error).toContain("the group the-whelans@googlegroups.com (can change events)");
+    expect(r.error).toContain("everyone at sporebit.com (sees all details)");
+    expect(r.error).toContain("the public (anyone with the link) (sees free/busy only)");
+  });
+
+  it("matching is by address, not by case; Kirsty's entry written in capitals is still Kirsty", async () => {
+    google.acl = ok([PHIL_RULE, { role: "writer", scope: { type: "user", value: "KirstyKJPetco@Gmail.com" } }]);
+    const r = await chooseCalendar(fakeDb(), OWNER, SPACE, PHIRSTY, now);
+    expect(r.ok).toBe(true);
+  });
+
+  it("a calendar whose sharing Google will not show (shared to Phil, not his) is refused: only his own can be the Family calendar", async () => {
+    google.acl = { status: 403, body: null, etag: null };
+    const r = await chooseCalendar(fakeDb(), OWNER, SPACE, "someone-elses@group.calendar.google.com", now);
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.status).toBe(409);
+    expect(r.error).toMatch(/only a calendar in your own account/);
+  });
+
+  it("the daily check finds a newcomer: writes stop and wait, the owner is pushed once, a dated ticket names them; the next clean check lets writes through again", async () => {
+    google.acl = ok([PHIL_RULE, KIRSTY_RULE, { role: "writer", scope: { type: "user", value: "mate@example.com" } }]);
+    const found = await healthCheck(fakeDb(), sync(), now);
+    expect(found.ok).toBe(false);
+    expect(found.acl_blocked).toContain("mate@example.com (can change events)");
+    expect(found).toMatchObject({ nudged: true, ticket: true });
+    expect(sync()).toMatchObject({ health_ok: false, health_nudged_on: "2026-11-21" });
+    expect(sync().acl_blocked).toMatch(/Mycelium has stopped writing to it/);
+    expect(nudges).toHaveLength(1);
+    expect(nudges[0]).toMatchObject({ uid: OWNER, kind: "family_calendar_acl", url: "/family" });
+    expect(tables.tickets).toHaveLength(1);
+    expect(tables.tickets[0]).toMatchObject({ title: "Phirsty Life is shared with someone it should not be", scheduled_on: "2026-11-21", owner: OWNER, meta: { family_calendar: "acl" } });
+    expect(String(tables.tickets[0].description)).toContain("mate@example.com");
+
+    // a new appointment while blocked: not written, not dropped — queued and counted
+    tables.family_entries.push({ id: "e1", space_id: SPACE, kind: "appointment", title: "Dentist", starts_at: "2026-12-01T10:00:00.000Z", updated_at: now.toISOString() });
+    google.calls = [];
+    const pushed = await pushEntry(fakeDb(), sync(), "e1", "create");
+    expect(pushed).toMatchObject({ done: false, status: 423 });
+    expect(google.calls).toEqual([]);
+    await afterEntryWrite(fakeDb(), OWNER, SPACE, "e1", "create");
+    expect(await queuedPushes(fakeDb(), SPACE)).toBe(1);
+
+    // later the same day: still blocked, no second nudge, no second ticket
+    const again = await healthCheck(fakeDb(), sync(), new Date("2026-11-21T18:00:00Z"));
+    expect(again).toMatchObject({ ok: false, nudged: false, ticket: false });
+    expect(nudges).toHaveLength(1);
+    expect(tables.tickets).toHaveLength(1);
+
+    // Phil removes them; the next check clears the block and the queued write can go
+    google.acl = ok([PHIL_RULE, KIRSTY_RULE]);
+    const clean = await healthCheck(fakeDb(), sync(), new Date("2026-11-22T09:00:00Z"));
+    expect(clean).toMatchObject({ ok: true, acl_blocked: null });
+    expect(sync()).toMatchObject({ health_ok: true, health_error: null, acl_blocked: null });
+    const retried = await pushEntry(fakeDb(), sync(), "e1", "create");
+    expect(retried.done).toBe(true);
+    expect(google.calls).toContain("insert Dentist");
+    expect(logActions()).toContain("in:health");
+  });
+
+  it("the share list on the tab marks a stranger so Phil can see it", async () => {
+    google.acl = ok([PHIL_RULE, KIRSTY_RULE, { role: "reader", scope: { type: "default" } }]);
+    const list = await currentAcl(fakeDb(), sync());
+    expect(list.map((e) => `${e.who}${e.stranger ? "!" : ""}`)).toEqual(["pwhelanonline@gmail.com", "kirstykjpetco@gmail.com", "the public (anyone with the link)!"]);
+  });
+});
 
 describe("pull: Google → family_entries (spec §4.2)", () => {
   it("a new event makes a row, a changed one updates it, a cancelled one deletes it; the sync token moves on", async () => {
@@ -406,7 +523,7 @@ describe("push: family_entries → Google (spec §4.3)", () => {
 describe("the daily health check (spec §4.4)", () => {
   it("a live connection is written down as fine and nobody is bothered", async () => {
     const r = await healthCheck(fakeDb(), sync(), now);
-    expect(r).toEqual({ ok: true, nudged: false, ticket: false });
+    expect(r).toEqual({ ok: true, nudged: false, ticket: false, acl_blocked: null });
     expect(sync()).toMatchObject({ health_ok: true, health_error: null, health_checked_at: now.toISOString() });
     expect(nudges).toEqual([]);
   });
