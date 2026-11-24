@@ -1,0 +1,14 @@
+# A CLI deploy (vercel deploy) does not honour .gitignore; without this file it
+# swept 19,777 files and 1.5 GB of local build output into the upload on
+# 2026-11-24 and the cold build ran out of memory. Git deploys ignore this file.
+.next
+.next-e2e*
+node_modules
+e2e/.results
+e2e/.auth
+e2e/test-results
+playwright-report
+.env*
+graphify-out
+.graphify
+imports/private
