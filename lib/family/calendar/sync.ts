@@ -180,7 +180,7 @@ export async function shareCalendar(ownerDb: SupabaseClient, row: SyncRow, email
 export async function currentAcl(ownerDb: SupabaseClient, row: SyncRow): Promise<AclEntry[]> {
   if (!row.calendar_id) return [];
   const [r, allowed] = await Promise.all([listAcl(ownerDb, row.calendar_id), familyAclAllowed(ownerDb)]);
-  return readAcl((r.body ?? []) as GoogleAclRule[], allowed);
+  return readAcl((r.body ?? []) as GoogleAclRule[], allowed, row.calendar_id);
 }
 
 /**
@@ -210,9 +210,9 @@ export async function checkAcl(ownerDb: SupabaseClient, calendarId: string, when
   if (r.status === 403 || r.status === 404) return { ok: false, status: 409, error: `Google will not show who this calendar is shared with (${r.status}); only a calendar in your own account can be the Family calendar.`, strangers: [] };
   if (!r.body) return { ok: false, status: 502, error: `Google did not answer about the calendar's sharing (${r.status}).`, strangers: [] };
   const rules = r.body as GoogleAclRule[];
-  const strangers = aclStrangers(rules, allowed);
+  const strangers = aclStrangers(rules, allowed, calendarId);
   if (strangers.length) return { ok: false, status: 403, error: aclRefusal(strangers, when), strangers };
-  return { ok: true, acl: readAcl(rules, allowed) };
+  return { ok: true, acl: readAcl(rules, allowed, calendarId) };
 }
 
 /** Forget the calendar: stop the channel, clear the row. Rows already here stay; their ext ids are kept so a reconnect finds them. */

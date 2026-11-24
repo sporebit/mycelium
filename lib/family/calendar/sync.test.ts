@@ -269,8 +269,8 @@ const sync = () => tables.family_calendar_sync[0] as ReturnType<typeof syncRow> 
 const logActions = () => tables.family_calendar_sync_log.map((l) => `${l.direction}:${l.action}`);
 
 describe("the ACL guard: Phirsty Life is shared with Phil and Kirsty and nobody else (D7, spec §4.1 and §4.4)", () => {
-  it("a calendar held by the two of them is chosen; the share list shows both and marks nobody", async () => {
-    google.acl = ok([PHIL_RULE, KIRSTY_RULE]);
+  it("a calendar held by the two of them is chosen; the share list shows both and marks nobody (Google's entry for the calendar itself is left out)", async () => {
+    google.acl = ok([{ role: "owner", scope: { type: "user", value: PHIRSTY } }, PHIL_RULE, KIRSTY_RULE]);
     const r = await chooseCalendar(fakeDb(), OWNER, SPACE, PHIRSTY, now);
     expect(r.ok).toBe(true);
     expect(sync()).toMatchObject({ calendar_id: PHIRSTY, acl_blocked: null });

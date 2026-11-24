@@ -169,6 +169,15 @@ describe("reading a calendar's ACL (decision D7, spec §4.1)", () => {
     ]);
   });
 
+  it("the calendar's own id, which Google lists as an owner on a secondary calendar, is the calendar and not a stranger", () => {
+    const cal = "c68f6291abc@group.calendar.google.com";
+    const selfRule = { role: "owner", scope: { type: "user", value: cal } };
+    expect(aclStrangers([selfRule, phil, kirsty], allowed, cal)).toEqual([]);
+    expect(readAcl([selfRule, phil, kirsty], allowed, cal).map((e) => e.who)).toEqual(["pwhelanonline@gmail.com", "Kirstykjpetco@gmail.com"]);
+    // without the calendar id it cannot be told apart from a stranger, so it is named
+    expect(aclStrangers([selfRule], allowed)).toEqual([`${cal} (owner)`]);
+  });
+
   it("a group or domain is a stranger even when its name is an allowed address: Mycelium cannot see who is behind it", () => {
     expect(aclStrangers([{ role: "reader", scope: { type: "group", value: "kirstykjpetco@gmail.com" } }], allowed)).toEqual(["the group kirstykjpetco@gmail.com (sees all details)"]);
   });

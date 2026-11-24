@@ -212,12 +212,17 @@ export function describeScope(scope: AclRule["scope"]): string {
  * allowed addresses (a `user` scope, matched case-insensitively) or a
  * stranger. A group, a domain or the public is always a stranger, whatever it
  * is called, because Mycelium cannot see who is behind it. Google lists the
- * owner on their own calendar too; the owner is in `allowed`.
+ * owner on their own calendar too; the owner is in `allowed`. On a secondary
+ * calendar Google also lists the calendar's own id as a `user` with role
+ * `owner` (seen live on Phirsty Life, 2026-11-24): that entry is the calendar
+ * itself, not a person, and is left out when `calendarId` is given.
  */
-export function readAcl(rules: readonly AclRule[], allowed: readonly string[]): AclEntry[] {
+export function readAcl(rules: readonly AclRule[], allowed: readonly string[], calendarId?: string | null): AclEntry[] {
   const ok = new Set(allowed.map((a) => a.trim().toLowerCase()).filter(Boolean));
+  const self = (calendarId ?? "").trim().toLowerCase();
   return rules
     .filter((r) => r.role && r.role !== "none") // "none" is Google's way of saying "removed"
+    .filter((r) => !(self && r.scope.type === "user" && (r.scope.value ?? "").trim().toLowerCase() === self))
     .map((r) => {
       const who = describeScope(r.scope);
       const stranger = !(r.scope.type === "user" && ok.has((r.scope.value ?? "").trim().toLowerCase()));
@@ -226,8 +231,8 @@ export function readAcl(rules: readonly AclRule[], allowed: readonly string[]): 
 }
 
 /** The strangers on an ACL, named with their role, for the refusal and the ticket. */
-export function aclStrangers(rules: readonly AclRule[], allowed: readonly string[]): string[] {
-  return readAcl(rules, allowed)
+export function aclStrangers(rules: readonly AclRule[], allowed: readonly string[], calendarId?: string | null): string[] {
+  return readAcl(rules, allowed, calendarId)
     .filter((e) => e.stranger)
     .map((e) => `${e.who} (${roleWords(e.role)})`);
 }
