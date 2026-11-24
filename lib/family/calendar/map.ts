@@ -156,6 +156,26 @@ export function decideIncoming(row: Pick<EntryRow, "ext_updated_at" | "updated_a
   return { action: "keep_local_push" };
 }
 
+/**
+ * The calendar the family shares is "Phirsty Life", a calendar Phil made in
+ * his own account (decision D10, 2026-11-23: permanent, no .ics subscription).
+ */
+export const FAMILY_CALENDAR_NAME = "Phirsty Life";
+
+/**
+ * Google's own family-group calendar (shown as "Premium Calendar"; its id is
+ * `family<hex>@group.calendar.google.com`). Decision D7 (2026-11-23): Mycelium
+ * never offers it in the picker, never lets it be chosen, and never reads or
+ * writes it, whatever the row says. The friends in Phil's Google family
+ * groups are reached by sharing Phirsty Life with them (an ACL entry), never
+ * through the group calendar.
+ */
+export const GOOGLE_FAMILY_GROUP_RE = /^family[0-9a-f]{6,}@group\.calendar\.google\.com$/i;
+export function isGuardedCalendar(id: string | null | undefined): boolean {
+  return !!id && GOOGLE_FAMILY_GROUP_RE.test(id.trim());
+}
+export const GUARDED_CALENDAR_ERROR = "That is Google's own family-group calendar; Mycelium never reads or writes it. Choose Phirsty Life.";
+
 export type Staleness = { label: string; level: "ok" | "amber" | "red" | "never" };
 
 /** "Last synced 3 min ago", coloured by how stale it is (spec §4.4: over an hour amber, over a day red). */

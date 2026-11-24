@@ -32,7 +32,7 @@ import { interrupt } from "@/lib/nudges/interrupt";
 import { londonClock } from "@/lib/daylog/day";
 import { statusIdFor } from "@/lib/tickets/server";
 import { withUser } from "@/lib/system/withUser";
-import { decideIncoming, ENTRY_PROP, entryColumnsFromEvent, eventFromEntry, queueLine, staleness, syncWindow, type EntryRow, type Staleness } from "./map";
+import { decideIncoming, ENTRY_PROP, entryColumnsFromEvent, eventFromEntry, FAMILY_CALENDAR_NAME, GUARDED_CALENDAR_ERROR, isGuardedCalendar, queueLine, staleness, syncWindow, type EntryRow, type Staleness } from "./map";
 
 export const PUSH_JOB = "family_calendar_push";
 const SYNC_COLS = "id, space_id, calendar_id, calendar_summary, owner_user_id, sync_token, last_synced_at, last_sync_error, last_sync_error_at, channel_id, channel_resource_id, channel_token, channel_expires_at, channel_error, google_reminders, health_checked_at, health_ok, health_error, health_nudged_on, updated_at";
@@ -112,7 +112,8 @@ export async function calendarsForPicker(ownerDb: SupabaseClient): Promise<{ ok:
   const r = await listCalendars(ownerDb);
   if (r.status === 401 || r.status === 403) return { ok: false, status: 409, error: "Google is not connected, or needs reconnecting, in Settings → Integrations." };
   if (!r.body) return { ok: false, status: 502, error: `Google did not answer (${r.status}).` };
-  return { ok: true, calendars: r.body.map((c) => ({ id: c.id, summary: c.summary ?? c.id, primary: !!c.primary })) };
+  // Google's family-group calendar is never offered (D7)
+  return { ok: true, calendars: r.body.filter((c) => !isGuardedCalendar(c.id)).map((c) => ({ id: c.id, summary: c.summary ?? c.id, primary: !!c.primary })) };
 }
 
 /**
@@ -121,6 +122,7 @@ export async function calendarsForPicker(ownerDb: SupabaseClient): Promise<{ ok:
  * calendar the owner can write to is accepted.
  */
 export async function chooseCalendar(db: SupabaseClient, uid: string, spaceId: string, calendarId: string, now: Date = new Date()): Promise<{ ok: true; row: SyncRow; pulled: PullResult } | { ok: false; status: number; error: string }> {
+  if (isGuardedCalendar(calendarId)) return { ok: false, status: 403, error: GUARDED_CALENDAR_ERROR };
   const got = await getCalendar(db, calendarId);
   if (got.status === 401 || got.status === 403) return { ok: false, status: 409, error: "Google is not connected, or needs reconnecting, in Settings → Integrations." };
   if (!got.body) return { ok: false, status: 404, error: "Google has no calendar with that id." };
@@ -150,7 +152,7 @@ export async function chooseCalendar(db: SupabaseClient, uid: string, spaceId: s
 }
 
 /** Create a calendar called "Family" in the owner's account and choose it. */
-export async function createFamilyCalendar(db: SupabaseClient, uid: string, spaceId: string, name = "Family"): Promise<ReturnType<typeof chooseCalendar>> {
+export async function createFamilyCalendar(db: SupabaseClient, uid: string, spaceId: string, name: string = FAMILY_CALENDAR_NAME): Promise<ReturnType<typeof chooseCalendar>> {
   const made = await createCalendar(db, name);
   if (made.status === 401 || made.status === 403) return { ok: false, status: 409, error: "Google is not connected, or needs reconnecting, in Settings → Integrations." };
   if (!made.body?.id) return { ok: false, status: 502, error: `Google did not create the calendar (${made.status}).` };
@@ -185,6 +187,7 @@ export type PullResult = { ok: boolean; created: number; updated: number; delete
 export async function pullFamilyCalendar(db: SupabaseClient, row: SyncRow, now: Date = new Date()): Promise<PullResult> {
   const out: PullResult = { ok: false, created: 0, updated: 0, deleted: 0, skipped: 0, full: !row.sync_token };
   if (!row.calendar_id) return { ...out, error: "no calendar chosen" };
+  if (isGuardedCalendar(row.calendar_id)) return { ...out, error: GUARDED_CALENDAR_ERROR };
   let syncToken: string | null = row.sync_token;
   let pageToken: string | null = null;
   let nextSyncToken: string | null = null;
@@ -303,6 +306,8 @@ export type PushResult = { done: boolean; action: PushAction; status?: number; e
  */
 export async function pushEntry(db: SupabaseClient, row: SyncRow, entryId: string, action: PushAction, extId?: string | null): Promise<PushResult> {
   if (!row.calendar_id) return { done: true, action };
+  // never written, and not retried either: the row is wrong, not Google (D7)
+  if (isGuardedCalendar(row.calendar_id)) return { done: true, action, error: GUARDED_CALENDAR_ERROR };
   const cal = row.calendar_id;
 
   if (action === "delete") {

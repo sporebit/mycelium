@@ -119,6 +119,7 @@ const google = {
   get: ok<Row>({}) as Resp<Row>,
   remove: { status: 204, body: null, etag: null } as Resp<null>,
   watch: { status: 403, body: null, etag: null } as Resp<Row>,
+  calendars: [] as Row[],
   token: "tok" as string | null,
   calls: [] as string[],
 };
@@ -149,9 +150,12 @@ vi.mock("@/lib/google/calendar", () => ({
     return google.watch;
   },
   stopChannel: async () => ({ status: 204, body: null, etag: null }),
-  listCalendars: async () => ok([]),
+  listCalendars: async () => ok(google.calendars),
   createCalendar: async () => ok({ id: "new-cal", summary: "Family" }),
-  getCalendar: async (_db: unknown, id: string) => ok({ id, summary: "Family" }),
+  getCalendar: async (_db: unknown, id: string) => {
+    google.calls.push(`getCalendar ${id}`);
+    return ok({ id, summary: "Family" });
+  },
   listAcl: async () => ok([]),
   insertAcl: async () => ok({}),
 }));
@@ -161,7 +165,7 @@ vi.mock("@/lib/system/withUser", () => ({ withUser: async (_uid: string, fn: (db
 vi.mock("@/lib/tickets/server", () => ({ statusIdFor: async () => "status-next" }));
 vi.mock("@/lib/jobs/handlers", () => ({ registerJobHandler: () => undefined }));
 
-const { afterEntryWrite, healthCheck, pullFamilyCalendar, pushEntry, queuedPushes, PUSH_JOB } = await import("./sync");
+const { afterEntryWrite, calendarsForPicker, chooseCalendar, healthCheck, pullFamilyCalendar, pushEntry, queuedPushes, PUSH_JOB } = await import("./sync");
 
 const SPACE = "space-1";
 const OWNER = "phil";
@@ -202,7 +206,50 @@ beforeEach(() => {
   google.insert = ok({ id: "g-new", etag: '"n1"', updated: "2026-11-21T12:00:00.000Z" });
   google.get = ok({});
   google.remove = { status: 204, body: null, etag: null };
+  google.calendars = [];
   nudges.length = 0;
+});
+
+const GROUP_CAL = "family0876abcdef0123456789abcdef0123456789abcdef0123456789abcdef01@group.calendar.google.com";
+const PHIRSTY = "c68f629139fcaf595bb3f9c529fae1bf7d5b0a2965a311e5639dfffbc6f6e209@group.calendar.google.com";
+
+describe("Google's family-group calendar is never touched (decision D7, 2026-11-23)", () => {
+  it("the picker leaves it out and offers the rest", async () => {
+    google.calendars = [
+      { id: "phil@example.test", summary: "Personal", primary: true },
+      { id: GROUP_CAL, summary: "Premium Calendar" },
+      { id: PHIRSTY, summary: "Phirsty Life" },
+    ];
+    const r = await calendarsForPicker(fakeDb());
+    expect(r.ok && r.calendars.map((c) => c.summary)).toEqual(["Personal", "Phirsty Life"]);
+  });
+
+  it("choosing it is refused before Google is even asked", async () => {
+    const r = await chooseCalendar(fakeDb(), OWNER, SPACE, GROUP_CAL, now);
+    expect(r.ok).toBe(false);
+    expect(!r.ok && r.status).toBe(403);
+    expect(google.calls).toEqual([]);
+    expect(sync().calendar_id).toBe("cal-1");
+  });
+
+  it("a row that somehow names it is neither pulled nor pushed, and the push is not queued for retry", async () => {
+    sync().calendar_id = GROUP_CAL;
+    const pulled = await pullFamilyCalendar(fakeDb(), sync(), now);
+    expect(pulled.ok).toBe(false);
+    expect(pulled.error).toMatch(/never reads or writes/);
+    tables.family_entries.push({ id: "e1", space_id: SPACE, kind: "appointment", title: "Scan", starts_at: "2026-12-01T10:00:00.000Z", updated_at: now.toISOString() });
+    const pushed = await pushEntry(fakeDb(), sync(), "e1", "create");
+    expect(pushed.done).toBe(true);
+    expect(pushed.error).toMatch(/never reads or writes/);
+    expect(google.calls).toEqual([]);
+  });
+
+  it("Phirsty Life itself passes the guard", async () => {
+    const r = await chooseCalendar(fakeDb(), OWNER, SPACE, PHIRSTY, now);
+    expect(r.ok).toBe(true);
+    expect(sync().calendar_id).toBe(PHIRSTY);
+    expect(google.calls[0]).toBe(`getCalendar ${PHIRSTY}`);
+  });
 });
 
 const sync = () => tables.family_calendar_sync[0] as ReturnType<typeof syncRow> & import("./sync").SyncRow;

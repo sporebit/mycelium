@@ -21,6 +21,7 @@ import Link from "next/link";
 import { Button, Label, Surface } from "@/components/ui";
 import { useApi } from "@/lib/data/useApi";
 import type { CalendarChoice, CalendarStatus } from "@/lib/family/calendar/sync";
+import { FAMILY_CALENDAR_NAME } from "@/lib/family/calendar/map";
 import { INPUT, send, type Overview } from "./api";
 
 type View = { status: CalendarStatus; calendars?: CalendarChoice[]; picker_error?: string | null; acl?: Array<{ email: string; role: string }> };
@@ -109,11 +110,11 @@ export function Calendar({ family }: { family: Overview }) {
           <Picker data={data} busy={busy} onChoose={(id) => void act(`choose:${id}`, { action: "choose", calendar_id: id }, pulledLine)} onCreate={() => void act("create", { action: "create" }, pulledLine)} />
         ) : (
           <p className="text-sm text-text-mid" data-testid="family-calendar-unconnected">
-            Not connected. {owner && !owner.me ? `${owner.name} connects it from their phone: ` : ""}
+            Not connected. The one Google account Mycelium accepts holds {FAMILY_CALENDAR_NAME}: that person{" "}
             <Link href="/other/settings?tab=integrations" className="underline">
-              connect Google in Settings → Integrations
+              connects Google in Settings → Integrations
             </Link>{" "}
-            first, then choose the calendar here. Only the one allowed Google account can connect.
+            and then chooses the calendar here. Nobody else connects Google — the calendar is shared to your own Google account instead, so it shows on your phone as it is.
           </p>
         )}
 
@@ -177,9 +178,13 @@ export function Calendar({ family }: { family: Overview }) {
 
 function Picker({ data, busy, onChoose, onCreate }: { data: View; busy: string | null; onChoose: (id: string) => void; onCreate: () => void }) {
   const calendars = data.calendars ?? [];
+  // "Phirsty Life" is the calendar (D7, D10): once it exists in the account there is nothing to create
+  const havePhirsty = calendars.some((c) => c.summary.trim().toLowerCase() === FAMILY_CALENDAR_NAME.toLowerCase());
   return (
     <div className="flex flex-col gap-3" data-testid="family-calendar-picker">
-      <p className="text-sm text-text-mid">Choose the Google calendar that is the Family calendar, or make a new one called Family. Only its appointments are read; nothing else in your Google account is touched.</p>
+      <p className="text-sm text-text-mid">
+        Choose <span className="text-text-hi">{FAMILY_CALENDAR_NAME}</span>, the calendar the family shares. Only its appointments are read; nothing else in your Google account is touched, and Google&apos;s own family-group calendar is never offered here.
+      </p>
       {data.picker_error ? <p className="text-sm text-v2-error">{data.picker_error}</p> : null}
       {calendars.length ? (
         <ul className="flex flex-col gap-1">
@@ -196,11 +201,13 @@ function Picker({ data, busy, onChoose, onCreate }: { data: View; busy: string |
           ))}
         </ul>
       ) : null}
-      <div>
-        <Button variant="primary" size="sm" loading={busy === "create"} onClick={onCreate}>
-          Create a Family calendar
-        </Button>
-      </div>
+      {havePhirsty ? null : (
+        <div>
+          <Button variant="primary" size="sm" loading={busy === "create"} onClick={onCreate}>
+            Create a calendar called {FAMILY_CALENDAR_NAME}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

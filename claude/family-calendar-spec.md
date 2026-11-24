@@ -13,6 +13,15 @@
 | D5 | The plans engine is no longer a small module here. It is the **PhirstMaxx section** — see `claude/phirstmaxx-spec.md`. |
 | D6 | Timing: after the current run. Does not wait for the UI rebuild. Kirsty does not need a Mycelium login for the calendar. |
 
+*Amendments of 2026-11-23 (Claude project chat with Phil), merged into the repo copy on 2026-11-24 by the overnight run from the one-line summary in Phil's brief — the project's full wording could not be read from the terminal, so each row below carries the run's reading of it; correct the wording where it differs, the behaviour is as built.*
+
+| # | Decision (2026-11-23) |
+|---|---|
+| D7 | **The Google calendar is "Phirsty Life"** (`c68f6291…@group.calendar.google.com`), made by Phil in his own account, not a calendar called "Family". Sharing covers the friends in Phil's Google family groups as well as Kirsty: anyone is shared in by an ACL entry on Phirsty Life. **The ACL guard:** Google's own family-group calendar ("Premium Calendar", id `family0876…@group.calendar.google.com`) is never offered in the picker, never accepted as the choice, and never read or written, whatever a row says (`isGuardedCalendar` in `lib/family/calendar/map.ts`, applied in the picker, `chooseCalendar`, `pullFamilyCalendar` and `pushEntry`; a push to it is marked done, not queued). |
+| D8 | **`kirstykjpetco@gmail.com` is Kirsty's Mycelium login** (the Google account doubles as her sign-in), and **she never connects Google in Mycelium**: Phil's connection is the only one (`GOOGLE_ALLOWED_ACCOUNTS` stays his address alone), and the Family → Calendar tab tells any other member so rather than sending them to connect. |
+| D9 | **The handover reset:** when the calendar is chosen (again), the sync token, push channel and health state are dropped and a full pull runs, so a handover (a reconnect, a new calendar, Kirsty's arrival) starts from Google's truth — `chooseCalendar` already behaves this way; nothing is deleted locally and rows made here are re-linked by their id. |
+| D10 | **Phirsty Life is permanent, with no .ics subscription**: the iCal feed URLs are gone from the code and the environments (2026-11-24, `GOOGLE_CALENDAR_ICAL_URLS` retired; the calendar page reads Personal and UK holidays through the connection), and "Create a Family calendar" is offered only while no Phirsty Life exists in the account. |
+
 ## 2. Why Google kept disconnecting, and the fix
 
 Finding (repo + Google's rules): `/api/google/auth` already asks for `access_type=offline` and `prompt=consent`, so the code is right. The cause is almost certainly the Google Cloud project: an OAuth consent screen with user type **External** and publishing status **Testing** issues refresh tokens that die **seven days after consent**. The token "expired 2026-06-24" fits that.
@@ -62,6 +71,7 @@ Build:
 - Store the connected address as `user_settings.google_account_email` and show it in Settings → Integrations beside "Connected".
 - The same two checks apply to any future Google connect route (the Family calendar picker reuses this connection; it adds none).
 - Tests: no `state` → rejected; wrong `state` → rejected; a non-allowlisted account → nothing stored and the revoke call made; allowlisted → stored with its address.
+- **2026-11-24 (built, overnight run): D7–D10 above.** `GOOGLE_FAMILY_GROUP_RE` / `isGuardedCalendar` / `GUARDED_CALENDAR_ERROR` / `FAMILY_CALENDAR_NAME` in `lib/family/calendar/map.ts`; four tests in `lib/family/calendar/sync.test.ts` (picker hides it, choose refused 403 before Google is asked, a row naming it is neither pulled nor pushed, Phirsty Life passes). Phirsty Life chosen for the family space on production and the live round trip done the same night (see `claude/context.md`).
 - **2026-11-23 (built; the reconnect that always came back `bad_state`):** the nonce cookie was being replaced behind the person's back — the CONNECT / RECONNECT `<Link>`s were prefetched by the Next router (on screen and on hover) and the click itself went through the router before the real navigation, each run of `/api/google/auth` minting a new nonce. Now: plain anchors; the auth route answers router-made requests 204 with no cookie; the cookie keeps the last five nonces so a second click or tab does not break the first sign-in; the callback returns to Settings → Integrations (`?tab=integrations&google=…`) and the tab opens on `?google=` alone. Round trip covered by `app/api/google/roundtrip.test.ts` and `e2e/google-connect.tess.spec.ts`. As built in `claude/spec-platform.md` (Google Calendar).
 
 ### 4.6 Privacy and tests
