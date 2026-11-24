@@ -114,6 +114,11 @@ test("?google=<flag> with no tab opens Integrations and says what happened", asy
   await expect(page.getByTestId("google-notice")).toContainText("Sign-in expired, try again.");
   await page.goto("/other/settings?google=not_allowed");
   await expect(page.getByTestId("google-notice")).toContainText("That Google account isn't allowed here.");
+  // the callback names the address it turned away (2026-11-24)
+  await page.goto("/other/settings?google=not_allowed&account=kirsty%40example.com");
+  await expect(page.getByTestId("google-notice")).toContainText("kirsty@example.com was turned away and nothing was stored");
   await page.goto("/other/settings?google=connected");
   await expect(page.getByTestId("google-notice")).toContainText("Google connected.");
+  // the row's subtitle says what is true: the e2e server's Phil has no Google tokens
+  await expect(page.getByTestId("google-subtitle")).toContainText("Not connected. Connect to show your Personal calendar and UK holidays");
 });

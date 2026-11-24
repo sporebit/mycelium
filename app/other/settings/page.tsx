@@ -14,6 +14,7 @@ import { applyTheme, isTheme, type Theme } from "@/lib/theme";
 import { SECTIONS } from "@/lib/nav/sections";
 import Link from "next/link";
 import { Mono } from "@/components/dashboard/Mono";
+import { staleness } from "@/lib/family/calendar/map";
 import { NotificationSettings } from "@/components/work/NotificationSettings";
 
 type Settings = Record<string, unknown>;
@@ -757,6 +758,7 @@ function NotificationsSection({ settings, onPatch }: { settings: Settings; onPat
 const GOOGLE_FLAGS: Record<string, string> = {
   connected: "Google connected.",
   not_allowed: "That Google account isn't allowed here. Only the account named in GOOGLE_ALLOWED_ACCOUNTS on the server can connect; nothing was stored.",
+  no_code: "Google sent no sign-in code. Try again.",
   bad_state: "Sign-in expired, try again. (The sign-in took more than ten minutes, or came back to a different browser from the one that started it.)",
   no_account: "Google did not say which account that was, so nothing was stored. Try again.",
   denied: "Google sign-in was cancelled.",
@@ -765,12 +767,28 @@ const GOOGLE_FLAGS: Record<string, string> = {
   error: "Google sign-in failed. Try again.",
 };
 
-/** The line for `?google=`: the connected address when there is one to name. */
-function googleNoticeFor(flag: string | null, account: string | null): string | null {
+/**
+ * The line for `?google=`: the connected address when there is one to name,
+ * and on a refusal the address that was turned away (`?account=`, sent by the
+ * callback only for not_allowed).
+ */
+function googleNoticeFor(flag: string | null, account: string | null, refused: string | null = null): string | null {
   if (!flag) return null;
   if (flag === "connected") return account ? `Reconnected as ${account}.` : "Google connected.";
+  if (flag === "not_allowed" && refused) return `That Google account isn't allowed here: ${refused} was turned away and nothing was stored. Only the account named in GOOGLE_ALLOWED_ACCOUNTS on the server can connect.`;
   return GOOGLE_FLAGS[flag] ?? null;
 }
+
+/** The Google row's subtitle: what is actually true of the connection (0186). */
+function googleDescription(input: { connected: boolean; account: string | null; syncError: string | null; lastSynced: string | null; now: Date }): { text: string; level: "ok" | "amber" | "red" | "never" | "off" } {
+  if (!input.connected) return { text: "Not connected. Connect to show your Personal calendar and UK holidays on the calendar page and to sync the Family calendar.", level: "off" };
+  if (input.syncError) return { text: `Google rejected the saved token (${input.syncError}). Nothing syncs until you reconnect.`, level: "red" };
+  const who = input.account ? `Connected as ${input.account}` : "Connected, account unknown — reconnect to confirm";
+  const s = staleness(input.lastSynced, input.now);
+  return { text: `${who} · ${s.level === "never" ? "Not synced yet" : s.label}`, level: s.level };
+}
+
+const LEVEL_TEXT: Record<"ok" | "amber" | "red" | "never" | "off", string> = { ok: "text-text-lo", amber: "text-warn", red: "text-danger", never: "text-text-lo", off: "text-text-lo" };
 
 function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatch: (f: Record<string, unknown>) => void }) {
   const googleConnected = !!settings.google_refresh_token;
@@ -779,10 +797,14 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
   // which account connected (0184; family calendar spec §4.5)
   const googleAccount = (settings as { google_account_email?: string | null }).google_account_email ?? null;
   const needsReconnect = googleConnected && !!googleSyncError;
+  // when the connection last read or wrote (0186); SYNC NOW moves it in place
+  const [lastSynced, setLastSynced] = useState<string | null>((settings as { google_last_synced_at?: string | null }).google_last_synced_at ?? null);
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
-  const googleFlag = useSearchParams().get("google");
-  const googleNotice = googleNoticeFor(googleFlag, googleAccount);
+  const params = useSearchParams();
+  const googleFlag = params.get("google");
+  const googleNotice = googleNoticeFor(googleFlag, googleAccount, params.get("account"));
+  const googleLine = googleDescription({ connected: googleConnected, account: googleAccount, syncError: googleSyncError, lastSynced, now: new Date() });
 
   async function disconnectGoogle() {
     await onPatch({
@@ -791,7 +813,9 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
       google_token_expires_at: null,
       google_sync_error: null,
       google_account_email: null,
+      google_last_synced_at: null,
     });
+    setLastSynced(null);
   }
 
   async function syncGoogle() {
@@ -802,7 +826,10 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
       if (res.ok) {
         const data = await res.json();
         if (data.error) setSyncResult(String(data.error));
-        else setSyncResult(`✓ Synced ${data.synced} events${data.updated?.length ? `, ${data.updated.length} updated` : ""}`);
+        else {
+          setSyncResult(`✓ Synced ${data.synced} events${data.updated?.length ? `, ${data.updated.length} updated` : ""}`);
+          if (typeof data.last_synced_at === "string") setLastSynced(data.last_synced_at);
+        }
       } else {
         setSyncResult("Sync failed");
       }
@@ -823,13 +850,8 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
       ) : null}
       <IntegrationRow
         name="Google Calendar"
-        description={
-          needsReconnect
-            ? `Google rejected the saved token (${googleSyncError}). Syncs do nothing until you reconnect.`
-            : googleConnected
-              ? `OAuth write access — bidirectional sync · ${googleAccount ? `connected as ${googleAccount}` : "account unknown, reconnect to confirm"}`
-              : "Reading iCal feeds"
-        }
+        description={googleLine.text}
+        descriptionClass={LEVEL_TEXT[googleLine.level]}
         status={needsReconnect ? "Reconnect needed" : googleConnected ? "Connected" : "Not connected"}
         statusOk={googleConnected && !needsReconnect}
         action={
@@ -932,12 +954,15 @@ function IntegrationsSection({ settings, onPatch }: { settings: Settings; onPatc
 function IntegrationRow({
   name,
   description,
+  descriptionClass = "text-text-lo",
   status,
   statusOk,
   action,
 }: {
   name: string;
   description: string;
+  /** colour of the subtitle: the Google row goes amber past an hour and red past a day (0186) */
+  descriptionClass?: string;
   status: string;
   statusOk: boolean;
   action?: React.ReactNode;
@@ -946,7 +971,7 @@ function IntegrationRow({
     <div className="flex items-center gap-4">
       <div className="flex-1 min-w-0">
         <div className="text-sm text-text-hi">{name}</div>
-        <div className="text-xs text-text-lo">{description}</div>
+        <div className={`text-xs ${descriptionClass}`} data-testid={name === "Google Calendar" ? "google-subtitle" : undefined}>{description}</div>
       </div>
       <div className="flex items-center gap-2">
         <span

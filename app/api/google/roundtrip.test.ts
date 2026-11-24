@@ -32,7 +32,7 @@ async function start(jar?: string, headers: Record<string, string> = {}): Promis
 }
 
 /** Google sending the person back, with whatever cookie the browser holds. */
-async function finish(state: string | null, jar: string | null, code = "the-code"): Promise<{ flag: string; cleared: boolean }> {
+async function finish(state: string | null, jar: string | null, code = "the-code"): Promise<{ flag: string; account: string | null; cleared: boolean }> {
   const url = new URL(`${ORIGIN}/api/google/callback`);
   if (state !== null) url.searchParams.set("state", state);
   url.searchParams.set("code", code);
@@ -45,7 +45,7 @@ async function finish(state: string | null, jar: string | null, code = "the-code
   // Two clears: the cookie's path and the path it had before 2026-11-23.
   const clears = res.headers.getSetCookie().filter((c) => /^mycelium_google_state=;/.test(c) && /Max-Age=0/i.test(c));
   const paths = clears.map((c) => /Path=([^;]+)/i.exec(c)?.[1]).sort();
-  return { flag: back.searchParams.get("google")!, cleared: paths.join(" ") === "/api/google /api/google/callback" };
+  return { flag: back.searchParams.get("google")!, account: back.searchParams.get("account"), cleared: paths.join(" ") === "/api/google /api/google/callback" };
 }
 
 const googleCalls: string[] = [];
@@ -97,6 +97,7 @@ describe("Google sign-in round trip", () => {
     expect(s.cookie).toBe(s.state);
     const r = await finish(s.state, s.cookie);
     expect(r.flag).toBe("connected");
+    expect(r.account, "an accepted sign-in does not put the address in the URL").toBeNull();
     expect(r.cleared).toBe(true);
     expect(googleCalls.some((u) => u.includes("/calendars/primary"))).toBe(true);
     expect(vi.mocked(updateUserSettings)).toHaveBeenCalledTimes(1);
@@ -140,7 +141,9 @@ describe("Google sign-in round trip", () => {
   it("an account outside the allowlist: the token is revoked and nothing stored; an empty allowlist refuses everyone", async () => {
     vi.stubEnv("GOOGLE_ALLOWED_ACCOUNTS", "someone-else@example.test");
     const s = await start();
-    expect((await finish(s.state, s.cookie)).flag).toBe("not_allowed");
+    const refused = await finish(s.state, s.cookie);
+    expect(refused.flag).toBe("not_allowed");
+    expect(refused.account, "the refused address travels back so Settings can name it").toBe(PHIL);
     expect(googleCalls.some((u) => u.includes("/revoke"))).toBe(true);
     expect(vi.mocked(updateUserSettings)).not.toHaveBeenCalled();
 

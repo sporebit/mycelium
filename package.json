@@ -34,7 +34,6 @@
     "@zxing/library": "^0.22.0",
     "exceljs": "^4.4.0",
     "googleapis": "^172.0.0",
-    "ical.js": "^2.2.1",
     "leaflet": "^1.9.4",
     "libphonenumber-js": "^1.13.14",
     "lucide-react": "^1.25.0",

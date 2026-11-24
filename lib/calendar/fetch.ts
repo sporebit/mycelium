@@ -1,8 +1,6 @@
-import ICAL from "ical.js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fetchFamilyAppointments, fetchFamilySyncLine, type FamilySyncLine } from "./family";
-
-type Feed = { name: string; colour: string; url: string };
+import { googleFeedEvents } from "./google-feeds";
 
 export type CalendarEvent = {
   id: string;
@@ -21,122 +19,12 @@ export type CalendarData = {
   failedCalendars: string[];
   /** The Family calendar on Google: "Last synced 3 min ago" and its colour; absent when not connected (0184). */
   familySync?: FamilySyncLine | null;
+  /** Whether Personal and UK holidays could be read at all: false means connect Google in Settings (0186). */
+  googleConnected?: boolean;
 };
 
-const CACHE_TTL_MS = 5 * 60 * 1000;
-const FETCH_TIMEOUT_MS = 5000;
 const WINDOW_BACK_DAYS = 45;
 const WINDOW_FORWARD_DAYS = 45;
-const RECUR_SAFETY_LIMIT = 500;
-
-// The feeds only: shared configuration, the same for everyone. Nothing of
-// the caller's (tasks, birthdays, bills, the family's appointments) is
-// cached, so one person's calendar is never served to another.
-const memoryCache = new Map<string, { data: CalendarData; expiresAt: number }>();
-
-function readFeeds(): Feed[] {
-  const raw = process.env.GOOGLE_CALENDAR_ICAL_URLS;
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      console.error("[calendar] GOOGLE_CALENDAR_ICAL_URLS is not an array");
-      return [];
-    }
-    return parsed.filter(
-      (x: unknown): x is Feed =>
-        !!x &&
-        typeof x === "object" &&
-        typeof (x as Feed).url === "string" &&
-        typeof (x as Feed).name === "string"
-    );
-  } catch (err) {
-    console.error(
-      "[calendar] Failed to parse GOOGLE_CALENDAR_ICAL_URLS — it must be a single-line JSON array OR wrapped in double-quotes for multi-line. Error:",
-      err
-    );
-    return [];
-  }
-}
-
-async function fetchIcs(url: string, timeoutMs: number): Promise<string> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      cache: "no-store",
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.text();
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-function parseFeed(
-  icsText: string,
-  feed: Feed,
-  windowStart: Date,
-  windowEnd: Date
-): CalendarEvent[] {
-  const out: CalendarEvent[] = [];
-  const jcal = ICAL.parse(icsText);
-  const comp = new ICAL.Component(jcal);
-  const vevents = comp.getAllSubcomponents("vevent");
-
-  for (const vevent of vevents) {
-    try {
-      const event = new ICAL.Event(vevent);
-
-      if (event.isRecurring()) {
-        const iter = event.iterator();
-        let safety = 0;
-        while (safety++ < RECUR_SAFETY_LIMIT) {
-          const next = iter.next();
-          if (!next) break;
-          const startJs = next.toJSDate();
-          if (startJs > windowEnd) break;
-
-          const details = event.getOccurrenceDetails(next);
-          const occStart = details.startDate.toJSDate();
-          const occEnd = details.endDate.toJSDate();
-          if (occEnd < windowStart) continue;
-
-          out.push({
-            id: `${event.uid}@${details.startDate.toString()}`,
-            title: event.summary ?? "(Untitled)",
-            start: occStart.toISOString(),
-            end: occEnd.toISOString(),
-            allDay: details.startDate.isDate,
-            calendarName: feed.name,
-            calendarColour: feed.colour,
-            location: event.location ?? "",
-            description: event.description ?? "",
-          });
-        }
-      } else {
-        const startJs = event.startDate.toJSDate();
-        const endJs = event.endDate.toJSDate();
-        if (endJs < windowStart || startJs > windowEnd) continue;
-        out.push({
-          id: event.uid ?? `${feed.name}-${startJs.toISOString()}`,
-          title: event.summary ?? "(Untitled)",
-          start: startJs.toISOString(),
-          end: endJs.toISOString(),
-          allDay: event.startDate.isDate,
-          calendarName: feed.name,
-          calendarColour: feed.colour,
-          location: event.location ?? "",
-          description: event.description ?? "",
-        });
-      }
-    } catch (err) {
-      console.error(`[calendar] event parse failed in '${feed.name}':`, err);
-    }
-  }
-  return out;
-}
 
 async function fetchBirthdays(
   supabase: SupabaseClient,
@@ -390,33 +278,6 @@ async function fetchDirectDebits(
   }
 }
 
-/**
- * The Google feeds, fetched and parsed once every five minutes for the
- * whole process: they are shared configuration, the same for everyone,
- * and the slow part. Everything from the database is read fresh each
- * time, as the caller, so a row written a moment ago is on the page.
- */
-async function feedEvents(windowStart: Date, windowEnd: Date): Promise<CalendarData> {
-  const cached = memoryCache.get("feeds");
-  if (cached && cached.expiresAt > Date.now()) return cached.data;
-  const failed: string[] = [];
-  const events: CalendarEvent[] = [];
-  await Promise.all(
-    readFeeds().map(async (feed) => {
-      try {
-        const text = await fetchIcs(feed.url, FETCH_TIMEOUT_MS);
-        events.push(...parseFeed(text, feed, windowStart, windowEnd));
-      } catch (err) {
-        console.error(`[calendar] feed '${feed.name}' failed:`, err);
-        failed.push(feed.name);
-      }
-    }),
-  );
-  const data: CalendarData = { events, failedCalendars: failed };
-  memoryCache.set("feeds", { data, expiresAt: Date.now() + CACHE_TTL_MS });
-  return data;
-}
-
 export async function getCalendarData(
   supabase: SupabaseClient,
 ): Promise<CalendarData> {
@@ -426,8 +287,10 @@ export async function getCalendarData(
   const windowEnd = new Date(now);
   windowEnd.setDate(now.getDate() + WINDOW_FORWARD_DAYS);
 
+  // Personal and UK holidays come through the caller's own Google connection
+  // (lib/calendar/google-feeds.ts); the private iCal feed URLs retired 2026-11-24.
   const [feeds, scheduledTasks, birthdayEvents, customEvents, directDebits, familyAppointments, familySync] = await Promise.all([
-    feedEvents(windowStart, windowEnd),
+    googleFeedEvents(supabase, windowStart, windowEnd, now),
     fetchScheduledTasks(supabase, windowStart, windowEnd),
     fetchBirthdays(supabase, windowStart, windowEnd),
     fetchEvents(supabase, windowStart, windowEnd),
@@ -444,5 +307,5 @@ export async function getCalendarData(
   all.push(...generatePaydays(windowStart, windowEnd));
 
   all.sort((a, b) => a.start.localeCompare(b.start));
-  return { events: all, failedCalendars: feeds.failedCalendars, familySync };
+  return { events: all, failedCalendars: feeds.failed, familySync, googleConnected: feeds.connected };
 }

@@ -85,3 +85,11 @@ describe("the Google sign-in lock (family calendar spec §4.5)", () => {
     expect(await connectedAccountEmail("tok", fetchFn)).toBeNull();
   });
 });
+
+describe("settingsReturn with a refused account", () => {
+  it("names the address only when given one, URL-encoded", () => {
+    expect(settingsReturn("not_allowed", "Kirsty+K@example.com")).toBe("/other/settings?tab=integrations&google=not_allowed&account=Kirsty%2BK%40example.com");
+    expect(settingsReturn("not_allowed", null)).toBe("/other/settings?tab=integrations&google=not_allowed");
+    expect(settingsReturn("connected")).toBe("/other/settings?tab=integrations&google=connected");
+  });
+});

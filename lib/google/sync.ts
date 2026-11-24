@@ -5,6 +5,7 @@ import {
   updateEvent,
   deleteEvent,
   listEvents,
+  markGoogleSynced,
   type GoogleCalendarEvent,
 } from "./calendar";
 
@@ -241,7 +242,7 @@ export async function removeGoogleEvent(
 
 // ─── PULL: Google → Myphelium2 ──────────────────────────────────
 
-export type SyncResult = { synced: number; updated: string[]; error?: string };
+export type SyncResult = { synced: number; updated: string[]; error?: string; last_synced_at?: string };
 
 export async function pullFromGoogle(
   supabase: SupabaseClient,
@@ -342,5 +343,9 @@ export async function pullFromGoogle(
     }
   }
 
+  // Google answered: the connection did its work (0186; Settings → Integrations "Last synced")
+  const syncedAt = new Date();
+  await markGoogleSynced(supabase, syncedAt).catch(() => undefined);
+  result.last_synced_at = syncedAt.toISOString();
   return result;
 }

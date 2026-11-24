@@ -17,8 +17,9 @@ export const runtime = "nodejs";
  */
 export async function GET(req: NextRequest) {
   const origin = req.nextUrl.origin;
-  const back = (flag: string) => {
-    const res = NextResponse.redirect(new URL(settingsReturn(flag), origin));
+  // `account` travels only for a refusal, so Settings can say which address was turned away.
+  const back = (flag: string, account?: string | null) => {
+    const res = NextResponse.redirect(new URL(settingsReturn(flag, account), origin));
     res.headers.set("cache-control", "no-store");
     const secure = origin.startsWith("https://");
     res.cookies.set(STATE_COOKIE, "", { httpOnly: true, secure, sameSite: "lax", path: STATE_COOKIE_PATH, maxAge: 0 });
@@ -70,7 +71,7 @@ export async function GET(req: NextRequest) {
       // what would outlive this request, so it is the one to revoke.
       await revokeToken(tokens.refresh_token ?? tokens.access_token);
       console.warn("[google/callback] refused a Google account:", decision.reason, email ? email.replace(/^(.).*(@.*)$/, "$1…$2") : "(no address)");
-      return back(decision.reason === "not_allowed" ? "not_allowed" : "no_account");
+      return back(decision.reason === "not_allowed" ? "not_allowed" : "no_account", decision.reason === "not_allowed" ? email : null);
     }
 
     const expiresAt = new Date(Date.now() + (tokens.expires_in ?? 3600) * 1000).toISOString();

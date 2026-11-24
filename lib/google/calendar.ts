@@ -14,6 +14,15 @@ function credentials() {
 
 // Every function here takes the caller's client: request routes pass their
 // user client, the google-sync cron passes one from withUser().
+
+/**
+ * The connection just did its work: a read or a write that Google answered.
+ * Settings → Integrations reads this as "Last synced 3 min ago" (0186).
+ */
+export async function markGoogleSynced(supabase: SupabaseClient, now: Date = new Date()): Promise<void> {
+  await updateUserSettings(supabase, { google_last_synced_at: now.toISOString() }, { select: "id" });
+}
+
 export async function getAccessToken(
   supabase: SupabaseClient,
 ): Promise<string | null> {

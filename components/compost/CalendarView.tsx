@@ -98,6 +98,7 @@ export function CalendarView() {
   const [selected, setSelected] = useState(() => ymd(today));
   const [events, setEvents] = useState<CalendarEvent[] | null>(null);
   const [failed, setFailed] = useState<string[]>([]);
+  const [googleConnected, setGoogleConnected] = useState<boolean | null>(null);
   // the Family calendar on Google: "Last synced 3 min ago", amber after an hour, red after a day (family calendar spec §4.4)
   const [familySync, setFamilySync] = useState<{ label: string; level: "ok" | "amber" | "red" | "never"; error: string | null } | null>(null);
   const [weatherByDate, setWeatherByDate] = useState<Record<string, WeatherDay>>({});
@@ -118,9 +119,10 @@ export function CalendarView() {
   const load = useCallback(() => {
     fetch("/api/calendar")
       .then((r) => r.json())
-      .then((j: { events?: CalendarEvent[]; failedCalendars?: string[]; familySync?: { label: string; level: "ok" | "amber" | "red" | "never"; error: string | null } | null }) => {
+      .then((j: { events?: CalendarEvent[]; failedCalendars?: string[]; googleConnected?: boolean; familySync?: { label: string; level: "ok" | "amber" | "red" | "never"; error: string | null } | null }) => {
         setEvents(Array.isArray(j?.events) ? j.events : []);
         setFailed(Array.isArray(j?.failedCalendars) ? j.failedCalendars : []);
+        setGoogleConnected(typeof j?.googleConnected === "boolean" ? j.googleConnected : null);
         setFamilySync(j?.familySync ?? null);
       })
       .catch(() => setEvents([]));
@@ -465,6 +467,11 @@ export function CalendarView() {
       {failed.length > 0 && (
         <div className="text-[10px] uppercase tracking-[0.18em] text-warn font-[family-name:var(--font-mono)]">
           ⚠ Failed: {failed.join(", ")}
+        </div>
+      )}
+      {googleConnected === false && (
+        <div className="text-[10px] uppercase tracking-[0.18em] text-text-lo font-[family-name:var(--font-mono)]" data-testid="google-feeds-line">
+          Personal and UK holidays · <a href="/other/settings?tab=integrations" className="underline hover:text-text-hi">connect Google in Settings</a> to show them
         </div>
       )}
       {familySync && (

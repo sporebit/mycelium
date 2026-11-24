@@ -49,8 +49,8 @@ export const STATE_COOKIE_OLD_PATH = "/api/google/callback";
 /** The one place a sign-in comes back to (Settings → Integrations, which reads `?google=`). */
 export const SETTINGS_RETURN = "/other/settings?tab=integrations";
 
-export function settingsReturn(flag: string): string {
-  return `${SETTINGS_RETURN}&google=${encodeURIComponent(flag)}`;
+export function settingsReturn(flag: string, account?: string | null): string {
+  return `${SETTINGS_RETURN}&google=${encodeURIComponent(flag)}${account ? `&account=${encodeURIComponent(account)}` : ""}`;
 }
 
 /**
