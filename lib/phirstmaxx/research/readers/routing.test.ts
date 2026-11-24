@@ -20,7 +20,7 @@ describe("haversineKm / parseDurationSeconds", () => {
 describe("orsRoute", () => {
   it("GETs the profile with the key in a header and reads the summary", async () => {
     const f: FetchLike = async (url, init) => {
-      expect(url).toBe("https://api.openrouteservice.org/v2/directions/foot-walking?start=-1.5491,53.8008&end=-1.6512,54.1951");
+      expect(url).toBe("https://api.heigit.org/openrouteservice/v2/directions/foot-walking?start=-1.5491,53.8008&end=-1.6512,54.1951");
       expect((init?.headers as Record<string, string>).Authorization).toBe("orskey");
       return json({ features: [{ properties: { summary: { distance: 51234, duration: 37000 } } }] });
     };

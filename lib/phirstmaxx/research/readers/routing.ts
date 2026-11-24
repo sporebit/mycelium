@@ -11,7 +11,10 @@
  *      no googleKey once the count is reached.
  *   2. OpenRouteService directions when ORS_API_KEY is set (free, 2,000
  *      requests a day, 40 a minute): drive, walk and cycle. ORS has no
- *      public transport, so transit skips straight to 3.
+ *      public transport, so transit skips straight to 3. The address is
+ *      HeiGIT's unified one, api.heigit.org/openrouteservice/v2 — the old
+ *      api.openrouteservice.org answered 410 Gone from November 2026 (seen
+ *      2026-11-24); the key still goes in the Authorization header.
  *   3. The caller's estimator over the straight-line (haversine) distance —
  *      the old app's calibrated profile. Labelled "estimate", never dressed
  *      as a route.
@@ -45,7 +48,7 @@ type OrsAnswer = { features?: Array<{ properties?: { summary?: { distance?: numb
 export async function orsRoute(from: LatLng, to: LatLng, mode: TravelMode, key: string, fetchImpl?: FetchLike): Promise<RouteResult | null> {
   const profile = ORS_PROFILE[mode];
   if (!profile || !key || !validPoint(from) || !validPoint(to)) return null;
-  const url = `https://api.openrouteservice.org/v2/directions/${profile}?start=${from.lng},${from.lat}&end=${to.lng},${to.lat}`;
+  const url = `https://api.heigit.org/openrouteservice/v2/directions/${profile}?start=${from.lng},${from.lat}&end=${to.lng},${to.lat}`;
   // The key goes in the Authorization header (which ORS accepts as its api_key) so it stays out of URLs and logs.
   const j = await fetchJson<OrsAnswer>(pickFetch(fetchImpl), url, { headers: { Authorization: key, Accept: "application/json, application/geo+json", "User-Agent": USER_AGENT } }, 10_000);
   const sum = j?.features?.[0]?.properties?.summary;
