@@ -6,6 +6,11 @@
  *   node scripts/phirstmaxx-import.mjs --apply         write
  *   node scripts/phirstmaxx-import.mjs --undo          remove what the import brought (local rows survive)
  *   node scripts/phirstmaxx-import.mjs --since <iso>   only blocks and plans starting at or after this instant
+ *   node scripts/phirstmaxx-import.mjs --space <space id>  the family space to write into when the caller has more than one
+ *   node scripts/phirstmaxx-import.mjs --from-dump <file.json>
+ *                                                      read the old data from a JSON dump in readOld()'s shape instead of the
+ *                                                      old database (docs/fixtures/phirstmaxx-old-dump.json is a made-up one:
+ *                                                      the importer proven without touching the old project, 2026-11-24)
  *
  * env (from the environment or .env.local; nothing is ever printed):
  *   PHIRSTMAXX_OLD_DB_URL   the old Supabase project's Postgres URL (spec §11.4), read-only here
@@ -25,6 +30,12 @@ const APPLY = args.includes("--apply");
 const UNDO = args.includes("--undo");
 const sinceIdx = args.indexOf("--since");
 const SINCE = sinceIdx >= 0 ? args[sinceIdx + 1] : null;
+const spaceIdx = args.indexOf("--space");
+const SPACE = spaceIdx >= 0 ? args[spaceIdx + 1] : null;
+if (spaceIdx >= 0 && !SPACE) die("--space needs a space id.");
+const dumpIdx = args.indexOf("--from-dump");
+const FROM_DUMP = dumpIdx >= 0 ? args[dumpIdx + 1] : null;
+if (dumpIdx >= 0 && !FROM_DUMP) die("--from-dump needs a file path.");
 if (SINCE && Number.isNaN(Date.parse(SINCE))) die("--since needs an ISO instant, e.g. 2026-09-01T00:00:00Z");
 
 const env = {};
@@ -41,7 +52,7 @@ const BASE = (get("BASE_URL") || "http://localhost:3000").replace(/\/+$/, "");
 const SECRET = get("API_SECRET");
 const DB_URL = get("PHIRSTMAXX_OLD_DB_URL");
 if (!SECRET) die("API_SECRET is missing (environment or .env.local).");
-if (!UNDO && !DB_URL) die("PHIRSTMAXX_OLD_DB_URL is missing (environment or .env.local; spec §11.4).");
+if (!UNDO && !FROM_DUMP && !DB_URL) die("PHIRSTMAXX_OLD_DB_URL is missing (environment or .env.local; spec §11.4), or pass --from-dump <file>.");
 
 function die(msg) {
   console.error(msg);
@@ -49,6 +60,7 @@ function die(msg) {
 }
 
 async function post(body) {
+  if (SPACE) body = { ...body, space: SPACE };
   const res = await fetch(`${BASE}/api/phirstmaxx/import`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-secret": SECRET },
@@ -57,6 +69,30 @@ async function post(body) {
   const json = await res.json().catch(() => ({}));
   if (!res.ok) die(`${res.status} ${json.error ?? "import failed"}`);
   return json;
+}
+
+/** A dump in readOld()'s shape, from a file: the fixture, or a dump taken another day. --since applies to it too. */
+function readDump(file) {
+  const raw = JSON.parse(readFileSync(path.resolve(file), "utf8"));
+  if (!Array.isArray(raw.members)) die(`${file} is not a dump: no members array.`);
+  const since = SINCE ? Date.parse(SINCE) : null;
+  const keep = (r) => since === null || r.recurrence_rule || Date.parse(r.start_at) >= since;
+  return {
+    exported_at: raw.exported_at ?? new Date().toISOString(),
+    members: raw.members,
+    locations: raw.locations ?? [],
+    pets: raw.pets ?? [],
+    block_types: raw.block_types ?? [],
+    blocks: (raw.blocks ?? []).filter(keep),
+    known_days_count: raw.known_days_count ?? 0,
+    waking_overrides: raw.waking_overrides ?? [],
+    ideas: raw.ideas ?? [],
+    route_overrides: raw.route_overrides ?? [],
+    plans: (raw.plans ?? []).filter((p) => since === null || Date.parse(p.start_at) >= since),
+    plan_items: raw.plan_items ?? [],
+    plan_legs: raw.plan_legs ?? [],
+    phase2: raw.phase2 ?? {},
+  };
 }
 
 /** Every table listed in spec §10, read in one read-only, repeatable-read transaction. */
@@ -160,7 +196,8 @@ if (UNDO) {
   printResult(await post({ undo: true, dryRun: !APPLY }));
   if (!APPLY) console.log("\nAdd --apply to undo for real.");
 } else {
-  const payload = await readOld();
+  const payload = FROM_DUMP ? readDump(FROM_DUMP) : await readOld();
+  if (FROM_DUMP) console.log(`from dump: ${FROM_DUMP} (exported ${payload.exported_at})`);
   console.log(
     `read: ${payload.members.length} members, ${payload.locations.length} locations, ${payload.block_types.length} block types, ${payload.blocks.length} blocks, ${payload.waking_overrides.length} waking overrides, ${payload.pets.length} pets, ${payload.ideas.length} ideas, ${payload.route_overrides.length} route overrides, ${payload.plans.length} plans (${payload.plan_items.length} items, ${payload.plan_legs.length} legs)${SINCE ? ` since ${SINCE}` : ""}`,
   );
