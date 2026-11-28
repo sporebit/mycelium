@@ -4,6 +4,8 @@
 
 ## Run 2026-11-28 — the ticket stream and the Field guide (`docs/run/2026-11-28/`; brief `docs/intake/intake-2026-11-27.md`)
 
+In production since 2026-11-28 05:40 on commit `79c49c9`: 406 tickets in 24 epics, 372 dependencies, 8 new projects (MAIL, SEC, HOME, BABY, FIXF, SUB, GLASS, LIFE). Start with **MYC-287** (Start here), then **LIFE-11** (the decisions review). The epics: BABY-1, SEC-1, SEC-25, SEC-40, MYC-212, MYC-239, MYC-272, MYC-279, MYC-282, MYC-286, MYC-290, DSA-27, FIXF-1, HOME-1, HOME-17, HOME-46, HOME-54, GLASS-1, MAIL-1, PHM-17, LIFE-1, LIFE-10, LIFE-14, SUB-1.
+
 Unattended run, two streams. Report `docs/run/2026-11-28/report.md`; decisions one per line in `decisions.md` and loaded into the LIFE ticket "Review: decisions made for me on 2026-11-28".
 
 - **done — Stream U1, the Field guide** — every run-book kind (`runbook`, `test`, `guide`, `audit`, `setup`) renders as a Field guide on the ticket page and standalone at `/guides/KEY`; `/guides` lists them; sittings of 15 minutes, one open at a time; every step with place, value, what you should see and minutes; Park (sets tomorrow), "this did not work", flight plan, both themes, reduce-motion, secret guard on answer boxes, downloadable self-contained HTML; `tix steps --failed | --park | --unpark`, `tix guide`. State stays in `steps_state`, so in-progress guides carry across. Design `docs/run/2026-11-28/field-guide-design.md`; authoring `docs/guides/README.md`; the global Claude prompt `docs/guides/field-guide-instructions.md` (brief 12.30). Public read-only link **not** built (ticketed, MYC E.guide).
