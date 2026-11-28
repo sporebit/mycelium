@@ -16,6 +16,8 @@ export type StepBlock = {
   text?: string;
   shells?: Record<string, string>;
   lang?: string;
+  /** Field guide: names the copy button ("copy command", "copy value", "copy prompt"). */
+  kind?: "command" | "value" | "prompt";
 };
 export type StepField = { key: string; label: string; placeholder?: string; kind?: "text" | "number" | "date" };
 export type StepNote = { kind?: "security" | "warn" | "info" | "tip"; html: string };
@@ -32,6 +34,25 @@ export type Step = {
   notes?: StepNote[];
   /** "After it reports" line for claude-code steps. */
   after_html?: string;
+  // Field guide additions (docs/run/2026-11-28/field-guide-design.md §2.1), all optional.
+  /** How long the step takes, in minutes. */
+  minutes?: number;
+  /** What you should see when it has worked. */
+  expect_html?: string;
+  /** An exact value shown with a copy button when a block is too heavy. */
+  value_html?: string;
+  /** Folded under the step. */
+  troubleshooting?: Array<{ symptom: string; fix: string }>;
+  /** Warning style and a second tap to tick. */
+  irreversible?: boolean;
+  /** For actor "claude-code": what Claude did. */
+  did_html?: string;
+  /** Shown only when the `platform` toggle is one of these. */
+  platforms?: string[];
+  /** "For someone else" mode alternatives. */
+  plain_title?: string;
+  plain_body_html?: string;
+  screenshot?: { src: string; alt: string; mark?: { x: number; y: number; w: number; h: number } };
 };
 export type Phase = {
   id: string;
@@ -40,6 +61,12 @@ export type Phase = {
   steps: Step[];
   verify_html?: string[];
   why_html?: string;
+  /** Field guide: the sitting's length; default is the sum of its steps' minutes. */
+  minutes?: number;
+  /** What to have to hand for this sitting (flight plan). */
+  needs?: string[];
+  /** One line, shown on the flight plan and the phase header. */
+  hard_part?: string;
 };
 export type Toggle = { label: string; options: Record<string, string>; default: string };
 export type ValueDef = { key: string; label: string; placeholder?: string };
@@ -57,28 +84,60 @@ export type StepsDefinition = {
     prerequisites?: string[];
     time?: string[];
     cost?: string[];
+    // Field guide additions, all optional.
+    /** The one-line answer, plain text, always shown first. */
+    answer?: string;
+    unlocks?: string[];
+    to_hand?: string[];
+    hard_part?: { step_id: string; why: string };
+    /** ISO date; amber after six months. */
+    last_verified?: string;
+    sources?: Array<{ label: string; url: string; checked_on: string }>;
   };
   phases: Phase[];
   rollback_html?: string;
   troubleshooting?: Array<{ symptom: string; cause?: string; fix?: string }>;
   links?: Array<{ label: string; url: string; note?: string }>;
+  /** Marks a definition written to the Field guide design; enables validation (lib/guides/validate.ts). */
+  format?: "field-guide";
+  /** Shown at the top in "for someone else" mode. */
+  basics_html?: string;
+  /** The copy-this-prompt button at the finish; {{key}} substituted. */
+  handback_prompt?: string;
+  /** "What now works" at the end. */
+  finish_html?: string;
+  /** Ticket keys offered at the finish. */
+  next_guides?: string[];
+  /** Quality gate marks per step id. */
+  tested?: Record<string, "real" | "sandbox" | "untested">;
 };
+
+export type StepFailure = { at: string; note: string };
+export type StepsPark = { at: string; step_id: string; note: string };
 
 export type StepsState = {
   toggles: Record<string, string>;
   steps: Record<string, { done: boolean; at: string }>;
   answers: Record<string, string>;
+  /** "This did not work" per step (Field guide). Kept when the step is later ticked: it is history. */
+  failures?: Record<string, StepFailure>;
+  /** Park (Field guide): where he stopped, one line. */
+  park?: StepsPark | null;
 };
 
 export const EMPTY_STATE: StepsState = { toggles: {}, steps: {}, answers: {} };
 
+/** The three original keys always; `failures` and `park` only when the stored state has them. */
 export function normaliseState(s: unknown): StepsState {
   const o = (s && typeof s === "object" ? s : {}) as Partial<StepsState>;
-  return {
+  const out: StepsState = {
     toggles: { ...(o.toggles ?? {}) },
     steps: { ...(o.steps ?? {}) },
     answers: { ...(o.answers ?? {}) },
   };
+  if (o.failures && typeof o.failures === "object") out.failures = { ...o.failures };
+  if (o.park && typeof o.park === "object" && typeof o.park.step_id === "string") out.park = { ...o.park };
+  return out;
 }
 
 export type StatePatch = {
@@ -86,6 +145,10 @@ export type StatePatch = {
   /** true = tick now; false/null = untick (deletes the key); or a full entry */
   steps?: Record<string, boolean | null | { done: boolean; at?: string }>;
   answers?: Record<string, string | null>;
+  /** "This did not work": a note per step; null clears it. */
+  failures?: Record<string, { note: string } | null>;
+  /** Park at a step with a note; null unparks. */
+  park?: { step_id: string; note: string } | null;
 };
 
 /** Per-key merge (checklists §4): null deletes; ticks carry their time. */
@@ -106,6 +169,19 @@ export function mergeState(current: StepsState, patch: StatePatch, now = new Dat
   for (const [k, v] of Object.entries(patch.answers ?? {})) {
     if (v === null || v === "") delete next.answers[k];
     else next.answers[k] = String(v);
+  }
+  if (patch.failures && typeof patch.failures === "object") {
+    const failures = { ...(next.failures ?? {}) };
+    for (const [k, v] of Object.entries(patch.failures)) {
+      if (v === null || !v || typeof v !== "object") delete failures[k];
+      else failures[k] = { at: now.toISOString(), note: String(v.note ?? "").slice(0, 500) };
+    }
+    if (Object.keys(failures).length > 0) next.failures = failures;
+    else delete next.failures;
+  }
+  if (patch.park !== undefined) {
+    if (patch.park === null || typeof patch.park !== "object" || typeof patch.park.step_id !== "string") delete next.park;
+    else next.park = { at: now.toISOString(), step_id: patch.park.step_id, note: String(patch.park.note ?? "").slice(0, 500) };
   }
   return next;
 }
