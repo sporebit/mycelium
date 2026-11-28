@@ -134,6 +134,26 @@
   --plate-fresh: light-dark(#2f6b3f, #dfe8cf);
   --plate-card: light-dark(rgba(241, 236, 220, 0.92), rgba(27, 29, 24, 0.92));
   --plate-shade: light-dark(#d9d2bf, #10120e);
+
+  /* FIELD — the Field guide and the Field shell (docs/run/2026-11-28/
+     field-guide-design.md §5). Moss and bone on warm near-black; body
+     text held at 4.5:1 and not pushed higher; no neon. Both UI lanes of
+     the 2026-11-28 run read these and nothing else, so they sit on main
+     before either branch. */
+  --fg-paper: light-dark(#f3efe4, #121410);
+  --fg-paper-2: light-dark(#eae5d7, #181b16);
+  --fg-paper-3: light-dark(#dfd9c9, #1f231d);
+  --fg-line: light-dark(rgba(30, 32, 25, 0.12), rgba(236, 230, 210, 0.1));
+  --fg-ink: light-dark(#1e2019, #e6e1d0);
+  --fg-ink-soft: light-dark(#5d6054, #a9a593);
+  --fg-ink-faint: light-dark(#8b8d80, #6c6e62);
+  --fg-moss: light-dark(#3f7a4e, #8fb996);
+  --fg-moss-wash: light-dark(rgba(63, 122, 78, 0.1), rgba(143, 185, 150, 0.09));
+  --fg-amber: light-dark(#9a6a1d, #d9b06a);
+  --fg-umber: light-dark(#9e4a30, #cf8368);
+  --fg-font-body: var(--font-plate), Georgia, "Times New Roman", serif;
+  --fg-font-ui: var(--font-sans);
+  --fg-font-mono: var(--font-mono);
 }
 
 /* The two sides of the theme preference. "system" follows the OS. */
