@@ -15,6 +15,7 @@ import { Bell, BellOff, Plus } from "lucide-react";
 import { DocView } from "@/components/editor/DocView";
 import { RichEditor } from "@/components/editor/RichEditor";
 import { StepsSection } from "@/components/tickets/StepsSection";
+import { Dependencies } from "@/components/work/Dependencies";
 import { Button, Skeleton } from "@/components/ui";
 import { ApiError, useApi } from "@/lib/data/useApi";
 import { RUNBOOK_KINDS } from "@/lib/tickets/categories";
@@ -289,6 +290,8 @@ export function IssuePage() {
 							</div>
 						</section>
 					)}
+
+					<Dependencies ticketKey={t.key ?? t.id} />
 
 					<section>
 						<SectionTitle count={data.links.length}>Links &amp; evidence</SectionTitle>
