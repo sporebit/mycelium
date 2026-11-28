@@ -6,7 +6,9 @@
  *
  *   unpaired  a keypad for the code shown in Settings → Walls
  *   board     the family: people (numbers and the week), the countdown,
- *             the calendar, weather and bins; a tap on a person asks their PIN
+ *             the calendar, weather and bins; a tap on a person asks their PIN.
+ *             Drawn as the tile grid (TilesBoard, design D10) with a greeting
+ *             by time of day; `?board=classic` keeps the first board (Board).
  *   person    that person's day, for ten minutes or two quiet ones
  *   guest     clock, weather, pictures; a long press brings the board back
  *   idle      the ambient plate after three quiet minutes; night dims it
@@ -18,6 +20,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { playChime } from "@/components/daily/chime";
+import { greeting, londonHour } from "@/lib/home/greeting";
 import type { HomeItem } from "@/lib/home/contract";
 import type { WallGlance, WallPersonView, WallPhoto, WallSaying } from "@/lib/wall/contract";
 import { IDLE_AFTER_MS, LOCK_AFTER_MS, REFRESH_EVERY_MS, SAY_EVERY_MS, type WallMode, dimLevel, maySpeak, shouldLock, wallMode } from "@/lib/wall/schedule";
@@ -27,6 +30,7 @@ import { Ambient, Clock, Guest } from "./Ambient";
 import { Board } from "./Board";
 import { Keypad } from "./Keypad";
 import { PersonView } from "./PersonView";
+import { TilesBoard } from "./TilesBoard";
 
 const PAPER = "#181a16";
 const INK = "#ece6d2";
@@ -40,7 +44,10 @@ async function getJson<T>(url: string): Promise<{ status: number; body: T | null
   return { status: res.status, body };
 }
 
-export function WallClient({ lockAfterMs = LOCK_AFTER_MS, idleAfterMs = IDLE_AFTER_MS }: { lockAfterMs?: number; idleAfterMs?: number }) {
+export type WallBoardKind = "tiles" | "classic";
+
+export function WallClient({ lockAfterMs = LOCK_AFTER_MS, idleAfterMs = IDLE_AFTER_MS, board = "tiles" }: { lockAfterMs?: number; idleAfterMs?: number; board?: WallBoardKind }) {
+  const tiles = board === "tiles";
   const [paired, setPaired] = useState<boolean | null>(null);
   const [glance, setGlance] = useState<WallGlance | null>(null);
   const [photos, setPhotos] = useState<WallPhoto[]>([]);
@@ -217,12 +224,14 @@ export function WallClient({ lockAfterMs = LOCK_AFTER_MS, idleAfterMs = IDLE_AFT
   return (
     <div
       className={`fixed inset-0 select-none overflow-hidden ${SERIF}`}
-      style={{ background: PAPER, color: INK, filter: `brightness(${dim})`, transition: "filter 2s ease" }}
+      // The wall is a dark screen whatever the browser's theme: the keypad, the switcher and the person view are drawn for dark paper.
+      style={{ colorScheme: "dark", background: tiles ? "var(--fg-paper)" : PAPER, color: tiles ? "var(--fg-ink)" : INK, filter: `brightness(${dim})`, transition: "filter 2s ease" }}
       onPointerDown={touch}
       onKeyDown={touch}
       data-testid="wall"
       data-mode={mode}
       data-view={view.kind}
+      data-board={board}
     >
       {paired === null ? (
         <div className="flex h-full items-center justify-center text-2xl opacity-60">…</div>
@@ -240,12 +249,17 @@ export function WallClient({ lockAfterMs = LOCK_AFTER_MS, idleAfterMs = IDLE_AFT
           <header className="flex items-start justify-between">
             <div className="flex items-end gap-8">
               <Clock now={now} big={false} />
-              {glance?.weather ? (
+              {tiles ? (
+                <p className="pb-1 font-[family-name:var(--fg-font-body)] text-[34px] leading-none" data-testid="wall-greeting">
+                  {greeting(londonHour(now))}
+                </p>
+              ) : null}
+              {!tiles && glance?.weather ? (
                 <div className="pb-1 text-xl opacity-70" aria-label="Weather">
                   {glance.weather.conditions} · {Math.round(glance.weather.hi)}° / {Math.round(glance.weather.lo)}°
                 </div>
               ) : null}
-              {glance?.bins ? (
+              {!tiles && glance?.bins ? (
                 <div className="pb-1 text-xl opacity-70" aria-label="Bins">
                   {glance.bins.days === 0 ? "Bins today" : glance.bins.days === 1 ? "Bins tomorrow" : `Bins in ${glance.bins.days} days`} · {glance.bins.label}
                 </div>
@@ -286,6 +300,8 @@ export function WallClient({ lockAfterMs = LOCK_AFTER_MS, idleAfterMs = IDLE_AFT
               </div>
             ) : view.kind === "person" && person ? (
               <PersonView view={person} items={items} busy={busy} onAct={(id, a) => void act(id, a)} onBriefing={() => void briefing()} onLock={() => void lock()} onCapture={capture} />
+            ) : glance && tiles ? (
+              <TilesBoard glance={glance} onOpen={(uid) => { setKeypadError(null); setView({ kind: "keypad", uid }); }} onBaby={(k) => void baby(k)} />
             ) : glance ? (
               <Board glance={glance} onOpen={(uid) => { setKeypadError(null); setView({ kind: "keypad", uid }); }} onBaby={(k) => void baby(k)} />
             ) : null}

@@ -10,6 +10,7 @@ import { DEFAULT_FREE_MINUTES } from "@/lib/daily/propose";
 import { Sheet } from "@/components/ui/Sheet";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { useUiPrefs } from "@/lib/settings/useUiPrefs";
+import { shellOf } from "@/lib/settings/uiPrefs";
 import { applyTheme, isTheme, type Theme } from "@/lib/theme";
 import { SECTIONS } from "@/lib/nav/sections";
 import Link from "next/link";
@@ -565,20 +566,21 @@ function AppearanceSection({ settings, onPatch }: { settings: Settings; onPatch:
         <div className="min-w-0">
           <div className="text-sm text-text-hi">Shell</div>
           <div className="text-[11px] text-text-lo">
-            New: a top menu bar, and Home as the Specimen plate. Classic: the sidebar and the dashboard. Switch back at any time.
+            Field: the Field guide&apos;s calm look everywhere, a top menu bar, Home as a tile grid. New: the top menu bar with Home as the Specimen plate. Classic: the sidebar and the dashboard. Switch back at any time.
           </div>
         </div>
         <SegmentedControl
           size="sm"
           ariaLabel="Shell"
-          value={prefs.shell === "new" ? "new" : "classic"}
+          value={shellOf(prefs.shell)}
           onChange={(v) => {
             // The shell wraps every page: reload so the whole frame is the chosen one.
-            void setPrefs({ shell: v === "new" ? "new" : "classic" }).then(() => window.location.reload());
+            void setPrefs({ shell: shellOf(v) }).then(() => window.location.reload());
           }}
           options={[
             { value: "classic", label: "Classic" },
             { value: "new", label: "New" },
+            { value: "field", label: "Field" },
           ]}
         />
       </div>

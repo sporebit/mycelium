@@ -8,6 +8,9 @@
  *            same tab bar on a phone. Inner pages are not restyled: they
  *            sit under the bar as they sat beside the sidebar, with their
  *            sub-pages as a chip row.
+ *   field    the same top menu bar and frame as new; the calm Field
+ *            palette comes from the token layer ([data-shell="field"] in
+ *            globals.css), so nothing here differs but the attribute.
  *
  * Home may ask for no padding (`bleed`) so a Home view can run to the edges.
  */
@@ -20,9 +23,9 @@ import { TopMenu } from "./TopMenu";
 
 export function ShellFrame({ children, bleed = false }: { children: ReactNode; bleed?: boolean }) {
   const kind = useShellKind();
-  if (kind === "new") {
+  if (kind === "new" || kind === "field") {
     return (
-      <div className="flex min-w-0 flex-1 flex-col" data-shell="new">
+      <div className="flex min-w-0 flex-1 flex-col" data-shell={kind}>
         <TopMenu />
         <main className={bleed ? "min-w-0 flex-1 w-full px-4 py-4 pb-20 sm:px-6 lg:p-2 lg:pb-2" : "min-w-0 flex-1 w-full px-4 py-4 pb-20 sm:px-6 sm:py-6 lg:pb-6"}>
           <SubChips desktop />

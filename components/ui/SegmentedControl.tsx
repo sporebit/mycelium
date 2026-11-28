@@ -29,13 +29,23 @@ export function SegmentedControl({
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const active = container.querySelector<HTMLButtonElement>(
-      `button[data-value="${value}"]`,
-    );
-    if (!active) return;
-    const cRect = container.getBoundingClientRect();
-    const aRect = active.getBoundingClientRect();
-    setPill({ left: aRect.left - cRect.left, width: aRect.width });
+    const measure = () => {
+      const active = container.querySelector<HTMLButtonElement>(
+        `button[data-value="${value}"]`,
+      );
+      if (!active) return;
+      const cRect = container.getBoundingClientRect();
+      const aRect = active.getBoundingClientRect();
+      setPill({ left: aRect.left - cRect.left, width: aRect.width });
+    };
+    measure();
+    // The labels are in the mono face, which can arrive after the first
+    // measure (display: swap): measure again when the control changes size,
+    // so the pill never sits wider than its label or outside the border.
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(container);
+    return () => ro.disconnect();
   }, [value, options]);
 
   function onKey(e: React.KeyboardEvent) {

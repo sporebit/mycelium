@@ -1,5 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export const SHELLS = ["classic", "new", "field"] as const;
+export type ShellChoice = (typeof SHELLS)[number];
+
+/** A stored shell value read safely: anything unknown is Classic. */
+export function shellOf(v: unknown): ShellChoice {
+  return (SHELLS as readonly unknown[]).includes(v) ? (v as ShellChoice) : "classic";
+}
+
 export type UiPrefs = {
   motion: "full" | "reduced" | "off";
   /**
@@ -19,10 +27,13 @@ export type UiPrefs = {
   dashboard_view: "today" | "everything";
   /**
    * Which shell: "classic" is the sidebar; "new" is the top menu bar with
-   * Specimen plate as Home (claude/ui-direction.md). The switch is in
-   * Settings → Appearance; the old shell stays until the new one is signed off.
+   * Specimen plate as Home (claude/ui-direction.md); "field" is the top
+   * menu bar with the Field guide's calm palette everywhere and Home as a
+   * tile grid (docs/run/2026-11-28/field-guide-design.md §6). The switch
+   * is in Settings → Appearance; the old shell stays until a new one is
+   * signed off.
    */
-  shell: "classic" | "new";
+  shell: ShellChoice;
   /** The daily loop's times and limits; read through lib/daily/settings.ts, which supplies the defaults. */
   daily?: Record<string, unknown>;
   ventures_incubator_expanded: boolean;

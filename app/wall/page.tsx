@@ -8,9 +8,10 @@ export const dynamic = "force-dynamic";
 /**
  * /wall — the kitchen screen (master run §11). Public by path: it shows a
  * pairing keypad until the device cookie is set, and everything after that
- * comes from /api/wall/* under the device's own membership. The two query
+ * comes from /api/wall/* under the device's own membership. The two timer
  * switches only shorten the timers (a check can wait seconds, not minutes);
- * neither can lengthen one.
+ * neither can lengthen one. `?board=classic` draws the first family board
+ * instead of the tile grid (design D10).
  */
 export default async function WallPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
@@ -18,5 +19,6 @@ export default async function WallPage({ searchParams }: { searchParams: Promise
     const n = Number(Array.isArray(v) ? v[0] : v);
     return Number.isFinite(n) && n >= 3 && n * 1000 < fallbackMs ? n * 1000 : fallbackMs;
   };
-  return <WallClient lockAfterMs={seconds(sp.lock_after, LOCK_AFTER_MS)} idleAfterMs={seconds(sp.idle_after, IDLE_AFTER_MS)} />;
+  const board = (Array.isArray(sp.board) ? sp.board[0] : sp.board) === "classic" ? "classic" : "tiles";
+  return <WallClient lockAfterMs={seconds(sp.lock_after, LOCK_AFTER_MS)} idleAfterMs={seconds(sp.idle_after, IDLE_AFTER_MS)} board={board} />;
 }

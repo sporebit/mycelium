@@ -962,3 +962,93 @@ a.work-chip:hover {
 html[data-shell="new"] .capture-fab {
   display: none;
 }
+
+/* ===========================================================================
+   FIELD SHELL (lane U2, 2026-11-28; docs/run/2026-11-28/field-guide-design.md
+   §5, §6). ui_prefs.shell = "field", server-rendered as data-shell on <html>.
+   The app's canonical tokens are remapped onto the --fg-* tokens here, on
+   <html> itself, so every alias that reads them (--ink-*, --text-0..3,
+   --glow-0/1, the @theme colours) resolves to the calm palette and every
+   inner page becomes calm and flat with no per-page edit. The plate's own
+   tokens are not touched. Three light-side values are taken a step darker
+   than the plain mapping so body-size text holds 4.5:1 on a card
+   (paper-2): text-lo, glow and warn. Dark-side text-lo likewise.
+   =========================================================================== */
+html[data-shell="field"] {
+  --surface-0: var(--fg-paper);
+  --surface-1: var(--fg-paper-2);
+  --surface-2: var(--fg-paper-3);
+  --surface-3: var(--fg-paper-3);
+  --text-hi: var(--fg-ink);
+  --text-mid: var(--fg-ink-soft);
+  --text-lo: light-dark(#63665a, #8a8a7a);
+  --text-ghost: var(--fg-ink-faint);
+  --glow: light-dark(#386f47, #8fb996);
+  --glow-dim: var(--fg-moss);
+  --glow-wash: var(--fg-moss-wash);
+  --glow-2: var(--fg-moss);
+  --glow-3: light-dark(#dbe4d3, #1f2b20);
+  --good: light-dark(#386f47, #8fb996);
+  --good-bg: light-dark(#dbe4d3, #1f2b20);
+  --v2-warn: light-dark(#84591a, #d9b06a);
+  --warn: light-dark(#84591a, #d9b06a);
+  --v2-error: var(--fg-umber);
+  --error: var(--fg-umber);
+  --hairline: var(--fg-line);
+  --hairline-strong: light-dark(rgba(30, 32, 25, 0.2), rgba(236, 230, 210, 0.17));
+  --hyphal-stroke: var(--fg-line);
+  --font-display: var(--fg-font-body);
+}
+/* Headings in the Field body face, a little looser than the sans display tracking. */
+html[data-shell="field"] h1,
+html[data-shell="field"] h2,
+html[data-shell="field"] h3 {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+/* Small uppercase section labels stay in the sans face (design D11: Inter Tight for small labels). */
+html[data-shell="field"] :is(h2, h3, h4, h5, h6).uppercase {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+/* Capture lives in the top menu bar, as in the new shell. */
+html[data-shell="field"] .capture-fab {
+  display: none;
+}
+
+/* Home tiles (components/home/TilesView.tsx). One entrance, once; nothing loops. */
+@keyframes field-tile-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+.field-tile {
+  animation: field-tile-in 240ms var(--ease-out) both;
+}
+.field-flip {
+  transition: color 320ms var(--ease-out), background-color 320ms var(--ease-out);
+}
+.field-press {
+  transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+.field-press:active:not(:disabled) {
+  transform: scale(0.98);
+}
+[data-motion="reduced"] .field-tile,
+[data-motion="off"] .field-tile {
+  animation: none;
+}
+[data-motion="off"] .field-flip,
+[data-motion="off"] .field-press {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .field-tile {
+    animation: none;
+  }
+  .field-flip,
+  .field-press {
+    transition: none;
+  }
+}
+/* ======================= end FIELD SHELL ======================= */

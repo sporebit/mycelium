@@ -5,7 +5,7 @@ import type { WallGlance, WallPerson } from "@/lib/wall/contract";
 const SERIF = "font-[family-name:var(--font-plate)]";
 
 /** The week as fill: seven cells, Monday first; a lit cell is a day with something finished. */
-function WeekFill({ week }: { week: number[] }) {
+export function WeekFill({ week }: { week: number[] }) {
   if (!week.length) return null;
   return (
     <div className="flex gap-1" aria-label="This week">
@@ -16,21 +16,33 @@ function WeekFill({ week }: { week: number[] }) {
   );
 }
 
-const hm = (minutes: number) => (minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60 ? `${minutes % 60}m` : ""}`.trim() : `${minutes}m`);
+export const hm = (minutes: number) => (minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60 ? `${minutes % 60}m` : ""}`.trim() : `${minutes}m`);
+
+/** A person's today in numbers ("2 things left · 1h 5m"); null when they have no plan yet. */
+export function todayLine(p: WallPerson): string | null {
+  if (!p.today) return null;
+  return p.today.left === 0 ? (p.today.planned ? "All done today" : "Nothing planned") : `${p.today.left} ${p.today.left === 1 ? "thing" : "things"} left · ${hm(p.today.minutes_left)}`;
+}
+
+/** The week's hours as words; null when hours are not tracked. */
+export function hoursLine(p: WallPerson): string | null {
+  if (p.hours_left == null) return null;
+  return p.hours_left > 0 ? `${hm(p.hours_left)} to the week's hours` : "Week's hours met";
+}
+
+/** The baby log taps show once there is a baby line or a baby (the countdown reads "Ada is 6 weeks"). */
+export function showBabyTaps(glance: WallGlance): boolean {
+  const fam = glance.family;
+  return !!(fam?.baby_line || (fam && fam.countdown?.includes(" is ")));
+}
 
 /** One person on the board: numbers and the week, never a title. A tap asks for their PIN. */
 export function PersonCard({ p, onOpen }: { p: WallPerson; onOpen: (id: string) => void }) {
   const body = (
     <>
       <div className={`${SERIF} text-3xl`}>{p.name}</div>
-      {p.today ? (
-        <div className="mt-2 text-lg opacity-80">
-          {p.today.left === 0 ? (p.today.planned ? "All done today" : "Nothing planned") : `${p.today.left} ${p.today.left === 1 ? "thing" : "things"} left · ${hm(p.today.minutes_left)}`}
-        </div>
-      ) : (
-        <div className="mt-2 text-lg opacity-60">No plan yet today</div>
-      )}
-      {p.hours_left != null ? <div className="mt-1 text-base opacity-60">{p.hours_left > 0 ? `${hm(p.hours_left)} to the week's hours` : "Week's hours met"}</div> : null}
+      {p.today ? <div className="mt-2 text-lg opacity-80">{todayLine(p)}</div> : <div className="mt-2 text-lg opacity-60">No plan yet today</div>}
+      {p.hours_left != null ? <div className="mt-1 text-base opacity-60">{hoursLine(p)}</div> : null}
       <div className="mt-3">
         <WeekFill week={p.week} />
       </div>
@@ -73,7 +85,7 @@ export function Board({ glance, onOpen, onBaby }: { glance: WallGlance; onOpen: 
         ) : fam ? (
           <div className="text-lg opacity-50">Nothing in the family calendar this week</div>
         ) : null}
-        {fam?.baby_line || (fam && glance.family?.countdown?.includes(" is ")) ? (
+        {fam && showBabyTaps(glance) ? (
           <div className="mt-auto flex flex-col gap-3">
             {fam.baby_line ? <div className="text-lg opacity-80">{fam.baby_line}</div> : null}
             <div className="flex gap-3" role="group" aria-label="Baby log">
