@@ -9,7 +9,7 @@ import { MyceliumField } from "@/components/art/MyceliumField";
 import { SessionWatch } from "@/components/auth/SessionWatch";
 import { ShellPrefProvider } from "@/components/shell/ShellPref";
 import { createUserClient } from "@/lib/supabase/user";
-import { UI_PREFS_DEFAULTS, getUiPrefs } from "@/lib/settings/uiPrefs";
+import { UI_PREFS_DEFAULTS, getUiPrefs, shellOf } from "@/lib/settings/uiPrefs";
 import { THEME_COLOUR, isTheme, type Theme } from "@/lib/theme";
 
 // Every page is behind a session and the layout reads the request's
@@ -80,7 +80,7 @@ export default async function RootLayout({
     const supabase = await createUserClient();
     const prefs = await getUiPrefs(supabase);
     motion = prefs.motion;
-    shell = prefs.shell === "new" ? "new" : "classic";
+    shell = shellOf(prefs.shell);
     if (isTheme(prefs.theme)) theme = prefs.theme;
   } catch (err) {
     console.error("[layout/uiPrefs]", err);
@@ -105,8 +105,13 @@ export default async function RootLayout({
         )}
       </head>
       <body className="min-h-full flex flex-col bg-surface-0 text-text-hi">
-        <SoilGrain />
-        <MyceliumField />
+        {/* The Field shell is calm and flat (design §5, §6): no grain, no network backdrop. */}
+        {shell === "field" ? null : (
+          <>
+            <SoilGrain />
+            <MyceliumField />
+          </>
+        )}
         <SessionWatch />
         <TransitionProvider>
           <PrivacyProvider>
