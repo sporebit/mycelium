@@ -51,7 +51,11 @@ export function TopBox({ definition: def, state, mode, frame }: { definition: St
       title: "The tricky bit",
       body: (
         <p>
-          {mode === "me" && <span className="fg-mono">Step {intro.hard_part.step_id}: </span>}
+          {mode === "me" && (
+            <>
+              Step <span className="fg-mono">{intro.hard_part.step_id}</span>:{" "}
+            </>
+          )}
           {intro.hard_part.why}
         </p>
       ),

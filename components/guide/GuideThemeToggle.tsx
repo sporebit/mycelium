@@ -36,7 +36,7 @@ export function GuideThemeToggle() {
       data-testid="guide-theme"
       data-showing={showing}
     >
-      {next === "light" ? "Light" : "Dark"}
+      {next === "light" ? "Switch to light" : "Switch to dark"}
     </button>
   );
 }

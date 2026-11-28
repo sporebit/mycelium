@@ -308,7 +308,7 @@ export function FieldGuide({
                   }
                   className={`fg-btn min-h-[40px] rounded-lg px-3 ${sound ? "fg-btn-on" : ""}`}
                 >
-                  {sound ? "Sound on" : "Sound off"}
+                  {sound ? "Turn sound off" : "Turn sound on"}
                 </button>
                 {ticketKey && (
                   <a
@@ -327,9 +327,9 @@ export function FieldGuide({
 
         {modeControls}
 
-        <TopBox definition={def} state={state} mode={mode} frame={frame} />
+        {!flight && <TopBox definition={def} state={state} mode={mode} frame={frame} />}
 
-        {choiceToggles.length > 0 && (
+        {!flight && choiceToggles.length > 0 && (
           <div className="fg-ui fg-noprint flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
             {choiceToggles.map(([key, t]) => (
               <div key={key} className="flex flex-wrap items-center gap-1.5">
@@ -350,7 +350,7 @@ export function FieldGuide({
           </div>
         )}
 
-        {def.values && def.values.length > 0 && (
+        {!flight && def.values && def.values.length > 0 && (
           <section id="values" className="fg-card rounded-xl p-3">
             <Label>Values used throughout</Label>
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
@@ -390,7 +390,7 @@ export function FieldGuide({
           />
         </div>
 
-        {resume && !state.park && (
+        {resume && !state.park && !flight && (
           <p className="fg-ui fg-soft text-[14px]" data-testid="guide-resume">
             {resume.line}
           </p>
