@@ -521,8 +521,19 @@ for (const e of epics) {
       patch.description_doc = markdownToDoc(description);
     }
     if (Object.keys(patch).length) {
-      await api("PATCH", `/api/work/tickets/${encodeURIComponent(x.key)}`, patch);
-      console.log(`  ~ ${x.key} ${patch.epic ? "under the epic" : ""}${patch.description ? " +unlocks" : ""}`);
+      try {
+        await api("PATCH", `/api/work/tickets/${encodeURIComponent(x.key)}`, patch);
+        console.log(`  ~ ${x.key} ${patch.epic ? "under the epic" : ""}${patch.description ? " +unlocks" : ""}`);
+      } catch (err) {
+        // an epic must share the ticket's project; a ticket from another project gets the note only
+        if (patch.epic && patch.description) {
+          delete patch.epic;
+          await api("PATCH", `/api/work/tickets/${encodeURIComponent(x.key)}`, patch);
+          console.log(`  ~ ${x.key} +unlocks (epic refused: another project)`);
+        } else {
+          console.log(`  ! ${x.key}: ${(err as Error).message}`);
+        }
+      }
     }
   }
 
