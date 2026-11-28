@@ -1,0 +1,188 @@
+187 open
+MYC-6 |  | verify | task |  | Rotate All Mycelium Environment Secrets
+GARDN-1 |  | backlog | task |  | Patch and repair office walls
+SELL-1 |  | next | task |  | Get laptops ready to sell
+SELL-2 |  | next | task |  | Websites to rebuild
+PW-103 |  | next | task | 3 | Set the Tickets secrets and mint an API token
+MYC-173 |  | next | task |  | Task: make sure whisper accepts a date
+GARDN-4 |  | next | task | 3 | Clean and replace PC CPU fan
+PW-71 |  | next | task | 3 | Switch to sporebit email address
+PW-23 |  | next | task | 1 | Write review for Joe PT
+MADRD-3 |  | next | task | 5 | Book holiday: Greece
+PW-22 |  | next | task |  | Create house cleaning schedule
+PW-145 |  | next | task |  | Gifts for Christmas 2026 — 25 December
+PW-43 |  | next | task | 2 | Add holidays and Father's Day gift
+PW-30 |  | backlog | task | 3 | Migrate email addresses
+MYC-180 |  | next | setup |  | Phil's queue: create the four cron-job.org jobs
+MYC-182 |  | next | setup |  | Phil's queue: three answers the run needs (backup drive, due date, photo frame)
+MYC-192 |  | next | setup |  | Phil's queue: UI — say when your limits have refreshed; pick the Plate artwork; adjust the
+MYC-172 |  | backlog | task |  | Check iOS Shortcut Offline Behaviour
+MYC-210 |  | inbox | task |  | Overnight run 2026-11-24: what needs your eyes
+MYC-209 |  | next | task |  | API_SECRET: every caller, for the day it rotates
+PW-144 |  | inbox | task |  | research fruitarian
+PW-143 |  | inbox | task |  | research juicers and juice diet
+PW-142 |  | inbox | task |  | make the kitchen a space I want to cook in
+PW-141 |  | inbox | task |  | Figure out healthy food for me and Kirsty
+MYC-207 |  | doing | setup | 3 | Google, the Family calendar and PhirstMaxx: Phil's setup (checklist)
+PW-140 |  | inbox | task |  | extract Church song accapellas for
+MYC-206 |  | next | task |  | Update location/where to allow both mobile and
+MYC-205 |  | next | task | 1 | Phil's queue: the wall — set your quick-unlock PIN, add the Kitchen wall in Settings → Sec
+MYC-204 |  | next | task |  | Phil's queue: decide whether the two per-person AI model choices in Settings → AI should d
+MYC-203 |  | next | task |  | Phil's queue: the Boys' group chat — seven bots from BotFather, one group, eight env names
+MYC-202 |  | next | task |  | Phil's queue: GITHUB_TOKEN for the Finds feed's GitHub watcher (optional)
+MYC-201 |  | next | task |  | Phil's queue: email import — an inbox the app may read over IMAP (5 min, free)
+MYC-200 |  | next | task |  | Phil's queue: a Cloudflare R2 account for family photos (15 min; not urgent; needs a card 
+MYC-199 |  | backlog | task |  | Delete a team: decide what happens to what is in its space, then build it
+MYC-198 |  | next | task |  | Phil's queue: decide who may switch on paid AI features for a new person (2 min)
+MYC-197 |  | next | setup |  | Phil's queue: build the iPhone Shortcuts — capture, retry, photo, share, quick note, and t
+MYC-196 |  | next | setup |  | Phil's queue: rotate the two exposed secrets (after the new Shortcuts work; 20 min)
+MYC-195 |  | next | setup |  | Phil's queue: Enable Banking — sign up and check Halifax, Revolut and AMEX are covered (10
+MYC-194 |  | next | setup |  | Phil's queue: set up the email service so invites and rundowns are sent (15 min, free)
+MYC-193 |  | next | test |  | Live checks after the test pass: one surface per sitting (11 chunks of 15 minutes)
+MCU-16 |  | backlog | task |  | Put the scripts under version control, apart from data and logs
+MCU-15 |  | backlog | task | 1 | Bring CONTEXT.md and DECISIONS.md up to date with 24 to 27 July
+MCU-14 |  | backlog | task | 1 | Run chkdsk on E: to clear the exFAT dirty flag
+MCU-13 |  | backlog | task | 1 | Check the missing _SecretsCheck folder
+MCU-12 |  | backlog | task |  | Stage F: rename films and TV to Plex naming and set up the Plex server
+MCU-11 |  | backlog | task |  | Stage F: tag the music library with MusicBrainz Picard
+MCU-10 |  | backlog | task |  | Recover dates for about 226 videos with untrustworthy metadata
+MCU-9 |  | backlog | task |  | Deep-review E:\Documents
+MCU-8 |  | backlog | task |  | Decide what happens to the _Unsure and _ToListen_Screenshots bins
+MCU-7 |  | backlog | task | 1 | Push Documents and Documents_Organized to iCloud Drive
+MCU-6 |  | backlog | task |  | Verify the iCloud library, then delete _ToDelete and tear down staging (Stage G)
+MCU-5 |  | backlog | task | 8 | Resume upload waves 4 to 21
+MCU-4 |  | backlog | task |  | Verify that upload waves 1 to 3 actually reached iCloud
+MCU-3 |  | backlog | task | 1 | Decide whether to restart the iCloud Photos client to unjam its file watcher
+MCU-2 |  | backlog | task | 1 | Answer the open questions about the stray ExifTool notification
+MCU-1 |  | backlog | task | 1 | Check the iCloud storage quota to explain the upload failures
+POLY-40 |  | backlog | task | 1 | Restore web/ and scripts/ in the local working copy
+POLY-39 |  | backlog | task | 1 | Bring the README human-checkpoint list up to date
+POLY-38 |  | backlog | task |  | Implement the push notification channel
+POLY-37 |  | backlog | task |  | Persist follow notification preferences (Telegram and email)
+POLY-36 |  | backlog | task |  | Persist Stripe subscription state in the billing routes
+POLY-35 |  | backlog | task |  | Multi-user execution (PROMPT 7), gated on G4 legal clearance
+POLY-34 |  | backlog | task |  | Run redesign PROMPT 6: friends onboarding (customers, no execution)
+POLY-33 |  | backlog | task |  | Run redesign PROMPT 5: engine correctness and founder-only live canary
+POLY-32 |  | backlog | task |  | Run redesign PROMPT 4: Portfolio, Follows, Strategies, tables, mobile pass
+POLY-31 |  | backlog | task |  | Run redesign PROMPT 3: Overview, Leaderboard and Wallet detail screens
+POLY-30 |  | backlog | task |  | Run redesign PROMPT 2: realtime data layer
+POLY-29 |  | backlog | task | 1 | Run the deferred category PnL and post-re-base skip-rate queries
+POLY-28 |  | backlog | task |  | Add realised-loss accounting to the fill path
+POLY-27 |  | backlog | task |  | Re-run the EV report monthly once fees are modelled (R6)
+POLY-26 |  | backlog | task | 1 | Confirm the per-trade cap percentages for both bankrolls (R5)
+POLY-25 |  | backlog | task |  | Use per-market minimum order size in copy sizing (R4)
+POLY-24 |  | backlog | task | 1 | Review the follow set (R3)
+POLY-23 |  | backlog | task | 1 | Store the mid-price at fill time in the audit log (R2)
+POLY-22 |  | backlog | task |  | Review the SIM-EV report and decide R1: add a fee model to fills
+POLY-21 |  | backlog | task | 1 | Pin the pg_dump path in the backup script
+POLY-20 |  | backlog | task | 1 | Schedule the pending production kernel reboot
+POLY-19 |  | backlog | task | 1 | Decide the daily-loss reset timezone (Dubai or UTC)
+POLY-18 |  | backlog | task |  | Capture a jurisdiction attestation in the onboarding flow
+POLY-17 |  | backlog | task |  | Commission the UAE legal opinion (gates G2 and G4)
+POLY-16 |  | backlog | task | 8 | Implement live order submission in AutoExecutor
+POLY-15 |  | backlog | task |  | Resolve G1: entity and tax structure for the trading capital
+POLY-14 |  | backlog | task |  | Finish G3 follow-ups: restore drill from Backblaze, alert test, key rotation
+POLY-13 |  | backlog | task | 1 | Close or update the stale 'same-disk backups' entry in BUGS.md
+POLY-12 |  | backlog | task |  | Keep max-drawdown precision above the display cap
+POLY-11 |  | backlog | task | 1 | Delete the scoring_queue row when a queued follow is removed
+POLY-10 |  | backlog | task | 1 | Retry Telegram API app creation to unblock the ingest workstream
+POLY-9 |  | backlog | task |  | Validate the session cookie in edge middleware, not just its presence
+POLY-8 |  | backlog | task |  | Fix login on Safari: add guidance or a WalletConnect fallback
+POLY-7 |  | backlog | task | 1 | Reconcile the three phase-numbering schemes across docs
+POLY-6 |  | backlog | task | 1 | Deploy Caddy access logging on the VPS and verify it
+POLY-5 |  | backlog | task |  | Build the discoveries claim tool
+POLY-4 |  | backlog | task |  | Separate identity and execution wallets and make them editable in Settings
+POLY-3 |  | backlog | task |  | Add Telegram-based login and session linking
+POLY-2 |  | backlog | task |  | Add TOTP two-factor to founder login
+POLY-1 |  | backlog | task | 8 | Build H4c: per-founder risk state, kill switch and bankroll isolation
+DAY-4 |  | backlog | task |  | Document or add the builder that works the trip build queue
+DAY-3 |  | backlog | task |  | Bake MP3 narration for the five trips
+DAY-2 |  | backlog | task |  | Move the jobs queue out of the docroot, then let the deploy delete
+DAY-1 |  | backlog | task |  | Move York and Knaresborough images to Special:FilePath URLs
+DSA-26 |  | backlog | task | 1 | Remove the stale claude/busy-ptolemy-d4133f branch and worktree
+DSA-25 |  | backlog | task |  | Build the customer service agent (Gemma and Tony)
+DSA-24 |  | backlog | task | 1 | Re-run npm audit and deal with the high-severity findings
+DSA-23 |  | backlog | task |  | Add CI workflows
+DSA-22 |  | backlog | task | 1 | Restrict CORS origins in production
+DSA-21 |  | backlog | task | 1 | Align workflow_agent_outputs.status values with what the code writes
+DSA-20 |  | backlog | task | 1 | Bring CLAUDE.md up to date
+DSA-19 |  | backlog | task | 1 | Implement the SerpAPI fallback in NicheScout and ProductHunter
+DSA-18 |  | backlog | task |  | Tune agent web-search efficiency
+DSA-17 |  | backlog | task | 3 | Plumb an AbortSignal through the pipeline for sub-second stop
+DSA-16 |  | backlog | task | 1 | Tighten pm2 dump file permissions on the VPS to 600
+DSA-15 |  | backlog | task |  | Clear zombie activeRuns entries that keep firing stall warnings
+DSA-14 |  | backlog | task | 1 | Quieten the stall-warning log flood
+DSA-13 |  | backlog | task | 1 | Fix or replace the em-dash check script (Windows path bug)
+DSA-12 |  | backlog | task | 1 | Rename result to output at the source and delete the dual-key fallback
+DSA-11 |  | backlog | task |  | Task 8 clean-up: remove legacy UIs, dead routes and the old SSE endpoint
+DSA-10 |  | backlog | task |  | Task 8 cutover: move v2 to the root, regress on test, promote to main
+DSA-9 |  | backlog | task |  | Task 8 polish pass: performance, accessibility, motion, copy, error states
+DSA-8 |  | backlog | task |  | Build Task 7: Replay mode on the shared store
+DSA-7 |  | backlog | task | 1 | Redirect completed runs to history and drop the disabled affordance
+DSA-6 |  | backlog | task |  | Build Task 6: v2 History list and Run detail
+DSA-5 |  | backlog | task | 1 | Add name-suffixed output aliases for AdCreator and UgcSourcer steps
+DSA-4 |  | backlog | task |  | Settle Task 5 scope, then build 5b: inline editing for the other four agents
+SG-7 |  | backlog | task |  | Add CI for tests, typecheck and tile verification
+SG-6 |  | backlog | task |  | Rebuild the data with current ONS wards and Code-Point Open postcodes
+SG-5 |  | backlog | task | 1 | Fix the 'Updating the app' step to match the push script
+SG-4 |  | backlog | task | 1 | Update the test plan for the missed/learning colours and new 'known' rule
+SG-3 |  | backlog | task |  | Run the manual test plan before release
+SG-2 |  | backlog | task | 1 | Set up the nightly Postgres backup on the VPS and verify a restore
+SG-1 |  | backlog | task |  | Confirm deploy phases 1 to 3 are ticked (server, domain, app)
+PMW-4 |  | backlog | task | 1 | Clear out _to_delete/
+PMW-3 |  | backlog | task | 1 | Delete the dead landing page index.html
+PMW-2 |  | backlog | task |  | Give the Kirstianity Philgrimage site a version-controlled home
+PMW-1 |  | backlog | task | 1 | Retire this folder: it duplicates the daytripper repo
+PHM-16 |  | backlog | task | 1 | Confirm the October 2026 Philgrimage update is uploaded to Ionos
+PHM-15 |  | backlog | task |  | Review the 'Later / not now' list
+PHM-14 |  | backlog | task | 1 | Reconcile STATUS.md known gaps with the roadmap log
+PHM-13 |  | backlog | task | 1 | Set git user.email so direct pushes deploy on Vercel
+PHM-12 |  | backlog | task |  | Add ISS passes to the night-sky events table
+PHM-11 |  | backlog | task | 1 | Try the AI features from a phone
+PHM-10 |  | backlog | task | 1 | Test web push on the iPhone
+PHM-9 |  | backlog | task |  | Decide the productisation gate
+PHM-8 |  | backlog | task |  | Build the WhatsApp concierge (Phase 7)
+PHM-7 |  | backlog | task |  | Build Daytripper v1: share a plan as a message, public RSVP page
+PHM-6 |  | backlog | task |  | Draft the first real trip with live AI drafting and log what is wrong
+PHM-5 |  | backlog | task | 1 | Add the 'Our number' card to Home with a monthly push
+PHM-4 |  | backlog | task |  | Write up month-one frictions and turn them into the R7 spec
+PHM-3 |  | backlog | task | 1 | Merge feat/r5-backups into main
+PHM-2 |  | backlog | task | 1 | Switch on nightly backups by adding the SUPABASE_DB_URL secret
+PHM-1 |  | backlog | task |  | Calibrate travel estimates against five real door-to-door routes
+MYC-191 |  | verify | runbook |  | Master run Stream I: UI — Specimen plate and the top menu bar, behind the shell switch
+MYC-190 |  | verify | runbook |  | Master run Stream H: harvest and other apps into Work
+MYC-189 |  | verify | runbook |  | Master run Stream G: wall screen
+MYC-188 |  | waiting | runbook |  | Master run Stream F: finance feeds and email import
+MYC-187 |  | verify | runbook |  | Master run Stream E: PC worker, cloud-AI cap, backups, database size
+MYC-186 |  | verify | runbook |  | Master run Stream D: family
+MYC-185 |  | verify | runbook |  | Master run Stream C: Kirsty (build now, invite later)
+MYC-184 |  | verify | runbook |  | Master run Stream B: daily loop, the Boys group chat, dormant features
+MYC-183 |  | verify | runbook |  | Master run Stream A: capture that answers at once and never loses anything
+MYC-177 |  | next | test | 5 | Four-Day Week Tracker: Phil's live checks
+PW-138 |  | backlog | task |  | Status on mobile task view is too
+MYC-167 |  | next | guide | 3 | Put the Mycelium contacts on the iPhone (2026-09-26)
+MYC-166 |  | next | test | 5 | People contacts smoke test (2026-09-26)
+MYC-164 |  | next | test | 5 | Tasks + Tickets merge smoke test (2026-09-26)
+MYC-171 |  | next | task |  | Set up GitHub / SourceTree
+DSA-3 |  | next | task | 3 | laser pointer dropship install
+MYC-170 |  | next | task |  | Set up automatic password regeneration or stronger
+PW-112 |  | next | task |  | Map Street Name Matching Game
+MYC-169 |  | next | task |  | Add camera overlay exercise form feedback
+MYC-168 |  | next | task |  | Review login for mycelium
+PW-92 |  | backlog | task |  | Call Gavage about MOT
+PW-77 |  | backlog | task |  | Research scratch maps DIY
+PW-76 |  | backlog | task |  | Research scratch maps for the UK
+PW-72 |  | backlog | task | 3 | unsubscribed emails to migrate
+PW-66 |  | backlog | task | 3 | Create itinerary builder for trips
+PW-57 |  | backlog | task |  | Change Apple password
+PW-54 |  | backlog | task |  | New Instagram page
+PW-51 |  | backlog | task |  | Update CV with work changes
+PW-46 |  | backlog | task | 3 | Clear mobile contacts, add to people
+PW-42 |  | backlog | task |  | have a think about digital photoframe that auto generates AI images of people that either 
+PW-40 |  | backlog | task | 2 | Put stickers on bin
+PW-35 |  | backlog | task |  | Plan Europe road trip with Dad
+PW-28 |  | backlog | task |  | Facebook Scraper for Darren Marr Selfies
+PW-26 |  | backlog | task |  | Find banana bread recipe
+GARDN-3 |  | verify | task |  | Remove paints from carpet
+GARDN-2 |  | backlog | task |  | Sort out the loft
+PW-139 |  | backlog | audit |  | Weekly review
