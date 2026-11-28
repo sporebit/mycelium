@@ -3,7 +3,7 @@
     "sid": "E.unblock",
     "project": "MYC",
     "title": "Unblock Mycelium: the 15-minute gates, worked first",
-    "description": "Phil's own gating jobs, each a 15-minute ticket worked before anything else, each naming what it unlocks (11.7). The order of everything is the unblock queue, then voice capture, notes, the connector and imports (11.29).\n\n## Order\nFirst, needing nothing from Phil: unblock.01, which runs keys.06 (Claude's census of credential files on the PC; report only, nothing deleted). Then Phil's queue, top to bottom:\n1. MYC-195, Enable Banking sign-up: unlocks every Finance ticket that reads transactions.\n2. MYC-201, the mailbox Mycelium reads: unlocks the parcels panel and the owed-replies feed.\n3. MYC-197, the iPhone Shortcuts: unlocks voice capture from the phone, Spores and the glasses prototype.\n4. MYC-182, the three answers (backup drive, due date, photo frame): unlocks the real baby dates, the frame tickets and the off-site backup.\n5. MYC-196, rotate the two exposed secrets: unlocks the Mycelium part of rotate everything.\n6. MYC-194, the email service: unlocks invite emails, so Kirsty can be invited.\n7. MYC-205, the wall PIN and Kitchen wall: unlocks living with the wall on the frame.\n8. MYC-180, the cron-job.org job: unlocks timed prompts when the PC is off.\n9. MYC-210, the 2026-11-24 overnight report: unlocks the PhirstMaxx confirmations.\n10. MYC-198, who may switch on paid AI: unlocks a new person's AI settings.\n11. MYC-204, the two per-person AI model choices: unlocks the per-person model settings.\n12. MYC-203, the Boys' seven bots: unlocks the Boys speaking in the group chat.\n13. MYC-192, the UI calls: unlocks the Home design question round.\n14. MYC-200, Cloudflare R2 for family photos: unlocks family photos in storage.\n15. MYC-202, the GitHub token (optional): unlocks the GitHub watcher at full rate (optional).\n\nunblock.02 checks this order is set on production.\n\n## Done means\nEvery ticket under this epic is Done, and each one's Unlocks list has moved forward.\n\n## Flags\nNone raised against this epic. Key rotation stays after the new Shortcuts and the API_SECRET caller list (MYC-209), as Phil instructed on 2026-11-24.\n\n## Dossier\nThe research dossier is attached in Docs.\n\n## Red team\n- Finding 50: keys.06 (the census files check) is the first item and sits under this epic; MYC-182 (the due date) is the second because 39 dates hang on it.\n",
+    "description": "Phil's own gating jobs, each a 15-minute ticket worked before anything else, each naming what it unlocks (11.7). The order of everything is the unblock queue, then voice capture, notes, the connector and imports (11.29).\n\n## Order\nFirst, needing nothing from Phil: keys.06 (Claude's census of credential files on the PC; report only, nothing deleted). Then Phil's queue, top to bottom:\n1. MYC-195, Enable Banking sign-up: unlocks every Finance ticket that reads transactions.\n2. MYC-201, the mailbox Mycelium reads: unlocks the parcels panel and the owed-replies feed.\n3. MYC-197, the iPhone Shortcuts: unlocks voice capture from the phone, Spores and the glasses prototype.\n4. MYC-182, the three answers (backup drive, due date, photo frame): unlocks the real baby dates, the frame tickets and the off-site backup.\n5. MYC-196, rotate the two exposed secrets: unlocks the Mycelium part of rotate everything.\n6. MYC-194, the email service: unlocks invite emails, so Kirsty can be invited.\n7. MYC-205, the wall PIN and Kitchen wall: unlocks living with the wall on the frame.\n8. MYC-180, the cron-job.org job: unlocks timed prompts when the PC is off.\n9. MYC-210, the 2026-11-24 overnight report: unlocks the PhirstMaxx confirmations.\n10. MYC-198, who may switch on paid AI: unlocks a new person's AI settings.\n11. MYC-204, the two per-person AI model choices: unlocks the per-person model settings.\n12. MYC-203, the Boys' seven bots: unlocks the Boys speaking in the group chat.\n13. MYC-192, the UI calls: unlocks the Home design question round.\n14. MYC-200, Cloudflare R2 for family photos: unlocks family photos in storage.\n15. MYC-202, the GitHub token (optional): unlocks the GitHub watcher at full rate (optional).\n\nunblock.02 checks this order is set on production.\n\n## Done means\nEvery ticket under this epic is Done, and each one's Unlocks list has moved forward.\n\n## Flags\nNone raised against this epic. Key rotation stays after the new Shortcuts and the API_SECRET caller list (MYC-209), as Phil instructed on 2026-11-24.\n\n## Dossier\nThe research dossier is attached in Docs.\n\n## Red team\n- Finding 50: keys.06 (the census files check) is the first item and sits under this epic; MYC-182 (the due date) is the second because 39 dates hang on it.\n",
     "dossier": "dossiers/unblock.md",
     "links": [
       "keys.06",
@@ -12,6 +12,209 @@
     ]
   },
   "tickets": [
+    {
+      "sid": "unblock.00",
+      "title": "Start here: the first evening after the 2026-11-28 run",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nTwo 15-minute sittings: see what the unattended run built (the Field shell, the Guides list, the map), give the due date that 39 baby tickets hang on, park the decisions review for tomorrow, then do the first two unblock jobs (the bank sign-up, the census report).\n\n## Why\nThe brief's day one (T7): one place to start, written as a full Field guide.\n\n## Done looks like\nBoth sittings ticked; the hand-back pasted to Claude.\n\n## Unlocks\nEvery dated baby ticket, every Finance feed ticket, the decisions review.\n\n## Depends on\nNothing. This is the first ticket.",
+      "after": [],
+      "links": [
+        "MYC-182",
+        "MYC-195",
+        "keys.06",
+        "review.01"
+      ],
+      "tags": [
+        "unblock",
+        "start-here"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "start-here-2026-11-28",
+        "kind": "guide",
+        "title": "Start here: the first evening after the 2026-11-28 run",
+        "version": 1,
+        "intro": {
+          "answer": "Two sittings. The first shows you what the run built and asks the one question 39 dates hang on. The second is your first two unblock jobs.",
+          "unlocks": [
+            "Every dated baby ticket (they move with the due date)",
+            "Every Finance ticket that reads transactions",
+            "The decisions review"
+          ],
+          "to_hand": [
+            "Your phone (Authenticator) and the PC",
+            "The due date from the scan letter"
+          ],
+          "hard_part": {
+            "step_id": "2.1",
+            "why": "The bank sign-up is the one sitting only you can do and it gates all of Finance."
+          },
+          "time": "about 30 minutes in two sittings",
+          "cost": "nothing",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "The run report",
+              "url": "https://mycelium.sporebit.com/docs/RUN",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "See what the run did, and answer the one question",
+            "minutes": 15,
+            "needs": [
+              "Signed in on the PC"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Switch the shell to Field",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Settings, Appearance, Shell",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/other/settings"
+                },
+                "body_html": "<p>Choose <strong>Field</strong>. The page reloads with a menu bar across the top and a calmer palette. Classic is one click away in the same place if you want it back.</p>",
+                "expect_html": "<p>A top menu bar; Home is a grid of tiles with today in the largest.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Open the Guides list",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Work, Guides in the top menu",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/guides"
+                },
+                "body_html": "<p>Open Work and choose Guides. This guide is in the list; so is the decisions review.</p>",
+                "expect_html": "<p>A list of guides, newest first, each with a small progress thread.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Read the map",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Docs, space RUN, page \"Map: the 2026-11-28 run\"",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/docs/RUN"
+                },
+                "body_html": "<p>Open the map page. It shows the 24 threads, which waits on which, and where each starts.</p>",
+                "expect_html": "<p>A diagram of the epics and a start ticket under each.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Give the due date",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "MYC-182 in Work",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/work/browse/MYC-182"
+                },
+                "body_html": "<p>Open MYC-182 and type the due date from the scan letter into its answer box, then tick it. Thirty-nine baby tickets and the two leave-notice deadlines move with it.</p>",
+                "expect_html": "<p>MYC-182 ticked with a date in the box.</p>",
+                "fields": [
+                  {
+                    "key": "due_date",
+                    "label": "The due date (YYYY-MM-DD)",
+                    "placeholder": "2027-06-15"
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "Open the decisions review and park it for tomorrow",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Guides, \"Review: decisions made for me on 2026-11-28\"",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/guides"
+                },
+                "body_html": "<p>Open it, read the top box, then press <strong>Park</strong> so it sits on tomorrow's list. Each of its rows is one decision made for you tonight: tick to keep, write in the box to undo.</p>",
+                "expect_html": "<p>The guide shows a parked banner and tomorrow's Home shows it.</p>"
+              }
+            ],
+            "verify_html": [
+              "<p>Claude reads MYC-182's answer and re-dates the baby tickets; you will see the new dates on the baby epic the next morning.</p>"
+            ],
+            "why_html": "<p>Everything in the plan hangs off the due date and your review of the decisions; nothing else is as cheap to get right first.</p>"
+          },
+          {
+            "id": "2",
+            "title": "The first two unblock jobs",
+            "minutes": 15,
+            "needs": [
+              "Phone with Authenticator",
+              "The banking app"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Enable Banking sign-up",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "MYC-195 in Work",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/work/browse/MYC-195"
+                },
+                "body_html": "<p>Open MYC-195 and follow its steps: the sign-up, then linking Halifax, Revolut and AMEX in its control panel. Stop at the first bank if it is not listed and say so in the box.</p>",
+                "expect_html": "<p>MYC-195 ticked, or a note naming the bank that was missing.</p>",
+                "fields": [
+                  {
+                    "key": "banks_linked",
+                    "label": "Which banks linked",
+                    "placeholder": "names only"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Read Claude's census report",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "keys.06 in Work (project SEC)",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/work"
+                },
+                "body_html": "<p>Open the census-files ticket and read Claude's report of what credential files sit on the PC. Nothing was opened or deleted. Tick it when read; the acting is keys.07, later.</p>",
+                "expect_html": "<p>keys.06 ticked.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Hand back",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This guide",
+                  "kind": "page"
+                },
+                "body_html": "<p>Press Copy on the hand-back prompt at the bottom and paste it to Claude.</p>",
+                "expect_html": "<p>Claude confirms the due date is applied and the Finance feed is in progress.</p>"
+              }
+            ],
+            "verify_html": [
+              "<p>Claude checks MYC-195's state and the keys.06 tick.</p>"
+            ]
+          }
+        ],
+        "finish_html": "<p>The run's work is in your hands: the Field shell on, the map read, the due date given, the first unblock done and the decisions review on tomorrow's list.</p>",
+        "handback_prompt": "I did the start-here guide from the 2026-11-28 run. The due date is {{due_date}}. Banks linked: {{banks_linked}}. Re-date the baby tickets, check MYC-195, and tell me what tonight's one thing is.",
+        "tested": {}
+      }
+    },
     {
       "sid": "unblock.02",
       "title": "Order of the queue written on the epic: bank sign-up, mailbox, Shortcuts, frame, key rotation; each with what it unlocks",

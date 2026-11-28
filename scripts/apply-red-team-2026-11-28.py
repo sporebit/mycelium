@@ -561,10 +561,9 @@ for s in ("rescue.01", "rescue.02", "rescue.03", "rescue.04", "rescue.05"):
     after(s, "rescue.00", n=49)
 # 50 one job, one ticket: keys.06 is the first unblock item
 drop_ticket("unblock.01", "keys.06", n=50)
-if T("keys.06").get("epic_sid") != "E.unblock":
-    T("keys.06")["epic_sid"] = "E.unblock"
-    T("keys.06")["links"] = sorted(set((T("keys.06").get("links") or []) + ["E.keys"]))
-    LOG.append("50. keys.06 sits under E.unblock (epic_sid) and keeps its SEC project and a link to E.keys")
+# An epic must share its ticket's project, so keys.06 (SEC) cannot sit under E.unblock (MYC):
+# the unblock epic links it and names it first instead.
+link("E.unblock", "keys.06", n=50)
 note("E.unblock", 50, "keys.06 (the census files check) is the first item and sits under this epic; MYC-182 (the due date) is the second because 39 dates hang on it.")
 # 51 alias fallback
 note("mail.25", 51, "If the plan's alias limit is below the retailer count, the fallback is shop@ with sub-addressing for the remainder; no paid tier without Phil's yes.")

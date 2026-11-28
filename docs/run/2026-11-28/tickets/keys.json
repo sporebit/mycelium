@@ -1148,8 +1148,7 @@
         "keys",
         "pc"
       ],
-      "steps_definition": null,
-      "epic_sid": "E.unblock"
+      "steps_definition": null
     },
     {
       "sid": "keys.07",

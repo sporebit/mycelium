@@ -221,6 +221,7 @@ function decisionsGuide(base: StepsDefinition | null | undefined): StepsDefiniti
           title: text.length > 120 ? text.slice(0, 117) + "..." : text,
           actor: "you",
           minutes: 1,
+          where: { label: "This ticket, the row's answer box", kind: "page" },
           body_html: `<p>${text.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p><p>Tick to keep. If it should be undone, say so in the box and leave it unticked.</p>`,
           expect_html: "<p>Ticked means keep; a note means undo or change.</p>",
           fields: [{ key: `d${i + j + 1}`, label: "Keep, undo, or change to...", placeholder: "leave empty to keep as is" }],
@@ -352,14 +353,18 @@ async function ensureDocSpace(): Promise<DocSpace | null> {
     console.log(`+ doc space ${DOC_SPACE.key}`);
   }
   if (ds) {
-    const got = await api<{ pages?: PageLite[]; tree?: PageLite[] }>("GET", `/api/work/docs/pages?doc_space=${DOC_SPACE.key}`);
-    const flat: PageLite[] = [];
-    const walk = (n: PageLite & { children?: PageLite[] }) => {
-      flat.push({ id: n.id, title: n.title });
-      for (const c of n.children ?? []) walk(c as PageLite & { children?: PageLite[] });
+    // the space endpoint carries the whole page tree; the pages endpoint is a search and needs q
+    const got = await api<{ tree?: Array<PageLite & { position?: number; children?: PageLite[] }> }>("GET", `/api/work/docs/spaces/${DOC_SPACE.key}`);
+    const flat: Array<PageLite & { position?: number }> = [];
+    const walk = (n: PageLite & { position?: number; children?: PageLite[] }) => {
+      flat.push({ id: n.id, title: n.title, position: n.position });
+      for (const c of n.children ?? []) walk(c as PageLite & { position?: number; children?: PageLite[] });
     };
-    for (const n of got.pages ?? got.tree ?? []) walk(n as PageLite & { children?: PageLite[] });
-    pagesByTitle = new Map(flat.map((p) => [p.title, p]));
+    for (const n of got.tree ?? []) walk(n);
+    // the first page of a title wins, so a duplicate from an interrupted run is never the one linked
+    flat.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+    pagesByTitle = new Map();
+    for (const p of flat) if (!pagesByTitle.has(p.title)) pagesByTitle.set(p.title, p);
   }
   return ds;
 }
@@ -479,6 +484,20 @@ for (const e of epics) {
     console.log(`  + ${key} ${t.title.slice(0, 70)}${t.due ? ` (${t.due})` : ""}`);
   }
 
+  // a ticket from an earlier run whose checklist never landed (the run stopped before its steps PATCH)
+  if (APPLY) {
+    for (const t of e.tickets) {
+      const definition = t.sid === "review.01" ? decisionsGuide(t.steps_definition) : t.steps_definition;
+      const key = createdKeyBySid.get(t.sid);
+      if (!definition || !key || !bySid.has(t.sid)) continue;
+      const have = await api<{ definition: unknown | null }>("GET", `/api/tickets/${encodeURIComponent(key)}/steps`);
+      if (have.definition) continue;
+      await api("PATCH", `/api/tickets/${encodeURIComponent(key)}/steps`, { definition });
+      totals.steps += 1;
+      console.log(`  ~ ${key} checklist added`);
+    }
+  }
+
   // existing tickets under this epic
   for (const x of e.existing ?? []) {
     if (!KEY_RE.test(x.key)) continue;
@@ -493,7 +512,10 @@ for (const e of epics) {
     }
     const patch: Json = {};
     if (x.set_epic && current.ticket.epic?.key !== epicKey) patch.epic = epicKey;
-    if (x.append && !(current.ticket.description ?? "").includes(RUN_MARK)) {
+    // the server derives the plain description from the document, which drops an HTML comment,
+    // so the appended text's own last line is the marker
+    const appendMark = (x.append ?? "").trim().split(/\r?\n/).filter((l) => l.trim()).pop() ?? "";
+    if (x.append && appendMark && !(current.ticket.description ?? "").includes(appendMark.trim())) {
       const description = `${(current.ticket.description ?? "").trimEnd()}\n${x.append.trimEnd()}\n\n${RUN_MARK}`;
       patch.description = description;
       patch.description_doc = markdownToDoc(description);
@@ -511,6 +533,15 @@ for (const e of epics) {
 // dependencies and links need every key to exist, so they come last
 console.log("\n== dependencies and links");
 for (const e of epics) {
+  // epic links written as stable ids resolve once every ticket has a key
+  const epicKeyForLinks = createdKeyBySid.get(e.epic.sid);
+  if (epicKeyForLinks && APPLY) {
+    for (const l of e.epic.links ?? []) {
+      if (KEY_RE.test(l)) continue;
+      const other = await resolveRef(l);
+      if (other) await ensureLink(epicKeyForLinks, other, "related");
+    }
+  }
   for (const t of e.tickets) {
     const key = createdKeyBySid.get(t.sid);
     // a ticket that sits under another epic than its file's (red team 50)
@@ -518,7 +549,13 @@ for (const e of epics) {
       const otherEpic = createdKeyBySid.get(t.epic_sid);
       if (otherEpic) {
         const cur = await api<{ ticket: { epic: { key: string | null } | null } }>("GET", `/api/work/tickets/${encodeURIComponent(key)}`);
-        if (cur.ticket.epic?.key !== otherEpic) await api("PATCH", `/api/work/tickets/${encodeURIComponent(key)}`, { epic: otherEpic });
+        if (cur.ticket.epic?.key !== otherEpic) {
+          try {
+            await api("PATCH", `/api/work/tickets/${encodeURIComponent(key)}`, { epic: otherEpic });
+          } catch (err) {
+            console.log(`  ! ${key} under ${otherEpic}: ${(err as Error).message}`);
+          }
+        }
       }
     }
     for (const a of t.after ?? []) {

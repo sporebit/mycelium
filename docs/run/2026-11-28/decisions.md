@@ -85,3 +85,4 @@ One line each, newest last. Format: `- [D|S|A|U] what | why | how to undo`. D = 
 - [D] docs/run/2026-11-28/screenshots/guides-list-light.png: the list in light, flat cards, one hairline, no shadow
 - [D] docs/run/2026-11-28/screenshots/guide-phone-dark.png: 390 px, one column, the thread pinned at the top, the next step opened by the resume with its 44 px tick
 - [D] docs/run/2026-11-28/screenshots/guide-phone-light.png: the same phone view in light; chips wrap, nothing scrolls sideways
+- [D] keys.06 (the census files check) stays under E.keys in SEC and E.unblock links it and names it first, instead of the red team's re-parenting | the Work layer only allows an epic from the ticket's own project | none needed
