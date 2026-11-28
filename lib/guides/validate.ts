@@ -7,9 +7,9 @@
  * README all use this one function.
  *
  * The rule, for a Field guide:
- *  - every `actor: "you"` step (or a step with no actor) carries where (a label), a value (a block
- *    or `value_html`), what you should see (`expect_html`) and how long
- *    (`minutes` above zero);
+ *  - every `actor: "you"` step (or a step with no actor) carries where (a label), a value (a block,
+ *    `value_html`, or a `body_html` that states the exact thing), what you should see
+ *    (`expect_html`) and how long (`minutes` above zero);
  *  - a phase's own steps (actor "you") add up to 20 minutes or less.
  */
 import { isStepsDefinition, type StepsDefinition } from "@/lib/tickets/steps";
@@ -32,8 +32,13 @@ export function validateDefinition(def: unknown): Validation {
       if ((step.actor ?? "you") !== "you") continue;
       const missing: string[] = [];
       if (!step.where || typeof step.where.label !== "string" || !step.where.label.trim()) missing.push("where");
-      const hasValue = (step.blocks?.length ?? 0) > 0 || (typeof step.value_html === "string" && step.value_html.trim() !== "");
-      if (!hasValue) missing.push("a value (blocks or value_html)");
+      // The value: a copy block or value_html, or the step's own body stating the exact thing
+      // (decisions.md 2026-11-28: steps like "Decide each" have nothing copyable).
+      const hasValue =
+        (step.blocks?.length ?? 0) > 0 ||
+        (typeof step.value_html === "string" && step.value_html.trim() !== "") ||
+        (typeof step.body_html === "string" && step.body_html.trim() !== "");
+      if (!hasValue) missing.push("a value (blocks, value_html or body_html)");
       if (typeof step.expect_html !== "string" || !step.expect_html.trim()) missing.push("expect_html");
       if (typeof step.minutes !== "number" || !(step.minutes > 0)) missing.push("minutes");
       else own += step.minutes;

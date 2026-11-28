@@ -10,14 +10,11 @@ import { groupForPath, MENU_GROUPS, menuHrefs } from "./menu";
  * every other place, so this list empties itself in effect; drop the entry
  * after the merge.
  */
-const BUILT_ELSEWHERE = new Set(["/guides"]);
-
 describe("the top menu", () => {
   it("every place in it is a real page", () => {
     for (const href of menuHrefs()) {
       const dir = href === "/" ? "app" : path.join("app", ...href.split("/").filter(Boolean));
       const exists = existsSync(path.join(process.cwd(), dir, "page.tsx"));
-      if (!exists && BUILT_ELSEWHERE.has(href)) continue;
       expect(exists, href).toBe(true);
     }
   });

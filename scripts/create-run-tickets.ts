@@ -106,6 +106,12 @@ const PROJECTS: Record<string, { name: string; description: string }> = {
   HOME: { name: "Home", description: "The room editor, rooms in order (bathroom, nursery, bedroom, living room, office), garden, repairs and odd jobs." },
   GLASS: { name: "Glasses", description: "Meta glasses answering to Mycelium: voice capture first, then steering Claude Code." },
   LIFE: { name: "Life", description: "One-off research, ventures behind the FixForward rule, the harvest rescue, and this run's review checklists." },
+  // these exist in production and are found by prefix; the local stack creates them for the proof run
+  MYC: { name: "Mycelium", description: "The app itself." },
+  PHM: { name: "PhirstMaxx", description: "The PhirstMaxx app." },
+  DSA: { name: "DropShipAuto", description: "DropShipAuto, kept alive." },
+  SELL: { name: "Selling", description: "Selling and websites." },
+  GARDN: { name: "Home Improvement", description: "The older home improvement tickets." },
 };
 
 const POINTS = new Set([1, 2, 3, 5, 8, 13]);
@@ -200,7 +206,7 @@ function decisionsGuide(base: StepsDefinition | null | undefined): StepsDefiniti
     ? readFileSync(file, "utf8").split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.startsWith("#"))
     : [];
   const per = 12;
-  const phases = [];
+  const phases: Array<Record<string, unknown>> = [];
   for (let i = 0; i < lines.length; i += per) {
     const chunk = lines.slice(i, i + per);
     const n = phases.length + 1;
@@ -255,7 +261,7 @@ const epics = allEpics.filter((e) => !ONLY || ONLY.has(e.stem));
 const sidToFile = new Map<string, string>();
 const problems: string[] = [];
 for (const e of allEpics) {
-  if (!PROJECTS[e.epic.project] && !["MYC", "PHM", "DSA", "SELL", "GARDN"].includes(e.epic.project)) problems.push(`${e.stem}: unknown project ${e.epic.project}`);
+  if (!PROJECTS[e.epic.project]) problems.push(`${e.stem}: unknown project ${e.epic.project}`);
   if (sidToFile.has(e.epic.sid)) problems.push(`${e.stem}: duplicate epic sid ${e.epic.sid}`);
   sidToFile.set(e.epic.sid, e.stem);
   for (const t of e.tickets) {
@@ -518,7 +524,8 @@ for (const e of epics) {
     for (const a of t.after ?? []) {
       const blocker = await resolveRef(a);
       if (!blocker) {
-        console.log(`  ? ${t.sid}: blocker ${a} has no key yet`);
+        if (!APPLY && sidToFile.has(a)) totals.deps += 1;
+        else console.log(`  ? ${t.sid}: blocker ${a} has no key yet`);
         continue;
       }
       if (!key) {

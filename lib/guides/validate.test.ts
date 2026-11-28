@@ -51,7 +51,7 @@ describe("validateDefinition", () => {
 
   it.each([
     ["where", (d: StepsDefinition) => delete d.phases[0].steps[0].where],
-    ["a value", (d: StepsDefinition) => delete d.phases[0].steps[0].blocks],
+    ["a value", (d: StepsDefinition) => { delete d.phases[0].steps[0].blocks; delete d.phases[0].steps[0].body_html; }],
     ["expect_html", (d: StepsDefinition) => delete d.phases[0].steps[0].expect_html],
     ["minutes", (d: StepsDefinition) => delete d.phases[0].steps[0].minutes],
   ])("refuses a Field guide step with no %s", (what, cut) => {
@@ -66,7 +66,15 @@ describe("validateDefinition", () => {
   it("takes value_html in place of a block", () => {
     const d = good();
     delete d.phases[0].steps[0].blocks;
+    delete d.phases[0].steps[0].body_html;
     d.phases[0].steps[0].value_html = "<code>3111</code>";
+    expect(validateDefinition(d).ok).toBe(true);
+  });
+
+  it("takes a body_html that states the exact thing in place of a block", () => {
+    const d = good();
+    delete d.phases[0].steps[0].blocks;
+    d.phases[0].steps[0].body_html = "<p>Choose <strong>Keep</strong> for every row that is a login.</p>";
     expect(validateDefinition(d).ok).toBe(true);
   });
 

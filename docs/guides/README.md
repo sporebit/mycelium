@@ -30,7 +30,7 @@ A definition with `"format": "field-guide"` is refused, by the steps route and b
 
 1. any step whose `actor` is `"you"` (or that has no actor) lacks any of:
    - `where`: the exact place, with a `label` (a link in `url` when there is one; "In the shell, at A:\Projects\Mycelium" when there is not);
-   - a value: at least one entry in `blocks`, or `value_html`;
+   - a value: at least one entry in `blocks`, or `value_html`, or a `body_html` that states the exact thing to click, type or choose (a step such as "Decide each" has nothing copyable);
    - `expect_html`: what he should see when it has worked;
    - `minutes`: how long it takes, above zero;
 2. a phase's own steps (actor `"you"`) add up to more than 20 minutes.
