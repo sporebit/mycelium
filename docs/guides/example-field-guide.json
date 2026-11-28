@@ -153,8 +153,8 @@
               "kind": "command",
               "label": "Run one spec",
               "shells": {
-                "powershell": "$env:E2E_PORT=3111; npx playwright test e2e/smoke.spec.ts --project=phil --grep \"/guides$\"",
-                "bash": "E2E_PORT=3111 npx playwright test e2e/smoke.spec.ts --project=phil --grep \"/guides$\""
+                "powershell": "$env:E2E_PORT=3111; npx playwright test e2e/smoke.spec.ts --project=phil --grep \"opens /guides$\"",
+                "bash": "E2E_PORT=3111 npx playwright test e2e/smoke.spec.ts --project=phil --grep \"opens /guides$\""
               }
             }
           ],
