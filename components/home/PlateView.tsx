@@ -12,14 +12,14 @@
  * daily-loop routes the phone's focus card uses. Desktop first; on a phone
  * Home is the single next-thing card instead.
  */
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
-import { playChime } from "@/components/daily/chime";
-import type { HomeData, HomeItem } from "@/lib/home/contract";
+import type { HomeData } from "@/lib/home/contract";
 import { seeded, speciesFor } from "@/lib/home/specimen";
 import { about } from "@/lib/daily/words";
 import { Network, type NetworkHandle } from "./Network";
 import { Specimen } from "./Specimen";
+import { useHomeDay } from "./useHomeDay";
 
 const SERIF = "font-[family-name:var(--font-plate)]";
 const MONO = "font-[family-name:var(--font-mono)]";
@@ -50,58 +50,17 @@ function sporeRays(count: number, seed: number): Array<{ d: string; op: number; 
 }
 
 export function PlateView({ data, chime = true }: { data: HomeData; chime?: boolean }) {
-  const [items, setItems] = useState<HomeItem[]>(data.items);
-  const [gone, setGone] = useState<Set<string>>(new Set());
-  const [picked, setPicked] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [weekCount, setWeekCount] = useState(data.week.count);
-  const [lifetime, setLifetime] = useState(data.lifetime.count);
-  const [notes, setNotes] = useState(data.nudges);
-  const notToday = async (id: string) => {
-    // One tap, no reason asked, nobody told (research rule 30). The note goes at once; if the save fails it comes back.
-    const before = notes;
-    setNotes((list) => list.filter((n) => n.id !== id));
-    const res = await fetch(`/api/nudges/${id}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "not_today" }) }).catch(() => null);
-    if (!res?.ok) setNotes(before);
-  };
   const network = useRef<NetworkHandle | null>(null);
+  // The moment: colour floods in (the fill transition), new growth from the specimen; the chime is the hook's.
+  const burst = useCallback(() => network.current?.burst(0.5, 0.42), []);
+  const { shown, picked, setPicked, busy, error, weekCount, lifetime, notes, notToday, act } = useHomeDay(data, { chime, onDone: burst });
 
-  const shown = items.filter((i) => !gone.has(i.item_id));
   // The centre: the one picked, else the first not yet done, else the last finished (so a won day still shows its specimen).
   const main = shown.find((i) => i.item_id === picked) ?? shown.find((i) => i.state !== "done") ?? shown[shown.length - 1] ?? null;
   const rest = shown.filter((i) => i.item_id !== main?.item_id);
   const won = shown.some((i) => i.is_win && i.state === "done");
   const rays = useMemo(() => sporeRays(weekCount, data.who.id.length * 7919 + 77), [weekCount, data.who.id]);
 
-  const act = useCallback(
-    async (item: HomeItem, action: "done" | "not_now") => {
-      setBusy(true);
-      setError(null);
-      try {
-        const res = await fetch(`/api/daily/items/${item.item_id}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action }) });
-        if (!res.ok) throw new Error("not saved");
-        if (action === "done") {
-          setItems((list) => list.map((i) => (i.item_id === item.item_id ? { ...i, state: "done" } : i)));
-          setWeekCount((n) => n + 1);
-          setLifetime((n) => n + 1);
-          // The moment: colour floods in (the fill transition), new growth from the specimen, a chime.
-          network.current?.burst(0.5, 0.42);
-          if (chime) playChime(item.is_win);
-          // Stay on it: the finished specimen holds the centre, coloured in, until another figure is chosen.
-          setPicked(item.item_id);
-        } else {
-          setGone((s) => new Set(s).add(item.item_id));
-          setPicked(null);
-        }
-      } catch {
-        setError("That did not save. Nothing was changed; try again.");
-      } finally {
-        setBusy(false);
-      }
-    },
-    [chime],
-  );
 
   const density = Math.min(1, 0.25 + lifetime / 400);
   const hours = data.hours;

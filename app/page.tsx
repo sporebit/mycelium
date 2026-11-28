@@ -7,12 +7,13 @@ import { LoopLinks } from "@/components/daily/LoopLinks";
 import { FocusCard } from "@/components/daily/FocusCard";
 import { GoneQuiet } from "@/components/dashboard/GoneQuiet";
 import { HomeView } from "@/components/home/HomeView";
+import { defaultViewForShell } from "@/components/home/registry";
 import { PRINCIPAL_USER_HEADER } from "@/lib/auth/gate";
 import { createUserClient } from "@/lib/supabase/user";
 import { dailySettings } from "@/lib/daily/settings";
 import type { HomeData } from "@/lib/home/contract";
 import { loadHome } from "@/lib/home/data";
-import { getUiPrefs } from "@/lib/settings/uiPrefs";
+import { getUiPrefs, shellOf, type ShellChoice } from "@/lib/settings/uiPrefs";
 import {
   buildHeadlineContext,
   matchHeadlines,
@@ -28,18 +29,20 @@ import {
  *            the Home data contract; on a phone, the single next-thing
  *            card. If Home's data cannot be loaded the card loads itself
  *            in the browser instead of the page failing.
+ *   field    the same, with the tile grid as the desktop view
+ *            (components/home/TilesView.tsx) and the same phone card.
  */
 export default async function DashboardPage() {
-  let shell: "classic" | "new" = "classic";
+  let shell: ShellChoice = "classic";
   let supabase: Awaited<ReturnType<typeof createUserClient>> | null = null;
   try {
     supabase = await createUserClient();
-    shell = (await getUiPrefs(supabase)).shell === "new" ? "new" : "classic";
+    shell = shellOf((await getUiPrefs(supabase)).shell);
   } catch (err) {
     console.error("[home/prefs]", err);
   }
 
-  if (shell === "new" && supabase) {
+  if ((shell === "new" || shell === "field") && supabase) {
     let data: HomeData | null = null;
     let chime = true;
     try {
@@ -55,7 +58,7 @@ export default async function DashboardPage() {
       <Shell active="HOME" bleed>
         {data ? (
           <div className="hidden lg:block">
-            <HomeView data={data} chime={chime} />
+            <HomeView data={data} view={defaultViewForShell(shell)} chime={chime} />
           </div>
         ) : null}
         <div className={data ? "lg:hidden" : undefined}>

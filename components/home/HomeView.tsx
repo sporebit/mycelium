@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Home, as whichever registered view the person has chosen. With one view
- * registered there is nothing to choose and no toggle is shown.
+ * Home, as whichever registered view the shell asks for (registry.ts,
+ * defaultViewForShell). There is no toggle: the shell is the choice.
  */
 import type { HomeData } from "@/lib/home/contract";
 import { homeViewFor } from "./registry";
