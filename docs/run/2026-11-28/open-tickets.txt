@@ -10,12 +10,12 @@ PW-71 |  | next | task | 3 | Switch to sporebit email address
 PW-23 |  | next | task | 1 | Write review for Joe PT
 MADRD-3 |  | next | task | 5 | Book holiday: Greece
 PW-22 |  | next | task |  | Create house cleaning schedule
-PW-145 |  | next | task |  | Gifts for Christmas 2026 — 25 December
+PW-145 |  | next | task |  | Gifts for Christmas 2026, 25 December
 PW-43 |  | next | task | 2 | Add holidays and Father's Day gift
 PW-30 |  | backlog | task | 3 | Migrate email addresses
 MYC-180 |  | next | setup |  | Phil's queue: create the four cron-job.org jobs
 MYC-182 |  | next | setup |  | Phil's queue: three answers the run needs (backup drive, due date, photo frame)
-MYC-192 |  | next | setup |  | Phil's queue: UI — say when your limits have refreshed; pick the Plate artwork; adjust the
+MYC-192 |  | next | setup |  | Phil's queue: UI, say when your limits have refreshed; pick the Plate artwork; adjust the
 MYC-172 |  | backlog | task |  | Check iOS Shortcut Offline Behaviour
 MYC-210 |  | inbox | task |  | Overnight run 2026-11-24: what needs your eyes
 MYC-209 |  | next | task |  | API_SECRET: every caller, for the day it rotates
@@ -26,17 +26,17 @@ PW-141 |  | inbox | task |  | Figure out healthy food for me and Kirsty
 MYC-207 |  | doing | setup | 3 | Google, the Family calendar and PhirstMaxx: Phil's setup (checklist)
 PW-140 |  | inbox | task |  | extract Church song accapellas for
 MYC-206 |  | next | task |  | Update location/where to allow both mobile and
-MYC-205 |  | next | task | 1 | Phil's queue: the wall — set your quick-unlock PIN, add the Kitchen wall in Settings → Sec
+MYC-205 |  | next | task | 1 | Phil's queue: the wall, set your quick-unlock PIN, add the Kitchen wall in Settings → Sec
 MYC-204 |  | next | task |  | Phil's queue: decide whether the two per-person AI model choices in Settings → AI should d
-MYC-203 |  | next | task |  | Phil's queue: the Boys' group chat — seven bots from BotFather, one group, eight env names
+MYC-203 |  | next | task |  | Phil's queue: the Boys' group chat, seven bots from BotFather, one group, eight env names
 MYC-202 |  | next | task |  | Phil's queue: GITHUB_TOKEN for the Finds feed's GitHub watcher (optional)
-MYC-201 |  | next | task |  | Phil's queue: email import — an inbox the app may read over IMAP (5 min, free)
+MYC-201 |  | next | task |  | Phil's queue: email import, an inbox the app may read over IMAP (5 min, free)
 MYC-200 |  | next | task |  | Phil's queue: a Cloudflare R2 account for family photos (15 min; not urgent; needs a card 
 MYC-199 |  | backlog | task |  | Delete a team: decide what happens to what is in its space, then build it
 MYC-198 |  | next | task |  | Phil's queue: decide who may switch on paid AI features for a new person (2 min)
-MYC-197 |  | next | setup |  | Phil's queue: build the iPhone Shortcuts — capture, retry, photo, share, quick note, and t
+MYC-197 |  | next | setup |  | Phil's queue: build the iPhone Shortcuts, capture, retry, photo, share, quick note, and t
 MYC-196 |  | next | setup |  | Phil's queue: rotate the two exposed secrets (after the new Shortcuts work; 20 min)
-MYC-195 |  | next | setup |  | Phil's queue: Enable Banking — sign up and check Halifax, Revolut and AMEX are covered (10
+MYC-195 |  | next | setup |  | Phil's queue: Enable Banking, sign up and check Halifax, Revolut and AMEX are covered (10
 MYC-194 |  | next | setup |  | Phil's queue: set up the email service so invites and rundowns are sent (15 min, free)
 MYC-193 |  | next | test |  | Live checks after the test pass: one surface per sitting (11 chunks of 15 minutes)
 MCU-16 |  | backlog | task |  | Put the scripts under version control, apart from data and logs
@@ -149,7 +149,7 @@ PHM-4 |  | backlog | task |  | Write up month-one frictions and turn them into t
 PHM-3 |  | backlog | task | 1 | Merge feat/r5-backups into main
 PHM-2 |  | backlog | task | 1 | Switch on nightly backups by adding the SUPABASE_DB_URL secret
 PHM-1 |  | backlog | task |  | Calibrate travel estimates against five real door-to-door routes
-MYC-191 |  | verify | runbook |  | Master run Stream I: UI — Specimen plate and the top menu bar, behind the shell switch
+MYC-191 |  | verify | runbook |  | Master run Stream I: UI, Specimen plate and the top menu bar, behind the shell switch
 MYC-190 |  | verify | runbook |  | Master run Stream H: harvest and other apps into Work
 MYC-189 |  | verify | runbook |  | Master run Stream G: wall screen
 MYC-188 |  | waiting | runbook |  | Master run Stream F: finance feeds and email import

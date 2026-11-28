@@ -10,15 +10,15 @@ Brief sections: Section 2, 2b, H2 items 13 and 14, H10 Network (section 2) folde
 3. Worries, all four: **entry from the internet, a smart device taken over and reaching the PC, work data exposed, devices sending data home**.
 4. **20 to 40** devices.
 5. Device kinds, all four: **cameras or a video doorbell; plugs, bulbs, sensors; voice assistants; TVs and streaming sticks**.
-6. Ecosystems: **Alexa** and **"iphone"** (read as Apple Home / iPhone apps — confirm when picked up).
+6. Ecosystems: **Alexa** and **"iphone"** (read as Apple Home / iPhone apps, confirm when picked up).
 7. The Everlight work machine is on **the same Wi-Fi as everything else**.
-8. Target layout: **four networks** — Trusted, Work, Smart devices, Guests.
+8. Target layout: **four networks**, Trusted, Work, Smart devices, Guests.
 9. Firmware: **already on Asuswrt-Merlin** ("I'm on merlin already").
 10. Kit: **"I have a couple managed switches already - but up to £100"**.
 11. DNS: **one network-wide filter** carrying both security blocklists and the topic 9 content blocking.
 12. Where the filter runs: **decide in a research ticket** (router, always-on box, or hosted).
 13. Remote access: **yes, through a VPN only**.
-14. Open ports today: **not sure** — first ticket is an audit of both routers plus an outside scan.
+14. Open ports today: **not sure**, first ticket is an audit of both routers plus an outside scan.
 15. **Both routers broadcast Wi-Fi.**
 16. Wiring: **"router to router only"**; the managed switches are unused.
 17. Basics: **admin passwords changed, firmware current**; WPS / remote admin state unknown.
@@ -31,7 +31,7 @@ Brief sections: Section 2, 2b, H2 items 13 and 14, H10 Network (section 2) folde
 24. Home Assistant: **yes, ticketed under self-hosting**, linked here.
 25. Cameras and a baby monitor: **local only, no cloud**; viewed over the VPN.
 26. Scope: **network only**; device and account hardening as separate SEC tickets.
-27. Proof: **fuller attack testing** — outside scan, cross-network tests, plus Claude Code running standard scanning tools from the PC against every device (his own network and devices only).
+27. Proof: **fuller attack testing**, outside scan, cross-network tests, plus Claude Code running standard scanning tools from the PC against every device (his own network and devices only).
 28. Records: **network diagram in Docs + dated config backups**.
 29. Switches: **use them where they help separation**.
 30. Upkeep: **monthly 15-minute recurring review ticket**.
@@ -43,10 +43,10 @@ Brief sections: Section 2, 2b, H2 items 13 and 14, H10 Network (section 2) folde
 - **Network names:** reveal nothing about him or the house.
 - **2am test** (a camera sending gigabytes somewhere new): cut that device off, tell him in the morning.
 - **Kirsty's fallback:** both a labelled "simple mode" switch and a printed card by the routers.
-- **Bar:** "everything possible. I want ultimate security" — then, asked which wins when it clashes with £100 of kit, invisible-to-Kirsty and the simple-mode switch: **the earlier answers hold; as strong as possible inside them**.
-- **Employer policy:** not checked first — "isolate it and see".
+- **Bar:** "everything possible. I want ultimate security", then, asked which wins when it clashes with £100 of kit, invisible-to-Kirsty and the simple-mode switch: **the earlier answers hold; as strong as possible inside them**.
+- **Employer policy:** not checked first, "isolate it and see".
 - **Tripwires:** one on each network.
-- **Unsupported devices:** a cull list with dates — and where possible **Claude applies the security update itself**.
+- **Unsupported devices:** a cull list with dates, and where possible **Claude applies the security update itself**.
 - **TV tracking:** block only what breaks nothing.
 - **Method:** settings as scripts in a git repo, applied by Claude Code, each change approved by him.
 

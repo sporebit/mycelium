@@ -5,7 +5,7 @@ Brief sections: Section 10 (including the italic preface), 10b, H5 phone access 
 
 ### Section 10: Meta glasses controlling Claude (preface and answers) (brief lines 312-343)
 
-*Checked 2026-11-27: Meta's Wearables Device Access Toolkit lets an iOS or Android phone app use the glasses' camera, microphones and speakers; its supported-device list names Ray-Ban Meta Gen 1 and Gen 2, Optics and Display (developers.meta.com/wearables/faq). Gen 3 support is unconfirmed — the research ticket's first job.*
+*Checked 2026-11-27: Meta's Wearables Device Access Toolkit lets an iOS or Android phone app use the glasses' camera, microphones and speakers; its supported-device list names Ray-Ban Meta Gen 1 and Gen 2, Optics and Display (developers.meta.com/wearables/faq). Gen 3 support is unconfirmed, the research ticket's first job.*
 
 1. "Control Claude" means all four: **ask questions by voice and hear the answer, capture notes and tasks into Mycelium hands-free, start and steer Claude Code on the PC, show Claude what he is looking at**.
 2. The Gen 3 glasses are **in daily use**.
@@ -48,10 +48,10 @@ Brief sections: Section 10 (including the italic preface), 10b, H5 phone access 
 - **"Where is it":** say it or look at it, and it lands in the home inventory with a photo and place; later "where is the drill?".
 - **"List this" at the FixForward bench:** later, once FixForward's first slice works.
 - **Private answers in company:** a "private" phrase from him switches that answer to phone-only.
-- **When others are talking:** it never speaks unprompted while it hears conversation; nudges wait. `[claude]` this needs some form of listening and he chose "only after I trigger it" — the research ticket must resolve it (for example on-device voice-activity detection that keeps no audio).
+- **When others are talking:** it never speaks unprompted while it hears conversation; nudges wait. `[claude]` this needs some form of listening and he chose "only after I trigger it", the research ticket must resolve it (for example on-device voice-activity detection that keeps no audio).
 - **Evening walk:** "what did I capture today" and the evening close, by voice.
 - **Manner:** the Boys' personalities, as in the app.
-- **Silent use:** research taps and gestures — at least "capture a photo note" and "mark my next thing done".
+- **Silent use:** research taps and gestures, at least "capture a photo note" and "mark my next thing done".
 
 ## 3. Round 3 corrections and additions (these win)
 
@@ -67,7 +67,7 @@ Brief sections: Section 10 (including the italic preface), 10b, H5 phone access 
 
 - Section 10 item 11 (brief line 324): 11. Voice approvals: **anything, after it reads the request back and he says a confirm word**. `[claude]` flagged in the question: Claude Code here can merge, deploy and push to the database unattended.
 - Section 10 item 22 (brief line 335): 22. Work hours: **no rule; he will take care himself**. `[claude]` flagged in the question: his work screens carry patient data, and with 21 a mis-trigger at the desk stores that frame. Raised once; his call.
-- Section 10b (brief line 537): - **When others are talking:** it never speaks unprompted while it hears conversation; nudges wait. `[claude]` this needs some form of listening and he chose "only after I trigger it" — the research ticket must resolve it (for example on-device voice-activity detection that keeps no audio).
+- Section 10b (brief line 537): - **When others are talking:** it never speaks unprompted while it hears conversation; nudges wait. `[claude]` this needs some form of listening and he chose "only after I trigger it", the research ticket must resolve it (for example on-device voice-activity detection that keeps no audio).
 
 ## 5. Assumed items
 

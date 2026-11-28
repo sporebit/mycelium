@@ -5,9 +5,9 @@ Brief sections: Section 6, 6b, H10 Dashboard (section 6) folded item. Source A:\
 
 ### Section 6: Home dashboard on smart screens (/wall is already built) (brief lines 180-209)
 
-1. It is **the existing wall view, plus smart-home controls and more panels** — not a new build.
+1. It is **the existing wall view, plus smart-home controls and more panels**, not a new build.
 2. First screen: **the A3 touch photo frame he owns**.
-3. Frame operating system: **not sure — a ticket to identify model, OS, browser version and full-screen ability**.
+3. Frame operating system: **not sure, a ticket to identify model, OS, browser version and full-screen ability**.
 4. First room: **kitchen**.
 5. **Several rooms from the start.**
 6. Main job: **glance at what is happening today, and control the house**.
@@ -41,11 +41,11 @@ Brief sections: Section 6, 6b, H10 Dashboard (section 6) folded item. Source A:\
 ### Section 6b: Home dashboard, extras (brief lines 479-487)
 
 - **Character:** a short greeting by time of day.
-- **Kitchen at 7am:** all four matter (first commitment, who is doing what, tonight's meal, weather and countdown) — **tiles of varying sizes, with what is on that day as the largest**.
+- **Kitchen at 7am:** all four matter (first commitment, who is doing what, tonight's meal, weather and countdown), **tiles of varying sizes, with what is on that day as the largest**.
 - **Replaces on paper, all four:** the wall calendar, the shopping list pad, the bin-day leaflet and fridge reminders, a chores rota (a new panel).
 - **Guest mode:** one tap by hand **and** on a schedule he sets, **choosing which device or all**.
 - **Idle:** house status (doors, heating, what is on).
-- **Bedroom screen:** a wind-down — dims at a set time, shows tomorrow's first thing, then dark.
+- **Bedroom screen:** a wind-down, dims at a set time, shows tomorrow's first thing, then dark.
 - **Sound:** soft natural chimes; **speech only when asked for** (this narrows the earlier "spoken reminders and nudges aloud" decision for the wall).
 - **A small "from the archive" tile** rotating saved quotes and photos from this day in past years.
 - **If unused:** touches per tile counted from day one; unused tiles are dropped until they earn their place.

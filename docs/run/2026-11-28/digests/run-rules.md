@@ -6,7 +6,7 @@ Brief sections: Framing (decided), Final five, H9, Round 3 sources paragraphs. S
 ### Framing (decided) (brief lines 7-11)
 
 - **Depth:** 30 questions on every topic.
-- **Ticket shape:** one epic per topic plus a **full breakdown** — every step its own ticket with a rundown. (`[claude]` flagged once: a full breakdown of future work goes stale; complied.)
+- **Ticket shape:** one epic per topic plus a **full breakdown**, every step its own ticket with a rundown. (`[claude]` flagged once: a full breakdown of future work goes stale; complied.)
 - **Where:** the recorded project map (MAIL, SEC, HOME, MYC) plus new projects where none exists.
 - **Order:** everything in **Backlog, no dates**.
 - **Topic 12 added mid-session:** update the guide template.
@@ -16,10 +16,10 @@ Brief sections: Framing (decided), Final five, H9, Round 3 sources paragraphs. S
 ### Final five: the run itself (brief lines 569-573)
 
 1. **The map:** a one-off diagram of all twelve epics and what unlocks what, saved to Docs now; a live roadmap page in Mycelium (drawn from ticket links, next unblocked ticket highlighted) as a ticket.
-2. **The ledger:** yes, bluntly — hours and pounds per epic against the evenings he has before June, "this is N months of evenings", and what must give; every ticket carries points.
+2. **The ledger:** yes, bluntly, hours and pounds per epic against the evenings he has before June, "this is N months of evenings", and what must give; every ticket carries points.
 3. **Red team:** an independent agent that has not seen the tickets being written checks each epic against these answers, finds contradictions between epics, and lists what could lock him out, lose data or cost money; fixes land before he sees anything.
 4. **Dossiers:** a dated research dossier per epic, written by agents working in parallel, specific to his kit, sources with the day they were checked, saved to Docs and linked from the epic.
-5. **Day one:** a single "start here" — the one ticket that unlocks the most, with its Field guide finished — plus the first sitting written for every dated baby ticket. Everything else has a rundown and waits.
+5. **Day one:** a single "start here", the one ticket that unlocks the most, with its Field guide finished, plus the first sitting written for every dated baby ticket. Everything else has a rundown and waits.
 
 ## 3. Round 3 corrections and additions (these win)
 
@@ -43,7 +43,7 @@ Brief sections: Framing (decided), Final five, H9, Round 3 sources paragraphs. S
 
 ## 4. Flags marked [claude] that touch this epic
 
-- Framing (decided) (brief line 8): - **Ticket shape:** one epic per topic plus a **full breakdown** — every step its own ticket with a rundown. (`[claude]` flagged once: a full breakdown of future work goes stale; complied.)
+- Framing (decided) (brief line 8): - **Ticket shape:** one epic per topic plus a **full breakdown**, every step its own ticket with a rundown. (`[claude]` flagged once: a full breakdown of future work goes stale; complied.)
 - Round 3 opening paragraphs (sources) (brief line 577): *Ten projects were swept with Prompt A (`claude/harvest-prompt.md`) and read in full; Phil then answered 60 multiple-choice questions on what they found. The harvest artefacts and their links are in `claude/harvest-review.md`. Where this round disagrees with sections 1 to 12 above, **this round wins** (it is later and was asked against the conflict). "Assumed" marks a question Phil left unanswered; `[claude]` marks a flag raised once.*
 
 ## 5. Assumed items

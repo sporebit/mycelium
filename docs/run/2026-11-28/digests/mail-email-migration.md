@@ -12,7 +12,7 @@ Brief sections: Section 1, 1b, H1, H2 item 4 (renewals), H2 items 8 and 9 (assum
 5. Split: **personal and life admin on philwhelan.com; dev, apps and side projects on sporebit.com**.
 6. New host: **stay on IONOS**.
 7. Budget: **nothing extra**.
-8. Address style: **a few by purpose** (for example phil@, bills@, shopping@, dev@) — not one alias per service.
+8. Address style: **a few by purpose** (for example phil@, bills@, shopping@, dev@), not one alias per service.
 9. Old mail history: **move it all across**.
 10. **50 to 200** accounts use an old address.
 11. Account list built from **the Proton Pass export plus an inbox sender sweep**.
@@ -28,7 +28,7 @@ Brief sections: Section 1, 1b, H1, H2 item 4 (renewals), H2 items 8 and 9 (assum
 21. Only Phil has addresses on the old domain.
 22. Read on **iPhone Mail, Pixel and webmail** (no Outlook on the PC).
 23. The mailbox Mycelium may read (MYC-201): **on sporebit.com**, dedicated, never his personal mailbox.
-24. Telling contacts: **"they don't"** — no announcement, no auto-reply.
+24. Telling contacts: **"they don't"**, no announcement, no auto-reply.
 25. Pace: **15-minute chunks**, a batch per sitting on the daily list.
 26. Tracking: **a checklist ticket**, one step per account, state in the Mycelium database.
 27. Done means: **old mailboxes closed**.
@@ -40,7 +40,7 @@ Brief sections: Section 1, 1b, H1, H2 item 4 (renewals), H2 items 8 and 9 (assum
 
 ### Section 1b: Email migration, extras (brief lines 415-424)
 
-- **Likely failure he named:** stopping after the critical accounts. **Counter:** the forwarded-mail label shrinks visibly — a per-week count of old-domain mail on the daily line, aim zero, each arrival offering "change this one now" with Claude in the browser.
+- **Likely failure he named:** stopping after the critical accounts. **Counter:** the forwarded-mail label shrinks visibly, a per-week count of old-domain mail on the daily line, aim zero, each arrival offering "change this one now" with Claude in the browser.
 - **Addresses on philwhelan.com (eight):** phil@ (people), bills@ (money and utilities), shop@ (retail and deliveries), admin@ (government, health, legal), home@ (the house), news@ (newsletters and digest sources), vault@ (account recovery only, never given to a shop), bank@ (banks and cards only).
 - **Addresses on sporebit.com (eight):** dev@ (GitHub, hosting, APIs), inbox@ (Mycelium's reader), noreply@ (mail the apps send), hello@ (public contact), fixforward@ (eBay, PayPal seller side, couriers), alerts@ (server, backup and DMARC reports), ai@ (AI providers and API accounts), mycelium@ (reply-to on invites).
 - Not wanted: car@, travel@, health@, family@, baby@, career@, receipts@, junk@.

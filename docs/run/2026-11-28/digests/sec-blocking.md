@@ -21,7 +21,7 @@ Brief sections: Section 9, 9b, H10 Blocking (section 9) folded item. Source A:\P
 14. Inside X, Reddit and similar apps: **leave the apps alone**.
 15. YouTube: **channel blocking on the PC; "don't recommend" on phones and TVs**.
 16. Search: **a results-filter extension on the PC; phones rely on the block page**.
-17. Shared TVs (LG, Samsung, Fire Stick): **ask Kirsty first — a ticket**; technical tickets wait on it.
+17. Shared TVs (LG, Samsung, Fire Stick): **ask Kirsty first, a ticket**; technical tickets wait on it.
 18. Sky Glass: **research what can be hidden** before any change.
 19. TV licence: **a research ticket on the current rules** for his set-up, from the official source.
 20. Built-in news feeds (Discover, Apple News, Windows widgets, start pages): **turned off entirely**, a ticket per device.
@@ -41,7 +41,7 @@ Brief sections: Section 9, 9b, H10 Blocking (section 9) folded item. Source A:\P
 ### Section 9b: Blocking, extras (brief lines 518-527)
 
 - **Block page shows:** his next thing from Mycelium with a Start button, how many times he has landed there this week, and one of his saved quotes.
-- **"Open anyway":** different per list — quick for news; **a 10-minute wait for adult sites**.
+- **"Open anyway":** different per list, quick for news; **a 10-minute wait for adult sites**.
 - **A week with many open-anyways:** the Boys raise it bluntly in the Sunday close-out and ask why, **and** the wait gets longer the following week.
 - **BBC / ITV entertainment, sport, iPlayer:** everything from a listed outlet is blocked, not only news.
 - **Need-to-know:** official alerts only (weather warnings, government emergency alerts), pushed through Mycelium.

@@ -189,6 +189,60 @@ export function markdownToDoc(md: string): Doc {
 }
 
 // ---------------------------------------------------------------------------
+// review.01: one row per decisions.md entry, built when the script runs so the
+// ticket carries every decision made up to that moment
+// ---------------------------------------------------------------------------
+function decisionsGuide(base: StepsDefinition | null | undefined): StepsDefinition {
+  const file = path.join(RUN_DIR, "decisions.md");
+  const lines = existsSync(file)
+    ? readFileSync(file, "utf8").split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.startsWith("#"))
+    : [];
+  const per = 12;
+  const phases = [];
+  for (let i = 0; i < lines.length; i += per) {
+    const chunk = lines.slice(i, i + per);
+    const n = phases.length + 1;
+    phases.push({
+      id: String(n),
+      title: `Decisions ${i + 1} to ${i + chunk.length}`,
+      minutes: Math.min(15, chunk.length + 3),
+      steps: chunk.map((line, j) => {
+        const text = line.replace(/^[-*]\s*/, "");
+        return {
+          id: `${n}.${j + 1}`,
+          title: text.length > 120 ? text.slice(0, 117) + "..." : text,
+          actor: "you",
+          minutes: 1,
+          body_html: `<p>${text.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p><p>Tick to keep. If it should be undone, say so in the box and leave it unticked.</p>`,
+          expect_html: "<p>Ticked means keep; a note means undo or change.</p>",
+          fields: [{ key: `d${i + j + 1}`, label: "Keep, undo, or change to...", placeholder: "leave empty to keep as is" }],
+        };
+      }),
+    });
+  }
+  return {
+    ...(base ?? {}),
+    format: "field-guide",
+    kind: "guide",
+    title: "Review: decisions made for me on 2026-11-28",
+    version: 1,
+    intro: {
+      answer: `${lines.length} decisions were made for you during the unattended run of 2026-11-28. Each is one row: tick to keep, write in the box to undo or change.`,
+      unlocks: ["Anything undone becomes its own ticket", "The run's assumptions are confirmed or corrected"],
+      to_hand: ["docs/run/2026-11-28/decisions.md and report.md, if you want the detail"],
+      time: `about ${Math.max(15, Math.ceil(lines.length / per) * 15)} minutes in ${Math.max(1, Math.ceil(lines.length / per))} sittings`,
+      cost: "nothing",
+      last_verified: "2026-11-28",
+      sources: [],
+    },
+    phases,
+    finish_html: "<p>Every decision has an answer. Paste the hand-back to Claude and it will raise a ticket for each undo.</p>",
+    handback_prompt: "I have reviewed the decisions from the 2026-11-28 run. Read my answers on this ticket and raise one ticket per decision I asked to undo or change.",
+    tested: {},
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Load and check the files
 // ---------------------------------------------------------------------------
 // Every file is read so cross-epic sids resolve; --only narrows what is written.
@@ -410,8 +464,9 @@ for (const e of epics) {
       description_doc: markdownToDoc(description),
       ...(epicKey ? { epic: epicKey } : {}),
     });
-    if (t.steps_definition) {
-      await api("PATCH", `/api/tickets/${encodeURIComponent(key)}/steps`, { definition: t.steps_definition });
+    const definition = t.sid === "review.01" ? decisionsGuide(t.steps_definition) : t.steps_definition;
+    if (definition) {
+      await api("PATCH", `/api/tickets/${encodeURIComponent(key)}/steps`, { definition });
     }
     console.log(`  + ${key} ${t.title.slice(0, 70)}${t.due ? ` (${t.due})` : ""}`);
   }
@@ -479,6 +534,71 @@ for (const e of epics) {
       }
       await ensureLink(key, other, "related");
     }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// The map (plan step T6): one Docs page drawn from the ticket data. Epic-level
+// edges are the cross-epic "after" links; each epic lists its first ticket
+// with nothing in front of it, so the page reads as "start here" per thread.
+// Written on every run so it follows the data; the page is replaced, not
+// duplicated, by title.
+// ---------------------------------------------------------------------------
+function mapMarkdown(): string {
+  const epicOf = new Map<string, (typeof allEpics)[number]>();
+  for (const e of allEpics) {
+    epicOf.set(e.epic.sid, e);
+    for (const t of e.tickets) epicOf.set(t.sid, e);
+  }
+  const edges = new Map<string, Set<string>>();
+  const firsts: string[] = [];
+  const lines: string[] = [
+    `# Map: the 2026-11-28 run`,
+    ``,
+    `Drawn from the ticket files on ${new Date().toISOString().slice(0, 10)}. An arrow means "the epic on the left has a ticket that waits for one in the epic on the right". The next unblocked ticket of each thread is listed under it; the live roadmap page (review.03) will do this from the database instead.`,
+    ``,
+    "```mermaid",
+    "flowchart LR",
+  ];
+  for (const e of allEpics) lines.push(`  ${e.stem}["${e.epic.title.replace(/"/g, "'").slice(0, 48)}"]`);
+  for (const e of allEpics) {
+    for (const t of e.tickets) {
+      for (const a of t.after ?? []) {
+        const other = epicOf.get(a);
+        if (other && other.stem !== e.stem) {
+          if (!edges.has(e.stem)) edges.set(e.stem, new Set());
+          edges.get(e.stem)!.add(other.stem);
+        }
+      }
+    }
+  }
+  for (const [from, tos] of edges) for (const to of tos) lines.push(`  ${from} --> ${to}`);
+  lines.push("```", "", "## Where each thread starts", "");
+  for (const e of allEpics) {
+    const epicKey = createdKeyBySid.get(e.epic.sid);
+    const ready = e.tickets.filter((t) => (t.after ?? []).every((a) => KEY_RE.test(a) ? false : !epicOf.has(a)));
+    const first = ready[0] ?? e.tickets[0];
+    const firstKey = first ? createdKeyBySid.get(first.sid) : null;
+    lines.push(`### ${e.epic.title}${epicKey ? ` (${epicKey})` : ""}`);
+    lines.push(`${e.tickets.length} tickets, ${e.tickets.filter((t) => t.due).length} dated, ${e.tickets.filter((t) => t.steps_definition).length} with a checklist.`);
+    if (first) {
+      lines.push(`- Start with ${firstKey ? `${firstKey} ` : ""}${first.title}${first.due ? ` (${first.due})` : ""}${firstKey ? `: ${ticketUrl(firstKey)}` : ""}`);
+      firsts.push(first.sid);
+    }
+    const waits = edges.get(e.stem);
+    if (waits?.size) lines.push(`- Waits on: ${Array.from(waits).map((s) => allEpics.find((x) => x.stem === s)?.epic.title ?? s).join("; ")}`);
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+if (docSpace || !APPLY) {
+  const title = "Map: the 2026-11-28 run";
+  const have = pagesByTitle.get(title);
+  if (have && APPLY) {
+    await api("PATCH", `/api/work/docs/pages/${have.id}`, { title, body: markdownToDoc(mapMarkdown()) });
+    console.log(`~ page "${title}"`);
+  } else {
+    await ensurePage(title, mapMarkdown());
   }
 }
 

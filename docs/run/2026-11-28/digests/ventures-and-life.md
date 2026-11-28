@@ -10,10 +10,10 @@ None.
 ### Final five: the run itself (brief lines 569-573)
 
 1. **The map:** a one-off diagram of all twelve epics and what unlocks what, saved to Docs now; a live roadmap page in Mycelium (drawn from ticket links, next unblocked ticket highlighted) as a ticket.
-2. **The ledger:** yes, bluntly — hours and pounds per epic against the evenings he has before June, "this is N months of evenings", and what must give; every ticket carries points.
+2. **The ledger:** yes, bluntly, hours and pounds per epic against the evenings he has before June, "this is N months of evenings", and what must give; every ticket carries points.
 3. **Red team:** an independent agent that has not seen the tickets being written checks each epic against these answers, finds contradictions between epics, and lists what could lock him out, lose data or cost money; fixes land before he sees anything.
 4. **Dossiers:** a dated research dossier per epic, written by agents working in parallel, specific to his kit, sources with the day they were checked, saved to Docs and linked from the epic.
-5. **Day one:** a single "start here" — the one ticket that unlocks the most, with its Field guide finished — plus the first sitting written for every dated baby ticket. Everything else has a rundown and waits.
+5. **Day one:** a single "start here", the one ticket that unlocks the most, with its Field guide finished, plus the first sitting written for every dated baby ticket. Everything else has a rundown and waits.
 
 ## 3. Round 3 corrections and additions (these win)
 

@@ -17,12 +17,12 @@ Brief sections: Section 7, 7b, H2 item 3 (IONOS vs better home), H5 VM question 
 10. Exposure: **nothing; VPN only**. Kirsty's phone gets the VPN.
 11. Platform: **research, then he approves** (plain Linux with containers versus a VM host).
 12. Linux comfort: **some experience; guides for anything new**.
-13. Dependability: **house basics fail safe** — internet and light switches work with the server off; each house service gets a "what happens when it is off" test.
+13. Dependability: **house basics fail safe**, internet and light switches work with the server off; each house service gets a "what happens when it is off" test.
 14. Backups: **second drive plus an encrypted off-site copy**.
 15. Off-site: **a drive at a family member's house**.
 16. Password manager: **stays on Proton Pass**.
 17. Photos: **run beside the phones' cloud photos first**, decide after three months and a tested restore.
-18. Paid services to cancel: **none — this is not about cancelling**.
+18. Paid services to cancel: **none, this is not about cancelling**.
 19. For Kirsty: **invisible to her**; each family service has a "set up on Kirsty's phone" ticket and is not done until it works there untouched for a week.
 20. Updates: **in the monthly review, snapshot first**.
 21. Monitoring: **both** a push through Mycelium and a status page.
@@ -33,7 +33,7 @@ Brief sections: Section 7, 7b, H2 item 3 (IONOS vs better home), H5 VM question 
 26. Media library: **large; worth a proper library**.
 27. Camera recording: **motion clips for a set number of days**, doorbell and outdoor cameras only; the baby monitor is live view, never recorded.
 28. Docs: **config in a git repo plus a runbook per service in Docs**.
-29. Order: **network needs first** — DNS filter and VPN, then Home Assistant, backups, photos and files, media, git, the worker.
+29. Order: **network needs first**, DNS filter and VPN, then Home Assistant, backups, photos and files, media, git, the worker.
 30. Done means: **every chosen service runs 30 days without him touching it**.
 
 ## 2. Round 2 extras
@@ -44,7 +44,7 @@ Brief sections: Section 7, 7b, H2 item 3 (IONOS vs better home), H5 VM question 
 - **Likely reason he would switch it off:** mainly it breaking things Kirsty relies on; also the upkeep eating evenings and a data-loss scare.
 - **Power:** measure first with a plug-in meter for a week, then set a limit; the costed list includes the monthly figure.
 - **Bus test:** it needs nothing for a month, and there is a printed "if it breaks" page for Kirsty; **a dated ticket before June** proves it by leaving it untouched for 30 days.
-- **Noise:** silent or near it — shapes which spare parts are used.
+- **Noise:** silent or near it, shapes which spare parts are used.
 - **Rule for anything Kirsty uses, both:** no change without a tested way back and never on a weeknight (one set window, snapshot, rehearsed one-step revert); and a separate "family" group of services touched only in the monthly review.
 - **Learning:** build the first service by hand with a guide, then everything as code.
 - **Also run:** a paperwork archive that reads and files scanned documents, a feed reader for the digest's sources, an ebook and audiobook library.

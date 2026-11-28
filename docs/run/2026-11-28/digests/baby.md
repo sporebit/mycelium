@@ -7,18 +7,18 @@ Brief sections: Section 5, 5b, Family section prep lists note, H10 Family (undec
 
 1. First child **for both of them**.
 2. Buying: **safety items new (car seat, mattress), the rest used or handed down**.
-3. Total budget: **not yet — first ticket prices the starter lists, then set with Kirsty**.
+3. Total budget: **not yet, first ticket prices the starter lists, then set with Kirsty**.
 4. Paid from **a shared baby pot** (topic 4 pots); the household budget records who paid what.
-5. Where the baby sleeps first six months: **undecided — research the options**.
+5. Where the baby sleeps first six months: **undecided, research the options**.
 6. The nursery room **needs clearing first**.
 7. Car seat: **check fit in both cars (C220 and EQA), a base in each, one seat**.
 8. Pram: **research first** against the car boots, streets and budget.
 9. Feeding kit: **Kirsty decides** (a ticket for her); a minimal either-route kit until then.
 10. Nappies: **disposable**.
-11. Hand-me-downs: **unknown — a ticket to ask family before anything is bought**.
-12. Gift list: **a shareable read-only page from the buying list**. `[claude]` this is a deliberately public GET (invariant: endpoints are not public unless decided) — unguessable link, no personal data beyond the items.
+11. Hand-me-downs: **unknown, a ticket to ask family before anything is bought**.
+12. Gift list: **a shareable read-only page from the buying list**. `[claude]` this is a deliberately public GET (invariant: endpoints are not public unless decided), unguessable link, no personal data beyond the items.
 13. Research: **a house-style comparison guide per big item** (car seat, pram, cot, mattress, monitor).
-14. Safety: **one guardrail ticket first** — a researched rules page from official UK sources; each item ticket links its rule.
+14. Safety: **one guardrail ticket first**, a researched rules page from official UK sources; each item ticket links its rule.
 15. Timing: **spread month by month**, big items first.
 16. Price watch: **yes, alert on a real drop** below a level he sets.
 17. Monitor: **a local camera through Home Assistant** (depends on the self-hosting epic; cross-link and order accordingly).
@@ -29,7 +29,7 @@ Brief sections: Section 5, 5b, Family section prep lists note, H10 Family (undec
 22. **A minimal starter set** of clothing and kit.
 23. First weeks: **freezer meals, a help rota, a visitor plan** (three tickets).
 24. **A handover-note ticket** before paternity leave (personal ticket only; work content stays out).
-25. Cars: **both are fine** — no change-of-car ticket.
+25. Cars: **both are fine**, no change-of-car ticket.
 26. Kirsty's own items (her leave notice, appointments, paperwork): **ticket them all**.
 27. Running total: **on the Family page plus a line in the payday summary**.
 28. Worries: **the cost, forgetting something essential, leaving it too late**.
@@ -47,7 +47,7 @@ Brief sections: Section 5, 5b, Family section prep lists note, H10 Family (undec
 - **Nursery:** clearing it is the first dated ticket of the epic (after the home epic's storage ticket), nothing for the room bought until it is empty, **and** a clear-out weekend booked with Kirsty.
 - **Overspend guard:** every item marked Need, Nice or Wait; only Need is bought before the birth; Wait reviewed a month after.
 - **Baby technology:** research the evidence before any of it.
-- **First fortnight at home:** Mycelium goes quiet — only the baby log and Kirsty's nudges; nothing counts as slipped.
+- **First fortnight at home:** Mycelium goes quiet, only the baby log and Kirsty's nudges; nothing counts as slipped.
 - **Nights and first weeks:** one conversation ticket with the options laid out.
 - **Make one thing by hand:** a ticket to choose it and a dated ticket to finish it.
 
@@ -63,7 +63,7 @@ Family section 0171 holds prep lists: nursery, hospital bag, buying list; see cl
 
 ## 4. Flags marked [claude] that touch this epic
 
-- Section 5 item 12 (brief line 158): 12. Gift list: **a shareable read-only page from the buying list**. `[claude]` this is a deliberately public GET (invariant: endpoints are not public unless decided) — unguessable link, no personal data beyond the items.
+- Section 5 item 12 (brief line 158): 12. Gift list: **a shareable read-only page from the buying list**. `[claude]` this is a deliberately public GET (invariant: endpoints are not public unless decided), unguessable link, no personal data beyond the items.
 - Section 5 item 20 (brief line 166): 20. Tickets live in **his own space until Kirsty joins** (her invite still waits for the UI rebuild). `[claude]` note: moving a project between spaces later re-keys its tickets (tickets-spec §17.7).
 
 ## 5. Assumed items

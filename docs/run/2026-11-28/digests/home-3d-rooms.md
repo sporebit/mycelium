@@ -45,11 +45,11 @@ Brief sections: Section 8, 8b, H4, H10 Home (section 8 and H4) folded item, H10 
 - **Start rule:** one room in progress at a time, nothing more.
 - **Editor viewpoints:** standing, seated and child height, plus a walk-through path.
 - **Hero piece:** each mood board names one piece worth spending on; the room budget protects it.
-- **Jobs he has not done before — each gets a "learn it or hire it" ticket:** plastering and skimming, tiling, laying flooring, electrical work beyond swapping fittings.
+- **Jobs he has not done before, each gets a "learn it or hire it" ticket:** plastering and skimming, tiling, laying flooring, electrical work beyond swapping fittings.
 - **Before-and-after page per finished room** for the Family timeline, built from the scan pass and photos by itself.
 - **Lighting positions become Home Assistant scenes**; a room plan lists them and the dashboard gets them as buttons.
 - **Garden and ginnel, all four:** somewhere to sit and eat, growing things, a shed or workshop (FixForward's bench, storage), somewhere safe for a child to play.
-- **New, in his words:** "Kirsty has a variety of indoor plants, I want it to be able to advise best places and conditions in the house" — a plant list with each plant's needs, matched against each room's light (window direction from the model), warmth and humidity.
+- **New, in his words:** "Kirsty has a variety of indoor plants, I want it to be able to advise best places and conditions in the house", a plant list with each plant's needs, matched against each room's light (window direction from the model), warmth and humidity.
 - **Mycelium motif:** a quiet nod in his office only.
 
 ## 3. Round 3 corrections and additions (these win)

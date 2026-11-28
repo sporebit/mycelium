@@ -9,10 +9,10 @@ Brief sections: Section 11, 11b, H5, H3 ventures page, H10 Mycelium (section 11)
 2. Biggest gap today: **he still does not open it daily**.
 3. Rule against the 22 unchecked chunks (MYC-193): **check and build in parallel**. `[claude]` recommended no new features until the checks clear; he chose parallel.
 4. Replace first: **his notes app, his spreadsheets, and Claude project docs as the place decisions live**.
-5. Main reason he does not open it: **nothing pulls him in — the prompts and Shortcuts are not set up**.
+5. Main reason he does not open it: **nothing pulls him in, the prompts and Shortcuts are not set up**.
 6. The one daily moment to make work first: **voice capture, wherever he is**.
 7. His own gating jobs (bank sign-up, mailbox, Shortcuts, frame, key rotation): **an "Unblock Mycelium" epic of 15-minute tickets, worked first**, each naming what it unlocks.
-8. Home design direction: **still thinking — ticket a question round for when he is ready**. No UI design work until then.
+8. Home design direction: **still thinking, ticket a question round for when he is ready**. No UI design work until then.
 9. Finding things: **better search inside each section**, not one ask box.
 10. Reference material to bring in, all four: **Claude project docs and chat decisions, Google Drive files, household paperwork, his existing notes**.
 11. **Build the Mycelium connector next** so every Claude session reads and writes Mycelium; its first ticket settles the open sign-in question.
@@ -23,7 +23,7 @@ Brief sections: Section 11, 11b, H5, H3 ventures page, H10 Mycelium (section 11)
 16. Feeds that matter most: **bank transactions, email, health data from the phone**.
 17. Kirsty's invite: **keeps waiting for the UI rebuild**. `[claude]` flagged in the question: the rebuild waits on a direction he is still thinking about, and baby prep, the household budget and the kitchen screen all need her.
 18. Quiet sections: **keep everything visible**.
-19. Phone: **stay with the web app and Shortcuts, and research a native app — "even if its android"**.
+19. Phone: **stay with the web app and Shortcuts, and research a native app, "even if its android"**.
 20. People side: **core to the second brain**.
 21. Agents' long-term memory: **a design ticket with a question round**, before any build.
 22. Facts keep their history **for people, money and decisions**.
@@ -40,15 +40,15 @@ Brief sections: Section 11, 11b, H5, H3 ventures page, H10 Mycelium (section 11)
 
 ### Section 11b: Mycelium, extras (brief lines 544-552)
 
-- **If only three of four could be done well in 2027, drop "what next"** — keep capture, family and money.
+- **If only three of four could be done well in 2027, drop "what next"**, keep capture, family and money.
 - **Why he would stop using it:** "I kept building it instead of using it".
 - **The quick-notes section is called Spores.**
 - **Use weeks:** no rule. **The Boys:** keep all seven.
-- **The guard he chose against his own pre-mortem:** a Sunday scoreline said bluntly — features shipped against days he captured.
+- **The guard he chose against his own pre-mortem:** a Sunday scoreline said bluntly, features shipped against days he captured.
 - **A day with no capture:** an evening prompt ("one thing from today?"), then a blunt call-out next morning if still missed.
 - **It should come to know, all four:** what he has promised people, who he owes a reply to, where things are in the house, what he has read and watched and wants to.
 - **Year review:** one for him and one for the family.
-- **In ten years it is the family's archive** — Family and Day log data treated as permanent: exported to plain files and print, never dependent on the app surviving.
+- **In ten years it is the family's archive**, Family and Day log data treated as permanent: exported to plain files and print, never dependent on the app surviving.
 
 ## 3. Round 3 corrections and additions (these win)
 

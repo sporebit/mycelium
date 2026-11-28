@@ -7,7 +7,7 @@ Brief sections: Section 3, 3b, H10 FixForward (section 3) folded item, H6 FixFor
 
 1. FixForward is **both**: buying faulty items to repair and resell, **and** selling his own used items.
 2. State: **designed, not built**.
-3. Lives in **a repo on the PC under `A:\Projects`** — Claude Code reads it (and its design notes) before writing tickets.
+3. Lives in **a repo on the PC under `A:\Projects`**, Claude Code reads it (and its design notes) before writing tickets.
 4. Coverage, all four: **finding stock, pricing from sold listings, creating and updating listings, orders / messages / postage**.
 5. Sells through **his existing personal eBay account**.
 6. eBay developer API keys: **none yet**.
@@ -48,7 +48,7 @@ Brief sections: Section 3, 3b, H10 FixForward (section 3) folded item, H6 FixFor
 - **Repairs:** profit per hour shown on every item; he judges (no time box).
 - **Interest:** a running total on the daily line.
 - **Dead stock:** after a set time, bundle as a job lot, then donate or recycle.
-- **Listing voice:** plain and exact — what it is, what was tested, what is wrong with it; faults first.
+- **Listing voice:** plain and exact, what it is, what was tested, what is wrong with it; faults first.
 - **Repair photos:** a before, during and after set per repair.
 
 ## 3. Round 3 corrections and additions (these win)

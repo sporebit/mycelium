@@ -7,17 +7,17 @@ Brief sections: Section 4, 4b, H3, H2 item 4 (renewals), H10 dated items, H10 Mo
 
 1. Aim, all four: **know where it goes each month, stop overspending, clear what he owes, build savings and investments**.
 2. What kept him from using Finance, **all four**: the data is stale, he never opens it, no budget has been set, he avoids looking.
-3. Import: **wait for the Enable Banking feed** — no monthly exports meanwhile. `[claude]` consequence: the data stays stale until he completes the sign-up (MYC-195); that ticket gates the whole epic.
+3. Import: **wait for the Enable Banking feed**, no monthly exports meanwhile. `[claude]` consequence: the data stays stale until he completes the sign-up (MYC-195); that ticket gates the whole epic.
 4. Rhythm: **a daily money line in the morning briefing**.
 5. Method: **give every pound a job each payday**.
 6. Budget month: **payday to payday** (from the 16th).
-7. Shared costs with Kirsty: **not discussed yet** — a ticket for the two of them to agree it, options laid out.
+7. Shared costs with Kirsty: **not discussed yet**, a ticket for the two of them to agree it, options laid out.
 8. Household budget set up with Kirsty **before she moves in**.
 9. Payoff order: **lay out both** (highest rate first, smallest balance first); he chooses.
 10. Safety net: **three months of essentials**.
 11. Lower-income months around the birth: **modelled month by month**, after a research ticket gathers both employers' leave pay terms.
 12. **Named pots** for known future costs (car, home repairs, Christmas, baby, holidays).
-13. Subscriptions: **a cancel sweep** — Keep or Cancel each, cancellations become tickets with the exact link.
+13. Subscriptions: **a cancel sweep**, Keep or Cancel each, cancellations become tickets with the exact link.
 14. Contracts (energy, broadband, mobile, insurance): **a ticket per renewal date**, a month ahead.
 15. **No mortgage.** (The net-worth holdings list has a mortgage line; it should be removed or left empty.)
 16. Pension: **review contributions and find old pots** (information, not advice).
@@ -45,7 +45,7 @@ Brief sections: Section 4, 4b, H3, H2 item 4 (renewals), H10 dated items, H10 Mo
 - **Windfall:** decide each time.
 - **A no-figures headline for Kirsty:** decide when the household budget is set up together.
 - **Unspent personal money at payday:** swept to what he owes or to savings.
-- **His guess at the leaks** (to be tested against the data): food and takeaways, tech and gadgets, subscriptions — all three.
+- **His guess at the leaks** (to be tested against the data): food and takeaways, tech and gadgets, subscriptions, all three.
 - **Payday sitting:** Mycelium proposes the whole plan; he adjusts and accepts.
 - **No-spend days:** counted per week, no breakable streak.
 - **Five-year picture:** owing nothing, with six months set aside (this orders the tickets: what he owes, then the safety net, then investing).
@@ -77,7 +77,7 @@ Brief sections: Section 4, 4b, H3, H2 item 4 (renewals), H10 dated items, H10 Mo
 
 ## 4. Flags marked [claude] that touch this epic
 
-- Section 4 item 3 (brief line 116): 3. Import: **wait for the Enable Banking feed** — no monthly exports meanwhile. `[claude]` consequence: the data stays stale until he completes the sign-up (MYC-195); that ticket gates the whole epic.
+- Section 4 item 3 (brief line 116): 3. Import: **wait for the Enable Banking feed**, no monthly exports meanwhile. `[claude]` consequence: the data stays stale until he completes the sign-up (MYC-195); that ticket gates the whole epic.
 - Section 4 item 24 (brief line 137): 24. Receipts: **yes, everything**. `[claude]` flagged in the question: Receipts has never been exercised at runtime, and itemising everything adds effort against the "I avoid looking" blocker.
 - H2 item 4 (brief line 615): 4. **Renewals:** dated tickets plus a renewals list in Finance. Known: **broadband (4th Utility) commitment ends May 2027, £37.00 a month, review and check the notice period in March 2027**. Dates to look up in one sitting: Mercedes EQA lease end, IONOS Mail Basic, the IONOS VPS, philipwhelan.com, the two Sporebit domains. `[claude]` the broadband decision links to SEC answer 18 (making the ASUS the only router depends on the provider).
 
