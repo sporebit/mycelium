@@ -191,15 +191,14 @@ export function markdownToDoc(md: string): Doc {
 // ---------------------------------------------------------------------------
 // Load and check the files
 // ---------------------------------------------------------------------------
-const files = readdirSync(path.join(RUN_DIR, "tickets"))
-  .filter((f) => f.endsWith(".json"))
-  .filter((f) => !ONLY || ONLY.has(f.replace(/\.json$/, "")))
-  .sort();
-const epics: Array<EpicFile & { stem: string }> = files.map((f) => ({ stem: f.replace(/\.json$/, ""), ...(JSON.parse(readFileSync(path.join(RUN_DIR, "tickets", f), "utf8")) as EpicFile) }));
+// Every file is read so cross-epic sids resolve; --only narrows what is written.
+const allFiles = readdirSync(path.join(RUN_DIR, "tickets")).filter((f) => f.endsWith(".json")).sort();
+const allEpics: Array<EpicFile & { stem: string }> = allFiles.map((f) => ({ stem: f.replace(/\.json$/, ""), ...(JSON.parse(readFileSync(path.join(RUN_DIR, "tickets", f), "utf8")) as EpicFile) }));
+const epics = allEpics.filter((e) => !ONLY || ONLY.has(e.stem));
 
 const sidToFile = new Map<string, string>();
 const problems: string[] = [];
-for (const e of epics) {
+for (const e of allEpics) {
   if (!PROJECTS[e.epic.project] && !["MYC", "PHM", "DSA", "SELL", "GARDN"].includes(e.epic.project)) problems.push(`${e.stem}: unknown project ${e.epic.project}`);
   if (sidToFile.has(e.epic.sid)) problems.push(`${e.stem}: duplicate epic sid ${e.epic.sid}`);
   sidToFile.set(e.epic.sid, e.stem);
@@ -215,7 +214,7 @@ for (const e of epics) {
     for (const h of ["## What", "## Why", "## Done looks like", "## Unlocks", "## Depends on"]) if (!t.description.includes(h)) problems.push(`${t.sid}: description lacks "${h}"`);
   }
 }
-for (const e of epics) {
+for (const e of allEpics) {
   for (const t of e.tickets) {
     for (const a of t.after ?? []) if (!sidToFile.has(a) && !KEY_RE.test(a)) problems.push(`${t.sid}: after "${a}" is neither a known sid nor a ticket key`);
     for (const l of t.links ?? []) if (!sidToFile.has(l) && !KEY_RE.test(l)) problems.push(`${t.sid}: link "${l}" is neither a known sid nor a ticket key`);
