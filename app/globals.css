@@ -1052,3 +1052,321 @@ html[data-shell="field"] .capture-fab {
   }
 }
 /* ======================= end FIELD SHELL ======================= */
+
+/* ===========================================================================
+   FIELD GUIDE (lane U1, 2026-11-28; docs/run/2026-11-28/field-guide-design.md
+   §3, §5, D12, D13). components/guide/** and app/guides/** only. Every
+   colour is a --fg-* token, so both themes follow data-theme through
+   light-dark(). Motion: the thread grows 480 ms, a fruit draws in 320 ms,
+   the finish runs 1.2 s once; reduced motion makes the thread and fruits
+   appear at once; off moves nothing. Nothing loops.
+   =========================================================================== */
+.fg-root {
+  background: var(--fg-paper);
+  color: var(--fg-ink);
+  font-family: var(--fg-font-body);
+  font-size: 16px;
+}
+.fg-root[data-mode="someone"] {
+  font-size: 18px;
+}
+.fg-root h1,
+.fg-root h2,
+.fg-root h3 {
+  font-family: var(--fg-font-body);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: inherit;
+}
+.fg-ui {
+  font-family: var(--fg-font-ui);
+}
+.fg-mono {
+  font-family: var(--fg-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.fg-ink {
+  color: var(--fg-ink);
+}
+.fg-soft {
+  color: var(--fg-ink-soft);
+}
+.fg-faint {
+  color: var(--fg-ink-faint);
+}
+.fg-moss-t {
+  color: var(--fg-moss);
+}
+.fg-amber-t {
+  color: var(--fg-amber);
+}
+.fg-umber-t {
+  color: var(--fg-umber);
+}
+.fg-border {
+  border-color: var(--fg-line);
+}
+.fg-border-amber {
+  border-color: var(--fg-amber);
+}
+.fg-card {
+  background: var(--fg-paper-2);
+  border: 1px solid var(--fg-line);
+}
+.fg-card-solid {
+  background: var(--fg-paper-2);
+}
+.fg-card-link:hover {
+  border-color: var(--fg-moss);
+}
+.fg-inset {
+  background: var(--fg-paper-3);
+}
+.fg-root :focus-visible {
+  outline: 2px solid var(--fg-moss);
+  outline-offset: 2px;
+}
+
+/* Controls: flat, one hairline, the label says what it does. */
+.fg-btn {
+  font-family: var(--fg-font-ui);
+  background: var(--fg-paper-2);
+  border: 1px solid var(--fg-line);
+  color: var(--fg-ink);
+}
+.fg-btn:hover {
+  border-color: var(--fg-ink-faint);
+}
+.fg-btn-on {
+  background: var(--fg-moss-wash);
+  border-color: var(--fg-moss);
+  color: var(--fg-moss);
+}
+.fg-btn-quiet {
+  font-family: var(--fg-font-ui);
+  color: var(--fg-ink-soft);
+  background: transparent;
+}
+.fg-btn-quiet:hover {
+  color: var(--fg-ink);
+  background: var(--fg-paper-3);
+}
+.fg-input {
+  background: var(--fg-paper-3);
+  color: var(--fg-ink);
+  border: 1px solid var(--fg-line);
+}
+.fg-input::placeholder {
+  color: var(--fg-ink-faint);
+}
+.fg-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--fg-line);
+  border-radius: 999px;
+  padding: 1px 8px;
+  color: var(--fg-ink-soft);
+  line-height: 1.5;
+}
+.fg-chip-moss {
+  color: var(--fg-moss);
+  border-color: var(--fg-moss);
+}
+.fg-chip-link {
+  color: var(--fg-moss);
+}
+.fg-chip-link:hover {
+  border-color: var(--fg-moss);
+}
+
+/* Authored HTML inside a guide. */
+.fg-html a {
+  color: var(--fg-moss);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.fg-html code,
+.fg-html kbd {
+  font-family: var(--fg-font-mono);
+  font-size: 0.88em;
+  background: var(--fg-paper-3);
+  border-radius: 4px;
+  padding: 0 4px;
+  overflow-wrap: anywhere;
+}
+.fg-html p + p {
+  margin-top: 0.5em;
+}
+.fg-html ul {
+  margin-left: 1.25em;
+  list-style: disc;
+}
+.fg-html ol {
+  margin-left: 1.25em;
+  list-style: decimal;
+}
+
+/* Steps and sittings. */
+.fg-step-done {
+  background: transparent;
+}
+.fg-sitting-open {
+  background: var(--fg-paper-2);
+  border-left: 3px solid var(--fg-moss);
+}
+.fg-sitting-line {
+  background: transparent;
+}
+.fg-row-open {
+  background: var(--fg-moss-wash);
+}
+.fg-tick-box {
+  border-color: var(--fg-ink-faint);
+}
+.fg-tick-box-done {
+  border-color: var(--fg-moss);
+  background: var(--fg-moss);
+  color: var(--fg-paper);
+}
+.fg-tick-box-armed {
+  border-color: var(--fg-umber);
+  background: transparent;
+}
+.fg-tick:hover .fg-tick-box {
+  border-color: var(--fg-moss);
+}
+.fg-expect {
+  border-left: 3px solid var(--fg-moss);
+  background: var(--fg-moss-wash);
+}
+/* Cannot be undone: an umber border and a hatched left edge. */
+.fg-irreversible {
+  border-color: var(--fg-umber);
+}
+.fg-irreversible::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  border-radius: 11px 0 0 11px;
+  background: repeating-linear-gradient(135deg, var(--fg-umber) 0 2px, transparent 2px 6px);
+  pointer-events: none;
+}
+.fg-park {
+  background: var(--fg-paper-2);
+  border: 1px solid var(--fg-amber);
+}
+.fg-rollback {
+  border-color: var(--fg-umber);
+}
+.fg-mark {
+  outline: 3px solid var(--fg-amber);
+  outline-offset: 1px;
+}
+.fg-fold > summary::marker {
+  color: var(--fg-ink-faint);
+}
+.fg-thread-band {
+  background: var(--fg-paper);
+  border-bottom: 1px solid var(--fg-line);
+}
+
+/* The thread. */
+.fg-stroke-line {
+  stroke: var(--fg-line);
+}
+.fg-stroke-moss {
+  stroke: var(--fg-moss);
+}
+.fg-fill-moss {
+  fill: var(--fg-moss);
+}
+.fg-branch:focus-visible {
+  outline: none;
+}
+.fg-branch:focus-visible .fg-stroke-line {
+  stroke: var(--fg-ink-faint);
+}
+.fg-thread-line {
+  transition: stroke-dashoffset 480ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.fg-fruit-in {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fg-fruit 320ms ease-out both;
+}
+@keyframes fg-fruit {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+/* The open tip breathes three times and then rests: nothing loops. */
+.fg-tip-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fg-pulse 1.6s ease-in-out 3;
+}
+@keyframes fg-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1.7);
+  }
+}
+.fg-finish {
+  animation: fg-finish 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) 1 both;
+}
+@keyframes fg-finish {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  45% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+[data-motion="reduced"] .fg-thread-line,
+[data-motion="off"] .fg-thread-line {
+  transition: none;
+}
+[data-motion="reduced"] .fg-fruit-in,
+[data-motion="reduced"] .fg-tip-pulse,
+[data-motion="off"] .fg-fruit-in,
+[data-motion="off"] .fg-tip-pulse,
+[data-motion="off"] .fg-finish {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fg-thread-line {
+    transition: none;
+  }
+  .fg-fruit-in,
+  .fg-tip-pulse {
+    animation: none;
+  }
+}
+@media print {
+  .fg-noprint,
+  .capture-fab {
+    display: none !important;
+  }
+  .fg-thread-band {
+    position: static;
+  }
+}
+/* END FIELD GUIDE */

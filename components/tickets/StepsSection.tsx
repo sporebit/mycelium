@@ -1,51 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import { FieldGuide } from "@/components/guide/FieldGuide";
+import { useStepsPatch, type StepsPayload } from "@/components/guide/useStepsPatch";
 import { useApi } from "@/lib/data/useApi";
+import { mergeDailySettings } from "@/lib/daily/settings";
+import { useUiPrefs } from "@/lib/settings/useUiPrefs";
 import { RUNBOOK_KINDS } from "@/lib/tickets/categories";
-import {
-  definitionFromLines,
-  isStepsDefinition,
-  type StatePatch,
-  type StepsDefinition,
-  type StepsState,
-} from "@/lib/tickets/steps";
+import { definitionFromLines, isStepsDefinition } from "@/lib/tickets/steps";
+import { validateDefinition } from "@/lib/guides/validate";
 import { StepsPage } from "./StepsPage";
-import { ticketFetch } from "./pickers";
-
-type Payload = {
-  definition: StepsDefinition | null;
-  state: StepsState;
-  counts: { done: number; total: number };
-};
 
 /**
- * Steps on a ticket (spec §9.2). Run-book kinds render the house-style page;
- * `task` renders a plain checklist. With no definition yet: a task gets a
- * "one step per line" box, a run-book kind gets a JSON box (Claude authors
- * definitions in the repo; Phil pastes or imports).
+ * Steps on a ticket (spec §9.2). Run-book kinds render the Field guide
+ * (docs/run/2026-11-28/field-guide-design.md D3); `task`, `habit` and
+ * `reminder` keep the plain checklist (StepsPage). With no definition yet:
+ * a task gets a "one step per line" box, a run-book kind gets a JSON box
+ * (Claude authors definitions in the repo; Phil pastes or imports).
  */
 export function StepsSection({ apiKey, kind, title }: { apiKey: string; kind: string; title: string }) {
   const key = `${apiKey}/steps`;
-  const { data, error, mutate } = useApi<Payload>(key);
-  const [busy, setBusy] = useState(false);
+  const { data, error, mutate } = useApi<StepsPayload>(key);
+  const { patch, busy, err: saveErr } = useStepsPatch(key, mutate);
+  const { prefs } = useUiPrefs();
   const [draft, setDraft] = useState("");
-  const [err, setErr] = useState<string | null>(null);
+  const [localErr, setErr] = useState<string | null>(null);
+  const err = localErr ?? saveErr;
   const isRunbook = (RUNBOOK_KINDS as readonly string[]).includes(kind);
-
-  const patch = async (p: StatePatch & { definition?: StepsDefinition | null }) => {
-    setBusy(true);
-    setErr(null);
-    // optimistic tick: merge locally the same way the server does
-    await mutate(
-      async (current) => {
-        const res = await ticketFetch<Payload>(key, { method: "PATCH", body: p });
-        return { ...(current ?? res), ...res };
-      },
-      { revalidate: false, rollbackOnError: true },
-    ).catch((e) => setErr(e instanceof Error ? e.message : "save failed"));
-    setBusy(false);
-  };
+  const ticketKey = decodeURIComponent(apiKey.split("/").pop() ?? "");
 
   if (error) return <p className="text-sm text-text-lo">Could not load steps.</p>;
   if (!data) return <p className="text-sm text-text-lo">Loading steps…</p>;
@@ -53,7 +35,21 @@ export function StepsSection({ apiKey, kind, title }: { apiKey: string; kind: st
   if (data.definition) {
     return (
       <div>
-        <StepsPage definition={data.definition} state={data.state} kind={kind} onPatch={patch} busy={busy} />
+        {isRunbook ? (
+          <FieldGuide
+            definition={data.definition}
+            state={data.state}
+            kind={kind}
+            onPatch={patch}
+            busy={busy}
+            frame="ticket"
+            chime={mergeDailySettings(prefs.daily).chime}
+            ticketKey={ticketKey}
+            title={title}
+          />
+        ) : (
+          <StepsPage definition={data.definition} state={data.state} kind={kind} onPatch={patch} busy={busy} />
+        )}
         {err && <p className="mt-2 text-[11px] text-danger">{err}</p>}
         <div className="mt-2 text-right">
           <button
@@ -94,6 +90,8 @@ export function StepsSection({ apiKey, kind, title }: { apiKey: string; kind: st
               try {
                 const parsed = JSON.parse(draft) as unknown;
                 if (!isStepsDefinition(parsed)) throw new Error("needs phases[] with steps[]");
+                const v = validateDefinition(parsed);
+                if (!v.ok) throw new Error(v.errors.join(" "));
                 void patch({ definition: parsed });
               } catch (e) {
                 setErr(e instanceof Error ? e.message : "bad JSON");

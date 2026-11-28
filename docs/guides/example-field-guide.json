@@ -1,0 +1,229 @@
+{
+  "format": "field-guide",
+  "slug": "local-stack-one-spec",
+  "kind": "guide",
+  "title": "Start the local stack and run one e2e spec",
+  "version": 1,
+  "toggles": {
+    "shell": {
+      "label": "Shell",
+      "options": { "powershell": "PowerShell", "bash": "Git Bash" },
+      "default": "powershell"
+    }
+  },
+  "intro": {
+    "answer": "Docker Desktop, then supabase start, then a dev server on your own port, then one Playwright spec: three sittings, about 35 minutes the first time.",
+    "unlocks": [
+      "Every end-to-end check in e2e/ can run on this PC against the local database",
+      "A change can be proved in a real browser before the integrator ships it"
+    ],
+    "to_hand": [
+      "The PC, signed in, with Docker Desktop installed",
+      "A PowerShell or Git Bash window at A:\\Projects\\Mycelium",
+      "A port of your own: 3111 here (3100 is the integrator's)"
+    ],
+    "hard_part": {
+      "step_id": "3.1",
+      "why": "the dev server compiles each page the first time it is asked for, so the first run after a fresh server can be slow or flake once. Run it a second time before judging."
+    },
+    "last_verified": "2026-11-28",
+    "sources": [
+      { "label": "e2e/README.md in this repo", "url": "e2e/README.md", "checked_on": "2026-11-28" },
+      { "label": "docs/run/parallel-lane.md (ports and lane rules)", "url": "docs/run/parallel-lane.md", "checked_on": "2026-11-28" }
+    ]
+  },
+  "basics_html": "<p>This sets up a copy of Mycelium that runs only on this computer, with its own private database, and then runs one automatic check against it. Nothing here touches the real app or its data.</p>",
+  "values": [
+    { "key": "port", "label": "Your port", "placeholder": "3111" }
+  ],
+  "phases": [
+    {
+      "id": "1",
+      "title": "Wake the local database",
+      "minutes": 12,
+      "needs": ["Docker Desktop", "A shell at A:\\Projects\\Mycelium"],
+      "hard_part": "Docker has to say Engine running before supabase start will work.",
+      "lede_html": "The local database runs inside Docker. This sitting starts Docker and then the Supabase stack.",
+      "why_html": "The end-to-end server points at the local stack only (e2e/support/env.ts), so nothing can reach the hosted database.",
+      "verify_html": ["<code>supabase status</code> lists an API URL of <code>http://127.0.0.1:54321</code>."],
+      "steps": [
+        {
+          "id": "1.1",
+          "title": "Open Docker Desktop",
+          "actor": "you",
+          "where": { "label": "Start menu", "kind": "dashboard" },
+          "value_html": "<code>Docker Desktop</code>",
+          "body_html": "Press the Windows key, type the name below and press Enter.",
+          "expect_html": "The whale icon in the system tray stops moving and Docker Desktop shows <b>Engine running</b> at the bottom left.",
+          "minutes": 3,
+          "troubleshooting": [
+            { "symptom": "Docker Desktop says WSL needs updating", "fix": "Run <code>wsl --update</code> in PowerShell, then open Docker Desktop again." }
+          ]
+        },
+        {
+          "id": "1.2",
+          "title": "Start the Supabase stack",
+          "actor": "you",
+          "where": { "label": "In the shell, at A:\\Projects\\Mycelium", "kind": "terminal" },
+          "blocks": [{ "kind": "command", "label": "Start the stack", "text": "supabase start" }],
+          "expect_html": "After a minute or two it prints a table that includes <code>API URL: http://127.0.0.1:54321</code> and <code>DB URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres</code>.",
+          "minutes": 6,
+          "troubleshooting": [
+            { "symptom": "It says the stack is already running", "fix": "Nothing to do: go on to the next step." },
+            { "symptom": "Port 54322 is already allocated", "fix": "Another copy is up. Run <code>supabase stop</code>, then <code>supabase start</code> again." }
+          ]
+        },
+        {
+          "id": "1.3",
+          "title": "Check the stack answers",
+          "actor": "you",
+          "where": { "label": "In the shell, at A:\\Projects\\Mycelium", "kind": "terminal" },
+          "blocks": [{ "kind": "command", "label": "Status", "text": "supabase status" }],
+          "expect_html": "A list that starts with <code>DB_URL</code> and <code>API_URL</code>. A line saying a few services are stopped (imgproxy, edge runtime, pooler) is normal.",
+          "minutes": 2
+        },
+        {
+          "id": "1.4",
+          "title": "Bring the local database up to date",
+          "actor": "claude-code",
+          "did_html": "Claude Code checks <code>supabase migration list --local</code> and applies any missing numbered migration with <code>supabase db push --local --yes</code>.",
+          "body_html": "Claude Code does this one."
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Serve the app on your own port",
+      "minutes": 8,
+      "needs": ["The stack from sitting 1", "Port 3111 free"],
+      "hard_part": "Leave this window open: closing it stops the server.",
+      "lede_html": "A development server with the end-to-end settings: local database, every paid key blank.",
+      "why_html": "Each lane has its own port so two sessions never share a server (docs/run/parallel-lane.md).",
+      "verify_html": ["<code>http://localhost:{{port}}/api/health</code> answers with <code>\"ok\":true</code>."],
+      "steps": [
+        {
+          "id": "2.1",
+          "title": "Start the end-to-end dev server",
+          "actor": "you",
+          "where": { "label": "In a second shell, at A:\\Projects\\Mycelium", "kind": "terminal" },
+          "blocks": [
+            {
+              "kind": "command",
+              "label": "Start the server",
+              "shells": {
+                "powershell": "$env:E2E_PORT=3111; node e2e/support/serve.ts",
+                "bash": "E2E_PORT=3111 node e2e/support/serve.ts"
+              }
+            }
+          ],
+          "expect_html": "It prints <code>Local: http://localhost:3111</code> and then <code>Ready in</code> followed by a time.",
+          "minutes": 4,
+          "troubleshooting": [
+            { "symptom": "EADDRINUSE on port 3111", "fix": "Something already holds the port. Pick another number above 3110, and use it in every step after this one." }
+          ]
+        },
+        {
+          "id": "2.2",
+          "title": "Open the health check",
+          "actor": "you",
+          "where": { "label": "Browser", "url": "http://localhost:3111/api/health", "kind": "browser" },
+          "value_html": "<code>http://localhost:3111/api/health</code>",
+          "expect_html": "A short line of text that includes <code>\"ok\":true</code>. The first load can take twenty seconds while it compiles.",
+          "minutes": 2
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Run one spec",
+      "minutes": 12,
+      "needs": ["The server from sitting 2, still running"],
+      "hard_part": "The first run after a fresh server can flake once. Run it again before judging.",
+      "lede_html": "One spec, as Phil: the smoke check for the Guides list page.",
+      "why_html": "Playwright reuses the server already answering on the port, so the run takes seconds once the page has compiled.",
+      "verify_html": ["The last line Playwright prints says <code>passed</code>."],
+      "steps": [
+        {
+          "id": "3.1",
+          "title": "Run the smoke check for the Guides page",
+          "actor": "you",
+          "where": { "label": "In the first shell, at A:\\Projects\\Mycelium", "kind": "terminal" },
+          "blocks": [
+            {
+              "kind": "command",
+              "label": "Run one spec",
+              "shells": {
+                "powershell": "$env:E2E_PORT=3111; npx playwright test e2e/smoke.spec.ts --project=phil --grep \"opens /guides$\"",
+                "bash": "E2E_PORT=3111 npx playwright test e2e/smoke.spec.ts --project=phil --grep \"opens /guides$\""
+              }
+            }
+          ],
+          "expect_html": "A line per check, then <code>1 passed</code> and the time it took.",
+          "minutes": 6,
+          "troubleshooting": [
+            { "symptom": "Timed out waiting for the page", "fix": "The page was compiling. Run the same line again." }
+          ]
+        },
+        {
+          "id": "3.2",
+          "title": "Write down what it said",
+          "actor": "you",
+          "where": { "label": "This page, the box below", "kind": "page" },
+          "value_html": "The last line Playwright printed, for example <code>1 passed (12.4s)</code>",
+          "fields": [{ "key": "result", "label": "Last line", "placeholder": "1 passed (12.4s)" }],
+          "expect_html": "The box keeps what you typed after you click away from it.",
+          "minutes": 1
+        },
+        {
+          "id": "3.3",
+          "title": "Delete the test report folder",
+          "actor": "you",
+          "irreversible": true,
+          "where": { "label": "In the first shell, at A:\\Projects\\Mycelium", "kind": "terminal" },
+          "blocks": [
+            {
+              "kind": "command",
+              "label": "Delete the reports",
+              "shells": {
+                "powershell": "Remove-Item -Recurse -Force e2e/.results",
+                "bash": "rm -rf e2e/.results"
+              }
+            }
+          ],
+          "body_html": "The reports and traces from this run are deleted for good. Skip this step if you want to look at a failure trace first.",
+          "expect_html": "The command prints nothing, and the folder <code>e2e/.results</code> is gone.",
+          "minutes": 1
+        },
+        {
+          "id": "3.4",
+          "title": "Stop the server",
+          "actor": "you",
+          "where": { "label": "The second shell, where the server runs", "kind": "terminal" },
+          "value_html": "<kbd>Ctrl</kbd> + <kbd>C</kbd>",
+          "expect_html": "The shell prompt comes back. The local stack keeps running for next time.",
+          "minutes": 1
+        }
+      ]
+    }
+  ],
+  "tested": {
+    "1.1": "untested",
+    "1.2": "untested",
+    "1.3": "real",
+    "2.1": "real",
+    "2.2": "real",
+    "3.1": "real",
+    "3.2": "untested",
+    "3.3": "untested",
+    "3.4": "real"
+  },
+  "finish_html": "<p>The local stack and an end-to-end server run on this PC, and one spec has passed against them. Any other spec runs the same way: change the file name in step 3.1.</p>",
+  "handback_prompt": "I ran the Field guide example on this PC. The spec ended with: {{result}}. Read the ticket's answers and failures with tix answers and tell me what to fix, if anything.",
+  "rollback_html": "<p>Run <code>supabase stop</code> to stop the stack. Its data is kept for next time.</p>",
+  "troubleshooting": [
+    { "symptom": "Every page redirects to /login", "cause": "The signed-in sessions were not made", "fix": "Playwright's global setup makes them on the first run; run the spec once more." }
+  ],
+  "links": [
+    { "label": "Health check on your port", "url": "http://localhost:{{port}}/api/health" }
+  ]
+}
