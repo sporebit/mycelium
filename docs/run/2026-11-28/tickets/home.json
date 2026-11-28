@@ -1,0 +1,2391 @@
+{
+  "epic": {
+    "sid": "E.home",
+    "project": "HOME",
+    "title": "Home: the room editor, then the bathroom and the nursery",
+    "description": "Phil's own web viewer in Mycelium, simple, to scale and quick to change, on the phone and the PC: rooms and walls, sized labelled boxes for furniture, two or three saved layouts per room, wall and floor colours, standing, seated, child and walk-through viewpoints. Kirsty leads the look through mood boards; Phil builds what she picks, doing nearly everything himself. One room at a time: bathroom, nursery, bedroom, living room, office. Everything moves into Mycelium; the Floorplanner FML is imported once as the fallback.\n\n## Order\nThe bathroom carries on now because it is already stripped: home.12 (receipt), home.13 (moisture tests and boards), home.15 (technical record), home.14 (bath to fittings, waiting for the archived plan from rescue.01), home.16. In parallel the editor: home.01 design, home.02, home.03, home.04, with home.05 (FML), home.06 (measuring), home.07 (room plan page) and home.25, home.26 hanging off it. The nursery follows: home.09 budget and home.10 storage (before baby.07), home.11 furniture, home.08 mood boards, home.17, home.18, home.27. Then home.19 opens the next room. The learn-or-hire tickets (home.20 to home.23) are answered before the room that needs them; home.24 waits for Home Assistant (sub.08).\n\n## Done means\nThe nursery is designed in the editor, bought and finished before June 2027.\n\n## Flags\n- Section 8 item 7: the editor is a build in itself and the nursery has a June date; Floorplanner as a stopgap was declined. Not reopened.\n\n## Dossier\nThe dossier is attached in Docs (link filled by the integrator).",
+    "dossier": "dossiers/home.md",
+    "links": [
+      "GARDN-2",
+      "PW-142"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "home.01",
+      "title": "Editor design: a web viewer in Mycelium, to scale, boxes first, phone and PC, several layouts per room, viewpoints (standing, seated, child, walk-through); the schema with room for a second property",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWrite the design document for the room editor before any build: a page in Mycelium's new Home section that shows the house to scale, rooms first, with furniture as sized labelled boxes. Cover the data model (property, floor, room, wall, opening, item, layout, viewpoint, all in millimetres, with a property id so a second property fits later), the views (a top-down plan for placing, a 3D view for looking), the controls on a phone and on the PC, how several saved layouts per room work, the four viewpoints (standing, seated, child height, a walk-through path), and how the Floorplanner FML import (home.05) maps into the model. The dossier (dossiers/home.md, section 3.1) lists the open-source editors worth reading first (Pascal Editor on React Three Fiber, openPlan3D) and the known phone problem: the camera control and dragging a box fight over the same touch, so the design must pick one rule (for example: tap to select, then one finger moves the selected box and two fingers move the camera). Read the Next.js guide in node_modules/next/dist/docs/ before naming any framework detail, as the repo's AGENTS.md requires.\n\n## Why\nPhil chose his own web viewer in Mycelium, simple, to scale and quick to change, working on the phone as well as the PC; the editor comes first and room decisions wait for it.\n\n## Done looks like\nA design document in claude/ (linked from claude/spec-index.md) that names the schema, the views, the touch rule, the layout and viewpoint model, the FML mapping, and the three build slices (home.02, home.03, home.04) with what each delivers. Phil has read it.\n\n## Unlocks\nhome.02: slice 1 builds from this design. home.05: the FML mapping is defined here.\n\n## Depends on\nNothing.\n\n## Flag\nSection 8 item 7: Claude flagged once that the editor is a build in itself and the nursery has a June date; Phil declined Floorplanner as a stopgap. Not reopened.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "dev",
+        "feature",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.02",
+      "title": "Editor slice 1: rooms and walls from measurements, wall and floor colours, save layouts",
+      "kind": "task",
+      "points": 13,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBuild the first slice from the home.01 design: enter or import rooms and walls from measurements (millimetres), with doors and windows as openings, see them to scale in plan and in 3D, set a colour per wall and per floor, and save, name and switch between layouts for a room. Works on the phone and the PC. Uses the schema from home.01 including the property id.\n\n## Why\nPhil wants layouts tried to scale and wall and floor colours changed in his own viewer; everything moves into Mycelium.\n\n## Done looks like\nOn Phil's phone and the PC: the bathroom and the smallest bedroom appear to scale, a wall colour changes and stays changed after a reload, and two named layouts can be saved and switched. The production build passes.\n\n## Unlocks\nhome.03 (furniture boxes), home.05 (FML import), home.07 (room plan page), home.25 (plant matching), office.01 (office measurements entered).\n\n## Depends on\nhome.01: the design.",
+      "after": [
+        "home.01",
+        "home.04a"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "dev",
+        "feature"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.03",
+      "title": "Editor slice 2: furniture as sized labelled boxes, place and move to scale, on the phone",
+      "kind": "task",
+      "points": 13,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAdd furniture to the editor as boxes with a name, width, depth and height in millimetres. Place, move and rotate them to scale in a room, with snapping to walls and a clear rule for touch so dragging a box never also moves the camera (the dossier, section 3.1, describes the conflict and the usual fix: switch off the camera control while a box is being dragged). Boxes belong to a layout, so the same room can hold two or three arrangements.\n\n## Why\nPhil asked for sized, labelled boxes first and real models later, placed and moved to scale, on the phone as well as the PC.\n\n## Done looks like\nOn the phone: a 1200 by 600 by 750 box can be added to the nursery, dragged against a wall, rotated, saved in one layout and absent from another. Measurements shown match the entered sizes.\n\n## Unlocks\nhome.04 (viewpoints), home.11 (existing furniture measured in), home.17 (nursery designed in the editor).\n\n## Depends on\nhome.02: rooms and layouts.",
+      "after": [
+        "home.02"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "dev",
+        "feature"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.04",
+      "title": "Editor slice 3: viewpoints and the walk-through path; mood-board renders",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAdd the four viewpoints Phil named: standing, seated and child eye height (the heights set in the home.01 design, adjustable), and a walk-through path through the doorway and around the room. Add a 'render' that saves a clean still image of a layout from a viewpoint, for the mood boards. No light simulation: lighting is positions only.\n\n## Why\nPhil wants good-looking renders of finished rooms and to see a room from standing, seated and child height plus a walk-through.\n\n## Done looks like\nFor the nursery: four stills saved from the four viewpoints, and the walk-through plays on the phone without stutter.\n\n## Unlocks\nhome.08 (mood boards use the renders).\n\n## Depends on\nhome.03: furniture boxes.",
+      "after": [
+        "home.03"
+      ],
+      "links": [
+        "home.08"
+      ],
+      "tags": [
+        "home",
+        "dev",
+        "feature"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.04a",
+      "title": "Export the Floorplanner FML today and store it in the repo under docs/home/ and in Docs",
+      "kind": "setup",
+      "points": 1,
+      "who": "P",
+      "description": "## What\nOne sitting: export the Floorplanner project's FML file and commit it under docs/home/ in the Mycelium repo, with a copy attached to a Docs page.\n\n## Why\nRed team finding 44: the only correct geometry lives in Floorplanner; a lapsed account or a changed export loses it. home.05 consumes this file.\n\n## Done looks like\ndocs/home/<project>.fml is in the repo and the Docs page links it.\n\n## Unlocks\nhome.02 (editor slice 1), home.05 (the FML import).\n\n## Depends on\nNothing.",
+      "after": [],
+      "tags": [
+        "home",
+        "setup"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "home-fml-export",
+        "kind": "setup",
+        "title": "Export the Floorplanner FML",
+        "version": 1,
+        "intro": {
+          "answer": "Export the project's FML now and put it somewhere that cannot lapse.",
+          "unlocks": [
+            "home.02",
+            "home.05"
+          ],
+          "to_hand": [
+            "Floorplanner login"
+          ],
+          "time": "about 12 minutes in 1 sitting",
+          "cost": "nothing",
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Export and store",
+            "minutes": 12,
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Export the FML",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Floorplanner, the project, Export",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the project, choose Export and pick the FML (JSON) option. Save the file to the Downloads folder.</p>",
+                "expect_html": "<p>A file ending .fml (or .json) is in Downloads.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Hand the file to Claude Code",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "The Mycelium repo in Claude Code",
+                  "kind": "page"
+                },
+                "body_html": "<p>Move the file into docs/home/ in the repo and ask Claude Code to commit it and attach it to a Docs page.</p>",
+                "expect_html": "<p>git log shows the commit and the Docs page shows the file.</p>",
+                "blocks": [
+                  {
+                    "label": "value",
+                    "text": "Commit docs/home/*.fml as 'Home: the Floorplanner FML export' and attach it to a Docs page in HOME",
+                    "kind": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "finish_html": "<p>Done. Paste the hand-back to Claude.</p>",
+        "handback_prompt": "I finished Export the Floorplanner FML. Read my answers on this ticket and carry on.",
+        "tested": {}
+      },
+      "links": [],
+      "due": null
+    },
+    {
+      "sid": "home.05",
+      "title": "Import the Floorplanner FML once as the fallback geometry",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nImport the corrected Floorplanner model, the only right geometry for the house, once into the editor's schema. Floorplanner describes FML as a JSON format with a published v3.0 specification (XML still supported for older files); check the file's first character to tell which. First find the exported file: it may already be in the RoomScan or Floorplanner export folder; if not, Phil exports it from his Floorplanner project. Floorplanner's own page says FML sharing comes with an upgraded project (Level 2 or a Pro account); check that the export option is offered on his project before assuming anything is bought. Keep the original file in the archive untouched; the import is one-way and becomes the fallback.\n\n## Why\nPhil decided Floorplanner's FML is imported once and becomes the fallback; it took a lot of correction effort and holds the only right geometry.\n\n## Done looks like\nThe original FML file is stored in the archive, the import report lists every room with its size, and three rooms checked by hand (bathroom, smallest bedroom, office) match the Floorplanner figures within 2 cm.\n\n## Unlocks\nhome.06 (the measuring round can be judged against the import).\n\n## Depends on\nhome.02: the schema and room model exist.\n\n## Cost\nExporting FML may need an upgraded Floorplanner project (paid credits). To be checked, nothing bought in this run.\n\n## Red team\n- Finding 44: Consumes the file home.04a stored, not a fresh export.\n",
+      "after": [
+        "home.02"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "dev",
+        "documentation"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.06",
+      "title": "Measure the whole house: finish the laser round (decide if the Bosch is still needed), count the stair risers",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nTwo short sittings in the house. First the stairs: count the risers, measure one riser height and the full rise, so the floor-to-floor height is real rather than the dollhouse viewer's placeholder. Second, decide whether the Bosch laser round is still needed: measure three rooms with the laser and compare them with the corrected Floorplanner model; within 2 cm means the round is closed.\n\n## Why\nPhil decided the whole house is measured first; the next step was counting the stair risers, and whether the Bosch round is still needed was open.\n\n## Done looks like\nThe ticket's answers hold the riser count, riser height, full rise, and a yes or no on the laser round.\n\n## Unlocks\nhome.02 and home.05: levels and heights are right.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "house",
+        "planning"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "home-measure-house",
+        "kind": "guide",
+        "title": "Measure the whole house: the stair risers and the laser round decision",
+        "version": 1,
+        "intro": {
+          "answer": "Count the stair risers and measure one, so the floor-to-floor height is real, and decide whether the Bosch laser round is still needed.",
+          "unlocks": [
+            "home.05: the import can be checked against real heights",
+            "home.02: rooms entered at the right levels"
+          ],
+          "to_hand": [
+            "The Bosch laser measure (UniversalDistance 40C) or a steel tape",
+            "A pencil and the phone for photos"
+          ],
+          "time": [
+            "About 25 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Floorplanner: FML, the floorplan markup format",
+              "url": "https://floorplanner.com/fml",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Stairs: risers and one riser height",
+            "minutes": 13,
+            "needs": [
+              "The laser or a tape"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Count the risers",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The stairs",
+                  "kind": "page"
+                },
+                "body_html": "<p>Count every step face from the bottom floor to the landing floor, including the last one up onto the landing. A riser is the vertical face, not the tread.</p>",
+                "expect_html": "<p>A whole number, usually 12 to 14 in a house.</p>",
+                "fields": [
+                  {
+                    "key": "risers",
+                    "label": "Number of risers",
+                    "placeholder": "for example 13"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Measure one riser",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The stairs",
+                  "kind": "page"
+                },
+                "body_html": "<p>Measure the height of three different risers from tread top to tread top, in millimetres. Write the average.</p>",
+                "expect_html": "<p>Three figures within a few millimetres of each other.</p>",
+                "fields": [
+                  {
+                    "key": "riser_mm",
+                    "label": "Average riser height in mm",
+                    "placeholder": "for example 210"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Measure the full rise as a check",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The stairs",
+                  "kind": "page"
+                },
+                "body_html": "<p>Measure from the ground floor surface to the landing floor surface with the laser held against the top nosing, or a tape down the stairwell. Compare with risers times riser height.</p>",
+                "expect_html": "<p>The two figures agree within about 10 mm. The difference is the floor finish.</p>",
+                "fields": [
+                  {
+                    "key": "rise_mm",
+                    "label": "Full rise in mm",
+                    "placeholder": "for example 2730"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Record it",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the floor-to-floor height into the answers above. It replaces the dollhouse viewer's placeholder.</p>",
+                "expect_html": "<p>All three fields filled.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The laser round: still needed?",
+            "minutes": 11,
+            "needs": [
+              "The Bosch measure",
+              "The Floorplanner model open on the PC"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Compare three rooms",
+                "actor": "you",
+                "minutes": 9,
+                "where": {
+                  "label": "Floorplanner on the PC",
+                  "kind": "browser",
+                  "url": "https://floorplanner.com/"
+                },
+                "body_html": "<p>Measure the length and width of the bathroom, the smallest bedroom and the office with the laser. Compare with the Floorplanner model. The tolerance agreed earlier was 2 cm per room.</p>",
+                "expect_html": "<p>Six figures, each within 2 cm or not.</p>",
+                "fields": [
+                  {
+                    "key": "within",
+                    "label": "All six within 2 cm?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Decide",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>If all six are within 2 cm, the laser round is not needed: close it. If any is out, the round continues for that floor and becomes its own ticket.</p>",
+                "expect_html": "<p>A yes or no recorded.</p>",
+                "fields": [
+                  {
+                    "key": "round_needed",
+                    "label": "Laser round still needed?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "home.07",
+      "title": "Room plan page: layout, colours, shopping list with price and link, job list in order; lists feed the household budget",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBuild the room plan page: one page per room showing the chosen layout (from the editor), the wall and floor colours, a shopping list with item, retailer (any UK retailer or second-hand), price and link, and a job list in the order the work is done. Shopping list totals feed the household budget against the room's budget (home.09) and the 'home' pot (fin.08). Lighting positions are listed for home.24.\n\n## Why\nPhil wants a room plan page with layout, colours, shopping list with price and link, and the job list in order, and room shopping lists feeding the household budget.\n\n## Done looks like\nThe bathroom has a room plan page with at least its known shopping items and job order, and its total shows against the room budget in the budget view.\n\n## Unlocks\nhome.24 (lighting scenes), home.26 (everything into Mycelium), home.18 (nursery shopping).\n\n## Depends on\nhome.02: rooms and layouts exist.",
+      "after": [
+        "home.02"
+      ],
+      "links": [
+        "fin.08"
+      ],
+      "tags": [
+        "home",
+        "dev",
+        "feature",
+        "shopping"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.08",
+      "title": "Mood boards: two or three directions per room, a hero piece each; Kirsty picks",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nFor each room as its turn comes, Claude prepares two or three mood-board directions: palette, materials, example pieces from UK retailers and second-hand, renders from the editor, and one named hero piece per direction that the room budget protects. Phil's own lean is calm and uncluttered, warm and cosy; Kirsty leads and picks. Start with the nursery after the bathroom.\n\n## Why\nPhil decided mood boards to pick from, two or three directions per room, a hero piece each, and Kirsty leads.\n\n## Done looks like\nFor the nursery: two or three boards on one page, each with a hero piece and a rough total, ready for Kirsty to pick.\n\n## Unlocks\nhome.17 (nursery designed), office.03 (office boards use the same process).\n\n## Depends on\nhome.04: renders from viewpoints.",
+      "after": [
+        "home.01"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "planning",
+        "shopping"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.09",
+      "title": "A budget per room before designing, from the \"home\" pot",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "PK",
+      "description": "## What\nPhil and Kirsty agree one figure per room before its design starts, starting with the bathroom remainder and the nursery, drawn from the household 'home' pot. Record each figure on the room plan page (or this ticket until home.07 exists). The hero piece is protected inside it.\n\n## Why\nPhil decided a budget per room before designing, from the 'home' pot.\n\n## Done looks like\nA figure for the bathroom remainder and the nursery recorded and agreed with Kirsty.\n\n## Unlocks\nhome.17 (nursery budget set), office.04 (office budget later).\n\n## Depends on\nNothing to start; fin.08 holds the pots.",
+      "after": [],
+      "links": [
+        "fin.08"
+      ],
+      "tags": [
+        "home",
+        "planning",
+        "payment"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.10",
+      "title": "House-wide storage: the nursery's contents, what Kirsty brings, baby kit, the loft",
+      "kind": "guide",
+      "points": 2,
+      "due": "2027-01-02",
+      "who": "PK",
+      "description": "## What\nTwo sittings. First Phil lists what is in the smallest bedroom (the nursery) now, by group, with a destination for each. Then with Kirsty: what she brings, where the baby kit lives, and whether the loft has space. The output is the list the clear-out weekend (baby.07) works from.\n\n## Why\nPhil decided a house-wide storage ticket comes first: the nursery's current contents, what Kirsty brings, baby kit.\n\n## Done looks like\nA list of groups with destinations, Kirsty's items, places for the pram and car seat, and a loft yes or no.\n\n## Unlocks\nbaby.07: the nursery clear-out weekend.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [
+        "GARDN-2"
+      ],
+      "tags": [
+        "home",
+        "house",
+        "planning"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "home-house-storage",
+        "kind": "guide",
+        "title": "House-wide storage: what is in the nursery, what Kirsty brings, baby kit, the loft",
+        "version": 1,
+        "intro": {
+          "answer": "List what is in the smallest bedroom now and where each lot goes, so the nursery can be cleared.",
+          "unlocks": [
+            "baby.07: the nursery clear-out weekend",
+            "GARDN-2: the loft sort"
+          ],
+          "to_hand": [
+            "Phone for photos",
+            "Kirsty for phase 2"
+          ],
+          "time": [
+            "About 30 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The nursery's contents",
+            "minutes": 15,
+            "needs": [
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Photograph each wall",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The smallest bedroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>One photo per wall and one into any cupboard, so nothing is forgotten.</p>",
+                "expect_html": "<p>Four or five photos.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "List the contents by group",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write a short list by group (for example: PC parts, paperwork, clothes, tools) with a rough size each (a box, a bag, a shelf).</p>",
+                "expect_html": "<p>A list of groups, each with a size.</p>",
+                "fields": [
+                  {
+                    "key": "groups",
+                    "label": "How many groups",
+                    "placeholder": "a number"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Mark a destination for each",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Next to each group write one of: loft, office, garage or shed, sell, give away, bin.</p>",
+                "expect_html": "<p>Every group has a destination.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "What Kirsty brings, the baby kit and the loft",
+            "minutes": 14,
+            "needs": [
+              "Kirsty",
+              "The list from phase 1"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Kirsty's list",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "With Kirsty",
+                  "kind": "page"
+                },
+                "body_html": "<p>Ask Kirsty what she is bringing that needs a home (furniture and boxes) and note sizes.</p>",
+                "expect_html": "<p>A short list with sizes.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Baby kit space",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "With Kirsty",
+                  "kind": "page"
+                },
+                "body_html": "<p>Agree where the pram, car seat and bulk nappies live (hall, under stairs, nursery).</p>",
+                "expect_html": "<p>A place named for each.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Loft capacity",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The loft hatch",
+                  "kind": "page"
+                },
+                "body_html": "<p>Look in the loft: is there boarded space for the 'loft' groups? If not, that becomes part of GARDN-2.</p>",
+                "expect_html": "<p>A yes or no on loft space.</p>",
+                "fields": [
+                  {
+                    "key": "loft_space",
+                    "label": "Enough boarded loft space?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "home.11",
+      "title": "Existing furniture measured in (his and Kirsty's), decided per room",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PK",
+      "description": "## What\nMeasure every existing piece of furniture worth keeping, Phil's and what Kirsty brings, and enter each as a sized labelled box in the editor; then decide per room where each goes.\n\n## Why\nPhil decided existing furniture is measured in and decided per room.\n\n## Done looks like\nEvery kept piece is a box in the editor with three sizes and a room or a 'later'.\n\n## Unlocks\nhome.17: the nursery layout uses real pieces.\n\n## Depends on\nhome.03: furniture boxes exist in the editor.",
+      "after": [
+        "home.03"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "house"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "home-existing-furniture",
+        "kind": "guide",
+        "title": "Existing furniture measured in, his and Kirsty's",
+        "version": 1,
+        "intro": {
+          "answer": "Measure each existing piece once and enter it as a box, so every room design starts with what you already own.",
+          "unlocks": [
+            "home.17: nursery designed with real pieces",
+            "home.19: later rooms"
+          ],
+          "to_hand": [
+            "Tape measure",
+            "Phone with Mycelium open"
+          ],
+          "time": [
+            "About 30 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Phil's furniture",
+            "minutes": 15,
+            "needs": [
+              "Tape"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "List the pieces",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Around the house",
+                  "kind": "page"
+                },
+                "body_html": "<p>Walk each room and list the pieces worth keeping (beds, wardrobes, drawers, desk, sofa, shelves).</p>",
+                "expect_html": "<p>A list of names.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Measure width, depth, height",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Around the house",
+                  "kind": "page"
+                },
+                "body_html": "<p>Measure each piece's outside width, depth and height in millimetres and add it in the editor as a box with that name.</p>",
+                "expect_html": "<p>Every listed piece appears as a box with three sizes.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Keep or not",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium",
+                  "kind": "page"
+                },
+                "body_html": "<p>Mark each box keep, move room, or sell.</p>",
+                "expect_html": "<p>Each box has a mark.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Kirsty's furniture",
+            "minutes": 15,
+            "needs": [
+              "Kirsty",
+              "Tape or her measurements"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Measure or ask",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "With Kirsty",
+                  "kind": "page"
+                },
+                "body_html": "<p>Measure Kirsty's pieces (or take her measurements) and add them as boxes.</p>",
+                "expect_html": "<p>Her pieces appear as boxes.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Decide per room",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "With Kirsty",
+                  "kind": "decision"
+                },
+                "body_html": "<p>For each piece agree the room it is meant for, or 'decide at that room's mood board'.</p>",
+                "expect_html": "<p>Each piece has a room or a 'later'.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "home.12",
+      "title": "Bathroom: insulation-board receipt mismatch resolved",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nA receipt for the bathroom boards showed the wrong insulation board. Match the receipt to what is in the house (the plan is NoMorePly 12 mm, 1200 by 800 fibre cement tile backer board), count the whole boards left after the two wasted with a Stanley knife, and either get a corrected receipt or return or exchange the wrong boards uncut.\n\n## Why\nPhil decided the bathroom is the first room and this is its first step.\n\n## Done looks like\nThe receipt and the boards agree, or a return is under way, and the number of boards still needed is known.\n\n## Unlocks\nhome.13: boards can be cut and fitted.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "house",
+        "shopping"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "bathroom-board-receipt",
+        "kind": "guide",
+        "title": "Bathroom: the board receipt mismatch",
+        "version": 1,
+        "intro": {
+          "answer": "Match the receipt to the boards on site, and return or exchange anything wrong before a single board is cut.",
+          "unlocks": [
+            "home.13: moisture tests and board fitting"
+          ],
+          "to_hand": [
+            "The receipt (email or paper)",
+            "The boards in the house"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "NoMorePly 12mm fibre cement board, Toolstation listing",
+              "url": "https://www.toolstation.com/nomoreply-12mm-fibre-cement-construction-board-pack-of-45/pAD834",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "No More Ply 12mm wall tile backer board, Tile Mountain",
+              "url": "https://www.tilemountain.co.uk/no-more-ply-12mm-wall-tile-backer-boards",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Receipt against boards",
+            "minutes": 15,
+            "needs": [
+              "The receipt",
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Find the receipt",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Email or the paper receipt",
+                  "kind": "page"
+                },
+                "body_html": "<p>Find the order that showed the wrong insulation board. Note the product name and code on it.</p>",
+                "expect_html": "<p>A product name and code written down.</p>",
+                "fields": [
+                  {
+                    "key": "receipt_item",
+                    "label": "Product on the receipt",
+                    "placeholder": "name and code"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Read the boards on site",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The bathroom or where the boards are stored",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read the label on the boards you have: brand, thickness, size, and count them. The boards planned are NoMorePly 12 mm, 1200 by 800 (a fibre cement tile backer board, not an insulation board).</p>",
+                "expect_html": "<p>Brand, thickness, size and count written down.</p>",
+                "fields": [
+                  {
+                    "key": "site_item",
+                    "label": "Boards on site",
+                    "placeholder": "brand, thickness, size"
+                  },
+                  {
+                    "key": "site_count",
+                    "label": "How many boards",
+                    "placeholder": "a number"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Two boards were already wasted with a Stanley knife; count only whole boards."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Decide",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>If the receipt and the boards differ, decide: (a) the boards are right and only the receipt is wrong (ask the shop for a corrected receipt), or (b) the wrong boards came (return or exchange them uncut). Check whether the count covers every wall with a spare.</p>",
+                "expect_html": "<p>(a) or (b) chosen and a board count needed.</p>",
+                "fields": [
+                  {
+                    "key": "outcome",
+                    "label": "Outcome",
+                    "placeholder": "a or b"
+                  },
+                  {
+                    "key": "boards_needed",
+                    "label": "Boards still to buy",
+                    "placeholder": "a number or 0"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Contact the shop",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The retailer's order page or phone line",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Ask for the corrected receipt or start the return or exchange. Keep the boards uncut and dry until it is settled.</p>",
+                "expect_html": "<p>A return number or a corrected receipt.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "A cut board cannot normally be returned."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "home.13",
+      "title": "Bathroom: moisture tests, then cut and fit the boards (diamond blade, clamped guide), boards before battens",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "P",
+      "description": "## What\nFive sittings. Test the stripped brick walls with the moisture meter against a dry reference wall; only board walls that read close to it. Read the NoMorePly installation guide's fixing method for masonry. Mark every board's position (new board overlapping behind the strip the old tiles retain), then cut each 12 mm board outside with the diamond blade against a straight batten held by two clamps, and fix it with the adhesive and screws the guide names. Boards go up first; battens only after the bath is dry-fitted and level. Tanking slurry does not go on the brick first.\n\n## Why\nPhil decided the next steps after the receipt are the moisture tests, then cutting and fitting the boards with the diamond blade and a clamped guide, boards before battens.\n\n## Done looks like\nEvery wall read and passed, every board on the cut list fixed and plumb.\n\n## Unlocks\nhome.14 (bath, battens, tanking, tiling), home.15 (technical record while open).\n\n## Depends on\nhome.12: the receipt mismatch is resolved and enough boards are in the house.",
+      "after": [
+        "home.12"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "house"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "bathroom-boards",
+        "kind": "guide",
+        "title": "Bathroom: moisture tests, then cut and fit the boards",
+        "version": 1,
+        "intro": {
+          "answer": "Test the bare brick is dry, then cut each 12 mm board with the diamond blade against a clamped guide and fix it, boards before battens.",
+          "unlocks": [
+            "home.14: bath, battens, tanking, tiling",
+            "home.15: the technical record while the walls are open"
+          ],
+          "to_hand": [
+            "Moisture meter",
+            "Angle grinder or saw with the diamond blade",
+            "Straight batten and two clamps",
+            "FFP3 mask and glasses",
+            "The board maker's installation guide",
+            "Adhesive and fibre cement screws named in that guide"
+          ],
+          "time": [
+            "About 1 hour 15 minutes over five sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "NoMorePly 12mm fibre cement board, Toolstation listing",
+              "url": "https://www.toolstation.com/nomoreply-12mm-fibre-cement-construction-board-pack-of-45/pAD834",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "No More Ply 12mm wall tile backer board, Tile Mountain",
+              "url": "https://www.tilemountain.co.uk/no-more-ply-12mm-wall-tile-backer-boards",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "No More Ply installation guide (PDF, Pure Adhesion)",
+              "url": "https://pureadhesion.co.uk/content/No More Ply Installation Guide.pdf",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Measuring moisture in masonry (Building Conservation)",
+              "url": "https://buildingconservation.com/articles/moisture-measurement/moisture.html",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "HSE construction dust FAQ (FFP3 for silica work)",
+              "url": "https://hse.gov.uk/construction/faq-dust.htm",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "HSE construction dust: scabbling or grinding (extraction plus RPE)",
+              "url": "https://www.hse.gov.uk/Construction/healthrisks/hazardous-substances/scabbling-or-grinding.htm",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Tiling guide page citing BS 5385 on wet-area substrates (Tile Association)",
+              "url": "https://www.tiles.org.uk/wp-content/uploads/flipbook/6/files/basic-html/page24.html",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "3.3",
+            "why": "One straight cut decides whether the board fits; two boards were already lost to a knife."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Moisture tests",
+            "minutes": 13,
+            "needs": [
+              "Moisture meter"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Set the meter",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Set the meter to its masonry (or brick) mode. Take one reading on a wall in a dry room as your reference.</p>",
+                "expect_html": "<p>A reference figure.</p>",
+                "fields": [
+                  {
+                    "key": "ref",
+                    "label": "Reference reading, dry room",
+                    "placeholder": "number and unit"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Read each wall",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>On each stripped wall take readings at about 150 mm, 1 m and 1.8 m high, near corners and near the old bath line. Write the highest per wall.</p>",
+                "expect_html": "<p>A highest reading per wall.</p>",
+                "fields": [
+                  {
+                    "key": "wall_max",
+                    "label": "Highest reading per wall",
+                    "placeholder": "for example back 14, side 18"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Pass or wait",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>If any wall reads clearly above the dry reference, wait a week with the room ventilated and test again. Damp brick is not boarded. Look for a cause (a leak, a cold bridge) if it does not fall.</p>",
+                "expect_html": "<p>A pass, or a retest date.</p>",
+                "fields": [
+                  {
+                    "key": "moist_pass",
+                    "label": "All walls close to the reference?",
+                    "placeholder": "yes or no"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "No published pass mark for brick before boarding was found; the meter maker's chart and the dry reference are the guide. The dossier says so."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Read the guide and set out",
+            "minutes": 15,
+            "needs": [
+              "The board maker's installation guide",
+              "Pencil and level"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Read the fixing method",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The NoMorePly installation guide",
+                  "kind": "browser",
+                  "url": "https://pureadhesion.co.uk/content/No More Ply Installation Guide.pdf"
+                },
+                "body_html": "<p>Read how the guide fixes 12 mm boards to masonry (adhesive, screws per board, joints) and which tape and tanking it requires in a shower zone. Write the method.</p>",
+                "expect_html": "<p>A written method: adhesive, screw count and length, joint treatment.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "The lifetime guarantee depends on following that guide and using its named essentials."
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Mark the board positions",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Draw where each board goes on each wall, with the new board overlapping behind the strip retained by the old tiles, and joints away from the corner of the bath where possible.</p>",
+                "expect_html": "<p>Every board drawn on the wall with its size.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Cut list",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write each cut: board number, width, height.</p>",
+                "expect_html": "<p>A cut list.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Cut the first board",
+            "minutes": 13,
+            "needs": [
+              "Diamond blade",
+              "Batten and two clamps",
+              "FFP3 mask and glasses"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Measure and mark",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Outside, on trestles",
+                  "kind": "page"
+                },
+                "body_html": "<p>Mark the cut on the face of the board, measured twice.</p>",
+                "expect_html": "<p>A clear pencil line.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Clamp the guide",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Outside",
+                  "kind": "page"
+                },
+                "body_html": "<p>Clamp the straight batten along the line with two clamps, set so the blade's edge runs on the waste side.</p>",
+                "expect_html": "<p>The guide does not move when pushed.</p>"
+              },
+              {
+                "id": "3.3",
+                "title": "Cut",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Outside",
+                  "kind": "page"
+                },
+                "body_html": "<p>Cut along the guide with the diamond blade in one steady pass.</p>",
+                "expect_html": "<p>A straight edge within a millimetre or two of the line.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Fibre cement contains crystalline silica. Cut outside, with on-tool extraction if the saw has it, and wear an FFP3 mask (HSE's advice for silica dust). Eye protection too."
+                  }
+                ],
+                "irreversible": true,
+                "troubleshooting": [
+                  {
+                    "symptom": "The edge chips",
+                    "fix": "Slow down and support the off-cut so it does not drop at the end."
+                  }
+                ]
+              },
+              {
+                "id": "3.4",
+                "title": "Dry fit",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Hold the board in place. Check the fit against the overlap and the bath line.</p>",
+                "expect_html": "<p>The board sits flat with the gaps the guide asks for.</p>"
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Fix the first board",
+            "minutes": 14,
+            "needs": [
+              "Adhesive",
+              "Screws",
+              "Drill"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Adhesive",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Apply the adhesive the guide names, in the pattern it gives.</p>",
+                "expect_html": "<p>Adhesive applied as the guide shows.</p>",
+                "irreversible": true
+              },
+              {
+                "id": "4.2",
+                "title": "Press and screw",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Press the board on, check it is plumb, and fix the screws the guide names (it gives about 9 per board for this size) so the board cannot move while the adhesive cures.</p>",
+                "expect_html": "<p>Board plumb, screws flush, no rocking.</p>"
+              },
+              {
+                "id": "4.3",
+                "title": "Clean up",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Wipe off squeezed-out adhesive and note the board as done on the cut list.</p>",
+                "expect_html": "<p>Board ticked on the list.</p>"
+              }
+            ]
+          },
+          {
+            "id": "5",
+            "title": "The remaining boards, one per sitting",
+            "minutes": 15,
+            "needs": [
+              "As phases 3 and 4"
+            ],
+            "steps": [
+              {
+                "id": "5.1",
+                "title": "Repeat phases 3 and 4 per board",
+                "actor": "you",
+                "minutes": 15,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>One board per sitting: mark, clamp, cut, dry fit, fix. Record each board on the cut list. Battens go on only after the bath is dry-fitted and level (home.14).</p>",
+                "expect_html": "<p>All boards on the cut list ticked.</p>",
+                "fields": [
+                  {
+                    "key": "boards_done",
+                    "label": "Boards fitted so far",
+                    "placeholder": "a number"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Fibre cement contains crystalline silica. Cut outside, with on-tool extraction if the saw has it, and wear an FFP3 mask (HSE's advice for silica dust). Eye protection too."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested",
+          "3.4": "untested",
+          "4.1": "untested",
+          "4.2": "untested",
+          "4.3": "untested",
+          "5.1": "untested"
+        }
+      }
+    },
+    {
+      "sid": "home.14",
+      "title": "Bathroom: the existing plan and shopping list as tickets; the 1700 P-shaped bath fitted",
+      "kind": "guide",
+      "points": 5,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOne ticket with a phase per known step, because the detailed bathroom plan is not in the repo. The plan, shopping list and job checklist were made in Claude chats and artifacts and come in through rescue.01 (phase 1 opens them; the ticket waits if they are missing). Then: the Nuie Ceramica 1700 P-shaped left-hand shower bath with reinforced base is dry-fitted and levelled on the concrete floor, battens fitted, the bath lifted out, the boards taped and tanked in two coats, the bath fixed with the click-clack waste and water-tested, the walls tiled one per sitting (or by a tiler if home.21 says hire), then the thermostatic deck-mounted mixer, panel, screen and silicone.\n\n## Why\nThe bathroom is folded fully into this epic: its existing plan and shopping list become tickets here, and the wider bath is so Kirsty can be in the bath with the baby comfortably.\n\n## Done looks like\nThe bath is fitted, the walls tiled, the mixer working with no drips, the silicone sealed; the shopping list fully ticked.\n\n## Unlocks\nhome.16: the before-and-after page.\n\n## Depends on\nhome.13: boards fitted. rescue.01: the archived plan, shopping list and job checklist. home.21: tiling decided.\n\n## Red team\n- Finding 25: The bathroom's budget is the first row of home.09; items above it wait.\n",
+      "after": [
+        "home.13",
+        "rescue.01",
+        "home.09"
+      ],
+      "links": [
+        "home.21"
+      ],
+      "tags": [
+        "home",
+        "house",
+        "shopping"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "bathroom-bath-to-finish",
+        "kind": "guide",
+        "title": "Bathroom: the plan as phases, from the bath fitted to the fittings",
+        "version": 1,
+        "intro": {
+          "answer": "Bring in the detailed plan, then fit the 1700 P-shaped bath, battens, tanking, tiles and fittings, one sitting at a time.",
+          "unlocks": [
+            "home.16: before-and-after page",
+            "home.17: the nursery is next"
+          ],
+          "to_hand": [
+            "The bathroom plan, shopping list and job checklist from the old chat (through rescue.01)",
+            "Spirit level",
+            "Tanking kit",
+            "Tiles and adhesive",
+            "Silicone"
+          ],
+          "time": [
+            "About 2 hours of sittings, plus drying and curing time between them"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "No More Ply installation guide (PDF, Pure Adhesion)",
+              "url": "https://pureadhesion.co.uk/content/No More Ply Installation Guide.pdf",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Tiling guide page citing BS 5385 on wet-area substrates (Tile Association)",
+              "url": "https://www.tiles.org.uk/wp-content/uploads/flipbook/6/files/basic-html/page24.html",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Which? Trusted Traders: electrical installation regulations (Part P notifiable work)",
+              "url": "https://trustedtraders.which.co.uk/articles/electrical-installation-regulations-don-t-get-left-with-unregistered-electrical-work/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Bring the plan in",
+            "minutes": 15,
+            "needs": [
+              "The archived bathroom plan"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Open the archived plan",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "claude/archive/ in the repo",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the bathroom plan, shopping list and job checklist brought in by rescue.01. If they are not there yet, stop: this ticket waits for them.</p>",
+                "expect_html": "<p>The three documents open.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Tick what is bought",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "The shopping list",
+                  "kind": "page"
+                },
+                "body_html": "<p>Mark each line bought or still to buy. Known already: the bath ordered, the click-clack waste kit bought, spare white wall tiles in the loft.</p>",
+                "expect_html": "<p>A to-buy list.</p>",
+                "fields": [
+                  {
+                    "key": "to_buy",
+                    "label": "Lines still to buy",
+                    "placeholder": "a number"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Order check",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The job checklist",
+                  "kind": "page"
+                },
+                "body_html": "<p>Check the job order matches the phases below. Any extra step becomes a line in this ticket's notes.</p>",
+                "expect_html": "<p>Order agreed.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Bath dry-fitted and level",
+            "minutes": 15,
+            "needs": [
+              "The bath",
+              "Spirit level"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Unpack and check",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Unpack the bath, check for damage and that it is the left-hand 1700 P shape with the reinforced base.</p>",
+                "expect_html": "<p>No damage; the right hand.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Report damage to the seller before fitting anything."
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Set the feet or cradle",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Set the feet or cradle on the concrete floor as the bath's instructions show.</p>",
+                "expect_html": "<p>The bath stands on its own.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Level",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Level the rim both ways and mark the rim line on the boards.</p>",
+                "expect_html": "<p>Bubble centred both ways; a rim line drawn.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Battens",
+            "minutes": 15,
+            "needs": [
+              "Battens",
+              "Fixings"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Mark and fix the battens",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>With the bath dry-fitted, mark and fix the battens the plan calls for (rim support, panel frame).</p>",
+                "expect_html": "<p>Battens fixed level to the rim line.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Lift the bath out",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Lift the bath out for tanking.</p>",
+                "expect_html": "<p>Walls clear.</p>"
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Tanking",
+            "minutes": 15,
+            "needs": [
+              "The tanking kit",
+              "Brush or roller"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Tape the joints and corners",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Tape every board joint and internal corner with the kit's tape, as its instructions say. Tanking goes on the boards, not the brick.</p>",
+                "expect_html": "<p>All joints taped.</p>"
+              },
+              {
+                "id": "4.2",
+                "title": "First coat",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Apply the first coat over the shower and bath zone as the kit says. Leave to dry for the time the kit gives.</p>",
+                "expect_html": "<p>Even first coat, no pinholes.</p>",
+                "irreversible": true
+              }
+            ]
+          },
+          {
+            "id": "5",
+            "title": "Tanking second coat",
+            "minutes": 10,
+            "needs": [
+              "The tanking kit"
+            ],
+            "steps": [
+              {
+                "id": "5.1",
+                "title": "Second coat",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Apply the second coat at right angles to the first. Leave to cure as the kit says before tiling.</p>",
+                "expect_html": "<p>Full colour coverage, no thin patches.</p>",
+                "irreversible": true
+              },
+              {
+                "id": "5.2",
+                "title": "Record the cure time",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the date and time tiling can start.</p>",
+                "expect_html": "<p>A date.</p>",
+                "fields": [
+                  {
+                    "key": "tile_from",
+                    "label": "Tiling can start",
+                    "placeholder": "date and time"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "6",
+            "title": "Bath fixed and sealed to the wall",
+            "minutes": 15,
+            "needs": [
+              "Bath",
+              "Sealant"
+            ],
+            "steps": [
+              {
+                "id": "6.1",
+                "title": "Fix the bath",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Set the bath back, level it, connect the click-clack waste, and fix it as its instructions say.</p>",
+                "expect_html": "<p>Bath level and solid.</p>",
+                "irreversible": true
+              },
+              {
+                "id": "6.2",
+                "title": "Fill and test",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Fill the bath with water before sealing (so it settles) and check the waste for drips.</p>",
+                "expect_html": "<p>No drips under the waste.</p>"
+              }
+            ]
+          },
+          {
+            "id": "7",
+            "title": "Tiling, one wall per sitting",
+            "minutes": 15,
+            "needs": [
+              "Tiles",
+              "Adhesive",
+              "Spacers"
+            ],
+            "steps": [
+              {
+                "id": "7.1",
+                "title": "Learn it or hire it",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "home.21",
+                  "kind": "decision"
+                },
+                "body_html": "<p>If home.21 decided to hire a tiler, book them and skip to phase 8.</p>",
+                "expect_html": "<p>Do it or hire chosen.</p>"
+              },
+              {
+                "id": "7.2",
+                "title": "Tile one wall",
+                "actor": "you",
+                "minutes": 13,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Tile one wall per sitting from a level batten line. Record each wall done.</p>",
+                "expect_html": "<p>A wall tiled, level.</p>",
+                "fields": [
+                  {
+                    "key": "walls_tiled",
+                    "label": "Walls tiled so far",
+                    "placeholder": "a number"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "8",
+            "title": "Fittings",
+            "minutes": 15,
+            "needs": [
+              "Mixer",
+              "Panel",
+              "Screen",
+              "Silicone"
+            ],
+            "steps": [
+              {
+                "id": "8.1",
+                "title": "Deck-mounted mixer",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Fit the thermostatic deck-mounted mixer with the pipes through the existing wall cavity, as its instructions say.</p>",
+                "expect_html": "<p>Hot and cold correct; no drips.</p>"
+              },
+              {
+                "id": "8.2",
+                "title": "Panel and screen",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>Fit the bath panel and the shower screen.</p>",
+                "expect_html": "<p>Panel square; screen swings clear.</p>"
+              },
+              {
+                "id": "8.3",
+                "title": "Seal",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>With the bath full, run silicone along the bath and tile joint.</p>",
+                "expect_html": "<p>A continuous bead.</p>",
+                "irreversible": true
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "4.1": "untested",
+          "4.2": "untested",
+          "5.1": "untested",
+          "5.2": "untested",
+          "6.1": "untested",
+          "6.2": "untested",
+          "7.1": "untested",
+          "7.2": "untested",
+          "8.1": "untested",
+          "8.2": "untested",
+          "8.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "home.15",
+      "title": "Bathroom: technical record and the scan pass while the room is open",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nWhile the bathroom walls are bare, photograph each wall straight on with a tape along the floor, measure every pipe, cable, socket, switch and radiator fixing from the nearest corner and the floor, and do the full scan pass with whatever scan app is now in use. These go into Mycelium as the room's technical record.\n\n## Why\nPhil decided the technical record is per room while it is being worked on, and a full scan pass per room.\n\n## Done looks like\nPhotos, a list of services with positions, and a dated scan file attached to the bathroom.\n\n## Unlocks\nhome.16: the before-and-after page.\n\n## Depends on\nhome.13: boards are up, so do it before tanking covers the joints (or before boards cover the brick, if easier).",
+      "after": [
+        "home.13"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "house",
+        "documentation",
+        "photos"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "bathroom-technical-record",
+        "kind": "guide",
+        "title": "Bathroom: technical record and scan pass while the walls are open",
+        "version": 1,
+        "intro": {
+          "answer": "Photograph and measure every pipe, cable and fixing point while the walls are bare, then do a full scan pass.",
+          "unlocks": [
+            "home.16: the before-and-after page uses the scan"
+          ],
+          "to_hand": [
+            "Phone with the LiDAR scan app",
+            "Tape measure"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Record and scan",
+            "minutes": 15,
+            "needs": [
+              "Phone",
+              "Tape"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Photograph each wall straight on",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>One photo per wall with a tape run along the floor so positions can be read off later.</p>",
+                "expect_html": "<p>A photo per wall with the tape visible.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Measure services",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The bathroom",
+                  "kind": "page"
+                },
+                "body_html": "<p>For every pipe, cable, socket, switch and radiator fixing write its distance from the nearest corner and from the floor.</p>",
+                "expect_html": "<p>A list of items with two distances each.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Scan pass",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Phone scan app",
+                  "kind": "page"
+                },
+                "body_html": "<p>Do the full scan pass of the room with the scan app you now use (RoomScan Pro was cancelled). Save the export with the date.</p>",
+                "expect_html": "<p>A scan file saved.</p>",
+                "fields": [
+                  {
+                    "key": "scan_app",
+                    "label": "Scan app used",
+                    "placeholder": "app name"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "home.16",
+      "title": "Bathroom: finished, the before-and-after page for the Family timeline",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWhen the bathroom is done, Claude builds a before-and-after page from the scan pass and photos (stripped walls, boards, finished room) and adds it to the Family timeline.\n\n## Why\nPhil wants a before-and-after page per finished room for the Family timeline, built from the scan pass and photos.\n\n## Done looks like\nA bathroom page on the Family timeline with before and after photos and the date finished.\n\n## Unlocks\nNothing directly; it is the pattern for later rooms.\n\n## Depends on\nhome.14: the bathroom finished.",
+      "after": [
+        "home.14"
+      ],
+      "links": [
+        "home.15"
+      ],
+      "tags": [
+        "home",
+        "house",
+        "photos"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.17",
+      "title": "Nursery: designed in the editor (smallest bedroom), Kirsty picks; budget set",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PK",
+      "description": "## What\nWith Kirsty: pick one of the nursery mood boards and its hero piece, then one of the two or three layouts in the editor, and check the shopping list total against the nursery budget. The nursery is the smallest bedroom. This ticket has no due date of its own; its date comes through baby.15 (2027-03-14 in the baby plan). If the editor is not ready by then, baby.15 names the stopgap, which is an open point for the red team (plan section 27, point 5).\n\n## Why\nPhil decided done means the nursery is designed in the editor, bought and finished before June; Kirsty leads.\n\n## Done looks like\nA board, a hero piece, a layout and a total within budget recorded.\n\n## Unlocks\nhome.18: the nursery bought and finished.\n\n## Depends on\nhome.03 (furniture boxes), home.08 (mood boards), baby.07 (the nursery emptied).\n\n## Flag\nSection 8 item 7: the editor-first rule against the June date was flagged once; not reopened.\n\n## Red team\n- Finding 21: Trigger: if editor slice 2 (home.03) is not live by 2027-02-14, Phil is asked on the decisions review whether the nursery is designed on paper, in Floorplanner (the stopgap he declined), or the June date slips.\n- Finding 22: If the bathroom is not finished by 2027-02-28 the nursery starts anyway as the one exception to one-room-at-a-time; Phil confirms on the decisions review.\n",
+      "after": [
+        "home.03",
+        "home.08",
+        "baby.07",
+        "home.16"
+      ],
+      "links": [
+        "baby.15",
+        "home.09"
+      ],
+      "tags": [
+        "home",
+        "house",
+        "planning"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "nursery-design",
+        "kind": "guide",
+        "title": "Nursery: designed in the editor, Kirsty picks, budget set",
+        "version": 1,
+        "intro": {
+          "answer": "Sit with Kirsty, pick one mood board and one layout for the smallest bedroom, and confirm the budget.",
+          "unlocks": [
+            "home.18: buying",
+            "baby.15 and baby.22: the dated nursery tickets"
+          ],
+          "to_hand": [
+            "Kirsty",
+            "The mood boards (home.08)",
+            "The editor on the PC"
+          ],
+          "time": [
+            "About 30 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Pick the direction",
+            "minutes": 12,
+            "needs": [
+              "Kirsty",
+              "Mood boards"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Look at the boards together",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Mycelium, the nursery mood boards",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the two or three nursery boards with Kirsty. She leads.</p>",
+                "expect_html": "<p>Kirsty has seen each board.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Kirsty picks",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "With Kirsty",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Kirsty picks one direction. Record the hero piece.</p>",
+                "expect_html": "<p>One board picked.</p>",
+                "fields": [
+                  {
+                    "key": "board",
+                    "label": "Board picked",
+                    "placeholder": "name"
+                  },
+                  {
+                    "key": "hero",
+                    "label": "Hero piece",
+                    "placeholder": "item"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Layout and budget",
+            "minutes": 12,
+            "needs": [
+              "Kirsty",
+              "The editor"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Pick a layout",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The editor",
+                  "kind": "page"
+                },
+                "body_html": "<p>Look at the two or three nursery layouts from the child and standing viewpoints. Kirsty picks one.</p>",
+                "expect_html": "<p>One layout marked chosen.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Confirm the budget",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The room plan page",
+                  "kind": "page"
+                },
+                "body_html": "<p>Compare the shopping list total with the nursery budget from home.09. If over, swap items, never the hero piece.</p>",
+                "expect_html": "<p>Total within budget.</p>",
+                "fields": [
+                  {
+                    "key": "total",
+                    "label": "Shopping list total",
+                    "placeholder": "pounds"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "home.18",
+      "title": "Nursery: bought and finished before June",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PK",
+      "description": "## What\nBuy everything on the nursery's room plan page (cot and hero piece first), decorate one wall per sitting, assemble and anchor the furniture, and check the room against the chosen layout with Kirsty. No due date of its own; the date comes through baby.22 (2027-04-25 in the baby plan) inside the 'everything essential by 2027-05-15' rule.\n\n## Why\nPhil decided done means the nursery is designed in the editor, bought and finished before June.\n\n## Done looks like\nEvery shopping line ticked, the room painted, furniture anchored, and Kirsty says it is finished.\n\n## Unlocks\nhome.19 (next rooms), home.27 (the done check).\n\n## Depends on\nhome.17: the design picked.\n\n## Cost\nThe nursery budget from home.09. Nothing is bought in this run.",
+      "after": [
+        "home.17"
+      ],
+      "links": [
+        "baby.22"
+      ],
+      "tags": [
+        "home",
+        "house",
+        "shopping"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "nursery-buy-and-finish",
+        "kind": "guide",
+        "title": "Nursery: bought and finished before June",
+        "version": 1,
+        "intro": {
+          "answer": "Order the shopping list, decorate, assemble, and check the room against the chosen layout.",
+          "unlocks": [
+            "home.27: the done check",
+            "baby.22: nursery set-up"
+          ],
+          "to_hand": [
+            "The room plan page",
+            "Kirsty",
+            "Decorating kit"
+          ],
+          "time": [
+            "About 45 minutes of sittings, plus decorating"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Order",
+            "minutes": 14,
+            "needs": [
+              "Room plan page",
+              "Card"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Order the big items",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The room plan page links",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Order the cot and the hero piece first (long lead times), then the rest. Write each order date.</p>",
+                "expect_html": "<p>Orders placed with dates.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Second-hand items",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "With Kirsty",
+                  "kind": "page"
+                },
+                "body_html": "<p>Arrange collection of any second-hand pieces.</p>",
+                "expect_html": "<p>Collection dates set.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Decorate",
+            "minutes": 15,
+            "needs": [
+              "Paint",
+              "Brushes and roller"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Prepare and paint, one wall per sitting",
+                "actor": "you",
+                "minutes": 15,
+                "where": {
+                  "label": "The nursery",
+                  "kind": "page"
+                },
+                "body_html": "<p>Fill, sand and paint in the chosen colour, one wall per sitting. Use a low-odour paint and let the room air well before the baby arrives.</p>",
+                "expect_html": "<p>All walls done.</p>",
+                "fields": [
+                  {
+                    "key": "walls_done",
+                    "label": "Walls painted",
+                    "placeholder": "a number"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Assemble and check",
+            "minutes": 15,
+            "needs": [
+              "Tools",
+              "Kirsty"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Assemble",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The nursery",
+                  "kind": "page"
+                },
+                "body_html": "<p>Assemble each piece per its instructions; anchor tall furniture to the wall with the anti-tip kit.</p>",
+                "expect_html": "<p>Everything assembled and anchored.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Check against the layout",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The editor on the phone",
+                  "kind": "page"
+                },
+                "body_html": "<p>Compare the room with the chosen layout from the child viewpoint. Kirsty agrees it is finished.</p>",
+                "expect_html": "<p>Kirsty says done.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "home.19",
+      "title": "Bedroom, then living room: one room at a time, same process",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWhen the nursery is finished, Claude opens the next room (main bedroom, then living room, then office) with the same set of tickets: budget, mood boards, layout, room plan page, shopping, jobs, technical record and scan pass, before-and-after page. The room tickets are made when their turn comes, never earlier.\n\n## Why\nPhil decided one room in progress at a time, finish one room completely, then the next, in the order bathroom, nursery, bedroom, living room, office.\n\n## Done looks like\nThe main bedroom's tickets exist and no other room's do.\n\n## Unlocks\noffice.03: the office is last in the order.\n\n## Depends on\nhome.18: the nursery finished.",
+      "after": [
+        "home.18"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.20",
+      "title": "Learn it or hire it: plastering and skimming",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nDecide, before the room that needs it, whether Phil learns plastering and skimming himself or hires someone. Look at: the area involved, a practice piece first (an off-cut or a wall nobody sees), the cost of a tradesperson's quote against tools and materials, and the time. Small patches (office.05, the render in repairs.03) are a good practice piece before a whole wall. Write the decision and, if learning, the one guide or course to follow.\n\n## Why\nPhil does nearly everything himself, and each job he has not done before gets a 'learn it or hire it' ticket.\n\n## Done looks like\nA 'learn' or 'hire' written on this ticket, with either the guide to follow or a quote.\n\n## Unlocks\nThe room ticket that needs this job.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "planning",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.21",
+      "title": "Learn it or hire it: tiling",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nDecide, before the room that needs it, whether Phil learns tiling himself or hires someone. Look at: the area involved, a practice piece first (an off-cut or a wall nobody sees), the cost of a tradesperson's quote against tools and materials, and the time. The bathroom (home.14, phase 7) is the first room that needs it; the walls will be tanked boards, which suit a beginner better than old plaster. Write the decision and, if learning, the one guide or course to follow.\n\n## Why\nPhil does nearly everything himself, and each job he has not done before gets a 'learn it or hire it' ticket.\n\n## Done looks like\nA 'learn' or 'hire' written on this ticket, with either the guide to follow or a quote.\n\n## Unlocks\nThe room ticket that needs this job.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "planning",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.22",
+      "title": "Learn it or hire it: laying flooring",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nDecide, before the room that needs it, whether Phil learns laying flooring himself or hires someone. Look at: the area involved, a practice piece first (an off-cut or a wall nobody sees), the cost of a tradesperson's quote against tools and materials, and the time. The office's July rules still apply there: a ply overlay under click flooring with a thin firm underlay. Write the decision and, if learning, the one guide or course to follow.\n\n## Why\nPhil does nearly everything himself, and each job he has not done before gets a 'learn it or hire it' ticket.\n\n## Done looks like\nA 'learn' or 'hire' written on this ticket, with either the guide to follow or a quote.\n\n## Unlocks\nThe room ticket that needs this job.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "planning",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.23",
+      "title": "Learn it or hire it: electrical work beyond swapping fittings",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nDecide, before the room that needs it, whether Phil learns electrical work beyond swapping fittings himself or hires someone. Look at: the area involved, a practice piece first (an off-cut or a wall nobody sees), the cost of a tradesperson's quote against tools and materials, and the time. In England, a new circuit, a new consumer unit, or adding to a circuit in the zone around a bath or shower is notifiable under Part P: done by a registered electrician who certifies it, or notified to building control before work starts (which costs a fee). Like-for-like fitting swaps are not notifiable. Sources: dossiers/home.md, section 3.6. Write the decision and, if learning, the one guide or course to follow.\n\n## Why\nPhil does nearly everything himself, and each job he has not done before gets a 'learn it or hire it' ticket.\n\n## Done looks like\nA 'learn' or 'hire' written on this ticket, with either the guide to follow or a quote.\n\n## Unlocks\nThe room ticket that needs this job.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "planning",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.24",
+      "title": "Lighting positions become Home Assistant scenes and dashboard buttons",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nEach room plan lists its light positions (no light simulation). Once Home Assistant runs (sub.08), Claude turns each room's lights into scenes and adds them as buttons on the home dashboard.\n\n## Why\nPhil decided lighting positions become Home Assistant scenes; a room plan lists them and the dashboard gets them as buttons.\n\n## Done looks like\nFor the first finished room: its lights are a Home Assistant scene and a dashboard button turns it on.\n\n## Unlocks\nwall.17: house controls on the dashboard.\n\n## Depends on\nhome.07 (room plan pages list lights), sub.08 (Home Assistant running).",
+      "after": [
+        "home.07",
+        "sub.08"
+      ],
+      "links": [
+        "wall.17"
+      ],
+      "tags": [
+        "home",
+        "dev",
+        "feature"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.25",
+      "title": "Plant list: each plant's needs matched to each room's light, warmth and humidity from the model",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude builds a plant list (Kirsty's indoor plants, each with its light, warmth and humidity needs) and matches it against each room in the model: light from window direction and size, warmth and humidity from the room type (a bathroom is humid) or a sensor later. The page suggests the best places for each plant. In Phil's words: 'Kirsty has a variety of indoor plants, I want it to be able to advise best places and conditions in the house.'\n\n## Why\nThis is new in Round 2: a plant list matched against each room's light, warmth and humidity.\n\n## Done looks like\nKirsty's plants listed and each has a suggested room and spot.\n\n## Unlocks\nNothing.\n\n## Depends on\nhome.02: rooms with windows in the model.",
+      "after": [
+        "home.02"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.26",
+      "title": "Everything into Mycelium: geometry, furniture, layouts, room plans; furniture-only inventory for now",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nMake Mycelium the one home for the house data: geometry (from the FML import and the editor), furniture boxes, layouts and room plans, with the old exports kept only as an archive. The inventory is furniture only for now; the full belongings inventory stays a later epic (it is also an undecided row in review.02).\n\n## Why\nPhil decided everything moves into Mycelium and the inventory is furniture only for now.\n\n## Done looks like\nOne list of every furniture item by room in Mycelium, and a line in claude/context.md saying where the house data lives.\n\n## Unlocks\nNothing.\n\n## Depends on\nhome.07: room plan pages.",
+      "after": [
+        "home.07"
+      ],
+      "links": [
+        "home.05"
+      ],
+      "tags": [
+        "home",
+        "documentation",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "home.27",
+      "title": "Done check: the nursery designed in the editor, bought and finished before June",
+      "kind": "test",
+      "points": 1,
+      "due": null,
+      "who": "PK",
+      "description": "## What\nA short check with Kirsty that the epic's 'done' is met: the nursery designed in the editor, everything bought, and the room finished before June 2027.\n\n## Why\nPhil defined done as the nursery designed in the editor, bought and finished before June.\n\n## Done looks like\nThree yes answers and a date before June 2027.\n\n## Unlocks\nNothing; the epic is done when this passes.\n\n## Depends on\nhome.18: the nursery finished.",
+      "after": [
+        "home.18"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "house",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "nursery-done-check",
+        "kind": "test",
+        "title": "Done check: the nursery designed, bought and finished before June",
+        "version": 1,
+        "intro": {
+          "answer": "Check the nursery against the three parts of 'done' with Kirsty.",
+          "unlocks": [],
+          "to_hand": [
+            "Kirsty",
+            "The phone"
+          ],
+          "time": [
+            "About 10 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Check",
+            "minutes": 10,
+            "needs": [
+              "Kirsty"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Designed in the editor",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The editor",
+                  "kind": "page"
+                },
+                "body_html": "<p>The nursery has a chosen layout in the editor.</p>",
+                "expect_html": "<p>A layout marked chosen.</p>",
+                "fields": [
+                  {
+                    "key": "designed",
+                    "label": "Designed in the editor?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Bought",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The room plan page",
+                  "kind": "page"
+                },
+                "body_html": "<p>Every shopping line is ticked.</p>",
+                "expect_html": "<p>No open lines.</p>",
+                "fields": [
+                  {
+                    "key": "bought",
+                    "label": "All bought?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Finished, before June",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The nursery, with Kirsty",
+                  "kind": "page"
+                },
+                "body_html": "<p>Kirsty agrees it is finished. Write the date.</p>",
+                "expect_html": "<p>A date before 2027-06-01.</p>",
+                "fields": [
+                  {
+                    "key": "finished_on",
+                    "label": "Finished on",
+                    "placeholder": "date"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    }
+  ],
+  "existing": [
+    {
+      "key": "GARDN-2",
+      "set_epic": false,
+      "append": "\n\n## Relates\nhome.10: the house-wide storage sitting checks whether the loft has boarded space for what leaves the nursery."
+    }
+  ]
+}

@@ -1,0 +1,2684 @@
+{
+  "epic": {
+    "sid": "E.net",
+    "project": "SEC",
+    "title": "Home network: four networks on the RT-AX86U, one DNS filter, VPN only",
+    "description": "Four networks on the RT-AX86U on Asuswrt-Merlin (Trusted, Work, Smart devices, Guests) with names that reveal nothing; one network-wide DNS filter carrying the security lists and the topic 9 blocking; remote access through a VPN only, port 3389 never exposed; the ASUS the only router if 4th Utility allows it; smart devices given the least internet they need; cameras and the baby monitor local only. Settings as scripts in a git repo, each change approved by Phil; as strong as possible inside the £100, invisible-to-Kirsty and simple-mode answers.\n\n## Order\nAudit both routers first (net.01), then the single-router question (net.02) and the three research notes (net.03 filter, net.04 remote access) in parallel. The design (net.05) follows the audit and net.02, then the settings repo (net.06), then the build one network per sitting (net.07). Devices move after: the work laptop (net.08), smart devices room by room (net.09), the guest card (net.10), with Kirsty's fallback (net.20) ready before the room moves. Then internet rules per device (net.12), TV tracking (net.13) and cameras local (net.14, after the VPN in sub.07). The inventory (net.15) feeds alerts (net.16), the 2am test (net.17, after sub.09) and the cull list (net.19). Remote access guide (net.21) after net.04, then the work laptop route (net.22). Attack test (net.23), the monthly review from 2026-12-28 (net.24), and the done check (net.26). Grandad's PC (net.25) any time.\n\n## Done means\nThe four networks hold, the work laptop sees nothing else, the VPN is the only way in, and the monthly review keeps it so.\n\n## Flags\n- H2.14 [claude]: work laptop remote access on the Everlight-sanctioned route only (net.22); not reopened.\n\n## Dossier\nThe dossier is attached in Docs.",
+    "dossier": "dossiers/net.md",
+    "links": [
+      "fin.15",
+      "sub.06",
+      "sub.07",
+      "sub.09",
+      "baby.21",
+      "wall.24"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "net.01",
+      "title": "Audit both routers (4th Utility and the RT-AX86U) and an outside scan: open ports, WPS, remote admin, UPnP, firmware",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nPhil opens each router's admin page and writes down five settings (WPS, remote admin from the internet, UPnP, port forwards and DMZ, firmware version); Claude Code then scans Phil's own public address from outside the house (a phone hotspot) and from the PC, and writes a one-page report into this ticket. Nothing is changed in this sitting except what Phil chooses to switch off on the spot (WPS and remote admin are safe to turn off).\n\n## Why\nSection 2 answer 14: \"not sure\" what is open, so the first ticket is an audit of both routers plus an outside scan. Behind double NAT the outside world sees the 4th Utility router first.\n\n## Done looks like\nThe five settings recorded for both routers in the answer boxes; a scan report on the ticket listing every open port seen from outside and what it is; any change made written down with the time.\n\n## Unlocks\nnet.02 (whether the ASUS can be the only router), net.05 (the design starts from what is really there), net.23 (the later attack test compares against this).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "troubleshooting"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-01-router-audit",
+        "kind": "guide",
+        "title": "Audit both routers and scan from outside",
+        "version": 1,
+        "intro": {
+          "answer": "Two routers, five settings each, one outside scan: you will know exactly what the internet can reach.",
+          "unlocks": [
+            "net.02",
+            "net.05",
+            "net.23"
+          ],
+          "to_hand": [
+            "The admin passwords for both routers (in Proton Pass)",
+            "Your phone with mobile data for the hotspot",
+            "The PC"
+          ],
+          "time": [
+            "About 30 minutes in two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Asuswrt-Merlin downloads and changelog",
+              "url": "https://www.asuswrt-merlin.net/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "4th Utility: can I supply my own router?",
+              "url": "https://4thutility.co.uk/contact/broadband/can-i-supply-my-own-router",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Read the two routers",
+            "minutes": 13,
+            "needs": [
+              "Both admin passwords",
+              "A pen or this page open"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Open the ASUS admin page",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Browser on the PC",
+                  "kind": "browser",
+                  "url": "http://router.asus.com"
+                },
+                "body_html": "<p>Open <code>router.asus.com</code> and sign in. On the first page note the firmware version shown at the top.</p>",
+                "expect_html": "<p>The Network Map page, with a firmware line such as <code>3004.388.13</code>.</p>",
+                "fields": [
+                  {
+                    "key": "asus_fw",
+                    "label": "ASUS firmware version",
+                    "placeholder": "for example 3004.388.13"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "ASUS: WPS, remote admin, UPnP, port forwards",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "ASUS admin page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Check four pages and write what you see:</p><ul><li><strong>Wireless, WPS</strong>: on or off. Turn it <strong>off</strong>.</li><li><strong>Administration, System</strong>: \"Enable Web Access from WAN\" should be <strong>No</strong>; SSH \"LAN only\" or off.</li><li><strong>WAN, Internet Connection</strong>: \"Enable UPnP\" on or off (leave it as is for now, just note it).</li><li><strong>WAN, Virtual Server / Port Forwarding</strong> and <strong>WAN, DMZ</strong>: list any rules.</li></ul>",
+                "expect_html": "<p>WPS off, web access from WAN off, and a written list of any forwards.</p>",
+                "fields": [
+                  {
+                    "key": "asus_upnp",
+                    "label": "ASUS UPnP on or off",
+                    "placeholder": "on / off"
+                  },
+                  {
+                    "key": "asus_forwards",
+                    "label": "ASUS port forwards (ports only)",
+                    "placeholder": "none, or e.g. 443"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Switching WPS and remote admin off breaks nothing in the house."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "4th Utility router: the same four settings",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "4th Utility router admin page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>The address and admin password are on the label under the router. Look for WPS, remote management, UPnP, port forwarding and DMZ, and the firmware version. Write each down; turn WPS off if it is on.</p>",
+                "expect_html": "<p>Five answers recorded for the 4th Utility router.</p>",
+                "fields": [
+                  {
+                    "key": "isp_wps",
+                    "label": "4th Utility WPS before",
+                    "placeholder": "on / off"
+                  },
+                  {
+                    "key": "isp_remote",
+                    "label": "4th Utility remote management",
+                    "placeholder": "on / off / not shown"
+                  },
+                  {
+                    "key": "isp_forwards",
+                    "label": "4th Utility port forwards or DMZ",
+                    "placeholder": "none, or the ports and which address"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The admin page asks for a password that is not on the label",
+                    "fix": "Leave it; ask Claude to note it on this ticket. 4th Utility support can reset it; do not factory-reset the router, it would take the house offline."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The outside scan",
+            "minutes": 8,
+            "needs": [
+              "The phone hotspot",
+              "The PC"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Read your public address",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "ASUS admin page, Network Map",
+                  "kind": "browser"
+                },
+                "body_html": "<p>On the Network Map, click the Internet icon and note the WAN IP. Behind double NAT this will be a private address (192.168.x.x); the public one is on the 4th Utility router's status page.</p>",
+                "expect_html": "<p>A public address written in the box (it is not a secret, but it stays in this ticket only).</p>",
+                "fields": [
+                  {
+                    "key": "public_ip",
+                    "label": "Public IP address of the house",
+                    "placeholder": "from the 4th Utility status page"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Claude Code scans from outside",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code on the PC, joined to the phone hotspot",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Join the PC to the phone's hotspot, then paste the prompt below into Claude Code. It scans only the address you recorded, and only common ports, then writes the report into this ticket.</p>",
+                "expect_html": "<p>A report on the ticket: each open port, what answered, and a plain-English verdict.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Scan only the public address recorded in the answers of this ticket (it is Phil's own house). From this PC on the phone hotspot, run a TCP scan of the 1,000 most common ports and a UDP check of 53, 123, 500, 1900 and 4500 with standard tools. Then rejoin the home network and scan both routers' LAN addresses for open admin ports. Write a one-page report into this ticket: port, service, which router, risk, suggested fix. Change nothing.",
+                    "kind": "prompt"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Scan only addresses that are yours. Never point the tools at anything else."
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Read the report and tick",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read the report. If anything is open that you did not know about, add one line saying keep or close; Claude Code closes nothing without that line.</p>",
+                "expect_html": "<p>Every open port has keep or close next to it.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.02",
+      "title": "Research: can the ASUS be the only router (4th Utility modem mode or bridge), and what it means for the broadband decision",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude writes a short research note on the ticket: 4th Utility says customers may use their own router, supplying a free Bridge where the fibre ends and a PPPoE login under Service Info in the online account, and warns that you \"cannot pre-configure your set-up and then go back\". The note lists what to ask 4th Utility in writing first (the Bridge, the PPPoE username, any VLAN id, IPv6), the exact RT-AX86U WAN settings, a rollback plan, and whether to do the swap before or after the broadband review on 2027-03-01. Nothing is switched over in this run.\n\n## Why\nSection 2 answer 18: make the ASUS the only router if 4th Utility allows it. It ends double NAT, which also decides whether the router's own VPN can work (net.04).\n\n## Done looks like\nA note on the ticket with the questions for 4th Utility, the settings, the rollback, a recommendation on timing against fin.15, and the sources with dates.\n\n## Unlocks\nnet.05 (the design knows how many routers there are), net.04 (the router-VPN branch), fin.15 (the broadband review gets the answer).\n\n## Depends on\nnet.01: the audit shows what the 4th Utility router is doing today.",
+      "after": [
+        "net.01"
+      ],
+      "links": [
+        "fin.15"
+      ],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "net.03",
+      "title": "Research: where the DNS filter runs (router, Substrate box, hosted); the 26 November guide is input",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude compares three homes for the one network-wide DNS filter: AdGuard Home on the RT-AX86U through the Merlin installer, a filter on the Substrate box (sub.06), and a hosted service (NextDNS or Control D). For each: cost, per-person profiles (Phil, Kirsty unfiltered for news, guests, a future child), how it is forced on every device (Merlin DNS Director), whether it follows the phones away from home, the \"open anyway\" mechanism and the HTTPS block-page limit (see dossiers/block.md section 3.1), and what happens when it is down. The 26 November NextDNS guide is read as input only. The note ends with a recommendation for Phil to approve.\n\n## Why\nSection 2 answers 11 and 12: one filter carrying both security lists and the topic 9 blocking, and where it runs decided in a research ticket. H10: the 26 November guide is input, not plan.\n\n## Done looks like\nA comparison table and a one-line recommendation on the ticket, with sources dated; Phil's approve or change recorded as a comment.\n\n## Unlocks\nsub.06 (the filter service is built where this decides), block.03 (profiles), block.04 (lists), block.05 (the block page design).\n\n## Depends on\nNothing.\n\n## Red team\n- Finding 30: A hosted filter is chosen only on a free tier or with Phil's yes to the cost.\n",
+      "after": [],
+      "links": [
+        "sub.06"
+      ],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "net.04",
+      "title": "Research: remote access, the July Tailscale and Remote Desktop set-up against the router's own VPN; 3389 never exposed",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude compares the July plan (Tailscale on the PC and laptop, Remote Desktop to the PC's tailnet name, Windows Pro host, NLA on) with the RT-AX86U's built-in WireGuard and OpenVPN servers, and with Tailscale on the router or on the Substrate box as a subnet router. For each: does it work through today's double NAT (the router VPN does not until net.02 ends it), what Kirsty's phone needs, how the cameras are reached for net.14, the Tailscale Personal plan's six users and 50 tagged resources, and how it fails. Ends with one recommended route for Phil to approve. Port 3389 is never forwarded in any option.\n\n## Why\nH2 item 13: a research ticket decides between the July set-up and the router's own VPN, then one Field guide covers every device. Section 2 answer 13: remote access through a VPN only.\n\n## Done looks like\nA comparison on the ticket with a recommended route; Phil's approval recorded.\n\n## Unlocks\nsub.07 (the VPN service), net.21 (the remote access guide), net.14 (cameras over the VPN).\n\n## Depends on\nNothing for Tailscale; net.02 for the router-VPN branch (double NAT).",
+      "after": [],
+      "links": [
+        "sub.07"
+      ],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "net.05",
+      "title": "Network design: four networks (Trusted, Work, Smart devices, Guests), names that reveal nothing, within what the RT-AX86U firmware allows; diagram to Docs",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude designs the four networks for the RT-AX86U on Asuswrt-Merlin 3004.388, which has no VLAN or Guest Network Pro page (those need a 3006 model such as the RT-AX86U Pro). The likely layout: main network = Trusted; Guest Network 1 (its own subnet) = Smart devices on 2.4 GHz; Guest Network 2 = Work; Guest Network 3 = Guests; each with Access Intranet off. The design says which wired devices (TVs, Sky Glass, the Substrate box) cannot be separated without a VLAN script or another routing device, and prices those options for Phil without choosing. Network names reveal nothing about Phil or the house. A diagram and the address plan go to Docs.\n\n## Why\nSection 2 answers 8, 16 and 29, and 2b names: four networks, the managed switches used where they help separation, names that reveal nothing.\n\n## Done looks like\nA design page in Docs with the diagram, the four names, subnets, which device kinds go where, what the switches do, and the open choice for wired separation with prices or \"to be priced\".\n\n## Unlocks\nnet.06 (the settings repo starts from this design), net.07 (the build), net.11 (the kit list).\n\n## Depends on\nnet.01 (what is there now) and net.02 (one router or two).\n\n## Cost\nAny replacement router or VLAN-capable kit is listed with a price or \"to be priced\"; nothing is bought in this run.\n\n## Red team\n- Finding 8: Check first: confirm which of the four-network design Asuswrt-Merlin on the RT-AX86U can do natively and which needs a script or a managed switch, before anything is built.\n",
+      "after": [
+        "net.01",
+        "net.02"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "planning",
+        "documentation"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "net.06",
+      "title": "Settings-as-scripts repo for the router: dated config backups, every change a reviewed commit, applied by Claude Code",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude creates a private git repo for the router's settings: a dated backup of the RT-AX86U configuration (Administration, Restore/Save/Upload Setting, plus the JFFS partition) before every change, the network design as readable settings files, and a script per change that Claude Code applies over SSH only after Phil approves the commit. Each change carries its rollback. No secret (Wi-Fi passwords, admin password) is committed in plain text; they stay in Proton Pass and are entered by Phil.\n\n## Why\n2b method: settings as scripts in a git repo, applied by Claude Code, each change approved by him. Section 2 answer 28: dated config backups.\n\n## Done looks like\nThe repo exists with a first dated backup, the design as files, a README with the apply and rollback steps, and one dry-run change reviewed by Phil.\n\n## Unlocks\nnet.07 (the build is applied from this repo).\n\n## Depends on\nnet.05 (the design to encode).\n\n## Red team\n- Finding 8: A full config backup is taken and a restore of it rehearsed before the first applied change; every applied change has a one-step revert.\n",
+      "after": [
+        "net.05"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "dev",
+        "devops"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "net.07",
+      "title": "Build the four networks on the ASUS (Merlin): SSIDs, isolation rules, within what the firmware allows",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nPhil builds the four networks from the net.05 design on the RT-AX86U, one network per sitting: Smart devices on Guest Network 1 (2.4 GHz, its own subnet), Work on Guest Network 2, Guests on Guest Network 3, each with Access Intranet off, then the main network (Trusted) tidied last and the 4th Utility router's Wi-Fi turned off. Claude Code takes a dated backup from the settings repo before each sitting. No device is moved here; moves are net.08 to net.10.\n\n## Why\nSection 2 answer 8: four networks, Trusted, Work, Smart devices, Guests. 2b bar: as strong as possible inside the earlier answers.\n\n## Done looks like\nAll four networks broadcast with the design's names; from each non-Trusted network the router admin page and the PC cannot be reached; a backup exists for each step.\n\n## Unlocks\nnet.08, net.09, net.10 (moving devices), net.18 (tripwires), net.20 (Kirsty's fallback), net.21 (remote access), net.23 (attack testing), net.24 (the monthly review).\n\n## Depends on\nnet.06 (the settings repo and backups).\n\n## Red team\n- Finding 8: Applied only while Phil is in the house with the admin page open on a wired or second device; the Trusted network is built last so the PC never loses its path.\n",
+      "after": [
+        "net.06"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-07-four-networks",
+        "kind": "guide",
+        "title": "Build the four networks on the RT-AX86U",
+        "version": 1,
+        "intro": {
+          "answer": "Four networks, one per sitting, each checked before the next: Smart devices, Work, Guests, then Trusted tidied last.",
+          "unlocks": [
+            "net.08",
+            "net.09",
+            "net.10",
+            "net.18",
+            "net.20",
+            "net.21",
+            "net.23",
+            "net.24"
+          ],
+          "to_hand": [
+            "The design page (net.05)",
+            "Proton Pass with a new password per network",
+            "Your phone"
+          ],
+          "time": [
+            "Four sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "ASUS VLAN FAQ (models and firmware)",
+              "url": "https://www.asus.com/uk/support/FAQ/1049415",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "SNBForums: RT-AX86U guest networks and Access Intranet",
+              "url": "https://www.snbforums.com/threads/disabling-access-intranet-on-rt-ax86u-guest-network-causes-iot-devices-on-primary-network-to-repeatedly-disconnect.86928",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Asuswrt-Merlin downloads and changelog",
+              "url": "https://www.asuswrt-merlin.net/",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "4.2",
+            "why": "Renaming the main network makes every device in the house rejoin, Kirsty's included."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Build Smart devices",
+            "minutes": 13,
+            "needs": [
+              "The design page from net.05",
+              "The Wi-Fi password for Smart devices (made in Proton Pass)"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Back up first",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code to take the dated backup from the settings repo before this network is added.</p>",
+                "expect_html": "<p>A new dated backup file in the repo, named with today's date.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Take a dated backup of the RT-AX86U settings into the router repo before building the Smart devices network, then show me the commit.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Create Smart devices",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "ASUS admin page, Guest Network",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Pick <strong>Guest Network 1</strong> on <strong>2.4 GHz</strong> (it gets its own subnet; most plugs and cameras are 2.4 GHz only). Use the name from the design page; set WPA2/WPA3-Personal; paste the password from Proton Pass; set <strong>Access Intranet</strong> to <strong>Disable</strong>. Leave the old network on for now; nothing moves until net.09.</p>",
+                "expect_html": "<p>The new network shows as enabled on the Guest Network page with Access Intranet off.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "Devices on it get no internet",
+                    "fix": "Known on Guest Network 1 with some builds: ask Claude Code to check DNS Director and the DHCP DNS setting against the design; roll back from the backup if needed."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Check it holds",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Your phone",
+                  "kind": "page"
+                },
+                "body_html": "<p>Join the phone to the new network. Open a web page (it should load). Then try to open the ASUS admin page and the PC's shared folder (both should fail).</p>",
+                "expect_html": "<p>Internet works; the router admin page and the PC cannot be reached from this network.</p>",
+                "fields": [
+                  {
+                    "key": "ok_1",
+                    "label": "Holds? (yes / no and what got through)",
+                    "placeholder": "yes"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Build Work",
+            "minutes": 13,
+            "needs": [
+              "The design page from net.05",
+              "The Wi-Fi password for Work (made in Proton Pass)"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Back up first",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code to take the dated backup from the settings repo before this network is added.</p>",
+                "expect_html": "<p>A new dated backup file in the repo, named with today's date.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Take a dated backup of the RT-AX86U settings into the router repo before building the Work network, then show me the commit.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Create Work",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "ASUS admin page, Guest Network",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Pick <strong>Guest Network 2</strong> on 5 GHz. Use the name from the design page; set WPA2/WPA3-Personal; paste the password from Proton Pass; set <strong>Access Intranet</strong> to <strong>Disable</strong>. Nothing moves until net.08.</p>",
+                "expect_html": "<p>The new network shows as enabled on the Guest Network page with Access Intranet off.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "Devices on it get no internet",
+                    "fix": "Known on Guest Network 1 with some builds: ask Claude Code to check DNS Director and the DHCP DNS setting against the design; roll back from the backup if needed."
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Check it holds",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Your phone",
+                  "kind": "page"
+                },
+                "body_html": "<p>Join the phone to the new network. Open a web page (it should load). Then try to open the ASUS admin page and the PC's shared folder (both should fail).</p>",
+                "expect_html": "<p>Internet works; the router admin page and the PC cannot be reached from this network.</p>",
+                "fields": [
+                  {
+                    "key": "ok_2",
+                    "label": "Holds? (yes / no and what got through)",
+                    "placeholder": "yes"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Build Guests",
+            "minutes": 13,
+            "needs": [
+              "The design page from net.05",
+              "The Wi-Fi password for Guests (made in Proton Pass)"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Back up first",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code to take the dated backup from the settings repo before this network is added.</p>",
+                "expect_html": "<p>A new dated backup file in the repo, named with today's date.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Take a dated backup of the RT-AX86U settings into the router repo before building the Guests network, then show me the commit.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "Create Guests",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "ASUS admin page, Guest Network",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Pick <strong>Guest Network 3</strong> on both bands if offered. Use the name from the design page; set WPA2/WPA3-Personal; paste the password from Proton Pass; set <strong>Access Intranet</strong> to <strong>Disable</strong>. Client isolation on if the page offers it.</p>",
+                "expect_html": "<p>The new network shows as enabled on the Guest Network page with Access Intranet off.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "Devices on it get no internet",
+                    "fix": "Known on Guest Network 1 with some builds: ask Claude Code to check DNS Director and the DHCP DNS setting against the design; roll back from the backup if needed."
+                  }
+                ]
+              },
+              {
+                "id": "3.3",
+                "title": "Check it holds",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Your phone",
+                  "kind": "page"
+                },
+                "body_html": "<p>Join the phone to the new network. Open a web page (it should load). Then try to open the ASUS admin page and the PC's shared folder (both should fail).</p>",
+                "expect_html": "<p>Internet works; the router admin page and the PC cannot be reached from this network.</p>",
+                "fields": [
+                  {
+                    "key": "ok_3",
+                    "label": "Holds? (yes / no and what got through)",
+                    "placeholder": "yes"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Tidy Trusted (the main network)",
+            "minutes": 11,
+            "needs": [
+              "The design page"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Back up first",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code for a dated backup before changing the main network.</p>",
+                "expect_html": "<p>A new dated backup in the repo.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Take a dated backup of the RT-AX86U settings into the router repo before tidying the main network, then show me the commit.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "4.2",
+                "title": "Rename only if the design says so",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "ASUS admin page, Wireless, General",
+                  "kind": "browser"
+                },
+                "body_html": "<p>If the design renames the main network, change the name and password here. <strong>Every device on it drops and must rejoin</strong>, Kirsty's included, so do it when she knows and the card (net.20) is ready.</p>",
+                "expect_html": "<p>The main network uses the design's name.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Skip this step if the design keeps today's name; that avoids rejoining every device."
+                  }
+                ]
+              },
+              {
+                "id": "4.3",
+                "title": "Turn off the 4th Utility Wi-Fi",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "4th Utility router admin page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Both routers broadcast Wi-Fi today. Once the four networks hold, turn the 4th Utility router's Wi-Fi off so nothing joins around the ASUS.</p>",
+                "expect_html": "<p>Only the ASUS networks appear in the phone's Wi-Fi list.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested",
+          "4.1": "untested",
+          "4.2": "untested",
+          "4.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.08",
+      "title": "Move the Everlight work laptop to Work; isolate and see",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil joins the Everlight work laptop to the Work network, forgets the old network on it, and checks that work still works (Everlight's own VPN, Teams or equivalent) while the laptop can no longer see the PC, printers or smart devices. If work breaks, he moves it back and writes what broke.\n\n## Why\nSection 2 answer 7 and 2b: the work machine is on the same Wi-Fi as everything else today; employer policy not checked first, \"isolate it and see\".\n\n## Done looks like\nThe laptop on Work; work apps working; the PC not visible from it; result recorded.\n\n## Unlocks\nnet.22 (work laptop remote access), net.26 (done check).\n\n## Depends on\nnet.07 (the Work network exists).\n\n## Red team\n- Finding 42: Revert path in the same sitting; if the laptop's own VPN or management agents stop working it goes back to Trusted and the question goes to IT.\n",
+      "after": [
+        "net.07"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "work",
+        "computer"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-08-work-laptop",
+        "kind": "guide",
+        "title": "Move the work laptop to the Work network",
+        "version": 1,
+        "intro": {
+          "answer": "One laptop, one network, one check that work still works.",
+          "unlocks": [
+            "net.22",
+            "net.26"
+          ],
+          "to_hand": [
+            "The work laptop",
+            "The Work network password (Proton Pass)"
+          ],
+          "time": [
+            "About 10 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Move and check",
+            "minutes": 10,
+            "needs": [
+              "The work laptop"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Join Work and forget the old network",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Work laptop, Wi-Fi settings",
+                  "kind": "page"
+                },
+                "body_html": "<p>Join the Work network (name from the design page). Then forget the old network so the laptop does not drift back.</p>",
+                "expect_html": "<p>The laptop shows it is connected to Work only.</p>",
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "If Everlight's settings stop you forgetting a network, just join Work and note it."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Check work still works",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Work laptop",
+                  "kind": "page"
+                },
+                "body_html": "<p>Connect Everlight's VPN, open email and Teams (or whatever you use) and one work system.</p>",
+                "expect_html": "<p>Everything work-related works as before.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "The VPN will not connect",
+                    "fix": "Move the laptop back to the old network, note the error here; Claude will look at it."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Check it is isolated",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Work laptop, File Explorer",
+                  "kind": "page"
+                },
+                "body_html": "<p>Type <code>\\\\</code> followed by the PC's name in the File Explorer bar, and open <code>router.asus.com</code>.</p>",
+                "expect_html": "<p>Neither opens.</p>",
+                "fields": [
+                  {
+                    "key": "isolated",
+                    "label": "Isolated? (yes / no)",
+                    "placeholder": "yes"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.09",
+      "title": "Move the smart devices (cameras, doorbell, plugs, bulbs, sensors, Alexa, TVs, sticks) to Smart devices, one sitting per room",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil moves every smart device to the Smart devices network, one room per sitting, checking each from its app before the next. Devices that will not move or stop working go back on the old network and onto the net.12 list. Shared TVs and Alexa are Kirsty's too: tell her the evening before each room.\n\n## Why\nSection 2 answers 3 and 5: a smart device taken over and reaching the PC is one of the four worries.\n\n## Done looks like\nEvery smart device listed per room and working on the Smart devices network, or written down as an exception.\n\n## Unlocks\nnet.12 (internet rules per device), net.15 (inventory), wall.24 (wall screens on Smart devices).\n\n## Depends on\nnet.07 (the network exists).",
+      "after": [
+        "net.07"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "house"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-09-move-smart-devices",
+        "kind": "guide",
+        "title": "Move the smart devices, one room per sitting",
+        "version": 1,
+        "intro": {
+          "answer": "Room by room, each device moved and checked from its app before the next.",
+          "unlocks": [
+            "net.12",
+            "net.15",
+            "wall.24"
+          ],
+          "to_hand": [
+            "The Smart devices password",
+            "Your phone with each device's app"
+          ],
+          "time": [
+            "About 15 minutes per room"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [],
+          "hard_part": {
+            "step_id": "1.2",
+            "why": "Plugs and bulbs often need a factory reset and re-pair to change network."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Move the kitchen and living room devices",
+            "minutes": 13,
+            "needs": [
+              "The Smart devices password (Proton Pass)",
+              "Each device's app on your phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "List the devices in this room",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the devices in the kitchen and living room (cameras, plugs, bulbs, Alexa, TV, stick).</p>",
+                "expect_html": "<p>A list in the box.</p>",
+                "fields": [
+                  {
+                    "key": "room1",
+                    "label": "Devices in the kitchen and living room",
+                    "placeholder": "e.g. Echo, two bulbs, TV"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Move each one",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Each device's app (Alexa, Ring, Smart Life, the TV's network menu)",
+                  "kind": "page"
+                },
+                "body_html": "<p>In each device's app or menu, change Wi-Fi to the Smart devices network. Most plugs and bulbs need a reset and re-pair; the app shows how. Check each still answers from its app before the next.</p>",
+                "expect_html": "<p>Each device works from its app on the new network.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "A device will not see the new network",
+                    "fix": "It is probably 2.4 GHz only and the network is on 5 GHz: check the design put Smart devices on 2.4 GHz."
+                  },
+                  {
+                    "symptom": "A device stops working after the move",
+                    "fix": "Put it back on the old network, note it in the box; it goes on the net.12 list."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Move the bedrooms and office devices",
+            "minutes": 13,
+            "needs": [
+              "The Smart devices password (Proton Pass)",
+              "Each device's app on your phone"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "List the devices in this room",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the devices in the bedrooms and office (cameras, plugs, bulbs, Alexa, TV, stick).</p>",
+                "expect_html": "<p>A list in the box.</p>",
+                "fields": [
+                  {
+                    "key": "room2",
+                    "label": "Devices in the bedrooms and office",
+                    "placeholder": "e.g. Echo, two bulbs, TV"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Move each one",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Each device's app (Alexa, Ring, Smart Life, the TV's network menu)",
+                  "kind": "page"
+                },
+                "body_html": "<p>In each device's app or menu, change Wi-Fi to the Smart devices network. Most plugs and bulbs need a reset and re-pair; the app shows how. Check each still answers from its app before the next.</p>",
+                "expect_html": "<p>Each device works from its app on the new network.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "A device will not see the new network",
+                    "fix": "It is probably 2.4 GHz only and the network is on 5 GHz: check the design put Smart devices on 2.4 GHz."
+                  },
+                  {
+                    "symptom": "A device stops working after the move",
+                    "fix": "Put it back on the old network, note it in the box; it goes on the net.12 list."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Move the hall, outside and anywhere else devices",
+            "minutes": 13,
+            "needs": [
+              "The Smart devices password (Proton Pass)",
+              "Each device's app on your phone"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "List the devices in this room",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the devices in the hall, outside and anywhere else (cameras, plugs, bulbs, Alexa, TV, stick).</p>",
+                "expect_html": "<p>A list in the box.</p>",
+                "fields": [
+                  {
+                    "key": "room3",
+                    "label": "Devices in the hall, outside and anywhere else",
+                    "placeholder": "e.g. Echo, two bulbs, TV"
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "Move each one",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Each device's app (Alexa, Ring, Smart Life, the TV's network menu)",
+                  "kind": "page"
+                },
+                "body_html": "<p>In each device's app or menu, change Wi-Fi to the Smart devices network. Most plugs and bulbs need a reset and re-pair; the app shows how. Check each still answers from its app before the next.</p>",
+                "expect_html": "<p>Each device works from its app on the new network.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "A device will not see the new network",
+                    "fix": "It is probably 2.4 GHz only and the network is on 5 GHz: check the design put Smart devices on 2.4 GHz."
+                  },
+                  {
+                    "symptom": "A device stops working after the move",
+                    "fix": "Put it back on the old network, note it in the box; it goes on the net.12 list."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.10",
+      "title": "Guest network with a QR code card",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil makes a QR code for the Guests network (the ASUS app or any QR generator using the Wi-Fi format), prints it on a small card with the network name, and puts it where guests will see it. He tests it with a phone that has never joined.\n\n## Why\nSection 2 answer 19: guest network with a QR code.\n\n## Done looks like\nA printed card; a phone scans it and joins Guests; the guest phone cannot open the router page.\n\n## Unlocks\nblock.03 (the guest filter profile applies to this network).\n\n## Depends on\nnet.07 (the Guests network exists).",
+      "after": [
+        "net.07"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-10-guest-qr",
+        "kind": "guide",
+        "title": "Guest Wi-Fi QR card",
+        "version": 1,
+        "intro": {
+          "answer": "A card by the door: guests scan, they are on, and they see nothing of yours.",
+          "unlocks": [
+            "block.03"
+          ],
+          "to_hand": [
+            "The Guests password",
+            "A printer"
+          ],
+          "time": [
+            "About 10 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Make, print, test",
+            "minutes": 10,
+            "needs": [
+              "Printer"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Make the QR code",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "ASUS Router app on the phone, or ASUS admin page, Guest Network",
+                  "kind": "page"
+                },
+                "body_html": "<p>In the ASUS Router app open the Guests network and use its share or QR option. If there is none, ask Claude for a Wi-Fi QR image made from the network name (you type the password into the generator yourself, not into this ticket).</p>",
+                "expect_html": "<p>A QR image on screen.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "The password goes into the generator only; never into the ticket."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Print the card",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Printer",
+                  "kind": "page"
+                },
+                "body_html": "<p>Print it about 6 cm square with the network name underneath.</p>",
+                "expect_html": "<p>A card in hand.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Test with a fresh phone",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "A guest phone or Kirsty's with Wi-Fi forgotten",
+                  "kind": "page"
+                },
+                "body_html": "<p>Scan the card, join, open a web page, then try <code>router.asus.com</code>.</p>",
+                "expect_html": "<p>The web page loads; the router page does not.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.11",
+      "title": "Kit under £100: what the two managed switches cover and what is missing; costed list, nothing bought before Phil sees it",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude writes down the two managed switches' make and model (Phil reads the labels, or Claude finds them on the network), what each can do (VLAN tagging, port isolation), and what the net.05 design still lacks. The list is costed with UK prices and links, capped at £100, and names the out-of-cap option separately (for example a router on 3006 firmware with VLAN pages) so Phil sees it without it being chosen.\n\n## Why\nSection 2 answer 10: a couple of managed switches already, up to £100.\n\n## Done looks like\nA costed list on the ticket with totals; Phil's yes or no per line.\n\n## Unlocks\nnet.07 (if wired separation is chosen).\n\n## Depends on\nnet.05 (the design).\n\n## Cost\nUp to £100 per Phil's answer; every item is to be priced; nothing is bought in this run.",
+      "after": [
+        "net.05"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "shopping"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "net.12",
+      "title": "Smart devices and the internet: block where the device still works, else allow only its own cloud; per device",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nFor every device on the Smart devices network, Claude Code proposes a rule from a week of DNS logs (block the internet entirely if the device still works locally, otherwise allow only its own cloud's domains), as a reviewed commit in the router repo; Phil approves per group and checks each device still works the next day.\n\n## Why\nSection 2 answer 23: block where the device still works, else allow only its own cloud.\n\n## Done looks like\nEvery smart device has a rule; each still does its job; the rule list is in the repo.\n\n## Unlocks\nnet.13 (TV tracking), net.14 (cameras local only).\n\n## Depends on\nnet.09 (devices moved).",
+      "after": [
+        "net.09"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-12-device-rules",
+        "kind": "guide",
+        "title": "Smart devices: internet rules per device",
+        "version": 1,
+        "intro": {
+          "answer": "Each device gets the least internet it needs, one group per sitting.",
+          "unlocks": [
+            "net.13",
+            "net.14"
+          ],
+          "to_hand": [
+            "The device list",
+            "A week of DNS logs (the filter from sub.06 or the router)"
+          ],
+          "time": [
+            "Three sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Plugs, bulbs and sensors",
+            "minutes": 13,
+            "needs": [
+              "The device list from net.09 and net.15"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Claude Code proposes the rules",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code for this group's proposed rules as a commit in the router repo, one device per line: blocked, or allowed only to its own cloud (the domains it was seen using).</p>",
+                "expect_html": "<p>A commit to review listing each device and its rule.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "From the device inventory and a week of DNS logs, propose internet rules for the plugs, bulbs and sensors: block where the device still works, else allow only its own cloud. Write them as a commit in the router repo, apply nothing.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Approve and apply",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The commit and Claude Code",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>These often work locally through Home Assistant or Alexa; block where Home Assistant can drive them. Approve the commit; Claude Code applies it.</p>",
+                "expect_html": "<p>The rules applied and the commit merged.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Check each device next day",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Each device's app",
+                  "kind": "page"
+                },
+                "body_html": "<p>Use each device the way you normally do.</p>",
+                "expect_html": "<p>Each still does its job; anything broken is written in the box and its rule loosened by one step.</p>",
+                "fields": [
+                  {
+                    "key": "broke1",
+                    "label": "What broke (or none)",
+                    "placeholder": "none"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Alexa and the TVs and sticks",
+            "minutes": 13,
+            "needs": [
+              "The device list from net.09 and net.15"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Claude Code proposes the rules",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code for this group's proposed rules as a commit in the router repo, one device per line: blocked, or allowed only to its own cloud (the domains it was seen using).</p>",
+                "expect_html": "<p>A commit to review listing each device and its rule.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "From the device inventory and a week of DNS logs, propose internet rules for the alexa and the tvs and sticks: block where the device still works, else allow only its own cloud. Write them as a commit in the router repo, apply nothing.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Approve and apply",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The commit and Claude Code",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Alexa and streaming need their clouds; allow only those. Approve the commit; Claude Code applies it.</p>",
+                "expect_html": "<p>The rules applied and the commit merged.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Check each device next day",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Each device's app",
+                  "kind": "page"
+                },
+                "body_html": "<p>Use each device the way you normally do.</p>",
+                "expect_html": "<p>Each still does its job; anything broken is written in the box and its rule loosened by one step.</p>",
+                "fields": [
+                  {
+                    "key": "broke2",
+                    "label": "What broke (or none)",
+                    "placeholder": "none"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Cameras and the doorbell",
+            "minutes": 13,
+            "needs": [
+              "The device list from net.09 and net.15"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Claude Code proposes the rules",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code for this group's proposed rules as a commit in the router repo, one device per line: blocked, or allowed only to its own cloud (the domains it was seen using).</p>",
+                "expect_html": "<p>A commit to review listing each device and its rule.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "From the device inventory and a week of DNS logs, propose internet rules for the cameras and the doorbell: block where the device still works, else allow only its own cloud. Write them as a commit in the router repo, apply nothing.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "Approve and apply",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The commit and Claude Code",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Allow only their cloud for now; net.14 takes them local. Approve the commit; Claude Code applies it.</p>",
+                "expect_html": "<p>The rules applied and the commit merged.</p>"
+              },
+              {
+                "id": "3.3",
+                "title": "Check each device next day",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Each device's app",
+                  "kind": "page"
+                },
+                "body_html": "<p>Use each device the way you normally do.</p>",
+                "expect_html": "<p>Each still does its job; anything broken is written in the box and its rule loosened by one step.</p>",
+                "fields": [
+                  {
+                    "key": "broke3",
+                    "label": "What broke (or none)",
+                    "placeholder": "none"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.13",
+      "title": "TV tracking: block only what breaks nothing",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nClaude Code lists the tracking and advertising domains each TV (LG, Samsung, Sky Glass, Fire Stick) contacts, from the DNS logs, and proposes blocking only those whose blocking breaks nothing (apps, updates, live TV still work). Phil approves and checks each TV the next evening. Shared TVs: tell Kirsty first; anything she notices is undone.\n\n## Why\n2b: TV tracking, block only what breaks nothing.\n\n## Done looks like\nA short block list per TV applied; every TV's apps and live TV still work.\n\n## Unlocks\nnet.24 (the monthly review checks the list).\n\n## Depends on\nnet.12 (device rules in place); block.02 (Kirsty asked about the shared TVs).",
+      "after": [
+        "net.12",
+        "block.02"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-13-tv-tracking",
+        "kind": "guide",
+        "title": "Block TV tracking that breaks nothing",
+        "version": 1,
+        "intro": {
+          "answer": "Only the tracking domains whose loss nobody notices.",
+          "unlocks": [
+            "net.24"
+          ],
+          "to_hand": [
+            "Kirsty told"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Propose, apply, check",
+            "minutes": 13,
+            "needs": [
+              "Kirsty told"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Claude Code proposes the list",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask for the proposed TV tracking list.</p>",
+                "expect_html": "<p>A commit with a list per TV.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "From the DNS logs, list tracking and advertising domains contacted by each TV and stick. Propose blocking only those that well-known lists and community reports say break nothing. Commit to the router repo, apply nothing.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Approve",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The commit",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read the list, remove anything you are unsure of, approve.</p>",
+                "expect_html": "<p>The list applied.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Check each TV next evening",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Each TV",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open each TV's main apps and live TV.</p>",
+                "expect_html": "<p>All work; anything broken is undone and noted.</p>",
+                "fields": [
+                  {
+                    "key": "tv_broke",
+                    "label": "What broke (or none)",
+                    "placeholder": "none"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.14",
+      "title": "Cameras and the baby monitor local only, viewed over the VPN",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nEach camera and the doorbell is cut off from the internet and recorded locally (to the Substrate box or the camera's own storage, whichever the model supports), and viewed from the phones over the VPN chosen in net.04. Claude Code checks per model whether local viewing works (RTSP or ONVIF, or the maker's local mode) before anything is blocked. The baby monitor bought in baby.21 follows the same rule.\n\n## Why\nSection 2 answer 25: cameras and a baby monitor local only, no cloud, viewed over the VPN.\n\n## Done looks like\nEvery camera viewable on both phones over the VPN with mobile data; none reaching the internet in the logs for a week.\n\n## Unlocks\nbaby.21 (the monitor follows this pattern).\n\n## Depends on\nnet.12 (device rules) and sub.07 (the VPN service).",
+      "after": [
+        "net.12",
+        "sub.07"
+      ],
+      "links": [
+        "baby.21"
+      ],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "phone"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-14-cameras-local",
+        "kind": "guide",
+        "title": "Cameras local only, viewed over the VPN",
+        "version": 1,
+        "intro": {
+          "answer": "Cameras stay in the house; you still see them from anywhere.",
+          "unlocks": [
+            "baby.21"
+          ],
+          "to_hand": [
+            "Each camera's model",
+            "Both phones with the VPN app"
+          ],
+          "time": [
+            "Two sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Check each camera can work locally",
+            "minutes": 12,
+            "needs": [
+              "Camera models"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Claude Code checks the models",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code to check each camera model for a local stream (RTSP or ONVIF) or a local mode.</p>",
+                "expect_html": "<p>A table: model, local stream yes or no, how.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "For each camera and doorbell in the device inventory, find from the maker's documentation whether it offers RTSP, ONVIF or a local-only mode, and how to switch it on. Write a table on the ticket. Change nothing.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Switch on local streams",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Each camera's app",
+                  "kind": "page"
+                },
+                "body_html": "<p>For each camera marked yes, switch on its local stream in its app as the table says.</p>",
+                "expect_html": "<p>Each yes-camera shows a local stream option enabled.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "A camera marked no keeps its cloud until replaced; that goes on the net.19 cull list."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Block and view over the VPN",
+            "minutes": 11,
+            "needs": [
+              "Both phones"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Approve the block",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Approve the commit that blocks internet for the yes-cameras.</p>",
+                "expect_html": "<p>The rule applied.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Block internet for the cameras marked yes in the table, as a commit in the router repo; apply after I approve.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "View from mobile data",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Each phone on mobile data, VPN on",
+                  "kind": "page"
+                },
+                "body_html": "<p>Turn Wi-Fi off, turn the VPN on, open each camera's local view.</p>",
+                "expect_html": "<p>Each camera shows live video.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "No picture over the VPN",
+                    "fix": "Check the VPN routes the Smart devices subnet (net.21); ask Claude Code."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.15",
+      "title": "Device inventory in Mycelium beside the home inventory: every device, network, owner, cloud it may reach",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude builds a device inventory in Mycelium next to the home inventory: one row per device with name, kind, owner (Phil, Kirsty, shared, guest), network, MAC address, the cloud domains it may reach, firmware and support end date. It is filled from the router's client list and the net.09 room lists, and edited in place like a spreadsheet (Phil prefers cell editing).\n\n## Why\nSection 2 answer 22: device inventory in Mycelium, beside the home inventory.\n\n## Done looks like\nThe inventory page in Mycelium lists every device on the four networks with no blank owner or network.\n\n## Unlocks\nnet.16 (unknown device alerts), net.17 (the 2am test), net.19 (the cull list).\n\n## Depends on\nnet.09 (devices on their networks).",
+      "after": [
+        "net.09"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "net.16",
+      "title": "Unknown device joins: a push through Mycelium inside the interruption budget",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude adds a check that compares the router's client list with the device inventory and, when an unknown device joins any network, sends one push through Mycelium inside the interruption budget (held to the next allowed window if outside it), with the network, the time and a one-tap \"mine\" or \"block\".\n\n## Why\nSection 2 answer 21: unknown device joins, a push through Mycelium inside the interruption budget.\n\n## Done looks like\nA test device joining Guests produces one push in the next allowed window; \"mine\" adds it to the inventory.\n\n## Unlocks\nnet.24 (the monthly review reads the joins).\n\n## Depends on\nnet.15 (the inventory to compare against).",
+      "after": [
+        "net.15"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "net.17",
+      "title": "The 2am test: a device sending gigabytes somewhere new is cut off and Phil told in the morning",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude builds the rule on the network monitoring from sub.09: a device sending more than a set amount (to be tuned from two weeks of normal traffic) to a destination it has not used before is moved off the internet automatically, and Phil gets one message in the morning with the device, the destination and a one-tap undo.\n\n## Why\n2b: a camera sending gigabytes somewhere new: cut that device off, tell him in the morning.\n\n## Done looks like\nA staged test (a PC on the Smart devices network sending a large file to a new address) is cut off and reported next morning.\n\n## Unlocks\nnet.26 (done check).\n\n## Depends on\nnet.15 (the inventory) and sub.09 (network monitoring).",
+      "after": [
+        "net.15",
+        "sub.09"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "net.18",
+      "title": "One tripwire on each network",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude sets one tripwire per network: a decoy that no real device should ever touch (for example a fake file share or an unused address that logs any connection), and any touch sends Phil a message. Each tripwire is documented in the router repo and tested once.\n\n## Why\n2b: tripwires, one on each network.\n\n## Done looks like\nFour tripwires in place; a test touch on each produces a message.\n\n## Unlocks\nnet.23 (the attack test should trip them), net.24 (the monthly review checks they still work).\n\n## Depends on\nnet.07 (the four networks).",
+      "after": [
+        "net.07"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "net.19",
+      "title": "Unsupported devices: a cull list with dates; Claude applies the security update itself where it can",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nFrom the inventory, Claude marks each device's support end date from the maker, lists those already unsupported or ending within a year with a replace-by date, and applies available firmware updates itself where the device allows it from the network (asking Phil before each). The list lives on the inventory page.\n\n## Why\n2b: unsupported devices, a cull list with dates, and Claude applies the security update itself where possible.\n\n## Done looks like\nEvery device has a support end date or \"unknown\"; the cull list is dated; updates applied are logged.\n\n## Unlocks\nnet.24 (the monthly review reads the cull list).\n\n## Depends on\nnet.15 (the inventory).",
+      "after": [
+        "net.15"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "maintenance"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "net.20",
+      "title": "Kirsty's fallback: a labelled \"simple mode\" switch and a printed card by the routers",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PK",
+      "description": "## What\nA labelled switch Kirsty can use when something stops working: Claude Code prepares a simple-mode setting on the router (filter and isolation rules off for Trusted, everything else as is) that a single button or one tap in the ASUS app turns on, and a printed card by the routers says in plain words what to press and how to undo it. Kirsty tries it once with Phil there.\n\n## Why\n2b: Kirsty's fallback, both a labelled simple-mode switch and a printed card by the routers.\n\n## Done looks like\nKirsty has pressed the switch once, the internet worked, and she turned it back; the card is by the routers.\n\n## Unlocks\nnet.09 and net.12 (changes can go ahead with a fallback in place).\n\n## Depends on\nnet.07 (the networks exist).",
+      "after": [
+        "net.07"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "house"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-20-simple-mode",
+        "kind": "guide",
+        "title": "Kirsty's simple-mode switch and card",
+        "version": 1,
+        "intro": {
+          "answer": "One switch and one card: if something stops working, Kirsty can make it work.",
+          "unlocks": [
+            "net.09",
+            "net.12"
+          ],
+          "to_hand": [
+            "Kirsty, ten minutes",
+            "A printer and a label"
+          ],
+          "time": [
+            "Two sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Make the switch and the card",
+            "minutes": 9,
+            "needs": [
+              "Printer"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Claude Code prepares simple mode",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code to set up simple mode.</p>",
+                "expect_html": "<p>A commit with the simple-mode setting and how it is switched.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Prepare a simple-mode setting on the RT-AX86U: Trusted network filter and extra rules off, every other network unchanged, switched by the router's WPS button if Merlin allows it or by one toggle in the ASUS app. Commit to the router repo with the undo. Draft the card text in plain words.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Print and stick",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Printer",
+                  "kind": "page"
+                },
+                "body_html": "<p>Print the card Claude drafted, label the button or the app tile \"Simple mode\", put the card by the routers.</p>",
+                "expect_html": "<p>The card is by the routers and the switch is labelled.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Kirsty tries it",
+            "minutes": 5,
+            "needs": [
+              "Kirsty"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Kirsty presses it",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "By the routers",
+                  "kind": "page"
+                },
+                "body_html": "<p>Kirsty follows the card: switch on, open a site that was blocked, switch back.</p>",
+                "expect_html": "<p>She did it without help and the house went back to normal.</p>",
+                "fields": [
+                  {
+                    "key": "kirsty_ok",
+                    "label": "Kirsty managed it? (yes / what confused her)",
+                    "placeholder": "yes"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.21",
+      "title": "Remote access Field guide: PC, laptop, both phones and Kirsty's phone, on the route net.04 chose",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nOne Field guide sets up remote access on the route net.04 chose (written here for the Tailscale route, the likely choice; Claude rewrites the device steps if the router VPN was chosen): the PC as the Remote Desktop host with NLA and sleep off, the laptop, both phones and Kirsty's phone, each in its own sitting, each tested from mobile data. Port 3389 is never forwarded.\n\n## Why\nH2 item 13: one Field guide covers the PC, laptop, both phones and Kirsty's phone. Rule kept: port 3389 is never exposed.\n\n## Done looks like\nEach of the five devices reaches what it needs over the VPN from mobile data; an outside scan shows 3389 closed.\n\n## Unlocks\nnet.22 (work laptop), net.14 (cameras over the VPN).\n\n## Depends on\nnet.04 (the route chosen) and net.07 (the networks).\n\n## Red team\n- Finding 9: The old route is removed only after the VPN has been used from outside the house on the PC, both phones and Kirsty's phone; the removal is its own final phase.\n",
+      "after": [
+        "net.04",
+        "net.07",
+        "sub.07"
+      ],
+      "links": [
+        "sub.07"
+      ],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "phone",
+        "pc"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-21-remote-access",
+        "kind": "guide",
+        "title": "Remote access on every device",
+        "version": 1,
+        "intro": {
+          "answer": "Every device reaches home over the VPN, and nothing at home is open to the internet.",
+          "unlocks": [
+            "net.22",
+            "net.14"
+          ],
+          "to_hand": [
+            "The Tailscale (or chosen VPN) account sign-in",
+            "The PC, the laptop, both phones, Kirsty's phone"
+          ],
+          "time": [
+            "Four sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Tailscale pricing FAQ",
+              "url": "https://tailscale.com/docs/reference/faq/pricing",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Merlin wiki: Tailscale through Entware",
+              "url": "https://github.com/RMerl/asuswrt-merlin.ng/wiki",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The PC as the host",
+            "minutes": 11,
+            "needs": [
+              "The PC"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Install and sign in",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The PC",
+                  "kind": "page"
+                },
+                "body_html": "<p>Install the VPN client from its official site and sign in with the account net.04 chose.</p>",
+                "expect_html": "<p>The PC shows as connected in the VPN's admin page.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Remote Desktop on, NLA on, sleep off",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Windows Settings, System, Remote Desktop; Power",
+                  "kind": "page"
+                },
+                "body_html": "<p>Turn Remote Desktop on with \"Require devices to use Network Level Authentication\" ticked. In Power, set sleep to Never when plugged in.</p>",
+                "expect_html": "<p>Remote Desktop on, NLA ticked, sleep Never.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Check 3389 is not forwarded",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "ASUS admin page, WAN, Port Forwarding",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Confirm no rule mentions 3389 on either router.</p>",
+                "expect_html": "<p>No 3389 rule anywhere.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The laptop",
+            "minutes": 11,
+            "needs": [
+              "The laptop"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Install, sign in, connect",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The laptop",
+                  "kind": "page"
+                },
+                "body_html": "<p>Install the client, sign in, then open Remote Desktop Connection to the PC's VPN name.</p>",
+                "expect_html": "<p>The PC's desktop appears.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Test from the phone hotspot",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The laptop on the hotspot",
+                  "kind": "page"
+                },
+                "body_html": "<p>Join the laptop to the phone hotspot and connect again.</p>",
+                "expect_html": "<p>The PC's desktop appears from outside the house.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Both phones",
+            "minutes": 11,
+            "needs": [
+              "iPhone and Pixel"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Install and sign in on each",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "App Store and Play Store",
+                  "kind": "page"
+                },
+                "body_html": "<p>Install the VPN app on the iPhone and the Pixel, sign in.</p>",
+                "expect_html": "<p>Both show connected.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Test on mobile data",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Each phone, Wi-Fi off",
+                  "kind": "page"
+                },
+                "body_html": "<p>With Wi-Fi off, open the router page or a camera view through the VPN.</p>",
+                "expect_html": "<p>It opens on both phones.</p>"
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Kirsty's phone",
+            "minutes": 9,
+            "needs": [
+              "Kirsty and her phone"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Add Kirsty",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "VPN admin page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Invite Kirsty as a user (or add her phone under your user, whichever net.04 recommended).</p>",
+                "expect_html": "<p>Her phone appears in the admin page.</p>"
+              },
+              {
+                "id": "4.2",
+                "title": "Kirsty tests it",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Kirsty's phone on mobile data",
+                  "kind": "page"
+                },
+                "body_html": "<p>She opens the camera view or Home Assistant through the VPN.</p>",
+                "expect_html": "<p>It works for her without help.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "4.1": "untested",
+          "4.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.22",
+      "title": "Work laptop remote access on the Everlight-sanctioned route only",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil asks Everlight IT which remote route to the work laptop they sanction (their own VPN or remote tool), writes the answer here, and sets up only that route. If Everlight sanctions none, nothing is set up and the answer is recorded. The home VPN from net.21 is not used to reach the work laptop unless Everlight says so in writing.\n\n## Why\nH2 item 14: Phil says remoting on to it \"is fine\"; the ticket is written for the approved route only.\n\n## Done looks like\nEverlight's answer recorded; the sanctioned route set up and tested, or \"none sanctioned\" recorded.\n\n## Unlocks\nnet.26 (done check).\n\n## Depends on\nnet.21 (the home remote access is in place).\n\n## Flag\nH2.14 [claude]: the July advice was to use only a route Everlight IT sanctions because the laptop touches patient data. Written for the approved route only; not reopened.\n\n## Red team\n- Finding 42: First step: ask Everlight IT in writing which remote route is permitted; no route until the answer.\n",
+      "after": [
+        "net.21"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "work"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-22-work-remote",
+        "kind": "guide",
+        "title": "Work laptop: the sanctioned remote route only",
+        "version": 1,
+        "intro": {
+          "answer": "Ask Everlight IT, use only what they approve.",
+          "unlocks": [
+            "net.26"
+          ],
+          "to_hand": [
+            "Everlight IT contact"
+          ],
+          "time": [
+            "About 15 minutes plus their reply"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Ask and set up",
+            "minutes": 13,
+            "needs": [
+              "Everlight IT contact"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Ask Everlight IT",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Email or ticket to Everlight IT",
+                  "kind": "page"
+                },
+                "body_html": "<p>Ask: \"Which remote access route to my work laptop do you sanction when I am away from it?\"</p>",
+                "expect_html": "<p>Their reply in your inbox.</p>",
+                "fields": [
+                  {
+                    "key": "everlight_route",
+                    "label": "Their answer (route name, or none)",
+                    "placeholder": "e.g. their VPN only"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Set up only that route",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Work laptop",
+                  "kind": "page"
+                },
+                "body_html": "<p>Follow their instructions only. If the answer is none, tick this step without doing anything.</p>",
+                "expect_html": "<p>The sanctioned route works, or nothing was set up.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.23",
+      "title": "Fuller attack testing: outside scan, cross-network tests, Claude Code with standard scanning tools from the PC against every device on Phil's own network",
+      "kind": "test",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude Code runs the full test on Phil's own network and devices only: an outside scan of the public address, then from a laptop on each of Work, Smart devices and Guests a scan for anything on Trusted, then a scan of every device for open services and known weak spots, with standard tools. It writes a report with fixes, compares with the net.01 audit, and checks the tripwires fired.\n\n## Why\nSection 2 answer 27: fuller attack testing, his own network and devices only.\n\n## Done looks like\nA dated report on the ticket: nothing on Trusted reachable from the other networks, the outside shows only what was meant, every finding with keep or fix.\n\n## Unlocks\nnet.26 (done check), net.24 (re-run monthly in part).\n\n## Depends on\nnet.07 (networks) and net.09 (devices moved).",
+      "after": [
+        "net.07",
+        "net.09"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-23-attack-test",
+        "kind": "test",
+        "title": "Attack test of the home network",
+        "version": 1,
+        "intro": {
+          "answer": "Prove the four networks hold, from outside and from each network.",
+          "unlocks": [
+            "net.26",
+            "net.24"
+          ],
+          "to_hand": [
+            "The laptop",
+            "The phone hotspot"
+          ],
+          "time": [
+            "About 40 minutes of Claude Code, 15 of yours"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Run and read",
+            "minutes": 15,
+            "needs": [
+              "The laptop",
+              "The phone hotspot"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Start the run",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Paste the prompt; move the laptop between networks when Claude Code asks.</p>",
+                "expect_html": "<p>Claude Code reports each stage as it finishes.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Run the fuller attack test on Phil's own network only: outside scan of the public address in net.01's answers from the hotspot; from the laptop on Work, Smart devices and Guests in turn, scan the Trusted subnet; scan every device in the inventory for open services. Compare with net.01. Write a dated report with keep or fix per finding. Change nothing.",
+                    "kind": "prompt"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Own network and devices only."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Move the laptop when asked",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The laptop's Wi-Fi",
+                  "kind": "page"
+                },
+                "body_html": "<p>Join Work, then Smart devices, then Guests as Claude Code asks.</p>",
+                "expect_html": "<p>Each stage reported done.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Mark each finding",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Put keep or fix next to each finding.</p>",
+                "expect_html": "<p>No finding without a mark.</p>",
+                "fields": [
+                  {
+                    "key": "findings",
+                    "label": "Number of findings to fix",
+                    "placeholder": "e.g. 2"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.24",
+      "title": "Monthly 15-minute network review (recurring, first 2026-12-28): scan, firmware, unknown devices, the blocking test run",
+      "kind": "audit",
+      "points": 1,
+      "due": "2026-12-28",
+      "who": "P",
+      "description": "## What\nOnce a month, starting 2026-12-28: firmware on the RT-AX86U (and 4th Utility router while it exists), new or unknown devices since last month, the outside scan (Claude Code runs it), the tripwires, the cull list, and the blocking test run from block.21 once that exists. Fifteen minutes; anything found becomes its own ticket.\n\n## Why\nSection 2 answer 30: a monthly 15-minute recurring review ticket. Section 9 answer 29: the blocking test is re-run in the monthly review.\n\n## Done looks like\nThis month's review ticked with the firmware version and the number of unknown devices recorded.\n\n## Unlocks\nKeeps net.26's result true month after month.\n\n## Depends on\nnet.07 (the networks to review).",
+      "after": [],
+      "links": [
+        "block.21"
+      ],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "maintenance",
+        "schedule"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-24-monthly-review",
+        "kind": "audit",
+        "title": "Monthly network review",
+        "version": 1,
+        "intro": {
+          "answer": "Fifteen minutes a month keeps the network as strong as the day it was built.",
+          "unlocks": [],
+          "to_hand": [
+            "The PC",
+            "Claude Code"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Asuswrt-Merlin downloads and changelog",
+              "url": "https://www.asuswrt-merlin.net/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "This month",
+            "minutes": 14,
+            "needs": [
+              "The PC"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Firmware",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "ASUS admin page, Administration, Firmware Upgrade",
+                  "kind": "browser",
+                  "url": "http://router.asus.com"
+                },
+                "body_html": "<p>Check for a new Merlin release and note the version. Update only after Claude Code has taken a backup.</p>",
+                "expect_html": "<p>Version noted; updated or up to date.</p>",
+                "fields": [
+                  {
+                    "key": "fw",
+                    "label": "Firmware version now",
+                    "placeholder": "e.g. 3004.388.13"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Unknown devices and tripwires",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium device inventory",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read the month's join alerts and tripwire messages; mark each device as mine or block.</p>",
+                "expect_html": "<p>No device left unmarked.</p>",
+                "fields": [
+                  {
+                    "key": "unknown",
+                    "label": "Unknown devices this month",
+                    "placeholder": "0"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Outside scan and blocking test",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code for the monthly scan and, once block.21 exists, the blocking test run.</p>",
+                "expect_html": "<p>A short report with no new open ports.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Run this month's network review checks: outside scan of the house's public address from the hotspot, tripwire test, cull list dates, and the blocking test from block.21 if it exists. Compare with last month and report changes only.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Cull list",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium device inventory",
+                  "kind": "page"
+                },
+                "body_html": "<p>Check any device whose replace-by date is this month.</p>",
+                "expect_html": "<p>Each due device has a decision.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.25",
+      "title": "Grandad's PC: confirm the clean reinstall finished, passwords changed from another device, the router checked",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nGrandad's PC was found compromised in October (miners, a backdoor, a proxy, dating from July). This guide confirms three things, in person or on a call: the clean reinstall finished (a fresh install date in Windows, no unknown programs), every important password was changed from another device, and his router was checked (admin password changed, remote admin off, firmware current, DNS not tampered with).\n\n## Why\nH10 Network fold: the clean reinstall, password changes and router check were started but never confirmed finished.\n\n## Done looks like\nAll three confirmed with the date, or what is left written down.\n\n## Unlocks\nNothing in E.net; closes an account-hygiene loose end.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "security",
+        "net",
+        "personal",
+        "computer"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-25-grandad-pc",
+        "kind": "guide",
+        "title": "Grandad's PC: confirm the clean-up",
+        "version": 1,
+        "intro": {
+          "answer": "Three checks and his PC and router are confirmed clean.",
+          "unlocks": [],
+          "to_hand": [
+            "Time with grandad, in person or on a call",
+            "His router's admin password"
+          ],
+          "time": [
+            "Two sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The PC",
+            "minutes": 13,
+            "needs": [
+              "Grandad's PC"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Install date",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "His PC, Settings, System, About",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read \"Installed on\" under Windows specifications.</p>",
+                "expect_html": "<p>A date in October or later.</p>",
+                "fields": [
+                  {
+                    "key": "installed",
+                    "label": "Installed on",
+                    "placeholder": "date"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Programs list",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "His PC, Settings, Apps, Installed apps",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read the list together; anything neither of you knows gets written down.</p>",
+                "expect_html": "<p>No unknown programs, or a written list.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Passwords changed from another device",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Ask grandad",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Ask whether email, bank and any shopping passwords were changed from a phone or another computer, not from the infected PC.</p>",
+                "expect_html": "<p>Yes for each, or a list of what is left.</p>",
+                "fields": [
+                  {
+                    "key": "pw_left",
+                    "label": "Passwords still to change (names only)",
+                    "placeholder": "none"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "His router",
+            "minutes": 11,
+            "needs": [
+              "His router's label or password"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Admin password and remote admin",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "His router's admin page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Sign in; confirm the admin password is not the default; turn remote management off.</p>",
+                "expect_html": "<p>Non-default password, remote admin off.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "DNS and firmware",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "His router's admin page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Check the DNS servers are \"automatic\" or the ISP's, not unknown addresses; check for a firmware update.</p>",
+                "expect_html": "<p>DNS automatic, firmware current.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Unknown DNS servers are a common trick of proxy malware: if you see them, set back to automatic and note the addresses here."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.26",
+      "title": "Done check: the four networks hold, the work laptop sees nothing else, the VPN is the only way in",
+      "kind": "test",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nThe epic's final check: from each network the Trusted devices cannot be reached; the work laptop sees only the internet; an outside scan shows nothing open except the VPN (or nothing at all on the Tailscale route); a remote connection works over the VPN from mobile data.\n\n## Why\nSection 2 answers 3, 7 and 13: the four worries, the work machine, and remote access through a VPN only.\n\n## Done looks like\nAll four checks ticked in one sitting with today's date.\n\n## Unlocks\nCloses E.net; net.24 keeps it true.\n\n## Depends on\nnet.23 (the full attack test done and fixes made).",
+      "after": [
+        "net.23"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "net",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-net-26-done-check",
+        "kind": "test",
+        "title": "Home network done check",
+        "version": 1,
+        "intro": {
+          "answer": "Four checks, one sitting, and the network is done.",
+          "unlocks": [],
+          "to_hand": [
+            "The laptop",
+            "Your phone"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Four checks",
+            "minutes": 13,
+            "needs": [
+              "Laptop and phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Networks hold",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Laptop on Guests, then Smart devices",
+                  "kind": "page"
+                },
+                "body_html": "<p>From each, try the PC's share and the router page.</p>",
+                "expect_html": "<p>Neither opens from either network.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Work laptop sees nothing else",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Work laptop",
+                  "kind": "page"
+                },
+                "body_html": "<p>Try the PC's share and the router page.</p>",
+                "expect_html": "<p>Neither opens.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Outside shows nothing extra",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask for one outside scan.</p>",
+                "expect_html": "<p>Only the VPN port, or nothing.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Run one outside scan of the house's public address from the phone hotspot and report open ports only.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "VPN works from outside",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Your phone on mobile data",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open a camera or the PC over the VPN.</p>",
+                "expect_html": "<p>It opens.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "net.27",
+      "title": "Child's network: later",
+      "kind": "task",
+      "points": 1,
+      "who": "C",
+      "description": "## What\nA placeholder for the child's own network (2.20): a fifth network with its own filter profile and hours, designed when the first device appears.\n\n## Why\nThe brief decided it is a later ticket (red team finding 56).\n\n## Done looks like\nA design note on this ticket when the time comes.\n\n## Unlocks\nNothing yet.\n\n## Depends on\nnet.07.",
+      "after": [
+        "net.07"
+      ],
+      "tags": [
+        "net"
+      ],
+      "links": [],
+      "steps_definition": null,
+      "due": null
+    }
+  ],
+  "existing": []
+}

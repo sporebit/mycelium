@@ -1,0 +1,1997 @@
+{
+  "epic": {
+    "sid": "E.keys",
+    "project": "SEC",
+    "title": "Keys, secrets and domains: rotate everything (later), cull and harden",
+    "description": "Every exposed or old key is rotated or confirmed dead through one parent Field guide with a phase per family (Mycelium's MYC-196 and MYC-6, the old VPS set, DropShipAuto, the old PhirstMaxxing app, a Stripe test key), names only, run later by Phil and not at the front of the queue; nothing was rotated in the run of 2026-11-28. The census files on the PC are checked and reported first, acted on only on Phil's word. The old VPS is checked before anything on it changes. Domains: three kept, the rest go through a keep-or-drop sitting under the standing rule that no domain lapses while any address on it is a login or recovery address; account-level hardening first, per-domain DNS work after the sitting.\n\n## Order\nkeys.06 (census files, first in the unblock queue) then keys.07. keys.08 (the VPS) then keys.09 (port 3000) and keys.14 (a better home). keys.01 is the parent guide; its phases wait on MYC-209, keys.08 and phm.01 and run keys.02, keys.03, keys.04 and keys.05. Domains: keys.10, keys.11, then keys.13 (with mail.11); keys.12 any time; keys.15 after fin.14.\n\n## Done means\nEvery key in keys.01 rotated or confirmed dead; the census exposure closed; port 3000 closed; every kept domain hardened and no domain lost while an address on it matters.\n\n## Flags\n- H2.2 [claude]: hardening every domain before the cull; account-level steps first (keys.12), per-domain DNS after the keep-or-drop sitting (keys.13). Not reopened.\n- H9 flag 9: H2.5 and H2.7 were assumed; keys.08 and keys.09 are written check first.\n\n## Dossier\nThe dossier is attached in Docs.",
+    "dossier": "dossiers/keys.md",
+    "links": [
+      "MYC-6",
+      "MYC-196",
+      "MYC-209",
+      "mail.11",
+      "fin.14",
+      "phm.01",
+      "phm.02",
+      "keys.06"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "keys.01",
+      "title": "Rotate everything: the Field guide (parent), names only; the Mycelium rotations (MYC-6, MYC-196), the old VPS set, DropShipAuto's tokens, the old PhirstMaxx keys, the Stripe test key",
+      "kind": "guide",
+      "points": 5,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nThe parent Field guide for every rotation, names only, never values. Each phase points at its child: Mycelium's two exposed secrets (MYC-196), the rest of Mycelium (MYC-6, after MYC-209 lists the callers), the old VPS set (keys.02), DropShipAuto's tokens (keys.03), the old PhirstMaxxing app's keys (keys.04), the Stripe test key (keys.05). Each phase names the keys by role and where they live, runs the child, then checks the services that use them still work. **Nothing was rotated in the run of 2026-11-28**; Phil runs this later, not at the front of the queue.\n\n## Why\nH2 item 11: one \"rotate everything\" ticket as a Field guide, names only, alongside the Mycelium rotations already queued. H10: the Stripe test key added to it.\n\n## Done looks like\nPhases 2 to 7 each dated; every child closed; any key not rotated listed by name with the reason.\n\n## Unlocks\nA clean slate for E.sub and E.mail work that touches the same systems.\n\n## Depends on\nNothing to start; phases wait on MYC-209 (Mycelium master secret callers), keys.08 (the VPS) and phm.01 (the old PhirstMaxx database).",
+      "after": [],
+      "links": [
+        "MYC-6",
+        "MYC-196",
+        "MYC-209"
+      ],
+      "tags": [
+        "security",
+        "secrets",
+        "keys",
+        "guide"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-keys-01-rotate-everything",
+        "kind": "guide",
+        "title": "Rotate everything: the parent guide",
+        "version": 1,
+        "intro": {
+          "answer": "Every exposed or old key replaced or confirmed dead, one family per sitting, in an order that breaks nothing.",
+          "unlocks": [
+            "keys.02",
+            "keys.03",
+            "keys.04",
+            "keys.05",
+            "MYC-6",
+            "MYC-196"
+          ],
+          "to_hand": [
+            "Proton Pass",
+            "The PC with Claude Code",
+            "Each child ticket"
+          ],
+          "time": [
+            "Eight short sittings in this guide, plus each child's own sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Stripe Docs: API keys (rotate, expire, request logs)",
+              "url": "https://docs.stripe.com/keys",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "1.2",
+            "why": "Three phases wait on other tickets; skipping a gate breaks a live service."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Before you start",
+            "minutes": 9,
+            "needs": [
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Read the order",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>The order is: Mycelium's two exposed secrets (MYC-196, after the new iPhone Shortcuts), then the rest of Mycelium (MYC-6, after MYC-209 lists every caller of the master secret), then the old VPS set (keys.02, after keys.08 says what the VPS still does), DropShipAuto (keys.03), the old PhirstMaxxing app (keys.04, after phm.01), the Stripe test key (keys.05). Nothing in this guide was done on 2026-11-28; it waits for you.</p>",
+                "expect_html": "<p>You know which phase comes next.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Check the gates",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Tickets MYC-209, keys.08, phm.01",
+                  "kind": "page"
+                },
+                "body_html": "<p>Look at the three gate tickets. A phase whose gate is still open waits; skip to the next phase whose gate is closed.</p>",
+                "expect_html": "<p>Each gate marked open or closed in the box.</p>",
+                "fields": [
+                  {
+                    "key": "gates",
+                    "label": "Gates closed (MYC-209, keys.08, phm.01)",
+                    "placeholder": "e.g. MYC-209 yes, keys.08 no, phm.01 no"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Ask Claude Code for the callers list",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code which places read each key by name, so nothing is left out.</p>",
+                "expect_html": "<p>A list on the ticket: key name, where it lives, what uses it.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "For the keys named in keys.01 to keys.05, MYC-6 and MYC-196, list by NAME only where each lives (Vercel project and variable, .env.local, a host's environment, a dashboard) and what reads it. Never open .env files or print any value. Write the list on keys.01.",
+                    "kind": "prompt"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Mycelium: the two exposed secrets",
+            "minutes": 8,
+            "needs": [
+              "Ticket MYC-196 open",
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "What lives where",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>The master secret (<code>API_SECRET</code>) and the Google service-account key (<code>GOOGLE_SERVICE_ACCOUNT_KEY</code>), both in Vercel, Mycelium, Settings, Environment Variables, and in <code>.env.local</code> on the PC. Do this after the new iPhone Shortcuts work.</p>",
+                "expect_html": "<p>You know which keys this phase covers and where each one lives.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never paste a key, password or token into this ticket. New values go only where the step says (Vercel, the host's environment, Proton Pass)."
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Run MYC-196",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "MYC-196 (guide docs/checklists/rotate-secrets.json)",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open MYC-196 and work through its own phases (each is its own sitting). Come back here when it is closed.</p>",
+                "expect_html": "<p>MYC-196 shows Done.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Confirm nothing broke",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "As listed",
+                  "kind": "page"
+                },
+                "body_html": "<p>Capture from the new Shortcut; the finance snapshot loads; the tickets command line works.</p>",
+                "expect_html": "<p>Everything listed still works.</p>",
+                "fields": [
+                  {
+                    "key": "done_2",
+                    "label": "Date this phase was finished",
+                    "placeholder": "YYYY-MM-DD"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Mycelium: everything else",
+            "minutes": 8,
+            "needs": [
+              "Ticket MYC-6 open",
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "What lives where",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>The rest of Mycelium's secrets by name, in Vercel and <code>.env.local</code>: the cron secret, the Supabase service-role key and JWT secret, the Anthropic and OpenAI keys, the Telegram bot tokens and webhook secret, the Google OAuth client secret, the Maps and OpenRouteService keys, the Resend key, the GitHub token, the ElevenLabs key, the web-push private key, and the smaller API keys. MYC-209 lists every caller of the master secret.</p>",
+                "expect_html": "<p>You know which keys this phase covers and where each one lives.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never paste a key, password or token into this ticket. New values go only where the step says (Vercel, the host's environment, Proton Pass)."
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "Run MYC-6",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "MYC-6",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open MYC-6 and work through its own phases (each is its own sitting). Come back here when it is closed.</p>",
+                "expect_html": "<p>MYC-6 shows Done.</p>"
+              },
+              {
+                "id": "3.3",
+                "title": "Confirm nothing broke",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "As listed",
+                  "kind": "page"
+                },
+                "body_html": "<p>Sign in works; a Telegram capture arrives; a cron run shows in the logs; a push notification arrives.</p>",
+                "expect_html": "<p>Everything listed still works.</p>",
+                "fields": [
+                  {
+                    "key": "done_3",
+                    "label": "Date this phase was finished",
+                    "placeholder": "YYYY-MM-DD"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "The old VPS set",
+            "minutes": 8,
+            "needs": [
+              "Ticket keys.02 open",
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "What lives where",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>On the old IONOS VPS (May 2026): the calendar agent's Anthropic API key, four IONOS mailbox passwords, the API bearer token, the Google OAuth client secret. They live in the VPS app's environment, the Anthropic Console, the Google Cloud console and IONOS mail.</p>",
+                "expect_html": "<p>You know which keys this phase covers and where each one lives.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never paste a key, password or token into this ticket. New values go only where the step says (Vercel, the host's environment, Proton Pass)."
+                  }
+                ]
+              },
+              {
+                "id": "4.2",
+                "title": "Run keys.02",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "keys.02",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open keys.02 and work through its own phases (each is its own sitting). Come back here when it is closed.</p>",
+                "expect_html": "<p>keys.02 shows Done.</p>"
+              },
+              {
+                "id": "4.3",
+                "title": "Confirm nothing broke",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "As listed",
+                  "kind": "page"
+                },
+                "body_html": "<p>Mail still arrives on all four mailboxes on every client; DropShipAuto on the same VPS still runs.</p>",
+                "expect_html": "<p>Everything listed still works.</p>",
+                "fields": [
+                  {
+                    "key": "done_4",
+                    "label": "Date this phase was finished",
+                    "placeholder": "YYYY-MM-DD"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "5",
+            "title": "DropShipAuto's tokens",
+            "minutes": 8,
+            "needs": [
+              "Ticket keys.03 open",
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "5.1",
+                "title": "What lives where",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>DropShipAuto's ngrok authtoken (ngrok dashboard, and the tunnel's configuration where it runs) and its GitHub token (GitHub, Settings, Developer settings, and where DropShipAuto reads it).</p>",
+                "expect_html": "<p>You know which keys this phase covers and where each one lives.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never paste a key, password or token into this ticket. New values go only where the step says (Vercel, the host's environment, Proton Pass)."
+                  }
+                ]
+              },
+              {
+                "id": "5.2",
+                "title": "Run keys.03",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "keys.03",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open keys.03 and work through its own phases (each is its own sitting). Come back here when it is closed.</p>",
+                "expect_html": "<p>keys.03 shows Done.</p>"
+              },
+              {
+                "id": "5.3",
+                "title": "Confirm nothing broke",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "As listed",
+                  "kind": "page"
+                },
+                "body_html": "<p>The DropShipAuto tunnel comes up; its repo pulls work.</p>",
+                "expect_html": "<p>Everything listed still works.</p>",
+                "fields": [
+                  {
+                    "key": "done_5",
+                    "label": "Date this phase was finished",
+                    "placeholder": "YYYY-MM-DD"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "6",
+            "title": "The old PhirstMaxxing app",
+            "minutes": 8,
+            "needs": [
+              "Ticket keys.04 open",
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "6.1",
+                "title": "What lives where",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>The old PhirstMaxxing app's web-push keys and cron secret (its old host's environment variables) and its Supabase service-role key (the old Supabase project, if it still exists).</p>",
+                "expect_html": "<p>You know which keys this phase covers and where each one lives.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never paste a key, password or token into this ticket. New values go only where the step says (Vercel, the host's environment, Proton Pass)."
+                  }
+                ]
+              },
+              {
+                "id": "6.2",
+                "title": "Run keys.04",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "keys.04",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open keys.04 and work through its own phases (each is its own sitting). Come back here when it is closed.</p>",
+                "expect_html": "<p>keys.04 shows Done.</p>"
+              },
+              {
+                "id": "6.3",
+                "title": "Confirm nothing broke",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "As listed",
+                  "kind": "page"
+                },
+                "body_html": "<p>The new PhirstMaxx still sends pushes and runs its crons (it has its own keys).</p>",
+                "expect_html": "<p>Everything listed still works.</p>",
+                "fields": [
+                  {
+                    "key": "done_6",
+                    "label": "Date this phase was finished",
+                    "placeholder": "YYYY-MM-DD"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "7",
+            "title": "The Stripe test key",
+            "minutes": 8,
+            "needs": [
+              "Ticket keys.05 open",
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "7.1",
+                "title": "What lives where",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>A Stripe test-mode secret key seen in an August screenshot; the project is unknown until keys.05 finds it (the POLY project's billing routes are the first place to look). It lives in that project's environment and in the Stripe dashboard's API keys page.</p>",
+                "expect_html": "<p>You know which keys this phase covers and where each one lives.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never paste a key, password or token into this ticket. New values go only where the step says (Vercel, the host's environment, Proton Pass)."
+                  }
+                ]
+              },
+              {
+                "id": "7.2",
+                "title": "Run keys.05",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "keys.05",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open keys.05 and work through its own phases (each is its own sitting). Come back here when it is closed.</p>",
+                "expect_html": "<p>keys.05 shows Done.</p>"
+              },
+              {
+                "id": "7.3",
+                "title": "Confirm nothing broke",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "As listed",
+                  "kind": "page"
+                },
+                "body_html": "<p>That project's test checkout still works, or nothing uses the key.</p>",
+                "expect_html": "<p>Everything listed still works.</p>",
+                "fields": [
+                  {
+                    "key": "done_7",
+                    "label": "Date this phase was finished",
+                    "placeholder": "YYYY-MM-DD"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "8",
+            "title": "Close",
+            "minutes": 6,
+            "needs": [
+              "This page"
+            ],
+            "steps": [
+              {
+                "id": "8.1",
+                "title": "Every phase dated",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>Check phases 2 to 7 each have a finish date.</p>",
+                "expect_html": "<p>Six dates.</p>"
+              },
+              {
+                "id": "8.2",
+                "title": "Note anything left",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write any key that could not be rotated and why, by name.</p>",
+                "expect_html": "<p>A line per leftover, or none.</p>",
+                "fields": [
+                  {
+                    "key": "left",
+                    "label": "Keys left (names only)",
+                    "placeholder": "none"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested",
+          "4.1": "untested",
+          "4.2": "untested",
+          "4.3": "untested",
+          "5.1": "untested",
+          "5.2": "untested",
+          "5.3": "untested",
+          "6.1": "untested",
+          "6.2": "untested",
+          "6.3": "untested",
+          "7.1": "untested",
+          "7.2": "untested",
+          "7.3": "untested",
+          "8.1": "untested",
+          "8.2": "untested"
+        },
+        "finish_html": "<p>Every key that was exposed or belonged to an old system is replaced or confirmed dead.</p>"
+      }
+    },
+    {
+      "sid": "keys.02",
+      "title": "Rotate: the old VPS set (the calendar agent's Anthropic key, four IONOS mailbox passwords, the API bearer token, the Google OAuth client secret)",
+      "kind": "setup",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil replaces, or revokes if the VPS app is switched off after keys.08, the four kinds of secret exposed in May on the old IONOS VPS: the Anthropic API key used by the calendar agent (Anthropic Console, API keys), the four IONOS mailbox passwords (IONOS, Email, each mailbox; every mail client using that mailbox must be updated), the API bearer token (the VPS app's environment), and the Google OAuth client secret (Google Cloud console, APIs and Services, Credentials). Names only; new values go to Proton Pass and the place each lives.\n\n## Why\nH2 item 6: four were exposed in May and parked; a ticket, names only.\n\n## Done looks like\nEach of the four kinds rotated or revoked with the date; mail works on every client for each mailbox.\n\n## Unlocks\nkeys.01 phase 4.\n\n## Depends on\nkeys.01 (the parent order) and keys.08 (whether the VPS app is kept).",
+      "after": [
+        "keys.01",
+        "keys.08"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "secrets",
+        "keys"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-keys-02-old-vps-set",
+        "kind": "setup",
+        "title": "Rotate the old VPS secrets",
+        "version": 1,
+        "intro": {
+          "answer": "Four kinds of secret from May, replaced or revoked, without a mail outage.",
+          "unlocks": [
+            "keys.01"
+          ],
+          "to_hand": [
+            "Proton Pass",
+            "keys.08's answer (VPS app kept or off)",
+            "The list of mail clients per mailbox"
+          ],
+          "time": [
+            "Three sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Anthropic key and bearer token",
+            "minutes": 9,
+            "needs": [
+              "keys.08's answer"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Which branch",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "keys.08",
+                  "kind": "decision"
+                },
+                "body_html": "<p>If keys.08 says the VPS app is switched off, you only revoke. If it is kept, you replace.</p>",
+                "expect_html": "<p>Branch chosen.</p>",
+                "fields": [
+                  {
+                    "key": "branch",
+                    "label": "VPS app kept or off",
+                    "placeholder": "kept / off"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Anthropic key",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Anthropic Console, API keys",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Find the key named for the calendar agent. Replace branch: create a new key, give it to Claude Code to place in the VPS environment, then disable the old one. Off branch: disable and delete it.</p>",
+                "expect_html": "<p>The old key shows disabled or deleted.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never paste a key, password or token into this ticket. New values go only where the step says (Vercel, the host's environment, Proton Pass)."
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "1.3",
+                "title": "Bearer token",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code on the PC (SSH to the VPS)",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Replace branch: ask Claude Code to generate and set a new bearer token in the VPS app's environment and update its callers. Off branch: tick; it dies with the app.</p>",
+                "expect_html": "<p>Old token no longer accepted, or app off.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "On the old VPS, replace the API bearer token in the app's environment with a new random value, restart the app, update any caller, and confirm the old token is refused. Never print the value.",
+                    "kind": "prompt"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Google OAuth client secret",
+            "minutes": 9,
+            "needs": [
+              "Google Cloud console sign-in"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Add a new secret or delete",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Google Cloud console, APIs and Services, Credentials, the old VPS OAuth client",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Replace branch: add a new client secret, have Claude Code put it in the VPS environment, then disable and delete the old one. Off branch: delete the old secret (or the whole OAuth client if nothing else uses it).</p>",
+                "expect_html": "<p>Only the new secret, or none, remains.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never paste a key, password or token into this ticket. New values go only where the step says (Vercel, the host's environment, Proton Pass)."
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "2.2",
+                "title": "Check Google Calendar access",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Google Account, Security, Third-party connections",
+                  "kind": "browser"
+                },
+                "body_html": "<p>If the app is off, remove its access to your Google account here.</p>",
+                "expect_html": "<p>The old app no longer listed, or still working if kept.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "The four IONOS mailbox passwords",
+            "minutes": 12,
+            "needs": [
+              "The list of clients per mailbox",
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "One mailbox at a time",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "IONOS, Email, the mailbox, Password",
+                  "kind": "browser"
+                },
+                "body_html": "<p>For each of the four mailboxes: make a new password in Proton Pass, set it in IONOS, then update every client that uses it (phones, Thunderbird, anything else on the list) before the next mailbox.</p>",
+                "expect_html": "<p>Each mailbox sends and receives on every client.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Each client using the mailbox stops until updated. Do one mailbox fully before the next."
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "A client keeps asking for the password",
+                    "fix": "Remove and re-add the account on that client with the new password from Proton Pass."
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "Send a test",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Each mailbox",
+                  "kind": "page"
+                },
+                "body_html": "<p>Send yourself one email to each mailbox and reply from it.</p>",
+                "expect_html": "<p>Four round trips arrive.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "keys.03",
+      "title": "Rotate: DropShipAuto's ngrok and GitHub tokens",
+      "kind": "setup",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil replaces DropShipAuto's ngrok authtoken (ngrok dashboard, Your Authtoken, reset; then the tunnel's configuration where it runs) and its GitHub token (GitHub, Settings, Developer settings, Personal access tokens: revoke the named token; create a fine-grained token scoped to the DropShipAuto repository only; store it where DropShipAuto reads it). DropShipAuto stays up (H6).\n\n## Why\nH2 item 11: DropShipAuto's ngrok and GitHub tokens seen in chats go into the rotate-everything guide.\n\n## Done looks like\nOld tokens revoked; the tunnel and the repo access work with the new ones.\n\n## Unlocks\nkeys.01 phase 5.\n\n## Depends on\nkeys.01 (the parent).\n\n## Red team\n- Finding 46: The running services receive the new tokens in the same sitting; DSA's health is checked after.\n",
+      "after": [
+        "keys.01",
+        "keys.08"
+      ],
+      "links": [
+        "DSA-16"
+      ],
+      "tags": [
+        "security",
+        "secrets",
+        "keys"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-keys-03-dsa-tokens",
+        "kind": "setup",
+        "title": "Rotate DropShipAuto's ngrok and GitHub tokens",
+        "version": 1,
+        "intro": {
+          "answer": "Two tokens, replaced, and DropShipAuto keeps running.",
+          "unlocks": [
+            "keys.01"
+          ],
+          "to_hand": [
+            "ngrok and GitHub sign-ins",
+            "Proton Pass"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Both tokens",
+            "minutes": 12,
+            "needs": [
+              "ngrok and GitHub sign-ins"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "ngrok authtoken",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "ngrok dashboard, Your Authtoken",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Reset the authtoken. Ask Claude Code to put the new one in the tunnel's configuration where DropShipAuto runs and restart the tunnel.</p>",
+                "expect_html": "<p>The tunnel comes up with the new token.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never paste a key, password or token into this ticket. New values go only where the step says (Vercel, the host's environment, Proton Pass)."
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "1.2",
+                "title": "GitHub token",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "GitHub, Settings, Developer settings, Personal access tokens",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Create a fine-grained token for the DropShipAuto repository only, with the least permissions it needs. Have Claude Code place it where DropShipAuto reads it. Then revoke the old token.</p>",
+                "expect_html": "<p>Only the new token is listed; the old one revoked.</p>",
+                "irreversible": true
+              },
+              {
+                "id": "1.3",
+                "title": "Check",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code to confirm the tunnel and a repo pull both work.</p>",
+                "expect_html": "<p>Both work.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Confirm DropShipAuto's tunnel is up and a git pull of its repository works with the new token. Report only yes or no for each; print no value.",
+                    "kind": "prompt"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "keys.04",
+      "title": "Rotate: the old PhirstMaxxing app's push keys, cron secret and service-role key, ahead of phm.02 shutting the old site",
+      "kind": "setup",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil confirms each of the old PhirstMaxxing app's keys is dead, or rotates it if it is still live: the Supabase service-role key (dead if phm.01 confirms the old Supabase project is deleted: check the Supabase dashboard shows no such project; otherwise rotate under the project's Settings, API keys), the cron secret and the web-push keys (the old host's environment variables; they die when phm.02 shuts the old site). Shutting the site itself is phm.02.\n\n## Why\nH2 item 11 and H5: the old PhirstMaxxing app's push keys, cron secret and service-role key go into the rotate-everything guide.\n\n## Done looks like\nEach of the three recorded as dead (with why) or rotated (with the date).\n\n## Unlocks\nphm.02 (the old site can be shut knowing its keys are handled), keys.01 phase 6.\n\n## Depends on\nkeys.01 (the parent) and phm.01 (whether the old database still exists).",
+      "after": [
+        "keys.01",
+        "phm.01"
+      ],
+      "links": [
+        "phm.02"
+      ],
+      "tags": [
+        "security",
+        "secrets",
+        "keys"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-keys-04-old-phm-keys",
+        "kind": "setup",
+        "title": "Old PhirstMaxxing keys: dead or rotated",
+        "version": 1,
+        "intro": {
+          "answer": "Three old keys, each confirmed dead or replaced.",
+          "unlocks": [
+            "phm.02",
+            "keys.01"
+          ],
+          "to_hand": [
+            "Supabase and old host sign-ins"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Three keys",
+            "minutes": 12,
+            "needs": [
+              "Supabase sign-in",
+              "The old host's sign-in"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Service-role key",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Supabase dashboard, Projects",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>Look for the old PhirstMaxxing project. Gone: the key is dead, write that. Still there: Settings, API keys, rotate the service-role (secret) key.</p>",
+                "expect_html": "<p>Dead or rotated, recorded.</p>",
+                "fields": [
+                  {
+                    "key": "srk",
+                    "label": "Service-role key: dead or rotated",
+                    "placeholder": "dead / rotated"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never paste a key, password or token into this ticket. New values go only where the step says (Vercel, the host's environment, Proton Pass)."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Cron secret and push keys",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The old site's host, its project's environment variables",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>If the old site is still deployed, note that phm.02 will shut it; if anything must keep running until then, replace the cron secret there. The push keys need no rotation once the site is gone.</p>",
+                "expect_html": "<p>Plan recorded for both.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Check the new PhirstMaxx",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The new PhirstMaxx app",
+                  "kind": "page"
+                },
+                "body_html": "<p>Confirm the new app's pushes and crons work (it has its own keys).</p>",
+                "expect_html": "<p>A push arrives.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "keys.05",
+      "title": "Rotate: the Stripe test key seen in an August screenshot (project unknown; find it first)",
+      "kind": "setup",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nFirst find which project the test key belongs to: Claude Code searches the repos for Stripe usage by variable name only (the POLY project's billing routes, POLY-36, are the first place to look) and Phil checks which Stripe account the screenshot came from. Then, in the Stripe dashboard's API keys page for that account's sandbox or test mode, check the key's request logs, and rotate it (expiry Now, or a short window if a running test needs it) or simply expire it if nothing uses it. The new value goes only where that project reads it.\n\n## Why\nH10 Keys: a Stripe test key was visible in a screenshot in August (project unknown): added to the rotate-everything ticket, names only.\n\n## Done looks like\nThe project named; the old test key rotated or expired; that project's test checkout works, or nothing uses Stripe.\n\n## Unlocks\nkeys.01 phase 7.\n\n## Depends on\nkeys.01 (the parent).",
+      "after": [
+        "keys.01"
+      ],
+      "links": [
+        "POLY-36"
+      ],
+      "tags": [
+        "security",
+        "secrets",
+        "keys",
+        "payment"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-keys-05-stripe-test-key",
+        "kind": "setup",
+        "title": "Find and rotate the Stripe test key",
+        "version": 1,
+        "intro": {
+          "answer": "Find the project, then rotate or expire one test key.",
+          "unlocks": [
+            "keys.01"
+          ],
+          "to_hand": [
+            "Stripe sign-in"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Stripe Docs: API keys (rotate, expire, request logs)",
+              "url": "https://docs.stripe.com/keys",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Find and rotate",
+            "minutes": 13,
+            "needs": [
+              "Stripe sign-in"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Find the project",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code where Stripe is used.</p>",
+                "expect_html": "<p>A list of projects that read a Stripe key, by name.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Search Phil's project repos for Stripe usage by variable NAME and code only (for example a Stripe secret key environment variable). Never open .env files or print values. List each project, the variable name, and where it is set (Vercel, a host). Start with the POLY project's billing routes.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Check the request logs",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Stripe dashboard, API keys (sandbox or test mode)",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>On the test secret key, open the menu, <strong>View request logs</strong>.</p>",
+                "expect_html": "<p>You can see whether anything used it recently.</p>",
+                "fields": [
+                  {
+                    "key": "project",
+                    "label": "Project the key belongs to",
+                    "placeholder": "e.g. POLY, or none"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Rotate or expire",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Stripe dashboard, API keys, the key's menu",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>Used: <strong>Rotate key</strong>, expiry Now (or a short window), then put the new value only where that project reads it. Unused: <strong>Expire key</strong>.</p>",
+                "expect_html": "<p>The old key shows expired or rotated.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never paste a key, password or token into this ticket. New values go only where the step says (Vercel, the host's environment, Proton Pass)."
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "1.4",
+                "title": "Check",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "That project's test checkout",
+                  "kind": "page"
+                },
+                "body_html": "<p>Run one test payment in that project, or tick if nothing uses Stripe.</p>",
+                "expect_html": "<p>The test payment succeeds.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "keys.06",
+      "title": "Census files on the PC: Claude Code checks for the live Gmail app password, the Hotmail export in the Thunderbird folder, the unencrypted Proton Pass CSVs, and reports; revoke and delete only on Phil's say",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude Code checks whether three kinds of file still exist on the PC and reports on this ticket: any file that may hold the Gmail app password from the October mail census (in or near `Desktop\\mail-census`), the Hotmail mailbox export in a Thunderbird profile folder, and unencrypted Proton Pass CSV exports (Downloads, Desktop, Documents and the census folder). The report lists path, size and date only. **Check and report only: no file is opened, printed, copied, moved or deleted, and nothing is revoked.** If a file's name suggests it holds a secret, the report says so by its name. Phil decides in keys.07.\n\n## Why\nH2 item 10: Phil is not sure whether they were cleaned up; a ticket for Claude Code to check and report; revoke and delete only on his say. The largest known exposure; first in the unblock queue.\n\n## Done looks like\nA report on the ticket: each item found or not found, with path, size and date, and a recommended action per item; nothing changed on the PC.\n\n## Unlocks\nkeys.07 (act on the report), unblock.01 (the unblock queue's first item).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [
+        "E.keys",
+        "mail.29"
+      ],
+      "tags": [
+        "security",
+        "secrets",
+        "keys",
+        "pc"
+      ],
+      "steps_definition": null,
+      "epic_sid": "E.unblock"
+    },
+    {
+      "sid": "keys.07",
+      "title": "Act on the census-files report: revoke the app password, delete the exports, empty the folder",
+      "kind": "setup",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nUsing the keys.06 report, Phil revokes the Gmail app password (Google Account, Security, App passwords), then deletes the Hotmail export and the unencrypted Proton Pass CSV exports that the report listed, empties the Recycle Bin, and confirms the census workbook he still needs (`account-inventory.xlsx`) is kept. Only items in the report; only on his say.\n\n## Why\nH2 item 10: revoke and delete only on his say.\n\n## Done looks like\nThe app password gone from the Google account; the listed exports deleted and the Recycle Bin emptied; the inventory workbook kept.\n\n## Unlocks\nCloses the largest known exposure.\n\n## Depends on\nkeys.06 (the report).\n\n## Red team\n- Finding 13: Before any deletion: confirm the Hotmail mailbox still holds that mail or the export has gone into the encrypted nightly backup; confirm the Proton Pass vault has every entry in the CSVs (row count). Each deletion is a second-tap irreversible step.\n",
+      "after": [
+        "keys.06"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "secrets",
+        "keys",
+        "pc"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-keys-07-census-act",
+        "kind": "setup",
+        "title": "Act on the census-files report",
+        "version": 1,
+        "intro": {
+          "answer": "Revoke one app password and delete the exports the report listed.",
+          "unlocks": [],
+          "to_hand": [
+            "The keys.06 report",
+            "Google account sign-in"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Revoke and delete",
+            "minutes": 13,
+            "needs": [
+              "The report"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Revoke the Gmail app password",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Google Account, Security, App passwords",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Find the app password made for the mail census and remove it. Check first that nothing you still use needs it (the report says what used it).</p>",
+                "expect_html": "<p>It is no longer listed.</p>",
+                "irreversible": true
+              },
+              {
+                "id": "1.2",
+                "title": "Delete the listed exports",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "File Explorer on the PC",
+                  "kind": "page"
+                },
+                "body_html": "<p>Delete only the Hotmail export and Proton Pass CSVs the report lists. Keep <code>account-inventory.xlsx</code>.</p>",
+                "expect_html": "<p>The listed files are gone; the workbook is still there.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Check each path against the report before deleting. Keep the inventory workbook."
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "1.3",
+                "title": "Empty the Recycle Bin",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Recycle Bin on the desktop",
+                  "kind": "page"
+                },
+                "body_html": "<p>Empty it.</p>",
+                "expect_html": "<p>The Recycle Bin is empty.</p>",
+                "irreversible": true
+              },
+              {
+                "id": "1.4",
+                "title": "Ask Claude Code to re-check",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask for the keys.06 check again.</p>",
+                "expect_html": "<p>Nothing found.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Re-run the keys.06 check by file name, size and date only. Open nothing. Report what is still there.",
+                    "kind": "prompt"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "keys.08",
+      "title": "Inventory of everything on the VPS: every tenant (old Mycelium agent, DropShipAuto, PolySnipe, StreetGuesser, anything else), what each listens on, what each costs; nothing switched off",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude Code connects to the old IONOS VPS read-only and reports: which processes and containers run (the May \"Mycelium\" FastAPI app and Postgres, the inbox-reading calendar agent, DropShipAuto's services), whether the agent still reads the four IONOS inboxes and writes to Google Calendar, what it has spent on the Anthropic key (Phil reads the Anthropic Console usage page), what is in the review queue, watch list and renewals table (counts only), and the VPS's own renewal and cost. It recommends \"export its data, then switch off\" for the May app only (DropShipAuto stays, H6), with the export steps. Nothing is stopped.\n\n## Why\nH2 item 5 (assumed): a ticket checks what it is doing now, with export then switch off as the recommended outcome; nothing switched off without Phil's word. H6: the VPS itself stays for DropShipAuto.\n\n## Done looks like\nA report on the ticket with each question answered and a recommendation; nothing on the VPS changed.\n\n## Unlocks\nkeys.02 (rotate or only revoke), keys.09 (port 3000), keys.14 (a better home than IONOS).\n\n## Depends on\nNothing.\n\n## Flag\nH9 flag 9: this answer was assumed (H2.5). Written as check first; nothing switched off.\n\n## Red team\n- Finding 4: Four open production tickets (DSA-16, POLY-6, POLY-20, SG-2) show the VPS hosts DropShipAuto, PolySnipe and StreetGuesser as well as the old agent. Nothing is switched off in this ticket.\n",
+      "after": [],
+      "links": [
+        "DSA-16",
+        "POLY-6",
+        "POLY-20",
+        "SG-2"
+      ],
+      "tags": [
+        "security",
+        "secrets",
+        "keys",
+        "devops"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "keys.09",
+      "title": "Port 3000 on the VPS: find what listens, close it",
+      "kind": "setup",
+      "points": 1,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nClaude Code finds what listens on port 3000 on the old VPS and whether anything needs it reachable from the internet (DropShipAuto runs on the same VPS: if port 3000 is DropShipAuto's, it is put behind the existing reverse proxy instead of closed). Phil approves, then the port is closed to the internet in the VPS firewall (IONOS Cloud Panel firewall policy, and the host firewall) and an outside scan confirms it.\n\n## Why\nH2 item 7 (assumed): port 3000 is open to the internet and nobody knows what listens; checked and closed.\n\n## Done looks like\nWhat listened is written down; port 3000 no longer answers from outside; DropShipAuto still works.\n\n## Unlocks\nNothing further.\n\n## Depends on\nkeys.08 (what the VPS is doing).\n\n## Flag\nH9 flag 9: this answer was assumed (H2.7). Check first, close on Phil's word.\n\n## Red team\n- Finding 4: If port 3000 belongs to a live tenant it goes behind the reverse proxy or the VPN rather than being closed; closed only on Phil's word.\n",
+      "after": [
+        "keys.08",
+        "keys.02"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "secrets",
+        "keys",
+        "devops"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-keys-09-port-3000",
+        "kind": "setup",
+        "title": "Find and close port 3000 on the VPS",
+        "version": 1,
+        "intro": {
+          "answer": "Find what answers on port 3000, then close it to the internet without breaking DropShipAuto.",
+          "unlocks": [],
+          "to_hand": [
+            "IONOS Cloud Panel sign-in"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Find, decide, close",
+            "minutes": 12,
+            "needs": [
+              "IONOS Cloud Panel sign-in"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Claude Code finds the listener",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC (SSH to the VPS)",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code what listens.</p>",
+                "expect_html": "<p>A process name and owner for port 3000.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "On the old VPS, read-only: find the process listening on port 3000, which service it belongs to, and whether DropShipAuto or anything else needs it reachable from the internet. Change nothing.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Decide",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>If it is DropShipAuto's, choose \"behind the proxy\"; otherwise \"close\".</p>",
+                "expect_html": "<p>Choice recorded.</p>",
+                "fields": [
+                  {
+                    "key": "port_choice",
+                    "label": "Close or behind the proxy",
+                    "placeholder": "close"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Close it",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "IONOS Cloud Panel, Network, Firewall policies",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>Remove any rule allowing 3000 from anywhere; ask Claude Code to do the same in the host firewall.</p>",
+                "expect_html": "<p>No rule allows 3000 from the internet.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Outside check",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask for a scan of port 3000 on the VPS address from outside.</p>",
+                "expect_html": "<p>Port 3000 closed or filtered; DropShipAuto still up.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Scan port 3000 on the old VPS's public address only, and confirm DropShipAuto still answers. Report both.",
+                    "kind": "prompt"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "keys.10",
+      "title": "Domain cull list: every domain, renewal date, cost, mailboxes, logins that use it; a keep-or-drop checklist (sporebit.store and sporebit.org already \"cancel, do not renew\")",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude lists every domain in the IONOS account (and any other registrar Phil names): renewal date, yearly cost, mailboxes on it, live sites, and every login or recovery address on it from the mail census inventory. Three are kept already (philwhelan.com, sporebit.com, philipwhelan.com until its quiet year ends); sporebit.store and sporebit.org are already \"cancel, do not renew\". Every other domain becomes a keep-or-drop row. The standing rule is on every row: **no domain lapses while any address on it is a login or recovery address.**\n\n## Why\nH2 item 1: one ticket lists every other domain with renewal date and cost for a keep-or-drop sitting.\n\n## Done looks like\nA table on the ticket with every domain and the six columns, and a keep-or-drop checklist ready for keys.11.\n\n## Unlocks\nkeys.11 (the sitting), keys.13 (per-domain hardening), mail.11 (null SPF and reject DMARC).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [
+        "fin.14",
+        "mail.11"
+      ],
+      "tags": [
+        "security",
+        "admin",
+        "keys",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "keys.11",
+      "title": "Keep-or-drop sitting on the domain list",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil goes down the keys.10 list and marks each domain keep or drop. A domain with any address still used as a login or recovery address cannot be marked drop; it is marked \"keep until moved\" and the mail migration's rows for it are linked. Nothing is cancelled in the sitting: for each drop, auto-renew is switched off at IONOS only after the last address on it is moved.\n\n## Why\nH2 item 1: a keep-or-drop sitting; the standing rule that no domain lapses while any address on it is a login or recovery address.\n\n## Done looks like\nEvery domain marked keep, drop, or keep until moved; the list saved on the ticket.\n\n## Unlocks\nkeys.13 (per-domain hardening on kept domains), mail.11 (non-sending domains).\n\n## Depends on\nkeys.10 (the list).",
+      "after": [
+        "keys.10"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "admin",
+        "keys"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-keys-11-keep-or-drop",
+        "kind": "guide",
+        "title": "Keep or drop each domain",
+        "version": 1,
+        "intro": {
+          "answer": "Each domain marked, and none lost while an address on it still matters.",
+          "unlocks": [
+            "keys.13",
+            "mail.11"
+          ],
+          "to_hand": [
+            "The keys.10 list"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Mark each domain",
+            "minutes": 13,
+            "needs": [
+              "The keys.10 list"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Read the rule",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>No domain lapses while any address on it is a login or recovery address.</p>",
+                "expect_html": "<p>You have the rule in mind.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Mark each row",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The keys.10 table",
+                  "kind": "decision"
+                },
+                "body_html": "<p>For each domain choose keep, drop, or keep until moved (any login or recovery address still on it).</p>",
+                "expect_html": "<p>No row unmarked.</p>",
+                "fields": [
+                  {
+                    "key": "drops",
+                    "label": "Domains marked drop (names)",
+                    "placeholder": "e.g. none"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Nothing cancelled today",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>Leave auto-renew as it is. Claude will add a dated reminder per drop for a month before its renewal.</p>",
+                "expect_html": "<p>Nothing changed at IONOS.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "keys.12",
+      "title": "Domain hardening, account level first: registrar 2FA, transfer lock, auto-renew with a valid card, WHOIS privacy",
+      "kind": "setup",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nAt IONOS, the account-level steps that cover every domain at once: two-factor sign-in on the IONOS customer account (Menu, My account, Login and account security; authenticator app), with the 16-digit recovery code stored in Proton Pass; a check that every domain shows the transfer lock on (Domains, Renewal and Transfer); the payment card valid and auto-renew on for kept domains; WHOIS privacy on where IONOS offers it (note any cost). Nothing is bought.\n\n## Why\nH2 item 2: domain hardening, every domain, account-level steps first because they cover every domain in one go.\n\n## Done looks like\n2FA on and tested with one sign-in; the recovery code in Proton Pass; transfer lock on for every domain; the card valid; privacy status noted per domain.\n\n## Unlocks\nkeys.13 (per-domain work).\n\n## Depends on\nNothing.\n\n## Flag\nH2.2 [claude]: this hardens domains the cull is about to drop; the account-level steps go first because they cover every domain at once; per-domain DNS work waits for keys.11. Not reopened.\n\n## Red team\n- Finding 3: Auto-renew is removed from this account-level sitting: it is a per-domain, per-pound setting and belongs in keys.13 after the keep-or-drop sitting. Added here instead: the IONOS account's recovery email is the Gmail anchor (mail.08) before two-factor is enabled; registrar two-factor recovery codes go into Proton Pass.\n",
+      "after": [
+        "mail.08"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "admin",
+        "keys",
+        "secrets"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-keys-12-ionos-account",
+        "kind": "setup",
+        "title": "IONOS account hardening",
+        "version": 1,
+        "intro": {
+          "answer": "Two-factor sign-in, locks on, renewals safe: every domain covered at once.",
+          "unlocks": [
+            "keys.13"
+          ],
+          "to_hand": [
+            "IONOS sign-in",
+            "An authenticator app on your phone",
+            "Proton Pass"
+          ],
+          "time": [
+            "Two sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "IONOS: authenticator app two-factor",
+              "url": "https://www.ionos.co.uk/help/web-security/two-factor-authentication/using-an-authenticator-app-totp-for-two-factor-authentication/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "IONOS: domain transfer lock",
+              "url": "https://ionos.co.uk/help/domains/transferring-your-domain-within-ionos/disabling-the-domain-transfer-lock-with-11-ionos",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Two-factor sign-in",
+            "minutes": 11,
+            "needs": [
+              "Authenticator app",
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Set up the authenticator",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "IONOS, Menu, My account, Login and account security",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Click Configure two-factor authentication, choose the authenticator app, scan the QR code, enter the 6-digit code.</p>",
+                "expect_html": "<p>Two-factor shows as active.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Store the recovery code",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Proton Pass, the IONOS entry",
+                  "kind": "page"
+                },
+                "body_html": "<p>Copy the 16-digit recovery code IONOS shows into the IONOS entry's notes in Proton Pass. Never into this ticket.</p>",
+                "expect_html": "<p>The code saved in Proton Pass.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never paste a key, password or token into this ticket. New values go only where the step says (Vercel, the host's environment, Proton Pass)."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Test",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "IONOS in a private window",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Sign out and sign in again in a private window.</p>",
+                "expect_html": "<p>IONOS asks for the 6-digit code and lets you in.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "Locked out",
+                    "fix": "Use the recovery code from Proton Pass at the sign-in page's lost-device link."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Locks, renewals, privacy",
+            "minutes": 13,
+            "needs": [
+              "IONOS sign-in"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Transfer lock on each domain",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "IONOS, Domains, Renewal and Transfer",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Check each domain shows the transfer lock on; turn it on where it is off.</p>",
+                "expect_html": "<p>Every domain locked.</p>",
+                "fields": [
+                  {
+                    "key": "unlocked",
+                    "label": "Domains that were unlocked",
+                    "placeholder": "none"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Card and auto-renew",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "IONOS, Menu, Payment and billing; each kept domain's contract",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Check the card's expiry; auto-renew on for kept domains (the three kept ones at least).</p>",
+                "expect_html": "<p>Card valid; auto-renew on for kept domains.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "WHOIS privacy",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "IONOS, Domains, each domain's settings",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Note whether privacy is on for each domain and whether IONOS charges for it. Do not buy anything here.</p>",
+                "expect_html": "<p>Privacy status noted per domain.</p>",
+                "fields": [
+                  {
+                    "key": "privacy_cost",
+                    "label": "Any privacy cost seen",
+                    "placeholder": "none / amount"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "keys.13",
+      "title": "Domain hardening, per domain after the sitting: DNSSEC, dangling records from old Wix, Squarespace, Shopify and Web Genie sites, TLS on live sites",
+      "kind": "setup",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nFor each domain kept in keys.11: Claude Code lists every DNS record and follows each CNAME to its end, flagging dangling records (final target does not exist, or a Shopify, Wix, Squarespace or Web Genie error page) left by old sites; Phil approves deleting each dangling record at IONOS. TLS is checked on every live site. DNSSEC at IONOS needs the paid Domain Guard or DNS Pro, so it is priced and switched on only for kept domains after Phil approves the cost, one domain first, checked with an outside validator. Null SPF and reject DMARC belong to mail.11.\n\n## Why\nH2 item 2: DNSSEC, dangling DNS records left by old Wix, Squarespace, Shopify and Web Genie sites, TLS on live sites; per-domain DNS work after the keep-or-drop sitting.\n\n## Done looks like\nNo dangling record on any kept domain; every live site serves valid TLS; DNSSEC on for kept domains if Phil approved the cost, or \"declined\" recorded.\n\n## Unlocks\nNothing further; mail.11 runs alongside.\n\n## Depends on\nkeys.11 (which domains are kept) and keys.12 (the account hardened).\n\n## Flag\nH2.2 [claude]: per-domain DNS work after the keep-or-drop sitting. Not reopened.\n\n## Cost\nDNSSEC at IONOS needs Domain Guard (£1 the first year, then £15 a year, excluding VAT, checked 2026-11-28) or DNS Pro (£1 a month for six months, then £2.50 a month, excluding VAT). To be approved by Phil; nothing is bought in this run.\n\n## Red team\n- Finding 3: Auto-renew on for the kept domains only; sporebit.store and sporebit.org stay set to not renew.\n- Finding 17: DNSSEC only where IONOS both registers and hosts the zone; otherwise the DS record is published only after the zone is confirmed signed. Mail is tested in the same sitting.\n",
+      "after": [
+        "keys.11",
+        "keys.12"
+      ],
+      "links": [
+        "mail.11"
+      ],
+      "tags": [
+        "security",
+        "admin",
+        "keys"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-keys-13-per-domain",
+        "kind": "setup",
+        "title": "Per-domain hardening on kept domains",
+        "version": 1,
+        "intro": {
+          "answer": "Dangling records gone, TLS valid, DNSSEC on if you approve the cost.",
+          "unlocks": [],
+          "to_hand": [
+            "The keys.11 list of kept domains",
+            "IONOS sign-in"
+          ],
+          "time": [
+            "Three sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "MDN: subdomain takeovers",
+              "url": "https://developer.mozilla.org/en-US/docs/Web/Security/Subdomain_takeovers",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "can-i-take-over-xyz (community list)",
+              "url": "https://github.com/samhaxr/can-i-take-over-xyz",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "IONOS: setting up and managing DNSSEC",
+              "url": "https://www.ionos.co.uk/help/domains/domain-guard/setting-up-and-managing-dnssec",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "IONOS UK: Domain Guard (price)",
+              "url": "https://www.ionos.co.uk/domains/domain-guard",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Find dangling records",
+            "minutes": 10,
+            "needs": [
+              "Kept domains list"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Claude Code lists and follows records",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code for the dangling records report.</p>",
+                "expect_html": "<p>A report per domain: record, target, status, verdict.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "For each domain kept in keys.11 (Phil's own domains only), list every DNS record from the IONOS zone, follow each CNAME to its end, and flag dangling ones (NXDOMAIN, or a Shopify, Wix, Squarespace or Web Genie error page). Write the report on keys.13. Change nothing.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Mark each flagged record",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Mark each flagged record delete or keep.</p>",
+                "expect_html": "<p>No flagged record unmarked.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Delete and check TLS",
+            "minutes": 11,
+            "needs": [
+              "IONOS sign-in"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Delete the marked records",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "IONOS, Domains, the domain, DNS",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Delete each record marked delete. Write down each one first (type, name, target) on the ticket so it could be re-added.</p>",
+                "expect_html": "<p>The marked records are gone.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "A record you are unsure of stays. Write each deleted record on the ticket first."
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "TLS on live sites",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code to check certificates on every live site.</p>",
+                "expect_html": "<p>Each live site has a valid certificate with its expiry date.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Check the TLS certificate on every live site of the kept domains: valid, issuer, expiry. Report any problem.",
+                    "kind": "prompt"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "DNSSEC, only if approved",
+            "minutes": 10,
+            "needs": [
+              "IONOS sign-in",
+              "The cost decision"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Decide the cost",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Domain Guard (all domains in the contract) or DNS Pro, or decline. The Cost section has the prices.</p>",
+                "expect_html": "<p>Decision recorded.</p>",
+                "fields": [
+                  {
+                    "key": "dnssec_choice",
+                    "label": "Domain Guard, DNS Pro or declined",
+                    "placeholder": "declined"
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "One domain first",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "IONOS, Domains, the domain, DNS, DNSSEC",
+                  "kind": "browser"
+                },
+                "body_html": "<p>If approved: activate DNSSEC on one kept domain using IONOS's default name servers.</p>",
+                "expect_html": "<p>DNSSEC shows active on that domain.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Turning it off again takes at least 8 hours to propagate. Do one domain, check it, then the rest."
+                  }
+                ]
+              },
+              {
+                "id": "3.3",
+                "title": "Validate from outside",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code to validate the chain with a public DNSSEC checker; only then repeat 3.2 for the other kept domains.</p>",
+                "expect_html": "<p>The chain validates; the site and mail still work.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Validate DNSSEC for the one domain just activated with a public DNSSEC analyser and a DNS lookup with validation. Confirm the website and MX records still resolve.",
+                    "kind": "prompt"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "keys.14",
+      "title": "A better home than IONOS? What runs on the VPS, what Substrate replaces, a registrar comparison; mail stays at IONOS",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude writes one research note: what runs on the IONOS VPS today (from keys.08), which of it Substrate replaces and what must stay hosted (DropShipAuto, per H6), and a comparison of registrars for the kept domains (price per extension, 2FA and hardware keys, transfer lock, DNSSEC included or paid, WHOIS privacy, API) against IONOS. Mail stays at IONOS whatever the answer. A recommendation for Phil; nothing is moved.\n\n## Why\nH2 item 3: \"Is there a better home than IONOS?\" as one research ticket; mail stays at IONOS.\n\n## Done looks like\nA note on the ticket with the VPS inventory, the Substrate mapping, the registrar table with dated sources, and a recommendation.\n\n## Unlocks\nE.sub planning (what leaves the VPS).\n\n## Depends on\nkeys.08 (what the VPS does now).",
+      "after": [
+        "keys.08"
+      ],
+      "links": [
+        "sub.01",
+        "PHM-16",
+        "PMW-2"
+      ],
+      "tags": [
+        "security",
+        "admin",
+        "keys",
+        "research"
+      ],
+      "steps_definition": null
+    }
+  ],
+  "existing": [
+    {
+      "key": "MYC-196",
+      "set_epic": false,
+      "append": "\n\n## Unlocks\nkeys.01 phase 2: the parent \"rotate everything\" guide runs this ticket as its first phase."
+    },
+    {
+      "key": "MYC-6",
+      "set_epic": false,
+      "append": "\n\n## Unlocks\nkeys.01 phase 3: the parent \"rotate everything\" guide runs this ticket after MYC-196 and MYC-209."
+    },
+    {
+      "key": "MYC-209",
+      "set_epic": false,
+      "append": "\n\n## Unlocks\nkeys.01 phase 3: the master secret is rotated only after this list of callers is complete."
+    }
+  ]
+}

@@ -1,0 +1,1374 @@
+{
+  "epic": {
+    "sid": "E.review",
+    "project": "LIFE",
+    "title": "This run's review: decisions, undecided items, the map",
+    "description": "Phil's look back at the unattended run of 2026-11-28: one checklist of every decision the run made for him (keep or undo), one checklist of every item from the old chats that nobody has asked him about (keep, drop or later, about 47 rows), and the live roadmap page in Mycelium that the Final five asked for as a ticket. The one-off map in Docs (review.04) was made by the run and is listed in the index, not ticketed.\n\n## Order\nreview.01 and review.02 in any order, in 15-minute sittings. review.03 is a build and waits for nothing in this epic.\n\n## Done means\nEvery decision is kept or undone; every H10 item is kept (and ticketed), dropped or marked later; the roadmap page shows the next unblocked ticket.\n\n## Flags\n- H10: nothing in the undecided list has been put to Phil as a question; review.02 is that question, one row each.\n\n## Dossier\nThe dossier is attached in Docs: (link filled by the integrator).",
+    "dossier": "dossiers/review.md",
+    "links": []
+  },
+  "tickets": [
+    {
+      "sid": "review.01",
+      "title": "Review: decisions made for me on 2026-11-28 (one row per decisions.md entry, Keep or Undo, an answer box)",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nA checklist with one row per entry in `docs/run/2026-11-28/decisions.md`: the decision, the reason and the undo line, then Keep or Undo and an answer box. The rows are filled by the integrator at the end of the run, when decisions.md is complete; until then the checklist holds one placeholder row. Each undo becomes a ticket or a change Claude makes.\n\n## Why\nThe brief's finish: Phil reviews every decision made for him.\n\n## Done looks like\nEvery row has Keep or Undo; each Undo has a ticket or a commit against it.\n\n## Unlocks\n- Any undo: its own follow-up\n\n## Depends on\nNothing (the integrator fills the rows from decisions.md at the end of the run)",
+      "after": [],
+      "links": [],
+      "tags": [
+        "planning",
+        "review"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "review-01-decisions-made-for-me",
+        "kind": "guide",
+        "title": "Review: the decisions made for you on 2026-11-28",
+        "version": 1,
+        "intro": {
+          "answer": "One row per decision the run made for you: keep it or undo it. Each row says how to undo.",
+          "unlocks": [
+            "Each undo becomes a ticket or a change Claude makes"
+          ],
+          "to_hand": [
+            "About 15 minutes per sitting",
+            "Nothing else"
+          ],
+          "time": [
+            "filled at the end of the run"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Placeholder: filled by the integrator from decisions.md",
+            "minutes": 1,
+            "needs": [
+              "Nothing yet"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Placeholder row: the integrator replaces this phase with one step per decisions.md entry",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Each real row will show the decision, why it was made, and how to undo it, copied from <code>docs/run/2026-11-28/decisions.md</code> (format: type, what, why, how to undo).</p>",
+                "expect_html": "<p>Keep or undo in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_undo_1",
+                    "label": "Keep or undo",
+                    "placeholder": "keep / undo"
+                  },
+                  {
+                    "key": "answer_1",
+                    "label": "Answer",
+                    "placeholder": "optional: what to do instead (no passwords)"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested"
+        }
+      }
+    },
+    {
+      "sid": "review.02",
+      "title": "Keep or drop: items from old chats (one row per H10 undecided item, 47 rows)",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nEvery item the harvest of chats outside projects found that matches no decision, one row each (47 rows in eight groups: ventures and makes, money, family, house and things, devices, personal, tools and scripts, July's one-liners), in five sittings. Each row has Keep or drop (keep / drop / later) and an answer box. The personal health row asks only whether to track anything; it holds no detail.\n\n## Why\nH10: nothing here has been put to Phil as a question; everything is undecided and not ticketed until he says keep or drop.\n\n## Done looks like\nEvery row answered; each keep has become a ticket in the right project; each later is carried to the next review.\n\n## Unlocks\n- New tickets for each keep\n- rescue.06: harvest items with no ticket land here\n\n## Depends on\nNothing\n\n## Red team\n- Finding 64: DAY-3 (narration), PW-76 and PW-77 (scratch maps) and GARDN-4 (fan) already exist as tickets: their rows say 'already a ticket' rather than 'undecided'.\n",
+      "after": [],
+      "links": [],
+      "tags": [
+        "planning",
+        "review"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "review-02-keep-or-drop-old-chat-items",
+        "kind": "guide",
+        "title": "Keep or drop: the items from old chats nobody has asked you about",
+        "version": 1,
+        "intro": {
+          "answer": "One line each: keep, drop or later. Nothing here becomes a ticket until you say keep.",
+          "unlocks": [
+            "Every \"keep\" becomes a ticket in the right project",
+            "rescue.06: these rows are where untracked harvest items land"
+          ],
+          "to_hand": [
+            "Five sittings of about 15 minutes or less",
+            "Nothing else"
+          ],
+          "time": [
+            "about 50 minutes in five sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Ventures and makes",
+            "minutes": 11,
+            "needs": [
+              "About 11 minutes"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "The AI website company: a plan of 8 phases and 67 steps exists; pricing, structure and ten of your answers are not reconciled with it",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Ventures and makes (all behind the FixForward-only rule))",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The AI website company: a plan of 8 phases and 67 steps exists; pricing, structure and ten of your answers are not reconciled with it.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_1",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_1",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "PID Redactor at pid.sporebit.com",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Ventures and makes (all behind the FixForward-only rule))",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>PID Redactor at pid.sporebit.com.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_2",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_2",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "The smart toilet prototype",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Ventures and makes (all behind the FixForward-only rule))",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The smart toilet prototype.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_3",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_3",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "The yawn board game",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Ventures and makes (all behind the FixForward-only rule))",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The yawn board game.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_4",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_4",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "Daytripper's automated pipeline and narration",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Ventures and makes (all behind the FixForward-only rule))",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Daytripper's automated pipeline and narration.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_5",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_5",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "1.6",
+                "title": "Your sister's jigsaw business",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Ventures and makes (all behind the FixForward-only rule))",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Your sister's jigsaw business.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_6",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_6",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "1.7",
+                "title": "A Christian journaling product",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Ventures and makes (all behind the FixForward-only rule))",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>A Christian journaling product.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_7",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_7",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "1.8",
+                "title": "A handheld chilli-heat meter",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Ventures and makes (all behind the FixForward-only rule))",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>A handheld chilli-heat meter.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_8",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_8",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "1.9",
+                "title": "The UK scratch-map wall",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Ventures and makes (all behind the FixForward-only rule))",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The UK scratch-map wall.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_9",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_9",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "1.10",
+                "title": "StreetGuesser follow-ups",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Ventures and makes (all behind the FixForward-only rule))",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>StreetGuesser follow-ups.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_10",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_10",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "1.11",
+                "title": "A portfolio site for a contact (real clips still to swap in)",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Ventures and makes (all behind the FixForward-only rule))",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>A portfolio site for a contact (real clips still to swap in).</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_11",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_11",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Money and family",
+            "minutes": 7,
+            "needs": [
+              "About 7 minutes"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Amex points redemption (about 137,000 points)",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Money)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Amex points redemption (about 137,000 points).</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_12",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_12",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "The Halifax statement Shortcut and Amex categorising (probably superseded by the bank feed)",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Money)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The Halifax statement Shortcut and Amex categorising (probably superseded by the bank feed).</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_13",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_13",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "A speculative share position",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Money)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>A speculative share position.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_14",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_14",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "2.4",
+                "title": "The \"UK online income\" research doc",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Money)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The \"UK online income\" research doc.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_15",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_15",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "2.5",
+                "title": "The Access to Work equipment application (outcome unknown; overlaps the office desk and chair)",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Money)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The Access to Work equipment application (outcome unknown; overlaps the office desk and chair).</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_16",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_16",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "2.6",
+                "title": "The baby scan heartbeat audio (waiting on your timestamps of the remaining static)",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Family)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The baby scan heartbeat audio (waiting on your timestamps of the remaining static).</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_17",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_17",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "2.7",
+                "title": "Your grandad's playlist from your MP3 collection",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Family)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Your grandad's playlist from your MP3 collection.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_18",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_18",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "House and things",
+            "minutes": 10,
+            "needs": [
+              "About 10 minutes"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Curtains for every window",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (House and things)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Curtains for every window.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_19",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_19",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "The smashed pendant light (one phone call)",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (House and things)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The smashed pendant light (one phone call).</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_20",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_20",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "3.3",
+                "title": "A home inventory per room with QR labels (the full inventory is already deferred)",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (House and things)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>A home inventory per room with QR labels (the full inventory is already deferred).</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_21",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_21",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "3.4",
+                "title": "The finer model layers (services, electrics)",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (House and things)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The finer model layers (services, electrics).</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_22",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_22",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "3.5",
+                "title": "Land Registry registers for the ginnel and path",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (House and things)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Land Registry registers for the ginnel and path.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_23",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_23",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "3.6",
+                "title": "Recovering the encrypted camera SD card",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (House and things)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Recovering the encrypted camera SD card.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_24",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_24",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "3.7",
+                "title": "A rolling PC base",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (House and things)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>A rolling PC base.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_25",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_25",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "3.8",
+                "title": "The office chair repair",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (House and things)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The office chair repair.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_26",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_26",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "3.9",
+                "title": "A small SD card for an old camera",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (House and things)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>A small SD card for an old camera.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_27",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_27",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "3.10",
+                "title": "The case fan layout",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (House and things)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The case fan layout.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_28",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_28",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Devices and personal",
+            "minutes": 7,
+            "needs": [
+              "About 7 minutes"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Finishing the main PC's drive swap (probably done)",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Devices)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Finishing the main PC's drive swap (probably done).</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_29",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_29",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "4.2",
+                "title": "The old glasses' battery",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Devices)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The old glasses' battery.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_30",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_30",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "4.3",
+                "title": "A second phone for business and AI",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Devices)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>A second phone for business and AI.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_31",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_31",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "4.4",
+                "title": "A gimbal purchase",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Devices)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>A gimbal purchase.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_32",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_32",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "4.5",
+                "title": "Better lenses after 1 February",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Devices)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Better lenses after 1 February.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_33",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_33",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "4.6",
+                "title": "Health threads from old chats (posture, foot care, eye strain and others): track any as owner-only items, or leave them",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Personal)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Health threads from old chats (posture, foot care, eye strain and others): track any as owner-only items, or leave them.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_34",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_34",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "4.7",
+                "title": "Career goals from your May review (DICOM and networking knowledge, then MuleSoft): place them somewhere, or leave them",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Personal)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Career goals from your May review (DICOM and networking knowledge, then MuleSoft): place them somewhere, or leave them.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_35",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_35",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "5",
+            "title": "Tools, scripts and July's one-liners",
+            "minutes": 12,
+            "needs": [
+              "About 12 minutes"
+            ],
+            "steps": [
+              {
+                "id": "5.1",
+                "title": "The listen-and-identify audio script (written, untested)",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Tools and scripts)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The listen-and-identify audio script (written, untested).</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_36",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_36",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "5.2",
+                "title": "The personal Jira timesheet script",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Tools and scripts)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The personal Jira timesheet script.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_37",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_37",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "5.3",
+                "title": "An AI note-taking and minutes tool",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Tools and scripts)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>An AI note-taking and minutes tool.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_38",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_38",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "5.4",
+                "title": "Account security tiers and passkeys (overlaps the per-account routine in the Mail epic)",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Tools and scripts)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Account security tiers and passkeys (overlaps the per-account routine in the Mail epic).</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_39",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_39",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "5.5",
+                "title": "The autonomous bug-fix pipeline for Mycelium",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Tools and scripts)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The autonomous bug-fix pipeline for Mycelium.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_40",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_40",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "5.6",
+                "title": "The recipe-card PDF import for Mycelium",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Tools and scripts)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The recipe-card PDF import for Mycelium.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_41",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_41",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "5.7",
+                "title": "A gym equipment list",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (Tools and scripts)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>A gym equipment list.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_42",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_42",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "5.8",
+                "title": "Standing desk and monitor arms",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (One-liners from July's holiday list)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Standing desk and monitor arms.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_43",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_43",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "5.9",
+                "title": "The monitor's colour",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (One-liners from July's holiday list)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>The monitor's colour.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_44",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_44",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "5.10",
+                "title": "\"General finance\"",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (One-liners from July's holiday list)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>\"General finance\".</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_45",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_45",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "5.11",
+                "title": "Polysnipe",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (One-liners from July's holiday list)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Polysnipe.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_46",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_46",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              },
+              {
+                "id": "5.12",
+                "title": "Car wash",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision (One-liners from July's holiday list)",
+                  "kind": "decision"
+                },
+                "body_html": "<p><strong>Car wash.</strong> Keep (it becomes a ticket), drop (it is gone), or later (it comes back on the next review).</p>",
+                "expect_html": "<p>Keep, drop or later in the first box; anything worth saying in the second.</p>",
+                "fields": [
+                  {
+                    "key": "keep_or_drop_47",
+                    "label": "Keep or drop",
+                    "placeholder": "keep / drop / later"
+                  },
+                  {
+                    "key": "answer_47",
+                    "label": "Answer",
+                    "placeholder": "optional: where it goes, why dropped, or what is next (no passwords)"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "finish_html": "<p>Done. Claude reads your answers: each keep becomes a ticket in its project, each later comes back on the next review, each drop is recorded and gone.</p>",
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested",
+          "1.6": "untested",
+          "1.7": "untested",
+          "1.8": "untested",
+          "1.9": "untested",
+          "1.10": "untested",
+          "1.11": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "2.4": "untested",
+          "2.5": "untested",
+          "2.6": "untested",
+          "2.7": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested",
+          "3.4": "untested",
+          "3.5": "untested",
+          "3.6": "untested",
+          "3.7": "untested",
+          "3.8": "untested",
+          "3.9": "untested",
+          "3.10": "untested",
+          "4.1": "untested",
+          "4.2": "untested",
+          "4.3": "untested",
+          "4.4": "untested",
+          "4.5": "untested",
+          "4.6": "untested",
+          "4.7": "untested",
+          "5.1": "untested",
+          "5.2": "untested",
+          "5.3": "untested",
+          "5.4": "untested",
+          "5.5": "untested",
+          "5.6": "untested",
+          "5.7": "untested",
+          "5.8": "untested",
+          "5.9": "untested",
+          "5.10": "untested",
+          "5.11": "untested",
+          "5.12": "untested"
+        }
+      }
+    },
+    {
+      "sid": "review.03",
+      "title": "Live roadmap page: drawn from ticket links, next unblocked ticket highlighted",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA page in Mycelium that draws every epic and its tickets from the ticket dependency rows (`ticket_dependencies`, both directions) and the relates links, and highlights, per epic and overall, the next ticket that nothing open blocks. Read-only, inside the app under the user's session (no public route). It replaces the one-off map in Docs (review.04) as the thing Phil looks at.\n\n## Why\nFinal five 1: a live roadmap page in Mycelium (drawn from ticket links, next unblocked ticket highlighted) as a ticket.\n\n## Done looks like\nThe page lists every epic from this run; closing a blocker makes the next ticket light up on reload; build, unit and end-to-end checks pass.\n\n## Unlocks\n- The weekly review: one page shows what is next\n\n## Depends on\nNothing",
+      "after": [],
+      "links": [],
+      "tags": [
+        "feature",
+        "ui",
+        "review"
+      ],
+      "steps_definition": null
+    }
+  ],
+  "existing": []
+}

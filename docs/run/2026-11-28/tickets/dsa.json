@@ -1,0 +1,165 @@
+{
+  "epic": {
+    "sid": "E.dsa",
+    "project": "DSA",
+    "title": "DropShipAuto kept alive, low priority",
+    "description": "DropShipAuto is kept alive at low priority: its open items become Backlog tickets in its existing project and its servers (the VPS, production at dropship.philipwhelan.com on `main`, test at test.dropship.philipwhelan.com on `develop`) stay up. DSA-1 to DSA-26 stay as they are. This epic adds the items from the May 2026 chats that had no ticket: the two replay-mode bugs, the empty History page, the two overlapping ClickUp task sets, sign-up with email verification, an email address and phone number per store, the first real niche, and the DSA-side check of the move off philipwhelan.com. Standing rules from the project: no em dashes anywhere (agent outputs, UI copy, documents); every agent scored out of 100, pass at 70, up to two retries; UK market.\n\n## Order\ndsa.01 and dsa.02 first and together (both are in the repo on `develop`, both may already be fixed by the July v2 work; check before fixing). dsa.03 any time. dsa.04 before dsa.05 (an account to attach a store's address to). dsa.06 waits for the FixForward first slice because going live spends money. dsa.07 waits for mail.31.\n\n## Done means\nEvery item here is fixed, closed with evidence that it was already fixed, or retired with Phil's say; the sites answer on their new hostnames after mail.31; nothing about DropShipAuto still depends on philipwhelan.com.\n\n## Flags\n- H6 / H9 flag 6 `[claude]`: DropShipAuto alive while the venture rule says FixForward only. Phil's answer stands: kept alive, low priority, the VPS stays, so the subdomain move is live work.\n\n## Dossier\nThe dossier is attached in Docs: (link filled by the integrator).\n\n## Red team\n- Finding 19: H6 [claude]: FixForward only until its first slice ships. Kept alive means the servers stay up and items are recorded; the build tickets wait for fixf.34. dsa.07 and the keys and security items stay live.\n",
+    "dossier": "dossiers/dsa.md",
+    "links": [
+      "DSA-6",
+      "DSA-8"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "dsa.01",
+      "title": "Two replay-mode dashboard bugs with exact diagnoses (from the harvest)",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nIn `A:\\Projects\\DropShipAuto` (branch `develop`, deployed to test), the per-agent Run fresh / Replay toggles showed two dashboard bugs in May 2026, with the backend already proven (five agents replayed, BrandBuilder fresh). **Bug 1:** NicheScout and ProductHunter show Idle because they finish before the SSE connection opens; the diagnosed fix is to fill `activeRuns.replayedSteps` from `workflow_run_config.replayed_agents` straight after `db.initRun()` in `POST /api/pipeline/start`. **Bug 2:** BrandBuilder shows the cached Hollowmist brand; `loadReplayedOutputs()` must merge only onto steps whose status is `replayed`, and `GET /api/runs/:runId` must use the current run id. Check first: the repo has commits to 2026-07-23, `server.js` now rebuilds `replayedSteps` from persisted rows and carries a comment that `replayed_agents` used to be dropped, and the v2 client (`client/`, DSA-8) may have replaced the dashboard these bugs were seen on. Run the test case on test (replay everything except BrandBuilder, source run Hollowmist). If both bugs are gone, close with the observation. If not, fix on `develop`, verify on test, promote to `main` per `docs/WORKFLOW.md`. Standing rules from the project: no em dashes anywhere (agent outputs, UI copy, documents); every agent scored out of 100, pass at 70, up to two retries; UK market.\n\n## Why\nH6: DropShipAuto kept alive; its open items become Backlog tickets. The harvest: \"the diagnosis is exact and the backend proven. Left for six months, the debugging starts from zero.\"\n\n## Done looks like\nOn test, the replay-all-but-BrandBuilder run shows NicheScout and ProductHunter as replayed (not Idle) and BrandBuilder with a freshly made brand, not Hollowmist; the evidence (run id and what the dashboard showed) is in a comment.\n\n## Unlocks\n- DSA-8: replay mode on the v2 store builds on a backend known to be right\n\n## Depends on\nNothing",
+      "after": [
+        "fixf.34"
+      ],
+      "links": [
+        "DSA-8"
+      ],
+      "tags": [
+        "bug",
+        "dev",
+        "dsa"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "dsa.02",
+      "title": "History page renders no rows",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nThe `/history` page in `A:\\Projects\\DropShipAuto` showed \"26 runs, page 1 of 2\" and no rows. The May diagnosis: the Alpine.js template reads null fields on backfilled rows; fix with optional chaining in the template and LEFT JOINs in the query. Check first: the server now renders history through `utils/renderHistory` and the v2 client has its own History list (DSA-6), so open `/history` on test and read the browser console before changing anything. If it renders rows, close with a screenshot; if not, fix on `develop`, verify on test, promote. Standing rules from the project: no em dashes anywhere (agent outputs, UI copy, documents); every agent scored out of 100, pass at 70, up to two retries; UK market.\n\n## Why\nH6: the history page rendering no rows is one of the known open items.\n\n## Done looks like\nThe History page on test lists every run the count says exists, with search, filters and the per-agent drill-down working; same on production after promotion.\n\n## Unlocks\n- DSA-6: the v2 History list can be checked against a working v1\n\n## Depends on\nNothing",
+      "after": [
+        "fixf.34"
+      ],
+      "links": [
+        "DSA-6",
+        "DSA-7"
+      ],
+      "tags": [
+        "bug",
+        "dev",
+        "dsa"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "dsa.03",
+      "title": "Two overlapping ClickUp task sets (215 and 184): reconcile or retire",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nTwo DropShipAuto task sets were made in ClickUp in May 2026: **215 tasks** seeded by `A:\\Projects\\DropShipAuto\\seed_clickup.py` from `A:\\Projects\\DropShipAuto\\DropShipAuto_Tracker.xlsx` (14 projects), and a **184-task CSV across 12 Lists** (later cleaned from 244 to 152 rows). Which one is live in ClickUp was never checked. Since then DropShipAuto's backlog lives in Mycelium Work as DSA-1 to DSA-26. Claude compares the tracker and the CSV (both readable on the PC) against the DSA tickets and writes a one-page answer: what in ClickUp is not yet a DSA ticket, and a recommendation of **retire ClickUp for DSA** or **reconcile into one set**. Reading ClickUp itself needs Phil to sign in (the ClickUp connector, or an export from ClickUp). Nothing in ClickUp is deleted by Claude; Phil does any deletion after reading the answer.\n\n## Why\nH6: two overlapping ClickUp task sets (215 and 184) to reconcile or retire. The project's own rule: ClickUp by manual entry or CSV import, no AI task creators.\n\n## Done looks like\nA comment on this ticket lists the ClickUp-only items (each now a DSA ticket or marked not wanted) and Phil's choice; ClickUp holds at most one DropShipAuto set, or none.\n\n## Unlocks\n- DSA backlog: one list, in one place\n\n## Depends on\nNothing",
+      "after": [
+        "fixf.34"
+      ],
+      "links": [],
+      "tags": [
+        "planning",
+        "tools",
+        "dsa"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "dsa.04",
+      "title": "Account creation with email verification",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nPhil asked for \"a create account function on the log on screen, with authentication via email\". In `A:\\Projects\\DropShipAuto` today: `GET /register` serves `views/auth/register.html` and there are forgot and reset password pages, but the server has only `POST /auth/login` and `POST /auth/logout`; no sign-up handler, no verification token, no email sending. Build sign-up, a verification email with a single-use token that expires, and login refused until verified, on `develop`, verified on test, promoted per `docs/WORKFLOW.md`. The May plan named bcrypt (already used), a token, and Resend for sending. The sending address must not be on philipwhelan.com (that domain enters its quiet year under the Mail epic): use an address the Mail epic creates for this, or wait for it. Standing rules from the project: no em dashes anywhere (agent outputs, UI copy, documents); every agent scored out of 100, pass at 70, up to two retries; UK market.\n\n## Why\nH6: account creation with email verification is one of the known open items.\n\n## Done looks like\nOn test: a new account receives one email, the link verifies it once, a second click says it is already used, an unverified account cannot sign in, and the existing login still works.\n\n## Unlocks\n- dsa.05: a store's address and number belong to a verified account\n\n## Depends on\n- mail.31 (soft): the sending domain is not philipwhelan.com\n\n## Cost\nThe May plan said Resend's free tier; to be priced when built. Nothing is bought in this run.",
+      "after": [
+        "fixf.34"
+      ],
+      "links": [],
+      "tags": [
+        "feature",
+        "dev",
+        "dsa"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "dsa.05",
+      "title": "An email address and a phone number per store",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nThe May 2026 plan: after BrandBuilder names a company, suggest five addresses \"that don't look like a generic fake email\", Phil reviews before anything is created, then an email to his sign-up address says \"here's the email you've created\" (ADR-009, via the Google Workspace Admin SDK); and a UK Twilio number per store for SMS and calls, shown on StoreBuilder's contact page (ADR-010). This ticket is the design check, not the build: Claude rewrites both ADRs in `A:\\Projects\\DropShipAuto\\DECISIONS.md` against the Mail epic's address plan (Phil is moving to IONOS and Proton, so a per-store Google Workspace mailbox needs a fresh yes), prices both, and lists what Phil must sign up for. Phil approves or changes it. Nothing is created, bought or signed up for here. UK phone numbers usually need proof of address at the provider before they work (UNVERIFIED in this run; check at the time).\n\n## Why\nH6: an email address and a phone number per store is one of the known open items.\n\n## Done looks like\n`DECISIONS.md` carries the rewritten ADRs with prices and Phil's yes or change in a comment here; any build work is a new DSA ticket.\n\n## Unlocks\n- dsa.06: a real store can carry a real address and number\n\n## Depends on\n- dsa.04: an account to attach them to\n- mail.05 (soft): the address plan the per-store addresses must fit\n\n## Cost\nMay 2026 figures, not rechecked: about £5 per mailbox a month (Google Workspace) and about £1 a month per number plus about £0.013 a minute (Twilio). To be priced; nothing is bought in this run.\n\n## Red team\n- Finding 12: Priced and proposed; nothing bought. A phone number per store is a recurring cost the brief lists as open, not agreed.\n",
+      "after": [
+        "dsa.04",
+        "fixf.34"
+      ],
+      "links": [],
+      "tags": [
+        "planning",
+        "communication",
+        "dsa"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "dsa.06",
+      "title": "The first real niche",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nChoose the first niche that becomes a live store. In May Phil said the test niches (Tranquipaw and the others) were tests only: \"when I'm ready to go live I'll build my first proper one.\" The tool's own milestone M18: Shopify Basic, a custom domain, real products, the first five UGC DMs, social accounts and a first post. Claude runs NicheScout and ProductHunter on production for the UK market (high-ticket flag at £100 and over, HOLD on anything risky) and puts a shortlist of three with scores (pass at 70) on this ticket; Phil picks one. Going live is a separate decision because it spends money every month. Standing rules from the project: no em dashes anywhere (agent outputs, UI copy, documents); every agent scored out of 100, pass at 70, up to two retries; UK market.\n\n## Why\nH6: the first real niche is one of the known open items.\n\n## Done looks like\nA shortlist of three scored niches on this ticket and Phil's pick, or his \"not yet\".\n\n## Unlocks\n- A first live store (a new DSA ticket once Phil says go)\n\n## Depends on\n- fixf.34: the FixForward first slice ships first (H6 rule: FixForward only until then, and a live store costs money)\n\n## Flag\nH6 / H9 flag 6 `[claude]`: DropShipAuto alive while the venture rule says FixForward only. Kept alive as decided; this ticket waits for fixf.34 because going live costs money.\n\n## Cost\nChoosing costs only the agents' model calls (to be priced). Going live: May 2026 figure of about £25 a month for Shopify Basic, plus a domain, not rechecked. Nothing is bought in this run.",
+      "after": [
+        "fixf.34"
+      ],
+      "links": [],
+      "tags": [
+        "planning",
+        "research",
+        "dsa"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "dsa.07",
+      "title": "The subdomain sites and the Let's Encrypt email move off philipwhelan.com: the DropShipAuto-side check",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "C",
+      "description": "## What\nmail.31 does the move; this is the check from DropShipAuto's side afterwards. Look at every place DropShipAuto names philipwhelan.com: production `dropship.philipwhelan.com` and test `test.dropship.philipwhelan.com` (both on the VPS), the GitHub push webhook at `/webhook/github`, any Shopify app and webhook URLs (the HMAC-checked route), the Let's Encrypt account email on the VPS, and the repo's `docs/WORKFLOW.md`, `CLAUDE.md` and `README.md`. Confirm each points at the new names, a certificate renewal dry run passes, and a push to `develop` still deploys to test.\n\n## Why\nH1 and H6: DropShipAuto's sites and its Let's Encrypt email move off philipwhelan.com before the quiet year starts; the VPS stays.\n\n## Done looks like\nBoth sites answer on their new hostnames with valid certificates; a push to `develop` deploys; the renewal dry run passes; a search of the repo and the VPS config for philipwhelan.com finds only history.\n\n## Unlocks\n- mail.35: the quiet year can start with nothing of DropShipAuto left on the old domain\n\n## Depends on\n- mail.31: the move itself\n\n## Flag\nH6 `[claude]`: kept alive means the VPS stays, so the subdomain move is live work, not a shutdown chore.",
+      "after": [
+        "mail.31"
+      ],
+      "links": [],
+      "tags": [
+        "devops",
+        "dsa"
+      ],
+      "steps_definition": null
+    }
+  ],
+  "existing": [
+    {
+      "key": "DSA-8",
+      "set_epic": true,
+      "append": "\n\n## Related\ndsa.01 checks the two v1 replay bugs from May 2026 first; this ticket builds on its answer."
+    },
+    {
+      "key": "DSA-6",
+      "set_epic": true,
+      "append": "\n\n## Related\ndsa.02 checks the v1 History page that showed no rows; compare the v2 list against it."
+    }
+  ]
+}

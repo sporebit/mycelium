@@ -1,0 +1,2325 @@
+{
+  "epic": {
+    "sid": "E.fixf",
+    "project": "FIXF",
+    "title": "FixForward: one item from record to live listing, then the pilot",
+    "description": "FixForward sells Phil's and the household's own things on his eBay UK private account now (RAM, graphics cards, shoes, clothing, anything else), and later buys faulty items to repair and resell: \"1 and 2 into 3\", on 2 to 5 hours a week. Every listing is drafted and he approves it; he sets every price, with sold data as guidance; offers at or above his floor auto-accept; common questions get templates; labels are bought on his confirm; buying is alert only. It runs on the PC worker with the cloud receiving eBay's notifications, keeps its data in Mycelium's database under its own prefix, and shows on a Mycelium page with Telegram approvals. Until the first slice (one item from record to live listing) ships, FixForward is the only venture (H6). The repo at A:\\Projects\\fixforward and its roadmap (phases 0 to 6, to 2027-02-26) are the plan; these tickets mirror it and add what the brief decided.\n\n## Order\nFirst the decisions and Phil's queue: fixf.01 (trading rules and the contract), fixf.02 (the medical display), fixf.03 (official API only), fixf.04 (developer keyset), fixf.05 (business policies), fixf.06 (basket), fixf.07 (Saturday rehearsal), fixf.08 (the three certain risks), fixf.09 and fixf.10 (brand and voice). Then fixf.11 (token and policies, after mail.22), fixf.12 (the live test, the fork), fixf.13 (outcome B if needed) and fixf.34 (the first slice done). In parallel the Mycelium build: fixf.14 (tables), fixf.15 (import), fixf.16 (page), fixf.17 (Telegram), then fixf.18 to fixf.27. Then fixf.28 (pilot and dry run) and fixf.33 (scale-up and the 2027-02-26 decision). fixf.29, fixf.30, fixf.31 and fixf.32 fit in anywhere.\n\n## Done means\nOne item went from inventory record to live listing by the rules (fixf.34); the pilot passed its dry-run week (fixf.28); and on 2027-02-26 Phil has the total raised, hours, pounds per hour and sell-through, and has decided private or business (fixf.33).\n\n## Flags\n- Section 3 item 20 [claude]: tables inside Mycelium mean the migrations and RLS invariants apply, one migrations owner, deny-all plus service_role, own prefix (fixf.14). Not reopened.\n- Section 3 item 26 [claude]: \"plus scraping\" is declined by the repo's rule; fixf.03 records the cautious version and Phil can overturn it.\n- H10 flag 1 [claude]: the employment contract's side-work terms are checked in fixf.01 before any buying automation.\n- H10 flag 2 [claude]: the medical display stays out of inventory until its ownership is confirmed in writing (fixf.02).\n- Hard rules on every eBay ticket: official API only, never scrape; nothing on the live account without Phil's yes; no buyer data stored; never below floor; no Vinted automation; secrets only in Credential Manager.\n\n## Dossier\nThe dossier is attached in Docs: (link filled by the integrator).",
+    "dossier": "dossiers/fixf.md",
+    "links": [
+      "SELL-1",
+      "SELL-2"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "fixf.01",
+      "title": "Research: trading rules (eBay business expectation, HMRC trading allowance, the 30-sales report) and the employment contract's side-work terms, before any buying automation",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWrite one page, in Mycelium's docs and attached to this ticket, answering four questions for FixForward as it stands and as Phil plans it. (1) When eBay UK expects a business account: its business seller policy names selling items bought to resell, making items to sell and buying for a business; say which of Phil's planned activities (selling household belongings, repairing his own items, buying faulty items to repair and resell, buy alerts) cross that line. (2) HMRC: personal possessions usually carry no Income Tax; the trading allowance is £1,000 a year now and the GOV.UK policy paper of 28 October 2026 raises it to £3,000 from 6 April 2027; capital gains on any single item over £6,000. (3) eBay's digital sales report to HMRC: 30 sales or £1,707 after fees in a calendar year, the NI number and bank account reported, payout holds if the details are not given. (4) The employment contract: a checklist of the clauses Phil reads himself (exclusivity, outside work, conflict of interest, use of employer equipment, the handbook if the contract refers to one), with a yes or no line for each that he fills in. Claude never reads the contract unless Phil hands it over.\n\n## Why\nPhil's answer 3.23 asked for a research ticket first, before any buying automation; the H10 flag put the contract check into it because the goal is \"growing into a business\".\n\n## Done looks like\nThe page exists with sources dated; each of the four questions has a plain answer and the date checked; the contract checklist has Phil's yes or no on every line; the ticket comment says whether buy alerts (fixf.23) and repairs of bought items (fixf.24) may proceed on a private account.\n\n## Unlocks\nfixf.23 (buy alerts may be built); fixf.24 (repairs of bought items); fin.26 (tax on side income, shared: the same page answers both).\n\n## Depends on\nNothing. The research is done from GOV.UK, eBay help pages and Phil's own contract.\n\n## Flag\nH10 flag 1 [claude], not reopened: the side-work terms in the employment contract are checked here, before any buying automation.\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [],
+      "links": [
+        "fixf.28"
+      ],
+      "tags": [
+        "fixf",
+        "selling",
+        "research",
+        "admin",
+        "work"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.02",
+      "title": "The medical display: confirm in writing whose it is before it enters inventory",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nThe diagnostic monitor (one UK sale seen at about £3,000) stays out of FixForward's inventory, the sheet and every draft until Phil has a written answer on who owns it. Phil finds where it came from (employer, a trust, a clearance, a gift) and asks the owner in an email or letter for written confirmation that it is his to sell, then saves the reply with his own records (not in the repo, not in a ticket). If nobody can confirm, it is not sold.\n\n## Why\nH10 flag 2: the chat's open question was whether it is his to sell or belongs to his employer or a trust; it should not enter FixForward's inventory until that is confirmed in writing.\n\n## Done looks like\nA one-line comment on this ticket: \"confirmed mine in writing on (date)\" or \"not mine, returned or left\". Only after the first does the item get an inventory record.\n\n## Unlocks\nThe item's inventory record and pricing (through fixf.15 and fixf.19), if it is his.\n\n## Depends on\nNothing.\n\n## Flag\nH10 flag 2 [claude], not reopened. If it does sell: the buyer protection fee on a private listing is 2% on the part of the price between £300 and £4,000, and a single item over £6,000 can bring capital gains; neither applies until ownership is settled.",
+      "after": [],
+      "links": [
+        "fixf.15"
+      ],
+      "tags": [
+        "fixf",
+        "selling",
+        "admin",
+        "work"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.03",
+      "title": "Scraping policy: FixForward uses official APIs only; sold medians come from Phil's Product research screenshot or typed figure; the \"plus scraping\" answer is declined by the repo's rule",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA decision record, written on this ticket and mirrored as a proposal in the FixForward repo's `docs/proposals/` only if Phil asks. The decision: FixForward and anything Mycelium builds for it reads eBay only through the official API. Sold medians, which the API cannot give a private seller (Marketplace Insights is limited release), come from Phil's own Product research search in Seller Hub, saved as a screenshot, or a figure he types. No code fetches eBay pages, search results, sold listings or Seller Hub, and no third-party scraper or data service that scrapes eBay is used on his behalf. Where the API falls short the gap is shown to Phil, not filled.\n\n## Why\nPhil's answer 3.26 was \"official eBay APIs, plus scraping where they fall short\". The FixForward repo's hard rule 1 forbids scraping, and the brief's [claude] flag warned that scraping risks the personal account he sells through. This ticket takes the cautious version. **Phil can overturn it:** a comment here saying so reopens it, and the repo's rule would then need his edit too, since agents may not change it.\n\n## Done looks like\nThe decision text is on the ticket; fixf.19 and fixf.23 reference it; a comment from Phil either accepts it or overturns it (no reply means it stands).\n\n## Unlocks\nfixf.19 (pricing guidance reads sold data only from Phil's screenshots or typed figures); fixf.23 (buy alerts use the official Browse API only); fixf.31 (the 32 searches are done by Phil by hand).\n\n## Depends on\nNothing.\n\n## Flag\nSection 3 item 26 [claude], recorded against Phil's answer because the repo's own hard rule forbids it; not reopened beyond offering him the overturn.\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "research",
+        "documentation"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.04",
+      "title": "Phil's queue: eBay developer registration (submitted 2026-11-26): check status, then set the keyset in Credential Manager and verify (1.4, 1.5)",
+      "kind": "setup",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nCheck the eBay developer registration Phil submitted on 2026-11-26. When approved, create the Production keyset at developer.ebay.com, settle the marketplace account deletion notifications (the exemption, because nothing is persisted), store the App ID, Dev ID and Cert ID in Windows Credential Manager with the repo's `1.4-set-secrets.ps1`, and verify with `1.5-verify-keyset.ps1`. Then delete the retired `.env`. The steps are on this ticket.\n\n## Why\nRepo phase 1: nothing can touch eBay until the keyset exists; until then the pilot runs on outcome B (hand-made listings).\n\n## Done looks like\nThe Production keyset shows enabled; 1.4's self-test and 1.5 pass; `.env` is gone; the status box on step 1.1 holds the approval date.\n\n## Unlocks\nfixf.11 (user token exchange and policy check); through it, the live test fixf.12.\n\n## Depends on\nNothing. If approval has not come by 2026-12-11, fixf.13 (outcome B) goes ahead regardless.\n\n## Flag\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.\n\n## Cost\nNone. The developer programme is free.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "setup",
+        "secrets",
+        "security"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fixf-04-developer-keyset",
+        "kind": "setup",
+        "title": "eBay developer registration: check status, set the keyset, verify",
+        "version": 1,
+        "intro": {
+          "answer": "Check the developer registration; once approved, make the Production keyset, settle the deletion notifications, and store the keys with the repo's script.",
+          "unlocks": [
+            "fixf.11 user token exchange",
+            "the live test (fixf.12) through fixf.11"
+          ],
+          "to_hand": [
+            "The eBay Developers sign-in (its own password, not the seller account's)",
+            "The PC with Windows PowerShell 5.1"
+          ],
+          "time": [
+            "about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "eBay, Get started with eBay APIs",
+              "url": "https://developer.ebay.com/develop/guides/get-started-with-ebay-apis",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "eBay, Authorization code grant",
+              "url": "https://developer.ebay.com/api-docs/static/oauth-authorization-code-grant.html",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "1.3",
+            "why": "The exemption is a promise that nothing eBay sends about buyers is kept; every later feature has to keep it true."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Status, keyset and the script",
+            "needs": [
+              "eBay Developers sign-in",
+              "PowerShell"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Check the registration status",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "developer.ebay.com, My Account",
+                  "kind": "browser",
+                  "url": "https://developer.ebay.com/my/keys"
+                },
+                "body_html": "<p>Sign in to <strong>developer.ebay.com</strong> and open <strong>Application Keys</strong>. Write the status in the box.</p>",
+                "expect_html": "<p>The page offers to create a keyset (approved), or says the account is in review.</p>",
+                "fields": [
+                  {
+                    "key": "status",
+                    "label": "Approved or still in review, and today's date",
+                    "placeholder": "approved 2026-12-01"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "Still in review after five working days from 2026-11-26",
+                    "fix": "Use the Developer Account Support form on developer.ebay.com; eBay's stated time is about one business day. Then park this ticket."
+                  },
+                  {
+                    "symptom": "Registration rejected",
+                    "fix": "Do not register a second account. Use the support form and ask for a manual review; park this ticket."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Create the Production keyset",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "developer.ebay.com, Application Keys",
+                  "kind": "browser",
+                  "url": "https://developer.ebay.com/my/keys"
+                },
+                "body_html": "<p>Give the application a name (for example <code>fixforward</code>) and choose <strong>Create a keyset</strong> under <strong>Production</strong>.</p>",
+                "expect_html": "<p>A Production keyset appears with App ID, Dev ID and Cert ID, and a notice that the keyset is disabled until the deletion notifications are settled.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Paste secret values only into the script's hidden prompt. Never into a ticket, a chat, a field on this page or a file."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Settle the marketplace account deletion notifications",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The link in the \"Your Keyset is currently disabled\" notice",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Choose the <strong>exemption</strong> (opt out: this application does not persist eBay user data). That is the repo's plan and is true only while no buyer data is stored anywhere, including Mycelium's tables.</p>",
+                "expect_html": "<p>The disabled notice is gone and the Production keyset shows as enabled.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "If FixForward ever stores buyer names, usernames, addresses or messages, the exemption stops being true and a notification endpoint is needed instead. The hard rule is that nothing is stored."
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Store the keyset with the repo's script",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Windows PowerShell 5.1 on the PC, in A:\\Projects\\fixforward",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Run the script below. It asks for each value at a hidden prompt and stores it in Windows Credential Manager. Copy each value from the eBay page and paste it at the prompt only.</p>",
+                "expect_html": "<p>The script ends with its self-test passing and prints no secret.</p>",
+                "blocks": [
+                  {
+                    "label": "PowerShell",
+                    "text": ".\\scripts\\1.4-set-secrets.ps1",
+                    "kind": "command"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Paste secret values only into the script's hidden prompt. Never into a ticket, a chat, a field on this page or a file."
+                  },
+                  {
+                    "kind": "info",
+                    "html": "The real Credential Manager calls have never run before this step. If the self-test does not pass, stop and hand the output (it holds no secret) to Claude Code."
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "Verify the keyset",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Windows PowerShell 5.1 on the PC, in A:\\Projects\\fixforward",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Run the verify script. It mints an application token and makes one read-only call.</p>",
+                "expect_html": "<p>A pass line from the script.</p>",
+                "blocks": [
+                  {
+                    "label": "PowerShell",
+                    "text": ".\\scripts\\1.5-verify-keyset.ps1",
+                    "kind": "command"
+                  }
+                ]
+              },
+              {
+                "id": "1.6",
+                "title": "Delete the retired .env file",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "File Explorer, A:\\Projects\\fixforward",
+                  "kind": "page"
+                },
+                "body_html": "<p>Once 1.4 and 1.5 pass, delete <code>A:\\Projects\\fixforward\\.env</code>. It holds only dummy test values and is retired (repo roadmap).</p>",
+                "expect_html": "<p>No <code>.env</code> in the repo folder.</p>",
+                "irreversible": true
+              }
+            ],
+            "minutes": 15
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested",
+          "1.6": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fixf.05",
+      "title": "Phil's queue: business policies in Seller Hub (FF-Standard, FF-Returns-30, FF-Payment) and confirm \"Send automated offers\" is off",
+      "kind": "setup",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nIn a desktop browser, create the three business policies the Inventory API needs (FF-Payment with immediate payment, FF-Returns-30 with 30-day returns and buyer-paid return postage, FF-Standard with Royal Mail Tracked 48 and 1 working day dispatch), and check eBay's own automatic offers to buyers is off. The steps are on this ticket.\n\n## Why\nThe repo's live test needs the three policy IDs, and risk K3 (eBay's automatic offers going under a floor) is the likeliest way the account breaks the floor rule.\n\n## Done looks like\nThree policies listed with those names; the offers switch off and the box on step 1.5 filled in.\n\n## Unlocks\nfixf.11 (3.6 reads the policy IDs through the API); fixf.12.\n\n## Depends on\nNothing.\n\n## Flag\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.\n\n## Cost\nNone.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "setup"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fixf-05-business-policies",
+        "kind": "setup",
+        "title": "Business policies in Seller Hub, and eBay's automatic offers off",
+        "version": 1,
+        "intro": {
+          "answer": "Make the three business policies on a desktop browser and switch eBay's own automatic offers off.",
+          "unlocks": [
+            "fixf.11 policies verified through the API (3.6)",
+            "the live test fixf.12"
+          ],
+          "to_hand": [
+            "The eBay seller sign-in on a desktop browser",
+            "The repo's numbers: Tracked 48, dispatch 1 working day, returns 30 days buyer pays"
+          ],
+          "time": [
+            "about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "eBay UK help, Simple Delivery",
+              "url": "https://www.ebay.co.uk/help/selling/posting-items/setting-postage-options/simple-delivery?id=5575",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "eBay Seller Centre, Offers to buyers",
+              "url": "https://www.ebay.co.uk/sellercentre/grow-your-sales/using-promotions-to-boost-your-sales/offer-to-buyers-best-offer",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "eBay, Inventory API overview",
+              "url": "https://developer.ebay.com/api-docs/sell/inventory/overview.html",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Three policies and one switch",
+            "needs": [
+              "Desktop browser signed in to eBay"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Open business policies",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "eBay, Account settings, Business policies (desktop browser)",
+                  "kind": "browser",
+                  "url": "https://www.bizpolicy.ebay.co.uk/businesspolicy/manage"
+                },
+                "body_html": "<p>Open the business policies page. If eBay asks to opt in to business policies, accept. Use a desktop browser: the app no longer shows business policies to private sellers.</p>",
+                "expect_html": "<p>A page listing payment, postage and return policies (possibly empty).</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Payment policy FF-Payment",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Business policies, Create policy, Payment",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Name <code>FF-Payment</code>, immediate payment required. Save.</p>",
+                "expect_html": "<p>FF-Payment in the list.</p>",
+                "blocks": [
+                  {
+                    "label": "Policy name",
+                    "text": "FF-Payment",
+                    "kind": "value"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Return policy FF-Returns-30",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Business policies, Create policy, Returns",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Name <code>FF-Returns-30</code>: returns accepted, 30 days, buyer pays return postage, money back. Save.</p>",
+                "expect_html": "<p>FF-Returns-30 in the list.</p>",
+                "blocks": [
+                  {
+                    "label": "Policy name",
+                    "text": "FF-Returns-30",
+                    "kind": "value"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Postage policy FF-Standard",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Business policies, Create policy, Postage",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Name <code>FF-Standard</code>: UK only, Royal Mail Tracked 48, dispatch within 1 working day, no collection. Use the repo's figure of £3.95 unless Seller Hub shows the eBay label price; Simple Delivery may override this policy for buyers anyway.</p>",
+                "expect_html": "<p>FF-Standard in the list with a 1 working day dispatch time.</p>",
+                "blocks": [
+                  {
+                    "label": "Policy name",
+                    "text": "FF-Standard",
+                    "kind": "value"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Royal Mail's own online Tracked 48 prices since 7 April 2026: about £3.65 small parcel, about £2.85 large letter (checked 2026-11-28, partly unverified). Which price buyers see is settled at the live test."
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "Switch eBay's automatic offers off",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Seller Hub, Marketing or offer settings: \"Send offers to buyers automatically\"",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Find eBay's own automatic offers to interested buyers and make sure it is <strong>off</strong>. Write what you found.</p>",
+                "expect_html": "<p>The switch shows off.</p>",
+                "fields": [
+                  {
+                    "key": "auto_offers",
+                    "label": "Automatic offers: was it on or off before you looked?",
+                    "placeholder": "was off"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Risk K3: if left on, eBay can send an offer under a floor that has stepped down, outside the engine's guard. The exact menu path was not verified on 2026-11-28."
+                  }
+                ]
+              }
+            ],
+            "minutes": 15
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fixf.06",
+      "title": "Phil's queue: the £85.96 basket (photo station, packing shelf, backdrop, cards) ordered or declined",
+      "kind": "setup",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nDecide on the repo's recommended basket for the photo station and packing shelf (`docs/buying/weekend-under-100.md`): check what is already in the house (kitchen scale, two matching lights, phone holder, masking tape), confirm the one unconfirmed price (Dataman's static bags, £12.02), then order or decline. The steps are on this ticket.\n\n## Why\nPhil's 3b answer: a fixed photo station and packing shelf, because photographing and packing not getting done is the stall he named.\n\n## Done looks like\nOrder confirmations, or a written decline, recorded in step 1.4.\n\n## Unlocks\nfixf.07 with the full set; fixf.26 (batch night needs the station).\n\n## Depends on\nNothing.\n\n## Cost\n£85.96 as the repo priced it on 2026-11-27 (£97.95 if no kitchen scale). Nothing is bought in this run; Phil buys or declines.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "shopping",
+        "setup"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fixf-06-basket",
+        "kind": "setup",
+        "title": "The £85.96 basket: order or decline",
+        "version": 1,
+        "intro": {
+          "answer": "Check what you already own, confirm the one unconfirmed price, then order the basket or decline it.",
+          "unlocks": [
+            "fixf.07 rehearsal with the full set",
+            "fixf.26 weekly batch night"
+          ],
+          "to_hand": [
+            "The repo's basket list docs/buying/weekend-under-100.md",
+            "A card"
+          ],
+          "time": [
+            "about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "FixForward repo, weekend basket (local file)",
+              "url": "file:///A:/Projects/fixforward/docs/buying/weekend-under-100.md",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Check, decide, order",
+            "needs": [
+              "The basket list",
+              "A card"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Open the basket list",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "A:\\Projects\\fixforward\\docs\\buying\\weekend-under-100.md",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read the list: photo station (four white A1 foam boards), packing shelf, backdrop, cards, from four suppliers, £85.96 in total.</p>",
+                "expect_html": "<p>You can see each line, its supplier and price.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Tick off what you already own",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The house",
+                  "kind": "page"
+                },
+                "body_html": "<p>Check for a kitchen scale (1 g steps to 5 kg), two matching lights, a phone tripod or holder, masking tape. Note what is missing.</p>",
+                "expect_html": "<p>A short list of what is missing.</p>",
+                "fields": [
+                  {
+                    "key": "owned",
+                    "label": "Owned already (scale, lights, tripod, tape)",
+                    "placeholder": "scale yes, lights yes, tripod no, tape yes"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "No kitchen scale adds £11.99, so the basket becomes £97.95."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Confirm the Dataman bag price",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The Dataman supplier page from the basket list",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Check the static shielding bag price and delivery (the repo has £12.02, unconfirmed) before paying.</p>",
+                "expect_html": "<p>A confirmed price and delivery date.</p>",
+                "fields": [
+                  {
+                    "key": "dataman",
+                    "label": "Dataman bags price and delivery as shown",
+                    "placeholder": "£12.02, Thursday"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Order or decline",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Decision, then each supplier's checkout",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Decide: order all, order part, or decline. If ordering, check out at each supplier in the list.</p>",
+                "expect_html": "<p>Order confirmations by email, or your decision written in the box.</p>",
+                "fields": [
+                  {
+                    "key": "decision",
+                    "label": "Ordered all, ordered part (which) or declined",
+                    "placeholder": "ordered all, £85.96"
+                  }
+                ],
+                "irreversible": true
+              }
+            ],
+            "minutes": 15
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fixf.07",
+      "title": "Saturday rehearsal on ID 12 (SH-0018), timed; the timings replace the time budget",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nRehearse the whole route on inventory ID 12 (SH-0018, the tested 8GB Micron SODIMM, £19.99 median, also the live-test item) without listing it: label, photograph to the standard, run the photo intake, pack and weigh, timing each part. Hand the minutes to Claude Code so the repo's time budget estimates (26.5 minutes per RAM module) are replaced by real ones. The steps are on this ticket.\n\n## Why\nRepo phase 0: \"Saturday's timings replace\" the estimates, and hours, not prices, are the binding limit on the £2,500 target.\n\n## Done looks like\nThree timings recorded on the guide; a proposal in the repo's docs/proposals/ with the new minutes; ID 12 packed and ready for the live test.\n\n## Unlocks\nfixf.12 (the live test uses this item and its photos); fixf.28 (pilot plan uses real minutes).\n\n## Depends on\nNothing (the basket in fixf.06 helps but is not needed: the repo's guide works with what is in the house).",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "guide",
+        "photos"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fixf-07-rehearsal",
+        "kind": "guide",
+        "title": "Saturday rehearsal on ID 12, timed",
+        "version": 1,
+        "intro": {
+          "answer": "Take ID 12 (SH-0018) from label to packed parcel without listing it, timing every step, so real minutes replace the time budget's estimates.",
+          "unlocks": [
+            "fixf.12 live test on ID 12",
+            "fixf.28 pilot, with real minutes per item"
+          ],
+          "to_hand": [
+            "ID 12 (the tested 8GB Micron SODIMM)",
+            "Phone",
+            "The repo guide docs/guides/weekend-first-item.html",
+            "A timer"
+          ],
+          "time": [
+            "about 45 minutes in three sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "FixForward repo roadmap, phase 0 (local file)",
+              "url": "file:///A:/Projects/fixforward/docs/plan/roadmap.md",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Label and photograph",
+            "needs": [
+              "ID 12",
+              "Phone",
+              "Light and backdrop"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Open the repo's Saturday guide",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "A:\\Projects\\fixforward\\docs\\guides\\weekend-first-item.html",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the guide in a browser. Start a timer and write the start time.</p>",
+                "expect_html": "<p>The guide open on its first step.</p>",
+                "fields": [
+                  {
+                    "key": "start",
+                    "label": "Start time",
+                    "placeholder": "10:05"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Label and photograph to the standard",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "The photo set",
+                  "kind": "page"
+                },
+                "body_html": "<p>Follow the guide's label and photo steps for ID 12: label shot first, hero, angles, spec label; cover the serial with paper, never blur it.</p>",
+                "expect_html": "<p>The photos on the phone in the guide's order, no serial visible.</p>",
+                "fields": [
+                  {
+                    "key": "photo_min",
+                    "label": "Minutes for labelling and photos",
+                    "placeholder": "14"
+                  }
+                ]
+              }
+            ],
+            "minutes": 13
+          },
+          {
+            "id": "2",
+            "title": "Intake on the PC",
+            "needs": [
+              "Phone and USB cable"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Copy the photos and run the intake",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "docs/testing/intake-first-run.html in the repo",
+                  "kind": "page"
+                },
+                "body_html": "<p>Follow the repo's intake first-run page: photos into <code>inbox\\</code> over USB, then the intake in a Claude Code session in the repo.</p>",
+                "expect_html": "<p>An intake summary for ID 12 and a draft from the public copy.</p>",
+                "fields": [
+                  {
+                    "key": "intake_min",
+                    "label": "Minutes for intake",
+                    "placeholder": "15"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The phone saved HEIC",
+                    "fix": "Set the camera to Most Compatible and retake; the intake refuses HEIC."
+                  }
+                ]
+              }
+            ],
+            "minutes": 12
+          },
+          {
+            "id": "3",
+            "title": "Pack, weigh and hand the minutes back",
+            "needs": [
+              "Padded envelope E1",
+              "Static bag",
+              "Card stiffener",
+              "Scale"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Pack and weigh",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The packing shelf",
+                  "kind": "page"
+                },
+                "body_html": "<p>Pack ID 12 to the packing standard (E1 envelope, static bag with the ID label, cereal-card stiffener), weigh and measure it packed.</p>",
+                "expect_html": "<p>A sealed parcel with its weight and size written down.</p>",
+                "fields": [
+                  {
+                    "key": "pack",
+                    "label": "Packed weight (g), size (mm) and minutes",
+                    "placeholder": "45 g, 210 x 150 x 8, 7 min"
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "Give Claude the timings",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "A Claude Code session in A:\\Projects\\fixforward",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Paste the prompt below into Claude Code in the repo.</p>",
+                "expect_html": "<p>Claude proposes the time-budget changes in docs/proposals/ (docs/project/ stays as it is).</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Saturday rehearsal on ID 12 is done. My timings are in the FixForward rehearsal ticket (fixf.07): photos, intake, packing. Propose the time-budget changes as a proposal; do not edit docs/project/.",
+                    "kind": "prompt"
+                  }
+                ]
+              }
+            ],
+            "minutes": 11
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fixf.08",
+      "title": "Fix the three certain risks before the live test: inventory page floor rounding (done in the working tree, commit it), the Syncthing share exclusion, private notes in git history (commits 3e9884a, bdfe853)",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nThree fixes in the FixForward repo, in this order, each on Phil's yes in a session in that repo. (1) Risk K1: the floor rounding fix (80% of median rounded up to the penny; shown prices round down to 50p, never below floor) is already in the working tree in `docs/project/inventory.md` and `docs/reference/inventory-page.html`; commit it, and update the live inventory artifact in the Claude project to match. (2) Risk S2: add `/fixforward` to `A:\\Projects\\.stignore` so Syncthing stops copying it, then Phil deletes the copies on the other devices. (3) Risk S3: commits `3e9884a` and `bdfe853` hold private sheet notes (no serials). Options: leave them, or rewrite history before any remote exists. A rewrite is irreversible: make a git bundle backup first, rewrite only on Phil's explicit yes, regenerate the drafts, then expire the reflog.\n\n## Why\nThe repo's risk register says act on these three, all certain now, before the live test.\n\n## Done looks like\nThe floor fix committed and the artifact matching it; `.stignore` holds the line and no other device has a copy; a comment on this ticket recording Phil's choice on the history and, if rewritten, that `git log --all` no longer reaches either commit.\n\n## Unlocks\nfixf.12 (live test waits for all three).\n\n## Depends on\nNothing. Phil's yes for each of the three, given in the session.\n\n## Flag\nNot done in this run: nothing is run in the FixForward repo, and the history rewrite is never done without Phil's yes to that step.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "security",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.09",
+      "title": "Brand: shop name, logo, a card in every parcel; the identity ticket",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nTake the repo's brand work to a decision Phil can make in one sitting: the name check (an active UK company with the exact name exists, both UK domains are held by others, the UK IPO trade mark search was not read), the three directions with Ticket recommended (lower-case serif wordmark, bottle green and terracotta, prints in black line on an inkjet), the logo files and the print pieces (handle card, A6 parcel insert, box-front label). Claude prepares a one-page comparison; Phil chooses a direction (repo Needs Phil 14), runs the UK IPO search himself (Needs Phil 15), and decides on the handle card in listing photos (Needs Phil 13).\n\n## Why\nPhil's 3b answer: a real brand, a shop name, a logo and a card in every parcel.\n\n## Done looks like\nA direction chosen; the IPO search result recorded; the parcel insert printed once as a test; the decision on the handle card recorded.\n\n## Unlocks\nParcel inserts in every order from the pilot (fixf.28); the eBay profile text.\n\n## Depends on\nNothing.\n\n## Flag\nThe handle card in listing photos may conflict with eBay's picture and contact-information policies; the repo's fallback is a private shot. The voice rules forbid \"shop\", \"store\" and \"business\" in listings while the account is private.\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.\n\n## Cost\nPaper and ink only; no paid design or trade mark filing in this ticket.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "idea",
+        "documentation"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.10",
+      "title": "Listing voice standard check: plain and exact, faults first",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "C",
+      "description": "## What\nRead the repo's `docs/standards/voice-and-tone.md`, `listing-descriptions.md` and `listing-titles.md` and check they say what Phil asked: plain and exact; what it is, what was tested, what is wrong with it; faults first. Write the result as a comment here; if a gap exists (for example faults not first in the five fixed description sections), write a proposal in the repo's `docs/proposals/`, since agents never edit `docs/project/` or the standards' meaning without Phil.\n\n## Why\nPhil's 3b answer: listing voice plain and exact, faults first.\n\n## Done looks like\nA comment saying the standards match, or a named proposal file with the change.\n\n## Unlocks\nfixf.12 and fixf.28 (listings drafted in the agreed voice).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "documentation"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.11",
+      "title": "User token exchange and verification (2.4, 2.5), then policies verified (3.6), each on Phil's yes",
+      "kind": "setup",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nWith the keyset stored (fixf.04) and the policies made (fixf.05), Phil runs the repo's `2.4-exchange-code.ps1` (consent on the seller account, the code pasted at a hidden prompt, the refresh token kept in Credential Manager), `2.5-verify-user-token.ps1` and `3.6-verify-policies.ps1`, each read-only after the consent. eBay's access token lasts 2 hours; the refresh token's sample lifetime is about 18 months. The steps are on this ticket.\n\n## Why\nRepo phase 1: the live test needs a user token and the three policy IDs.\n\n## Done looks like\nBoth verify scripts pass; the three policies are listed with IDs; no token printed anywhere.\n\n## Unlocks\nfixf.12 (the live test).\n\n## Depends on\nfixf.04 (the keyset stored); fixf.05 (the three policies exist); mail.22 (eBay password and two-factor changed first, because changing the password after consent may revoke the token, unverified, and H2.12 puts the password and 2FA before automation touches the account).\n\n## Flag\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.\n\n## Cost\nNone.",
+      "after": [
+        "fixf.04",
+        "fixf.05",
+        "mail.22"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "setup",
+        "secrets",
+        "security"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fixf-11-user-token",
+        "kind": "setup",
+        "title": "User token exchange and verification, then policies verified",
+        "version": 1,
+        "intro": {
+          "answer": "Give the fixforward application consent on the seller account, store the token, and check the three policies through the API, each on your yes.",
+          "unlocks": [
+            "fixf.12 live test"
+          ],
+          "to_hand": [
+            "The eBay seller sign-in (password and two-factor already changed in mail.22)",
+            "PowerShell"
+          ],
+          "time": [
+            "about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "eBay, Authorization code grant",
+              "url": "https://developer.ebay.com/api-docs/static/oauth-authorization-code-grant.html",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "eBay, Inventory API overview",
+              "url": "https://developer.ebay.com/api-docs/sell/inventory/overview.html",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Consent, verify, policies",
+            "needs": [
+              "eBay seller sign-in",
+              "PowerShell"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Run the code exchange",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Windows PowerShell 5.1 on the PC, in A:\\Projects\\fixforward",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Run the script. It opens eBay's consent page for the <code>fixforward</code> application. Sign in as the seller account and choose Agree, then paste the code it asks for at its hidden prompt.</p>",
+                "expect_html": "<p>The script says the token is stored. It prints no token.</p>",
+                "blocks": [
+                  {
+                    "label": "PowerShell",
+                    "text": ".\\scripts\\2.4-exchange-code.ps1",
+                    "kind": "command"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Paste secret values only into the script's hidden prompt. Never into a ticket, a chat, a field on this page or a file."
+                  },
+                  {
+                    "kind": "info",
+                    "html": "Your yes to this step is the yes the repo's rule asks for. Only read-only calls follow in this ticket."
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The exchange says the redirect or RuName is wrong",
+                    "fix": "Hand the script output (no secret in it) to Claude Code in the repo; the RuName is set on developer.ebay.com under User Tokens."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Verify the user token",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Windows PowerShell 5.1 on the PC, in A:\\Projects\\fixforward",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Run the verify script. It makes one read-only call as the seller.</p>",
+                "expect_html": "<p>A pass line naming the account <code>fixforward</code>.</p>",
+                "blocks": [
+                  {
+                    "label": "PowerShell",
+                    "text": ".\\scripts\\2.5-verify-user-token.ps1",
+                    "kind": "command"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Verify the policies",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Windows PowerShell 5.1 on the PC, in A:\\Projects\\fixforward",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Run the policies check. It reads the business policies through the Account API, read-only.</p>",
+                "expect_html": "<p>FF-Payment, FF-Returns-30 and FF-Standard listed with their IDs.</p>",
+                "blocks": [
+                  {
+                    "label": "PowerShell",
+                    "text": ".\\scripts\\3.6-verify-policies.ps1",
+                    "kind": "command"
+                  }
+                ],
+                "fields": [
+                  {
+                    "key": "policies",
+                    "label": "All three policies listed? (yes or no)",
+                    "placeholder": "yes"
+                  }
+                ]
+              }
+            ],
+            "minutes": 12
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fixf.12",
+      "title": "The live test: ID 12 end to end, buyer view on the phone, one price revision, one watcher offer, one traffic report, each on its own yes; outcome A or B recorded",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "P",
+      "description": "## What\nThe repo's phase 2, the fork. ID 12 is approved by Phil, published by Claude Code through the Inventory API on his yes, checked as a buyer on his phone (does it show Simple Delivery and the buyer protection fee), then one price revision, one watcher offer and one traffic report, each on its own yes. The outcome is recorded: A, listings go up through the API after one-tap approval; B, hand-made listings from paste-ready drafts (fixf.13). The steps are on this ticket.\n\n## Why\nPhil's first slice (3.27) is one item from inventory record to live listing, and nobody can say from documentation whether a private account's API listing gets Simple Delivery.\n\n## Done looks like\nA live listing with its item number recorded, outcome A or B recorded, the three single actions recorded with their results, and an audit line for each action.\n\n## Unlocks\nfixf.34 (first slice done check); fixf.28 (pilot); fixf.13 (if B); fixf.20 (offers, once mail.22 is done).\n\n## Depends on\nfixf.07 (ID 12 rehearsed and packed); fixf.08 (the three certain risks fixed); fixf.11 (token and policies); mail.22 (eBay password rotated and two-factor on, before FixForward touches the account).\n\n## Flag\nPhil's first-slice test. Under outcome A the repo's guard and stop file sit in front of every call.\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.\n\n## Cost\nNone to list (private seller, under 300 free listings a month). Postage only if it sells.",
+      "after": [
+        "fixf.07",
+        "fixf.08",
+        "fixf.11",
+        "mail.22"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "guide",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fixf-12-live-test",
+        "kind": "guide",
+        "title": "The live test on ID 12: the fork between outcome A and B",
+        "version": 1,
+        "intro": {
+          "answer": "List ID 12 for real through the API on your yes, look at it as a buyer would, try one price change, one watcher offer and one traffic report, then record outcome A or B.",
+          "unlocks": [
+            "fixf.34 first slice done",
+            "fixf.28 pilot",
+            "fixf.13 if outcome B"
+          ],
+          "to_hand": [
+            "ID 12 packed (fixf.07)",
+            "Phone with the eBay app",
+            "A Claude Code session in the repo"
+          ],
+          "time": [
+            "about 45 minutes in three sittings, spread over a few days"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "eBay UK help, Simple Delivery",
+              "url": "https://www.ebay.co.uk/help/selling/posting-items/setting-postage-options/simple-delivery?id=5575",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "eBay UK help, Buyer Protection fee",
+              "url": "https://ebay.co.uk/help/buying/paying-items/buyer-protection-fee?id=5594",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "eBay, Inventory API overview",
+              "url": "https://developer.ebay.com/api-docs/sell/inventory/overview.html",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "eBay Seller Centre, Offers to buyers",
+              "url": "https://www.ebay.co.uk/sellercentre/grow-your-sales/using-promotions-to-boost-your-sales/offer-to-buyers-best-offer",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "2.1",
+            "why": "Whether a private account's API listing gets Simple Delivery is not documented anywhere; this is the only way to know."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Pre-flight and publish",
+            "needs": [
+              "Claude Code in the repo",
+              "Seller Hub open"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Check eBay's automatic offers are still off",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Seller Hub offer settings",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Look again at eBay's own automatic offers to buyers. It must be off (risk K3).</p>",
+                "expect_html": "<p>The switch shows off.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Approve ID 12 and its schedule",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "A:\\Projects\\fixforward, your own terminal",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Approve the item from your own console. The schedule shows in pounds: start £21.50, then £20.00, £18.50, £17.00, floor £16.00 (for a £19.99 median refreshed on the day).</p>",
+                "expect_html": "<p>The approve command confirms ID 12 approved with its floor.</p>",
+                "blocks": [
+                  {
+                    "label": "PowerShell",
+                    "text": "npm run approve -- 12",
+                    "kind": "command"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Refresh the sold median from Product research first: the November figure is old. Never below the floor."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Claude Code publishes ID 12 on your yes",
+                "actor": "claude-code",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code in A:\\Projects\\fixforward",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code shows the exact listing and asks; you answer yes in the session; it publishes through the Inventory API with the three policy IDs and records the item number.</p>",
+                "expect_html": "<p>An eBay item number and an audit line.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Write the item number",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This step",
+                  "kind": "page"
+                },
+                "body_html": "<p>Copy the item number Claude Code printed.</p>",
+                "expect_html": "<p>The number in the box.</p>",
+                "fields": [
+                  {
+                    "key": "item_no",
+                    "label": "eBay item number",
+                    "placeholder": "a 12-digit number"
+                  }
+                ]
+              }
+            ],
+            "minutes": 7
+          },
+          {
+            "id": "2",
+            "title": "Buyer view on the phone",
+            "needs": [
+              "Phone",
+              "A second eBay account or signed-out browser"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Open the listing as a buyer",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Phone browser, signed out, the item number",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Open the listing signed out. Check photos, title, condition, faults first, the price shown and the postage line.</p>",
+                "expect_html": "<p>The price includes the buyer protection fee (about £1.60 on £21.50) and the postage line says Simple Delivery or names a service.</p>",
+                "fields": [
+                  {
+                    "key": "buyer_view",
+                    "label": "What the postage line says, and the price shown",
+                    "placeholder": "Simple Delivery, £23.10"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Record outcome A or B",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>A: the buyer view shows Simple Delivery and the buyer protection fee. B: it does not. If B, end ID 12 through Claude Code on your yes and relist by hand from the paste-ready draft (fixf.13).</p>",
+                "expect_html": "<p>A or B in the box.</p>",
+                "fields": [
+                  {
+                    "key": "outcome",
+                    "label": "Outcome A or B",
+                    "placeholder": "A"
+                  }
+                ]
+              }
+            ],
+            "minutes": 8
+          },
+          {
+            "id": "3",
+            "title": "One revision, one watcher offer, one traffic report",
+            "needs": [
+              "Claude Code in the repo"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "One price revision, on your yes",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Claude Code in the repo",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>When Claude Code asks, say yes to one revision to the next step price (an absolute value, never below floor).</p>",
+                "expect_html": "<p>The phone shows the new price within minutes.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "One watcher offer, on your yes",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code in the repo",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>If ID 12 has a watcher, say yes to one offer 5% off the current price, capped at the floor, 4-day life. If there is no watcher, write \"none\".</p>",
+                "expect_html": "<p>An offer sent, or \"no watchers\" from Claude Code.</p>",
+                "fields": [
+                  {
+                    "key": "watcher",
+                    "label": "Watcher offer sent, refused by eBay, or no watchers",
+                    "placeholder": "sent"
+                  }
+                ]
+              },
+              {
+                "id": "3.3",
+                "title": "One traffic report",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code in the repo",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code for the read-only traffic report on ID 12.</p>",
+                "expect_html": "<p>Views and watchers for ID 12.</p>"
+              }
+            ],
+            "minutes": 9
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fixf.13",
+      "title": "Outcome B fallback by 2026-12-11 if keys have not arrived: hand-made listings from paste-ready drafts",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nIf the live test gives outcome B, or the developer keys have not arrived by Friday 2026-12-11, the pilot lists by hand. Claude prepares a paste-ready pack per item from the public copy (title, item specifics, condition, description, photos in order, price and floor); Phil creates each listing in Seller Hub and types the item number back; the engine records it (`attach`) and handles everything after through the API once keys exist. eBay's Trading API documentation restricts revise calls only on listings made with the Inventory API, so a hand-made listing should be repriceable through Trading; `bulkMigrateListings` is a second route if a listing is fixed price, Good 'Til Cancelled, on business policies and with a SKU. Both are checked on one listing first, on Phil's yes, before relying on them.\n\n## Why\nThe repo protects 2026-12-11 as the outcome B date so the pilot is not pushed past Christmas; outcome B costs about 6 to 10 more minutes per listing.\n\n## Done looks like\nA paste-ready pack for each pilot item; the first hand-made listing's item number attached; a comment recording whether a Trading revise worked on it.\n\n## Unlocks\nfixf.28 (the pilot can run under B).\n\n## Depends on\nfixf.12 (the fork's outcome, or no keys by 2026-12-11).\n\n## Flag\nPhil creates hand-made listings himself; no automation fills in the Seller Hub form.\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [
+        "fixf.04"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.14",
+      "title": "Mycelium tables for FixForward: own prefix, deny-all plus service_role RLS, one adapter file, migration owned by the integrator",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nDesign and write the FixForward tables in Mycelium's Supabase database under their own prefix (for example `ff_`), from the repo's `item.v1` and `reading.v1` schemas: items, photos (public role only, paths not images), schedules and floors, approvals, audit lines (allow-listed fields), repairs, sold-data anchors (Phil's screenshot reference or typed figure). Every table deny-all with a service_role policy, the established pattern. One adapter file is the only code that reads or writes them, so FixForward can be lifted out later as PhirstMaxx can. The migration file takes the next number and is written by whoever owns migrations in that session (the integrator), applied with `supabase db push`. No column for any buyer data.\n\n## Why\nPhil's answers 3.20 and 3.21: tables inside Mycelium's database, built like PhirstMaxx with its own prefix and one adapter file.\n\n## Done looks like\nThe migration listed on both Local and Remote in `supabase migration list`; RLS deny-all checked by the isolation test; the adapter's tests pass; a schema note showing no buyer field exists.\n\n## Unlocks\nfixf.15 (import); fixf.27 (the PC worker and notifications).\n\n## Depends on\nNothing.\n\n## Flag\nSection 3 item 20 [claude], not reopened: the migrations and RLS invariants apply, one migrations owner, deny-all plus service_role, own prefix. The keyset's deletion-notification exemption is true only while these tables hold no eBay user data.\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "feature"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.15",
+      "title": "Import the inventory into Mycelium's tables; the Google Sheet kept as a view",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nImport the 70 records (SH-0001 to SH-0070) and their public fields into the fixf.14 tables through the adapter, using the repo's sheet importer or its item.v1 output, never the private parts: serials, evidence and test references stay in the repo's git-ignored private store. The Google Sheet stays, read-only, as a view generated from the tables. A second run of the import changes nothing.\n\n## Why\nPhil's answer 3.9: a database, with the Google Sheet imported once and kept as a view.\n\n## Done looks like\n70 rows in the items table, none with a serial (checked by the repo's private guard pattern); the sheet regenerated from the tables; a second run reports zero changes.\n\n## Unlocks\nfixf.16 (page); fixf.18 (photo tidy-up); fixf.32 (clothes and other items).\n\n## Depends on\nfixf.14 (the tables).\n\n## Red team\n- Finding 31: The medical display row is imported as 'hold: ownership unconfirmed' and excluded from drafts until fixf.02 closes.\n",
+      "after": [
+        "fixf.14"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.16",
+      "title": "The Mycelium page: inventory, drafts awaiting approval, profit per item and per hour, running total on the daily line",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA FixForward page in Mycelium: the inventory with status, floor and current price; drafts awaiting Phil's approval with a one-tap approve that records his yes; profit per item and pounds per hour (sale price less postage, fees and parts, over logged minutes); and a running total raised on the daily line. Reads through the fixf.14 adapter only. Nothing on the page calls eBay directly: actions go to the engine's guard as requests Phil has approved.\n\n## Why\nPhil's answers 3.21 and 3b: a Mycelium page, profit per hour on every item, a running total on the daily line for interest.\n\n## Done looks like\nThe page lists the 70 items; approving a draft writes an approval row and nothing else; the daily line shows the total; e2e test passes.\n\n## Unlocks\nfixf.17 (Telegram approvals); fixf.19, fixf.23, fixf.24, fixf.26, fixf.28.\n\n## Depends on\nfixf.15 (the data).\n\n## Flag\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [
+        "fixf.15"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "feature",
+        "ui"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.17",
+      "title": "Telegram approvals: one-tap approve a listing, an offer below floor, a message outside the templates",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nThrough the existing Mycelium Telegram bot, send Phil three kinds of approval with one-tap buttons: a listing draft (approve or hold), an offer within about 10% below floor (accept, counter at the floor, decline; accepting below floor is not offered), and a buyer message no template matches (Phil writes the reply in Seller Hub himself, or approves a draft). Buyer message text is shown to Phil in the Telegram message and held in memory only, never written to Mycelium's tables or logs.\n\n## Why\nPhil's answer 3.21: a Mycelium page plus Telegram for approvals.\n\n## Done looks like\nEach of the three approvals arrives and its button records Phil's yes; no buyer text in the database or the logs (checked by test); a refusal by the guard sets the stop.\n\n## Unlocks\nfixf.20, fixf.21, fixf.22, fixf.28.\n\n## Depends on\nfixf.16 (the page and approval rows).\n\n## Flag\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [
+        "fixf.16"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "feature",
+        "communication"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.18",
+      "title": "Photo tidy-up: crop, straighten, order, attach; PC model first",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nExtend the repo's photo intake so each listing's public photos are cropped, straightened and ordered to the photo standard and attached to the item, using a PC model first and the cloud inside Mycelium's £5 monthly cap only when the PC model cannot. Metadata stripped except orientation; serials stay physically covered (never digitally blurred); no borders, text or logos added. Condition is never judged by a model.\n\n## Why\nPhil's answers 3.12 and 3.22: his own photos, tidied automatically; PC model first.\n\n## Done looks like\nOn Saturday's ID 12 photos: cropped, straight, in standard order, attached; metadata gone; cost per item logged.\n\n## Unlocks\nfixf.28 (pilot photos).\n\n## Depends on\nfixf.15 (items to attach to).\n\n## Cost\nInside the existing £5 a month AI cap; the repo estimates about 0.05 US dollars per 12-photo item on a cloud model.",
+      "after": [
+        "fixf.15"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "photos"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.19",
+      "title": "Pricing from sold data as guidance only; Phil sets every price; unsold listings get a suggested drop he approves",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nShow, per item, the sold median from Phil's own Product research screenshot or typed figure (90 days, same part number and condition group) with its date, the start price at 108% (rounded down to 50p) and the floor at 80% rounded up to the penny, as guidance. Phil sets the price. For unsold items the engine's schedules (parts stale at day 7, then 101, 94, 87, 80%; clothing at day 21 then every 14 days to 80%) appear as a suggested drop he approves once, at listing. When the median is older than the rules allow, the page asks Phil for a fresh search instead of guessing.\n\n## Why\nPhil's answers 3.13 and 3.14: he sets every price; sold data is guidance, never applied on its own; unsold listings get a suggested drop he approves.\n\n## Done looks like\nEvery item shows median, date, start and floor; no price changes without an approved schedule; the guard refuses any drop past the floor (tested).\n\n## Unlocks\nfixf.25 (dead stock); fixf.28.\n\n## Depends on\nfixf.16 (the page); fixf.03 (where sold data comes from).\n\n## Flag\nMarket data rule (fixf.03): sold data only from Phil's screenshots or typed figures; the API cannot give it.\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [
+        "fixf.16"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "feature"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.20",
+      "title": "Offers: auto-accept at or above floor, counter below, the rest to Phil",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWire the engine's offer decision to the eBay API through the guard: an incoming Best Offer at or above the item's current floor is accepted; within about 10% below the floor goes to Phil on Telegram; lower gets an automatic counter at the floor. Away mode sends every offer to Phil. Watcher offers stay the repo's fixed 5% off current price, capped at floor, one per step. Each auto-accept and counter is an action Phil approved once by turning this feature on, recorded in the audit.\n\n## Why\nPhil's answer 3.16: auto-accept at or above his floor; lower ones come to him with a suggested counter.\n\n## Done looks like\nTests show no accept or counter below floor in any case; one real offer handled on the live account after Phil's yes to switching the feature on.\n\n## Unlocks\nfixf.28 (pilot with offers running).\n\n## Depends on\nfixf.17 (Telegram for the offers that go to Phil); mail.22 (the eBay password and two-factor done before automation acts on the account).\n\n## Flag\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [
+        "fixf.17",
+        "mail.22b"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "feature"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.21",
+      "title": "Buyer messages: the five templates auto-answer, the rest to Phil",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nConnect the repo's message module to eBay's messaging through the guard: a buyer question that matches one of the five approved templates by plain-code pattern (never a model) gets that template, filled from the listing and ending with the sentence saying it is automatic; at most one auto-reply per conversation per 24 hours; everything else goes to Phil on Telegram. Message contents are held in memory only.\n\n## Why\nPhil's answer 3.17: auto-answer common questions; the rest come to him.\n\n## Done looks like\nTests cover each template and a near miss that goes to Phil; no message text on disk or in the database; one real reply sent after Phil's yes to switching it on.\n\n## Unlocks\nfixf.28.\n\n## Depends on\nfixf.17 (Telegram routing).\n\n## Flag\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [
+        "fixf.17"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "feature",
+        "communication"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.22",
+      "title": "Postage: label prepared, bought when Phil confirms",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWhen an item sells, prepare the postage: under Simple Delivery the prepaid label comes from eBay and the job is to remind Phil with the item's packing code and weight; outside Simple Delivery prepare the Royal Mail Tracked 48 label details (the online price since 7 April 2026 was about £3.65 small parcel, about £2.85 large letter) and buy it only when Phil taps confirm. Dispatch next working day; paid after 2pm goes the day after. The buyer's address is never stored: the label is made inside eBay's or Royal Mail's own flow.\n\n## Why\nPhil's answer 3.18: label prepared, bought when he confirms.\n\n## Done looks like\nA sale produces a Telegram prompt with packing code and weight; no label is bought without the tap; no address in any table or log.\n\n## Unlocks\nfixf.28.\n\n## Depends on\nfixf.17 (Telegram confirm).\n\n## Flag\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.\n\n## Cost\nPostage per parcel, paid only on Phil's confirm (or by the buyer under Simple Delivery).",
+      "after": [
+        "fixf.17"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "feature"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.23",
+      "title": "Buy alerts: expected profit above a per-category bar Phil sets; never bids or buys",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAlerts to Phil when a listing on eBay, found through the official Browse API only, is expected to make more than the profit bar he sets for its category (expected sale from his sold data, less price, postage, fees, parts and his time at a rate he sets). The alert is a message with a link; the code never bids, buys, offers or watches. Off until fixf.01 says buying to resell is allowed on the account Phil uses.\n\n## Why\nPhil's answers 3.15 and 3b: alert only, with expected profit; only above a bar he sets per category.\n\n## Done looks like\nBars set per category by Phil; alerts arrive on Telegram; tests prove no buying call exists in the code; the feature is switched on only after fixf.01's answer.\n\n## Unlocks\nSecond-intake stock for the scale-up (fixf.33).\n\n## Depends on\nfixf.01 (whether buying to resell needs a business account first); fixf.16 (the page for the bars).\n\n## Flag\nBuying to resell is eBay UK's own business-seller trigger. Market data rule (fixf.03): Browse API only, no scraping.\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [
+        "fixf.01",
+        "fixf.16"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "feature"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.24",
+      "title": "Repairs per item: fault, parts, time, test result, profit per hour; before, during and after photos",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAdd a repair record to each item in the fixf.14 tables and the page: fault found, parts used and their cost, minutes spent, test name, date and result, and a before, during and after photo set (private role unless Phil marks a photo public). Profit per hour shows on every item; Phil judges, there is no time box. A repaired item is listed as \"tested\" only with a stored pass photo, per the repo's parts-testing standard. Repairs on items he already owns can start now; repairs on items bought to resell wait for fixf.01.\n\n## Why\nPhil's answers 3.24 and 3b: repairs tracked per item, profit per hour shown, before, during and after photos.\n\n## Done looks like\nA repair entered for one real item shows its profit per hour; tests cover the maths; the \"tested\" word blocked without proof.\n\n## Unlocks\nBetter pricing of repaired items in fixf.19.\n\n## Depends on\nfixf.16 (the page); fixf.01 (before any item bought to repair and resell).\n\n## Flag\nRepairing items bought to resell is eBay UK's business-seller trigger; household items are not affected.\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [
+        "fixf.16",
+        "fixf.01"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "feature",
+        "tools"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.25",
+      "title": "Dead stock: after a set time bundle as a job lot, then donate or recycle",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nUse the engine's lot proposal: an item held 14 days at its floor (parts by about day 42, clothing by about day 119) is proposed to Phil as part of a job lot with a suggested price; a lot unsold after a period Phil sets is proposed for donation or recycling, with drives only after a wipe record (fixf.29). Nothing is relisted, ended or given away without his yes.\n\n## Why\nPhil's 3b answer: dead stock after a set time bundled as a job lot, then donated or recycled.\n\n## Done looks like\nLot proposals appear on the page and Telegram with the items and price; each needs his yes; a test shows no lot priced below the sum of the floors unless Phil types the price.\n\n## Unlocks\nSpace on the packing shelf; fixf.33's sell-through numbers.\n\n## Depends on\nfixf.19 (schedules reaching the floor).\n\n## Flag\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [
+        "fixf.19"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "feature"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.26",
+      "title": "Weekly batch night: a queue of what to shoot and pack on the daily list",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nOnce a week on an evening Phil picks, put on Mycelium's daily list a queue of what to photograph and what to pack, drawn from the fixf.14 tables: unphotographed items in listing order, sold items waiting to post, each with its packing code. The queue fits the evening (about an hour by the rehearsal's real minutes).\n\n## Why\nPhil's 3b answer: one weekly batch night with a queue of what to shoot and pack, because photographing and packing not getting done is the stall he named.\n\n## Done looks like\nOn the chosen evening the daily list carries the queue; ticking an item updates its status; the queue never exceeds the evening's minutes.\n\n## Unlocks\nSteady listing pace through the pilot and scale-up (fixf.28, fixf.33).\n\n## Depends on\nfixf.16 (the page and statuses).",
+      "after": [
+        "fixf.16"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "schedule",
+        "chore"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.27",
+      "title": "The PC worker runs the engine; the free cloud tier receives eBay's notifications",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nRun the FixForward engine from Mycelium's PC worker on a schedule (the repo designs one task every 15 minutes while Phil is signed in, minting a 2-hour access token so the refresh token never leaves PowerShell, reading the stop file before every action), and receive eBay's platform notifications on the free cloud tier (Vercel), queuing them for the PC. The notification route stores only item IDs and event types, never buyer data. Vercel Hobby allows no sub-daily cron, so any polling lives on the PC, not in `vercel.json`. Attended runs only once a secret exists, unless Phil sets up a second Windows account (repo decision D3).\n\n## Why\nPhil's answer 3.19: the PC worker, with the free cloud tier receiving eBay's notifications.\n\n## Done looks like\nA scheduled run every 15 minutes logs its heartbeat; a test notification reaches the queue and the PC picks it up; the stop file halts the next action; no buyer field in the queue.\n\n## Unlocks\nfixf.20, fixf.21, fixf.22 running unattended between Phil's checks; fixf.28.\n\n## Depends on\nfixf.14 (tables for the queue and audit).\n\n## Flag\nVercel Hobby rejects any sub-daily cron in vercel.json; keep polling on the PC.\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.\n\n## Red team\n- Finding 66: A signed webhook, POST only, eBay's signature verified; no GET. Decided by 3.19, like the Telegram webhook.\n",
+      "after": [
+        "fixf.14"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev",
+        "devops"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.28",
+      "title": "Pilot: about 20 items live on one-tap approval; the dry-run week passes (zero breaches, 20 decisions spot-checked)",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "P",
+      "description": "## What\nThe repo's phase 3. About 20 pilot items (the 32GB module, nine 16GB modules, five tier-1 8GB modules, four pairs of shoes, one or two clothing or ornament items) go live on Phil's one-tap approval, each with its schedule approved at listing. The engine dry-runs for a week on them; it passes on zero rule breaches and 20 decisions spot-checked by Phil. No price moves on eBay until it passes and the four engine interpretations are settled. The steps are on this ticket.\n\n## Why\nRepo roadmap phase 3; Phil's rule that nothing lists without his one-tap approval of that item.\n\n## Done looks like\nAbout 20 items live (or hand-listed under outcome B); the dry-run report attached; pass recorded with 20 of 20 matched.\n\n## Unlocks\nfixf.33 (scale-up and the 2027-02-26 decision).\n\n## Depends on\nfixf.12 (the live test and its outcome); fixf.16 (the page); fixf.17 (Telegram approvals).\n\n## Flag\nShoes marked for Vinted in the sheet list on eBay only (repo Needs Phil 16); no automation touches Vinted.\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.\n\n## Cost\nNone to list; postage on each sale.",
+      "after": [
+        "fixf.12",
+        "fixf.16",
+        "fixf.17"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "guide",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fixf-28-pilot",
+        "kind": "guide",
+        "title": "Pilot: about 20 items live, and the dry-run week passes",
+        "version": 1,
+        "intro": {
+          "answer": "Approve about 20 pilot items on one tap, let them list, then check a week of the engine's decisions before any price moves.",
+          "unlocks": [
+            "fixf.33 scale-up and decide"
+          ],
+          "to_hand": [
+            "The Mycelium FixForward page",
+            "Telegram",
+            "The pilot list (32GB, nine 16GB, five 8GB modules, four pairs of shoes, one or two clothing or ornament items)"
+          ],
+          "time": [
+            "about 45 minutes in three sittings across two weeks"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "eBay, Inventory API overview",
+              "url": "https://developer.ebay.com/api-docs/sell/inventory/overview.html",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "eBay UK help, Simple Delivery",
+              "url": "https://www.ebay.co.uk/help/selling/posting-items/setting-postage-options/simple-delivery?id=5575",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Approve the first ten",
+            "needs": [
+              "The page",
+              "Fresh sold medians"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Check the pilot list on the page",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium, FixForward page, Drafts awaiting approval",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the drafts. Each shows photos, title, faults first, median with date, start price and floor.</p>",
+                "expect_html": "<p>About 20 pilot drafts, each with a median dated within the rules.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Approve the first ten",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "Mycelium page or Telegram",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read each, then tap approve (or hold). Your tap is the yes for that item and its schedule.</p>",
+                "expect_html": "<p>Ten items show approved, then live (outcome A) or with a paste-ready pack (outcome B).</p>",
+                "fields": [
+                  {
+                    "key": "batch1",
+                    "label": "How many approved, how many held",
+                    "placeholder": "9 approved, 1 held"
+                  }
+                ]
+              }
+            ],
+            "minutes": 15
+          },
+          {
+            "id": "2",
+            "title": "Approve the rest",
+            "needs": [
+              "The page"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Approve the remaining pilot items",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "Mycelium page or Telegram",
+                  "kind": "page"
+                },
+                "body_html": "<p>As 1.2 for the rest of the pilot.</p>",
+                "expect_html": "<p>About 20 items live or packed for hand listing.</p>",
+                "fields": [
+                  {
+                    "key": "batch2",
+                    "label": "How many approved, how many held",
+                    "placeholder": "10 approved"
+                  }
+                ]
+              }
+            ],
+            "minutes": 12
+          },
+          {
+            "id": "3",
+            "title": "Dry-run week check",
+            "needs": [
+              "The dry-run report from Claude Code"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Read the dry-run report",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The dry-run report on this ticket, written by Claude Code",
+                  "kind": "page"
+                },
+                "body_html": "<p>After about a week, read the report: every decision the engine would have made, and any rule breach.</p>",
+                "expect_html": "<p>Zero breaches listed.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Spot-check 20 decisions",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The same report",
+                  "kind": "page"
+                },
+                "body_html": "<p>Pick 20 decisions and check each against the selling rules: never below floor, levers not stacking past the floor, one change per item per day.</p>",
+                "expect_html": "<p>20 checked, each matching the rules.</p>",
+                "fields": [
+                  {
+                    "key": "spot",
+                    "label": "Decisions checked and how many matched",
+                    "placeholder": "20 of 20"
+                  }
+                ]
+              },
+              {
+                "id": "3.3",
+                "title": "Pass or not",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Pass means zero breaches and 20 of 20. Only then may prices move on eBay.</p>",
+                "expect_html": "<p>Pass or not, written in the box.</p>",
+                "fields": [
+                  {
+                    "key": "pass",
+                    "label": "Dry run passed? (yes or no)",
+                    "placeholder": "yes"
+                  }
+                ]
+              }
+            ],
+            "minutes": 15
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fixf.29",
+      "title": "Spare drives sold: secure erase, not quick format",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nAny spare drive that is sold is wiped first by the repo's drive-wiping standard (NIST SP 800-88 Rev. 2): hard disks with diskpart `clean all`, SSDs with the maker's secure erase or sanitise, USB sticks and cards with `clean all`; never a quick format. The disk holding C:, A: and the backup disk are never selected. A wipe record is written before the drive is labelled, photographed or listed; a drive that cannot be wiped and checked is not sold. One run of the steps per drive.\n\n## Why\nH10 fold: spare drives being wiped, a secure erase, not a quick format, for any that are sold.\n\n## Done looks like\nEach drive offered for sale has a wipe record; none has been labelled or photographed before its record.\n\n## Unlocks\nDrives entering the inventory (fixf.15, fixf.32).\n\n## Depends on\nNothing.\n\n## Flag\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "guide",
+        "security",
+        "pc"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fixf-29-drive-wipe",
+        "kind": "guide",
+        "title": "Spare drives: wipe before sale",
+        "version": 1,
+        "intro": {
+          "answer": "Before any spare drive is listed, wipe it by the right method for its type, record the wipe, and only then label or photograph it.",
+          "unlocks": [
+            "Spare drives can enter inventory and be listed"
+          ],
+          "to_hand": [
+            "The drive",
+            "A PC with a spare connection (not the one holding C:, A: or the backup disk as the target)",
+            "The repo guide docs/security/drive-wiping.html"
+          ],
+          "time": [
+            "about 15 minutes of your time per drive; a hard disk's full wipe then runs for hours unattended"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "NIST SP 800-88 Rev. 2, Guidelines for Media Sanitization",
+              "url": "https://csrc.nist.gov/pubs/sp/800/88/r2/final",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "FixForward repo, drive-wiping standard (local file)",
+              "url": "file:///A:/Projects/fixforward/docs/standards/drive-wiping.md",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "1.2",
+            "why": "The only way to lose data you care about here is selecting the wrong disk number."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "One drive: identify, wipe, record",
+            "needs": [
+              "The drive connected",
+              "The repo's drive-wiping guide"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Identify the drive and its type",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The drive's label and Device Manager",
+                  "kind": "page"
+                },
+                "body_html": "<p>Note make, model, capacity and type: hard disk, SATA SSD, NVMe SSD, or USB stick or card.</p>",
+                "expect_html": "<p>Model and type in the box.</p>",
+                "fields": [
+                  {
+                    "key": "drive",
+                    "label": "Make, model, capacity, type (no serial)",
+                    "placeholder": "Seagate 1TB hard disk"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Find its disk number, twice",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Command prompt as administrator, diskpart",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>In diskpart list the disks and find the one matching the size. Unplug it and list again: the number that vanished is the drive. Plug it back and list once more.</p>",
+                "expect_html": "<p>The same disk number both times, and it is not the disk holding C:, A: or the backup.</p>",
+                "blocks": [
+                  {
+                    "label": "diskpart",
+                    "text": "list disk",
+                    "kind": "command"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Never select the disk holding C:, A: or the backup disk."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Wipe by type",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "diskpart for a hard disk; the maker's tool for an SSD",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Hard disk: in diskpart select the disk number from 1.2, then clean all (it writes zeros over the whole disk and runs for hours). SSD: use the maker's own tool's secure erase or sanitise, not a quick format. USB stick or card: clean all.</p>",
+                "expect_html": "<p>diskpart reports it cleaned the disk, or the maker's tool reports the erase complete.</p>",
+                "blocks": [
+                  {
+                    "label": "diskpart, hard disk or USB",
+                    "text": "select disk N\nclean all",
+                    "kind": "command"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Replace N with the number from 1.2. This destroys everything on that disk."
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "1.4",
+                "title": "Record the wipe",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "A:\\Projects\\fixforward\\data\\private\\wipes\\ (Claude Code writes the record)",
+                  "kind": "page"
+                },
+                "body_html": "<p>Tell Claude Code in the repo the drive's model, method and date; it writes the wipe record. The drive may now be labelled and photographed.</p>",
+                "expect_html": "<p>A wipe record exists for this drive.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "The drive cannot be wiped or checked",
+                    "fix": "It is not sold. Recycle it physically destroyed."
+                  }
+                ]
+              }
+            ],
+            "minutes": 13
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fixf.30",
+      "title": "DropShipAuto: what is worth reusing (a list)",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nRead the DropShipAuto repo and list what FixForward could reuse, each with its file path and a one-line reason, and what it should not (scraping or marketplace automation would be excluded by the FixForward rules). The FixForward repo itself says nothing about DropShipAuto; its own reusable patterns are the guard gate with the audit log, the channel interface with a fake, absolute keyed actions and the public and private copy split. The list goes on this ticket as a comment.\n\n## Why\nPhil's answer 3.10: DropShipAuto stays separate; a ticket lists what is worth reusing.\n\n## Done looks like\nA list with paths and reasons, and a short \"not reusable and why\" section.\n\n## Unlocks\nLess building in fixf.16 to fixf.27 where something fits.\n\n## Depends on\nNothing.\n\n## Flag\nRead-only on DropShipAuto; nothing is moved or changed there.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "research",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.31",
+      "title": "The 32 remaining sold-listing searches; the Valuation tab runs 20 to 30% low",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil runs the 32 sold-listing searches still to do in Seller Hub's Product research himself (Sold, last 90 days, exact part number, same condition group), saves a screenshot of each and types the median or \"thin\" (fewer than 3 qualifying sales) with the date. Claude prepares the list of 32 first. The two checks made so far came in 20 to 30% above the valuation, so the Valuation tab runs low and these replace it. The steps are on this ticket, eight searches a sitting.\n\n## Why\nH10 fold: 32 sold-listing searches still to run; the two checks came in 20 to 30% above the valuation.\n\n## Done looks like\n32 rows with a dated figure or \"thin\", each with a screenshot in the item's folder.\n\n## Unlocks\nfixf.19 (pricing guidance); fixf.28 (pilot prices).\n\n## Depends on\nNothing.\n\n## Flag\nBy hand only, per fixf.03: no script, extension or tool reads Product research or search results.\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "guide",
+        "research"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fixf-31-sold-searches",
+        "kind": "guide",
+        "title": "The 32 remaining sold-listing searches",
+        "version": 1,
+        "intro": {
+          "answer": "Run the 32 sold-listing searches yourself in Product research, eight a sitting, and type the figures in, so the low Valuation tab is replaced by real medians.",
+          "unlocks": [
+            "fixf.19 pricing guidance",
+            "fixf.28 pilot prices"
+          ],
+          "to_hand": [
+            "Seller Hub on a desktop browser",
+            "The list of 32 from Claude"
+          ],
+          "time": [
+            "about an hour in four sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "FixForward repo, sold-median method proposal (local file)",
+              "url": "file:///A:/Projects/fixforward/docs/proposals/sold-median-method.md",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "0",
+            "title": "The list",
+            "needs": [],
+            "steps": [
+              {
+                "id": "0.1",
+                "title": "Claude lists the 32 searches",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code in A:\\Projects\\fixforward",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude writes the 32 part numbers still to search, in listing order, with their condition group, from the repo's drafts and valuation.</p>",
+                "expect_html": "<p>A list of 32 attached to this ticket.</p>"
+              }
+            ],
+            "minutes": 0
+          },
+          {
+            "id": "1",
+            "title": "Searches 1 to 8",
+            "needs": [
+              "Seller Hub, Research, Product research",
+              "The search list from Claude"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Run eight searches",
+                "actor": "you",
+                "minutes": 11,
+                "where": {
+                  "label": "Seller Hub, Research, Product research (desktop)",
+                  "kind": "browser",
+                  "url": "https://www.ebay.co.uk/sh/research"
+                },
+                "body_html": "<p>For each of the next eight part numbers on the list: Sold tab, last 90 days, the exact part number, the item's condition group. Screenshot the result.</p>",
+                "expect_html": "<p>Eight screenshots, each showing the sold count and price range.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Type the figures",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The selling sheet's Valuation tab, or the Mycelium page",
+                  "kind": "page"
+                },
+                "body_html": "<p>For each, type the median of qualifying sales (3 or more) or \"thin\" if fewer, with today's date; save the screenshots to the item's folder.</p>",
+                "expect_html": "<p>Eight rows filled with a figure or \"thin\" and the date.</p>"
+              }
+            ],
+            "minutes": 15
+          },
+          {
+            "id": "2",
+            "title": "Searches 9 to 16",
+            "needs": [
+              "Seller Hub, Research, Product research",
+              "The search list from Claude"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Run eight searches",
+                "actor": "you",
+                "minutes": 11,
+                "where": {
+                  "label": "Seller Hub, Research, Product research (desktop)",
+                  "kind": "browser",
+                  "url": "https://www.ebay.co.uk/sh/research"
+                },
+                "body_html": "<p>For each of the next eight part numbers on the list: Sold tab, last 90 days, the exact part number, the item's condition group. Screenshot the result.</p>",
+                "expect_html": "<p>Eight screenshots, each showing the sold count and price range.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Type the figures",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The selling sheet's Valuation tab, or the Mycelium page",
+                  "kind": "page"
+                },
+                "body_html": "<p>For each, type the median of qualifying sales (3 or more) or \"thin\" if fewer, with today's date; save the screenshots to the item's folder.</p>",
+                "expect_html": "<p>Eight rows filled with a figure or \"thin\" and the date.</p>"
+              }
+            ],
+            "minutes": 15
+          },
+          {
+            "id": "3",
+            "title": "Searches 17 to 24",
+            "needs": [
+              "Seller Hub, Research, Product research",
+              "The search list from Claude"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Run eight searches",
+                "actor": "you",
+                "minutes": 11,
+                "where": {
+                  "label": "Seller Hub, Research, Product research (desktop)",
+                  "kind": "browser",
+                  "url": "https://www.ebay.co.uk/sh/research"
+                },
+                "body_html": "<p>For each of the next eight part numbers on the list: Sold tab, last 90 days, the exact part number, the item's condition group. Screenshot the result.</p>",
+                "expect_html": "<p>Eight screenshots, each showing the sold count and price range.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Type the figures",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The selling sheet's Valuation tab, or the Mycelium page",
+                  "kind": "page"
+                },
+                "body_html": "<p>For each, type the median of qualifying sales (3 or more) or \"thin\" if fewer, with today's date; save the screenshots to the item's folder.</p>",
+                "expect_html": "<p>Eight rows filled with a figure or \"thin\" and the date.</p>"
+              }
+            ],
+            "minutes": 15
+          },
+          {
+            "id": "4",
+            "title": "Searches 25 to 32",
+            "needs": [
+              "Seller Hub, Research, Product research",
+              "The search list from Claude"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Run eight searches",
+                "actor": "you",
+                "minutes": 11,
+                "where": {
+                  "label": "Seller Hub, Research, Product research (desktop)",
+                  "kind": "browser",
+                  "url": "https://www.ebay.co.uk/sh/research"
+                },
+                "body_html": "<p>For each of the next eight part numbers on the list: Sold tab, last 90 days, the exact part number, the item's condition group. Screenshot the result.</p>",
+                "expect_html": "<p>Eight screenshots, each showing the sold count and price range.</p>"
+              },
+              {
+                "id": "4.2",
+                "title": "Type the figures",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The selling sheet's Valuation tab, or the Mycelium page",
+                  "kind": "page"
+                },
+                "body_html": "<p>For each, type the median of qualifying sales (3 or more) or \"thin\" if fewer, with today's date; save the screenshots to the item's folder.</p>",
+                "expect_html": "<p>Eight rows filled with a figure or \"thin\" and the date.</p>"
+              }
+            ],
+            "minutes": 15
+          }
+        ],
+        "tested": {
+          "0.1": "untested",
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "4.1": "untested",
+          "4.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fixf.32",
+      "title": "Extend the selling sheet to clothes, shoes and other items",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nExtend the item schema and the sheet view to clothing, shoes, household and other items: size, brand, material, colour, eBay's New or Pre-owned grade, measurements, flaws by the condition-grading words, packing code (M1 for clothing, B2 for shoes in their box). Through the fixf.14 adapter and a migration owned by the integrator if a column is needed. The four shoe pairs (no sold data yet) are the first rows.\n\n## Why\nH10 fold and Phil's answer 3.7: the selling sheet extended to clothes, shoes and other items.\n\n## Done looks like\nA clothing and a shoe item recorded with every field; the sheet view shows them; the schema drift test passes.\n\n## Unlocks\nClothing and shoes in the pilot (fixf.28) and the scale-up (fixf.33).\n\n## Depends on\nfixf.15 (the imported base).",
+      "after": [
+        "fixf.15"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.33",
+      "title": "Scale-up and decide (phases 5 and 6): second-intake weekends, the 2027-02-26 report: total raised, hours, pounds per hour, sell-through",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nThe repo's phases 5 and 6. Claude prepares: the post-pilot rule review (proposals only), the rest of tier 1 (about £949 at median), tier 2 priced by Phil, the lots, and the second-intake weekends the repo names as the only route to the last £1,000 (2027-01-09 and 2027-01-16). On 2027-02-26 Claude writes the report: total raised, hours, pounds per hour, sell-through by day 28 (parts) and day 63 (clothing), the count of sales against eBay's 30-sale report threshold, and the private or business question with the business case refreshed (business fees about £350.51 on £2,500). Phil decides.\n\n## Why\nRepo roadmap phases 5 and 6 and Phil's goal \"1 and 2 into 3\".\n\n## Done looks like\nThe report attached on or after 2027-02-26 with the four numbers; Phil's decision on private or business recorded.\n\n## Unlocks\nHorizon 2 (business or not) and everything after; the ventures page's profit figures.\n\n## Depends on\nfixf.28 (the pilot's numbers).\n\n## Flag\nIf the decision is to buy to resell, a business account comes first (fixf.01).\n\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [
+        "fixf.28"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fixf.34",
+      "title": "Done check for the first slice: one item from inventory record to live listing",
+      "kind": "test",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nCheck the first slice: ID 12 (or whichever item went first) has an inventory record approved by Phil, a live listing that matches its draft at or above its floor, and an audit line for every eBay action after a recorded yes, with no buyer data anywhere. When it passes, the H6 rule (FixForward only until its first slice ships) lifts. The steps are on this ticket.\n\n## Why\nPhil's answer 3.27 (the first slice is one item from inventory record to live listing) and H6 (everything else waits for it).\n\n## Done looks like\nThe four steps ticked and the box saying yes.\n\n## Unlocks\nvent.01 and every venture ticket behind the H6 rule; glass.14 (\"list this\" at the bench).\n\n## Depends on\nfixf.12 (the live test).\n\n## Flag\nHard rules from the FixForward repo (CLAUDE.md and selling-rules.md v1.5), binding on this ticket: eBay only through its official API, never drive, script, scrape or fetch the eBay site, its search, sold prices, seller pages or Seller Hub; nothing changes on the live eBay account without Phil's yes to that specific action (publish, revise, end, offer, message, feedback, order, cancellation, refund); no eBay user data (buyer names, usernames, addresses, order or message contents) stored on disk or in any database; never price, offer or accept below an item's floor; no automation operates Vinted; secrets live only in Windows Credential Manager through the repo's scripts and are never printed, logged, committed or pasted.",
+      "after": [
+        "fixf.12"
+      ],
+      "links": [],
+      "tags": [
+        "fixf",
+        "selling",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fixf-34-first-slice",
+        "kind": "test",
+        "title": "Done check: one item from inventory record to live listing",
+        "version": 1,
+        "intro": {
+          "answer": "Check that one item went from its inventory record to a live listing by the rules, and mark the first slice done.",
+          "unlocks": [
+            "Every venture ticket behind the H6 rule (vent.*)",
+            "glass.14 list this at the bench"
+          ],
+          "to_hand": [
+            "The live item number from fixf.12",
+            "Phone",
+            "The Mycelium FixForward page or the repo's inventory"
+          ],
+          "time": [
+            "about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "eBay, Inventory API overview",
+              "url": "https://developer.ebay.com/api-docs/sell/inventory/overview.html",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The check",
+            "needs": [
+              "Phone",
+              "The item number"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "The record exists and was approved",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium FixForward page, or the repo's inventory",
+                  "kind": "page"
+                },
+                "body_html": "<p>Find ID 12. Check it shows approved by you, with median and date, start and floor.</p>",
+                "expect_html": "<p>Approved, with a floor at or above 80% of the median.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "The listing is live and matches",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Phone browser, the item number",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Open the listing. Title, photos, condition and faults-first description match the draft; the price is at or above the floor.</p>",
+                "expect_html": "<p>A live listing that matches the record.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Claude checks the audit and the no-buyer-data rule",
+                "actor": "claude-code",
+                "minutes": 4,
+                "where": {
+                  "label": "Claude Code in A:\\Projects\\fixforward and Mycelium",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude confirms an audit line for every eBay action, each after a recorded yes, and that no buyer field exists in any file or table.</p>",
+                "expect_html": "<p>A short pass note on this ticket.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Mark the first slice done",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>If 1.1 to 1.3 hold, the first slice is done.</p>",
+                "expect_html": "<p>Yes in the box; vent.01's rule lifts.</p>",
+                "fields": [
+                  {
+                    "key": "done",
+                    "label": "First slice done? (yes or no)",
+                    "placeholder": "yes"
+                  }
+                ]
+              }
+            ],
+            "minutes": 8
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    }
+  ],
+  "existing": []
+}

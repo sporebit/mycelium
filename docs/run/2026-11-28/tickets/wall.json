@@ -1,0 +1,2079 @@
+{
+  "epic": {
+    "sid": "E.wall",
+    "project": "MYC",
+    "title": "Home dashboard: the wall on the kitchen frame, then panels and controls",
+    "description": "The kitchen photo frame shows the existing `/wall`, proved for a week before anything new is built; then a plain tile grid with one panel library and a set per room, house controls through Home Assistant (lights, plugs and scenes open, cameras and heating behind the PIN), and panels in the order they would be used: shopping and meals, baby log, cooking mode first; energy, parcels and music later. Speech only when asked, night hours per room, guest mode by tap and schedule, touches counted per tile from day one. Nothing is bought before Phil sees a costed list.\n\n## Order\nwall.01 identifies the frame; wall.02 runs the existing wall on it for a week (with MYC-205's PIN and pairing); wall.03 makes it boot into the wall and wake by touch; wall.04 refreshes the costed list and surveys owned devices at any time. wall.05 builds the tile library on the Field shell's tile grid. Then the panels by use: wall.06 (shopping and meals), wall.07 (baby log), wall.08 (cooking mode), wall.09 and wall.10 (chores, bins and fridge notes), wall.13, wall.14, wall.16; later wall.11 (parcels, after MYC-201), wall.12 (energy), wall.15 (music). Settings and behaviour: wall.19 (night hours), wall.20 (guest schedule), wall.23 (sound). Once Home Assistant and local names exist (sub.08, sub.05): wall.17 controls, then wall.18 doorbell, wall.21 idle status, wall.22 offline. wall.24 moves screens to the Smart-devices network after net.09; wall.25 adds rooms; wall.26 is the done check after wall.06.\n\n## Done means\nBoth Phil and Kirsty use the kitchen screen daily for two weeks (wall.26).\n\n## Flags\nNo [claude] flags touch this epic. One open design question is carried in wall.17: where the Home Assistant token lives.\n\n## Dossier\nThe dossier is attached in Docs (link added by the integrator).",
+    "dossier": "dossiers/wall.md",
+    "links": [
+      "MYC-189",
+      "MYC-205",
+      "MYC-182",
+      "PW-22"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "wall.01",
+      "title": "Identify the frame from the device itself: model, OS, browser version, full-screen ability",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nFind out what the A3 touch photo frame in the kitchen is, from the frame itself: brand and model from the label, the Android version and any photo app from its About screen, whether it has a browser or an app store, the browser's version, and so whether it can show `/wall` full-screen. One sitting of about 15 minutes, guided by the checklist. Nothing is reset, rooted or installed.\n\n## Why\nThe wall's first screen is the frame Phil owns, and its purchase could not be found in his email (H10), so the answer starts from the device.\n\n## Done looks like\nThe checklist's fields hold brand, model, Android version, browser and version, and a route (A, A2 or E); MYC-182's photo frame line carries the same answer.\n\n## Unlocks\n- wall.02: the week on the real frame (or the stand-in)\n- wall.03: boot and full-screen, for this frame\n- wall.04: the costed list knows whether a screen is needed\n\n## Depends on\nNothing. Relates to MYC-182 (the frame answer lives there too).",
+      "after": [],
+      "links": [
+        "MYC-182",
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "home",
+        "research",
+        "guide"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "wall-identify-frame",
+        "kind": "guide",
+        "title": "Identify the kitchen photo frame from the device itself",
+        "version": 1,
+        "intro": {
+          "answer": "Read the frame's label and its About screen, and find out whether it has a browser, so the wall knows which route it takes.",
+          "unlocks": [
+            "wall.02: the existing wall on the real frame for a week",
+            "wall.03: boot straight into the dashboard",
+            "MYC-182: the photo frame answer"
+          ],
+          "to_hand": [
+            "The frame, switched on",
+            "Your phone, to photograph the label"
+          ],
+          "time": [
+            "about 15 minutes"
+          ],
+          "hard_part": {
+            "step_id": "1.4",
+            "why": "Many frames run one locked app (often Frameo) with no browser; that is an answer, not a problem, and nothing is forced open."
+          },
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Frameo, how to enable ADB",
+              "url": "https://support.frameo.com/hc/en-us/articles/6126183308434--How-to-Enable-ADB-on-Your-Frame",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "What is my browser",
+              "url": "https://www.whatismybrowser.com/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Fully Kiosk Browser features",
+              "url": "https://www.fully-kiosk.com/en/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "What the frame is",
+            "minutes": 15,
+            "needs": [
+              "The frame",
+              "Your phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Photograph the label",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The back of the frame and its stand",
+                  "kind": "page"
+                },
+                "body_html": "<p>Look on the back, under the stand and on any sticker for a brand, a <strong>model</strong> code and an <strong>FCC ID</strong>. Photograph them and type them below.</p>",
+                "expect_html": "<p>You have a photo of a label with a brand, a model code, or an FCC ID.</p>",
+                "fields": [
+                  {
+                    "key": "frame_brand",
+                    "label": "Brand",
+                    "placeholder": "as printed, or none"
+                  },
+                  {
+                    "key": "frame_model",
+                    "label": "Model or FCC ID",
+                    "placeholder": "as printed, or none"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Open the About screen",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The frame's own Settings",
+                  "kind": "page"
+                },
+                "body_html": "<p>On the frame open <strong>Settings</strong>. If it is a plain Android screen, go to <strong>About tablet</strong> (or About device). If it is a photo app such as Frameo, its own <strong>Settings &gt; About</strong>. Note the Android version, the model shown there, and the app's name.</p>",
+                "expect_html": "<p>You can see an Android version, or the name of the photo app and its version.</p>",
+                "fields": [
+                  {
+                    "key": "android_version",
+                    "label": "Android version",
+                    "placeholder": "for example 11, or not shown"
+                  },
+                  {
+                    "key": "frame_app",
+                    "label": "Photo app name",
+                    "placeholder": "for example Frameo, or none"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Do not choose Reset, Factory reset or anything that offers to erase. The photos on the frame would go."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Look for a browser or an app store",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Go to the frame's home screen or app list (swipe up, or the grid icon). Look for <strong>Chrome</strong>, a <strong>Browser</strong> app, or <strong>Play Store</strong>.</p>",
+                "expect_html": "<p>You know whether the frame has a browser, the Play Store, or neither.</p>",
+                "fields": [
+                  {
+                    "key": "has_browser",
+                    "label": "Browser on the frame?",
+                    "placeholder": "yes (which) / no"
+                  },
+                  {
+                    "key": "has_store",
+                    "label": "Play Store on the frame?",
+                    "placeholder": "yes / no"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Read the browser's version",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The frame's browser",
+                  "url": "https://www.whatismybrowser.com/",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Only if 1.3 found a browser: open it and go to the address below. Write down the browser and version it shows. If there is no browser, skip this step.</p>",
+                "blocks": [
+                  {
+                    "label": "Address",
+                    "text": "https://www.whatismybrowser.com/",
+                    "kind": "value"
+                  }
+                ],
+                "expect_html": "<p>The page names the browser and its version (for example Chrome 131 on Android 11).</p>",
+                "fields": [
+                  {
+                    "key": "browser_version",
+                    "label": "Browser and version",
+                    "placeholder": "as shown, or skipped"
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "Full-screen check and the route",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Your decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Pick the line that fits:</p><ul><li><strong>A</strong>: a browser or the Play Store is there. The wall runs on the frame; wall.03 installs a kiosk browser.</li><li><strong>A2</strong>: only a locked photo app (Frameo or similar). Stop here; the frame stays a photo frame for now and wall.04's costed list decides the screen.</li><li><strong>E</strong>: not sure. Use a phone or tablet you already own for wall.02's week.</li></ul><p>Then type the same answer into MYC-182.</p>",
+                "expect_html": "<p>One route is chosen and written below, and MYC-182's photo frame line is answered with brand, model and route.</p>",
+                "fields": [
+                  {
+                    "key": "route",
+                    "label": "Route",
+                    "placeholder": "A / A2 / E"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Opening a locked frame needs its maker's beta programme, a cable and often rooting. That can leave the frame unusable. It is not part of this guide; if you want it, it becomes its own ticket."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "finish_html": "<p>The frame has a name and a route. wall.02 puts the existing wall on it (or on the stand-in) for a week.</p>",
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested"
+        }
+      }
+    },
+    {
+      "sid": "wall.02",
+      "title": "The existing wall on the real frame, lived with for a week; nothing new built until it works",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPair the frame (or the stand-in device wall.01 chose) as the Kitchen wall, using MYC-205's PIN and Settings > Security > Walls, then live with the existing `/wall` for seven days: one glance a day noted in the checklist, and a five-minute talk with Kirsty on day 7. If the Field shell lane's tile board is live by then, it is what the frame shows; `?board=classic` keeps the old board.\n\n## Why\nPhil decided the first thing proved is the existing wall on the real frame, lived with for a week; nothing new is built until that works (answer 15).\n\n## Done looks like\nSeven daily notes and a day-7 answer (keep, missing, frame good enough) in the checklist; the Kitchen wall listed in Settings > Security > Walls.\n\n## Unlocks\n- wall.05: the tile library starts from the week's notes\n\n## Depends on\n- wall.01: which device and route\n- MYC-205: the PIN and the Kitchen wall (same steps, done first)\n\n## Red team\n- Finding 53: The week is lived with the classic board (the one proved so far); wall.05 moves the tile grid onto the frame after it.\n",
+      "after": [
+        "wall.01"
+      ],
+      "links": [
+        "MYC-205",
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "home",
+        "testing",
+        "guide"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "wall-live-week",
+        "kind": "guide",
+        "title": "The existing wall on the real frame, lived with for a week",
+        "version": 1,
+        "intro": {
+          "answer": "Pair the frame (or the stand-in) as the Kitchen wall, then glance at it once a day for seven days and note what worked.",
+          "unlocks": [
+            "wall.05: the tile library, which waits for this week"
+          ],
+          "to_hand": [
+            "The frame, or the stand-in device wall.01 chose",
+            "Your phone with Mycelium signed in",
+            "Kirsty, for a minute, on day 1 and day 7"
+          ],
+          "time": [
+            "about 15 minutes on day 1",
+            "about a minute a day",
+            "about 10 minutes on day 7"
+          ],
+          "hard_part": {
+            "step_id": "1.3",
+            "why": "The pairing code is shown once and lasts ten minutes, so have the frame's browser open before you make it."
+          },
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Day 1: pair and look",
+            "minutes": 15,
+            "needs": [
+              "The frame with its browser open (or the stand-in)",
+              "Your PIN set (MYC-205)"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Check MYC-205 is done",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, ticket MYC-205",
+                  "kind": "page"
+                },
+                "body_html": "<p>MYC-205 sets your PIN and adds the Kitchen wall. If it is done, carry on. If not, do its steps first: they are the same sitting.</p>",
+                "expect_html": "<p>Your quick-unlock PIN is set and a wall named Kitchen exists, or you are about to add it.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Open the wall on the frame",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The frame's browser",
+                  "kind": "browser"
+                },
+                "body_html": "<p>In the frame's browser open the Mycelium address followed by <code>/wall</code>.</p>",
+                "blocks": [
+                  {
+                    "label": "Path to add to the Mycelium address",
+                    "text": "/wall",
+                    "kind": "value"
+                  }
+                ],
+                "expect_html": "<p>The frame shows a box asking for an eight-digit code.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Make a code and type it on the frame",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium, Settings > Security > Walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>On your phone: Settings &gt; Security &gt; Walls, team <strong>Family</strong>, name <strong>Kitchen</strong>, <strong>Add wall</strong> (or <strong>Re-pair</strong> if it exists). Type the eight digits on the frame within ten minutes.</p>",
+                "expect_html": "<p>The family board appears on the frame: both names, the countdown, this week's appointments, weather and the next bin day.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "The code is shown once. Do not photograph or send it; it is spent the moment the frame uses it."
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The code is refused",
+                    "fix": "Codes last ten minutes and allow five tries a minute. Make a new one with Re-pair."
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Try the four things",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Tap your name and type your PIN; tap <strong>Done</strong> on something. Leave it two minutes. Then tap <strong>Guest</strong>, and hold the faint mark top right for two seconds to come back.</p>",
+                "expect_html": "<p>Your day opens behind your PIN, Done chimes, the board comes back by itself after two quiet minutes, and Guest shows only clock, weather and pictures.</p>"
+              },
+              {
+                "id": "1.5",
+                "title": "Show Kirsty",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Show Kirsty the board and Guest. If she wants her own view, she sets her PIN on her phone in Settings &gt; Security &gt; Quick unlock.</p>",
+                "expect_html": "<p>Kirsty has seen the board and knows Guest and the long press.</p>",
+                "fields": [
+                  {
+                    "key": "kirsty_pin",
+                    "label": "Kirsty set a PIN?",
+                    "placeholder": "yes / not yet"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Days 2 to 7: one glance a day",
+            "minutes": 12,
+            "needs": [
+              "The wall running in the kitchen"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Day 2: did anyone use it?",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>At any point in the day, a glance: is it showing the board? Did either of you look at it or touch it? Anything wrong (blank, signed out, too bright at night)?</p>",
+                "expect_html": "<p>A yes or no and a few words are written for the day.</p>",
+                "fields": [
+                  {
+                    "key": "day2",
+                    "label": "Day 2",
+                    "placeholder": "used? yes / no, and anything odd"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Day 3: did anyone use it?",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>At any point in the day, a glance: is it showing the board? Did either of you look at it or touch it? Anything wrong (blank, signed out, too bright at night)?</p>",
+                "expect_html": "<p>A yes or no and a few words are written for the day.</p>",
+                "fields": [
+                  {
+                    "key": "day3",
+                    "label": "Day 3",
+                    "placeholder": "used? yes / no, and anything odd"
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Day 4: did anyone use it?",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>At any point in the day, a glance: is it showing the board? Did either of you look at it or touch it? Anything wrong (blank, signed out, too bright at night)?</p>",
+                "expect_html": "<p>A yes or no and a few words are written for the day.</p>",
+                "fields": [
+                  {
+                    "key": "day4",
+                    "label": "Day 4",
+                    "placeholder": "used? yes / no, and anything odd"
+                  }
+                ]
+              },
+              {
+                "id": "2.4",
+                "title": "Day 5: did anyone use it?",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>At any point in the day, a glance: is it showing the board? Did either of you look at it or touch it? Anything wrong (blank, signed out, too bright at night)?</p>",
+                "expect_html": "<p>A yes or no and a few words are written for the day.</p>",
+                "fields": [
+                  {
+                    "key": "day5",
+                    "label": "Day 5",
+                    "placeholder": "used? yes / no, and anything odd"
+                  }
+                ]
+              },
+              {
+                "id": "2.5",
+                "title": "Day 6: did anyone use it?",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>At any point in the day, a glance: is it showing the board? Did either of you look at it or touch it? Anything wrong (blank, signed out, too bright at night)?</p>",
+                "expect_html": "<p>A yes or no and a few words are written for the day.</p>",
+                "fields": [
+                  {
+                    "key": "day6",
+                    "label": "Day 6",
+                    "placeholder": "used? yes / no, and anything odd"
+                  }
+                ]
+              },
+              {
+                "id": "2.6",
+                "title": "Day 7: did anyone use it?",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>At any point in the day, a glance: is it showing the board? Did either of you look at it or touch it? Anything wrong (blank, signed out, too bright at night)?</p>",
+                "expect_html": "<p>A yes or no and a few words are written for the day.</p>",
+                "fields": [
+                  {
+                    "key": "day7",
+                    "label": "Day 7",
+                    "placeholder": "used? yes / no, and anything odd"
+                  }
+                ]
+              },
+              {
+                "id": "2.7",
+                "title": "Day 7: what worked, with Kirsty",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Your decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Five minutes with Kirsty: what did you look at? What was missing? Was it ever in the way? Then answer: is the frame good enough to build on?</p>",
+                "expect_html": "<p>A short list of what to keep, what got in the way, and whether the frame is good enough to build on.</p>",
+                "fields": [
+                  {
+                    "key": "keep",
+                    "label": "What to keep",
+                    "placeholder": "a few words"
+                  },
+                  {
+                    "key": "missing",
+                    "label": "What was missing",
+                    "placeholder": "a few words"
+                  },
+                  {
+                    "key": "frame_ok",
+                    "label": "Frame good enough to build on?",
+                    "placeholder": "yes / no / use the stand-in"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "finish_html": "<p>The week is written down. wall.05 starts the tile library from what you kept and what was missing.</p>",
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "2.4": "untested",
+          "2.5": "untested",
+          "2.6": "untested",
+          "2.7": "untested"
+        }
+      }
+    },
+    {
+      "sid": "wall.03",
+      "title": "Boot straight into the dashboard, full-screen, touch wake: a ticket per device type (the frame first)",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nOn the kitchen frame (route A from wall.01): install Fully Kiosk Browser from the Play Store or the vendor's APK, set its start address to `/wall`, turn on launch on boot, full-screen and kiosk mode with an exit PIN, switch the lock screen off, and make a touch the only wake: Android's screen timeout set to the longest and Fully's screensaver (black) doing the dimming, because many frames cannot be woken by touch once Android switches the screen off. Then the plug test. This ticket is the frame; each further device type gets its own copy of the guide, written by Claude when wall.25 picks the device (Fire tablets differ: Fully cannot always switch their screens back on).\n\n## Why\nPhil decided screens boot straight into the dashboard, full-screen, with a ticket per device type, and wake by touch only (answers 17 and 18).\n\n## Done looks like\nAfter a power cut the frame shows the wall full-screen without a tap, goes dark after ten quiet minutes, and one touch brings it back; the checklist records whether PLUS was needed.\n\n## Unlocks\n- wall.25: the guide copied for each further device type\n- wall.19: per-room night hours act on a screen that stays on\n\n## Depends on\n- wall.01: the route must be A (a browser or the Play Store); on A2 or E this ticket waits for wall.04's choice\n- wall.02 helps (the wall already paired) but is not required\n\n## Cost\nFully Kiosk PLUS is about 8.90 EUR plus tax per device, one-off (vendor licence page, checked 2026-11-28). Only if a feature Phil needs shows the watermark. Nothing is bought in this run.",
+      "after": [
+        "wall.01"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "home",
+        "guide",
+        "tools"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "wall-boot-kiosk-frame",
+        "kind": "guide",
+        "title": "Boot the kitchen frame straight into the wall, full-screen, woken by touch",
+        "version": 1,
+        "intro": {
+          "answer": "Install Fully Kiosk Browser on the frame, point it at the wall, start it on boot, and use its screensaver so a touch wakes it.",
+          "unlocks": [
+            "wall.25: the same guide copied per further device",
+            "wall.19: night hours per room act on a screen that stays on"
+          ],
+          "to_hand": [
+            "The frame on route A (wall.01)",
+            "The wall already paired on the frame (wall.02)",
+            "A 6 to 8 digit exit PIN for the kiosk, your choice"
+          ],
+          "time": [
+            "about 15 minutes for the install",
+            "about 15 minutes for wake and the power test"
+          ],
+          "hard_part": {
+            "step_id": "2.2",
+            "why": "If Android switches the screen fully off, many frames cannot be woken by touch; the screensaver does the dimming instead."
+          },
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Fully Kiosk Browser features",
+              "url": "https://www.fully-kiosk.com/en/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Fully PLUS License",
+              "url": "https://www.fully-kiosk.com/docs/en/legal/fully-plus-license",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Fully Kiosk not launching at boot",
+              "url": "https://community.home-assistant.io/t/fully-kiosk-not-launching-at-boot-on-my-android-tablet/1021331",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Fire HD8 wake from sleep",
+              "url": "https://community.home-assistant.io/t/fire-hd8-wake-from-sleep/135875",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Install and point at the wall",
+            "minutes": 15,
+            "needs": [
+              "The frame on route A",
+              "The exit PIN you chose"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Route check",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Open wall.01's checklist and read the route field.</p>",
+                "expect_html": "<p>wall.01's route is A. If it is A2 or E, stop: this guide is for a frame that has a browser or the Play Store.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Install Fully Kiosk Browser",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The frame's Play Store, or the vendor site in its browser",
+                  "url": "https://www.fully-kiosk.com/en/",
+                  "kind": "browser"
+                },
+                "body_html": "<p>In the Play Store search <strong>Fully Kiosk Browser</strong> and install it. With no Play Store, download the APK from the vendor site in the frame's browser and allow the install when asked.</p>",
+                "expect_html": "<p>Fully Kiosk Browser opens on the frame.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "The frame refuses apps from outside a store",
+                    "fix": "Stop and note it on the ticket; do not change security settings to force it."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Set the start address",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Fully Kiosk > Settings > Web Content Settings",
+                  "kind": "page"
+                },
+                "body_html": "<p>Set <strong>Start URL</strong> to the Mycelium address followed by <code>/wall</code>. Back out; if the wall asks for a code, make one in Settings &gt; Security &gt; Walls (Re-pair) and type it.</p>",
+                "blocks": [
+                  {
+                    "label": "Path to add to the Mycelium address",
+                    "text": "/wall",
+                    "kind": "value"
+                  }
+                ],
+                "expect_html": "<p>Fully shows the wall; the pairing from wall.02 may need a fresh code.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Start on boot, full-screen, kiosk mode",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Fully Kiosk > Settings",
+                  "kind": "page"
+                },
+                "body_html": "<p>Turn on <strong>Launch on Boot</strong>, <strong>Fullscreen Mode</strong> (under Web Browsing or Device Management, by version), then <strong>Enable Kiosk Mode</strong> with your exit PIN. Accept when Android asks to make Fully the home app.</p>",
+                "expect_html": "<p>The status bar and navigation are hidden and Fully asks to become the home app.</p>",
+                "fields": [
+                  {
+                    "key": "kiosk_on",
+                    "label": "Kiosk mode on?",
+                    "placeholder": "yes / needs PLUS (see Cost)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Keep the exit PIN in Proton Pass under the frame's name. Do not write it in this checklist."
+                  },
+                  {
+                    "kind": "info",
+                    "html": "Some features show a watermark until the PLUS licence is bought (about 8.90 EUR per device). Nothing is bought in this run; note which ones."
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "Lock screen off",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The frame's own Settings",
+                  "kind": "page"
+                },
+                "body_html": "<p>In the frame's Android Settings &gt; Security (or Lock screen), set screen lock to <strong>None</strong>.</p>",
+                "expect_html": "<p>Restarting the frame does not show a swipe-to-unlock screen.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Touch wake and the power test",
+            "minutes": 14,
+            "needs": [
+              "Phase 1 done"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Android screen timeout to the longest",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The frame's own Settings",
+                  "kind": "page"
+                },
+                "body_html": "<p>Settings &gt; Display &gt; Screen timeout: the longest choice.</p>",
+                "expect_html": "<p>Display &gt; Screen timeout shows the longest value, or Never.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Screensaver instead of screen off",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Fully Kiosk > Settings > Screensaver",
+                  "kind": "page"
+                },
+                "body_html": "<p>Set <strong>Screensaver Timer</strong> to 600 seconds and <strong>Screensaver Brightness</strong> to 0; leave the screensaver address empty (black). Do not use the screen-off timer. The wall's own ambient plate still runs before the screensaver.</p>",
+                "blocks": [
+                  {
+                    "label": "Screensaver Timer (seconds)",
+                    "text": "600",
+                    "kind": "value"
+                  }
+                ],
+                "expect_html": "<p>After the set time the screen goes dark, and one touch brings the wall back.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "A touch does not wake it",
+                    "fix": "Turn off any Screen Off Timer in Fully and in Android power saving; the screensaver must be the only thing dimming."
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Pull the plug",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Unplug the frame for ten seconds and plug it back in. Do not touch it.</p>",
+                "expect_html": "<p>Within about two minutes of power returning the frame shows the wall, full-screen, with no tap.</p>",
+                "fields": [
+                  {
+                    "key": "boot_ok",
+                    "label": "Came back on its own?",
+                    "placeholder": "yes / no, what it showed"
+                  }
+                ]
+              },
+              {
+                "id": "2.4",
+                "title": "Note what is left",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Your decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Write the three results and whether any feature showed the PLUS watermark. Claude copies this guide for each further device type when wall.25 picks one.</p>",
+                "expect_html": "<p>The ticket says whether the frame boots, fills the screen and wakes by touch, and whether PLUS is needed.</p>",
+                "fields": [
+                  {
+                    "key": "plus_needed",
+                    "label": "PLUS needed for?",
+                    "placeholder": "none, or the features"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "finish_html": "<p>The frame starts in the wall on its own and wakes to a touch. A device of another type gets its own copy of this guide.</p>",
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "2.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "wall.04",
+      "title": "Costed hardware list refreshed (docs/run/wall-report.md) and the devices he already owns surveyed; nothing bought before he sees it",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude refreshes the costed table in `docs/run/wall-report.md` (\"If the frame cannot run a browser\") with today's UK prices and adds the lines the dossier found: A2 (a locked Frameo-type frame, not opened), C2 (a 21.5 inch touch monitor with a Pi 5), the Fully PLUS price (about 8.90 EUR per device), the Pi 5 rises of 2026 (8 GB bare board about £168), and a Glow display for live energy data if wall.12 goes that way. Then a survey of what Phil already owns that could be a screen for the living room, bedroom and office: old phones, tablets, laptops, Fire or Echo Show devices, TVs and sticks (net.09's device list and the home inventory are the starting point), each with whether it has touch, a current browser and a kiosk route. The result is a table Phil reads; the dossier's section 3.7 is the first draft.\n\n## Why\nPhil decided nothing is bought until he has seen a costed list, and extra screens are devices he already owns, researched first (answers 8 and 26).\n\n## Done looks like\nThe report's table carries today's date, every price has a source and a checked date, and a second table lists owned devices with a yes or no for touch, browser and kiosk route. Nothing ordered.\n\n## Unlocks\n- wall.25: further rooms pick from the owned-devices table\n- wall.03: a non-frame device's guide starts from its row\n\n## Depends on\nNothing. Reads wall.01's answer if it exists (route A2 or E makes the table the next decision).\n\n## Cost\nPrices only; nothing is bought in this run or by this ticket.",
+      "after": [],
+      "links": [
+        "MYC-182",
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "shopping",
+        "research",
+        "home"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.05",
+      "title": "Tile library and per-device sets: same panels, a different set per room; touches per tile counted from day one",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBuild the wall's panel library on the Field shell's tile grid: the lane building that grid tonight (Stream U, lane U2) draws `WallGlance` as `TilesBoard`, a 6-column grid with what is on today largest (4 by 2), people 2 by 1, weather and bins 1 by 1, the baby line 2 by 1 and a greeting by time of day. This ticket turns those tiles into a library: each panel registered once with its sizes, each wall device (`wall_devices`) holding its own ordered set chosen in Settings > Security > Walls, so the kitchen, living room, bedroom and office draw different sets from the same panels. Every tile tap is counted per device and tile from the first day (a small table in the family space, no titles or content stored), and Settings shows a count per tile for the last 30 days so unused tiles can be dropped. The finance guard test and `e2e/wall.phil.spec.ts` keep passing; no money field enters the contract.\n\n## Why\nPhil decided the wall is its own plain tile grid, the same panel library with a different set per device, and that touches per tile are counted from day one so unused tiles are dropped (answers 20 and 21, 6b).\n\n## Done looks like\nTwo walls paired to the family show different tile sets chosen in Settings; a tap on a tile raises its count in Settings; the classic board still opens at `?board=classic`; build, unit tests and the wall e2e spec pass.\n\n## Unlocks\n- wall.06 to wall.16, wall.19, wall.20, wall.23: every panel and setting plugs into the library\n- wall.25: further rooms are a set each\n\n## Depends on\n- wall.02: the week on the real frame (nothing new before it works)\n- The Field shell's tile grid (lane U2, this run): the base this builds on\n\n## Red team\n- Finding 53: Moves the tile grid onto the frame after wall.02's week; adds a short greeting by time of day (6b).\n",
+      "after": [
+        "wall.02"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "ui",
+        "feature"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.06",
+      "title": "Panel: shopping list and meal plan",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA tile pair for the kitchen: this week's meal plan (tonight's meal large, as 6b's 7am kitchen asks) and the shopping list, with tick-off and add by touch. The data lives today in the health section (`shopping_lists`, `meal_plan`), which is personal space the wall cannot read. First step: Claude proposes a family-space shopping list and meal plan (shared by Phil and Kirsty) and asks on the ticket before moving or copying any of Phil's own rows; until he answers, the tile shows only what the family space holds.\n\n## Why\nPhil decided shopping and meals come first by use, and the shopping list pad is one of the four paper things the wall replaces (answers 11 and 16, 6b).\n\n## Done looks like\nOn the kitchen wall, tonight's meal shows large, an item can be ticked off and added by touch, and the same list is on both phones; nothing from Phil's personal space appears without his answer on the ticket.\n\n## Unlocks\n- wall.26: the done check leans on this panel being used daily\n- wall.08: cooking mode opens from tonight's meal\n\n## Depends on\n- wall.05: the tile library this panel registers in",
+      "after": [
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "shopping",
+        "recipe"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.07",
+      "title": "Panel: baby log",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nMove the built baby line (the last log line and the feed, nappy and sleep taps on today's board, `lib/family/babylog.ts`) into the tile library as its own panel, add the time since the last feed and sleep, and an undo for a mistaken tap within a minute. Family space only, as now.\n\n## Why\nPhil decided the baby log is one of the first panels by use (answers 12 and 16).\n\n## Done looks like\nThe baby tile shows the last line and time since the last feed and sleep, the three taps log as today, and a wrong tap can be undone for a minute.\n\n## Unlocks\n- wall.26: daily use in the kitchen\n- BABY epic: the log on the wall once the baby is here\n\n## Depends on\n- wall.05: the tile library this panel registers in",
+      "after": [
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "home"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.08",
+      "title": "Panel: cooking mode",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA full-screen cooking view opened from tonight's meal or a recipe: large steps one at a time, swipe or tap to move on, timers by touch with a soft chime, the screen kept awake, and the ambient and night dimming held off while it is open. Recipes are personal space today (`recipes`, `gousto_recipes`); the ticket starts by asking which recipes the kitchen may show (family copies, or behind the PIN).\n\n## Why\nPhil decided cooking mode is among the first panels by use (answers 12 and 16).\n\n## Done looks like\nA recipe opens full-screen on the kitchen wall, steps move by touch, two timers can run with a chime, and the screen does not dim while cooking.\n\n## Unlocks\n- wall.26: daily use in the kitchen\n\n## Depends on\n- wall.05: the tile library this panel registers in\n- wall.06 helps (tonight's meal opens it)",
+      "after": [
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189",
+        "PW-142"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "recipe"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.09",
+      "title": "Panel: chores rota (new)",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA new chores rota in the family space: chores with who and how often, shown on the wall as today's and this week's jobs per person, ticked off by touch with the chime. PW-22 (the house cleaning schedule) is the content source; the rota is built so its schedule can be entered once and reused.\n\n## Why\nPhil decided a chores rota is one of the paper things the wall replaces, as a new panel (6b).\n\n## Done looks like\nChores with a person and a repeat exist in the family space, the wall shows today's per person, a tick marks them done and they come back on schedule.\n\n## Unlocks\n- PW-22: the cleaning schedule gets a home\n\n## Depends on\n- wall.05: the tile library this panel registers in",
+      "after": [
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189",
+        "PW-22"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "chore",
+        "cleaning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.10",
+      "title": "Panel: bin day and fridge reminders",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nThe next bin day is already in the board's header (`lib/bins`); this makes it a tile with which bins and how many days, plus fridge reminders: short notes anyone can add on the wall or a phone (\"milk\", \"dentist card\") that stay until ticked, in the family space.\n\n## Why\nPhil decided the bin-day leaflet and fridge reminders are paper the wall replaces (6b).\n\n## Done looks like\nThe bins tile names the bins and the day; a fridge note added on a phone appears on the wall and goes when ticked.\n\n## Unlocks\nNothing further.\n\n## Depends on\n- wall.05: the tile library this panel registers in",
+      "after": [
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "reminder",
+        "home"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.11",
+      "title": "Panel: parcels expected, from the mail import",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA tile listing parcels expected today and this week (carrier, from whom, the day), read from delivery emails once the mail import exists. Only the parcel line is shown on the family screen, never the email.\n\n## Why\nPhil decided parcels come from the mail import (answer 24).\n\n## Done looks like\nWith the import running, a delivery email produces a line on the wall and the line goes after its day.\n\n## Unlocks\nNothing further.\n\n## Depends on\n- wall.05: the tile library this panel registers in\n- MYC-201: the inbox the app may read over IMAP",
+      "after": [
+        "wall.05",
+        "MYC-201"
+      ],
+      "links": [
+        "MYC-189",
+        "MYC-201"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "communication"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.12",
+      "title": "Panel: energy use (smart meter, EV charger)",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA tile with today's and this week's electricity (and gas, if the meter gives it) in kWh, and the EV charger's last session. Never pounds: the finance guard forbids money on the wall. First step, written up on the ticket before any build: the meter route. n3rgy's consumer access now needs a business partner's consent and is not dependable; Hildebrand's Bright app and its cloud API give half-hourly data free; live local data needs a Glow display and MQTT enabled by Hildebrand (a purchase). The EV charger's make decides its route (its cloud API or a Home Assistant integration). If the Home Assistant route is chosen, this waits for sub.08.\n\n## Why\nPhil decided energy use is a panel, from the smart meter and the home EV charger (answers 11 and 13).\n\n## Done looks like\nThe route is written on the ticket and agreed; the tile shows today's kWh and the last charge; no pound figure appears anywhere on the wall.\n\n## Unlocks\nNothing further.\n\n## Depends on\n- wall.05: the tile library this panel registers in\n- sub.08: Home Assistant, only if the Home Assistant route is chosen\n\n## Cost\nA Glow display is a purchase, to be priced in wall.04 if the live route is wanted. Nothing is bought in this run.",
+      "after": [
+        "wall.05",
+        "sub.08"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "home",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.13",
+      "title": "Panel: PhirstMaxx plans",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA tile showing the family's next PhirstMaxx plans (the next trip or day out, its date and the first leg), from `lib/phirstmaxx`. PhirstMaxx data is Phil's own space today; the ticket starts by asking which plans the family screen may show (shared plans only, or behind the PIN).\n\n## Why\nPhil decided PhirstMaxx plans are one of the new panels (answer 11).\n\n## Done looks like\nA plan Phil marks as shared shows on the wall with its date; nothing unshared appears.\n\n## Unlocks\nNothing further.\n\n## Depends on\n- wall.05: the tile library this panel registers in",
+      "after": [
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "travel",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.14",
+      "title": "Panel: photo slideshow from a shared phone album (a new connection)",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA slideshow tile, and the ambient and guest views' pictures, from one shared phone album. First step, a choice for Phil on the ticket: (a) an iCloud Shared Album with Public Website on, read through an undocumented Apple endpoint (anyone with the link can see the photos; adding photos needs an Apple device); (b) Immich on the Substrate box (private, needs Substrate); Google Photos is out because its API cannot read shared albums since 31 March 2025. Then the connection, cached thumbnails served through Mycelium so the screen does not fetch from Apple directly (wall.24), and a pause by touch.\n\n## Why\nPhil decided the slideshow comes from a shared phone album, a new connection, not the Family timeline (answer 22).\n\n## Done looks like\nThe route is chosen on the ticket; a photo added to the album appears on the wall within a day; the frame never loads images from outside Mycelium.\n\n## Unlocks\n- wall.16: \"from the archive\" can draw photos from the same album\n\n## Depends on\n- wall.05: the tile library this panel registers in",
+      "after": [
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "photos"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.15",
+      "title": "Panel: music, Spotify control on whichever speaker is playing",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA tile showing what is playing and where, with play, pause, skip and volume, and a list of speakers to move playback to. First step: check the existing Spotify app (`lib/spotify/client.ts`) against the February 2026 Development Mode rules (the owner needs Premium, five authorised users per app, a narrower endpoint set; whether playback control is in it is unverified) and add the control scopes. Speakers appear only while a Spotify client is active on them and some models refuse Web API commands, so the tile controls the active speaker reliably and shows \"start it from the app\" when an idle one will not wake. The wall uses a household token held on the server, never in the page.\n\n## Why\nPhil decided music is Spotify control on whichever speaker is playing (answer 23).\n\n## Done looks like\nWith music playing anywhere in the house, the wall shows it and pause, skip and volume work; a speaker that cannot be reached shows a plain line, not an error.\n\n## Unlocks\nNothing further.\n\n## Depends on\n- wall.05: the tile library this panel registers in",
+      "after": [
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "home"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.16",
+      "title": "Panel: \"from the archive\", quotes and photos from this day in past years",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA small tile rotating saved quotes (`lib/quotes`) and photos taken on this day in past years. Quotes are Phil's space today; the tile shows only quotes he marks for the family, and photos only from the shared album (wall.14) or the family space.\n\n## Why\nPhil asked for a small \"from the archive\" tile rotating saved quotes and photos from this day in past years (6b).\n\n## Done looks like\nOn a day with a marked quote or an old photo, the tile shows it; with none, the tile hides.\n\n## Unlocks\nNothing further.\n\n## Depends on\n- wall.05: the tile library this panel registers in\n- wall.14 helps (photos)",
+      "after": [
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "photos",
+        "idea"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.17",
+      "title": "House controls through Home Assistant: lights and plugs, scenes open; cameras and heating behind the PIN",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nControl tiles on the wall for lights, plugs and scenes, open to anyone at the screen, and for cameras and heating, opened only after a person's quick-unlock PIN. All through Home Assistant on the Substrate box (REST `POST /api/services/<domain>/<service>`, WebSocket for live state). The wall page comes from Vercel over HTTPS, so calling Home Assistant from the screen needs Home Assistant on a local HTTPS name with a real certificate (sub.05) and the Mycelium origin in its `cors_allowed_origins`. The cautious design, written up for Phil before the build: a dedicated non-admin Home Assistant user for the walls with only lights, plugs and scenes; camera and heating calls made by the Mycelium server after the PIN. Lighting positions from home.24 appear as scene buttons.\n\n## Why\nPhil decided all four controls, through Home Assistant, with lights and scenes open and cameras and heating behind the quick-unlock PIN (answers 9, 10, 29).\n\n## Done looks like\nFrom the kitchen wall a light and a scene work with no PIN; heating and a camera ask for a PIN first; the wall's Home Assistant user cannot change heating on its own (checked by a call that is refused).\n\n## Unlocks\n- wall.18: the doorbell pop-up\n- wall.21: house status when idle\n- wall.22: controls that keep working with the internet down\n- glass epic: voice house control comes after this\n\n## Depends on\n- wall.05: the tile library\n- sub.08: Home Assistant on the Substrate box\n- sub.05: local HTTPS names with real certificates (added by this rundown; see the dossier section 5)\n\n## Flag\nWhere the Home Assistant token lives (each screen, or the server only) is a security choice; the ticket proposes the narrow wall user and waits for Phil's answer before the build.",
+      "after": [
+        "wall.05",
+        "sub.08",
+        "sub.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "home",
+        "security"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.18",
+      "title": "Doorbell pop-up on a shared-room screen, cameras on demand",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWhen the doorbell rings, shared-room walls (kitchen, living room; not the bedroom) show the doorbell camera full-screen for about 30 seconds with a soft chime, then go back. Other cameras open on demand behind the PIN, as wall.17 set. The ring arrives from Home Assistant's event stream; the picture is the local camera stream through Home Assistant, never a cloud link.\n\n## Why\nPhil decided cameras on a shared-room screen pop up when the doorbell rings and are otherwise on demand (answer 14).\n\n## Done looks like\nA ring shows the doorbell on the kitchen wall within a couple of seconds and it returns to the board by itself; the bedroom screen does not pop up.\n\n## Unlocks\nNothing further.\n\n## Depends on\n- wall.17: house controls and the PIN rule for cameras",
+      "after": [
+        "wall.17"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "home",
+        "security"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.19",
+      "title": "Night hours per room in Settings; bedroom wind-down (dim, tomorrow's first thing, dark)",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nNight hours exist today as one fixed window, 23:00 to 06:00 London, for every wall (`lib/wall/schedule.ts`). Move them into Settings > Security > Walls per device. Add the bedroom wind-down: at a set time the screen dims, shows tomorrow's first thing (the first family appointment, or the first item of whoever unlocks it), then goes dark until morning or a touch.\n\n## Why\nPhil decided night hours are fixed per room and set in Settings, and the bedroom screen winds down: dims, shows tomorrow's first thing, then dark (answer 19, 6b).\n\n## Done looks like\nTwo walls with different night hours dim at their own times; the bedroom wall dims, shows tomorrow's first thing and then goes dark; a touch wakes it.\n\n## Unlocks\nNothing further.\n\n## Depends on\n- wall.05: the tile library this panel registers in",
+      "after": [
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "schedule",
+        "home"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.20",
+      "title": "Guest mode: one tap and on a schedule, per device or all",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nGuest mode exists as one tap (clock, weather, pictures, long press to leave). Add a schedule Phil sets in Settings (for example a weekend when people stay) and the choice of which walls it applies to, one or all; a scheduled guest mode also starts and ends by itself.\n\n## Why\nPhil decided guest mode is one tap by hand and on a schedule he sets, choosing which device or all (6b).\n\n## Done looks like\nA schedule set in Settings puts the chosen walls into guest mode at its start and back at its end; the one tap still works on any wall.\n\n## Unlocks\nNothing further.\n\n## Depends on\n- wall.05: the tile library this panel registers in",
+      "after": [
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "schedule"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.21",
+      "title": "Idle: house status (doors, heating, what is on)",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWhen the wall is idle, the ambient view gains a quiet house status line from Home Assistant: doors open or shut, the heating's current and set temperature, and which lights or plugs are on. Read-only on the idle view; control stays on the tiles.\n\n## Why\nPhil decided the idle screen shows house status: doors, heating, what is on (6b).\n\n## Done looks like\nWith the wall idle, opening a door or switching a light changes the status within a few seconds.\n\n## Unlocks\nNothing further.\n\n## Depends on\n- wall.17: the Home Assistant connection",
+      "after": [
+        "wall.17"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "home"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.22",
+      "title": "Offline: last known board with an \"as of\" time; controls keep working locally",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWith the internet down, the wall keeps the last board it drew (the app's offline store, `lib/offline`) with an \"as of\" time, and lights, plugs and scenes still work by calling Home Assistant on its local HTTPS name directly. The page must be served from the cache when Vercel cannot be reached, and the ticket checks that the wall device's sign-in survives a few hours offline. Proved by pulling the router's internet line, not by a simulation alone.\n\n## Why\nPhil decided that with the internet down the board shows its last state with an \"as of\" time, and controls keep working locally (answer 28).\n\n## Done looks like\nWith the internet line unplugged, the kitchen wall shows the board with an \"as of\" time and a light still switches from it.\n\n## Unlocks\nNothing further.\n\n## Depends on\n- wall.17: house controls\n- sub.05: local HTTPS names (direct local calls need them)\n\n## Red team\n- Finding 58: Includes the PC-off test: everything works except controls and the PC voice (6.25).\n",
+      "after": [
+        "wall.17",
+        "sub.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "home",
+        "testing"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.23",
+      "title": "Sound: soft natural chimes, speech only when asked",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nToday the wall speaks nudges, the morning pick and family reminders aloud on its own every twenty seconds (`thingsToSay`, `lib/wall/speak.ts`). Change that: nothing is said unless someone asks (\"Read my morning\", or a tap on a speak button on a tile); reminders and nudges become a soft natural chime and a line on the screen. Replace the chime with a small set of soft natural sounds and a volume per device in Settings.\n\n## Why\nPhil decided soft natural chimes, and speech only when asked for, which narrows the earlier spoken reminders decision for the wall (6b).\n\n## Done looks like\nA nudge arriving on the wall makes a soft chime and a line, and says nothing; \"Read my morning\" still speaks; each wall has its own volume.\n\n## Unlocks\nNothing further.\n\n## Depends on\n- wall.05: the tile library this panel registers in",
+      "after": [
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "dev",
+        "feature",
+        "home"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "wall.24",
+      "title": "Screens on the Smart-devices network, reaching Mycelium and Home Assistant only",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nMove each wall screen onto the Smart-devices network and limit what it may reach to Mycelium and Home Assistant. Claude first writes on the ticket the names a wall needs (the Mycelium address, Home Assistant's local name, the kiosk app's licence check, and any image host the panels use unless Mycelium serves them). Phil then does one sitting per screen with the checklist. Mycelium is on Vercel's shared and changing addresses, so the limit is by name in the DNS filter (sub.06), not by address on the router; until the filter exists the screen gets the Smart-devices network's rules and the allow step waits.\n\n## Why\nPhil decided screens sit on the Smart-devices network, allowed to reach Mycelium and Home Assistant only (answer 27).\n\n## Done looks like\nEach screen is on Smart devices, the wall loads, and once sub.06 exists a general site does not open from the screen.\n\n## Unlocks\n- wall.22: the screen on the same network as Home Assistant\n\n## Depends on\n- net.09: the smart devices moved to Smart devices\n- sub.06: the DNS filter, for the allow step (added by this rundown; see the dossier section 5)",
+      "after": [
+        "net.09",
+        "sub.06"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "security",
+        "home",
+        "guide"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "wall-screens-smart-network",
+        "kind": "guide",
+        "title": "Put the wall screens on the Smart-devices network, reaching Mycelium and Home Assistant only",
+        "version": 1,
+        "intro": {
+          "answer": "Join each screen to the Smart-devices Wi-Fi, check the wall still loads, then limit what the screen may reach as far as the router and DNS filter allow.",
+          "unlocks": [
+            "wall.22: local control on the same network as Home Assistant"
+          ],
+          "to_hand": [
+            "The Smart-devices Wi-Fi password, in Proton Pass",
+            "The screen",
+            "The router's admin page on the PC"
+          ],
+          "time": [
+            "about 15 minutes per screen"
+          ],
+          "hard_part": {
+            "step_id": "1.4",
+            "why": "Mycelium is on Vercel's shared and changing addresses, so the router cannot allow it by address; the allow list has to be by name, in the DNS filter."
+          },
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "One screen onto Smart devices",
+            "minutes": 15,
+            "needs": [
+              "net.09 done: the Smart-devices network exists and is in use",
+              "The screen"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Join the Smart-devices Wi-Fi",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The frame's own Settings",
+                  "kind": "page"
+                },
+                "body_html": "<p>On the screen: Settings &gt; Wi-Fi, choose the Smart-devices network, type its password from Proton Pass, and forget the old network.</p>",
+                "expect_html": "<p>The screen shows it is connected to the Smart-devices network.</p>",
+                "fields": [
+                  {
+                    "key": "screen",
+                    "label": "Which screen",
+                    "placeholder": "for example Kitchen frame"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "The wall still loads",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Restart the kiosk app (or reload the browser). Check the board shows now, not a cached copy.</p>",
+                "expect_html": "<p>The board appears with today's data and the time it was drawn is current.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Note what the screen reaches",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Router admin, the client list",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>In the router's client list find the screen and give it a clear name. Claude writes the list of addresses a wall needs (Mycelium, Home Assistant, and the kiosk app's licence check) on the ticket before this sitting.</p>",
+                "expect_html": "<p>The screen is listed on the Smart-devices network with a name you recognise.</p>",
+                "fields": [
+                  {
+                    "key": "screen_ip",
+                    "label": "Screen's address on the network",
+                    "placeholder": "for example 192.168.x.x (not secret)"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Apply the allow list",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The DNS filter (sub.06), the screen's group",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>Put the screen in a group allowed only the names Claude listed on the ticket. If the DNS filter does not exist yet, stop here: the screen stays on Smart devices with that network's rules, and this step waits for sub.06.</p>",
+                "expect_html": "<p>The screen is in a group that allows only the listed names; the wall still loads afterwards.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "The wall goes blank after the allow list",
+                    "fix": "Move the screen out of the group to bring it back, then add the name the browser's error page shows to the ticket."
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "A blocked name stays blocked",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The screen's browser",
+                  "kind": "browser"
+                },
+                "body_html": "<p>If the screen has a browser outside the kiosk, try a news site: it should not open. Back to the wall: it should.</p>",
+                "expect_html": "<p>A general site does not open on the screen, and the wall does.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested"
+        }
+      }
+    },
+    {
+      "sid": "wall.25",
+      "title": "Further rooms: living room, bedroom, office, on devices he owns",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nGive the living room, bedroom and office each a wall on a device Phil already owns, picked from wall.04's owned-devices table: pair it in Settings > Security > Walls under the room's name, choose its tile set and night hours, and ask Claude for a boot guide if the device type is new. One sitting per room, a phase each in the checklist. A room with no suitable device is left for later; nothing is bought.\n\n## Why\nPhil decided several rooms from the start, further rooms being the living room, bedroom and office, on devices he already owns (answers 5, 7, 8).\n\n## Done looks like\nEach room either has a paired wall showing its own tiles, or is marked \"later\" in the checklist.\n\n## Unlocks\n- wall.03: a boot guide copy per new device type\n\n## Depends on\n- wall.04: the owned-devices table\n- wall.05: per-device tile sets",
+      "after": [
+        "wall.04",
+        "wall.05"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "home",
+        "guide"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "wall-further-rooms",
+        "kind": "guide",
+        "title": "Further rooms: living room, bedroom and office, on devices you own",
+        "version": 1,
+        "intro": {
+          "answer": "For each room, pick a device from wall.04's owned-devices table, pair it as that room's wall and choose its tile set.",
+          "unlocks": [
+            "wall.03: a boot guide copy for each new device type"
+          ],
+          "to_hand": [
+            "wall.04's owned-devices table",
+            "The device for the room, charged",
+            "Your phone with Mycelium signed in"
+          ],
+          "time": [
+            "about 15 minutes per room"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Living room",
+            "minutes": 13,
+            "needs": [
+              "The device picked for this room"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Pick the living room device",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Your decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>From wall.04's owned-devices table choose the device for the living room. If none fits, write \"later\": nothing is bought here.</p>",
+                "expect_html": "<p>One owned device is named for the room, or the room is left for later.</p>",
+                "fields": [
+                  {
+                    "key": "dev_1",
+                    "label": "Device",
+                    "placeholder": "from the table, or later"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Pair it",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, Settings > Security > Walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>On the device open the Mycelium address with <code>/wall</code>. On your phone: Settings &gt; Security &gt; Walls, team Family, name <strong>Living room</strong>, Add wall, and type the code on the device within ten minutes.</p>",
+                "expect_html": "<p>The device shows the family board.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "The code is shown once; do not photograph or send it."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Choose its tiles and night hours",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, Settings > Security > Walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>In the Living room wall's row, choose its tile set and its night hours (from wall.05 and wall.19).</p>",
+                "expect_html": "<p>The device shows the tiles you chose and its night hours are set.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Ask for its boot guide",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>If this device type has no boot guide yet, add a comment naming it.</p>",
+                "expect_html": "<p>A comment on this ticket names the device type; Claude writes its boot guide from wall.03.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Bedroom",
+            "minutes": 13,
+            "needs": [
+              "The device picked for this room"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Pick the bedroom device",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Your decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>From wall.04's owned-devices table choose the device for the bedroom. If none fits, write \"later\": nothing is bought here.</p>",
+                "expect_html": "<p>One owned device is named for the room, or the room is left for later.</p>",
+                "fields": [
+                  {
+                    "key": "dev_2",
+                    "label": "Device",
+                    "placeholder": "from the table, or later"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Pair it",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, Settings > Security > Walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>On the device open the Mycelium address with <code>/wall</code>. On your phone: Settings &gt; Security &gt; Walls, team Family, name <strong>Bedroom</strong>, Add wall, and type the code on the device within ten minutes.</p>",
+                "expect_html": "<p>The device shows the family board.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "The code is shown once; do not photograph or send it."
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Choose its tiles and night hours",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, Settings > Security > Walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>In the Bedroom wall's row, choose its tile set and its night hours (from wall.05 and wall.19).</p>",
+                "expect_html": "<p>The device shows the tiles you chose and its night hours are set.</p>"
+              },
+              {
+                "id": "2.4",
+                "title": "Ask for its boot guide",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>If this device type has no boot guide yet, add a comment naming it.</p>",
+                "expect_html": "<p>A comment on this ticket names the device type; Claude writes its boot guide from wall.03.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Office",
+            "minutes": 13,
+            "needs": [
+              "The device picked for this room"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Pick the office device",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Your decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>From wall.04's owned-devices table choose the device for the office. If none fits, write \"later\": nothing is bought here.</p>",
+                "expect_html": "<p>One owned device is named for the room, or the room is left for later.</p>",
+                "fields": [
+                  {
+                    "key": "dev_3",
+                    "label": "Device",
+                    "placeholder": "from the table, or later"
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "Pair it",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, Settings > Security > Walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>On the device open the Mycelium address with <code>/wall</code>. On your phone: Settings &gt; Security &gt; Walls, team Family, name <strong>Office</strong>, Add wall, and type the code on the device within ten minutes.</p>",
+                "expect_html": "<p>The device shows the family board.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "The code is shown once; do not photograph or send it."
+                  }
+                ]
+              },
+              {
+                "id": "3.3",
+                "title": "Choose its tiles and night hours",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, Settings > Security > Walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>In the Office wall's row, choose its tile set and its night hours (from wall.05 and wall.19).</p>",
+                "expect_html": "<p>The device shows the tiles you chose and its night hours are set.</p>"
+              },
+              {
+                "id": "3.4",
+                "title": "Ask for its boot guide",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>If this device type has no boot guide yet, add a comment naming it.</p>",
+                "expect_html": "<p>A comment on this ticket names the device type; Claude writes its boot guide from wall.03.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "2.4": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested",
+          "3.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "wall.26",
+      "title": "Done check: both of them use the kitchen screen daily for two weeks",
+      "kind": "test",
+      "points": 1,
+      "due": null,
+      "who": "PK",
+      "description": "## What\nFourteen evenings of one question each for Phil and Kirsty (did you use the kitchen screen today?), recorded in the checklist, then a five-minute look at the Kitchen wall's tile counts from wall.05 to confirm and to pick tiles to drop. Starts once the shopping and meal panel is on the kitchen wall.\n\n## Why\nPhil decided the epic is done when both of them use the kitchen screen daily for two weeks (answer 30).\n\n## Done looks like\nFourteen days with two answers each, and a result line: passed, or what kept it from daily use.\n\n## Unlocks\n- The epic closes on a pass\n\n## Depends on\n- wall.06: the shopping and meal panel, the first one used daily\n- wall.05: the tile counts",
+      "after": [
+        "wall.06"
+      ],
+      "links": [
+        "MYC-189"
+      ],
+      "tags": [
+        "wall",
+        "testing",
+        "home"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "wall-done-check",
+        "kind": "test",
+        "title": "Done check: both of you use the kitchen screen daily for two weeks",
+        "version": 1,
+        "intro": {
+          "answer": "For fourteen days, note each evening whether each of you used the kitchen screen; the wall's own tile counts back it up.",
+          "unlocks": [
+            "The epic's done line"
+          ],
+          "to_hand": [
+            "Kirsty, for a few seconds each evening"
+          ],
+          "time": [
+            "about a minute a day for fourteen days",
+            "about 5 minutes at the end"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Week one",
+            "minutes": 7,
+            "needs": [
+              "The kitchen wall with the first panels"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Day 1",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d1",
+                    "label": "Day 1: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Day 2",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d2",
+                    "label": "Day 2: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Day 3",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d3",
+                    "label": "Day 3: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Day 4",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d4",
+                    "label": "Day 4: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "Day 5",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d5",
+                    "label": "Day 5: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "1.6",
+                "title": "Day 6",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d6",
+                    "label": "Day 6: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "1.7",
+                "title": "Day 7",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d7",
+                    "label": "Day 7: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Week two and the result",
+            "minutes": 12,
+            "needs": [
+              "Week one noted"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Day 8",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d8",
+                    "label": "Day 8: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Day 9",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d9",
+                    "label": "Day 9: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Day 10",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d10",
+                    "label": "Day 10: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "2.4",
+                "title": "Day 11",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d11",
+                    "label": "Day 11: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "2.5",
+                "title": "Day 12",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d12",
+                    "label": "Day 12: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "2.6",
+                "title": "Day 13",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d13",
+                    "label": "Day 13: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "2.7",
+                "title": "Day 14",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The photo frame, in the kitchen",
+                  "kind": "page"
+                },
+                "body_html": "<p>Each evening: did you use it today? Did Kirsty?</p>",
+                "expect_html": "<p>Two yes or no answers for the day.</p>",
+                "fields": [
+                  {
+                    "key": "d14",
+                    "label": "Day 14: Phil, Kirsty",
+                    "placeholder": "yes yes / yes no / ..."
+                  }
+                ]
+              },
+              {
+                "id": "2.8",
+                "title": "Read the tile counts and decide",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Mycelium, Settings > Security > Walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the Kitchen wall's tile counts for the last 14 days. Fourteen days of yes for both of you is a pass. Otherwise write what kept it from daily use; tiles with no touches are candidates to drop.</p>",
+                "expect_html": "<p>A result is written: passed, or what kept it from daily use.</p>",
+                "fields": [
+                  {
+                    "key": "result",
+                    "label": "Result",
+                    "placeholder": "passed / not yet, because ..."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested",
+          "1.6": "untested",
+          "1.7": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "2.4": "untested",
+          "2.5": "untested",
+          "2.6": "untested",
+          "2.7": "untested",
+          "2.8": "untested"
+        }
+      }
+    }
+  ],
+  "existing": [
+    {
+      "key": "MYC-205",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nwall.02: the existing wall on the real frame for a week, which starts with this ticket's PIN and Kitchen wall."
+    },
+    {
+      "key": "MYC-189",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nE.wall (wall.01 to wall.26): the wall stream continues as this epic; wall.05 builds the tile library on the Field shell's tile grid."
+    }
+  ]
+}

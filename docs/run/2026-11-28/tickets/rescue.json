@@ -1,0 +1,2791 @@
+{
+  "epic": {
+    "sid": "E.rescue",
+    "project": "LIFE",
+    "title": "Harvest rescue: archive, the eleven chats, then the delete gate",
+    "description": "Before any old Claude project is deleted, everything durable is rescued into `claude/archive/`: the project docs (the office design state, both email plans, the PhirstMaxxing roadmap and prompts) and the files that live only in chats (the Daytripper spec, Alex's brochure and plan, DropShipAuto's tracker and plan files). The eleven chats the harvests could not read get the one-chat harvest; so do the 41 unread chats outside projects (first five first) and the three projects nobody swept. Then Claude checks the tickets against every harvest, project by project, and only then does Phil delete the old projects. Both Everlight projects and Mycelium are kept. `claude/harvest-prompts-rescue.md` (which the brief names for Prompts C and D) and `claude/harvest-review.md` do not exist in the repo; they were never committed or were deleted. Phil or a later session recreates them. Prompt A (the project sweep) is `claude/harvest-prompt.md`; Prompt C (the one-chat harvest, pasted into the chat itself) and Prompt D (the project export) were in the missing file; rescue.01 step 1.1 has Claude Code recreate it, and the guides carry a working draft meanwhile.\n\n## Order\nrescue.01 and rescue.02 first (the archive), with rescue.03 alongside. rescue.04 and rescue.05 any time; the first sitting of rescue.04 matters most. rescue.06 waits for rescue.01 and rescue.03 (and reads rescue.04 and rescue.05 if done). rescue.07 last, after rescue.06.\n\n## Done means\n`claude/archive/` holds every project doc and chat-only file named in H8; every unread chat has a harvest file or is noted empty; rescue.06's table marks each project fully filed; the old projects are deleted with a full claude.ai export saved first; Everlight and Mycelium are still there.\n\n## Flags\n- Run rules `[claude]`: a full breakdown of future work goes stale. Complied with.\n\n## Dossier\nThe dossier is attached in Docs: (link filled by the integrator).",
+    "dossier": "dossiers/rescue.md",
+    "links": [
+      "MYC-190"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "rescue.00",
+      "title": "Claude writes Prompt C (one-chat harvest) and Prompt D (project export) into claude/harvest-prompts-rescue.md",
+      "kind": "task",
+      "points": 2,
+      "who": "C",
+      "description": "## What\nWrite the two prompts the rescue guides ask Phil to paste, from the brief's description of them (H8), into claude/harvest-prompts-rescue.md, and recreate claude/harvest-review.md's purpose as a short header there.\n\n## Why\nRed team finding 49: the files the brief names do not exist in the repo, and Phil cannot run a prompt that does not exist.\n\n## Done looks like\nBoth prompts are in the file and each rescue guide links the exact section.\n\n## Unlocks\nrescue.01 to rescue.05.\n\n## Depends on\nNothing.",
+      "after": [],
+      "tags": [
+        "rescue"
+      ],
+      "links": [],
+      "steps_definition": null,
+      "due": null
+    },
+    {
+      "sid": "rescue.01",
+      "title": "Rescue into claude/archive/: the office design state, both email plans, the PhirstMaxxing roadmap and prompts; one export prompt per project",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nFour Claude projects hold docs that must be saved before any project is deleted: **Office Set Up** (`office-design-state.md`, `office-brief-answers.md`), **Email Management** (`email-restructure-checklist.md`), **Personal Online Security** (`email-consolidation-plan.md`) and **PhirstMaxxing** (the roadmap and prompts). One phase per project: open the project, start a new chat, paste Prompt D (the export), save each printed file into `claude/archive/<project>/`. The PhirstMaxxing roadmap and prompts are already on the PC in the old repo, so Claude Code copies those and the export only catches what is not on disk. `claude/harvest-prompts-rescue.md` (which the brief names for Prompts C and D) and `claude/harvest-review.md` do not exist in the repo; they were never committed or were deleted. Phil or a later session recreates them. Prompt D's purpose: make a project print every doc in its knowledge and every file its chats made, word for word, so Phil can save them. The guide carries a draft of it until the file is recreated.\n\n## Why\nH8.1: rescue everything into `claude/archive/` first; Phil runs one short export prompt per project.\n\n## Done looks like\n`claude/archive/` has a folder per project holding the files listed above (or a note of what could not be exported); the account inventory spreadsheet is not in the repo.\n\n## Unlocks\n- rescue.06: the check against the harvest\n- rescue.07: the delete gate\n\n## Depends on\nNothing (step 1.1 recreates the missing prompts file first)",
+      "after": [
+        "rescue.00"
+      ],
+      "links": [
+        "MYC-190"
+      ],
+      "tags": [
+        "documentation",
+        "rescue"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "rescue-01-archive-project-docs",
+        "kind": "guide",
+        "title": "Rescue the project docs into claude/archive/ before any project is deleted",
+        "version": 1,
+        "intro": {
+          "answer": "One short export prompt in each of four Claude projects; you save what it prints into claude/archive/.",
+          "unlocks": [
+            "rescue.06: the tickets can be checked against the full record",
+            "rescue.07: the delete gate"
+          ],
+          "to_hand": [
+            "The PC with the Mycelium repo open",
+            "Access to claude.ai in a browser",
+            "About 15 minutes per project"
+          ],
+          "time": [
+            "about 1 hour in four sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Claude help: projects (archive and delete)",
+              "url": "https://support.claude.com/en/articles/9519177",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "2.3",
+            "why": "a long answer has to be copied heading by heading into separate files, and a file that is not text has to be downloaded from the chat it lives in."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Before you start: the prompts file and the archive folder",
+            "minutes": 1,
+            "needs": [
+              "Nothing"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Claude Code recreates the prompts file and makes the archive folder",
+                "actor": "claude-code",
+                "minutes": 0,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code writes <code>claude/harvest-prompts-rescue.md</code> with Prompt C (the one-chat harvest) and Prompt D (the project export), creates <code>claude/archive/</code> with one folder per project, and confirms the GitHub repo is private. If the repo is not private, the archive goes outside the repo instead, in <code>A:\\Projects\\archive\\</code>.</p>",
+                "expect_html": "<p>The file and the folders exist; Claude Code reports whether the repo is private.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Check where the archive goes",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Claude Code's report",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Read Claude Code's line on the repo: private or not. Write the folder you will save into.</p>",
+                "expect_html": "<p>One answer below.</p>",
+                "fields": [
+                  {
+                    "key": "archive_root",
+                    "label": "Archive folder",
+                    "placeholder": "claude/archive or A:\\Projects\\archive"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Office Set Up: export the project docs",
+            "minutes": 13,
+            "needs": [
+              "The prompt below",
+              "About 15 minutes"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Open Office Set Up and start a new chat",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, Office Set Up",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Open the <strong>Office Set Up</strong> project and start a new chat inside it (not a chat outside the project).</p>",
+                "expect_html": "<p>An empty chat with the project name above it.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Paste Prompt D",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The new chat in Office Set Up",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Paste the prompt below and send it. If <code>claude/harvest-prompts-rescue.md</code> exists by now, use its Prompt D instead.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt D, the export (draft of 2026-11-28; the file is missing from the repo)",
+                    "text": "I am closing this project and saving everything durable into my own files. Print, in full and word for word, every document in this project's knowledge and every file you made in this project's chats that you can still see (specs, plans, prompts, checklists, HTML pages). Put each under a level-two heading that is its exact file name. Do not summarise, shorten or tidy anything. If a file is not text (a spreadsheet, a Word document, an image), name it and the chat it is in so I can download it myself. Replace any password, key, token or recovery code with [removed]. End with two lists: the files you printed, and the files you could not.",
+                    "kind": "prompt"
+                  }
+                ],
+                "expect_html": "<p>The chat prints each file under its own heading and ends with the two lists.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat summarises instead of printing in full",
+                    "fix": "Reply: \"Print it in full, word for word, no summary.\""
+                  },
+                  {
+                    "symptom": "The answer stops part-way",
+                    "fix": "Reply: \"Continue exactly where you stopped.\""
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Save each printed file",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "A:\\Projects\\Mycelium\\claude\\archive\\office-set-up",
+                  "kind": "page"
+                },
+                "body_html": "<p>For each heading, copy the text under it into a new file with that name in <code>claude/archive/office-set-up/</code>. Expected: <code>office-design-state.md</code> and <code>office-brief-answers.md</code>. For anything the chat could not print (a spreadsheet, a Word file), open the chat it names and download it into the same folder.</p>",
+                "expect_html": "<p>The folder holds one file per heading.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "2.4",
+                "title": "Count what you saved",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "File Explorer",
+                  "kind": "page"
+                },
+                "body_html": "<p>Count the files in the folder and note any the chat listed as \"could not\".</p>",
+                "expect_html": "<p>Two short answers below.</p>",
+                "fields": [
+                  {
+                    "key": "office_set_up_files",
+                    "label": "Files saved",
+                    "placeholder": "a number"
+                  },
+                  {
+                    "key": "office_set_up_missing",
+                    "label": "Could not be exported",
+                    "placeholder": "file names, or none"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Email Management: export the project docs",
+            "minutes": 13,
+            "needs": [
+              "The prompt below",
+              "About 15 minutes"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Open Email Management and start a new chat",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, Email Management",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Open the <strong>Email Management</strong> project and start a new chat inside it (not a chat outside the project).</p>",
+                "expect_html": "<p>An empty chat with the project name above it.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Paste Prompt D",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The new chat in Email Management",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Paste the prompt below and send it. If <code>claude/harvest-prompts-rescue.md</code> exists by now, use its Prompt D instead.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt D, the export (draft of 2026-11-28; the file is missing from the repo)",
+                    "text": "I am closing this project and saving everything durable into my own files. Print, in full and word for word, every document in this project's knowledge and every file you made in this project's chats that you can still see (specs, plans, prompts, checklists, HTML pages). Put each under a level-two heading that is its exact file name. Do not summarise, shorten or tidy anything. If a file is not text (a spreadsheet, a Word document, an image), name it and the chat it is in so I can download it myself. Replace any password, key, token or recovery code with [removed]. End with two lists: the files you printed, and the files you could not.",
+                    "kind": "prompt"
+                  }
+                ],
+                "expect_html": "<p>The chat prints each file under its own heading and ends with the two lists.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat summarises instead of printing in full",
+                    "fix": "Reply: \"Print it in full, word for word, no summary.\""
+                  },
+                  {
+                    "symptom": "The answer stops part-way",
+                    "fix": "Reply: \"Continue exactly where you stopped.\""
+                  }
+                ]
+              },
+              {
+                "id": "3.3",
+                "title": "Save each printed file",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "A:\\Projects\\Mycelium\\claude\\archive\\email-management",
+                  "kind": "page"
+                },
+                "body_html": "<p>For each heading, copy the text under it into a new file with that name in <code>claude/archive/email-management/</code>. Expected: <code>email-restructure-checklist.md</code>. For anything the chat could not print (a spreadsheet, a Word file), open the chat it names and download it into the same folder.</p>",
+                "expect_html": "<p>The folder holds one file per heading.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "3.4",
+                "title": "Count what you saved",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "File Explorer",
+                  "kind": "page"
+                },
+                "body_html": "<p>Count the files in the folder and note any the chat listed as \"could not\".</p>",
+                "expect_html": "<p>Two short answers below.</p>",
+                "fields": [
+                  {
+                    "key": "email_management_files",
+                    "label": "Files saved",
+                    "placeholder": "a number"
+                  },
+                  {
+                    "key": "email_management_missing",
+                    "label": "Could not be exported",
+                    "placeholder": "file names, or none"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Personal Online Security: export the project docs",
+            "minutes": 13,
+            "needs": [
+              "The prompt below",
+              "About 15 minutes"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Open Personal Online Security and start a new chat",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, Personal Online Security",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Open the <strong>Personal Online Security</strong> project and start a new chat inside it (not a chat outside the project).</p>",
+                "expect_html": "<p>An empty chat with the project name above it.</p>"
+              },
+              {
+                "id": "4.2",
+                "title": "Paste Prompt D",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The new chat in Personal Online Security",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Paste the prompt below and send it. If <code>claude/harvest-prompts-rescue.md</code> exists by now, use its Prompt D instead.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt D, the export (draft of 2026-11-28; the file is missing from the repo)",
+                    "text": "I am closing this project and saving everything durable into my own files. Print, in full and word for word, every document in this project's knowledge and every file you made in this project's chats that you can still see (specs, plans, prompts, checklists, HTML pages). Put each under a level-two heading that is its exact file name. Do not summarise, shorten or tidy anything. If a file is not text (a spreadsheet, a Word document, an image), name it and the chat it is in so I can download it myself. Replace any password, key, token or recovery code with [removed]. End with two lists: the files you printed, and the files you could not.",
+                    "kind": "prompt"
+                  }
+                ],
+                "expect_html": "<p>The chat prints each file under its own heading and ends with the two lists.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat summarises instead of printing in full",
+                    "fix": "Reply: \"Print it in full, word for word, no summary.\""
+                  },
+                  {
+                    "symptom": "The answer stops part-way",
+                    "fix": "Reply: \"Continue exactly where you stopped.\""
+                  }
+                ]
+              },
+              {
+                "id": "4.3",
+                "title": "Save each printed file",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "A:\\Projects\\Mycelium\\claude\\archive\\personal-online-security",
+                  "kind": "page"
+                },
+                "body_html": "<p>For each heading, copy the text under it into a new file with that name in <code>claude/archive/personal-online-security/</code>. Expected: <code>email-consolidation-plan.md</code>. For anything the chat could not print (a spreadsheet, a Word file), open the chat it names and download it into the same folder.</p>",
+                "expect_html": "<p>The folder holds one file per heading.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  },
+                  {
+                    "kind": "security",
+                    "html": "<p>The account inventory spreadsheet (<code>account-inventory.xlsx</code> in <code>Desktop\\mail-census</code>) lists every account you hold. It stays where it is and does not go into the repo.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "4.4",
+                "title": "Count what you saved",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "File Explorer",
+                  "kind": "page"
+                },
+                "body_html": "<p>Count the files in the folder and note any the chat listed as \"could not\".</p>",
+                "expect_html": "<p>Two short answers below.</p>",
+                "fields": [
+                  {
+                    "key": "personal_online_security_files",
+                    "label": "Files saved",
+                    "placeholder": "a number"
+                  },
+                  {
+                    "key": "personal_online_security_missing",
+                    "label": "Could not be exported",
+                    "placeholder": "file names, or none"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "5",
+            "title": "PhirstMaxxing: the roadmap and prompts",
+            "minutes": 10,
+            "needs": [
+              "About 10 minutes"
+            ],
+            "steps": [
+              {
+                "id": "5.1",
+                "title": "Claude Code copies the old repo's roadmap and prompts",
+                "actor": "claude-code",
+                "minutes": 0,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>The roadmap and prompts are already on the PC in <code>A:\\Projects\\PhirstMaxxing\\docs\\</code> (<code>ROADMAP.md</code>, <code>PROMPT_3_FREE_TIME_V2.md</code>, <code>claude_PROMPT_4_DAYTRIPPER_SHARE.md</code>, <code>STATUS.md</code>) and in the repo root (<code>CLAUDE.md</code>, <code>CLAUDE_CODE_KICKOFF_PROMPT.md</code>). Claude Code copies them unchanged into <code>claude/archive/phirstmaxxing/</code>.</p>",
+                "expect_html": "<p>Six files in the folder.</p>"
+              },
+              {
+                "id": "5.2",
+                "title": "Open PhirstMaxxing and paste Prompt D",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "claude.ai, Projects, PhirstMaxxing",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Start a new chat in the PhirstMaxxing project and paste Prompt D. This catches anything kept only in the project (the harvest mentions PROMPT_2 and the kick-off prompt as project files).</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt D, the export (draft of 2026-11-28)",
+                    "text": "I am closing this project and saving everything durable into my own files. Print, in full and word for word, every document in this project's knowledge and every file you made in this project's chats that you can still see (specs, plans, prompts, checklists, HTML pages). Put each under a level-two heading that is its exact file name. Do not summarise, shorten or tidy anything. If a file is not text (a spreadsheet, a Word document, an image), name it and the chat it is in so I can download it myself. Replace any password, key, token or recovery code with [removed]. End with two lists: the files you printed, and the files you could not.",
+                    "kind": "prompt"
+                  }
+                ],
+                "expect_html": "<p>The chat prints each project file.</p>"
+              },
+              {
+                "id": "5.3",
+                "title": "Save only what is not already there",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "A:\\Projects\\Mycelium\\claude\\archive\\phirstmaxxing",
+                  "kind": "page"
+                },
+                "body_html": "<p>Save any printed file whose name is not already in the folder. Skip the six Claude Code copied.</p>",
+                "expect_html": "<p>The folder holds the six copies plus anything new.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "5.4",
+                "title": "Count what was new",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "File Explorer",
+                  "kind": "page"
+                },
+                "body_html": "<p>Note how many new files you added.</p>",
+                "expect_html": "<p>One answer below.</p>",
+                "fields": [
+                  {
+                    "key": "phirstmaxxing_new",
+                    "label": "New files from the project",
+                    "placeholder": "a number, or 0"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "2.4": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested",
+          "3.4": "untested",
+          "4.1": "untested",
+          "4.2": "untested",
+          "4.3": "untested",
+          "4.4": "untested",
+          "5.1": "untested",
+          "5.2": "untested",
+          "5.3": "untested",
+          "5.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "rescue.02",
+      "title": "Rescue the chat-only files: the Daytripper spec, Alex's brochure and plan, DropShipAuto's tracker and plan files",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nSome files were only ever chat outputs. Three turn out to be on the PC already and Claude Code copies them: the Daytripper spec (`A:\\Projects\\PhirstMaxxing\\docs\\claude_PROMPT_4_DAYTRIPPER_SHARE.md`), DropShipAuto's tracker (`A:\\Projects\\DropShipAuto\\DropShipAuto_Tracker.xlsx`) and `seed_clickup.py`. Phil downloads the rest: Alex's `basis_breathwork_brochure.html` and his six-month plan (Basis Holistics chat, May 2026), and DropShipAuto's `DropShipAuto_ProjectPlan.xlsx`, project plan Word document and UI build prompt (the \"Drop ship order MVP planning strategy\" chat). If a download link has gone, Prompt D in that chat prints the file instead. `claude/harvest-prompts-rescue.md` (which the brief names for Prompts C and D) and `claude/harvest-review.md` do not exist in the repo; they were never committed or were deleted. Phil or a later session recreates them.\n\n## Why\nH8.1: files that live only in chats (the Daytripper spec, Alex's brochure page and plan, DropShipAuto's tracker and plan files) are rescued before deletion.\n\n## Done looks like\nThe archive holds the brochure, the plan, the three DropShipAuto plan files and the three on-disk copies, or the answer box names what could not be rescued.\n\n## Unlocks\n- vent.02: Alex's files filed and checked\n- rescue.07: Basis Holistics and DropShipAuto can be deleted\n\n## Depends on\nNothing",
+      "after": [
+        "rescue.00"
+      ],
+      "links": [],
+      "tags": [
+        "documentation",
+        "rescue"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "rescue-02-chat-only-files",
+        "kind": "guide",
+        "title": "Rescue the files that live only in chats: Alex's brochure and plan, DropShipAuto's plan files",
+        "version": 1,
+        "intro": {
+          "answer": "Download four files from two old chats; Claude Code copies the ones already on the PC.",
+          "unlocks": [
+            "vent.02: Alex's site files",
+            "rescue.06 and rescue.07: nothing is lost when the projects go"
+          ],
+          "to_hand": [
+            "Access to claude.ai in a browser",
+            "The archive folder from rescue.01 step 1.2"
+          ],
+          "time": [
+            "about 15 minutes, one sitting"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Download from the chats, copy from the PC",
+            "minutes": 13,
+            "needs": [
+              "About 15 minutes"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Claude Code copies the files already on the PC",
+                "actor": "claude-code",
+                "minutes": 0,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Already on disk, so no chat is needed: the Daytripper spec (<code>A:\\Projects\\PhirstMaxxing\\docs\\claude_PROMPT_4_DAYTRIPPER_SHARE.md</code>), DropShipAuto's tracker (<code>A:\\Projects\\DropShipAuto\\DropShipAuto_Tracker.xlsx</code>) and <code>seed_clickup.py</code>. Claude Code copies them into the archive.</p>",
+                "expect_html": "<p>Three files in the archive.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Alex's brochure page",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "claude.ai, Basis Holistics, \"Corporate breathwork branding and business launch plan\"",
+                  "kind": "browser",
+                  "url": "https://claude.ai/chat/c54b91be-3c4f-4d54-865a-97b45c217063"
+                },
+                "body_html": "<p>Open the chat, find <code>basis_breathwork_brochure.html</code> and download it into <code>basis-holistics/</code> in the archive. If the download is gone, paste Prompt D in that chat and save the HTML it prints.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt D, if the download is gone",
+                    "text": "I am closing this project and saving everything durable into my own files. Print, in full and word for word, every document in this project's knowledge and every file you made in this project's chats that you can still see (specs, plans, prompts, checklists, HTML pages). Put each under a level-two heading that is its exact file name. Do not summarise, shorten or tidy anything. If a file is not text (a spreadsheet, a Word document, an image), name it and the chat it is in so I can download it myself. Replace any password, key, token or recovery code with [removed]. End with two lists: the files you printed, and the files you could not.",
+                    "kind": "prompt"
+                  }
+                ],
+                "expect_html": "<p>The HTML file opens in a browser and looks like the brochure.</p>",
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>The brochure carries Alex's personal phone number and biography. It stays private until he says otherwise (vent.03).</p>"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Alex's six-month plan",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The same chat",
+                  "kind": "browser",
+                  "url": "https://claude.ai/chat/c54b91be-3c4f-4d54-865a-97b45c217063"
+                },
+                "body_html": "<p>Download the launch plan (a Word document) into the same folder.</p>",
+                "expect_html": "<p>The document opens in Word.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "DropShipAuto's plan files",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "claude.ai, DropShipAuto, \"Drop ship order MVP planning strategy\"",
+                  "kind": "browser",
+                  "url": "https://claude.ai/chat/029df49c-2907-48aa-a921-3de6cb9edfdf"
+                },
+                "body_html": "<p>Download <code>DropShipAuto_ProjectPlan.xlsx</code>, the project plan Word document and the UI build prompt into <code>dropshipauto/</code> in the archive. Skip the tracker: Claude Code copied it.</p>",
+                "expect_html": "<p>Up to three files in the folder.</p>"
+              },
+              {
+                "id": "1.5",
+                "title": "Note anything you could not get",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your notes",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Name any file that would not download and could not be printed.</p>",
+                "expect_html": "<p>One answer below.</p>",
+                "fields": [
+                  {
+                    "key": "chat_files_missing",
+                    "label": "Could not be rescued",
+                    "placeholder": "file names, or none"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested"
+        }
+      }
+    },
+    {
+      "sid": "rescue.03",
+      "title": "The eleven unread chats, one-chat harvest each: six in Office Set Up, four in PhirstMaxxing, the email inventory chat",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "P",
+      "description": "## What\nEleven chats inside swept projects could not be read by the harvest tools: six in Office Set Up (3D model, colour palette, monitor settings, 3D printer, remote access, SFTP), four in PhirstMaxxing (app development, tripbooker, free-time page, pilgrimage site guide) and the email inventory chat in Personal Online Security. One step per chat: open it, paste the one-chat harvest into the chat itself (a chat can read its own conversation even when other tools cannot), save the answer as `docs/intake/harvests/one-chat/<title>.md`. Prompt C (the one-chat harvest) was in the missing `claude/harvest-prompts-rescue.md`; until it is recreated, the prompt in `claude/harvest-prompt.md` does the same job, because it is written to harvest the chat it is pasted into.\n\n## Why\nH8.2: eleven chats the harvests could not read get the one-chat harvest pasted into each.\n\n## Done looks like\nEleven files in `docs/intake/harvests/one-chat/`, or a note per empty chat.\n\n## Unlocks\n- rescue.06: the check covers these chats\n\n## Depends on\nNothing",
+      "after": [
+        "rescue.00"
+      ],
+      "links": [],
+      "tags": [
+        "documentation",
+        "rescue"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "rescue-03-eleven-unread-chats",
+        "kind": "guide",
+        "title": "The eleven chats the harvests could not read: one-chat harvest in each",
+        "version": 1,
+        "intro": {
+          "answer": "Open each chat, paste the one-chat harvest into it, save the answer. Eleven chats, about two minutes each.",
+          "unlocks": [
+            "rescue.06: the check covers every chat in the three projects",
+            "rescue.07: Office Set Up, PhirstMaxxing and Personal Online Security can be deleted"
+          ],
+          "to_hand": [
+            "Access to claude.ai in a browser",
+            "The Mycelium repo open on the PC"
+          ],
+          "time": [
+            "about 30 to 40 minutes, in three sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Office Set Up: six chats",
+            "minutes": 13,
+            "needs": [
+              "About 15 minutes"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Harvest \"Office 3D model and interior design\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Office Set Up, \"Office 3D model and interior design\" (26 Jul 2026)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/chat/786377b6-3e36-8d0e-a812-85659a9932fa"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/office-3d-model-and-interior-design.md</code>.</p>",
+                "expect_html": "<p>The file exists and has at least one heading with items under it (or the chat says it holds nothing durable).</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat will not open or is empty",
+                    "fix": "Write \"empty\" in the next step's box for this chat and move on."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Harvest \"Office color palette redesign\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Office Set Up, \"Office color palette redesign\" (26 Jul 2026)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/chat/bcaedb25-4934-8280-95c5-ddbd1c102df1"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/office-color-palette-redesign.md</code>.</p>",
+                "expect_html": "<p>The file exists and has at least one heading with items under it (or the chat says it holds nothing durable).</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat will not open or is empty",
+                    "fix": "Write \"empty\" in the next step's box for this chat and move on."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Harvest \"EVNIA monitor settings guide\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Office Set Up, \"EVNIA monitor settings guide\" (26 Jul 2026)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/chat/b79fabad-1548-80c1-a260-4f5e003b0dec"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/evnia-monitor-settings-guide.md</code>.</p>",
+                "expect_html": "<p>The file exists and has at least one heading with items under it (or the chat says it holds nothing durable).</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat will not open or is empty",
+                    "fix": "Write \"empty\" in the next step's box for this chat and move on."
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Harvest \"3D printer purchase UK\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Office Set Up, \"3D printer purchase UK\" (25 Jul 2026)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/chat/27e98f17-345e-896a-aaa5-03ffa7fbb223"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/3d-printer-purchase-uk.md</code>.</p>",
+                "expect_html": "<p>The file exists and has at least one heading with items under it (or the chat says it holds nothing durable).</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat will not open or is empty",
+                    "fix": "Write \"empty\" in the next step's box for this chat and move on."
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "Harvest \"Multi-machine remote access setup\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Office Set Up, \"Multi-machine remote access setup\" (27 Jul 2026)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/chat/37464869-f797-8c6d-a06e-39f3ddf7d5f4"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/multi-machine-remote-access-setup.md</code>.</p>",
+                "expect_html": "<p>The file exists and has at least one heading with items under it (or the chat says it holds nothing durable).</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat will not open or is empty",
+                    "fix": "Write \"empty\" in the next step's box for this chat and move on."
+                  }
+                ]
+              },
+              {
+                "id": "1.6",
+                "title": "Harvest \"SFTP folder access for cowork chats\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Office Set Up, \"SFTP folder access for cowork chats\" (9 Sep 2026)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/chat/552ed675-3a92-8f0f-9cb0-c87a2ea7f8b2"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/sftp-folder-access-for-cowork-chats.md</code>.</p>",
+                "expect_html": "<p>The file exists and has at least one heading with items under it (or the chat says it holds nothing durable).</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat will not open or is empty",
+                    "fix": "Write \"empty\" in the next step's box for this chat and move on."
+                  }
+                ]
+              },
+              {
+                "id": "1.7",
+                "title": "Note any Office chat that was empty",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your notes",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Name any chat that would not open or held nothing.</p>",
+                "expect_html": "<p>One answer below.</p>",
+                "fields": [
+                  {
+                    "key": "office_empty",
+                    "label": "Empty or unreadable",
+                    "placeholder": "chat titles, or none"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "PhirstMaxxing: four chats",
+            "minutes": 9,
+            "needs": [
+              "About 10 minutes"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Harvest \"Phirstymaxxing app development\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, PhirstMaxxing, \"Phirstymaxxing app development\" (11 Sep 2026); find it by title in the project's chat list",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/phirstymaxxing-app-development.md</code>.</p>",
+                "expect_html": "<p>The file exists and has at least one heading with items under it (or the chat says it holds nothing durable).</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat will not open or is empty",
+                    "fix": "Write \"empty\" in the next step's box for this chat and move on."
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Harvest \"tripbooker\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, PhirstMaxxing, \"tripbooker\" (10 Sep 2026); find it by title in the project's chat list",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/tripbooker.md</code>.</p>",
+                "expect_html": "<p>The file exists and has at least one heading with items under it (or the chat says it holds nothing durable).</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat will not open or is empty",
+                    "fix": "Write \"empty\" in the next step's box for this chat and move on."
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Harvest \"Free-time page updates\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, PhirstMaxxing, \"Free-time page updates\" (10 Sep 2026); find it by title in the project's chat list",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/free-time-page-updates.md</code>.</p>",
+                "expect_html": "<p>The file exists and has at least one heading with items under it (or the chat says it holds nothing durable).</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat will not open or is empty",
+                    "fix": "Write \"empty\" in the next step's box for this chat and move on."
+                  }
+                ]
+              },
+              {
+                "id": "2.4",
+                "title": "Harvest \"Christian pilgrimage site guide\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, PhirstMaxxing, \"Christian pilgrimage site guide\" (19 Oct 2026); find it by title in the project's chat list",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/christian-pilgrimage-site-guide.md</code>.</p>",
+                "expect_html": "<p>The file exists and has at least one heading with items under it (or the chat says it holds nothing durable).</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat will not open or is empty",
+                    "fix": "Write \"empty\" in the next step's box for this chat and move on."
+                  }
+                ]
+              },
+              {
+                "id": "2.5",
+                "title": "Note any PhirstMaxxing chat that was empty",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your notes",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Name any chat that would not open or held nothing.</p>",
+                "expect_html": "<p>One answer below.</p>",
+                "fields": [
+                  {
+                    "key": "phm_empty",
+                    "label": "Empty or unreadable",
+                    "placeholder": "chat titles, or none"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Personal Online Security: the email inventory chat",
+            "minutes": 4,
+            "needs": [
+              "About 5 minutes"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Harvest \"Email account migration inventory\"",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "claude.ai, Personal Online Security, \"Email account migration inventory\" (9 Oct 2026)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/chat/ede92c44-68e8-875a-b69a-69bc5e11aadd"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/email-account-migration-inventory.md</code>.</p>",
+                "expect_html": "<p>The file exists and has at least one heading with items under it (or the chat says it holds nothing durable).</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The chat will not open or is empty",
+                    "fix": "Write \"empty\" in the next step's box for this chat and move on."
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "Did it name the inventory files?",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The chat's answer",
+                  "kind": "decision"
+                },
+                "body_html": "<p>This chat built the full account inventory. Say whether its harvest names a newer inventory file than <code>account-inventory.xlsx</code>.</p>",
+                "expect_html": "<p>One answer below.</p>",
+                "fields": [
+                  {
+                    "key": "inventory_newer",
+                    "label": "A newer inventory file named?",
+                    "placeholder": "yes (name) / no"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested",
+          "1.6": "untested",
+          "1.7": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "2.4": "untested",
+          "2.5": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "rescue.04",
+      "title": "The 41 unread chats outside projects, the first five first (Home 3D model and inventory, RAM inventory eBay pricing, Shared savings pot, Financial spending analysis, HTML guide template system)",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "P",
+      "description": "## What\nThe harvest of chats outside projects (185 chats, 2025-09-01 to 2026-11-27) could not open 41; they look like desktop app or Cowork chats. The first five matter most for the epics (home, FixForward, finance twice, the Field guide). The guide runs the one-chat harvest in each: the first five in the first sitting, then the other 27 personal and project chats in five groups, then one decision for the five work chats (skipped by default, Everlight stays out of Mycelium) and one for the four health chats (left unless Phil wants them as owner-only items). Prompt C is missing (see rescue.03); `claude/harvest-prompt.md` works meanwhile.\n\n## Why\nH10: 41 chats outside projects the tools could not open; Prompt C works in each; the first five matter most for the twelve epics.\n\n## Done looks like\nThe first five have harvest files; the rest have files or a note; the work and health decisions are answered.\n\n## Unlocks\n- rescue.06: the check covers the chats outside projects\n- fin, home, fixf and guide epics: what the first five held\n\n## Depends on\nNothing",
+      "after": [
+        "rescue.00"
+      ],
+      "links": [],
+      "tags": [
+        "documentation",
+        "rescue"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "rescue-04-41-chats-outside-projects",
+        "kind": "guide",
+        "title": "The 41 unread chats outside projects, the first five first",
+        "version": 1,
+        "intro": {
+          "answer": "Paste the one-chat harvest into each chat and save the answer; the first five sitting comes first, the rest in groups of about six.",
+          "unlocks": [
+            "rescue.06: the check covers the chats outside projects",
+            "Finance, Home and FixForward tickets gain what the first five held"
+          ],
+          "to_hand": [
+            "Access to claude.ai and the Claude desktop app",
+            "The Mycelium repo open on the PC"
+          ],
+          "time": [
+            "about 1 hour 30 minutes, in seven sittings; the first sitting is the one that matters"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [],
+          "hard_part": {
+            "step_id": "1.1",
+            "why": "these chats did not open for the harvest tools; they may only show in the desktop app, so finding them is the slow part."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The first five (they matter most for the epics)",
+            "minutes": 11,
+            "needs": [
+              "About 12 minutes"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Harvest \"Home 3D model and inventory\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/home-3d-model-and-inventory.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Harvest \"RAM inventory eBay pricing\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/ram-inventory-ebay-pricing.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Harvest \"Shared savings pot\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/shared-savings-pot.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Harvest \"Financial spending analysis\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/financial-spending-analysis.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "Harvest \"HTML guide template system\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/html-guide-template-system.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "1.6",
+                "title": "Note any of the five that was empty",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your notes",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Name any that would not open or held nothing.</p>",
+                "expect_html": "<p>One answer below.</p>",
+                "fields": [
+                  {
+                    "key": "first5_empty",
+                    "label": "Empty or unreadable",
+                    "placeholder": "chat titles, or none"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Personal and project chats, group 1 of 5",
+            "minutes": 12,
+            "needs": [
+              "About 12 minutes"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Harvest \"PID redaction webpage\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/pid-redaction-webpage.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Harvest \"Street name guessing game\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/street-name-guessing-game.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Harvest \"PC shutdown troubleshooting\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/pc-shutdown-troubleshooting.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "2.4",
+                "title": "Harvest \"CPU fan heatsink attachment\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/cpu-fan-heatsink-attachment.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "2.5",
+                "title": "Harvest \"Canvas frame building guide\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/canvas-frame-building-guide.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "2.6",
+                "title": "Harvest \"Brodie's birthday IOU voucher\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/brodie-s-birthday-iou-voucher.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Personal and project chats, group 2 of 5",
+            "minutes": 12,
+            "needs": [
+              "About 12 minutes"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Harvest \"Office setup discussion\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/office-setup-discussion.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "Harvest \"Byoma skincare product priority\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/byoma-skincare-product-priority.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "3.3",
+                "title": "Harvest \"Ray-Ban Meta repair and upgrade options\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/ray-ban-meta-repair-and-upgrade-options.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "3.4",
+                "title": "Harvest \"Eye prescription\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/eye-prescription.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "3.5",
+                "title": "Harvest \"Contract tyres information\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/contract-tyres-information.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "3.6",
+                "title": "Harvest \"Braun shaver comparison\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/braun-shaver-comparison.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Personal and project chats, group 3 of 5",
+            "minutes": 12,
+            "needs": [
+              "About 12 minutes"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Harvest \"iPad 7th Gen recovery issue\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/ipad-7th-gen-recovery-issue.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "4.2",
+                "title": "Harvest \"Grandad's Spotify playlist\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/grandad-s-spotify-playlist.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "4.3",
+                "title": "Harvest \"Parallel tasks demonstration\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/parallel-tasks-demonstration.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "4.4",
+                "title": "Harvest \"Yawning board game design\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/yawning-board-game-design.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "4.5",
+                "title": "Harvest \"Smart toilet design brief\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/smart-toilet-design-brief.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "4.6",
+                "title": "Harvest \"Presidents album order issue\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/presidents-album-order-issue.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "5",
+            "title": "Personal and project chats, group 4 of 5",
+            "minutes": 10,
+            "needs": [
+              "About 12 minutes"
+            ],
+            "steps": [
+              {
+                "id": "5.1",
+                "title": "Harvest \"PowerShell project shortcuts\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/powershell-project-shortcuts.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "5.2",
+                "title": "Harvest \"Madrid trip planning\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/madrid-trip-planning.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "5.3",
+                "title": "Harvest \"Perseid meteor showers guide\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/perseid-meteor-showers-guide.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "5.4",
+                "title": "Harvest \"PC unexpected shutdowns\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/pc-unexpected-shutdowns.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "5.5",
+                "title": "Harvest \"Remote access setup for mobile\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/remote-access-setup-for-mobile.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "6",
+            "title": "Personal and project chats, group 5 of 5",
+            "minutes": 8,
+            "needs": [
+              "About 12 minutes"
+            ],
+            "steps": [
+              {
+                "id": "6.1",
+                "title": "Harvest \"Windows installation consolidation\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/windows-installation-consolidation.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "6.2",
+                "title": "Harvest \"Christian journaling product business\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/christian-journaling-product-business.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "6.3",
+                "title": "Harvest \"Night sky on specific date\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/night-sky-on-specific-date.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              },
+              {
+                "id": "6.4",
+                "title": "Harvest \"Multi-monitor wallpaper design\"",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude, chat list (search the title; these look like desktop app or Cowork chats)",
+                  "kind": "browser",
+                  "url": "https://claude.ai/recents"
+                },
+                "body_html": "<p>Paste the one-chat harvest into the chat itself and send it. <strong>Prompt C is missing from the repo</strong>; until it is recreated, use the prompt in <code>claude/harvest-prompt.md</code> (the block under \"The prompt\", plus the tickets addendum at the end), which is written to harvest the chat it is pasted into.</p><p>Save the answer as <code>docs/intake/harvests/one-chat/multi-monitor-wallpaper-design.md</code>.</p>",
+                "expect_html": "<p>The file exists, or you note the chat as empty.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "The title does not show on claude.ai",
+                    "fix": "Open the Claude desktop app and search there; these chats were made in the desktop app or Cowork."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "7",
+            "title": "The nine work and health chats: harvest or skip",
+            "minutes": 3,
+            "needs": [
+              "About 3 minutes"
+            ],
+            "steps": [
+              {
+                "id": "7.1",
+                "title": "Skip the five work chats",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Five of the 41 are Everlight work (query and file questions). Work items stay in the Everlight projects and are not ticketed in Mycelium, so these are skipped unless you say otherwise. Their titles are in <code>docs/intake/harvests/chats-outside-projects.md</code>.</p>",
+                "expect_html": "<p>One answer below.</p>",
+                "fields": [
+                  {
+                    "key": "work_chats",
+                    "label": "Work chats",
+                    "placeholder": "skip / harvest"
+                  }
+                ]
+              },
+              {
+                "id": "7.2",
+                "title": "Health chats: harvest as owner-only, or leave",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Your decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Four are about health and medical results. Health threads are not ticketed unless you want them tracked as owner-only items. Decide for all four at once; the titles are in the same harvest file.</p>",
+                "expect_html": "<p>One answer below.</p>",
+                "fields": [
+                  {
+                    "key": "health_chats",
+                    "label": "Health chats",
+                    "placeholder": "leave / harvest as owner-only"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested",
+          "1.6": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "2.4": "untested",
+          "2.5": "untested",
+          "2.6": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested",
+          "3.4": "untested",
+          "3.5": "untested",
+          "3.6": "untested",
+          "4.1": "untested",
+          "4.2": "untested",
+          "4.3": "untested",
+          "4.4": "untested",
+          "4.5": "untested",
+          "4.6": "untested",
+          "5.1": "untested",
+          "5.2": "untested",
+          "5.3": "untested",
+          "5.4": "untested",
+          "5.5": "untested",
+          "6.1": "untested",
+          "6.2": "untested",
+          "6.3": "untested",
+          "6.4": "untested",
+          "7.1": "untested",
+          "7.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "rescue.05",
+      "title": "Three unswept projects (Ye - Madrid, PolySnipe, the portfolio site): Prompt A in each",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nThree Claude projects were never swept: \"Ye - Madrid\", \"PolySnipe\" and one for a contact's portfolio site. Paste Prompt A (the project sweep, `claude/harvest-prompt.md` with its tickets addendum) into a new chat in each and save the answer under `docs/intake/harvests/`. Then they go through the same delete gate (rescue.07).\n\n## Why\nH10: three more Claude projects exist that have not been swept; Prompt A in each, then the same delete gate as H8.\n\n## Done looks like\nThree harvest files in `docs/intake/harvests/`, or a note per project.\n\n## Unlocks\n- rescue.06 and rescue.07: the three join the check and the gate\n\n## Depends on\nNothing",
+      "after": [
+        "rescue.00"
+      ],
+      "links": [],
+      "tags": [
+        "documentation",
+        "rescue"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "rescue-05-three-unswept-projects",
+        "kind": "guide",
+        "title": "Sweep the three unswept projects: Ye - Madrid, PolySnipe, the portfolio site",
+        "version": 1,
+        "intro": {
+          "answer": "Paste the project sweep (Prompt A) into a new chat in each of the three projects and save the answer.",
+          "unlocks": [
+            "rescue.07: the three projects can go through the same delete gate"
+          ],
+          "to_hand": [
+            "Access to claude.ai in a browser",
+            "claude/harvest-prompt.md open on the PC"
+          ],
+          "time": [
+            "about 15 minutes, one sitting"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Three projects, one sweep each",
+            "minutes": 13,
+            "needs": [
+              "About 15 minutes"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Sweep \"Ye - Madrid\"",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "claude.ai, Projects, Ye - Madrid",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Start a new chat in the project and paste Prompt A: the block under \"The prompt\" in <code>claude/harvest-prompt.md</code>, plus its tickets addendum. Ask it to cover every chat in the project. Save the answer as <code>docs/intake/harvests/ye-madrid.md</code>.</p>",
+                "expect_html": "<p>The harvest file exists with items, or the chat says the project holds nothing durable.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "It says it cannot read the project's other chats",
+                    "fix": "Note which chats, and add them to rescue.04's list to harvest one by one."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Sweep \"PolySnipe\"",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "claude.ai, Projects, PolySnipe",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Start a new chat in the project and paste Prompt A: the block under \"The prompt\" in <code>claude/harvest-prompt.md</code>, plus its tickets addendum. Ask it to cover every chat in the project. Save the answer as <code>docs/intake/harvests/polysnipe.md</code>.</p>",
+                "expect_html": "<p>The harvest file exists with items, or the chat says the project holds nothing durable.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "It says it cannot read the project's other chats",
+                    "fix": "Note which chats, and add them to rescue.04's list to harvest one by one."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Sweep \"the portfolio site for a contact\"",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "claude.ai, Projects, the portfolio site for a contact",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Start a new chat in the project and paste Prompt A: the block under \"The prompt\" in <code>claude/harvest-prompt.md</code>, plus its tickets addendum. Ask it to cover every chat in the project. Save the answer as <code>docs/intake/harvests/the-portfolio-site-for-a-contact.md</code>.</p>",
+                "expect_html": "<p>The harvest file exists with items, or the chat says the project holds nothing durable.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Before saving, look for anything secret in what the chat printed (a password, key, token or recovery code). If you see one, replace it with <code>[removed]</code> before saving. Never paste one into an answer box.</p>"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "It says it cannot read the project's other chats",
+                    "fix": "Note which chats, and add them to rescue.04's list to harvest one by one."
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Note any chat it could not read",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Your notes",
+                  "kind": "decision"
+                },
+                "body_html": "<p>List any chat the sweeps said they could not read.</p>",
+                "expect_html": "<p>One answer below.</p>",
+                "fields": [
+                  {
+                    "key": "unswept_gaps",
+                    "label": "Chats not read",
+                    "placeholder": "titles, or none"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "rescue.06",
+      "title": "Check the tickets against the harvest, project by project",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nFor each swept project's harvest in `docs/intake/harvests/` (the ten from 2026-11-28 plus the one-chat files from rescue.03, rescue.04 and rescue.05 as they arrive), go item by item and mark each: **a ticket** (its key), **an H10 row** (review.02's row number), **not ticketed by decision** (Everlight work, done items, dropped items, health threads) or **missing**. Fix every \"missing\" by writing the ticket or asking Phil on review.02. Post the result as one table per project in a comment here, ending with a line per project: fully filed, or what is still open. That line is what rescue.07 reads.\n\n## Why\nH8.3: delete only after the tickets exist in Mycelium and have been checked against the harvest.\n\n## Done looks like\nOne table per project; every item marked; every project's last line says fully filed, or names what is open.\n\n## Unlocks\n- rescue.07: the delete gate, project by project\n\n## Depends on\n- rescue.01: the archived docs\n- rescue.03: the eleven chats\n- rescue.04, rescue.05 (soft): checked when their files exist",
+      "after": [
+        "rescue.01",
+        "rescue.03",
+        "rescue.02",
+        "rescue.05"
+      ],
+      "links": [],
+      "tags": [
+        "documentation",
+        "planning",
+        "rescue"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "rescue.07",
+      "title": "Delete gate: the old projects deleted only after the check; Everlight and Mycelium kept",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nDelete the old Claude projects one at a time, each only when rescue.06 marks it fully filed: the ten swept on 2026-11-28 (Email Management, Personal Online Security, Calendar Management, PhirstMaxxing, DropShipAuto, Office Set Up, Garden maintenance, Personal Health and Fitness, Basis Holistics, dump for future work) and the three from rescue.05. First, a full claude.ai data export saved on the PC, so nothing is lost if a harvest left something out. Deleting a project cannot be undone; whether its chats go with it is not confirmed in Anthropic's help pages (UNVERIFIED), so treat it as if they do. Both Everlight projects and Mycelium are kept.\n\n## Why\nH8.3: delete only after the tickets exist in Mycelium and have been checked. Both Everlight projects and Mycelium are kept.\n\n## Done looks like\nThe export file is saved; each old project is deleted or kept with a reason; Everlight and Mycelium are still listed.\n\n## Unlocks\nNothing\n\n## Depends on\n- rescue.06: the project-by-project check\n\n## Red team\n- Finding 5: A project is deleted only after its own export and its own harvest check; one project per step, each a second-tap irreversible step.\n",
+      "after": [
+        "rescue.06",
+        "rescue.04"
+      ],
+      "links": [],
+      "tags": [
+        "admin",
+        "rescue"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "rescue-07-delete-gate",
+        "kind": "guide",
+        "title": "Delete gate: the old Claude projects go only after the check; Everlight and Mycelium stay",
+        "version": 1,
+        "intro": {
+          "answer": "Save a full export first, then delete each old project that rescue.06 marks as fully filed. Both Everlight projects and Mycelium stay.",
+          "unlocks": [
+            "A project list that holds only live work"
+          ],
+          "to_hand": [
+            "rescue.06's table",
+            "The claude.ai data export, saved on the PC"
+          ],
+          "time": [
+            "about 45 minutes in five short sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Claude help: projects, archive and delete",
+              "url": "https://support.claude.com/en/articles/9519177",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "1.1",
+            "why": "the export arrives later by email; the deleting waits for it."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Before deleting anything: a full export",
+            "minutes": 5,
+            "needs": [
+              "About 5 minutes"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Request the claude.ai data export",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "claude.ai, Settings, Privacy, Export data",
+                  "kind": "browser",
+                  "url": "https://claude.ai/settings"
+                },
+                "body_html": "<p>Request the account data export. It arrives later as an emailed download link. Save the file to the PC outside the repo before you delete any project.</p>",
+                "expect_html": "<p>The export file is saved on the PC.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "<p>Do not start phase 2 until the export file is saved. It is the only copy of every chat once a project is gone.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Confirm the check is complete",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "rescue.06's comment",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Open rescue.06 and read its table. A project is ready only when every harvest item for it is a ticket, an H10 row, or marked not wanted.</p>",
+                "expect_html": "<p>One answer below.</p>",
+                "fields": [
+                  {
+                    "key": "export_saved",
+                    "label": "Export saved and the check read",
+                    "placeholder": "yes / not yet"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Delete gate, group 1 of 3",
+            "minutes": 10,
+            "needs": [
+              "The export saved",
+              "rescue.06's table"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "\"Email Management\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, Email Management",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>Email Management</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_email_management",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "2.2",
+                "title": "\"Personal Online Security\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, Personal Online Security",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>Personal Online Security</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_personal_online_security",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "2.3",
+                "title": "\"Calendar Management\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, Calendar Management",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>Calendar Management</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_calendar_management",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "2.4",
+                "title": "\"PhirstMaxxing\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, PhirstMaxxing",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>PhirstMaxxing</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_phirstmaxxing",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "2.5",
+                "title": "\"DropShipAuto\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, DropShipAuto",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>DropShipAuto</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_dropshipauto",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Delete gate, group 2 of 3",
+            "minutes": 10,
+            "needs": [
+              "The export saved",
+              "rescue.06's table"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "\"Office Set Up\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, Office Set Up",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>Office Set Up</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_office_set_up",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "3.2",
+                "title": "\"Garden maintenance\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, Garden maintenance",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>Garden maintenance</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_garden_maintenance",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "3.3",
+                "title": "\"Personal Health and Fitness\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, Personal Health and Fitness",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>Personal Health and Fitness</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_personal_health_and_fitness",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "3.4",
+                "title": "\"Basis Holistics\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, Basis Holistics",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>Basis Holistics</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_basis_holistics",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "3.5",
+                "title": "\"dump for future work\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, dump for future work",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>dump for future work</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_dump_for_future_work",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Delete gate, group 3 of 3",
+            "minutes": 6,
+            "needs": [
+              "The export saved",
+              "rescue.06's table"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "\"Ye - Madrid\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, Ye - Madrid",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>Ye - Madrid</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_ye_madrid",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "4.2",
+                "title": "\"PolySnipe\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, PolySnipe",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>PolySnipe</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_polysnipe",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "4.3",
+                "title": "\"the portfolio site for a contact\": delete, or keep",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "claude.ai, Projects, the portfolio site for a contact",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Only if rescue.06 marks <strong>the portfolio site for a contact</strong> as fully filed: open the project, the three-dot menu, <strong>Delete</strong>, then <strong>Yes, delete</strong>. If anything is left unfiled, keep it and write why.</p>",
+                "expect_html": "<p>The project is gone from your list, or your answer says why it stays.</p>",
+                "fields": [
+                  {
+                    "key": "gate_the_portfolio_site_for_a_contact",
+                    "label": "Deleted or kept",
+                    "placeholder": "deleted / kept (why)"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Archiving (same menu) hides a project and can be undone; deleting cannot. You decided on delete after the check; archive is there if you want a pause.</p>"
+                  }
+                ],
+                "irreversible": true
+              }
+            ]
+          },
+          {
+            "id": "5",
+            "title": "What stays",
+            "minutes": 1,
+            "needs": [
+              "Nothing"
+            ],
+            "steps": [
+              {
+                "id": "5.1",
+                "title": "Leave both Everlight projects and Mycelium",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "claude.ai, Projects",
+                  "kind": "browser",
+                  "url": "https://claude.ai/projects"
+                },
+                "body_html": "<p>Both Everlight projects and the Mycelium project are kept. Check they are still in the list.</p>",
+                "expect_html": "<p>Three projects still listed.</p>",
+                "fields": [
+                  {
+                    "key": "kept_ok",
+                    "label": "Everlight and Mycelium still there",
+                    "placeholder": "yes / no"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "2.4": "untested",
+          "2.5": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested",
+          "3.4": "untested",
+          "3.5": "untested",
+          "4.1": "untested",
+          "4.2": "untested",
+          "4.3": "untested",
+          "5.1": "untested"
+        }
+      }
+    }
+  ],
+  "existing": []
+}

@@ -1,0 +1,195 @@
+{
+  "epic": {
+    "sid": "E.tracker",
+    "project": "MYC",
+    "title": "Time allocation tracker: question round first",
+    "description": "Rob Dyrdek's time allocation system built into Mycelium: calendar time colour-coded into categories (work, family, health, personal) against weekly targets, with a quarterly review. The question round comes first and settles the categories, the targets and where the hours come from. Owner-only, in Phil's personal space.\n\n## Order\ntracker.01 (the question round, one sitting), then tracker.02 (the build, which also waits for the Google reconnect MYC-181), then tracker.03 every quarter.\n\n## Done means\nThe tracker shows a real week against targets and the first quarterly review is done.\n\n## Flags\n- [claude] flagged once: section 11b dropped \"what next\" as a 2027 priority and named \"I kept building it instead of using it\" as the risk; this is a new build. Not reopened.\n\n## Dossier\nThe dossier is attached in Docs: (link filled by the integrator).",
+    "dossier": "dossiers/tracker.md",
+    "links": [
+      "MYC-177",
+      "MYC-181"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "tracker.01",
+      "title": "Question round: which categories, what weekly targets, where the hours come from (calendar, Four-Day Week tracker, PC worker)",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOne 15-minute sitting answering the questions below on this ticket, before anything is built. (1) Categories: work, family, health, personal as the brief says, or others; is sleep a category (Rob Dyrdek's published split counts it: roughly 30% sleep, 30% family, 30% work, 10% health in one telling, though public figures vary)? (2) A weekly target per category, in hours. (3) Where each category's hours come from: Google Calendar events (by calendar, by colour, or by a keyword in the title), the Four-Day Week tracker's logged hours for work (no start times, so totals only), the PC worker's active time, or the Apple Watch for sleep. One source per category, so nothing counts twice. (4) Colours per category. (5) Whether a daily one-to-ten score (Dyrdek scores life, work and health daily) is wanted or not. (6) Owner-only and off the wall, unless Phil says otherwise.\n\n## Why\nH5: build the time allocation tracker in Mycelium \"with a question round first (which categories, what targets, where the hours come from)\".\n\n## Done looks like\nEvery question answered on this ticket in a line each.\n\n## Unlocks\ntracker.02 (the build reads these answers).\n\n## Depends on\nNothing.\n\n## Flag\n[claude] flagged once: section 11b dropped \"what next\" as a 2027 priority and named \"I kept building it instead of using it\" as the risk; this is a new build. Not reopened.",
+      "after": [],
+      "links": [
+        "MYC-177"
+      ],
+      "tags": [
+        "tracker",
+        "schedule",
+        "calendar",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "tracker.02",
+      "title": "Build: calendar time colour-coded into categories against weekly targets",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBuild the tracker from tracker.01's answers: a page (under Organisation, next to Hours) showing this week's hours per category against its weekly target, colour-coded as chosen, with last week alongside and a simple quarter view for the review. Hours come from the sources tracker.01 picks: Google Calendar events mapped to categories (read on page load and in the daily job, as Vercel Hobby allows daily crons only), the Four-Day Week tracker's `hours_entries` totals for work if chosen, and any other source he picked. Every figure is derived, never stored (the pattern `lib/hours` uses). Personal space, owner-only, never shared by a team grant, off the wall unless tracker.01 says otherwise.\n\n## Why\nH5: \"calendar time colour-coded into categories (work, family, health, personal) against weekly targets\".\n\n## Done looks like\nThe page shows the current week with each category's hours and target from real calendar data; a category with no source shows as \"no source\" rather than zero; tests for the week boundary and the category mapping pass; `next build` green.\n\n## Unlocks\ntracker.03 (the quarterly review reads the quarter view).\n\n## Depends on\ntracker.01 (the answers); MYC-181 (Google reconnect: the calendar sync has been unproven since the token expired on 2026-06-24).\n\n## Red team\n- Finding 41: The build starts after the capture habit has held for 30 days (brain.26).\n",
+      "after": [
+        "tracker.01",
+        "MYC-181",
+        "brain.26"
+      ],
+      "links": [
+        "MYC-177",
+        "MYC-207"
+      ],
+      "tags": [
+        "tracker",
+        "schedule",
+        "calendar",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "tracker.03",
+      "title": "Quarterly review",
+      "kind": "audit",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nEvery quarter, one 15-minute sitting on the tracker's quarter view: which categories met their weekly target most weeks, which did not, whether the targets still fit, and one change for the next quarter (a target, a category, or none). Also one question about use: was the tracker opened most weeks? If not, the review says so plainly and the next step is to use it, not to build more.\n\n## Why\nH5: \"with a quarterly review\"; and Phil's own named risk, \"I kept building it instead of using it\".\n\n## Done looks like\nEach quarter: the review's fields filled on the guide and any target change saved in the tracker's settings.\n\n## Unlocks\nNothing.\n\n## Depends on\ntracker.02 (the build and its quarter view).",
+      "after": [
+        "tracker.02"
+      ],
+      "links": [],
+      "tags": [
+        "tracker",
+        "schedule",
+        "calendar",
+        "planning"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "tracker-quarterly-review",
+        "kind": "audit",
+        "title": "Time allocation: the quarterly review",
+        "version": 1,
+        "intro": {
+          "answer": "Look at the quarter, keep or change one thing.",
+          "unlocks": [
+            "The next quarter's targets"
+          ],
+          "to_hand": [
+            "The PC, signed in"
+          ],
+          "time": [
+            "about 15 minutes a quarter"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The quarter",
+            "minutes": 13,
+            "needs": [
+              "A quarter of tracker data"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Open the quarter view",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium, Organisation, the time allocation page, Quarter",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the quarter view.</p>",
+                "expect_html": "<p>Thirteen weeks with each category's hours against target.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Which categories hit target",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The quarter view",
+                  "kind": "page"
+                },
+                "body_html": "<p>For each category, count the weeks at or above target.</p>",
+                "expect_html": "<p>A count per category.</p>",
+                "fields": [
+                  {
+                    "key": "hits",
+                    "label": "Weeks on target per category",
+                    "placeholder": "category: weeks, one per line"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Was it used",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The quarter view",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Did you open the tracker in most weeks? Yes or no, plainly.</p>",
+                "expect_html": "<p>One answer.</p>",
+                "fields": [
+                  {
+                    "key": "used",
+                    "label": "Opened most weeks?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "One change",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Mycelium, the time allocation page, Settings",
+                  "kind": "page"
+                },
+                "body_html": "<p>Pick at most one change for next quarter: a target, a category, or none. If it was not used, the change is to use it, not to build anything new.</p>",
+                "expect_html": "<p>The change saved, or none.</p>",
+                "fields": [
+                  {
+                    "key": "change",
+                    "label": "The one change",
+                    "placeholder": "a target, a category, or none"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    }
+  ],
+  "existing": [
+    {
+      "key": "MYC-181",
+      "set_epic": false,
+      "append": "\n\n## Unlocks\ntracker.02: the time allocation tracker reads calendar events once the reconnect works."
+    }
+  ]
+}

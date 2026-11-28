@@ -1,0 +1,478 @@
+{
+  "epic": {
+    "sid": "E.office",
+    "project": "HOME",
+    "title": "Office restart: measurements kept, mood boards, the signature panels",
+    "description": "The office starts again: only the measurements carry over, marked 'do not re-derive'. It goes through the same mood-board process as every room, last in the order, with its budget set when its turn comes. Fixed inputs: a solid oak or ash 2 m desktop on the right wall, the 3D-printed 'Mycelium' wall panels as the signature piece, ply overlay and firm underlay under click flooring, steel sheet for a writable wall, the flue sealed. The 3D printer is wanted but sits behind the baby and bathroom spend.\n\n## Order\noffice.01 and office.02 record what is kept (any time after home.02). office.07 (hotkeys) is independent. The rest waits for the office's turn: office.03 mood boards after home.19, then office.04 budget, office.05 walls (linked to GARDN-1), office.06 the printer. The Access to Work equipment application is an undecided item in the LIFE review (review.02), not a ticket.\n\n## Done means\nThe office is designed, budgeted and finished through the room process, with the signature panels on the wall.\n\n## Flags\n- H4: the 3D-printed 'Mycelium' wall panels replace section 8b's 'a quiet nod in his office only'. Not reopened.\n\n## Dossier\nThe dossier is attached in Docs (link filled by the integrator).",
+    "dossier": "dossiers/office.md",
+    "links": [
+      "GARDN-1"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "office.01",
+      "title": "Measurements carried over, marked \"do not re-derive\": shell 3500 by 4900 by 2450, alcove, chimney breast, windows, door, radiator, clear run 2500; entered in the editor",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "C",
+      "description": "## What\nEnter the office's kept measurements into the editor exactly as given, marked 'do not re-derive': shell 3500 wide, 4900 deep, 2450 high; alcove front-right 1050 deep with a 460 beam drop; chimney breast on the left wall projecting 360 with recesses of 1460 and 2220; two windows 1650 wide, sill 740; door on the right wall; radiator on the back wall; clear right-wall run 2500 (all millimetres). The source file office-design-state.md is not in this repo; the figures here come from Phil's answer in the intake (H4). When rescue.01 brings the file into claude/archive/, check the figures against it and note any difference rather than changing them.\n\n## Why\nPhil decided the office starts again and only the measurements carry over, marked 'do not re-derive'.\n\n## Done looks like\nThe office appears in the editor with these figures, a 'do not re-derive' note on the room, and a line saying whether rescue.01's file agrees.\n\n## Unlocks\noffice.03: the mood boards use the room.\n\n## Depends on\nhome.02: the editor holds rooms.",
+      "after": [
+        "home.02"
+      ],
+      "links": [
+        "rescue.01"
+      ],
+      "tags": [
+        "home",
+        "office",
+        "documentation"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "office.02",
+      "title": "Fixed inputs recorded: solid oak or ash desktop 2 m on the right wall; the 3D-printed \"Mycelium\" wall panels as the signature piece; ply overlay and firm underlay; steel sheet not magnetic paint; flue stays sealed",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "C",
+      "description": "## What\nRecord the office's fixed inputs on its room plan (or this ticket until the page exists): a solid oak or ash desktop, 2 m, on the right wall (the clear run is 2500); the 3D-printed 'Mycelium' wall panels as the signature piece; a ply overlay under click flooring with a thin firm underlay; steel sheet, not magnetic paint, for a writable wall; the chimney flue stays sealed. Everything else (recess storage, wall colour) is decided at the mood boards.\n\n## Why\nPhil gave these as fixed inputs for the office restart.\n\n## Done looks like\nThe five inputs listed on the office's room plan, each marked fixed.\n\n## Unlocks\noffice.03: the mood boards design around them.\n\n## Depends on\nNothing.\n\n## Flag\nH4: the 3D-printed 'Mycelium' wall panels replace section 8b's 'a quiet nod in his office only'. Not reopened.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "office",
+        "documentation"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "office.03",
+      "title": "Office mood boards, last in the room order; recess storage and wall colour decided there",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWhen the office's turn comes (after bedroom and living room), Claude prepares two or three mood-board directions for the office around the fixed inputs (office.02), with the chimney recesses' storage and the wall colour as the open choices, and one hero piece per direction. Kirsty leads as in every room.\n\n## Why\nPhil decided the office goes through the same mood-board process as the others, last in the room order, with recess storage and wall colour decided there.\n\n## Done looks like\nTwo or three office boards on one page, one picked.\n\n## Unlocks\noffice.04 (budget), office.05 (walls repaired).\n\n## Depends on\nhome.19: the earlier rooms are done.\n\n## Red team\n- Finding 73: The boards are built around the two fixed pieces (Phil's panels and desktop); everything else is Kirsty's pick.\n",
+      "after": [
+        "home.19"
+      ],
+      "links": [
+        "office.02"
+      ],
+      "tags": [
+        "home",
+        "office",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "office.04",
+      "title": "Office budget when its turn comes",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nSet the office's budget from the 'home' pot once its mood board is picked, protecting the hero piece and the signature panels.\n\n## Why\nPhil decided the office budget is set when its turn comes.\n\n## Done looks like\nA figure on the office's room plan page.\n\n## Unlocks\noffice.06: the 3D printer purchase.\n\n## Depends on\noffice.03: the board is picked.",
+      "after": [
+        "office.03"
+      ],
+      "links": [
+        "fin.08"
+      ],
+      "tags": [
+        "home",
+        "office",
+        "planning",
+        "payment"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "office.05",
+      "title": "Walls patched and repaired",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nSurvey the office walls by tapping for hollow plaster, outline each area, fill the small ones, and cut back and patch the large ones. Anything over about a square metre is a plastering job for the learn-it-or-hire-it decision (home.20). GARDN-1 ('Patch and repair office walls') is the existing ticket for this; this guide gives it the steps and the two are linked.\n\n## Why\nThe office restarts through the room process; walls are repaired before it is decorated.\n\n## Done looks like\nEvery outlined area filled or patched and sanded flush.\n\n## Unlocks\nThe office decoration from its mood board.\n\n## Depends on\noffice.03: the board is picked, so the repair matches the finish. home.20 for any large area.",
+      "after": [
+        "office.03"
+      ],
+      "links": [
+        "GARDN-1",
+        "home.20"
+      ],
+      "tags": [
+        "home",
+        "office",
+        "house",
+        "maintenance"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "office-walls-patch",
+        "kind": "guide",
+        "title": "Office walls patched and repaired",
+        "version": 1,
+        "intro": {
+          "answer": "Find the loose and damaged plaster, fill small damage, patch larger areas, and seal for paint.",
+          "unlocks": [
+            "office.03 onward: the office decorated"
+          ],
+          "to_hand": [
+            "Filler",
+            "One-coat or bonding plaster",
+            "Scraper, hawk and trowel",
+            "Sanding block",
+            "Dust sheet"
+          ],
+          "time": [
+            "About 45 minutes over three sittings, plus drying"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Homebuilding: render repair",
+              "url": "https://www.homebuilding.co.uk/advice/render-repair",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Survey",
+            "minutes": 10,
+            "needs": [
+              "Pencil"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Tap the walls",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The office",
+                  "kind": "page"
+                },
+                "body_html": "<p>Tap each wall with a knuckle or the handle of a screwdriver. A hollow sound is loose plaster. Outline each area in pencil.</p>",
+                "expect_html": "<p>Every hollow or cracked area outlined.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Sort by size",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>List each area: small (a filler job, smaller than a hand) or large (a plaster patch). Anything bigger than about a square metre goes to the learn-it-or-hire-it decision (home.20).</p>",
+                "expect_html": "<p>A list with small or large per area.</p>",
+                "fields": [
+                  {
+                    "key": "small",
+                    "label": "Small areas",
+                    "placeholder": "a number"
+                  },
+                  {
+                    "key": "large",
+                    "label": "Large areas",
+                    "placeholder": "a number"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Small repairs",
+            "minutes": 14,
+            "needs": [
+              "Filler",
+              "Scraper"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Rake out and fill",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The office",
+                  "kind": "page"
+                },
+                "body_html": "<p>Rake out cracks and holes, brush the dust off, dampen, and fill slightly proud with filler.</p>",
+                "expect_html": "<p>All small areas filled.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Sand when dry",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The office",
+                  "kind": "page"
+                },
+                "body_html": "<p>Sand flush once dry (the filler tub gives the time).</p>",
+                "expect_html": "<p>Smooth to the hand.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Large patches",
+            "minutes": 15,
+            "needs": [
+              "Plaster",
+              "Trowel"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Remove loose plaster",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The office",
+                  "kind": "page"
+                },
+                "body_html": "<p>Cut back the loose plaster to sound edges.</p>",
+                "expect_html": "<p>Firm edges all round.</p>",
+                "irreversible": true
+              },
+              {
+                "id": "3.2",
+                "title": "Patch",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The office",
+                  "kind": "page"
+                },
+                "body_html": "<p>Seal or dampen the background as the plaster bag says, then fill in layers and flatten with a straight edge.</p>",
+                "expect_html": "<p>Patches flush with the wall.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "office.06",
+      "title": "3D printer purchase (PLA and PETG only), behind the baby and bathroom spend",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nChoose and buy a 3D printer for the signature 'Mycelium' wall panels, printing PLA and PETG only (no resin, no high-temperature materials). It sits in the office room plan and is bought only after the baby and bathroom spend. Claude can prepare a short comparison of two or three printers at the time, because models and prices change fast.\n\n## Why\nPhil decided the 3D printer is not bought yet but still wanted, PLA and PETG only, behind the baby and bathroom spend.\n\n## Done looks like\nA printer chosen, priced and on the office shopping list, bought when the budget allows.\n\n## Unlocks\nThe 3D-printed wall panels.\n\n## Depends on\noffice.04: the office budget.\n\n## Cost\nTo be priced at the time. Nothing is bought in this run.",
+      "after": [
+        "office.04",
+        "baby.39",
+        "home.16"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "office",
+        "shopping",
+        "tools"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "office.07",
+      "title": "Window hotkeys: trial the two AutoHotkey scripts for a week from the keyboard",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nFind the two AutoHotkey window scripts from July, check whether they are written for AutoHotkey v1 or v2 (v1 scripts do not run under v2 unchanged), install the matching AutoHotkey, set them to start on login, and use them from the keyboard for a week before deciding to keep, change or drop them.\n\n## Why\nPhil wanted one small ticket to trial the two scripts for a week from the keyboard; MIDI pads are an idea behind it.\n\n## Done looks like\nA verdict (keep, change or drop) after a week.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing (the scripts may need rescue.01 if they are only in the chats).",
+      "after": [],
+      "links": [
+        "rescue.01"
+      ],
+      "tags": [
+        "home",
+        "office",
+        "pc",
+        "tools"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "office-window-hotkeys",
+        "kind": "guide",
+        "title": "Window hotkeys: a week's trial of the two AutoHotkey scripts",
+        "version": 1,
+        "intro": {
+          "answer": "Install AutoHotkey, run the two July scripts, and use them from the keyboard for a week before deciding.",
+          "unlocks": [],
+          "to_hand": [
+            "The PC",
+            "The two scripts (from the July chats, through rescue.01 if not on the PC)"
+          ],
+          "time": [
+            "About 15 minutes, then a week of use"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "AutoHotkey: download page",
+              "url": "https://www.autohotkey.com/download/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "AutoHotkey docs: WinMove",
+              "url": "https://www.autohotkey.com/docs/v2/lib/WinMove.htm",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "AutoHotkey docs: MonitorGetWorkArea",
+              "url": "https://www.autohotkey.com/docs/v2/lib/MonitorGetWorkArea.htm",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "AutoHotkey forum: v1 snap script not working on Windows 11 and v2",
+              "url": "https://www.autohotkey.com/boards/viewtopic.php?p=569877",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Set up",
+            "minutes": 15,
+            "needs": [
+              "The two script files"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Find the scripts",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "File Explorer on the PC",
+                  "kind": "page"
+                },
+                "body_html": "<p>Find the two .ahk files. If they are not on the PC, they are in the July office chats and come through rescue.01.</p>",
+                "expect_html": "<p>Two .ahk files found.</p>",
+                "fields": [
+                  {
+                    "key": "found",
+                    "label": "Both scripts found?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Check the version",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The script in Notepad",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open each file. A line <code>#Requires AutoHotkey v2</code> means version 2. Old v1 scripts do not run under v2 as they are.</p>",
+                "expect_html": "<p>You know which version each needs.</p>",
+                "fields": [
+                  {
+                    "key": "version",
+                    "label": "Version needed",
+                    "placeholder": "v1 or v2"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Install AutoHotkey",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "autohotkey.com download page",
+                  "kind": "browser",
+                  "url": "https://www.autohotkey.com/download/"
+                },
+                "body_html": "<p>Install the version the scripts need from the official download page.</p>",
+                "expect_html": "<p>Double-clicking a script shows the green H icon in the tray.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Start on login",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The Startup folder",
+                  "kind": "page"
+                },
+                "body_html": "<p>Press Win+R, type the value below, and put a shortcut to each script there.</p>",
+                "expect_html": "<p>The scripts start after a restart.</p>",
+                "blocks": [
+                  {
+                    "label": "Run box",
+                    "text": "shell:startup",
+                    "kind": "value"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "A window lands in the wrong place",
+                    "fix": "Display scaling can offset positions; tell Claude the monitor layout and scaling."
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "Trial for a week",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Your desk",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Use the hotkeys for a week from the keyboard, then write keep, change or drop. MIDI pads are an idea behind this, not part of it.</p>",
+                "expect_html": "<p>A verdict after a week.</p>",
+                "fields": [
+                  {
+                    "key": "verdict",
+                    "label": "After a week",
+                    "placeholder": "keep, change or drop"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested"
+        }
+      }
+    }
+  ],
+  "existing": [
+    {
+      "key": "GARDN-1",
+      "set_epic": false,
+      "append": "\n\n## Relates\noffice.05 holds the steps for this job as a guide; do the work there."
+    }
+  ]
+}

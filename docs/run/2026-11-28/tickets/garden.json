@@ -1,0 +1,1972 @@
+{
+  "epic": {
+    "sid": "E.garden",
+    "project": "HOME",
+    "title": "Garden 2027: design in February, work March to May",
+    "description": "Design first: no repair work until the garden is designed, in whatever tool exists then. The design places somewhere to sit and eat, growing things, a shed or workshop for FixForward's bench and storage, and somewhere safe for a child. Then the full May plan, re-dated across Saturdays from March to May 2027, with a budget of about £100 a month. Tools owned: pressure washer with patio head, weed puller, electric mower, seeder, aerator.\n\n## Order\ngarden.01 (6 February). Then weeds (garden.02, 6 March), hedge (garden.03, 13 March), pressure wash (garden.04, 20 March), joints (garden.05, 27 March), crack and gatepost (garden.06, 3 April), path-to-fence strip and drain and moss (garden.07 and garden.08, 10 April), lawn (garden.09, 17 April, soil temperature permitting), back corner (garden.10, 24 April), fence after the missing panel (garden.11, 1 May), front strip decision (garden.12, 8 May), shed priced (garden.13, 15 May), done check (garden.14, 29 May).\n\n## Done means\nThe garden matches the design: sitting and eating, growing, a shed or workshop placed and priced, and safe for a child, with the spring list closed by the end of May 2027.\n\n## Flags\n- H4: design first and everything in spring collide with the unbuilt editor, one room at a time and the baby dates; Claude flagged it once and the red team prices it. Not reopened.\n\n## Dossier\nThe dossier is attached in Docs (link filled by the integrator).\n\n## Red team\n- Finding 33: This epic and the baby share every weekend from March to the birth; the baby wins. The design, the weeds, the lawn, the back corner and the safe strip stay in spring; the rest moved to July and August.\n",
+    "dossier": "dossiers/garden.md",
+    "links": []
+  },
+  "tickets": [
+    {
+      "sid": "garden.00",
+      "title": "Garden budget for March to May 2027 from the home pot; nothing bought above it",
+      "kind": "task",
+      "points": 1,
+      "due": "2027-02-13",
+      "who": "PK",
+      "description": "## What\nOne sitting with Kirsty: the garden budget for the spring from the home pot. The May figure was about £100 a month. Written on this ticket and in Finance's pots.\n\n## Why\nRed team finding 26: fourteen dated garden tickets buy seed, compound, membrane, gravel and treatment with no budget sitting.\n\n## Done looks like\nA figure on this ticket; every garden ticket that buys waits for it.\n\n## Unlocks\nEvery garden ticket that buys something.\n\n## Depends on\ngarden.01: the design says what is needed.",
+      "after": [
+        "garden.01"
+      ],
+      "tags": [
+        "garden",
+        "money"
+      ],
+      "links": [],
+      "steps_definition": null
+    },
+    {
+      "sid": "garden.01",
+      "title": "Garden design sitting in whatever tool exists then: somewhere to sit and eat, growing, a shed or workshop (FixForward's bench), somewhere safe for a child",
+      "kind": "guide",
+      "points": 2,
+      "due": "2027-02-06",
+      "who": "PK",
+      "description": "## What\nTwo sittings on or around Saturday 6 February 2027. Walk and measure the garden (back, front, ginnel), then with Kirsty place the four uses Phil named: somewhere to sit and eat, growing things, a shed or workshop for FixForward's bench and storage, somewhere safe for a child. Use whatever tool exists then: the room editor if it holds gardens by then, otherwise a sketch on paper photographed into this ticket. Confirm the March to May work list and the monthly budget against the design.\n\n## Why\nPhil decided design first: no repair work until the garden is designed.\n\n## Done looks like\nA design with the four uses placed, a confirmed work list and a monthly figure, attached to this ticket.\n\n## Unlocks\ngarden.02 to garden.14: every spring job.\n\n## Depends on\nNothing.\n\n## Flag\nH4: design first and everything in spring collide with the editor not being built, one room at a time, and the baby dates. Claude flagged it once; the red team prices it. Not reopened.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "garden",
+        "planning"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-design",
+        "kind": "guide",
+        "title": "Garden design sitting",
+        "version": 1,
+        "intro": {
+          "answer": "Agree with Kirsty where the four things go: sitting and eating, growing, a shed or workshop, safe play.",
+          "unlocks": [
+            "garden.02 to garden.13: the spring work"
+          ],
+          "to_hand": [
+            "Kirsty",
+            "Tape measure",
+            "Phone",
+            "Whatever design tool exists then (the editor, or paper)"
+          ],
+          "time": [
+            "About 30 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Walk and measure",
+            "minutes": 15,
+            "needs": [
+              "Tape",
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Photograph from each corner",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The garden",
+                  "kind": "page"
+                },
+                "body_html": "<p>One photo from each corner of the back garden, the front and the ginnel.</p>",
+                "expect_html": "<p>A photo set.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Measure the main areas",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The garden",
+                  "kind": "page"
+                },
+                "body_html": "<p>Measure the lawn, patio, the back corner and the path-to-fence strip. Note where the sun is at midday.</p>",
+                "expect_html": "<p>Sizes for each area and a sun note.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Note the fixed things",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The garden",
+                  "kind": "page"
+                },
+                "body_html": "<p>Mark drains, the gatepost, the hedge line and the fence (with the missing panel).</p>",
+                "expect_html": "<p>A sketch with fixed things.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Decide with Kirsty",
+            "minutes": 15,
+            "needs": [
+              "Kirsty",
+              "Phase 1 sketch"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Place the four uses",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "With Kirsty, in the design tool",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Place: somewhere to sit and eat, growing things, a shed or workshop (FixForward's bench and storage), somewhere safe for a child to play.</p>",
+                "expect_html": "<p>Each use has a place on the sketch.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Confirm the spring list and budget",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "With Kirsty",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Read the spring work list (garden.02 to garden.13) against the design and the monthly budget. Strike anything the design makes unnecessary. The front strip stays open until garden.12.</p>",
+                "expect_html": "<p>A confirmed list and a monthly figure.</p>",
+                "fields": [
+                  {
+                    "key": "budget",
+                    "label": "Monthly garden budget",
+                    "placeholder": "pounds"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "garden.02",
+      "title": "Weed clearance",
+      "kind": "guide",
+      "points": 2,
+      "due": "2027-03-06",
+      "who": "P",
+      "description": "## What\nTwo sittings from Saturday 6 March 2027: pull the weeds by the root with the weed puller in the back borders and patio edges, then the drive, path joints and ginnel. Bag for the green bin.\n\n## Why\nThe May plan, re-dated for March to May 2027, starts with weed clearance.\n\n## Done looks like\nBorders, joints and the ginnel clear; problem patches noted.\n\n## Unlocks\ngarden.04 (pressure wash), garden.09 (lawn).\n\n## Depends on\ngarden.01: the design.",
+      "after": [
+        "garden.01",
+        "garden.00"
+      ],
+      "links": [],
+      "tags": [
+        "garden",
+        "chore"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-weeds",
+        "kind": "guide",
+        "title": "Weed clearance",
+        "version": 1,
+        "intro": {
+          "answer": "Pull the weeds by the root in two sittings, back first then front.",
+          "unlocks": [
+            "garden.04 and garden.09"
+          ],
+          "to_hand": [
+            "Weed puller",
+            "Gloves",
+            "Green waste bags"
+          ],
+          "time": [
+            "About 30 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Back garden",
+            "minutes": 15,
+            "needs": [
+              "Weed puller",
+              "Bags"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Borders and patio edges",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Back garden",
+                  "kind": "page"
+                },
+                "body_html": "<p>Pull weeds from the borders and patio edges with the weed puller, getting the root.</p>",
+                "expect_html": "<p>Borders clear.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Bag it",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Back garden",
+                  "kind": "page"
+                },
+                "body_html": "<p>Bag the weeds for the green bin; do not compost seed heads.</p>",
+                "expect_html": "<p>Bags filled.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Front, drive and ginnel",
+            "minutes": 15,
+            "needs": [
+              "Weed puller",
+              "Bags"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Drive and path joints",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Front",
+                  "kind": "page"
+                },
+                "body_html": "<p>Pull weeds from the drive, path joints and the ginnel.</p>",
+                "expect_html": "<p>Joints clear of green.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Note problem patches",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Note any patch that comes back fast; it feeds garden.07.</p>",
+                "expect_html": "<p>A note, or none.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "garden.03",
+      "title": "Hedge trim to the boundary; a note to the neighbour or landlord",
+      "kind": "guide",
+      "points": 2,
+      "due": "2027-02-27",
+      "who": "P",
+      "description": "## What\nFrom Saturday 13 March 2027: check the hedge for active nests first, find the boundary, deliver a short note to the neighbour or landlord, then trim to the boundary on your side and clear up. Leave any section with an active nest.\n\n## Why\nThe May plan includes the hedge trim to the boundary and a note to the neighbour or landlord.\n\n## Done looks like\nThe hedge trimmed to the boundary, the note delivered, any nest left alone.\n\n## Unlocks\nNothing.\n\n## Depends on\ngarden.01: the design.\n\n## Red team\n- Finding 34: Check for active nests first; if any, wait until August. Bird nesting season runs March to August.\n",
+      "after": [
+        "garden.01",
+        "garden.00"
+      ],
+      "links": [],
+      "tags": [
+        "garden",
+        "chore"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-hedge",
+        "kind": "guide",
+        "title": "Hedge trim to the boundary",
+        "version": 1,
+        "intro": {
+          "answer": "Check for nests first, trim to the boundary, and leave a note for the neighbour or landlord.",
+          "unlocks": [],
+          "to_hand": [
+            "Hedge trimmer or shears",
+            "Gloves and glasses",
+            "Bags"
+          ],
+          "time": [
+            "About 30 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "RSPB: nesting birds and the law",
+              "url": "https://community.rspb.org.uk/ourwork/b/rspb-england/posts/nesting-birds-and-the-law",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "RSPB: birds' nests and nestboxes",
+              "url": "https://www.rspb.org.uk/birds-and-wildlife/birds-nests-and-nestboxes",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Check and note",
+            "minutes": 15,
+            "needs": [
+              "Paper and pen"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Look for nests",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The hedge",
+                  "kind": "page"
+                },
+                "body_html": "<p>Walk the length of the hedge slowly, look in, and watch for birds flying in and out. March is the start of the nesting season.</p>",
+                "expect_html": "<p>No active nest seen, or one found.</p>",
+                "fields": [
+                  {
+                    "key": "nest",
+                    "label": "Active nest seen?",
+                    "placeholder": "yes or no"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "It is an offence to damage or destroy a wild bird's nest while it is in use or being built. If you see one, leave that section until the young have gone (often late summer)."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Find the boundary",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The hedge",
+                  "kind": "page"
+                },
+                "body_html": "<p>Find the boundary line (fence posts or the deeds plan). You trim back to your side of it.</p>",
+                "expect_html": "<p>The line known.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Write the note",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Paper or a message",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write a short, friendly note to the neighbour or landlord saying you will trim the hedge to the boundary on a named day, and asking them to tell you if they object.</p>",
+                "expect_html": "<p>A note delivered.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Trim",
+            "minutes": 15,
+            "needs": [
+              "Trimmer",
+              "Bags"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Trim to the boundary",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "The hedge",
+                  "kind": "page"
+                },
+                "body_html": "<p>Trim the face and top on your side, leaving any section with a nest.</p>",
+                "expect_html": "<p>A straight face along the boundary.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Clear up",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The hedge",
+                  "kind": "page"
+                },
+                "body_html": "<p>Rake and bag the cuttings.</p>",
+                "expect_html": "<p>Path clear.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "garden.04",
+      "title": "Pressure wash: drive, paths, alley, patio",
+      "kind": "guide",
+      "points": 2,
+      "due": "2027-07-17",
+      "who": "P",
+      "description": "## What\nFrom Saturday 20 March 2027, one surface per sitting: drive, paths, the alley and the patio, with the pressure washer and patio head, rinsing towards a drain and noting cracks and empty joints.\n\n## Why\nThe May plan includes the pressure wash of drive, paths, alley and patio.\n\n## Done looks like\nAll four surfaces washed and a list of defects for garden.05 and garden.06.\n\n## Unlocks\ngarden.05 (paving joints), garden.06 (path crack and gatepost gap).\n\n## Depends on\ngarden.02: weeds out first.\n\n## Red team\n- Finding 33: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.\n",
+      "after": [
+        "garden.02",
+        "garden.00"
+      ],
+      "links": [],
+      "tags": [
+        "garden",
+        "chore"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-pressure-wash",
+        "kind": "guide",
+        "title": "Pressure wash: drive, paths, alley, patio",
+        "version": 1,
+        "intro": {
+          "answer": "Wash one surface per sitting with the patio head, before any jointing work.",
+          "unlocks": [
+            "garden.05",
+            "garden.06"
+          ],
+          "to_hand": [
+            "Pressure washer with patio head",
+            "Outdoor extension lead",
+            "Wellies and glasses"
+          ],
+          "time": [
+            "About 1 hour over four sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Drive",
+            "minutes": 15,
+            "needs": [
+              "Pressure washer",
+              "Patio head"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Wash the drive",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "Drive",
+                  "kind": "page"
+                },
+                "body_html": "<p>Use the patio head, working away from the house and towards a drain. Keep the head moving.</p>",
+                "expect_html": "<p>Surface clean, no stripes.</p>",
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Washing lifts loose jointing sand; that is expected and is what garden.05 fixes."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Rinse and look",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Drive",
+                  "kind": "page"
+                },
+                "body_html": "<p>Rinse the debris off and note any crack or empty joint for garden.05 and garden.06.</p>",
+                "expect_html": "<p>A note of defects.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Paths",
+            "minutes": 15,
+            "needs": [
+              "Pressure washer",
+              "Patio head"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Wash the paths",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "Paths",
+                  "kind": "page"
+                },
+                "body_html": "<p>Use the patio head, working away from the house and towards a drain. Keep the head moving.</p>",
+                "expect_html": "<p>Surface clean, no stripes.</p>",
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Washing lifts loose jointing sand; that is expected and is what garden.05 fixes."
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Rinse and look",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Paths",
+                  "kind": "page"
+                },
+                "body_html": "<p>Rinse the debris off and note any crack or empty joint for garden.05 and garden.06.</p>",
+                "expect_html": "<p>A note of defects.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Alley",
+            "minutes": 15,
+            "needs": [
+              "Pressure washer",
+              "Patio head"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Wash the alley",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "Alley",
+                  "kind": "page"
+                },
+                "body_html": "<p>Use the patio head, working away from the house and towards a drain. Keep the head moving.</p>",
+                "expect_html": "<p>Surface clean, no stripes.</p>",
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Washing lifts loose jointing sand; that is expected and is what garden.05 fixes."
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "Rinse and look",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Alley",
+                  "kind": "page"
+                },
+                "body_html": "<p>Rinse the debris off and note any crack or empty joint for garden.05 and garden.06.</p>",
+                "expect_html": "<p>A note of defects.</p>"
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Patio",
+            "minutes": 15,
+            "needs": [
+              "Pressure washer",
+              "Patio head"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Wash the patio",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "Patio",
+                  "kind": "page"
+                },
+                "body_html": "<p>Use the patio head, working away from the house and towards a drain. Keep the head moving.</p>",
+                "expect_html": "<p>Surface clean, no stripes.</p>",
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Washing lifts loose jointing sand; that is expected and is what garden.05 fixes."
+                  }
+                ]
+              },
+              {
+                "id": "4.2",
+                "title": "Rinse and look",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Patio",
+                  "kind": "page"
+                },
+                "body_html": "<p>Rinse the debris off and note any crack or empty joint for garden.05 and garden.06.</p>",
+                "expect_html": "<p>A note of defects.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "4.1": "untested",
+          "4.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "garden.05",
+      "title": "Paving joints: test width and depth first (3 mm by 30 mm for polymeric, else brush-in sand)",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-07-24",
+      "who": "P",
+      "description": "## What\nFrom Saturday 27 March 2027, after the pressure wash: measure joint width and depth at five places, then choose a polymeric jointing compound only if the joints meet the product's minimum (commonly 3 mm wide and 25 to 30 mm deep; some products need 5 mm), else kiln-dried brush-in sand. Filling follows on a dry day as the product says.\n\n## Why\nThe May plan said test first: polymeric compound needs joints at least 3 mm wide and 30 mm deep, otherwise brush-in sand.\n\n## Done looks like\nWidth, depth, the filler chosen and the quantity recorded; joints filled.\n\n## Unlocks\nNothing.\n\n## Depends on\ngarden.04: washed joints.\n\n## Cost\nThe garden budget in May was about £100 a month. Nothing is bought in this run.\n\n## Red team\n- Finding 33: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.\n",
+      "after": [
+        "garden.04",
+        "garden.00"
+      ],
+      "links": [],
+      "tags": [
+        "garden",
+        "maintenance"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-paving-joints",
+        "kind": "guide",
+        "title": "Paving joints: test, then fill",
+        "version": 1,
+        "intro": {
+          "answer": "Measure the joints first: at least 3 mm wide and about 30 mm deep suits polymeric compound; otherwise brush-in sand.",
+          "unlocks": [],
+          "to_hand": [
+            "Steel rule or feeler",
+            "A screwdriver or thin probe",
+            "The compound's data sheet"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "EASYJoint data sheet (not for joints under 3 mm)",
+              "url": "https://cdn.shopify.com/s/files/1/2114/5867/files/EASYJoint_Data_Sheet.pdf",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Bostik Wide Jointing Compound (5 mm minimum width, 25 mm depth)",
+              "url": "https://www.bostik.com/uk/en/catalog/product/construction/emea/uk/wide-jointing-compound-all-weather/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Pavetuf jointing compound, Jewson (3 to 20 mm wide, 20 mm deep minimum)",
+              "url": "https://www.jewson.co.uk/p/pavetuf-landscaping-jointing-compound-buff-15kg-NATPVP28",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Marshalls jointing compound range (PDF)",
+              "url": "https://media.marshalls.co.uk/image/upload/v1597747603/Marshalls-Jointing-Compound-Range.pdf",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Paving joints: test, then fill",
+            "minutes": 15,
+            "needs": [
+              "Steel rule or feeler",
+              "A screwdriver or thin probe",
+              "The compound's data sheet"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Measure width at five joints",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The patio and paths",
+                  "kind": "page"
+                },
+                "body_html": "<p>At five joints spread across the area, measure the narrowest width in millimetres.</p>",
+                "expect_html": "<p>Five widths.</p>",
+                "fields": [
+                  {
+                    "key": "width",
+                    "label": "Narrowest width, mm",
+                    "placeholder": "for example 4"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Probe the depth",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The patio and paths",
+                  "kind": "page"
+                },
+                "body_html": "<p>Push a probe down each joint to the bedding and measure the depth.</p>",
+                "expect_html": "<p>Five depths.</p>",
+                "fields": [
+                  {
+                    "key": "depth",
+                    "label": "Shallowest depth, mm",
+                    "placeholder": "for example 28"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Pick the filler",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>If every joint is at least 3 mm wide and at least 25 mm deep (30 mm preferred), a polymeric compound rated for that width suits. Read the bag's data sheet: some need 5 mm. Otherwise use brush-in kiln-dried sand.</p>",
+                "expect_html": "<p>A choice written.</p>",
+                "fields": [
+                  {
+                    "key": "filler",
+                    "label": "Filler chosen",
+                    "placeholder": "polymeric (product) or sand"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Note the quantity",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Note the area in square metres and the number of bags the product gives for that joint size.</p>",
+                "expect_html": "<p>A quantity.</p>",
+                "fields": [
+                  {
+                    "key": "bags",
+                    "label": "Bags needed",
+                    "placeholder": "a number"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "garden.06",
+      "title": "Path crack; gap at the gatepost",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-07-31",
+      "who": "P",
+      "description": "## What\nFrom Saturday 3 April 2027: clean and fill the path crack, and fill the gap at the gatepost if the post is firm (if it moves, that becomes its own ticket).\n\n## Why\nBoth are on the May plan's work list.\n\n## Done looks like\nThe crack filled flush and the gap filled, or a loose post noted.\n\n## Unlocks\nNothing.\n\n## Depends on\ngarden.04: washed surfaces.\n\n## Cost\nThe garden budget in May was about £100 a month. Nothing is bought in this run.\n\n## Red team\n- Finding 33: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.\n",
+      "after": [
+        "garden.04",
+        "garden.00"
+      ],
+      "links": [],
+      "tags": [
+        "garden",
+        "maintenance"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-path-crack-gatepost",
+        "kind": "guide",
+        "title": "Path crack and the gatepost gap",
+        "version": 1,
+        "intro": {
+          "answer": "Clean out and fill the path crack, and fill the gap at the gatepost.",
+          "unlocks": [],
+          "to_hand": [
+            "Wire brush",
+            "Exterior crack filler or mortar",
+            "Trowel"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Path crack and the gatepost gap",
+            "minutes": 15,
+            "needs": [
+              "Wire brush",
+              "Exterior crack filler or mortar",
+              "Trowel"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Clean the crack",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The path",
+                  "kind": "page"
+                },
+                "body_html": "<p>Wire-brush loose material out of the crack and brush it clean.</p>",
+                "expect_html": "<p>A clean crack.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Fill the crack",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The path",
+                  "kind": "page"
+                },
+                "body_html": "<p>Fill with an exterior crack filler or a mortar mix as its instructions say, on a dry day above freezing.</p>",
+                "expect_html": "<p>Crack filled flush.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "The gatepost gap",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The gatepost",
+                  "kind": "page"
+                },
+                "body_html": "<p>Look at the gap: if the post is firm, fill the gap with mortar; if the post moves, stop and note it for a new ticket.</p>",
+                "expect_html": "<p>Gap filled, or a loose post noted.</p>",
+                "fields": [
+                  {
+                    "key": "post_firm",
+                    "label": "Is the gatepost firm?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "garden.07",
+      "title": "Path-to-fence strip: membrane and gravel, or keep weeded",
+      "kind": "guide",
+      "points": 2,
+      "due": "2027-04-10",
+      "who": "P",
+      "description": "## What\nFrom Saturday 10 April 2027: measure the path-to-fence strip, decide between membrane and gravel or keeping it weeded, and if gravel, price and lay it.\n\n## Why\nThe May plan left this strip as membrane and gravel, or keep weeded.\n\n## Done looks like\nA choice recorded and, if gravel, the strip laid.\n\n## Unlocks\nNothing.\n\n## Depends on\ngarden.01: the design.\n\n## Cost\nThe garden budget in May was about £100 a month. Nothing is bought in this run.",
+      "after": [
+        "garden.01",
+        "garden.00"
+      ],
+      "links": [],
+      "tags": [
+        "garden",
+        "maintenance"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-path-fence-strip",
+        "kind": "guide",
+        "title": "Path-to-fence strip: gravel or keep weeded",
+        "version": 1,
+        "intro": {
+          "answer": "Decide, then either lay membrane and gravel or keep the strip weeded.",
+          "unlocks": [],
+          "to_hand": [
+            "Tape",
+            "Spade",
+            "Membrane and gravel if chosen"
+          ],
+          "time": [
+            "About 30 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Decide",
+            "minutes": 13,
+            "needs": [
+              "Tape"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Measure the strip",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The path-to-fence strip",
+                  "kind": "page"
+                },
+                "body_html": "<p>Measure length and width.</p>",
+                "expect_html": "<p>Two figures.</p>",
+                "fields": [
+                  {
+                    "key": "area",
+                    "label": "Area in square metres",
+                    "placeholder": "for example 6"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Decide",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Membrane and gravel costs once and stops most weeds; keeping it weeded costs time each month. Check the design (garden.01).</p>",
+                "expect_html": "<p>A choice.</p>",
+                "fields": [
+                  {
+                    "key": "choice",
+                    "label": "Gravel or weeded",
+                    "placeholder": "gravel or weeded"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Price it",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "UK retailer sites",
+                  "kind": "browser"
+                },
+                "body_html": "<p>If gravel: price membrane for the area and gravel at about 50 mm depth.</p>",
+                "expect_html": "<p>A total.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Lay it (if gravel)",
+            "minutes": 15,
+            "needs": [
+              "Membrane",
+              "Gravel",
+              "Pegs"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Clear and level",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The strip",
+                  "kind": "page"
+                },
+                "body_html": "<p>Clear weeds and level the soil.</p>",
+                "expect_html": "<p>Level soil.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Membrane and gravel",
+                "actor": "you",
+                "minutes": 9,
+                "where": {
+                  "label": "The strip",
+                  "kind": "page"
+                },
+                "body_html": "<p>Lay the membrane with overlaps, peg it, and spread the gravel.</p>",
+                "expect_html": "<p>No membrane showing.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "garden.08",
+      "title": "Drain grid; moss patch",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-08-07",
+      "who": "P",
+      "description": "## What\nFrom Saturday 10 April 2027: lift and clear the drain grid, check it is not cracked, and scrape and treat the moss patch.\n\n## Why\nBoth are on the May plan's work list.\n\n## Done looks like\nThe drain runs freely and the moss is gone.\n\n## Unlocks\nNothing.\n\n## Depends on\ngarden.01: the design (Phil's rule: no work before the design; the plan listed no dependency here).\n\n## Red team\n- Finding 33: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.\n",
+      "after": [
+        "garden.01",
+        "garden.00"
+      ],
+      "links": [],
+      "tags": [
+        "garden",
+        "maintenance"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-drain-moss",
+        "kind": "guide",
+        "title": "Drain grid and the moss patch",
+        "version": 1,
+        "intro": {
+          "answer": "Clear the drain grid and treat the moss patch.",
+          "unlocks": [],
+          "to_hand": [
+            "Gloves",
+            "A scraper",
+            "Moss treatment or a stiff brush"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Drain grid and the moss patch",
+            "minutes": 15,
+            "needs": [
+              "Gloves",
+              "A scraper",
+              "Moss treatment or a stiff brush"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Lift and clear the grid",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The drain",
+                  "kind": "page"
+                },
+                "body_html": "<p>Lift the grid, scoop out silt and leaves, and rinse.</p>",
+                "expect_html": "<p>Water runs away freely.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Check the grid",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The drain",
+                  "kind": "page"
+                },
+                "body_html": "<p>Check the grid is not cracked. Note the size if it needs replacing.</p>",
+                "expect_html": "<p>Sound, or a size noted.</p>",
+                "fields": [
+                  {
+                    "key": "grid",
+                    "label": "Grid size if broken",
+                    "placeholder": "mm, or 'fine'"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Moss patch",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The moss patch",
+                  "kind": "page"
+                },
+                "body_html": "<p>Scrape off the moss, then treat with a moss product as its label says, or brush on a dry day. Shade and damp cause it; note if the design changes either.</p>",
+                "expect_html": "<p>Moss removed.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "garden.09",
+      "title": "Back lawn renovation: scarify, aerate, overseed (ryegrass and fescue), top-dress; edge and holes",
+      "kind": "guide",
+      "points": 3,
+      "due": "2027-04-17",
+      "who": "P",
+      "description": "## What\nFrom Saturday 17 April 2027, over five sittings: check the soil is warm enough (about 8 to 10 C at 5 cm), mow short, scarify, aerate, overseed with a hard-wearing ryegrass and fescue mix, top-dress, water, then fill holes and recut the edges. April is the usual spring window; the soil thermometer decides the seeding day, not the date. Scarifying is not in the owned tool list (pressure washer, weed puller, electric mower, seeder, aerator): a spring-tine rake works, or hire or buy a scarifier.\n\n## Why\nThe May plan's back lawn renovation: scarify, aerate, overseed with a hard-wearing ryegrass and fescue mix, top-dress.\n\n## Done looks like\nSeed germinated across the lawn, holes filled, edges clean.\n\n## Unlocks\nNothing.\n\n## Depends on\ngarden.02: weeds cleared.\n\n## Cost\nSeed and top-dressing, and a scarifier if hired or bought; to be priced. The garden budget in May was about £100 a month. Nothing is bought in this run.",
+      "after": [
+        "garden.02",
+        "garden.00"
+      ],
+      "links": [],
+      "tags": [
+        "garden",
+        "maintenance"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-lawn-renovation",
+        "kind": "guide",
+        "title": "Back lawn renovation",
+        "version": 1,
+        "intro": {
+          "answer": "Scarify, aerate, overseed with a hard-wearing ryegrass and fescue mix, top-dress, then mend the edges and holes, once the soil is warm.",
+          "unlocks": [],
+          "to_hand": [
+            "Soil thermometer",
+            "Electric mower",
+            "Scarifier or a spring-tine rake",
+            "Aerator",
+            "Seeder",
+            "Seed (ryegrass and fescue mix)",
+            "Top-dressing",
+            "Hose"
+          ],
+          "time": [
+            "About 1 hour 15 minutes over five sittings, plus watering"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Online Turf: spring lawn care",
+              "url": "https://www.onlineturf.co.uk/knowledge-base/guides/seasonal/spring-lawn-care",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Homebuilding: best time to scarify a lawn",
+              "url": "https://www.homebuilding.co.uk/advice/best-time-to-scarify-lawn",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "RHS: lawns, jobs for October (soil at least 7C for germination)",
+              "url": "https://rhs.org.uk/advice/in-month/october/lawns",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Last Frost Date UK: average frost dates map",
+              "url": "https://www.lastfrostdate.co.uk/map/",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "1.1",
+            "why": "Seeding into cold soil wastes the seed; the date on this ticket is a target, the thermometer decides."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Check the soil and mow",
+            "minutes": 13,
+            "needs": [
+              "Soil thermometer",
+              "Mower"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Soil temperature",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The back lawn",
+                  "kind": "page"
+                },
+                "body_html": "<p>Push the thermometer about 5 cm in and read it in the morning on three days. Overseeding waits until it is about 8 to 10 C or more.</p>",
+                "expect_html": "<p>Three readings.</p>",
+                "fields": [
+                  {
+                    "key": "soil_c",
+                    "label": "Lowest morning reading, C",
+                    "placeholder": "for example 9"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Seed in cold wet soil can rot. In South Yorkshire this is often mid to late April."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Mow short",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The back lawn",
+                  "kind": "page"
+                },
+                "body_html": "<p>Mow lower than usual (not scalping) so the scarifier reaches the thatch.</p>",
+                "expect_html": "<p>An even short lawn.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Scarify",
+            "minutes": 15,
+            "needs": [
+              "Scarifier or rake"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Scarify",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "The back lawn",
+                  "kind": "page"
+                },
+                "body_html": "<p>Scarify in one direction, then across. The lawn will look rough; that is right. Do not scarify wet or frosty turf.</p>",
+                "expect_html": "<p>Thatch and moss pulled up.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Rake up",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The back lawn",
+                  "kind": "page"
+                },
+                "body_html": "<p>Rake up and bag the debris.</p>",
+                "expect_html": "<p>Lawn clear of thatch.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Aerate",
+            "minutes": 15,
+            "needs": [
+              "Aerator"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Aerate",
+                "actor": "you",
+                "minutes": 15,
+                "where": {
+                  "label": "The back lawn",
+                  "kind": "page"
+                },
+                "body_html": "<p>Aerate the whole lawn, more on worn or compacted patches, with the soil slightly moist.</p>",
+                "expect_html": "<p>Holes across the lawn.</p>"
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Overseed and top-dress",
+            "minutes": 15,
+            "needs": [
+              "Seeder",
+              "Seed",
+              "Top-dressing"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Overseed",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The back lawn",
+                  "kind": "page"
+                },
+                "body_html": "<p>Set the seeder to the overseeding rate on the seed box and sow in two passes at right angles.</p>",
+                "expect_html": "<p>Even seed cover.</p>"
+              },
+              {
+                "id": "4.2",
+                "title": "Top-dress",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "The back lawn",
+                  "kind": "page"
+                },
+                "body_html": "<p>Spread a thin layer of top-dressing and brush it into the holes. The grass should still show through.</p>",
+                "expect_html": "<p>Grass tips visible.</p>"
+              },
+              {
+                "id": "4.3",
+                "title": "Water",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The back lawn",
+                  "kind": "page"
+                },
+                "body_html": "<p>Water gently. Keep the seed bed moist until it germinates (often 7 to 14 days).</p>",
+                "expect_html": "<p>Soil damp.</p>"
+              }
+            ]
+          },
+          {
+            "id": "5",
+            "title": "Edges and holes",
+            "minutes": 15,
+            "needs": [
+              "Half-moon edger or spade",
+              "Soil and seed"
+            ],
+            "steps": [
+              {
+                "id": "5.1",
+                "title": "Fill holes",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "The back lawn",
+                  "kind": "page"
+                },
+                "body_html": "<p>Fill holes with soil, firm, and seed.</p>",
+                "expect_html": "<p>Holes level.</p>"
+              },
+              {
+                "id": "5.2",
+                "title": "Cut the edges",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The back lawn",
+                  "kind": "page"
+                },
+                "body_html": "<p>Recut the lawn edge to a clean line.</p>",
+                "expect_html": "<p>A clean edge.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "4.1": "untested",
+          "4.2": "untested",
+          "4.3": "untested",
+          "5.1": "untested",
+          "5.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "garden.10",
+      "title": "Back corner clearance",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-04-24",
+      "who": "P",
+      "description": "## What\nFrom Saturday 24 April 2027: check the back corner for wildlife, then clear it to bare ground ready for what the design puts there, and note any tip run.\n\n## Why\nThe May plan includes the back corner clearance.\n\n## Done looks like\nThe corner bare and the waste gone.\n\n## Unlocks\ngarden.13: a shed or workshop may go here.\n\n## Depends on\ngarden.01: the design (Phil's rule: no work before the design; the plan listed no dependency here).",
+      "after": [
+        "garden.01",
+        "garden.00"
+      ],
+      "links": [],
+      "tags": [
+        "garden",
+        "chore"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-back-corner",
+        "kind": "guide",
+        "title": "Back corner clearance",
+        "version": 1,
+        "intro": {
+          "answer": "Clear the back corner to bare ground, ready for what the design puts there.",
+          "unlocks": [],
+          "to_hand": [
+            "Gloves",
+            "Loppers",
+            "Bags"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Back corner clearance",
+            "minutes": 15,
+            "needs": [
+              "Gloves",
+              "Loppers",
+              "Bags"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Look first",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The back corner",
+                  "kind": "page"
+                },
+                "body_html": "<p>Look for nests, hedgehogs or anything worth keeping before cutting.</p>",
+                "expect_html": "<p>All clear, or something left.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Clear",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The back corner",
+                  "kind": "page"
+                },
+                "body_html": "<p>Cut back and pull out growth and rubbish, bag green waste, stack anything for the tip.</p>",
+                "expect_html": "<p>Bare ground.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Tip run",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Note whether a tip run is needed.</p>",
+                "expect_html": "<p>A yes or no.</p>",
+                "fields": [
+                  {
+                    "key": "tip",
+                    "label": "Tip run needed?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "garden.11",
+      "title": "Fence treatment",
+      "kind": "guide",
+      "points": 2,
+      "due": "2027-08-14",
+      "who": "P",
+      "description": "## What\nFrom Saturday 1 May 2027, after the missing panel is in (repairs.01): brush the fence down, cover plants, and treat one run per sitting on dry days.\n\n## Why\nThe May plan includes fence treatment, after the missing panel.\n\n## Done looks like\nEvery fence run treated, the new panel included.\n\n## Unlocks\nNothing.\n\n## Depends on\nrepairs.01: the missing panel fitted.\n\n## Cost\nTreatment to be priced. The garden budget in May was about £100 a month. Nothing is bought in this run.\n\n## Red team\n- Finding 33: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.\n",
+      "after": [
+        "repairs.01",
+        "garden.00"
+      ],
+      "links": [],
+      "tags": [
+        "garden",
+        "maintenance"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-fence-treatment",
+        "kind": "guide",
+        "title": "Fence treatment",
+        "version": 1,
+        "intro": {
+          "answer": "Brush the fence down and treat it on a dry day, one run per sitting.",
+          "unlocks": [],
+          "to_hand": [
+            "Stiff brush",
+            "Fence treatment",
+            "Brush or sprayer",
+            "Dust sheets for plants"
+          ],
+          "time": [
+            "About 45 minutes over three sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Fence run 1",
+            "minutes": 15,
+            "needs": [
+              "Treatment",
+              "Brush"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Check the weather",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Weather forecast",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Treat only with a dry day ahead, as the tin says.</p>",
+                "expect_html": "<p>Dry forecast.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Brush down and protect plants",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The fence",
+                  "kind": "page"
+                },
+                "body_html": "<p>Brush off dirt and cobwebs; cover plants next to the fence.</p>",
+                "expect_html": "<p>Clean, plants covered.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Treat",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The fence",
+                  "kind": "page"
+                },
+                "body_html": "<p>Apply the treatment along the grain, top to bottom.</p>",
+                "expect_html": "<p>Even colour, no drips.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Fence run 2",
+            "minutes": 15,
+            "needs": [
+              "Treatment",
+              "Brush"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Check the weather",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Weather forecast",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Treat only with a dry day ahead, as the tin says.</p>",
+                "expect_html": "<p>Dry forecast.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Brush down and protect plants",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The fence",
+                  "kind": "page"
+                },
+                "body_html": "<p>Brush off dirt and cobwebs; cover plants next to the fence.</p>",
+                "expect_html": "<p>Clean, plants covered.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Treat",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The fence",
+                  "kind": "page"
+                },
+                "body_html": "<p>Apply the treatment along the grain, top to bottom.</p>",
+                "expect_html": "<p>Even colour, no drips.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Fence run 3",
+            "minutes": 15,
+            "needs": [
+              "Treatment",
+              "Brush"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Check the weather",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Weather forecast",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Treat only with a dry day ahead, as the tin says.</p>",
+                "expect_html": "<p>Dry forecast.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Brush down and protect plants",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The fence",
+                  "kind": "page"
+                },
+                "body_html": "<p>Brush off dirt and cobwebs; cover plants next to the fence.</p>",
+                "expect_html": "<p>Clean, plants covered.</p>"
+              },
+              {
+                "id": "3.3",
+                "title": "Treat",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The fence",
+                  "kind": "page"
+                },
+                "body_html": "<p>Apply the treatment along the grain, top to bottom.</p>",
+                "expect_html": "<p>Even colour, no drips.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "garden.12",
+      "title": "Front grass strip: keep or convert",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-08-21",
+      "who": "PK",
+      "description": "## What\nFrom Saturday 8 May 2027, with Kirsty: measure the front grass strip, list the options (grass, planting, gravel, paving), and decide. If converting, it becomes a new ticket with its cost. Turning a front garden into hard standing for a car can need permission (UNVERIFIED for this house: check with the council at that point).\n\n## Why\nThe front grass strip was undecided in May (keep or convert).\n\n## Done looks like\nA recorded choice; a new ticket if it is a conversion.\n\n## Unlocks\nNothing.\n\n## Depends on\ngarden.01: the design.\n\n## Red team\n- Finding 33: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.\n",
+      "after": [
+        "garden.01",
+        "garden.00"
+      ],
+      "links": [],
+      "tags": [
+        "garden",
+        "planning"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-front-strip",
+        "kind": "guide",
+        "title": "Front grass strip: keep or convert",
+        "version": 1,
+        "intro": {
+          "answer": "Decide with Kirsty whether the front grass strip stays grass or becomes something else.",
+          "unlocks": [],
+          "to_hand": [
+            "Kirsty",
+            "Tape"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Front grass strip: keep or convert",
+            "minutes": 15,
+            "needs": [
+              "Kirsty",
+              "Tape"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Measure",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The front strip",
+                  "kind": "page"
+                },
+                "body_html": "<p>Measure the strip.</p>",
+                "expect_html": "<p>Two figures.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "List options",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "With Kirsty",
+                  "kind": "page"
+                },
+                "body_html": "<p>Options: keep as grass, plant it, gravel it, or pave it. If paving or gravel would make it a parking space, check with the council first (planning rules apply to front gardens).</p>",
+                "expect_html": "<p>Two or three options.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Decide",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "With Kirsty",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Pick one. If it is not 'keep', it becomes a new ticket with its cost.</p>",
+                "expect_html": "<p>A choice.</p>",
+                "fields": [
+                  {
+                    "key": "front",
+                    "label": "Front strip",
+                    "placeholder": "keep or the option chosen"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "garden.13",
+      "title": "Shed or workshop: FixForward's bench and storage, priced",
+      "kind": "task",
+      "points": 2,
+      "due": "2027-08-28",
+      "who": "C",
+      "description": "## What\nClaude prices a shed or workshop for the place the design gives it: big enough for FixForward's bench and storage, with power if needed (any new outdoor circuit is notifiable electrical work: see home.23). Two or three options from UK retailers, with base, delivery and fitting costs, and a note on whether a building of that size needs permission (UNVERIFIED until the size is known; outbuildings usually fall under permitted development within limits).\n\n## Why\nPhil wants a shed or workshop in the garden for FixForward's bench and storage.\n\n## Done looks like\nTwo or three priced options on this ticket, with a recommendation.\n\n## Unlocks\nFixForward's bench has a home.\n\n## Depends on\ngarden.01: the design places it.\n\n## Cost\nTo be priced. Nothing is bought in this run.\n\n## Red team\n- Finding 33: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.\n",
+      "after": [
+        "garden.01",
+        "garden.00"
+      ],
+      "links": [
+        "home.23"
+      ],
+      "tags": [
+        "garden",
+        "planning",
+        "shopping"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "garden.14",
+      "title": "Garden done check against the design",
+      "kind": "test",
+      "points": 1,
+      "due": "2027-05-29",
+      "who": "PK",
+      "description": "## What\nOn or around Saturday 29 May 2027, walk the garden with Kirsty and check it against the design: somewhere to sit and eat, growing space, safe for a child, and the spring work list closed.\n\n## Why\nDesign first, then everything in spring; this checks the result.\n\n## Done looks like\nEach check answered and any leftover turned into a later ticket.\n\n## Unlocks\nNothing; the epic is done when this passes.\n\n## Depends on\ngarden.01: the design (the plan listed no dependency; added so the check has something to check against).",
+      "after": [
+        "garden.01",
+        "garden.00"
+      ],
+      "links": [],
+      "tags": [
+        "garden",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "garden-done-check",
+        "kind": "test",
+        "title": "Garden done check against the design",
+        "version": 1,
+        "intro": {
+          "answer": "Walk the garden with Kirsty and check each part of the design.",
+          "unlocks": [],
+          "to_hand": [
+            "Kirsty",
+            "The design from garden.01"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Garden done check against the design",
+            "minutes": 15,
+            "needs": [
+              "Kirsty",
+              "The design from garden.01"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Sit and eat",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The garden",
+                  "kind": "page"
+                },
+                "body_html": "<p>Is there somewhere to sit and eat?</p>",
+                "expect_html": "<p>Yes or no.</p>",
+                "fields": [
+                  {
+                    "key": "sit",
+                    "label": "Somewhere to sit and eat",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Growing",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The garden",
+                  "kind": "page"
+                },
+                "body_html": "<p>Is the growing space ready?</p>",
+                "expect_html": "<p>Yes or no.</p>",
+                "fields": [
+                  {
+                    "key": "grow",
+                    "label": "Growing space",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Safe for a child",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The garden",
+                  "kind": "page"
+                },
+                "body_html": "<p>Walk the play area at a child's height: sharp edges, gaps in the fence, ponds or tools left out.</p>",
+                "expect_html": "<p>Yes or a list of fixes.</p>",
+                "fields": [
+                  {
+                    "key": "safe",
+                    "label": "Safe for a child",
+                    "placeholder": "yes or a list"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Work list",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Mycelium",
+                  "kind": "page"
+                },
+                "body_html": "<p>Check garden.02 to garden.13 are closed. Anything left becomes a ticket for later in the year.</p>",
+                "expect_html": "<p>All closed, or a list.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    }
+  ],
+  "existing": []
+}

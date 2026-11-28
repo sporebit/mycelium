@@ -675,3 +675,208 @@ Existing tickets re-parented or linked, not recreated: MYC-6, MYC-180, MYC-182, 
 6. H2.5 to H2.7: the VPS stays up (H6) while its old agent, secrets and port 3000 are checked. Nothing is switched off in this run.
 7. SEC holds both the network and the keys epics; MAIL holds the domains' SPF and DMARC only. The brief's digest header for H2 says "SEC and MAIL".
 8. Points are the planner's estimates; the ledger converts them to hours.
+
+## 28. Red team changes applied (2026-11-28)
+
+The red team (docs/run/2026-11-28/red-team.md) raised 76 findings. Every change below was applied to the ticket files by scripts/apply-red-team-2026-11-28.py before anything was created; the number is the finding. Where a row in the tables above disagrees with this list, this list wins.
+
+- 1. new ticket mail.04a: Export every mailbox's history (17 addresses, both catch@ included) before anything is deleted
+- 1. mail.05 now also after mail.03, mail.04, mail.04a
+- 1. mail.05: No address is deleted or stops forwarding while any inventory row (mail.03) still uses it; such addresses become forwards until their rows are moved (mail.24). Deletion comes only after mail.04a's counts match.
+- 1. mail.28 now also after mail.04a
+- 1. mail.41 now also after mail.04a
+- 2. mail.08 now also after keys.06
+- 2. mail.08: First phase before anything else: name the anchor Gmail account; sign in; confirm two-factor, the recovery phone and the backup codes (codes into Proton Pass); confirm it is not the inaccessible address in mail.29. No recovery address is changed until the anchor has received a test mail. keys.06's census report is read first because the anchor's app password is known to sit in plain text on the PC.
+- 3. keys.12: Auto-renew is removed from this account-level sitting: it is a per-domain, per-pound setting and belongs in keys.13 after the keep-or-drop sitting. Added here instead: the IONOS account's recovery email is the Gmail anchor (mail.08) before two-factor is enabled; registrar two-factor recovery codes go into Proton Pass.
+- 3. keys.12 now also after mail.08
+- 3. keys.13: Auto-renew on for the kept domains only; sporebit.store and sporebit.org stay set to not renew.
+- 4. keys.08 retitled: Inventory of everything on the VPS: every tenant (old Mycelium agent, DropShipAuto, PolySnipe, StreetGuesser, anything else), what each listens on, what each costs; nothing switched off
+- 4. keys.08 links POLY-20, SG-2
+- 4. keys.08: Four open production tickets (DSA-16, POLY-6, POLY-20, SG-2) show the VPS hosts DropShipAuto, PolySnipe and StreetGuesser as well as the old agent. Nothing is switched off in this ticket.
+- 4. keys.09: If port 3000 belongs to a live tenant it goes behind the reverse proxy or the VPN rather than being closed; closed only on Phil's word.
+- 5. rescue.06 now also after rescue.02, rescue.05
+- 5. rescue.07 now also after rescue.04
+- 5. rescue.07: A project is deleted only after its own export and its own harvest check; one project per step, each a second-tap irreversible step.
+- 6. mail.16 now also after mail.07
+- 6. mail.16: Step order: 1 sign in with the Hotmail login; 2 confirm Gmail is a verified recovery address and Authenticator works; 3 confirm the Windows sign-in on the PC; 4 only then remove the alias (irreversible, second tap); 5 confirm the May attack's password change and session sign-out.
+- 7. mail.17 now also after mail.06
+- 7. mail.17: Step order: 1 send a test mail to phil@philwhelan.com and read it; 2 confirm the trusted phone number and set a recovery key or contact; 3 change the Apple ID on the iPhone itself, not the web (irreversible, second tap); 4 re-sign the Watch and any other Apple device; 5 PW-57's password change.
+- 8. net.06: A full config backup is taken and a restore of it rehearsed before the first applied change; every applied change has a one-step revert.
+- 8. net.07: Applied only while Phil is in the house with the admin page open on a wired or second device; the Trusted network is built last so the PC never loses its path.
+- 8. net.05: Check first: confirm which of the four-network design Asuswrt-Merlin on the RT-AX86U can do natively and which needs a script or a managed switch, before anything is built.
+- 9. net.21 now also after sub.07
+- 9. net.21: The old route is removed only after the VPN has been used from outside the house on the PC, both phones and Kirsty's phone; the removal is its own final phase.
+- 10. mail.30 now also after keys.10, mail.03
+- 10. mail.30: Zero inventory rows and zero recovery addresses on fixclothing.co.uk before the mailbox goes.
+- 10. mail.35: The month-eleven ticket this creates carries H2.1's standing rule (no domain lapses while any address on it is a login or recovery address), the mail.32 public-trail list and the inventory count of rows still on the old domain; the lapse is a second-tap irreversible step.
+- 11. glass.01: Each route priced. A route that needs a paid developer account or any subscription is not chosen without Phil's yes; the Pixel route (10.24) is the free fallback.
+- 11. glass.02: No paid account opened.
+- 12. dsa.05: Priced and proposed; nothing bought. A phone number per store is a recurring cost the brief lists as open, not agreed.
+- 12. dsa.05 now also after fixf.34
+- 13. keys.07: Before any deletion: confirm the Hotmail mailbox still holds that mail or the export has gone into the encrypted nightly backup; confirm the Proton Pass vault has every entry in the CSVs (row count). Each deletion is a second-tap irreversible step.
+- 14. phm.01: List what else the old project still holds (storage buckets, auth users, cron logs) and export it to claude/archive/ before phm.02.
+- 15. block.05: The Mycelium content is fetched only with the device's own session or device token; the unauthenticated block page shows the count and the quote only. No public endpoint.
+- 16. mail.15: Recovery codes go into the Proton Pass entry; a passkey is preferred where offered; unused accounts are closed (1.29).
+- 17. keys.13: DNSSEC only where IONOS both registers and hosts the zone; otherwise the DS record is published only after the zone is confirmed signed. Mail is tested in the same sitting.
+- 18. mail.05: philipwhelan@philwhelan.com (a forward) is kept as the seventeenth address: the catch-all (mail.07) points at it.
+- 18. mail.07: Test the chain end to end with a mail to a made-up old-domain address.
+- 19. dsa.01 now also after fixf.34
+- 19. dsa.02 now also after fixf.34
+- 19. dsa.03 now also after fixf.34
+- 19. dsa.04 now also after fixf.34
+- 19. E.dsa: H6 [claude]: FixForward only until its first slice ships. Kept alive means the servers stay up and items are recorded; the build tickets wait for fixf.34. dsa.07 and the keys and security items stay live.
+- 20. mail.22 retitled: Critical: eBay password rotated and 2FA on, before any FixForward automation touches the account
+- 20. mail.22: Split: this ticket is the password and two-factor only (H2.12), after mail.15 only, and blocks fixf.12. The address change is mail.22b.
+- 20. new ticket mail.22b: Critical: eBay account to fixforward@sporebit.com
+- 20. fixf.20 now after mail.22b instead of mail.22
+- 20. fixf.13 no longer after fixf.12
+- 20. fixf.13 now also after fixf.04
+- 21. baby.15 title no longer names the stopgap
+- 21. home.17: Trigger: if editor slice 2 (home.03) is not live by 2027-02-14, Phil is asked on the decisions review whether the nursery is designed on paper, in Floorplanner (the stopgap he declined), or the June date slips.
+- 22. home.17 now also after home.16
+- 22. home.17: If the bathroom is not finished by 2027-02-28 the nursery starts anyway as the one exception to one-room-at-a-time; Phil confirms on the decisions review.
+- 23. baby.20: Statutory leave notice must be given by the end of the 15th week before the expected week of childbirth: 2027-03-06 for a 15 June due date, moving with MYC-182. MAT B1 is available from 20 weeks (about 2027-01-26).
+- 24. baby.21: If net.14 is not done by 2027-04-11, buy a camera that works local-only on the LAN with no cloud account and add it to Home Assistant later. A cloud monitor is never the fallback. The net.14 dependency is a soft link.
+- 24. baby.21 no longer after net.14
+- 24. baby.21 links net.14
+- 25. home.14 now also after home.09
+- 25. home.14: The bathroom's budget is the first row of home.09; items above it wait.
+- 26. new ticket garden.00: Garden budget for March to May 2027 from the home pot; nothing bought above it
+- 26. garden.02 now also after garden.00
+- 26. garden.03 now also after garden.00
+- 26. garden.04 now also after garden.00
+- 26. garden.05 now also after garden.00
+- 26. garden.06 now also after garden.00
+- 26. garden.07 now also after garden.00
+- 26. garden.08 now also after garden.00
+- 26. garden.09 now also after garden.00
+- 26. garden.10 now also after garden.00
+- 26. garden.11 now also after garden.00
+- 26. garden.12 now also after garden.00
+- 26. garden.13 now also after garden.00
+- 26. garden.14 now also after garden.00
+- 27. office.06 now also after baby.39, home.16
+- 28. sub.11 now also after sub.01
+- 28. sub.11: Drives bought only from the approved costed list (sub.01); MYC-182 asks about the backup drive.
+- 29. fit.01 tagged owner-only
+- 29. fit.01: Owner-only: never on the wall, never in a shared export, not visible to any other account (the run rule for H5 health tickets).
+- 29. fit.02 tagged owner-only
+- 29. fit.02: Owner-only: never on the wall, never in a shared export, not visible to any other account (the run rule for H5 health tickets).
+- 29. fit.03 tagged owner-only
+- 29. fit.03: Owner-only: never on the wall, never in a shared export, not visible to any other account (the run rule for H5 health tickets).
+- 29. fit.04 tagged owner-only
+- 29. fit.04: Owner-only: never on the wall, never in a shared export, not visible to any other account (the run rule for H5 health tickets).
+- 29. fit.05 tagged owner-only
+- 29. fit.05: Owner-only: never on the wall, never in a shared export, not visible to any other account (the run rule for H5 health tickets).
+- 29. fit.06 tagged owner-only
+- 29. fit.06: Owner-only: never on the wall, never in a shared export, not visible to any other account (the run rule for H5 health tickets).
+- 29. E.fit: Every ticket in this epic is owner-only, not only the habit.
+- 30. block.03 now also after sub.06
+- 30. sub.06 retitled: Service: the DNS filter, wherever net.03 decided (Substrate, the router or hosted)
+- 30. sub.06: Moves epic if net.03's answer is not Substrate.
+- 30. net.03: A hosted filter is chosen only on a free tier or with Phil's yes to the cost.
+- 31. fixf.15: The medical display row is imported as 'hold: ownership unconfirmed' and excluded from drafts until fixf.02 closes.
+- 31. fixf.02 links fixf.15
+- 32. existing MYC-170: note appended
+- 33. garden.04 due 2027-03-20 becomes 2027-07-17
+- 33. garden.04: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.
+- 33. garden.05 due 2027-03-27 becomes 2027-07-24
+- 33. garden.05: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.
+- 33. garden.06 due 2027-04-03 becomes 2027-07-31
+- 33. garden.06: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.
+- 33. garden.08 due 2027-04-10 becomes 2027-08-07
+- 33. garden.08: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.
+- 33. garden.11 due 2027-05-01 becomes 2027-08-14
+- 33. garden.11: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.
+- 33. garden.12 due 2027-05-08 becomes 2027-08-21
+- 33. garden.12: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.
+- 33. garden.13 due 2027-05-15 becomes 2027-08-28
+- 33. garden.13: Moved past the birth and the quiet fortnight: every spring Saturday was a baby weekend. Phil can pull it forward on the decisions review.
+- 33. E.garden: This epic and the baby share every weekend from March to the birth; the baby wins. The design, the weeds, the lawn, the back corner and the safe strip stay in spring; the rest moved to July and August.
+- 34. garden.03 due 2027-03-13 becomes 2027-02-27
+- 34. garden.03: Check for active nests first; if any, wait until August. Bird nesting season runs March to August.
+- 35. home.10 due None becomes 2027-01-02
+- 35. baby.07 due 2027-01-31 becomes 2027-01-09
+- 36. baby.03: Open the pot at the bank and start paying in now; the Mycelium tracking (fin.08) follows.
+- 37. baby.29 due 2027-05-16 becomes 2027-05-09
+- 37. baby.39 now also after baby.29
+- 38. block.18 no longer after sub.14
+- 38. block.18 now also after block.01
+- 38. block.18: First slice from Mycelium's existing feed pipeline (Finds); the Substrate reader (sub.14) becomes its source when it exists.
+- 38. sub.14 links block.18
+- 39. net.24 no longer after net.07
+- 40. brain.24 moved into E.unblock as unblock.03
+- 40. unblock.03 due None becomes 2027-01-17
+- 40. unblock.03: Until Kirsty has an account, her tickets are held in Phil's space marked 'for Kirsty'. Dated before baby.20 because baby prep, the household budget and the kitchen screen all need her (11.17).
+- 40. baby.20: Kirsty cannot see this ticket until unblock.03 (her invite) is done; until then it is held in Phil's space marked 'for Kirsty'.
+- 41. tracker.02 now also after brain.26
+- 41. tracker.02: The build starts after the capture habit has held for 30 days (brain.26).
+- 42. net.22: First step: ask Everlight IT in writing which remote route is permitted; no route until the answer.
+- 42. net.08: Revert path in the same sitting; if the laptop's own VPN or management agents stop working it goes back to Trusted and the question goes to IT.
+- 43. glass.03: Frames are owner-only and never in a shared export. A 'forget that' voice command deletes the last frame and the last minute of the thread. Frames are not kept while the work laptop's screen is in view; the command is how.
+- 43. glass.07: A merge, deploy, migration or push is read back in full with the branch and target named; one confirm word and one stop word, both chosen by Phil; no confirm accepted within 3 seconds of the read-back.
+- 44. new ticket home.04a: Export the Floorplanner FML today and store it in the repo under docs/home/ and in Docs
+- 44. home.02 now also after home.04a
+- 44. home.05: Consumes the file home.04a stored, not a fresh export.
+- 45. sub.12 links MCU-4, MCU-5, MCU-6
+- 45. sub.12: Nothing deleted from iCloud or staging (MCU-6) until the three-month decision.
+- 45. sub.13 links MCU-7, MCU-9
+- 45. sub.14 links MCU-11
+- 46. keys.03 now also after keys.08
+- 46. keys.03: The running services receive the new tokens in the same sitting; DSA's health is checked after.
+- 47. home.08 no longer after home.04
+- 47. home.08 now also after home.01
+- 47. home.04 links home.08
+- 48. fin.13: Retired means read-only and kept in Drive; row counts compared after import; nothing deleted.
+- 48. brain.08: Retired means read-only and kept in Drive; row counts compared after import; nothing deleted.
+- 49. new ticket rescue.00: Claude writes Prompt C (one-chat harvest) and Prompt D (project export) into claude/harvest-prompts-rescue.md
+- 49. rescue.01 now also after rescue.00
+- 49. rescue.02 now also after rescue.00
+- 49. rescue.03 now also after rescue.00
+- 49. rescue.04 now also after rescue.00
+- 49. rescue.05 now also after rescue.00
+- 50. dropped unblock.01 (references now point at keys.06)
+- 50. keys.06 sits under E.unblock (epic_sid) and keeps its SEC project and a link to E.keys
+- 50. E.unblock: keys.06 (the census files check) is the first item and sits under this epic; MYC-182 (the due date) is the second because 39 dates hang on it.
+- 51. mail.25: If the plan's alias limit is below the retailer count, the fallback is shop@ with sub-addressing for the remainder; no paid tier without Phil's yes.
+- 52. keys.09 now also after keys.02
+- 53. wall.02: The week is lived with the classic board (the one proved so far); wall.05 moves the tile grid onto the frame after it.
+- 53. wall.05: Moves the tile grid onto the frame after wall.02's week; adds a short greeting by time of day (6b).
+- 54. new ticket vent.06: Watch and file the YouTube video pasted beside Copilot Money in July
+- 55. block.03: An off switch for Phil's profile, one tap, logged in the weekly count (9.8).
+- 56. new ticket net.27: Child's network: later
+- 57. new ticket fin.32: Test the three leak guesses (food and takeaways, tech, subscriptions) against the first month of the feed
+- 58. wall.22: Includes the PC-off test: everything works except controls and the PC voice (6.25).
+- 59. mail.06: Set up on iPhone Mail and the Pixel as well as webmail (1.22).
+- 60. new ticket brain.27: Check: the phone health import still runs, and what it feeds
+- 61. baby.28 now also after baby.10
+- 61. baby.10: Research only; the conversation is baby.28.
+- 62. dropped keys.15
+- 62. fin.16 links keys.01
+- 62. dropped guide.02
+- 64. mail.33 links PW-46, MYC-167
+- 64. brain.06 links PW-46, MYC-167
+- 64. brain.03 links MYC-168
+- 64. glass.10 links MYC-206
+- 64. block.20 links PW-139
+- 64. brain.18 links PW-139
+- 64. wall.08 links PW-142
+- 64. E.home links PW-142
+- 64. keys.14 links PHM-16, PMW-2
+- 64. review.02: DAY-3 (narration), PW-76 and PW-77 (scratch maps) and GARDN-4 (fan) already exist as tickets: their rows say 'already a ticket' rather than 'undecided'.
+- 64. fit.03 links PW-141
+- 66. fixf.27: A signed webhook, POST only, eBay's signature verified; no GET. Decided by 3.19, like the Telegram webhook.
+- 67. mail.36: The check never copies a password into Mycelium; hashes or yes/no only.
+- 67. baby.35: Revocable link; no names, dates or address; items, prices and bought state only.
+- 67. sub.11: The backup encryption key is in Proton Pass and on paper in a second place; a backup whose key is lost is not a backup.
+- 68. repairs.01: The panel is a boundary repair outside the garden design rule (H4); Phil confirms on the decisions review.
+- 68. repairs.03: Garden-side repair outside the design rule (H4); Phil confirms on the decisions review.
+- 69. repairs.02: Quote first; Phil approves before booking.
+- 69. baby.25: Cost shown before booking.
+- 69. vent.04: Phil buys no domain.
+- 69. fin.24: The free statutory reports only.
+- 70. baby.07: A list of what left the room and where it went; nothing thrown away without both agreeing.
+- 73. office.03: The boards are built around the two fixed pieces (Phil's panels and desktop); everything else is Kirsty's pick.
+- 74. fixf.01 links fixf.28
+- 75. fin.23: Then everything, as answered (4.24).
+- 76. mail.09: alerts@ has its own folder and no notification; reports summarised weekly, not read raw.

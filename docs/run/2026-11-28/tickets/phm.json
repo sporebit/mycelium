@@ -1,0 +1,318 @@
+{
+  "epic": {
+    "sid": "E.phm",
+    "project": "PHM",
+    "title": "PhirstMaxx: correct the spec, map the roadmap, Daytripper sharing",
+    "description": "Phil has already deleted the old PhirstMaxxing app's database and the old app is retired; PhirstMaxx inside Mycelium starts empty (decided 2026-11-24 23:20). This epic tidies up after that decision: confirm the old data was never imported, take the leftover importer and mirror wording out of the design spec, shut the old site and send its keys through the rotate-everything work, map every item of the old roadmap and of PROMPT_3 against the PhirstMaxx spec (covered, phase 2, or dropped) for Phil's approval, carry the Daytripper sharing design across to PHM-7 for phase 2, and give Phil one 15-minute sitting to write down which screens of the old app the two of them actually used.\n\n## Order\nphm.01 first (it settles what the spec should say). phm.02 and phm.03 follow it. phm.05 is Phil's sitting and can happen any evening; its answers feed phm.03. phm.04 can run at any time and lands on PHM-7. The old app's keys are rotated under keys.04, which waits for phm.01.\n\n## Done means\nThe design spec and the as-built spec say the same thing about the old app (no mirror, no cutover, the importer kept only as a fixture-proven tool); the old site's Vercel project, DNS record and phone installs are gone and its keys are on keys.04; Phil has approved a mapping table for R1 to R12 and PROMPT_3 A to E; PHM-7 carries the Daytripper design rewritten against PhirstMaxx; Phil's list of used screens is on phm.05.\n\n## Flags\n- H5 / H9 flag 7 `[claude]`: the PhirstMaxx spec assumed a database that no longer exists. Not reopened; phm.01 corrects the wording.\n\n## Dossier\nThe dossier is attached in Docs: (link filled by the integrator).",
+    "dossier": "dossiers/phm.md",
+    "links": [
+      "MYC-207",
+      "PHM-7",
+      "MYC-211"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "phm.01",
+      "title": "Confirm the old-app import never ran, then take the leftover importer, mirror and old-data lines out of claude/phirstmaxx-spec.md",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nCheck the record, not Phil: `claude/spec-phirstmaxx.md` §10 already says the importer was \"never run for real, and now never will be\", and `docs/fixtures/phirstmaxx-old-dump.json` is a made-up dump, so the answer is no, nothing was imported before the old database was deleted. Confirm that against production with one read-only count of `pm_*` rows that carry an `old_id` (expected: none from a real import; the only `old_id` rows anywhere came from the fixture on the e2e server). Then correct the design spec `claude/phirstmaxx-spec.md`, where these lines still assume old data: §3's last paragraph (\"data migrates in phase 1\"), §9 phase 1 (\"importer (§10) for all old data\"), §11's intro note (\"the old database address comes from the Supabase dashboard (guide phase 5)\") and §12's importer line (\"against a copy of the old data\"). The importer itself stays in the repo as the fixture-proven tool (§10 says so), so the spec should say \"kept, dormant\", not \"no importer\". Also correct `claude/spec-phirstmaxx.md` §11 (its not-built list still names \"the importer run against the old database\" and \"the nightly mirror until cutover\") and the PhirstMaxx line in `claude/backlog.md` (\"Open `[claude]`: the nightly mirror ... not yet registered\" and \"the old database URL\" under Waiting on Phil).\n\n## Why\nPhil decided on 2026-11-24 that no old data is wanted and the old database is gone; the spec should not describe a mirror or an import that can never happen.\n\n## Done looks like\nA search of the two PhirstMaxx specs and the backlog for \"mirror\", \"cutover\", \"old data\" and `PHIRSTMAXX_OLD_DB_URL` finds only the struck-through history lines and the 2026-11-24 decision. The production count is recorded in a comment on this ticket. The repo copies and the Claude project copies of both specs and the backlog match (or the report says the project copies wait for the next Cowork session).\n\n## Unlocks\n- phm.02: the old site can be shut knowing nothing depends on it\n- phm.03: the mapping is done against a spec that says what is true\n- keys.04: the old app's keys can be rotated\n\n## Depends on\nNothing\n\n## Flag\nH5 / H9 flag 7 `[claude]`: the spec assumed a database that no longer exists. Phil's answer stands; this ticket only corrects the wording.\n\n## Red team\n- Finding 14: List what else the old project still holds (storage buckets, auth users, cron logs) and export it to claude/archive/ before phm.02.\n",
+      "after": [],
+      "links": [
+        "MYC-211"
+      ],
+      "tags": [
+        "documentation",
+        "dev",
+        "phm"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "phm.02",
+      "title": "Shut down the old PhirstMaxxing site; its keys go through keys.04",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nFinish retiring the old app, which stopped working when its database was deleted. Four pieces, each checked first and removed only by Phil: (1) the old app's **Vercel project** (Vercel dashboard, the project that served the old app); (2) its **IONOS DNS record** under sporebit.com; (3) the **installed PWA** on Phil's iPhone and on Kirsty's phone; (4) the old repo's GitHub Actions backup job from R5, which can only fail now. MYC-211 (raised 2026-11-24) already covers (1) to (3); it is not in the open-ticket list of 2026-11-28, so first read MYC-211: if it is done, this ticket only confirms the four pieces and closes; if it is open, work it from there and close both together. Check the hostname before touching DNS: the specs spell it both `phirstymaxxing.sporebit.com` and `phirstmaxxing.sporebit.com`. Claude reads the old repo's `vercel.json` and the IONOS zone listing and names the exact record; Phil deletes it. The keys (the push keys, the cron secret and the service-role key) are **not** handled here: they go through keys.04. Nothing is deleted in this run.\n\n## Why\nH5: the old app is retired; its site and keys are shut down, with the keys in the rotate-everything work.\n\n## Done looks like\nThe old hostname no longer resolves; the Vercel project is gone from the dashboard; neither phone shows the old app's icon; the backup workflow is disabled; MYC-211 is closed with the same evidence.\n\n## Unlocks\n- keys.04: the old app's keys can be rotated once nothing reads them\n- MYC-211: closes with this ticket\n\n## Depends on\n- phm.01: confirms nothing was imported and nothing still reads the old project",
+      "after": [
+        "phm.01"
+      ],
+      "links": [
+        "MYC-211",
+        "PHM-2",
+        "PHM-3"
+      ],
+      "tags": [
+        "devops",
+        "phone",
+        "phm"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "phm.03",
+      "title": "Map every old roadmap item (R1 to R12) and each part of PROMPT_3 against the PhirstMaxx spec: covered, phase 2, or dropped, for Phil's approval",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nRead the old repo's roadmap and prompts, which are still on the PC: `A:\\Projects\\PhirstMaxxing\\docs\\ROADMAP.md` (11 Sep 2026: R1 to R12; R12 is Daytripper v1), `A:\\Projects\\PhirstMaxxing\\docs\\PROMPT_3_FREE_TIME_V2.md` (parts A to E: the date strip, block types and firmness, the add and edit sheet, day states and range search, Agree time), `A:\\Projects\\PhirstMaxxing\\docs\\STATUS.md` and the decisions log in `A:\\Projects\\PhirstMaxxing\\CLAUDE.md`. For each item write one row: the item, what it was, where PhirstMaxx covers it (spec section, or the as-built file in `lib/phirstmaxx/`), and a verdict of **covered**, **phase 2** or **dropped**, with one line of reason. Do the same for the sixteen old PHM tickets (PHM-1 to PHM-16), which were raised against the old app: say for each whether it moves to PhirstMaxx, stays as phase 2, or can close because the old app is gone (for example PHM-2 and PHM-3, the old backups, and PHM-13, the old repo's git identity). Use Phil's answers on phm.05 if they exist. Post the table as a comment on this ticket and as `claude/archive/phirstmaxxing/roadmap-map.md`. Close nothing: Phil approves the table first.\n\n## Why\nH5: map every old roadmap item and each part of PROMPT_3 against the spec, covered, phase 2 or dropped, for his approval.\n\n## Done looks like\nA table with one row per R item (R1 to R12), per PROMPT_3 part (A to E) and per PHM ticket (PHM-1 to PHM-16), each with a verdict and a reason; Phil has answered keep or change on it; the PHM tickets he agrees to close are closed with the table as evidence.\n\n## Unlocks\n- PhirstMaxx phase 2: a clear list of what remains\n- PHM-1 to PHM-16: each closed, moved or kept with a reason\n\n## Depends on\n- phm.01: the spec it maps against is correct\n- phm.05 (soft): Phil's list of used screens sharpens the verdicts",
+      "after": [
+        "phm.01"
+      ],
+      "links": [
+        "PHM-4",
+        "PHM-9",
+        "PHM-15"
+      ],
+      "tags": [
+        "planning",
+        "documentation",
+        "phm"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "phm.04",
+      "title": "Daytripper sharing: carry the design across to PHM-7 for PhirstMaxx phase 2",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nThe Daytripper v1 design is not only in a chat: the full prompt is on the PC at `A:\\Projects\\PhirstMaxxing\\docs\\claude_PROMPT_4_DAYTRIPPER_SHARE.md` (78 lines; Part A, share a plan as a message through the share sheet or `wa.me`, no messaging spend; Part B, a public read-only plan page with RSVPs, replies and lifts, behind share tokens). Copy it to `claude/archive/phirstmaxxing/` unchanged, then rewrite it against PhirstMaxx (`pm_plans`, `pm_plan_responses`, `pm_plan_legs`) as a short phase 2 spec appended to PHM-7. The later stages Phil liked are in the chat \"Daytripper messaging integration strategy\" (2026-09-11): reminders, a Telegram fallback, WhatsApp Business on its own number, other people and groups. They are listed on PHM-7 as later stages, not designed. Part B needs a **public page**, and the PhirstMaxx spec §12 says \"no public GET\": write the public page as an open question for Phil on PHM-7 (a decision, not a build).\n\n## Why\nH5: Daytripper sharing (a plan sent to a WhatsApp group as a message; a public plan page with replies and lifts) rescued from its chat and ticketed for PhirstMaxx phase 2.\n\n## Done looks like\nThe original prompt is in `claude/archive/phirstmaxxing/`; PHM-7's description carries the rewritten Part A and Part B against PhirstMaxx tables, the later stages as a list, and the public-page question for Phil.\n\n## Unlocks\n- PHM-7: buildable in phase 2 without reopening the old chat\n\n## Depends on\nNothing (the file is on disk; rescue.02 covers anything left only in the chat)",
+      "after": [],
+      "links": [
+        "PHM-7",
+        "PMW-1"
+      ],
+      "tags": [
+        "documentation",
+        "planning",
+        "phm"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "phm.05",
+      "title": "Which screens of the old app were actually used: a 15-minute sitting Phil writes alone",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOne sitting, on your own, from memory (the old app no longer opens). Six short questions, one per part of the old app: Home, Free time and Agree time; Plans and Ideas; Budget and Our story; Trips and the night sky; what Kirsty used and stopped doing; what you wanted and it never did. Answers go in the boxes on this ticket.\n\n## Why\nH5: a 15-minute sitting where Phil writes, on his own, which screens of the old app were actually used.\n\n## Done looks like\nAll six boxes answered on this ticket.\n\n## Unlocks\n- phm.03: the roadmap map marks items covered, phase 2 or dropped using these answers\n\n## Depends on\nNothing",
+      "after": [],
+      "links": [],
+      "tags": [
+        "planning",
+        "phm"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "phm-05-old-app-screens",
+        "kind": "guide",
+        "title": "Which screens of the old PhirstMaxxing app you actually used",
+        "version": 1,
+        "intro": {
+          "answer": "Fifteen minutes on your own: for each part of the old app, say how often the two of you used it, from memory.",
+          "unlocks": [
+            "phm.03: the roadmap map uses your answers to mark items covered, phase 2 or dropped",
+            "PhirstMaxx phase 2: what gets rebuilt first"
+          ],
+          "to_hand": [
+            "Fifteen quiet minutes, on your own",
+            "Nothing else: the old app no longer opens, so this is from memory"
+          ],
+          "time": [
+            "about 15 minutes, one sitting"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Old roadmap, R7 month-one review (on the PC)",
+              "url": "file:///A:/Projects/PhirstMaxxing/docs/ROADMAP.md",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The old app, screen by screen",
+            "minutes": 15,
+            "needs": [
+              "Fifteen minutes",
+              "Your memory of September to November 2026"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Home, Free time and Agree time",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Your own memory",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Think about the <strong>Home</strong> screen, the <strong>Free time</strong> screen (the date strip, the day timeline, painting busy blocks) and the <strong>Agree time</strong> button. Write how often each was used.</p>",
+                "expect_html": "<p>Three short answers in the boxes.</p>",
+                "fields": [
+                  {
+                    "key": "home_use",
+                    "label": "Home",
+                    "placeholder": "often / sometimes / never"
+                  },
+                  {
+                    "key": "freetime_use",
+                    "label": "Free time and the day timeline",
+                    "placeholder": "often / sometimes / never"
+                  },
+                  {
+                    "key": "agree_use",
+                    "label": "Agree time",
+                    "placeholder": "often / sometimes / never"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Plans and the ideas bank",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Your own memory",
+                  "kind": "decision"
+                },
+                "body_html": "<p>The <strong>Plans</strong> screen (holds, proposals, yes or no) and the <strong>Ideas</strong> bank (places saved with travel time and cost).</p>",
+                "expect_html": "<p>Two answers.</p>",
+                "fields": [
+                  {
+                    "key": "plans_use",
+                    "label": "Plans",
+                    "placeholder": "often / sometimes / never"
+                  },
+                  {
+                    "key": "ideas_use",
+                    "label": "Ideas",
+                    "placeholder": "often / sometimes / never"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Budget and Our story",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Your own memory",
+                  "kind": "decision"
+                },
+                "body_html": "<p>The shared <strong>Budget</strong> and <strong>Our story</strong> (memories and photos). In PhirstMaxx these fold into the family household budget and the family timeline in phase 2.</p>",
+                "expect_html": "<p>Two answers.</p>",
+                "fields": [
+                  {
+                    "key": "budget_use",
+                    "label": "Budget",
+                    "placeholder": "often / sometimes / never"
+                  },
+                  {
+                    "key": "story_use",
+                    "label": "Our story",
+                    "placeholder": "often / sometimes / never"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Trips and the night sky",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Your own memory",
+                  "kind": "decision"
+                },
+                "body_html": "<p>The <strong>Trips</strong> planner and the <strong>night sky</strong> page with its clear-night alert.</p>",
+                "expect_html": "<p>Two answers.</p>",
+                "fields": [
+                  {
+                    "key": "trips_use",
+                    "label": "Trips",
+                    "placeholder": "often / sometimes / never"
+                  },
+                  {
+                    "key": "sky_use",
+                    "label": "Night sky and the clear-night alert",
+                    "placeholder": "often / sometimes / never"
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "What Kirsty used, and what she stopped doing",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Your own memory",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Write, in a line or two, which parts Kirsty opened herself and anything she started and then stopped. This is the question the old roadmap's R7 was waiting for.</p>",
+                "expect_html": "<p>One or two lines in the box.</p>",
+                "fields": [
+                  {
+                    "key": "kirsty_use",
+                    "label": "Kirsty used and stopped",
+                    "placeholder": "a line or two, in your words"
+                  }
+                ]
+              },
+              {
+                "id": "1.6",
+                "title": "What it never did that you wanted",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Your own memory",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Anything you reached for and the app could not do. One line each.</p>",
+                "expect_html": "<p>A short list in the box, or \"nothing\".</p>",
+                "fields": [
+                  {
+                    "key": "missing",
+                    "label": "Wanted and missing",
+                    "placeholder": "one line each, or nothing"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "finish_html": "<p>Done. phm.03 reads these answers when it marks each old roadmap item covered, phase 2 or dropped.</p>",
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested",
+          "1.6": "untested"
+        }
+      }
+    }
+  ],
+  "existing": [
+    {
+      "key": "PHM-7",
+      "set_epic": true,
+      "append": "\n\n## Phase 2 of PhirstMaxx\nphm.04 carries the Daytripper v1 design (claude_PROMPT_4_DAYTRIPPER_SHARE.md, Parts A and B) across to PhirstMaxx tables and adds it here. The public plan page is an open question for Phil (the PhirstMaxx spec says no public GET)."
+    },
+    {
+      "key": "MYC-211",
+      "set_epic": false,
+      "append": "\n\n## Related\nphm.02 confirms the old site is fully gone and closes with this ticket. The old app's keys go through keys.04."
+    }
+  ]
+}

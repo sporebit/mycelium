@@ -1,0 +1,916 @@
+{
+  "epic": {
+    "sid": "E.glass",
+    "project": "GLASS",
+    "title": "Glasses: \"Mycelium\" by voice, a weekend prototype first",
+    "description": "The Ray-Ban Meta Gen 3 glasses, in daily use with the iPhone 17 Pro, become a hands-free way into Mycelium and Claude: capture notes and tasks, ask questions and hear the answer, steer Claude Code on the PC, and show Claude what he is looking at. It answers to \"Mycelium\", listens only after he triggers it, uses the phone's dictation and voice, works anywhere with signal through the cloud queue with nothing at home opened, and costs nothing beyond his Claude plan. Research first, then a weekend prototype of voice capture before any other build. Built for any headset; the glasses add the camera.\n\n## Order\nglass.01 (the research and route decision, Gen 3 tested in developer mode) comes first. glass.02, the weekend prototype of voice capture, follows on the chosen route and after MYC-197's Shortcuts on the iPhone route. glass.15 (moving the glasses to the Pixel) happens only if glass.01 picks the Android route. Then glass.03 (the day thread), glass.04 (voice actions) and glass.05 (questions and answers) in parallel. glass.05 unlocks glass.07 (Claude Code by voice), glass.08 (15 seconds and saved for later), glass.09 (nudges, private, silence) and glass.12 (Field guide read aloud). glass.06 (vision) needs glass.03 and the camera route; it unlocks glass.10 (where is it) and glass.14 (list this, after fixf.34). glass.11 (evening walk) follows glass.04; glass.13 (house control) follows wall.17. glass.16, the week without the phone, closes the epic.\n\n## Done means\nA week of daily use without taking the phone out for it (glass.16).\n\n## Flags\n- [claude] Voice approvals: Phil chose \"anything, after it reads the request back and he says a confirm word\"; Claude Code here can merge, deploy and push to the database unattended. Not reopened.\n- [claude] Work hours: Phil chose no rule (\"he will take care himself\"); his work screens carry patient data and, with every frame kept, a mis-trigger at the desk stores that frame. Raised once; his call, not reopened.\n- [claude] When others are talking it never speaks unprompted, and Phil chose \"only after I trigger it\" for listening; the two need some form of listening, which glass.01 resolves (for example on-device voice activity detection that keeps no audio). Not reopened.\n\n## Dossier\nThe research dossier (checked 2026-11-28) is attached in Docs: link to follow.",
+    "dossier": "dossiers/glass.md",
+    "links": [
+      "MYC-197",
+      "MYC-172",
+      "MYC-183"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "glass.01",
+      "title": "Research: Gen 3 support in Meta's Wearables Device Access Toolkit; own Android app against a headset plus phone Shortcut against voice messages to a bot; trigger options; silent taps and gestures; how \"never speak while others talk\" works with \"only after I trigger it\"",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude writes a one-page route decision on this epic, starting from the dossier (`docs/run/2026-11-28/dossiers/glass.md`, checked 2026-11-28) and re-checking every product fact on the day. It answers, in this order: (1) is the Ray-Ban Meta Gen 3 supported by the Device Access Toolkit 1.1 (the 1.1.0 dependencies page lists generic \"Ray-Ban Meta glasses\" at firmware V130 and Meta AI app V292; Gen 3 is not named), settled by a developer-mode test on the real glasses with Meta's Android sample app on the Pixel, run with Phil in a sitting; (2) the route for the prototype: the iPhone Shortcut route (\"Hey Siri, Mycelium\", the glasses as a headset), the own Android app on the Pixel (\"Hey Meta\" invocation, on-device speech, button events, camera), voice messages to a bot (the glasses message only WhatsApp, Messenger and Instagram, not Telegram), and Meta AI Connectors (Mycelium as an MCP server inside Meta AI, developer preview); (3) triggers and silent use: which taps, presses and the Gen 3 action button reach a third-party app, aiming for at least \"capture a photo note\" and \"mark my next thing done\"; (4) the listening question: shape 1 (never speak unprompted; nudges held until his next trigger or sent to the phone) or shape 2 (a two-second listen before a nudge, on-device voice activity detection, nothing kept), per route; (5) the iOS version on the iPhone 17 Pro, because Meta lists no HFP audio on iPhone 17 with iOS 26 (fixed in iOS 27).\n\n## Why\nPhil chose \"a research ticket first\" and \"research what the glasses allow\" for the trigger; Gen 3 support was unconfirmed on 2026-11-27.\n\n## Done looks like\nA decision page on the epic names one prototype route, states Gen 3 support as tested yes or no with the firmware and Meta AI app versions seen, lists the trigger and silent gestures that work, picks shape 1 or shape 2 for listening with the reason, and records the iPhone's iOS version. Dossier section 5 items are either confirmed or corrected on the page.\n\n## Unlocks\nglass.02 (the prototype is built on the chosen route); glass.15 (only needed if the Android route wins).\n\n## Depends on\nNothing.\n\n## Flag\n[claude] When others are talking it never speaks unprompted, and Phil chose \"only after I trigger it\" for listening; the two need some form of listening, which glass.01 resolves (for example on-device voice activity detection that keeps no audio). Not reopened.\n\n## Red team\n- Finding 11: Each route priced. A route that needs a paid developer account or any subscription is not chosen without Phil's yes; the Pixel route (10.24) is the free fallback.\n",
+      "after": [],
+      "links": [
+        "MYC-197",
+        "MYC-172"
+      ],
+      "tags": [
+        "research",
+        "phone",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.02",
+      "title": "Weekend prototype: voice capture into Mycelium, answering to \"Mycelium\", on the route glass.01 chose",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nBuild one feature only: Phil says \"Mycelium\" (on the iPhone route, \"Hey Siri, Mycelium\" runs a Shortcut named Mycelium; on the Android route, \"Hey Meta\" invokes the Mycelium app), speaks a note, and it lands in Mycelium through the existing `/api/capture` with the phone capture token, goes to review like every capture, and he hears \"Saved\" in the glasses. The phone's dictation turns speech into text and the phone's voice speaks the reply. On the iPhone route this is a new hands-free Cherri Shortcut (no edit box, Send by default, the unsent-words file and Retry kept as in Capture v2), compiled and signed through the Cherri Playground and handed over as an import link. On the Android route it is a small sideloaded app built on the PC, glasses in developer mode. Claude builds; Phil installs and tries it in one sitting, with the glasses and with plain earbuds.\n\n## Why\nPhil chose \"a weekend prototype of one feature\" before anything else, and the feature is \"voice capture into Mycelium\"; it is built for any headset.\n\n## Done looks like\nFrom the glasses, with the phone in a pocket, Phil captures five notes on one day; all five appear in the review cards that evening with the words he said; a capture with no signal is kept and sent by Retry later. The same works with ordinary earbuds.\n\n## Unlocks\nglass.03 (the day thread), glass.04 (voice actions), glass.05 (questions and answers).\n\n## Depends on\nglass.01 (the route); MYC-197 (the iPhone Shortcuts built from code, on the iPhone route).\n\n## Red team\n- Finding 11: No paid account opened.\n",
+      "after": [
+        "glass.01",
+        "MYC-197"
+      ],
+      "links": [
+        "MYC-172",
+        "MYC-183"
+      ],
+      "tags": [
+        "feature",
+        "phone",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.03",
+      "title": "The day thread: one running thread per day saved in Mycelium, every camera frame kept with it",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nEvery glasses exchange of a day (what he said, what came back, captures, actions and their results) is appended to one thread per day per person, kept in Mycelium in his own space, readable on the phone and desktop, and linked from the Day log for that date. Every camera frame taken through the glasses (photos and the stills from short videos) is stored with the thread entry it belongs to, in his private file store, under the existing session rules and the nightly backup of uploaded files. The thread is what the model reads as memory for follow-up questions that day (\"what was that thing earlier\").\n\n## Why\nPhil chose \"one running thread per day, saved in Mycelium\" and \"every frame kept with the day's thread\".\n\n## Done looks like\nOpen today's thread and see each exchange in order with its time; a photo taken through the glasses shows inside its entry; a follow-up question by voice that refers to an earlier entry is answered from it; another account cannot read the thread or its frames.\n\n## Unlocks\nglass.06 (vision writes frames into the thread); glass.11 (\"what did I capture today\" reads it).\n\n## Depends on\nglass.02 (the prototype's request path).\n\n## Flag\n[claude] Work hours: Phil chose no rule (\"he will take care himself\"); his work screens carry patient data and, with every frame kept, a mis-trigger at the desk stores that frame. Raised once; his call, not reopened.\n\n## Red team\n- Finding 43: Frames are owner-only and never in a shared export. A 'forget that' voice command deletes the last frame and the last minute of the thread. Frames are not kept while the work laptop's screen is in view; the command is how.\n",
+      "after": [
+        "glass.02"
+      ],
+      "links": [],
+      "tags": [
+        "feature",
+        "photos",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.04",
+      "title": "Voice actions: next thing and mark done; add a ticket or note; shopping list; baby log",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAdd the first voice actions, all of them, on the glass.02 path: \"what's next\" reads his next thing from the daily loop and \"done\" marks it done; \"add a ticket\" and \"add a note\" create them through the capture pipeline (to review, as every capture); \"add milk to the shopping list\" adds to the shopping list; \"log a feed\" (nappy, sleep) writes to the baby log in the family space. Each action reads back what it did in one line and is written to the day thread. A short action never waits on the PC: it runs in the cloud on rules first, with the model only when the words are unclear.\n\n## Why\nPhil chose voice actions first, \"all of them\": next thing and mark done, add a ticket or note, add to the shopping list, log to the baby log.\n\n## Done looks like\nBy voice alone, each of the six actions works once and shows up in the right place in the app; each one's spoken confirmation names the item; an action spoken with no signal is kept and done when the phone reconnects.\n\n## Unlocks\nglass.11 (evening walk), glass.13 (house control), glass.16 (the week of daily use).\n\n## Depends on\nglass.02 (the prototype path).",
+      "after": [
+        "glass.02"
+      ],
+      "links": [],
+      "tags": [
+        "feature",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.05",
+      "title": "Questions by voice with the answer read back; \"short\" or \"full\"; the phone's voice and dictation",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nPhil asks a question by voice and hears the answer in the glasses. He says \"short\" or \"full\" each time (short is two or three sentences; with neither, short). The question goes as a job to Claude Code on the PC on his plan; when the PC is off it falls back to Mycelium's agents through the existing meter and its cap, and stops with \"saved for later\" when the cap is spent. The phone's dictation makes the text and the phone's built-in voice speaks the answer; the working tone and the 15-second limit come from glass.08. The answer and the question go into the day thread. \"Private\" in the question sends the answer to the phone only (from glass.09 once built; here the word is recognised and the answer goes to the phone).\n\n## Why\nPhil chose to ask questions by voice and hear the answer, \"short\" or \"full\" each time, the phone's voice and the phone's dictation, and Claude Code on the PC with Mycelium's agents as the fallback.\n\n## Done looks like\nFive questions asked from the glasses get spoken answers of the asked length; with the PC off the same question is answered by the fallback or saved for later; every one appears in the day thread.\n\n## Unlocks\nglass.07 (steering Claude Code), glass.08 (away from the PC), glass.09 (nudges and private), glass.12 (Field guide read aloud).\n\n## Depends on\nglass.02 (the prototype path).\n\n## Cost\nWithin the existing spend only: PC answers draw on the Claude plan; the cloud fallback is metered under the existing £5 monthly cap. Nothing new is bought or subscribed in this run.",
+      "after": [
+        "glass.02"
+      ],
+      "links": [],
+      "tags": [
+        "feature",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.06",
+      "title": "Vision: a photo or a short live video chosen by what he says; text, labels, screens, items to list, DIY jobs, receipts",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWhen what he says needs sight (\"read this\", \"what is this label\", \"how do I fix this\", \"price this\", \"file this receipt\"), the app takes a single photo, or a short live video when the words ask for watching or steps, through the glasses' camera (the Device Access Toolkit; on the Pixel, as there is no Mac for an iOS app). The frame goes with the question to the model and is kept with the day thread. Four uses, all of them: reading text, labels and screens; items to list or price for FixForward (into a FixForward draft, not listed); DIY and repair jobs (steps read back); receipts and documents (filed through the capture pipeline to review).\n\n## Why\nPhil chose both a single photo and a short live video, chosen by what he says, for all four uses.\n\n## Done looks like\nEach of the four uses works once from the glasses with the answer spoken; the frame is in the day thread; a receipt lands as a review card; a FixForward item lands as a draft.\n\n## Unlocks\nglass.10 (\"where is it\"), glass.14 (\"list this\" at the bench).\n\n## Depends on\nglass.03 (the day thread stores frames); glass.15 (the glasses on the Pixel, since the camera is reachable only through the Android app).\n\n## Flag\n[claude] Work hours: Phil chose no rule (\"he will take care himself\"); his work screens carry patient data and, with every frame kept, a mis-trigger at the desk stores that frame. Raised once; his call, not reopened.",
+      "after": [
+        "glass.03",
+        "glass.15"
+      ],
+      "links": [],
+      "tags": [
+        "feature",
+        "photos",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.07",
+      "title": "Steer Claude Code: what a session is doing, start a saved prompt, dictate instructions, answer questions and permission prompts after read-back and a confirm word; phone access folded in",
+      "kind": "task",
+      "points": 13,
+      "due": null,
+      "who": "C",
+      "description": "## What\nSteer Claude Code on the PC by voice, from the glasses and the phone: (1) \"what is the session doing\" reads back a short status of a named session; (2) \"start the saved prompt X\" starts one of his saved prompts; (3) dictated instructions go to the session; (4) the session's questions and permission prompts are read back and answered by voice. The PC worker gains a `claude_code` job kind that talks to sessions through the Agent SDK or `claude -p --resume` on his plan; nothing at home is opened, the worker connects outwards as now. Phone access is folded in: Claude Code Remote Control (`/rc`, version 2.1.51 or later) gives the Claude app on the phone the same session at no cost, and Mycelium shows the pending question with the same confirm.\n\n**The read-back and the confirm word, before any merge, deploy or database push.** Before a merge, a push to `main`, a deploy or redeploy, or `supabase db push`, the read-back must say, in this order: (a) the action in plain words (merge, push, deploy, database push); (b) the target: the repository, the branch, and whether it is production (a push to `main` deploys production on Vercel); (c) the scope: how many commits and files, and the one-line message of each commit; (d) for a database push, each migration's number and name and whether any step drops, deletes, truncates or rewrites data, said as \"this deletes data\" when it does; (e) whether `rm -rf .next` and `npx next build` passed on this exact commit; (f) whether it can be undone and how (revert commit, redeploy the previous build; a migration that deletes data is said as \"cannot be undone\"); (g) the session name and a two-digit request number. Phil then says the confirm word followed by that number. The confirm word is one he chooses that is not used in ordinary speech; it approves only that one request, only within 60 seconds of the read-back, and is never reused for the next request. Silence, any other words, a word heard while another voice is talking, or a dictation that does not match exactly counts as \"no\", and the session waits. Each approval or refusal, with the read-back text and the heard words, is written to the day thread and the session's log. In \"private\" mode the read-back goes to the phone screen and the confirm is a tap.\n\n## Why\nPhil chose all four for Claude Code by voice and \"anything, after it reads the request back and he says a confirm word\" for approvals; H5 folds phone access to Claude Code into this ticket.\n\n## Done looks like\nFrom the glasses away from the desk, Phil asks what a session is doing and hears it, tells it to carry on, starts a saved prompt, and answers one permission prompt; one test merge on a throwaway branch is read back with all seven parts (a) to (g) and goes ahead only on the confirm word and number; the same request with a wrong number, or with no answer, does not go ahead; the day thread shows both.\n\n## Unlocks\nNothing further in this epic; the moment \"away from the desk asking what Claude Code is doing and telling it to carry on\" from 10b.\n\n## Depends on\nglass.05 (questions and spoken answers).\n\n## Flag\n[claude] Voice approvals: Phil chose \"anything, after it reads the request back and he says a confirm word\"; Claude Code here can merge, deploy and push to the database unattended. Not reopened.\n\n## Red team\n- Finding 43: A merge, deploy, migration or push is read back in full with the branch and target named; one confirm word and one stop word, both chosen by Phil; no confirm accepted within 3 seconds of the read-back.\n",
+      "after": [
+        "glass.05"
+      ],
+      "links": [],
+      "tags": [
+        "feature",
+        "dev",
+        "security",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.08",
+      "title": "Away from the PC: \"saved for later\" within 15 seconds, a working tone, longer jobs to the phone; through the cloud queue, nothing at home opened",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nMake every request from the glasses finish its first reply inside 15 seconds from anywhere with phone signal. A working tone starts within a second of the request leaving the phone. Requests go through Mycelium's cloud queue (the `jobs` table, lane `any` with a short `cloud_after`); the PC worker gains a fast lane for voice jobs, because it collects only once a minute today: a held-open claim (Vercel Hobby allows 300 seconds) or a one to two second poll while a voice request is live. The phone's request is held by the server until the job finishes or 14 seconds pass; then it says \"saved for later\", keeps the request, finishes it in the background or when the PC is next on, and sends the answer to the phone as a push (inside the interruption budget). Nothing is opened at home: the PC only connects outwards. Measure each stage against the dossier's budget (section 3.6) and record the timings.\n\n## Why\nPhil chose \"up to 15 seconds with a working tone\", longer jobs finishing in the background and going to the phone, and \"saved for later\" when there is no answer in time, through the cloud queue with nothing at home opened.\n\n## Done looks like\nTwenty timed requests (ten PC on, ten PC off) each give a first reply within 15 seconds; the timings per stage are on the ticket; a request made with the PC off is answered when the PC comes on and the answer arrives on the phone; no port at home is open (the router audit shows none).\n\n## Unlocks\nglass.16 (the week of daily use relies on it).\n\n## Depends on\nglass.05 (questions and answers).",
+      "after": [
+        "glass.05"
+      ],
+      "links": [
+        "MYC-187"
+      ],
+      "tags": [
+        "feature",
+        "devops",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.09",
+      "title": "Spoken nudges into the glasses inside the three-a-day budget; \"private\" switches an answer to phone-only; silence while others talk",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAdd the glasses as a channel of the existing `interrupt()` (lib/nudges/interrupt.ts) so a nudge may be spoken into the glasses, counted in the same three-a-day budget as every other interruption. Add \"private\": said by Phil in a request, the answer goes to the phone only, nothing spoken. Add silence while others talk in the shape glass.01 chose: shape 1, no unprompted speech (a due nudge waits until his next \"Mycelium\" and is offered first, or goes to the phone); or shape 2, a two-second on-device listen before speaking with voice activity detection in memory, no audio written or sent, and the decision logged only as spoke or waited. Spoken nudges use the Boys' manner as in the app.\n\n## Why\nPhil chose spoken nudges \"inside the three-a-day budget\", a \"private\" phrase that switches an answer to phone-only, and that it never speaks unprompted while it hears conversation.\n\n## Done looks like\nA nudge spoken into the glasses counts once in the budget and a fourth that day is refused as with any channel; \"private\" sends the answer to the phone with nothing spoken; with two people talking nearby a due nudge waits (shape 2) or is held for the next trigger (shape 1); no audio file exists anywhere afterwards.\n\n## Unlocks\nglass.16 (the week of daily use).\n\n## Depends on\nglass.05 (questions and answers); glass.01 (the listening shape).\n\n## Flag\n[claude] When others are talking it never speaks unprompted, and Phil chose \"only after I trigger it\" for listening; the two need some form of listening, which glass.01 resolves (for example on-device voice activity detection that keeps no audio). Not reopened.",
+      "after": [
+        "glass.05",
+        "glass.01"
+      ],
+      "links": [],
+      "tags": [
+        "feature",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.10",
+      "title": "\"Where is it\": say it or look at it, into the home inventory with photo and place",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\n\"The drill is in the garage, top shelf\" (said, or said while looking at it so a photo is taken) saves the thing, the place and the photo; later \"where is the drill?\" reads the place back and shows the photo on the phone. Mycelium has no home inventory yet (home.26 plans a furniture-only one), so this ticket writes the minimum store, things and where they are, owner-only in the house's shared space, shaped so home.26 and net.15 can join it later rather than duplicate it. A moved thing is updated by saying it again.\n\n## Why\nPhil wants \"where is it\": say it or look at it, and it lands in the home inventory with a photo and place, then \"where is the drill?\".\n\n## Done looks like\nTen things saved by voice, five with photos; each \"where is\" question gets the right place; the list is visible in the app; Kirsty can read it once she is in the family space.\n\n## Unlocks\nNothing in this epic; the later home inventory work.\n\n## Depends on\nglass.06 (vision, for the look-at-it photo).\n\n## Flag\n[claude] Work hours: Phil chose no rule (\"he will take care himself\"); his work screens carry patient data and, with every frame kept, a mis-trigger at the desk stores that frame. Raised once; his call, not reopened.",
+      "after": [
+        "glass.06"
+      ],
+      "links": [
+        "MYC-206"
+      ],
+      "tags": [
+        "feature",
+        "home",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.11",
+      "title": "Evening walk: \"what did I capture today\" and the evening close by voice",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nOn the evening walk Phil says \"what did I capture today\" and hears a short list from today's captures and the day thread; then \"evening close\" runs the existing evening close by voice: each review card read in one line with the suggested filing, \"yes\" accepts, \"fix\" leaves it for the screen, and the close's own questions are asked and answered aloud.\n\n## Why\nPhil chose \"what did I capture today\" and the evening close, by voice, on the evening walk.\n\n## Done looks like\nOne evening close done entirely by voice from the glasses; accepted cards are filed, \"fix\" cards wait on the phone; the close shows as done for the day.\n\n## Unlocks\nglass.16 (the week of daily use).\n\n## Depends on\nglass.04 (voice actions, which this reuses).",
+      "after": [
+        "glass.04"
+      ],
+      "links": [],
+      "tags": [
+        "feature",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.12",
+      "title": "Field guide steps read aloud: \"done\", \"next\", \"repeat\"",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nOpen a Field guide ticket by voice (\"Mycelium, start the guide for ...\") and have its current step read aloud: the title, what to do, and what he should see. \"Done\" ticks the step and reads the next; \"next\" moves on without ticking; \"repeat\" reads it again. Steps marked irreversible ask for a spoken \"yes, done\" before ticking. Values and commands that are blocks are not read character by character: it says \"the value is on your phone\" and shows it there. Ticks go through the existing steps state PATCH, the same as tapping.\n\n## Why\nPhil wants Field guide steps read aloud by voice once the glasses route exists (12b).\n\n## Done looks like\nOne real Field guide phase of three or more steps completed by voice; the ticks show in the app with their times; an irreversible step needed the spoken confirmation.\n\n## Unlocks\nNothing further in this epic.\n\n## Depends on\nglass.05 (questions and spoken answers).",
+      "after": [
+        "glass.05"
+      ],
+      "links": [],
+      "tags": [
+        "feature",
+        "guide",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.13",
+      "title": "House control by voice, after the dashboard controls work",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nOnce the wall's house controls work through Home Assistant (wall.17), the same controls are offered by voice from the glasses: lights, plugs and scenes by name (\"kitchen lights off\", \"evening scene\"); cameras and heating stay behind the same PIN rule as on the wall, so by voice they need the phone's confirmation. Calls go through Mycelium to Home Assistant on the Substrate box the same way the wall does; nothing at home is opened to the internet.\n\n## Why\nPhil chose house control by voice \"later, after the dashboard controls work\".\n\n## Done looks like\nThree named controls work by voice with a spoken confirmation; heating by voice asks for the phone confirmation first; the action shows in Home Assistant's log.\n\n## Unlocks\nNothing further in this epic.\n\n## Depends on\nwall.17 (house controls through Home Assistant); glass.04 (voice actions).",
+      "after": [
+        "wall.17",
+        "glass.04"
+      ],
+      "links": [],
+      "tags": [
+        "feature",
+        "home",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.14",
+      "title": "\"List this\" at the FixForward bench, after the first slice",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAt the FixForward bench Phil looks at an item and says \"list this\" with anything he knows (condition, faults, what he paid); the glasses take photos, the model drafts the FixForward record and listing in FixForward's own flow, and the draft waits for his approval in the app. Nothing is listed or published by voice.\n\n## Why\nPhil wants \"list this\" at the FixForward bench, later, once FixForward's first slice works.\n\n## Done looks like\nThree items photographed and drafted by voice; each draft is in FixForward awaiting approval with photos and his spoken details; none is live until he approves it in the app.\n\n## Unlocks\nNothing further in this epic.\n\n## Depends on\nfixf.34 (FixForward's first slice done); glass.06 (vision).",
+      "after": [
+        "fixf.34",
+        "glass.06"
+      ],
+      "links": [],
+      "tags": [
+        "feature",
+        "selling",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.15",
+      "title": "If only an iPhone app works: pair with the Pixel instead",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOnly if glass.01 picks the Android route (an iOS app cannot be built without a Mac). In one sitting: install the Meta AI app on the Pixel, check its version is V292 or later, move the glasses to the Pixel (this takes them off the iPhone's Meta AI app; note what the iPhone loses for calls, messages and music), check the glasses' firmware is V130 or later (device settings, General, About, Version), and switch on developer mode for the glasses in the Meta AI app. Nothing is unpaired from the iPhone before glass.01 has chosen this route. If daily use is worse, pair the iPhone again and say so on the ticket.\n\n## Why\nPhil chose \"pair the glasses with the Pixel instead\" if only an iPhone app would work.\n\n## Done looks like\nThe glasses work with the Pixel; the Meta AI app and firmware versions are written on the ticket; developer mode is on; a line says what the iPhone no longer does with the glasses.\n\n## Unlocks\nglass.06 (the camera through the Android app); the Android route of glass.02.\n\n## Depends on\nglass.01 (the route decision).",
+      "after": [
+        "glass.01"
+      ],
+      "links": [],
+      "tags": [
+        "phone",
+        "glass"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "glass.16",
+      "title": "Done check: a week of daily use without taking the phone out",
+      "kind": "test",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nFor seven days Phil uses Mycelium from the glasses for capture, actions and questions, and each evening writes how many times he took the phone out for something the glasses should have done. The checklist holds a short start sitting, one three-minute evening check per day, and a closing verdict.\n\n## Why\nPhil set \"a week of daily use without taking his phone out for it\" as what done means.\n\n## Done looks like\nThe checklist is complete with seven daily counts, a total, and a yes or no; a no names the one thing that most often made him take the phone out.\n\n## Unlocks\nThe epic's close; the next glasses build is chosen from the main reason on a no.\n\n## Depends on\nglass.04 (voice actions), with glass.08 and glass.09 in place for a fair week.",
+      "after": [
+        "glass.04"
+      ],
+      "links": [],
+      "tags": [
+        "testing",
+        "glass"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "glass-week-without-the-phone",
+        "kind": "test",
+        "title": "A week of daily use without taking the phone out for it",
+        "version": 1,
+        "intro": {
+          "answer": "Seven days using Mycelium from the glasses, counting each time the phone had to come out for it; zero on most days means done.",
+          "unlocks": [
+            "The glasses epic closes",
+            "The decision on what to build next on the glasses"
+          ],
+          "to_hand": [
+            "The Ray-Ban Meta glasses, charged",
+            "The phone the glasses are paired with"
+          ],
+          "time": "About 3 minutes a day for seven days, plus 5 minutes before and 5 after",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Dossier: E.glass",
+              "url": "docs/run/2026-11-28/dossiers/glass.md",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Before the week",
+            "minutes": 5,
+            "needs": [
+              "The glasses and the phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Charge the glasses and the case",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The glasses case",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Put the glasses in the case and charge the case so the week starts full.</p>",
+                "expect_html": "<p>The case light shows full.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Check one capture end to end",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The glasses",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Say \"Mycelium\" and capture the words <strong>test capture for the week</strong>.</p>",
+                "expect_html": "<p>You hear \"Saved\" in the glasses and the capture is in review in the app.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "Nothing is heard in the glasses on the iPhone",
+                    "fix": "Check the iPhone is on iOS 27 or later (Meta lists no HFP audio on iPhone 17 with iOS 26), then try again."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Write down the start date",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This guide",
+                  "kind": "page"
+                },
+                "body_html": "<p>Enter the date of day 1.</p>",
+                "expect_html": "<p>The date is saved.</p>",
+                "fields": [
+                  {
+                    "key": "start_date",
+                    "label": "Day 1",
+                    "placeholder": "a date, for example 2027-01-11"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Day 1 of the week",
+            "minutes": 3,
+            "needs": [
+              "The glasses on",
+              "The phone in a pocket or bag"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Use it through the day by voice",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The glasses, wherever you are",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Use Mycelium from the glasses for at least one capture, one action and one question today. Do not take the phone out for any of it.</p>",
+                "expect_html": "<p>Each one was heard and answered in the glasses.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Count the times you took the phone out for it",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This guide on the phone, in the evening",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the number of times today you took the phone out for something the glasses should have done (0 is the aim). Add a word on why if it was not 0.</p>",
+                "expect_html": "<p>The number is saved.</p>",
+                "fields": [
+                  {
+                    "key": "phone_out_day1",
+                    "label": "Times the phone came out for it",
+                    "placeholder": "a number, for example 0"
+                  },
+                  {
+                    "key": "why_day1",
+                    "label": "Why, if not 0",
+                    "placeholder": "a few words, nothing private"
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Glance at today's thread",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, today's day thread",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open today's thread and check every exchange from the glasses is there.</p>",
+                "expect_html": "<p>Today's exchanges are listed in order with their times.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Day 2 of the week",
+            "minutes": 3,
+            "needs": [
+              "The glasses on",
+              "The phone in a pocket or bag"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Use it through the day by voice",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The glasses, wherever you are",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Use Mycelium from the glasses for at least one capture, one action and one question today. Do not take the phone out for any of it.</p>",
+                "expect_html": "<p>Each one was heard and answered in the glasses.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Count the times you took the phone out for it",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This guide on the phone, in the evening",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the number of times today you took the phone out for something the glasses should have done (0 is the aim). Add a word on why if it was not 0.</p>",
+                "expect_html": "<p>The number is saved.</p>",
+                "fields": [
+                  {
+                    "key": "phone_out_day2",
+                    "label": "Times the phone came out for it",
+                    "placeholder": "a number, for example 0"
+                  },
+                  {
+                    "key": "why_day2",
+                    "label": "Why, if not 0",
+                    "placeholder": "a few words, nothing private"
+                  }
+                ]
+              },
+              {
+                "id": "3.3",
+                "title": "Glance at today's thread",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, today's day thread",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open today's thread and check every exchange from the glasses is there.</p>",
+                "expect_html": "<p>Today's exchanges are listed in order with their times.</p>"
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Day 3 of the week",
+            "minutes": 3,
+            "needs": [
+              "The glasses on",
+              "The phone in a pocket or bag"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Use it through the day by voice",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The glasses, wherever you are",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Use Mycelium from the glasses for at least one capture, one action and one question today. Do not take the phone out for any of it.</p>",
+                "expect_html": "<p>Each one was heard and answered in the glasses.</p>"
+              },
+              {
+                "id": "4.2",
+                "title": "Count the times you took the phone out for it",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This guide on the phone, in the evening",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the number of times today you took the phone out for something the glasses should have done (0 is the aim). Add a word on why if it was not 0.</p>",
+                "expect_html": "<p>The number is saved.</p>",
+                "fields": [
+                  {
+                    "key": "phone_out_day3",
+                    "label": "Times the phone came out for it",
+                    "placeholder": "a number, for example 0"
+                  },
+                  {
+                    "key": "why_day3",
+                    "label": "Why, if not 0",
+                    "placeholder": "a few words, nothing private"
+                  }
+                ]
+              },
+              {
+                "id": "4.3",
+                "title": "Glance at today's thread",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, today's day thread",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open today's thread and check every exchange from the glasses is there.</p>",
+                "expect_html": "<p>Today's exchanges are listed in order with their times.</p>"
+              }
+            ]
+          },
+          {
+            "id": "5",
+            "title": "Day 4 of the week",
+            "minutes": 3,
+            "needs": [
+              "The glasses on",
+              "The phone in a pocket or bag"
+            ],
+            "steps": [
+              {
+                "id": "5.1",
+                "title": "Use it through the day by voice",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The glasses, wherever you are",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Use Mycelium from the glasses for at least one capture, one action and one question today. Do not take the phone out for any of it.</p>",
+                "expect_html": "<p>Each one was heard and answered in the glasses.</p>"
+              },
+              {
+                "id": "5.2",
+                "title": "Count the times you took the phone out for it",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This guide on the phone, in the evening",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the number of times today you took the phone out for something the glasses should have done (0 is the aim). Add a word on why if it was not 0.</p>",
+                "expect_html": "<p>The number is saved.</p>",
+                "fields": [
+                  {
+                    "key": "phone_out_day4",
+                    "label": "Times the phone came out for it",
+                    "placeholder": "a number, for example 0"
+                  },
+                  {
+                    "key": "why_day4",
+                    "label": "Why, if not 0",
+                    "placeholder": "a few words, nothing private"
+                  }
+                ]
+              },
+              {
+                "id": "5.3",
+                "title": "Glance at today's thread",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, today's day thread",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open today's thread and check every exchange from the glasses is there.</p>",
+                "expect_html": "<p>Today's exchanges are listed in order with their times.</p>"
+              }
+            ]
+          },
+          {
+            "id": "6",
+            "title": "Day 5 of the week",
+            "minutes": 3,
+            "needs": [
+              "The glasses on",
+              "The phone in a pocket or bag"
+            ],
+            "steps": [
+              {
+                "id": "6.1",
+                "title": "Use it through the day by voice",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The glasses, wherever you are",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Use Mycelium from the glasses for at least one capture, one action and one question today. Do not take the phone out for any of it.</p>",
+                "expect_html": "<p>Each one was heard and answered in the glasses.</p>"
+              },
+              {
+                "id": "6.2",
+                "title": "Count the times you took the phone out for it",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This guide on the phone, in the evening",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the number of times today you took the phone out for something the glasses should have done (0 is the aim). Add a word on why if it was not 0.</p>",
+                "expect_html": "<p>The number is saved.</p>",
+                "fields": [
+                  {
+                    "key": "phone_out_day5",
+                    "label": "Times the phone came out for it",
+                    "placeholder": "a number, for example 0"
+                  },
+                  {
+                    "key": "why_day5",
+                    "label": "Why, if not 0",
+                    "placeholder": "a few words, nothing private"
+                  }
+                ]
+              },
+              {
+                "id": "6.3",
+                "title": "Glance at today's thread",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, today's day thread",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open today's thread and check every exchange from the glasses is there.</p>",
+                "expect_html": "<p>Today's exchanges are listed in order with their times.</p>"
+              }
+            ]
+          },
+          {
+            "id": "7",
+            "title": "Day 6 of the week",
+            "minutes": 3,
+            "needs": [
+              "The glasses on",
+              "The phone in a pocket or bag"
+            ],
+            "steps": [
+              {
+                "id": "7.1",
+                "title": "Use it through the day by voice",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The glasses, wherever you are",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Use Mycelium from the glasses for at least one capture, one action and one question today. Do not take the phone out for any of it.</p>",
+                "expect_html": "<p>Each one was heard and answered in the glasses.</p>"
+              },
+              {
+                "id": "7.2",
+                "title": "Count the times you took the phone out for it",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This guide on the phone, in the evening",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the number of times today you took the phone out for something the glasses should have done (0 is the aim). Add a word on why if it was not 0.</p>",
+                "expect_html": "<p>The number is saved.</p>",
+                "fields": [
+                  {
+                    "key": "phone_out_day6",
+                    "label": "Times the phone came out for it",
+                    "placeholder": "a number, for example 0"
+                  },
+                  {
+                    "key": "why_day6",
+                    "label": "Why, if not 0",
+                    "placeholder": "a few words, nothing private"
+                  }
+                ]
+              },
+              {
+                "id": "7.3",
+                "title": "Glance at today's thread",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, today's day thread",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open today's thread and check every exchange from the glasses is there.</p>",
+                "expect_html": "<p>Today's exchanges are listed in order with their times.</p>"
+              }
+            ]
+          },
+          {
+            "id": "8",
+            "title": "Day 7 of the week",
+            "minutes": 3,
+            "needs": [
+              "The glasses on",
+              "The phone in a pocket or bag"
+            ],
+            "steps": [
+              {
+                "id": "8.1",
+                "title": "Use it through the day by voice",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The glasses, wherever you are",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Use Mycelium from the glasses for at least one capture, one action and one question today. Do not take the phone out for any of it.</p>",
+                "expect_html": "<p>Each one was heard and answered in the glasses.</p>"
+              },
+              {
+                "id": "8.2",
+                "title": "Count the times you took the phone out for it",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This guide on the phone, in the evening",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the number of times today you took the phone out for something the glasses should have done (0 is the aim). Add a word on why if it was not 0.</p>",
+                "expect_html": "<p>The number is saved.</p>",
+                "fields": [
+                  {
+                    "key": "phone_out_day7",
+                    "label": "Times the phone came out for it",
+                    "placeholder": "a number, for example 0"
+                  },
+                  {
+                    "key": "why_day7",
+                    "label": "Why, if not 0",
+                    "placeholder": "a few words, nothing private"
+                  }
+                ]
+              },
+              {
+                "id": "8.3",
+                "title": "Glance at today's thread",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, today's day thread",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open today's thread and check every exchange from the glasses is there.</p>",
+                "expect_html": "<p>Today's exchanges are listed in order with their times.</p>"
+              }
+            ]
+          },
+          {
+            "id": "9",
+            "title": "After the week",
+            "minutes": 5,
+            "needs": [
+              "The seven counts above"
+            ],
+            "steps": [
+              {
+                "id": "9.1",
+                "title": "Add up the week",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This guide",
+                  "kind": "page"
+                },
+                "body_html": "<p>Add the seven daily counts and enter the total.</p>",
+                "expect_html": "<p>The total is saved.</p>",
+                "fields": [
+                  {
+                    "key": "phone_out_total",
+                    "label": "Total for the week",
+                    "placeholder": "a number"
+                  }
+                ]
+              },
+              {
+                "id": "9.2",
+                "title": "Say whether it is done",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This guide",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Answer yes if you went the week without needing the phone for it (or close enough that you would call it done), otherwise no and the one thing that most often made you take it out.</p>",
+                "expect_html": "<p>Your answer is saved; a no names the one thing to build next.</p>",
+                "fields": [
+                  {
+                    "key": "done",
+                    "label": "Done: yes or no",
+                    "placeholder": "yes or no"
+                  },
+                  {
+                    "key": "main_reason",
+                    "label": "If no, the main reason",
+                    "placeholder": "a few words"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested",
+          "4.1": "untested",
+          "4.2": "untested",
+          "4.3": "untested",
+          "5.1": "untested",
+          "5.2": "untested",
+          "5.3": "untested",
+          "6.1": "untested",
+          "6.2": "untested",
+          "6.3": "untested",
+          "7.1": "untested",
+          "7.2": "untested",
+          "7.3": "untested",
+          "8.1": "untested",
+          "8.2": "untested",
+          "8.3": "untested",
+          "9.1": "untested",
+          "9.2": "untested"
+        }
+      }
+    }
+  ],
+  "existing": [
+    {
+      "key": "MYC-197",
+      "set_epic": false,
+      "append": "\n\n## Unlocks\nglass.02: the glasses' weekend prototype of voice capture uses these Shortcuts on the iPhone route; it also needs a hands-free variant of Capture (no edit box, Send by default), built the same way in Cherri."
+    }
+  ]
+}

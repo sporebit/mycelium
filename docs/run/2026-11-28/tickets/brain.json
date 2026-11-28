@@ -1,0 +1,602 @@
+{
+  "epic": {
+    "sid": "E.brain",
+    "project": "MYC",
+    "title": "Mycelium as second brain: Spores, the connector, imports",
+    "description": "Mycelium becomes the place where anything put in can be found again by asking, that holds his reference material and links things together, and that reminds him so he does not have to remember. The biggest gap is that he does not open it daily, so capture and the pull back in come first; \"what next\" is the part dropped if only three of four can be done well in 2027.\n\n## Order\nAfter the Unblock queue (E.unblock): Spores (brain.01) and the one number with its evening prompt (brain.18, brain.19), then the connector's sign-in decision and the connector (brain.03, brain.02), then section search (brain.04 Work and Docs, brain.05 captures and notes, brain.06 People, brain.07 Finance), then the imports (brain.08 spreadsheets, brain.12 Apple Notes, brain.09 Claude decisions, brain.10 Drive, brain.11 paperwork). Alongside: the monthly export and off-site copy (brain.16, brain.17), the memory design and facts with history (brain.14, brain.15), the four feeds (brain.20), the year reviews (brain.21). Decisions waiting on Phil: brain.03, brain.24, brain.25; brain.22 waits until he is ready. Research: brain.23, and brain.13 sweeps the other projects. The done check is brain.26.\n\n## Done means\n30 days running with a capture every day (11.30), with nothing put in ever lost.\n\n## Flags\n- `[claude]` 11.3: Claude recommended no new features until the 22 MYC-193 checks clear; Phil chose check and build in parallel.\n- `[claude]` 11.17: Kirsty's invite waits for the UI rebuild while baby prep, the budget and the kitchen screen need her (brain.24).\n\n## Dossier\nThe research dossier is attached in Docs.",
+    "dossier": "dossiers/brain.md",
+    "links": [
+      "MYC-193",
+      "MYC-199"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "brain.01",
+      "title": "Spores: the quick-notes section, searchable, from capture and from the glasses",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBuild Spores, a dedicated quick-notes section in Mycelium: a list of short notes to self, each with its text, the time, where it came from (Shortcut, Telegram, typed, glasses) and optional links to a person, ticket or Doc. Spores arrive through the existing capture pipeline (`/api/capture`, `compost_items`): add a `spore` capture kind the classifier picks when a capture is a note to self, and a direct quick-note path that skips review for the Shortcut MYC-197 builds. Decide in the build notes whether a Spore is a new table or a capture kind with its own page, and do not duplicate the existing `idea` kind and `/organisation/ideas`. Spores are editable, never deleted without the bin, and reachable from the top menu.\n\n## Why\nPhil wants a dedicated quick-notes section called Spores (11.14, 11b), replacing his notes app first (11.4); voice capture wherever he is is the daily moment to make work first (11.6).\n\n## Done looks like\nA note said into the quick-note Shortcut appears in Spores within a minute with its source shown; a typed Spore can be edited and linked to a person; an e2e spec covers create, edit, link and bin; the classifier test set includes note-to-self examples.\n\n## Unlocks\nbrain.05 (search over Spores); brain.12 (Apple Notes land here); brain.26 (the 30-day check counts Spores as captures); glass.04 (add a note by voice).\n\n## Depends on\nNothing to build. Live use from the phone needs MYC-197 (the quick-note Shortcut).",
+      "after": [],
+      "links": [
+        "MYC-197",
+        "MYC-193"
+      ],
+      "tags": [
+        "brain",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.02",
+      "title": "The Mycelium connector: every Claude session reads and writes Mycelium; first ticket settles sign-in",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBuild a remote MCP server inside Mycelium (a Next.js route handler over Streamable HTTP, for example with Vercel's `mcp-handler`) that any Claude session can call. Tools, owner-only: search a section (Work and Docs, captures and Spores, People, Finance read-only), read a ticket, Doc, Spore or person, create a capture, Spore or ticket, comment on a ticket, and read or tick a Field guide's steps. Sign-in follows Phil's choice on brain.03 (bearer token, OAuth with CIMD or DCR, or both); read and write are separate scopes; every token or connection is revocable in Settings; no token is ever accepted in a URL. Test from Claude Code and from claude.ai. The dossier (`dossiers/brain.md` 3.1) has the discovery, callback and timeout rules.\n\n## Why\nPhil decided to build the Mycelium connector next so every Claude session reads and writes Mycelium (11.11), so Claude project docs stop being the place decisions live (11.4).\n\n## Done looks like\nFrom a fresh Claude Code session and from claude.ai, asking for a known Spore returns it and asking for a new ticket creates one that shows in Work; revoking the connection in Settings stops the next call; the route's unit tests cover the 401 discovery response and scope checks.\n\n## Unlocks\nbrain.09 (Claude project docs and chat decisions come in through it); W10 in the backlog (move `claude/*.md` into Docs, committed after the connector); glass.07 (steer Claude Code reads Mycelium state).\n\n## Depends on\nbrain.03 (the sign-in choice).",
+      "after": [
+        "brain.03"
+      ],
+      "links": [],
+      "tags": [
+        "brain",
+        "feature",
+        "dev",
+        "security"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.03",
+      "title": "Connector sign-in decision: the open question written up with the options, Phil decides",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nClaude puts the three options on this ticket from the dossier (`dossiers/brain.md` 3.1): (1) a bearer token per client, works in Claude Code today and in claude.ai only if the Request headers section is offered; (2) OAuth backed by Mycelium's own sign-in, works everywhere, the largest build; (3) both, on separate paths. Phil's sitting: open claude.ai, Settings, Connectors, Add custom connector, look for a section called Request headers, then press Cancel without adding anything. He comments with what he saw and his choice.\n\n## Why\nPhil decided the connector's first ticket settles the open sign-in question (11.11); the backlog of 2026-10-29 asked him to check the dialog once.\n\n## Done looks like\nA comment on this ticket says whether the Request headers section was shown (yes or no) and which option (1, 2 or 3) he picked.\n\n## Unlocks\nbrain.02 (the connector is built to this choice).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [
+        "MYC-168"
+      ],
+      "tags": [
+        "brain",
+        "security",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.04",
+      "title": "Section search: Work and Docs",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nGive Work and Docs a real search: full-text over ticket titles, descriptions and comments and over Docs page bodies, ranked, with the matched words shown in each result. Build on the existing `text` clause in `work_search` (migration 0147, ILIKE today): add a generated text-search column with an index and query with the user's plain words. One search box on the Work board and one on Docs, each staying inside its section. Respect space visibility and Doc restrictions exactly as the current queries do.\n\n## Why\nPhil wants better search inside each section, not one ask box (11.9), with Work and Docs first of the four (11.28); anything put in can be found again by asking (11.1).\n\n## Done looks like\nA word that appears only in a Docs page body returns that page first; a word in a ticket comment returns the ticket; a restricted Doc never appears for a user without access (isolation test passes); results come back in under a second on production data.\n\n## Unlocks\nbrain.11 (scanned paperwork is searchable once text extraction lands); brain.09 (imported decisions are found here).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "brain",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.05",
+      "title": "Section search: captures and notes",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nSearch across captures (`compost_items`, including voice transcripts and photo text) and Spores, from a search box on the captures and Spores pages. Same approach as brain.04: an indexed text-search column, ranked results with the matched words, filters for date and source. Owner-only, as captures are today.\n\n## Why\nSection search, captures and notes, is one of the four Phil chose first (11.28); trust comes from nothing put in ever being lost (11.27).\n\n## Done looks like\nA word said in a voice capture last month is found by typing it; a Spore and a capture with the same word both appear, labelled; results in under a second.\n\n## Unlocks\nbrain.26 (finding things is what makes daily capture worth it); brain.20 (promises are extracted from searchable captures).\n\n## Depends on\nbrain.01 (Spores exist).",
+      "after": [
+        "brain.01"
+      ],
+      "links": [],
+      "tags": [
+        "brain",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.06",
+      "title": "Section search: People",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nExtend the People search box (MYC-155) from names to aliases, emails, phone numbers, notes and the captures that mention a person, with misspelling tolerance (trigram matching) for names. Results show why each person matched. Archived and rejected people stay out unless a filter asks for them (the 0149 review rules).\n\n## Why\nPeople are core to the second brain (11.20) and People is one of the four sections Phil chose for search (11.28).\n\n## Done looks like\nTyping a misspelt first name finds the person; typing a phone number fragment finds its owner; a capture mentioning someone is listed under their result; archived people appear only with the filter on.\n\n## Unlocks\nbrain.20 (the promised-to and owed-reply feeds hang off people).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [
+        "PW-46",
+        "MYC-167"
+      ],
+      "tags": [
+        "brain",
+        "feature",
+        "dev",
+        "contacts"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.07",
+      "title": "Section search: Finance",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nSearch transactions, bills and accounts in Finance by merchant, description, amount (exact or a range), date range, category and note, from one box with the filters beside it. Owner-only and never shared, under the same rules as Finance today; nothing from this search reaches the wall, the family space or a shared export.\n\n## Why\nFinance is one of the four sections Phil chose for search (11.28); bank transactions are the feed that matters most (11.16).\n\n## Done looks like\nTyping a merchant name lists its transactions with a total; an amount range filter works; a second user's account cannot see any result (isolation test passes); the finance guard test still passes.\n\n## Unlocks\nfin.01 and fin.11 (the first Finance sitting and the subscriptions sweep are quicker with search).\n\n## Depends on\nNothing to build. Real data arrives with MYC-195 (Enable Banking).",
+      "after": [],
+      "links": [
+        "MYC-195"
+      ],
+      "tags": [
+        "brain",
+        "feature",
+        "dev",
+        "payment"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.08",
+      "title": "List every spreadsheet, then move in the selling sheet, household and shopping lists, finance and net worth",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nClaude lists every spreadsheet Phil has: Google Sheets in his Drive (through the Google Drive connector in a Claude session, read-only) and Excel or CSV files on the PC, as a table on this ticket with name, place, last edited, what it holds and a proposed home in Mycelium. Phil approves the list in a comment. Then the named sheets move in: the selling sheet (to Selling or FixForward), the household and shopping lists (to the shopping list and household pages), and the finance and net-worth sheet (fin.13 does the net-worth import; this ticket links it rather than doing it twice). Before each move a copy of the sheet is downloaded to the PC; the source is never deleted by this ticket.\n\n## Why\nPhil wants spreadsheets replaced first (11.4): list them all, then move in the selling sheet, household and shopping lists, and the finance and net-worth sheet (11.15).\n\n## Done looks like\nThe list is on the ticket with Phil's approval; each moved sheet's row count in Mycelium matches the source; a downloaded copy of each sits under the PC backups folder; fin.13 is linked for net worth.\n\n## Unlocks\nfin.13 (net worth comes in once); wall.06 (the shopping list panel reads real lists); fixf work that reads the selling sheet.\n\n## Depends on\nNothing.\n\n## Red team\n- Finding 48: Retired means read-only and kept in Drive; row counts compared after import; nothing deleted.\n",
+      "after": [],
+      "links": [
+        "fin.13"
+      ],
+      "tags": [
+        "brain",
+        "admin",
+        "shopping",
+        "selling"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.09",
+      "title": "Import: Claude project docs and chat decisions as reference material",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBring the decisions and reference documents that live in Claude projects into Mycelium Docs: a Docs folder per project, each decision as a dated entry with its source (project, chat or harvest file) and a link back. Start from the harvest artefacts already in the repo (`claude/harvest-review.md` and what it links) and Phil's project exports; use the connector (brain.02) so later sessions write decisions straight into Docs. Nothing is removed from the Claude projects.\n\n## Why\nPhil wants Claude project docs replaced as the place decisions live (11.4) and named Claude project docs and chat decisions as reference material to bring in (11.10).\n\n## Done looks like\nEach harvested project has a Docs folder; a decision searched for by a word is found by Docs search (brain.04) with its date and source; a new decision made in a Claude session lands in Docs through the connector.\n\n## Unlocks\nW10 in the backlog (the `claude/*.md` move into Docs uses the same path).\n\n## Depends on\nbrain.02 (the connector).",
+      "after": [
+        "brain.02"
+      ],
+      "links": [],
+      "tags": [
+        "brain",
+        "documentation",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.10",
+      "title": "Import: Google Drive files",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBring Phil's Google Drive files into Mycelium as searchable reference material. First, Claude lays out the three routes on this ticket (dossier `dossiers/brain.md` 3.3): a one-off Google Takeout zip imported from the PC (no Google sign-in change at all), per-file access with the non-sensitive `drive.file` scope and a file picker, or a separate personal Google Cloud project with read-only access. The Family calendar's OAuth app (MYC-207) is not given any Drive scope. Phil picks a route in a comment; then Claude builds that route, keeping file names, folders and dates, and storing text so search finds it.\n\n## Why\nPhil named Google Drive files as reference material to bring in (11.10).\n\n## Done looks like\nPhil's route choice is on the ticket; the imported files are listed in Mycelium with folders and dates; a word inside an imported document is found by search; the Family calendar connection still works after the import.\n\n## Unlocks\nbrain.11 (scanned PDFs from Drive go through the same text extraction).\n\n## Depends on\nNothing to start. MYC-207 is linked so the calendar OAuth app is left as it is.",
+      "after": [],
+      "links": [
+        "MYC-207"
+      ],
+      "tags": [
+        "brain",
+        "dev",
+        "documentation"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.11",
+      "title": "Import: household paperwork, text read on the PC for free so search finds it",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAdd a text-extraction job to the existing PC worker (`pc-worker/`): photos and scans of household paperwork (from the photo capture, an upload, or a watched folder on the PC) are read with Tesseract, and PDFs get a searchable text layer with OCRmyPDF; the text is stored beside the file so section search finds it. Both tools are free and run offline. The built-in Windows OCR is not used because it needs an MSIX-packaged app (dossier 3.4). This is text extraction only; the paperwork archive service is sub.15 on Substrate and is linked, not built here.\n\n## Why\nPhil decided scans and photos have their text read on the PC for free so search finds them (11.12), and named household paperwork as reference material (11.10).\n\n## Done looks like\nA photographed letter's text is searchable within one worker cycle; a scanned PDF downloaded back from Mycelium has selectable text; the job is skipped cleanly when the PC is off and catches up when it is back.\n\n## Unlocks\nsub.15 (the archive service can reuse the extracted text); brain.10 (Drive PDFs use the same job).\n\n## Depends on\nbrain.04 (search exists to find the text).\n\n## Cost\nFree (Tesseract, OCRmyPDF and Ghostscript are free). Nothing is bought in this run.",
+      "after": [
+        "brain.04"
+      ],
+      "links": [
+        "sub.15"
+      ],
+      "tags": [
+        "brain",
+        "dev",
+        "pc",
+        "admin"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.12",
+      "title": "Import: Apple Notes into Spores",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBring Phil's Apple Notes into Spores. First Phil gives the number of notes (Notes app, the count shown under All iCloud). Before anything else he requests a copy of his iCloud data from Apple's Data and Privacy page as a safety net (it can take up to seven days). Then the route by count (dossier 3.5): under about 30 notes, Share, Export as Markdown per note into a Mycelium upload; more than that, a Cherri Shortcut that loops over the notes and posts each one to the capture API as a Spore, handed over as an import link like the other Shortcuts. Each Spore keeps the note's title, text, folder and dates. Nothing is deleted from Apple Notes by this ticket.\n\n## Why\nPhil's notes live in Apple Notes and Claude chats today (11.13) and the notes app is one of the first things to replace (11.4).\n\n## Done looks like\nThe note count is on the ticket; the Apple data request is noted as made; Spores holds the same number of imported notes as the count, with folders as tags; Apple Notes is untouched.\n\n## Unlocks\nbrain.26 (with his notes in Spores, Spores becomes the one place to capture).\n\n## Depends on\nbrain.01 (Spores exist).",
+      "after": [
+        "brain.01"
+      ],
+      "links": [
+        "MYC-197"
+      ],
+      "tags": [
+        "brain",
+        "phone",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.13",
+      "title": "Other Claude projects and repos onto tickets: a ticket per project (the sweep list from H10: Ye Madrid, PolySnipe, the portfolio site)",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nFor each project on the H10 unswept list (Ye Madrid, PolySnipe, the portfolio site) and any other repo on the PC without a Work project, check what is already in Work first (POLY-1 to POLY-40 and MADRD-3 already exist; the PMW tickets may be the portfolio site), then raise one ticket per project that is missing, holding its open items harvested from its repo and docs. No code changes in those repos.\n\n## Why\nPhil said yes to a ticket per project for his other Claude projects and repos (11.25); H10 named the projects not yet swept.\n\n## Done looks like\nA table on this ticket lists every project with its Work project key, either newly created or already present with its key range; each newly raised ticket lists the open items it found with their source file.\n\n## Unlocks\nNothing directly; it lets the weekly review see every project in one place.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [
+        "POLY-1",
+        "MADRD-3",
+        "PMW-1"
+      ],
+      "tags": [
+        "brain",
+        "project",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.14",
+      "title": "Agents' long-term memory: a design ticket with a question round before any build",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWrite the question round for how the Boys and other agents remember across sessions, then a short design once Phil answers. Start from what exists (the agent memory rows and `/api/memory/search`, the live context block in `lib/agents/live-context.ts`) and the nine \"company brains\" notes in the backlog (take in, remember, dream and prune, speak and search; mem0's explicit remember-this, Zep's facts with a clock, Letta's tidying agent). Ten questions at most, each with options. No code is written on this ticket.\n\n## Why\nPhil decided agents' long-term memory gets a design ticket with a question round before any build (11.21).\n\n## Done looks like\nThe questions are on the ticket; after Phil answers, a design note in `claude/` records the choices and names the build tickets to raise.\n\n## Unlocks\nbrain.15 (facts with history follow the design).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "brain",
+        "planning",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.15",
+      "title": "Facts keep their history for people, money and decisions",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWhen a fact changes, keep the old value with the dates it was true instead of overwriting it: for people (address, phone, email, employer, relationship), money (balances, prices, bill amounts, net worth) and decisions (a later decision supersedes an earlier one with a link). Show the history on the person, account and decision pages, and let search answer \"what was true on a date\". Built to the brain.14 design.\n\n## Why\nPhil decided facts keep their history for people, money and decisions (11.22); trust comes from nothing put in ever being lost (11.27).\n\n## Done looks like\nChanging a person's phone number keeps the old one with its end date; a decision page shows what it replaced; a unit test asks for a value on a past date and gets the old one.\n\n## Unlocks\nbrain.21 (the year review reads what changed in the year).\n\n## Depends on\nbrain.14 (the memory design).",
+      "after": [
+        "brain.14"
+      ],
+      "links": [],
+      "tags": [
+        "brain",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.16",
+      "title": "Monthly export to plain files beside the database dumps; Family and Day log treated as permanent",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nOn the first of each month, a PC scheduled task (beside `scripts/db-backup.ps1`) writes a plain-file export to `A:\\Backups\\mycelium\\monthly\\<yyyy-mm>\\`: each section as CSV and JSON from `/api/export`, and Family and Day log as readable Markdown with their photos (from the storage copy) plus a PDF per year for print. Owner-only; the private habit (H5) is never in any export others can see. The export is kept, never pruned like the daily dumps.\n\n## Why\nPhil decided on a monthly, automatic export to plain files beside the database dumps (11.23); in ten years it is the family's archive, Family and Day log permanent and never dependent on the app surviving (11b).\n\n## Done looks like\nThe first monthly folder exists with every section; a Day log month opens in a text editor and reads properly with no app; a Family year PDF prints; the private habit is absent from the Family export.\n\n## Unlocks\nbrain.17 (the off-site drive carries these files); brain.21 (the year review can draw from them).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "brain",
+        "dev",
+        "pc",
+        "documentation"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.17",
+      "title": "Off-site backup: the same drive at a family member's house as Substrate",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAdd Mycelium's backups (the nightly dumps in `A:\\Backups\\mycelium\\nightly\\`, the storage copy, and the monthly export from brain.16) to the off-site drive set that sub.11 sets up at a family member's house. Document what goes on the drive, how often it is swapped or synced, and how to restore Mycelium from it. When the off-site copy exists, run one restore test from it with `scripts/restore-test.sh`. Encryption and the drive itself are sub.11's decision.\n\n## Why\nPhil decided the off-site backup is the same drive at a family member's house as the self-hosting answer (11.24).\n\n## Done looks like\nThe restore notes are in Docs; one restore from the off-site copy has passed and its date is on this ticket.\n\n## Unlocks\nNothing further; it closes the one-house risk for Mycelium's data.\n\n## Depends on\nsub.11 (the off-site drive exists); MYC-182 (Phil's backup drive answer).",
+      "after": [],
+      "links": [
+        "sub.11",
+        "MYC-182"
+      ],
+      "tags": [
+        "brain",
+        "devops",
+        "maintenance"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.18",
+      "title": "The one number: days per week he captures something; a Sunday scoreline, features shipped against days captured",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nCount the days in each week (Monday to Sunday, London time) with at least one capture or Spore, and show it as the one number on Home (the This week tile) and in the Sunday close-out as a blunt scoreline: \"Shipped N features, captured on D of 7 days.\" Features shipped means MYC tickets tagged `feature` moved to Done that week. The scoreline goes through the Boys' weekly close-out and a push, inside the three-a-day budget.\n\n## Why\nThe one number is days per week he captures something (11.26); the guard he chose against \"I kept building it instead of using it\" is a Sunday scoreline said bluntly, features shipped against days captured (11b).\n\n## Done looks like\nHome shows this week's count; on Sunday the scoreline arrives once with both numbers; a unit test covers the week boundary in London time.\n\n## Unlocks\nbrain.26 (the 30-day check reads the same daily count); brain.19 (uses the same \"captured today\" test).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [
+        "PW-139"
+      ],
+      "tags": [
+        "brain",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.19",
+      "title": "No capture today: an evening prompt, then a blunt call-out next morning",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAt a set evening time (a setting, default 20:30 London), if there is no capture or Spore today, send one push: \"One thing from today?\" that opens quick capture. If the next morning there is still none for yesterday, the morning briefing opens with a blunt line, for example \"No capture yesterday. One line now?\" Both count inside the three-a-day interruption budget. Timing runs on the PC worker or the cron-job.org job (MYC-180), since Vercel Hobby crons run once a day.\n\n## Why\nA day with no capture gets an evening prompt (\"one thing from today?\"), then a blunt call-out next morning (11b).\n\n## Done looks like\nOn a test day with no capture the push arrives at the set time; a capture before then suppresses it; the next morning's briefing carries the line only when the day stayed empty.\n\n## Unlocks\nbrain.26 (fewer empty days).\n\n## Depends on\nNothing to build. When the PC is off the timing needs MYC-180.",
+      "after": [],
+      "links": [
+        "MYC-180"
+      ],
+      "tags": [
+        "brain",
+        "feature",
+        "reminder"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.20",
+      "title": "Promised to people, owed replies, where things are, read and watched: the four \"comes to know\" feeds",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nFour feeds Mycelium builds up from what comes in: (1) promises, when a capture says he will do something for someone (\"I'll send Dave the photos\"), linked to that person with a date; (2) owed replies, threads where the last message is from the other person (from the email import, MYC-201, and Telegram); (3) where things are, a home inventory of item and place (shared with glass.10); (4) read and watched, books, articles, films and shows he has finished or wants to, from captures and shares. Each feed shows on the person page or its own small list and is searchable. Build one feed per pull request in the order listed.\n\n## Why\nPhil wants it to come to know, all four: what he has promised people, who he owes a reply, where things are in the house, what he has read and watched and wants to (11b).\n\n## Done looks like\nA capture with a promise shows on that person's page; an email awaiting his reply is listed; \"where is the drill\" finds its place; a shared article lands in the reading list.\n\n## Unlocks\nglass.10 (\"where is it\" by voice uses the inventory); brain.21 (the year review lists what he read and watched).\n\n## Depends on\nbrain.06 (People search); MYC-201 for the owed-replies feed from email.",
+      "after": [
+        "brain.06"
+      ],
+      "links": [
+        "MYC-201"
+      ],
+      "tags": [
+        "brain",
+        "feature",
+        "dev",
+        "contacts"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.21",
+      "title": "Year review: one for him, one for the family; \"almanac\" noted as a name",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBuild two year reviews generated each December: one for Phil (captures, Day log, Work shipped, fitness, money owner-only) and one for the family (Family timeline, photos, milestones, letters to baby, trips; nothing private, no finance, never the private habit). Each is a page in Mycelium and a printable PDF that goes into the permanent export. The name \"almanac\" is noted as available, not decided; the ticket asks Phil before naming.\n\n## Why\nPhil wants a year review, one for him and one for the family (11b); \"almanac\" was noted as a possible name (H5), not decided.\n\n## Done looks like\nBoth reviews render for 2026 from real data; the family one contains no finance and no private habit (a test checks this); both print as PDFs and are saved into the monthly export folder.\n\n## Unlocks\nNothing further.\n\n## Depends on\nNothing to build. Richer with brain.15 and brain.20.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "brain",
+        "feature",
+        "photos"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.22",
+      "title": "Home design direction question round, for when he is ready; no UI work until then",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "C",
+      "description": "## What\nPrepare the question round for Mycelium's Home design direction and hold it until Phil says he is ready: up to ten questions with picture examples where they help, drawing on the UI decisions of 2026-11-20 and what Stream U ships (the Field shell). No UI design or build work happens from this ticket.\n\n## Why\nPhil is still thinking about the Home design direction: ticket a question round for when he is ready, no UI design work until then (11.8).\n\n## Done looks like\nThe questions are written on the ticket and it waits in Backlog; when Phil says go, the answers are recorded and the UI tickets raised from them.\n\n## Unlocks\nbrain.24 (Kirsty's invite waits on the UI rebuild this direction leads to).\n\n## Depends on\nNothing to write. Asking waits on Phil saying he is ready; MYC-192 holds his current UI calls.",
+      "after": [],
+      "links": [
+        "MYC-192"
+      ],
+      "tags": [
+        "brain",
+        "ui",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.23",
+      "title": "Native phone app research, Android included",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA short dated research note on whether a native app is worth it beside the web app and Shortcuts: what iOS web apps cannot do (no background sync or upload while closed), what a native iPhone app adds (background capture upload, widgets), the Apple Developer fee every year, Android as an option (the Pixel; Play's one-off fee; developer verification for sideloaded apps globally from 2027), and wrappers against fully native. Share findings with glass.01, which already weighs an Android app for the glasses. Research only; nothing is bought or enrolled.\n\n## Why\nPhil decided to stay with the web app and Shortcuts and research a native app, \"even if its android\" (11.19).\n\n## Done looks like\nA note in Docs with a one-line answer, a comparison table, costs and dated sources; glass.01 linked to it.\n\n## Unlocks\nglass.01 (the glasses route weighs the same app question).\n\n## Depends on\nNothing.\n\n## Cost\nResearch only. A native iPhone app would need the Apple Developer Program (US$99 a year; the UK price is shown at enrolment) and Play a one-off US$25. Nothing is bought in this run.",
+      "after": [],
+      "links": [
+        "glass.01"
+      ],
+      "tags": [
+        "brain",
+        "research",
+        "phone"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.25",
+      "title": "The weekly context scheduled task (off since October) against the fortnightly nudge: decide",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nThe weekly context scheduled task (the Cowork run that keeps `claude/context.md` and `claude/backlog.md` in step) has been off since October while the fortnightly nudge still runs. Claude writes the options on this ticket: switch the weekly run back on (with the rule that it reads the repo first, since seven docs-only weekly runs once believed the repo was at 0134 when it stood at 0148), keep only the nudge, or merge both into one fortnightly run. Phil comments with his choice; Claude applies it.\n\n## Why\nH10 (Mycelium fold): the weekly context task has been off since October while the fortnightly nudge still runs; one ticket to decide.\n\n## Done looks like\nPhil's choice is on the ticket and the scheduled tasks match it.\n\n## Unlocks\nNothing further; it keeps the project copies of the docs from drifting.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "brain",
+        "schedule",
+        "admin"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "brain.26",
+      "title": "Done check: 30 days running with a capture every day",
+      "kind": "test",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nA five-minute check, done when Phil believes he has a run going: open the days-captured history that brain.18 adds, confirm the last 30 days each have at least one capture or Spore, and record the first day of the run. The steps are in the Field guide on this ticket.\n\n## Why\nPhil decided done means 30 days running with a capture every day (11.30).\n\n## Done looks like\nThe guide's answer box reads yes with a start date, and the 30 days are visible in the history view.\n\n## Unlocks\nE.brain closes.\n\n## Depends on\nbrain.01 (Spores exist); brain.18 (the daily count and its history).",
+      "after": [
+        "brain.01",
+        "brain.18"
+      ],
+      "links": [],
+      "tags": [
+        "brain",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "brain-30-day-check",
+        "kind": "test",
+        "title": "Done check: 30 days running with a capture every day",
+        "version": 1,
+        "intro": {
+          "answer": "Look at the last 30 days of captures and confirm each day has at least one.",
+          "unlocks": [
+            "E.brain marked done: the second brain is being used daily"
+          ],
+          "to_hand": [
+            "Mycelium open on the phone or the PC"
+          ],
+          "time": [
+            "About 5 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Read the 30 days",
+            "minutes": 5,
+            "needs": [
+              "Signed in to Mycelium"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Open the days-captured view",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, Home, the This week tile (brain.18), then its history",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open Home and tap the <strong>This week</strong> tile. Open its history so the last five weeks show day by day.</p>",
+                "expect_html": "<p>Each day of the last five weeks is a cell, filled when that day had a capture or a Spore.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Check the last 30 days are all filled",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The same history view",
+                  "kind": "page"
+                },
+                "body_html": "<p>Count back 30 days from yesterday. Every one of those cells should be filled. If any is empty, stop here and leave the ticket open: the 30 days start again from the day after the empty one.</p>",
+                "expect_html": "<p>30 filled cells in a row, ending yesterday.</p>",
+                "fields": [
+                  {
+                    "key": "run_start",
+                    "label": "First day of the 30",
+                    "placeholder": "a date, for example 2027-01-04"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Record the result",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Type <strong>yes</strong> if all 30 were filled, <strong>no</strong> if not.</p>",
+                "expect_html": "<p>The answer is saved on the step.</p>",
+                "fields": [
+                  {
+                    "key": "thirty_days",
+                    "label": "30 days in a row?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "finish_html": "<p>Thirty days in a row: the done check for the second brain is met.</p>",
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "brain.27",
+      "title": "Check: the phone health import still runs, and what it feeds",
+      "kind": "task",
+      "points": 1,
+      "who": "C",
+      "description": "## What\nConfirm the phone health import (11.16) still runs, when it last wrote, and which pages read it. One line on this ticket.\n\n## Why\nA decided answer not carried (red team finding 60).\n\n## Done looks like\nLast run date and the readers listed.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.",
+      "tags": [
+        "brain"
+      ],
+      "after": [],
+      "links": [],
+      "steps_definition": null,
+      "due": null
+    }
+  ],
+  "existing": []
+}

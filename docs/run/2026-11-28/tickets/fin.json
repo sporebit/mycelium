@@ -1,0 +1,1815 @@
+{
+  "epic": {
+    "sid": "E.fin",
+    "project": "MYC",
+    "title": "Finance: every pound a job, three paydays kept to",
+    "description": "Know where the money goes each month, stop overspending, clear what is owed, then build savings and investments, in that order (debt, a three-month safety net, then investing; the five-year picture is owing nothing with six months set aside). The data comes only from the Enable Banking feed (MYC-195 gates everything that reads transactions). Every payday Mycelium proposes a plan that gives every pound a job, Phil adjusts and accepts, and the budget month runs from the 16th. Finance is owner-only and never on the wall. Every money ticket holds information and options only, never financial advice.\n\n## Order\nMYC-195 first. Then fin.01 (the one sitting with Claude), fin.02 (categories) and fin.03 (the payday plan, the build everything else hangs from). After fin.03: fin.04 and fin.07 (the daily line, no-spend days), fin.05 (alerts), fin.06 (personal money and the sweep), fin.08 (pots), fin.10 (safety net), fin.17 (the months around the birth), fin.18 (with Kirsty). fin.09 (payoff orders) after fin.01. fin.11 (subscriptions) once the feed runs. fin.12, fin.13, fin.14 to fin.16 (renewals) and the research tickets (fin.19 to fin.22, fin.25, fin.26) can run at any time. fin.23 (Receipts trial) after fin.01. fin.27 (ventures page) after its question round. Dated: fin.30 (2026-12-12), fin.28 (2027-01-25), fin.15 (2027-03-01), fin.29 (2027-04-23). fin.31 closes the epic.\n\n## Done means\nThree paydays budgeted and kept to (fin.31).\n\n## Flags\n- [claude] Import waits for the Enable Banking feed, so the data stays stale until MYC-195 is done; that ticket gates the epic.\n- [claude] Receipts has never been exercised at runtime, and itemising everything adds effort against the \"I avoid looking\" blocker (fin.23 runs a week's trial first).\n- [claude] The broadband decision links to SEC answer 18: making the ASUS the only router depends on the provider (fin.15, net.02).\n\n## Dossier\nThe dossier is attached in Docs: (link filled by the integrator).",
+    "dossier": "dossiers/fin.md",
+    "links": [
+      "MYC-188",
+      "MYC-193",
+      "MYC-201"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "fin.01",
+      "title": "The first sitting that will not be avoided: Claude goes through Finance with Phil, one screen at a time",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOne 15-minute sitting, Phil at the PC with Claude alongside (a Claude Code or Cowork session open), going through Finance screen by screen in this order: Overview, Spending, Bills, Budget, Snapshot. No decisions are needed in this sitting; the aim is to look, once, with the data fresh from the Enable Banking feed. Claude says what each screen shows in one line and notes anything Phil reacts to. Phil writes one line at the end: the screen that felt worst, and the one that felt useful. This ticket holds information and options only, not financial advice; Phil decides.\n\n## Why\nPhil named all four blockers (stale data, never opens it, no budget, avoids looking) and chose \"a single sitting with Claude going through it with him\" as the first step that would not be avoided.\n\n## Done looks like\nAll five screens opened with transactions after 17 July 2026 showing; the two one-line answers saved on the guide; this ticket closed.\n\n## Unlocks\nfin.02 (categories), fin.09 (what he owes), fin.23 (the Receipts trial).\n\n## Depends on\nMYC-195 (Enable Banking sign-up and the Halifax, Revolut and AMEX coverage check): the screens show stale data from 17 July 2026 until the feed runs.",
+      "after": [
+        "MYC-195"
+      ],
+      "links": [
+        "MYC-188",
+        "MYC-193"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "guide",
+        "planning"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fin-first-sitting",
+        "kind": "guide",
+        "title": "Finance, one screen at a time, with Claude",
+        "version": 1,
+        "intro": {
+          "answer": "Fifteen minutes, five screens, no decisions: just look once with fresh data.",
+          "unlocks": [
+            "fin.02 categories",
+            "fin.09 what he owes",
+            "fin.23 Receipts trial"
+          ],
+          "to_hand": [
+            "The PC, signed in to Mycelium",
+            "A Claude session open"
+          ],
+          "time": [
+            "about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Enable Banking FAQ",
+              "url": "https://enablebanking.com/docs/faq",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Look at each screen once",
+            "minutes": 15,
+            "needs": [
+              "The bank feed has run at least once (MYC-195)"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Start Claude alongside",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code or Cowork on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Paste the prompt below so Claude walks the screens with you.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "kind": "prompt",
+                    "text": "Go through Mycelium Finance with me one screen at a time: Overview, Spending, Bills, Budget, Snapshot. One line per screen on what it shows. No advice and no decisions today. Note anything I react to."
+                  }
+                ],
+                "expect_html": "<p>Claude answers with the first screen to open.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Overview and Spending",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, Finance, Overview then Spending (/finance, /finance/spending)",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open Overview, reveal the amounts, then Spending. Check the newest transaction is after <strong>17 July 2026</strong>.</p>",
+                "expect_html": "<p>The newest row on Spending is from the last few days.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "The newest row is 17 July 2026",
+                    "fix": "The feed has not run yet. Stop here and reopen MYC-195; this sitting needs fresh data."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Bills",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium, Finance, Bills (/finance/bills)",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read the list top to bottom. Do not mark anything; fin.11 does that.</p>",
+                "expect_html": "<p>A list of recurring payments with the next expected dates.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Budget and Snapshot",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, Finance, Budget then Snapshot (/finance/budget, /finance/snapshot)",
+                  "kind": "page"
+                },
+                "body_html": "<p>Look at Budget (it may be empty) and Snapshot (net worth). Nothing to change.</p>",
+                "expect_html": "<p>Both pages open; Budget empty or partly filled is fine.</p>"
+              },
+              {
+                "id": "1.5",
+                "title": "Two lines",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This guide",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Answer the two fields below in a few words.</p>",
+                "expect_html": "<p>Both fields filled. That is the sitting done.</p>",
+                "fields": [
+                  {
+                    "key": "worst",
+                    "label": "The screen that felt worst",
+                    "placeholder": "a screen name, no figures"
+                  },
+                  {
+                    "key": "useful",
+                    "label": "The screen that felt useful",
+                    "placeholder": "a screen name, no figures"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fin.02",
+      "title": "Categories reworked in one 15-minute sitting",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOne sitting on the spending categories. Before it, Claude proposes a category list from the actual transactions (merges, renames, and the three leak categories Phil guessed: food and takeaways, tech and gadgets, subscriptions). Phil keeps, renames or merges each, then accepts the list. Claude applies it afterwards and the silent categoriser re-runs on the uncategorised rows.\n\n## Why\nPhil decided the categories are \"reworked in one 15-minute sitting\" (answer 4.22), and his guess at the leaks is to be tested against the data (4b).\n\n## Done looks like\nAn accepted category list saved on this ticket; the three leak categories exist as their own lines; Claude has applied the list (a comment with the commit or the change).\n\n## Unlocks\nfin.03 (the payday plan needs settled categories), fin.04 (the daily line).\n\n## Depends on\nfin.01: the first sitting comes first.",
+      "after": [
+        "fin.01"
+      ],
+      "links": [
+        "MYC-188"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "guide"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fin-categories",
+        "kind": "guide",
+        "title": "Rework the spending categories",
+        "version": 1,
+        "intro": {
+          "answer": "Claude proposes the list; you keep, rename or merge each line, then accept.",
+          "unlocks": [
+            "fin.03 payday plan",
+            "fin.04 daily money line"
+          ],
+          "to_hand": [
+            "The PC, signed in"
+          ],
+          "time": [
+            "about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Accept a category list",
+            "minutes": 13,
+            "needs": [
+              "fin.01 done"
+            ],
+            "steps": [
+              {
+                "id": "1.0",
+                "title": "Claude prepares the proposed list",
+                "actor": "claude-code",
+                "minutes": 0,
+                "where": {
+                  "label": "Claude Code",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude reads the categories in use and the transaction counts, and writes a proposed list as a comment on this ticket.</p>",
+                "expect_html": "<p>A comment with the proposed list.</p>"
+              },
+              {
+                "id": "1.1",
+                "title": "Read the proposal",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This ticket, the latest comment",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read the proposed list and the counts next to each line.</p>",
+                "expect_html": "<p>About 15 to 25 categories with counts.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Keep, rename or merge each line",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "This ticket, reply to the comment",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Reply line by line: <strong>keep</strong>, <strong>rename to ...</strong> or <strong>merge into ...</strong>. Check food and takeaways, tech and gadgets, and subscriptions are each their own line.</p>",
+                "expect_html": "<p>Every line has one word or a new name.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Accept",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Write <strong>accepted</strong> under your reply.</p>",
+                "expect_html": "<p>The count is filled; Claude applies the list next.</p>",
+                "fields": [
+                  {
+                    "key": "count",
+                    "label": "How many categories in the accepted list",
+                    "placeholder": "a number"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.0": "untested",
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fin.03",
+      "title": "Every pound a job: the payday plan proposed by Mycelium, adjusted and accepted; budget month from the 16th",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBuild the payday plan in Finance. (1) The budget month runs from the 16th to the 15th (payday to payday) instead of the calendar month the Budget page (0173) uses today; Bills, Budget, the nudges and the analysis all read the same month. (2) On payday Mycelium proposes the whole plan: every pound of the expected income given a job (bills due before the next payday from Bills, category budgets from the last three budget months, the named pots, the personal spending amount from fin.06, and what is left to what he owes or savings in the order he chose in fin.09). (3) Phil adjusts lines in place (spreadsheet-style cells, Enter and Tab) and accepts; the accepted plan becomes the month's budget. (4) The first pull after the bank feed links asks for the longest history (Enable Banking `strategy=longest`), because most banks give full history only for about an hour after consent. (5) A dated ticket and a push a week before each bank consent expires (about 180 days for most banks, read from the bank's `maximum_consent_validity`). This ticket holds information and options only, not financial advice; Phil decides.\n\n## Why\nPhil chose \"give every pound a job each payday\" with a budget month from the 16th, and \"Mycelium proposes the whole plan; he adjusts and accepts\" (4.5, 4.6, 4b).\n\n## Done looks like\nOn the next payday a proposed plan appears with every pound allocated; editing a line updates the totals at once; accepting saves the month's budget; Budget shows 16th to 15th; the consent-expiry ticket exists with a date; tests for the month boundary (the 15th and the 16th, a weekend payday) pass; `next build` green.\n\n## Unlocks\nfin.04, fin.05, fin.06, fin.08, fin.10, fin.17, fin.18, fin.31, and the baby pot (baby.03).\n\n## Depends on\nMYC-195 (Enable Banking sign-up and the Halifax, Revolut and AMEX coverage check); fin.02 is helpful but not required (the plan can use the current categories).",
+      "after": [
+        "MYC-195"
+      ],
+      "links": [
+        "MYC-188"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.04",
+      "title": "The daily money line in the morning briefing: the Boys, blunt, a traffic light; overspent days called out",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAdd one money line to the morning briefing, written in the Boys' voice, blunt, with personality, and a traffic light (green on plan, amber close, red over) for yesterday against the payday plan. An overspent day is called out bluntly in the next morning's line. Cautious default until Phil says otherwise: the push and any notification carry the traffic light and a percentage only, never an amount (the rule the existing Finance nudges follow); the full figures show inside the app behind the usual masking. The line respects the three-a-day alert budget and keeps to the app's no-blame wording (blunt about the money, never a telling-off word). Finance stays owner-only and never appears on the wall.\n\n## Why\nPhil chose \"a daily money line in the morning briefing\", the Boys, blunt, with a traffic light, and an overspent day called out (4.4, 4b).\n\n## Done looks like\nThree mornings in a row the briefing carries one money line with the right colour; an overspent day produces a blunt line the next morning; no amount appears in a push; the wall shows nothing from Finance.\n\n## Unlocks\nfin.07 (no-spend days counted from the same daily figures).\n\n## Depends on\nfin.03: the line compares against the accepted payday plan.\n\n## Flag\nQuestion for Phil on this ticket: should the push show amounts? Written as percentage and colour only, the existing rule, until he answers.",
+      "after": [
+        "fin.03"
+      ],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.05",
+      "title": "Payday summary and budget prompt; a warning when a balance will not cover upcoming bills; a weekly spending digest; inside the three-a-day budget",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nThree alerts. (1) Payday: a summary of last month against plan and a prompt that opens the proposed plan (fin.03). (2) A warning when an account's balance will not cover the bills Bills expects from it before the next payday, sent once per shortfall with the account name and the date, no amount in the push. (3) A weekly spending digest (one push, a link to the week in the app). All three count against the three-a-day push budget and wait for the next slot rather than exceeding it.\n\n## Why\nPhil chose these three extra alerts \"inside the three-a-day budget\" (4.25).\n\n## Done looks like\nEach alert fires once in a test week on production data; the shortfall warning names the right account and date; no day goes over three pushes; no amount appears in a push.\n\n## Unlocks\nfin.31 (the done check reads the payday summaries).\n\n## Depends on\nfin.03: the payday plan and the 16th month.",
+      "after": [
+        "fin.03"
+      ],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.06",
+      "title": "Fixed personal spending money each payday; unspent swept to debt or savings",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAdd a fixed personal spending amount as a line in the payday plan (Phil sets the figure in the plan; it is not set here). At the end of the budget month (the 15th), whatever is unspent is proposed as a sweep to what he owes or to savings, following the order he chose in fin.09; Phil confirms the sweep in the next payday plan. Mycelium never moves money: the sweep is a line in the plan and, where a transfer is needed, a reminder with the bank named. This ticket holds information and options only, not financial advice; Phil decides.\n\n## Why\nPhil chose \"a fixed amount of personal spending money each payday\" with unspent money swept to what he owes or to savings (4.26, 4b).\n\n## Done looks like\nThe payday plan has a personal spending line; the next payday plan proposes the sweep of last month's unspent amount; confirming it records where it went.\n\n## Unlocks\nfin.31.\n\n## Depends on\nfin.03: the payday plan.",
+      "after": [
+        "fin.03"
+      ],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.07",
+      "title": "No-spend days counted per week, no streak",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nCount the days in each week with no discretionary spending (bills and fixed payments do not count) and show the count for this week and last on Finance and in the Sunday digest line. No streak, no breakable chain, no badge for a run of days.\n\n## Why\nPhil chose \"no-spend days counted per week, no breakable streak\" (4b).\n\n## Done looks like\nFinance shows \"no-spend days this week: n\" and last week's count; bills on a day do not break it; there is no streak anywhere.\n\n## Unlocks\nNothing further.\n\n## Depends on\nfin.04: the same daily figures and the discretionary split.",
+      "after": [
+        "fin.04"
+      ],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.08",
+      "title": "Named pots (car, home repairs, Christmas, baby, holidays) and bank pots and vaults tracked separately",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAdd named pots in Finance: car, home repairs (the \"home\" pot the room budgets read from, home.09), Christmas, baby (the shared baby pot, baby.03), holidays, each with a target and a running total, funded by a line in the payday plan. Separately, show the banks' own pots and vaults (Revolut vaults and any Halifax savings pots, as the feed exposes them) as their own accounts, so money in a vault is never counted twice. Owner-only, as all of Finance.\n\n## Why\nPhil chose named pots for known future costs and bank pots and vaults tracked separately (4.12, 4.23).\n\n## Done looks like\nFive named pots exist with totals; the payday plan funds them; a Revolut vault appears as its own line; net worth does not double count it.\n\n## Unlocks\nbaby.03 (the shared baby pot), home.09 (budget per room from the home pot).\n\n## Depends on\nfin.03: the payday plan funds the pots.",
+      "after": [
+        "fin.03"
+      ],
+      "links": [
+        "baby.03",
+        "home.09"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.09",
+      "title": "What he owes: both payoff orders laid out, he chooses",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nList every debt Finance can see (cards, any loan, any overdraft, the balance and the rate where the statement or feed shows it; Phil fills any rate that is missing) and lay out both payoff orders side by side: highest rate first and smallest balance first, with the month each debt would clear under each at the same monthly amount. Phil chooses one; the choice orders the sweeps (fin.06) and the payday plan's leftover line. The five-year picture (owing nothing, six months set aside) orders the work as debt first, then the safety net (fin.10), then investing (fin.20). This ticket holds information and options only, not financial advice; Phil decides.\n\n## Why\nPhil asked to \"lay out both\" orders and choose himself (4.9); the five-year picture is owing nothing with six months set aside (4b).\n\n## Done looks like\nA page or a ticket comment shows both orders with the clearing month for each debt; Phil's choice is recorded on this ticket.\n\n## Unlocks\nfin.06 (where the sweep goes), fin.03 (the plan's leftover line), fin.10.\n\n## Depends on\nfin.01: the first sitting; MYC-195 for current balances.",
+      "after": [
+        "fin.01"
+      ],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.10",
+      "title": "Safety net: three months of essentials, the figure from the data",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "C",
+      "description": "## What\nWork out three months of essentials from the actual transactions (the bills from Bills plus the essential categories: groceries, energy, transport, insurance, phone; not takeaways, tech or personal spending) over the last six budget months, and show the target and progress as a pot in Finance. The five-year picture's six months is shown as the next target, greyed, after the debts clear. This ticket holds information and options only, not financial advice; Phil decides.\n\n## Why\nPhil chose \"three months of essentials\" (4.10).\n\n## Done looks like\nA Safety net pot with a target worked out from the data, the months it was worked from, and which categories counted.\n\n## Unlocks\nfin.20 (investing comes after the safety net).\n\n## Depends on\nfin.03 and fin.08: the pots and the plan.",
+      "after": [
+        "fin.03"
+      ],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.11",
+      "title": "Subscriptions cancel sweep: Keep or Cancel each; cancellations become tickets with the exact link",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nTwo sittings on Finance, Bills (/finance/bills, built 0173), which already lists recurring payments with the forgotten ones first. Phil marks each Keep or Cancel. Claude then makes one ticket per Cancel with the exact cancellation link or route for that service, and the date the next charge lands. Nothing is cancelled in this sitting. Excluded from the sweep because other epics handle them: IONOS Mail Basic, the IONOS VPS, philipwhelan.com and the Sporebit domains (E.mail, E.keys), and the broadband (fin.15).\n\n## Why\nPhil chose \"a cancel sweep: Keep or Cancel each, cancellations become tickets with the exact link\" (4.13), and named subscriptions as one of his guessed leaks.\n\n## Done looks like\nEvery recurring payment on Bills carries a Keep, Cancel or not-a-bill mark; one ticket per Cancel exists with the link and the next charge date.\n\n## Unlocks\nThe cancellation tickets (made by this guide); fin.16 (the renewals list reads the Keep marks).\n\n## Depends on\nMYC-195 (Enable Banking sign-up and the Halifax, Revolut and AMEX coverage check): Bills needs current transactions.",
+      "after": [
+        "MYC-195"
+      ],
+      "links": [
+        "MYC-188"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "guide",
+        "chore"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fin-subscriptions-sweep",
+        "kind": "guide",
+        "title": "Subscriptions: Keep or Cancel each",
+        "version": 1,
+        "intro": {
+          "answer": "Mark each recurring payment Keep or Cancel; Claude turns each Cancel into a ticket with the link. Nothing is cancelled today.",
+          "unlocks": [
+            "A ticket per cancellation",
+            "fin.16 renewals list"
+          ],
+          "to_hand": [
+            "The PC, signed in"
+          ],
+          "time": [
+            "two sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The first half of the list",
+            "minutes": 14,
+            "needs": [
+              "The bank feed has run (MYC-195)"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Open Bills",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, Finance, Bills (/finance/bills)",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open Bills and reveal the amounts.</p>",
+                "expect_html": "<p>The list starts with the forgotten subscriptions.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Leave these alone",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, Finance, Bills",
+                  "kind": "page"
+                },
+                "body_html": "<p>Mark <strong>Keep</strong> on IONOS (Mail Basic and the VPS), any domain renewal and the broadband. Other epics handle them.</p>",
+                "expect_html": "<p>Those lines show Keep.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "<p>Cancelling the IONOS mail or VPS would stop email and the DropShipAuto servers. Keep them here.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Mark the top half",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "Mycelium, Finance, Bills",
+                  "kind": "page"
+                },
+                "body_html": "<p>Down the list to about halfway: mark each <strong>Keep</strong>, <strong>Cancel</strong> or <strong>not a bill</strong>. If unsure, Keep; it can be swept again.</p>",
+                "expect_html": "<p>Half the list is marked.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The rest, then the tickets",
+            "minutes": 15,
+            "needs": [
+              "Phase 1 done"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Mark the rest",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "Mycelium, Finance, Bills",
+                  "kind": "page"
+                },
+                "body_html": "<p>Mark every remaining line Keep, Cancel or not a bill.</p>",
+                "expect_html": "<p>No unmarked lines left.</p>",
+                "fields": [
+                  {
+                    "key": "cancels",
+                    "label": "How many marked Cancel",
+                    "placeholder": "a number"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Claude makes the cancellation tickets",
+                "actor": "claude-code",
+                "minutes": 0,
+                "where": {
+                  "label": "Claude Code",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude reads the Cancel marks and makes one ticket per service with the exact cancellation link and the next charge date.</p>",
+                "expect_html": "<p>One ticket per Cancel, each with a link.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Check the tickets",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium, Work, project MYC, label fin",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the new cancellation tickets and check each names the right service.</p>",
+                "expect_html": "<p>The count matches the number you entered.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fin.12",
+      "title": "Account tidy-up: every account and card listed, decide each",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nClaude lists every bank account, savings account, card and payment service Phil holds, from the transactions, the Accounts register (/finance/accounts) and the statements the mail import has seen. Phil decides each: keep, close, or merge into another. Closures and merges become their own tickets (with the bank named and anything that pays from or into the account listed first). Nothing is closed in this sitting. Undecided, for the Keep or drop checklist only (not ticketed here): the Amex points, the Halifax statement Shortcut, Amex categorising, the share position.\n\n## Why\nPhil chose \"list every account and card, decide each\" (4.28).\n\n## Done looks like\nA list of every account and card with a decision on each, saved on this ticket; one ticket per close or merge.\n\n## Unlocks\nThe close and merge tickets; fin.13 (net worth reads the kept accounts).\n\n## Depends on\nNothing (the list works from what Finance already holds; fresher with MYC-195).",
+      "after": [],
+      "links": [
+        "MYC-195"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "guide",
+        "admin"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fin-account-tidy",
+        "kind": "guide",
+        "title": "Every account and card: keep, close or merge",
+        "version": 1,
+        "intro": {
+          "answer": "Claude lists them; you decide each. Nothing is closed today.",
+          "unlocks": [
+            "A ticket per closure or merge",
+            "fin.13 net worth"
+          ],
+          "to_hand": [
+            "The PC",
+            "Your banking apps on the phone, to check anything you do not recognise"
+          ],
+          "time": [
+            "two sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The list",
+            "minutes": 14,
+            "needs": [],
+            "steps": [
+              {
+                "id": "1.0",
+                "title": "Claude lists every account and card",
+                "actor": "claude-code",
+                "minutes": 0,
+                "where": {
+                  "label": "Claude Code",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude writes the list as a comment: name, type, last used, what pays from or into it.</p>",
+                "expect_html": "<p>A comment with the list.</p>"
+              },
+              {
+                "id": "1.1",
+                "title": "Check the list is complete",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "This ticket, the latest comment",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read the list. Add any account or card that is missing (name and type only, never a number).</p>",
+                "expect_html": "<p>The list matches what you hold.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Never write a card number, account number or sort code on the ticket. The bank name and the type are enough.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Decide the first half",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "This ticket, reply",
+                  "kind": "decision"
+                },
+                "body_html": "<p>For each line: <strong>keep</strong>, <strong>close</strong> or <strong>merge into ...</strong>.</p>",
+                "expect_html": "<p>Half the lines have a decision.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Decide the rest",
+            "minutes": 13,
+            "needs": [
+              "Phase 1 done"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Decide the rest",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "This ticket, reply",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Finish the decisions. Unsure means keep.</p>",
+                "expect_html": "<p>Every line has a decision.</p>",
+                "fields": [
+                  {
+                    "key": "closes",
+                    "label": "How many to close or merge",
+                    "placeholder": "a number"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Claude makes the tickets",
+                "actor": "claude-code",
+                "minutes": 0,
+                "where": {
+                  "label": "Claude Code",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>One ticket per close or merge, each listing what pays from or into the account, to be moved first.</p>",
+                "expect_html": "<p>The tickets exist.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Check the tickets",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium, Work, project MYC, label fin",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the new tickets and check the bank names.</p>",
+                "expect_html": "<p>The count matches.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.0": "untested",
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fin.13",
+      "title": "Net worth into Mycelium: the Google Sheet imported once and retired; the mortgage line removed",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nNet worth already lives in Mycelium (Finance, Snapshot; 0175 `finance_holdings` and `finance_holding_values`, built 2026-11-20 and awaiting the MYC-193 chunk 15 check). This ticket finishes the move: (1) a last import of the Google Sheet's history so nothing on it is lost; (2) the mortgage holding removed (there is no mortgage); (3) investments either added to the line or kept apart, as Phil answers in chunk 15 step 6; (4) the sheet marked retired (a note on its first tab and a link to Snapshot; the sheet is not deleted in this run).\n\n## Why\nPhil decided net worth moves fully into Mycelium, the sheet imported once and retired, and \"No mortgage\" (4.21, 4.15).\n\n## Done looks like\nSnapshot shows the full history from the sheet; no mortgage line; investments as Phil chose; the sheet carries a retired note.\n\n## Unlocks\nNothing further; the monthly pension figure item keeps it current.\n\n## Depends on\nNothing; it uses the existing holdings. MYC-193 chunk 15 answers the investments question.\n\n## Red team\n- Finding 48: Retired means read-only and kept in Drive; row counts compared after import; nothing deleted.\n",
+      "after": [],
+      "links": [
+        "MYC-188",
+        "MYC-193"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.14",
+      "title": "Renewal dates look-up in one sitting: Mercedes EQA lease end, IONOS Mail Basic, the IONOS VPS, philipwhelan.com, the two Sporebit domains, energy, mobile, insurance; dated tickets a month ahead made from it",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOne sitting where Phil looks up eight dates and types each into the guide's fields: the Mercedes EQA lease end, IONOS Mail Basic renewal, the IONOS VPS renewal, philipwhelan.com expiry, the two Sporebit domains' expiry, the energy tariff end, the mobile contract end, and each insurance renewal (car, home, any other). Claude then makes one dated ticket per renewal, due a month before the date, and fills the renewals list (fin.16). The broadband is already known (fin.15).\n\n## Why\nH2.4: dated tickets plus a renewals list; \"the only way the renewal tickets get dates\" is this look-up.\n\n## Done looks like\nAll eight fields filled (or \"none\" where there is no such contract); one dated ticket per renewal exists, each due a month ahead.\n\n## Unlocks\nfin.16 (the renewals list), keys.15 (the domain and VPS renewals in the SEC view).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [
+        "fin.15"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "guide",
+        "contract",
+        "schedule"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fin-renewal-dates",
+        "kind": "guide",
+        "title": "Eight renewal dates in one sitting",
+        "version": 1,
+        "intro": {
+          "answer": "Look up each date and type it in; Claude makes a dated ticket a month ahead for each.",
+          "unlocks": [
+            "fin.16 renewals list",
+            "keys.15 SEC view",
+            "A dated ticket per renewal"
+          ],
+          "to_hand": [
+            "The phone with the Mercedes, energy, mobile and insurance apps or emails",
+            "The IONOS sign-in"
+          ],
+          "time": [
+            "about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Look up and type each date",
+            "minutes": 14,
+            "needs": [],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Mercedes EQA lease end",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The lease agreement or the Mercedes-Benz Finance account",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Find the agreement end date.</p>",
+                "expect_html": "<p>A date.</p>",
+                "fields": [
+                  {
+                    "key": "eqa_end",
+                    "label": "EQA lease end date",
+                    "placeholder": "a date"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "IONOS Mail Basic and the VPS",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "IONOS, Contracts",
+                  "kind": "dashboard",
+                  "url": "https://my.ionos.co.uk"
+                },
+                "body_html": "<p>Open the contract list; note the renewal date of Mail Basic and of the VPS.</p>",
+                "expect_html": "<p>Two dates.</p>",
+                "fields": [
+                  {
+                    "key": "ionos_mail",
+                    "label": "Mail Basic renewal",
+                    "placeholder": "a date"
+                  },
+                  {
+                    "key": "ionos_vps",
+                    "label": "VPS renewal",
+                    "placeholder": "a date"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "<p>Read only. Do not change or cancel anything here; E.mail and E.keys plan those.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "The three domains",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The registrar's domain list (IONOS or wherever each is held)",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>Note the expiry of philipwhelan.com and of the two Sporebit domains, and the registrar of each.</p>",
+                "expect_html": "<p>Three dates.</p>",
+                "fields": [
+                  {
+                    "key": "dom_main",
+                    "label": "philipwhelan.com expiry",
+                    "placeholder": "a date"
+                  },
+                  {
+                    "key": "dom_sp1",
+                    "label": "First Sporebit domain expiry",
+                    "placeholder": "domain and date"
+                  },
+                  {
+                    "key": "dom_sp2",
+                    "label": "Second Sporebit domain expiry",
+                    "placeholder": "domain and date"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Energy and mobile",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The energy and mobile apps or their emails",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Find the tariff end date and the contract end date.</p>",
+                "expect_html": "<p>Two dates, or none if rolling.</p>",
+                "fields": [
+                  {
+                    "key": "energy",
+                    "label": "Energy tariff end",
+                    "placeholder": "a date or none"
+                  },
+                  {
+                    "key": "mobile",
+                    "label": "Mobile contract end",
+                    "placeholder": "a date or none"
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "Insurance",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Insurer emails or apps",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Each policy you hold (car, home, any other): the renewal date.</p>",
+                "expect_html": "<p>One date per policy.</p>",
+                "fields": [
+                  {
+                    "key": "insurance",
+                    "label": "Insurance renewals",
+                    "placeholder": "policy type and date, one per line"
+                  }
+                ]
+              },
+              {
+                "id": "1.6",
+                "title": "Claude makes the dated tickets",
+                "actor": "claude-code",
+                "minutes": 0,
+                "where": {
+                  "label": "Claude Code",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude makes one ticket per date, due a month before it, and fills the renewals list.</p>",
+                "expect_html": "<p>The tickets exist with dates.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested",
+          "1.6": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fin.15",
+      "title": "Broadband review (4th Utility, £37.00 a month, commitment ends May 2027): notice period, and whether the ASUS can be the only router",
+      "kind": "task",
+      "points": 1,
+      "due": "2027-03-01",
+      "who": "P",
+      "description": "## What\nIn early March 2027: check the 4th Utility contract's exact end date in May 2027 and its notice period (the account or the contract email), read the answer from net.02 on whether the RT-AX86U can be the only router with this provider, then decide: stay, renegotiate, or switch. If switching, give notice so it lands at the end of the commitment, not before. Nothing is cancelled or switched in this run.\n\n## Why\nH2.4: \"review and check the notice period in March 2027\"; the commitment ends May 2027 at £37.00 a month.\n\n## Done looks like\nThe end date and notice period written on this ticket, and a decision (stay, renegotiate, switch); if switching, a dated ticket for the notice.\n\n## Unlocks\nnet.02's decision and the home network plan.\n\n## Depends on\nnet.02 (whether the ASUS can be the only router) is linked; it informs the decision but does not block the check.\n\n## Flag\n[claude] the broadband decision links to SEC answer 18 (making the ASUS the only router depends on the provider). Not reopened.\n\n## Cost\n£37.00 a month today; any new deal is to be priced; nothing is bought in this run.",
+      "after": [],
+      "links": [
+        "net.02"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "contract",
+        "home"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.16",
+      "title": "The renewals list in Finance",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA Renewals page in Finance: every contract and subscription with an end or renewal date (from fin.14, the broadband from fin.15, and Bills' Keep marks), the cost, the notice period where known, and the linked dated ticket. Sorted by date; a renewal a month away is highlighted. The domain and VPS rows link to keys.15. Owner-only.\n\n## Why\nH2.4 and H3: \"a renewals list in Finance\".\n\n## Done looks like\nFinance, Renewals lists every date from fin.14 with its ticket; adding a date makes a dated ticket a month ahead.\n\n## Unlocks\nkeys.15 (the SEC view reads it).\n\n## Depends on\nfin.14: the dates.",
+      "after": [
+        "fin.14"
+      ],
+      "links": [
+        "keys.01"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "feature",
+        "dev",
+        "contract"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.17",
+      "title": "Lower-income months around the birth: both employers' leave pay terms gathered, then modelled month by month",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nTwo parts. (1) Gather the leave pay terms: Phil's employer's paternity and shared parental leave policy (enhanced pay, if any) and Kirsty's employer's maternity policy, from the staff handbooks or HR (Phil and Kirsty each fetch their own document; Claude reads them). Statutory figures for reference, checked 2026-11-28: paternity leave is a day-one right since 6 April 2026; statutory paternity pay needs 26 weeks' service and is £194.32 a week or 90% of average weekly earnings if lower; notice by the 15th week before the expected week of childbirth (see the dossier). (2) Model the months from May 2027 to about March 2028 month by month: each income line, the bills, the baby costs from the baby pot, Child Benefit once claimed, and the gap or surplus each month. This ticket holds information and options only, not financial advice; Phil decides.\n\n## Why\nPhil chose to model the lower-income months \"month by month, after a research ticket gathers both employers' leave pay terms\" (4.11).\n\n## Done looks like\nBoth policies' pay terms summarised on this ticket with where they came from; a month-by-month table in Finance or a ticket comment; the shortfall months are named.\n\n## Unlocks\nbaby.28 (nights and first weeks conversation), fin.18 (the household budget), the safety net target (fin.10).\n\n## Depends on\nfin.03 (the plan's figures); MYC-182 for the real due date (the model moves with it).",
+      "after": [
+        "fin.03"
+      ],
+      "links": [
+        "baby.28",
+        "MYC-182"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "planning",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.18",
+      "title": "Shared costs with Kirsty: options laid out for the two of them; the household budget before she moves in; a no-figures headline for her",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "PK",
+      "description": "## What\nClaude writes one page of options for sharing costs (for example a fixed split, a split by income share, a joint account for bills, or each paying named bills), each with how it works in practice; Phil and Kirsty read it together and choose. Then the household budget is set up in the family space (the separate household budget the backlog describes: bills, baby costs, who paid what), before she moves in. Phil's own Finance stays private and owner-only. Whether Kirsty sees a no-figures headline, and what it says, is decided in that conversation. This ticket holds information and options only, not financial advice; Phil decides.\n\n## Why\nShared costs \"not discussed yet\"; a household budget \"before she moves in\"; a no-figures headline \"decided when the household budget is set up together\" (4.7, 4.8, 4b).\n\n## Done looks like\nA chosen option written on this ticket; the household budget exists in the family space; the headline decision recorded.\n\n## Unlocks\nbaby.03 (the shared baby pot and who paid what).\n\n## Depends on\nfin.03 (the payday plan gives Phil's side of the figures).",
+      "after": [
+        "fin.03"
+      ],
+      "links": [
+        "baby.03"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "planning",
+        "personal"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.19",
+      "title": "Pension: contributions reviewed, old pots found (information only)",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nTwo parts. (1) Contributions: Claude reads the latest Royal London statement (from the mail import once MYC-201 exists, or a PDF Phil drops in) and the payslip's pension line, and writes down the current employee and employer percentages and what the employer would match, if anything. (2) Old pots: Phil lists his past employers since he started work (names only); Claude looks each up on gov.uk \"Find pension contact details\" and lists the administrator contacts; Phil contacts each to ask whether a pot exists. The Pensions Dashboards are not yet open to the public. This ticket holds information and options only, not financial advice; Phil decides.\n\n## Why\nPhil asked to \"review contributions and find old pots\" (information, not advice) (4.16).\n\n## Done looks like\nThe current contribution rates written on this ticket; a list of past employers with an administrator contact for each; any pot found added to Snapshot as a holding.\n\n## Unlocks\nfin.13 (net worth gains any old pot).\n\n## Depends on\nNothing; MYC-201 makes the statement arrive by itself.",
+      "after": [],
+      "links": [
+        "MYC-201"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "research",
+        "admin"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.20",
+      "title": "Investing options laid out neutrally",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA research write-up, neutral and information only: the main UK options for someone who will start investing after the debts and the safety net (Stocks and Shares ISA and its £20,000 yearly allowance shared with other ISAs, Lifetime ISA, pension top-ups and the tax relief on them, general accounts), what each costs in fees, how each is taxed, access rules, and the risks in plain words. Includes what Finance already tracks (Investments page, 0068). No product is recommended and nothing is opened. This ticket holds information and options only, not financial advice; Phil decides.\n\n## Why\nPhil asked for \"a research ticket laying out the options neutrally\" (4.17); the five-year order puts investing after debt and the safety net (4b).\n\n## Done looks like\nA dated write-up attached to this ticket with sources and their checked dates; no recommendation in it.\n\n## Unlocks\nPhil's own decision, later.\n\n## Depends on\nNothing (the order is a reading guide, not a blocker).",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.21",
+      "title": "Child money: Child Benefit claim, a savings account for the child, childcare costs and support schemes",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA research write-up with the steps and windows, information only. Checked 2026-11-28 (see the dossier): Child Benefit is £27.05 a week for the first child in 2026/27 (2027/28 rate not yet published); a claim can be backdated up to three months and needs the birth registered first; the High Income Child Benefit Charge starts at £60,000 adjusted net income for the higher earner and takes all of it at £80,000, and claiming still protects National Insurance credits; a Junior ISA allows £9,000 a year and is opened by a parent; in England the 30 funded childcare hours start the term after nine months (apply up to 16 weeks before) and Tax-Free Childcare adds 25%. The write-up gives each step and, once MYC-182 gives the due date, the dates for the baby timeline. This ticket holds information and options only, not financial advice; Phil decides.\n\n## Why\nPhil asked for child money tickets: Child Benefit, a savings account for the child, childcare costs and support schemes (4.18).\n\n## Done looks like\nA write-up on this ticket with sources and checked dates; the claim and application steps proposed as dated tickets in BABY once the due date is known.\n\n## Unlocks\nE.baby's claim and childcare tickets.\n\n## Depends on\nNothing; MYC-182 for the dates.",
+      "after": [],
+      "links": [
+        "MYC-182"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "research",
+        "form"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.22",
+      "title": "Protection: wills, life insurance, income protection (information, options)",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA research write-up, information only: wills in England (what an unmarried couple with a child inherits without one, the routes: solicitor, will-writing service, the costs), naming a guardian, life insurance (level and decreasing term, joint and single, what drives the price), and income protection (what employer sick pay covers first, deferred periods). Each with questions to ask and no product recommended. This ticket holds information and options only, not financial advice; Phil decides.\n\n## Why\nPhil asked for protection tickets: wills, life insurance, income protection (4.20).\n\n## Done looks like\nA dated write-up attached with sources and checked dates.\n\n## Unlocks\nPhil's own decision, later.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.23",
+      "title": "Receipts, everything: switch on and exercise Receipts at runtime for one week first",
+      "kind": "test",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nA one-week trial of Receipts (/organisation/receipts, built August 2026, never exercised at runtime). Day 1: upload three receipts (paper photographed and an emailed one) and check each parses, totals and links to its bank transaction. Days 2 to 6: add every receipt that day. Day 7: a short look at how it went and a yes or no on keeping the everything habit.\n\n## Why\nPhil chose \"Receipts: yes, everything\" (4.24); the trial comes first because Receipts has never been exercised.\n\n## Done looks like\nThree receipts parsed and linked on day 1; a week of receipts in the list; Phil's yes or no recorded on this ticket.\n\n## Unlocks\nThe full habit (decided on day 7).\n\n## Depends on\nfin.01: the first sitting comes first.\n\n## Flag\n[claude] Receipts has never been exercised at runtime, and itemising everything adds effort against the \"I avoid looking\" blocker. Not reopened; the week's trial is the cautious version.\n\n## Red team\n- Finding 75: Then everything, as answered (4.24).\n",
+      "after": [
+        "fin.01"
+      ],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fin-receipts-week",
+        "kind": "test",
+        "title": "One week of Receipts",
+        "version": 1,
+        "intro": {
+          "answer": "Three receipts on day one, every receipt for a week, then a yes or no.",
+          "unlocks": [
+            "The everything habit, if yes"
+          ],
+          "to_hand": [
+            "Three receipts, one of them emailed"
+          ],
+          "time": [
+            "15 minutes on day 1, about 2 minutes a day, 10 minutes on day 7"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Day 1: three receipts",
+            "minutes": 14,
+            "needs": [],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Open Receipts",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, Organisation, Receipts (/organisation/receipts)",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the page.</p>",
+                "expect_html": "<p>The upload area shows.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Upload a paper receipt",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, Receipts",
+                  "kind": "page"
+                },
+                "body_html": "<p>Photograph a paper receipt and upload it.</p>",
+                "expect_html": "<p>Status parsed, lines listed, total matches the paper.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "Status total_mismatch or no_total",
+                    "fix": "Note it in the field below and carry on; Claude looks at it after the week."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Upload two more, one emailed",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Mycelium, Receipts",
+                  "kind": "page"
+                },
+                "body_html": "<p>Upload a second paper receipt and an emailed one (a screenshot or PDF).</p>",
+                "expect_html": "<p>Both parsed.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Check the links to the bank",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium, Receipts, each receipt",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open each receipt and check it is linked to its transaction.</p>",
+                "expect_html": "<p>Linked, or a suggestion to link.</p>",
+                "fields": [
+                  {
+                    "key": "day1",
+                    "label": "Day 1: parsed and linked out of 3",
+                    "placeholder": "a number, and any status that looked wrong"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Day 7: the look back",
+            "minutes": 6,
+            "needs": [
+              "Six days of receipts"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Count the week",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, Receipts",
+                  "kind": "page"
+                },
+                "body_html": "<p>Count the receipts added this week and how many needed fixing.</p>",
+                "expect_html": "<p>Two numbers.</p>",
+                "fields": [
+                  {
+                    "key": "week_count",
+                    "label": "Receipts this week",
+                    "placeholder": "a number"
+                  },
+                  {
+                    "key": "week_fixes",
+                    "label": "Needed fixing",
+                    "placeholder": "a number"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Yes or no",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This guide",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Keep the everything habit, or only bigger receipts, or stop?</p>",
+                "expect_html": "<p>One answer.</p>",
+                "fields": [
+                  {
+                    "key": "decision",
+                    "label": "Everything, bigger only, or stop",
+                    "placeholder": "one of the three"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fin.24",
+      "title": "Credit reports quarterly across the three agencies (recurring)",
+      "kind": "audit",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nEvery quarter, one sitting: look at the credit report from each of Experian, Equifax and TransUnion through a free route, and note anything not recognised (an account, a search, an address). Free routes, checked 2026-11-28: the statutory report from each agency (a legal right, free); ClearScore (Equifax, monthly); MSE Credit Club (TransUnion since November 2023 per one source, UNVERIFIED); the Experian app. Go to each by name, never via a \"free credit report\" search, which can lead to paid copycats. Anything unrecognised becomes its own ticket.\n\n## Why\nPhil chose a quarterly check across the three UK agencies (4.29).\n\n## Done looks like\nEach quarter: three reports looked at, a yes or no per agency on anything unrecognised, and a ticket for each issue.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.\n\n## Red team\n- Finding 69: The free statutory reports only.\n",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "security",
+        "admin"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fin-credit-reports",
+        "kind": "audit",
+        "title": "Credit reports: the quarterly look",
+        "version": 1,
+        "intro": {
+          "answer": "One look at each of the three agency reports; anything you do not recognise becomes a ticket.",
+          "unlocks": [
+            "Tickets for anything unrecognised"
+          ],
+          "to_hand": [
+            "The phone, for the sign-ins"
+          ],
+          "time": [
+            "about 15 minutes a quarter"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Which?: credit reports",
+              "url": "https://www.which.co.uk/money/credit-cards-and-loans/credit-scores/guides/credit-reports-all-you-need-to-know",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "TransUnion statutory report",
+              "url": "https://www.transunion.co.uk/consumer/statutory-credit-report",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Three reports",
+            "minutes": 14,
+            "needs": [],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Equifax",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "ClearScore app or clearscore.com",
+                  "kind": "browser",
+                  "url": "https://www.clearscore.com"
+                },
+                "body_html": "<p>Open the report. Look at accounts, searches and addresses.</p>",
+                "expect_html": "<p>The report opens.</p>",
+                "fields": [
+                  {
+                    "key": "equifax",
+                    "label": "Equifax: anything unrecognised?",
+                    "placeholder": "yes or no, and what (no account numbers)"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "TransUnion",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "TransUnion statutory report, or MSE Credit Club",
+                  "kind": "browser",
+                  "url": "https://www.transunion.co.uk/consumer/statutory-credit-report"
+                },
+                "body_html": "<p>Open the TransUnion report the same way.</p>",
+                "expect_html": "<p>The report opens.</p>",
+                "fields": [
+                  {
+                    "key": "transunion",
+                    "label": "TransUnion: anything unrecognised?",
+                    "placeholder": "yes or no, and what"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>The first statutory request may post a passkey; allow a few days.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Experian",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Experian app or experian.co.uk",
+                  "kind": "browser",
+                  "url": "https://www.experian.co.uk"
+                },
+                "body_html": "<p>Open the Experian report.</p>",
+                "expect_html": "<p>The report opens.</p>",
+                "fields": [
+                  {
+                    "key": "experian",
+                    "label": "Experian: anything unrecognised?",
+                    "placeholder": "yes or no, and what"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>The statutory route posts a passkey within about five working days; the free app is quicker.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Tickets for anything odd",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium, Work, new ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>One ticket per unrecognised item, title naming the agency and the item.</p>",
+                "expect_html": "<p>Tickets made, or none needed.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fin.25",
+      "title": "Copilot Money: what he liked, which of it Finance should copy",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOne sitting: Phil reads the list below of Copilot Money's publicly described features (checked 2026-11-28) and marks each \"liked\" or not, then \"copy into Finance\" or not, adding anything he remembers liking that is missing. Features: budgets with rollover; a rebalance that adjusts category budgets to actual spend for one month or all; recurring and subscription detection with a monthly view, split, mark and pause (Finance has Bills); custom categories and rules (Finance has rules and the merchant memory); automatic categorising; net worth across accounts, investments, crypto and a home value from an address (Finance has Snapshot); a cash-flow view; the design and the iPhone app. Not bought, and its UK bank support is not confirmed. Also on this ticket: the YouTube link pasted beside it in July (youtube.com/watch?v=CxdqE83kxxw), two minutes to watch and file.\n\n## Why\nH3: Copilot Money was not bought; \"one ticket lists what he liked about it and which of those Mycelium Finance should copy\".\n\n## Done looks like\nEach feature marked; the \"copy\" ones become build tickets under E.fin; the YouTube link watched and filed in one line.\n\n## Unlocks\nThe build tickets made from the copy marks.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "research",
+        "idea"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.26",
+      "title": "Tax on side income (shared with FixForward)",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nA research write-up shared with fixf.01, information only. Checked 2026-11-28: the trading allowance is £1,000 for 2026/27 (all trading income together, across platforms) and rises to £3,000 from 6 April 2027; selling your own possessions is generally not trading; platforms report sellers to HMRC under the digital platform rules, which does not by itself make income taxable; Self Assessment registration for 2026/27, if needed, is due by 5 October 2027. The write-up says how FixForward's buy, repair and sell income is likely to be seen (trading), what records to keep, and when the allowance or actual expenses is the better route. Finance tags FixForward income and costs so the year's figure is ready. This ticket holds information and options only, not financial advice; Phil decides.\n\n## Why\nPhil asked for \"a research ticket shared with FixForward\" on tax on side income (4.19).\n\n## Done looks like\nA dated write-up with sources on this ticket and on fixf.01; a FixForward tag in Finance.\n\n## Unlocks\nfixf.01 (the trading rules), fin.27 (the ventures page uses the same tag).\n\n## Depends on\nNothing; linked to fixf.01.",
+      "after": [],
+      "links": [
+        "fixf.01"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "research",
+        "selling"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.27",
+      "title": "Ventures page: money and hours in, money out, per venture, a red, amber, green verdict said bluntly; DropShipAuto's seventeen questions as the question round",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBuild in two steps. (1) A question round first: DropShipAuto's seventeen unanswered scoping questions for its tracker (rescued into `claude/archive/` by E.rescue) put to Phil as one sitting, adapted to all ventures. (2) Then the page, on the existing Ventures section (/ventures): per venture, money in, money out (from Finance tags), hours in (from a time source chosen in the question round), profit per hour, and a red, amber or green keep-or-kill verdict in one blunt line. FixForward's profit per item and per hour feeds it first. Owner-only, as the money parts come from Finance.\n\n## Why\nH3: a ventures page across all ventures, extended by Phil from DropShipAuto's tracker idea, with a blunt red, amber, green verdict; the seventeen questions are the starting question round.\n\n## Done looks like\nThe seventeen answers recorded; the page lists every active venture with the five figures and a verdict line; FixForward's figures match its own records.\n\n## Unlocks\nvent.* (the ventures behind the FixForward rule are judged here).\n\n## Depends on\nfin.26 (the tag for venture income and costs) is linked; the DropShipAuto files rescued by E.rescue.",
+      "after": [],
+      "links": [
+        "fin.26",
+        "DSA-8"
+      ],
+      "tags": [
+        "fin",
+        "payment",
+        "feature",
+        "dev",
+        "project"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.28",
+      "title": "Optics allowance (£200 a year): claim this year's for the new glasses before 1 February 2027",
+      "kind": "task",
+      "points": 1,
+      "due": "2027-01-25",
+      "who": "P",
+      "description": "## What\nClaim this year's optics allowance (£200) for the new glasses before it renews on 1 February 2027: find the claim form or portal for the benefit (the employer's benefits site or the scheme's own), attach the receipt for the glasses, submit, and note the reference.\n\n## Why\nH10: the allowance renews 1 February 2027 and this year's claim for the new glasses is still to be made.\n\n## Done looks like\nThe claim submitted with a reference written on this ticket.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.\n\n## Cost\nUp to £200 back; nothing is bought in this run.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "form",
+        "medical"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.29",
+      "title": "Kirsty's birthday freebies registered ahead of 23 May 2027 (the Birthday Ledger has the dates)",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-04-23",
+      "who": "P",
+      "description": "## What\nOne sitting: open the Birthday Ledger artefact (https://claude.ai/artifact/WWC912osbcN4dv8LDNVuZm), and register Kirsty for each birthday offer whose register-by date falls before 23 May 2027, ticking each in the ledger. Use her details only with her agreement (a surprise is fine, but nothing signs her up to marketing she would not want).\n\n## Why\nH10: birthday freebies need registering ahead of 23 May 2027 and the ledger has the register-by dates.\n\n## Done looks like\nEvery offer with a register-by date before 23 May 2027 registered and ticked in the ledger.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "guide",
+        "personal"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fin-birthday-freebies",
+        "kind": "guide",
+        "title": "Register the birthday offers",
+        "version": 1,
+        "intro": {
+          "answer": "Work down the ledger and register each offer before its date.",
+          "unlocks": [],
+          "to_hand": [
+            "The Birthday Ledger open",
+            "The phone, for any confirmation emails"
+          ],
+          "time": [
+            "about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Birthday Ledger",
+              "url": "https://claude.ai/artifact/WWC912osbcN4dv8LDNVuZm",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Register each offer",
+            "minutes": 15,
+            "needs": [],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Open the ledger",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Birthday Ledger",
+                  "kind": "browser",
+                  "url": "https://claude.ai/artifact/WWC912osbcN4dv8LDNVuZm"
+                },
+                "body_html": "<p>Sort by register-by date.</p>",
+                "expect_html": "<p>The offers listed by date.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Register each one",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "Each offer's sign-up page, from the ledger",
+                  "kind": "browser"
+                },
+                "body_html": "<p>For each offer due before 23 May 2027: sign up, then tick it in the ledger. Untick marketing boxes you would not want for her.</p>",
+                "expect_html": "<p>Each registered offer ticked.</p>",
+                "fields": [
+                  {
+                    "key": "count",
+                    "label": "How many registered",
+                    "placeholder": "a number"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Use a new password from Proton Pass for any account this makes; never reuse one.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Note any left",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This guide",
+                  "kind": "decision"
+                },
+                "body_html": "<p>List any offer you could not register and why.</p>",
+                "expect_html": "<p>None, or a short list.</p>",
+                "fields": [
+                  {
+                    "key": "left",
+                    "label": "Not registered",
+                    "placeholder": "offer names, or none"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fin.30",
+      "title": "Concert tickets booked in May for 14 November never arrived (€83.25): refund or chargeback",
+      "kind": "task",
+      "points": 1,
+      "due": "2026-12-12",
+      "who": "P",
+      "description": "## What\nFirst check which card or account paid the €83.25 (the May booking email and the statement). Then ask the seller for a refund in writing, keeping the reply. If there is no refund, ask that card's issuer for a chargeback under \"goods or services not received\". Checked 2026-11-28: for Visa and Mastercard the window is usually 120 days counted from the date of the event for future-dated tickets (so about mid-March 2027 for 14 November 2026), within an overall 540 days; banks may ask for a seller contact first and a waiting period; American Express has its own dispute process. Section 75 does not apply (under £100).\n\n## Why\nH10: the tickets never arrived; \"a refund or chargeback has a time limit\", so act early.\n\n## Done looks like\nEither a refund received, or a chargeback raised with its reference on this ticket.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.\n\n## Cost\n€83.25 to recover; nothing is bought in this run.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "admin",
+        "communication"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fin.31",
+      "title": "Done check: three paydays budgeted and kept to",
+      "kind": "test",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nThe epic's done check, run after the third payday with an accepted plan: for each of the three budget months, was the plan accepted, and did spending stay within it overall (the payday summary from fin.05 says)? Phil ticks each month; if a month went over, he writes one line on what happened, then the next payday counts instead.\n\n## Why\nPhil's done means: \"three paydays budgeted and kept to\" (4.30).\n\n## Done looks like\nThree consecutive budget months ticked as accepted and kept to.\n\n## Unlocks\nClosing E.fin.\n\n## Depends on\nfin.03 (the payday plan) and three paydays after it.",
+      "after": [
+        "fin.03",
+        "fin.05"
+      ],
+      "links": [],
+      "tags": [
+        "fin",
+        "payment",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fin-done-check",
+        "kind": "test",
+        "title": "Three paydays kept to",
+        "version": 1,
+        "intro": {
+          "answer": "Tick each of three budget months as accepted and kept to.",
+          "unlocks": [
+            "Closing the Finance epic"
+          ],
+          "to_hand": [
+            "The payday summaries"
+          ],
+          "time": [
+            "about 5 minutes after each payday"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Three months",
+            "minutes": 6,
+            "needs": [
+              "Three paydays with accepted plans"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "First month",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium, Finance, Budget, the month",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the month. Was the plan accepted and spending within it overall?</p>",
+                "expect_html": "<p>A yes or no.</p>",
+                "fields": [
+                  {
+                    "key": "m1",
+                    "label": "Month 1: kept to?",
+                    "placeholder": "yes or no, and one line if no"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Second month",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium, Finance, Budget, the month",
+                  "kind": "page"
+                },
+                "body_html": "<p>Same check for the next month.</p>",
+                "expect_html": "<p>A yes or no.</p>",
+                "fields": [
+                  {
+                    "key": "m2",
+                    "label": "Month 2: kept to?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Third month",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium, Finance, Budget, the month",
+                  "kind": "page"
+                },
+                "body_html": "<p>Same check for the third month. Three yeses in a row closes the epic.</p>",
+                "expect_html": "<p>A yes or no.</p>",
+                "fields": [
+                  {
+                    "key": "m3",
+                    "label": "Month 3: kept to?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fin.32",
+      "title": "Test the three leak guesses (food and takeaways, tech, subscriptions) against the first month of the feed",
+      "kind": "task",
+      "points": 1,
+      "who": "C",
+      "description": "## What\nOnce a month of transactions is in, compare Phil's three guesses at where the money leaks with the categorised spend and write the answer on this ticket.\n\n## Why\n4b says the guesses are to be tested against the data (red team finding 57).\n\n## Done looks like\nThree lines: guess, actual, difference.\n\n## Unlocks\nfin.03's second pass.\n\n## Depends on\nfin.03.",
+      "after": [
+        "fin.03"
+      ],
+      "tags": [
+        "fin"
+      ],
+      "links": [],
+      "steps_definition": null,
+      "due": null
+    }
+  ],
+  "existing": [
+    {
+      "key": "MYC-195",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nfin.01, fin.03, fin.11 and every Finance ticket that reads transactions.\n\n## Note from the 2026-11-28 run\nEnable Banking gives full history for about an hour after a bank consent, then often only 90 days: the first pull after linking should ask for the longest history. Consent lasts up to each bank's maximum, about 180 days for most. If one of Halifax, Revolut or AMEX is not listed, write which on this ticket; Finance goes ahead on the banks that are."
+    },
+    {
+      "key": "MYC-188",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nE.fin builds on Stream F's Bills, Budget, nudges and net worth (fin.03, fin.11, fin.13)."
+    }
+  ]
+}

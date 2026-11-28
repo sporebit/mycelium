@@ -1,0 +1,2003 @@
+{
+  "epic": {
+    "sid": "E.block",
+    "project": "SEC",
+    "title": "Blocking: listed outlets and adult sites, block with \"open anyway\"",
+    "description": "The BBC, the Daily Mail, ITV and further outlets Phil approves (each with a reason from the four allowed sources) are blocked from his life, everything from them and not only news, on the one network-wide DNS filter from E.net, with an \"open anyway\" page: quick for news, a 10-minute wait for adult sites, growing after a heavy week. Per-person profiles from the start (Phil, Kirsty unfiltered for news, guests, a future child); the same filter on his phones away from home; bypasses closed on his devices; built-in feeds, YouTube, search, Alexa, podcasts and emails swept; shared TVs only as Kirsty agrees. A weekly digest from sources he chooses replaces the news, and an owner-only count sits in the Sunday close-out.\n\n## Order\nThe outlet research (block.01), Kirsty's TV conversation (block.02) and the licence note (block.15) start at once. Profiles (block.03) wait for net.03 (and sub.06 if the filter is on Substrate). Lists (block.04) after block.01 and block.03; then the block page design and build (block.05), the count (block.20). Device work after the profiles: bypasses (block.06), phones away from home (block.07), social limits (block.17). Channel sweeps after block.01: emails and apps (block.08), YouTube (block.10), search (block.11), Alexa (block.12), podcasts (block.13); news feeds off (block.09) any time. Sky Glass research (block.14) after block.02, then shared TVs (block.16). Digest (block.18) after sub.14; official alerts (block.19) any time. Test run (block.21), then the 30-day done check (block.23); the yearly review (block.22) from the date block.04 goes live.\n\n## Done means\nThirty days without seeing a listed outlet unless Phil chose to.\n\n## Flags\nNone from the brief. Design question carried on block.05: an HTTPS block page needs a trusted root certificate on each device.\n\n## Dossier\nThe dossier is attached in Docs.",
+    "dossier": "dossiers/block.md",
+    "links": [
+      "net.03",
+      "net.24",
+      "sub.06",
+      "sub.14",
+      "mail.27",
+      "fin.14"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "block.01",
+      "title": "Research: outlets to list beyond BBC, Daily Mail and ITV, a reason each from the four allowed sources; Phil approves each one",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude researches UK news outlets beyond the BBC, the Daily Mail and ITV and proposes a list, each with its reason drawn only from the four allowed sources: upheld regulator rulings and published corrections (IPSO, Ofcom), independent fact-checker records, ownership and funding, and examples Phil supplies. Each row lists the outlet's domains and apps (everything from the outlet, not only news, so the BBC row includes iPlayer, Sport and Sounds). The result is a checklist of proposed outlets with approve or decline per row for Phil; nothing is blocked from it until he ticks.\n\n## Why\nSection 9 answers 1, 2 and 5: a research ticket proposes outlets with a reason each; he approves each one. 9b: everything from a listed outlet is blocked, not only news.\n\n## Done looks like\nA table on the ticket (outlet, domains and apps, reason, source with date) and Phil's approve or decline on every row.\n\n## Unlocks\nblock.04 (the news list), block.08 to block.13 (the sweeps per channel), block.22 (the yearly review uses the same criteria).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "research"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "block.02",
+      "title": "Ask Kirsty about the shared TVs (LG, Samsung, Fire Stick) before any change",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "PK",
+      "description": "## What\nPhil asks Kirsty, in one conversation, what she is happy for him to change on the shared TVs (LG, Samsung, the Fire Stick, and Sky Glass once block.14 says what is possible): hiding or removing BBC and ITV apps, \"don't recommend\" on YouTube, a DNS block that would stop those apps on that TV for everyone. Her answer is written here word for word. Nothing on a shared TV changes before this.\n\n## Why\nSection 9 answer 17: shared TVs, ask Kirsty first; the technical tickets wait on it.\n\n## Done looks like\nKirsty's answer per TV recorded on the ticket.\n\n## Unlocks\nblock.16 (shared TVs changed as agreed), net.13 (TV tracking on shared TVs).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "communication",
+        "house"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "block.03",
+      "title": "Filter profiles from the start: Phil, Kirsty (news unfiltered), guests (adult and security lists), a future child",
+      "kind": "setup",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nOn the DNS filter chosen in net.03, Phil and Claude Code create four profiles: Phil (security, adult, scam, malware, trackers, news); Kirsty (security, scam, malware, trackers; news unfiltered; she can opt in to more); Guests (adult and security lists, not news) on the Guests network; a future child (strictest, unused for now). Each of Phil's and Kirsty's devices is assigned to its profile; the Guests network is assigned as a whole. A fallback resolver is set so a dead filter does not take the house offline.\n\n## Why\nSection 9 answers 7, 10, 11 and 28: per-person profiles from the start; Kirsty unfiltered for news; guests adult and security only.\n\n## Done looks like\nFour profiles exist; every device of Phil's and Kirsty's is assigned; a test lookup from each profile behaves as intended.\n\n## Unlocks\nblock.04 (lists), block.06 and block.07 (devices), block.17 (social limits), block.21 (test run).\n\n## Depends on\nnet.03 (where the filter runs). If net.03 chose the Substrate box, also sub.06 (the filter service built).\n\n## Red team\n- Finding 55: An off switch for Phil's profile, one tap, logged in the weekly count (9.8).\n",
+      "after": [
+        "net.03",
+        "sub.06"
+      ],
+      "links": [
+        "sub.06"
+      ],
+      "tags": [
+        "security",
+        "block",
+        "home"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-03-profiles",
+        "kind": "setup",
+        "title": "Four filter profiles",
+        "version": 1,
+        "intro": {
+          "answer": "Four profiles, every device in the right one, and the house stays online if the filter is down.",
+          "unlocks": [
+            "block.04",
+            "block.06",
+            "block.07",
+            "block.17",
+            "block.21"
+          ],
+          "to_hand": [
+            "The filter's admin sign-in",
+            "The device inventory (net.15) or the router's client list"
+          ],
+          "time": [
+            "Two sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "NextDNS: root CA for block pages",
+              "url": "https://help.nextdns.io/t/g9hmv0a/how-to-install-and-trust-nextdns-root-ca",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Create the profiles",
+            "minutes": 14,
+            "needs": [
+              "Filter admin sign-in"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Claude Code drafts the profiles",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code to draft the four profiles from this ticket for the chosen filter.</p>",
+                "expect_html": "<p>A draft per profile listing which lists are on.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Draft four DNS filter profiles for the filter chosen in net.03: Phil (security, adult, scam, malware, trackers, news placeholder), Kirsty (security, scam, malware, trackers; news off), Guests (adult and security only), Child (strictest, unassigned). Show me the draft; create nothing yet.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Create them",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The filter's dashboard (where net.03 decided)",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>Create the four profiles as drafted. Name them Phil, Kirsty, Guests, Child.</p>",
+                "expect_html": "<p>Four profiles listed in the dashboard.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Set a fallback",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The filter's dashboard (where net.03 decided) and the ASUS DNS settings",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>Make sure the router has a second resolver (the filter's secondary, or the ISP's) so a dead filter does not take the house offline.</p>",
+                "expect_html": "<p>Two DNS servers set on the router.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "A single DNS server that goes down takes every device offline. Keep a fallback."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Assign devices and test",
+            "minutes": 13,
+            "needs": [
+              "The device list"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Assign devices",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The filter's dashboard (where net.03 decided)",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>Assign each of your devices to Phil and each of Kirsty's to Kirsty; assign the Guests network to Guests.</p>",
+                "expect_html": "<p>No device of yours or Kirsty's left on the default profile.</p>",
+                "fields": [
+                  {
+                    "key": "assigned",
+                    "label": "Devices assigned (count)",
+                    "placeholder": "e.g. 9"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "One lookup per profile",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "A device in each profile",
+                  "kind": "page"
+                },
+                "body_html": "<p>From one device in each profile, open a known adult test site name the filter's help gives, and a news site.</p>",
+                "expect_html": "<p>Phil: both blocked once lists are on (block.04). Kirsty: news opens. Guests: adult blocked, news opens.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.04",
+      "title": "Lists on the filter: news (approved outlets, everything from them not only news), adult, scam, malware, trackers",
+      "kind": "setup",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nClaude Code turns Phil's approved outlets from block.01 into a news list (every domain and app domain of each outlet) and adds it with the adult, scam, malware and tracker lists to the right profiles from block.03. The list is a file in the settings repo so the yearly review can diff it. Phil approves the commit, then checks three listed sites and three unlisted ones.\n\n## Why\nSection 9 answers 4, 6 and 26, and 9b: everything from a listed outlet blocked, not only news; scam, malware and tracker lists carried too.\n\n## Done looks like\nThe lists live on the filter; the news list file is in the repo with the date it went live; spot checks pass.\n\n## Unlocks\nblock.05 (the block page), block.22 (yearly review dated from today), block.08 to block.13 use the same outlet list.\n\n## Depends on\nblock.01 (approved outlets) and block.03 (profiles).",
+      "after": [
+        "block.01",
+        "block.03"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-04-lists",
+        "kind": "setup",
+        "title": "Put the lists on the filter",
+        "version": 1,
+        "intro": {
+          "answer": "The approved outlets and the security lists, on the right profiles, with a date.",
+          "unlocks": [
+            "block.05",
+            "block.22"
+          ],
+          "to_hand": [
+            "The approved outlet table (block.01)",
+            "The filter's admin sign-in"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Lists live",
+            "minutes": 12,
+            "needs": [
+              "Filter admin sign-in"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Claude Code builds the news list",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code to build the news list from the approved rows.</p>",
+                "expect_html": "<p>A commit with the list and its date.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Build the news list from the approved rows in block.01: every domain and app domain of each outlet. Commit it to the settings repo with today's date. Show me the diff; push nothing to the filter yet.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Approve and apply",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The filter's dashboard (where net.03 decided)",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>Approve the commit; apply the news list to Phil's profile only. Switch on the adult, scam, malware and tracker lists on the profiles block.03 named.</p>",
+                "expect_html": "<p>Each profile shows the lists from its draft.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Spot check",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Your PC and phone",
+                  "kind": "page"
+                },
+                "body_html": "<p>Try three listed sites and three you read normally.</p>",
+                "expect_html": "<p>Listed ones blocked; the others open.</p>",
+                "fields": [
+                  {
+                    "key": "live_on",
+                    "label": "Date the list went live",
+                    "placeholder": "YYYY-MM-DD"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.05",
+      "title": "The block page: next thing from Mycelium with Start, this week's count, a saved quote; \"open anyway\" quick for news, a 10-minute wait for adult sites",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude designs, then builds, the block page in Mycelium. It shows Phil's next thing with a Start button, how many times he has landed this week, and one of his saved quotes. \"Open anyway\" is quick for news and has a 10-minute wait for adult sites; after a week of many open-anyways the wait grows the next week. Opening calls the filter's API to allow that site on that device for a set time. **Design first:** a DNS filter cannot show a page for an HTTPS site unless a root certificate is trusted on each device, and HSTS sites will not even allow a click-through (dossiers/block.md section 3.1). Claude writes the three options (a private root CA on Phil's own devices only; no CA, with \"open anyway\" in Mycelium and a PC browser extension; a hosted filter's branded page and CA) with their risks for Phil to choose, and builds only the chosen one.\n\n## Why\n9b: the block page shows his next thing with Start, this week's count and a saved quote; open anyway quick for news, a 10-minute wait for adult sites, and the wait grows after a week of many.\n\n## Done looks like\nPhil's choice of option recorded; the page built, landing on a listed site from his PC shows it, open anyway works with the right wait per list, and the count updates.\n\n## Unlocks\nblock.20 (the weekly count reads the open-anyways), block.23 (done check).\n\n## Depends on\nblock.04 (the lists to block against).\n\n## Flag\nNone from the brief. Design question for Phil: whether a private root certificate on his own phone and PC is acceptable (dossier section 5).\n\n## Red team\n- Finding 15: The Mycelium content is fetched only with the device's own session or device token; the unauthenticated block page shows the count and the quote only. No public endpoint.\n",
+      "after": [
+        "block.04"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "feature",
+        "dev",
+        "ui"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "block.06",
+      "title": "Close the bypasses on Phil's devices: browsers' encrypted DNS, iCloud Private Relay, VPN and proxy apps",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOn the PC, the iPhone and the Pixel, one sitting each: set every browser's own secure DNS to Off or to the filter's own address, turn iCloud Private Relay off (or Limit IP Address Tracking off on home Wi-Fi), remove VPN and proxy apps other than the home VPN, and test that a listed site is still blocked. Kirsty's devices are not touched.\n\n## Why\nSection 9 answer 13: bypasses closed on his devices, browsers' own encrypted DNS and iCloud Private Relay, VPN and proxy apps.\n\n## Done looks like\nOn all three devices a listed site is blocked in every browser; Private Relay off on the iPhone; no VPN or proxy app other than the home VPN.\n\n## Unlocks\nblock.21 (test run from every device).\n\n## Depends on\nblock.03 (his devices in his profile).",
+      "after": [
+        "block.03"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "phone",
+        "pc",
+        "browser"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-06-bypasses",
+        "kind": "guide",
+        "title": "Close the DNS bypasses on your devices",
+        "version": 1,
+        "intro": {
+          "answer": "Each device's browsers and privacy features made to use the filter.",
+          "unlocks": [
+            "block.21"
+          ],
+          "to_hand": [
+            "The PC, the iPhone, the Pixel",
+            "The filter's DoH address (from its dashboard; it is not a secret)"
+          ],
+          "time": [
+            "Three sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Apple: manage iCloud Private Relay per network",
+              "url": "https://support.apple.com/en-us/102022",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Mozilla: canary domain",
+              "url": "https://support.mozilla.org/kb/canary-domain-use-application-dnsnet",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Chromium: DNS over HTTPS",
+              "url": "https://www.chromium.org/developers/dns-over-https",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Android: Private DNS",
+              "url": "https://android-developers.googleblog.com/2018/04/dns-over-tls-support-in-android-p.html",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The PC",
+            "minutes": 14,
+            "needs": [
+              "The PC"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Chrome and Edge secure DNS",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Chrome and Edge, Settings, Privacy and security, Use secure DNS",
+                  "kind": "page"
+                },
+                "body_html": "<p>In each browser set <strong>Use secure DNS</strong> to <strong>With</strong> the filter's own DoH address, or Off.</p>",
+                "expect_html": "<p>Both browsers show the filter's address or Off.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Firefox DNS over HTTPS",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Firefox, Settings, Privacy and Security, DNS over HTTPS",
+                  "kind": "page"
+                },
+                "body_html": "<p>Set to <strong>Off</strong>, or Max Protection with the filter's address.</p>",
+                "expect_html": "<p>Firefox shows Off or the filter's address.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Windows DNS and VPN apps",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Windows Settings, Network and internet; Apps, Installed apps",
+                  "kind": "page"
+                },
+                "body_html": "<p>Check DNS server assignment is Automatic (the router's) or the filter's; uninstall any VPN or proxy app other than the home VPN.</p>",
+                "expect_html": "<p>DNS automatic or the filter; no other VPN app.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Test",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Each browser on the PC",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open a listed site in each browser.</p>",
+                "expect_html": "<p>Blocked in every browser.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The iPhone",
+            "minutes": 12,
+            "needs": [
+              "The iPhone"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Private Relay off",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Settings, your name, iCloud, Private Relay",
+                  "kind": "page"
+                },
+                "body_html": "<p>Turn <strong>Private Relay</strong> off.</p>",
+                "expect_html": "<p>Private Relay shows Off.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Limit IP Address Tracking on home Wi-Fi",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Settings, Wi-Fi, the (i) next to Trusted",
+                  "kind": "page"
+                },
+                "body_html": "<p>Turn <strong>Limit IP Address Tracking</strong> off for the home network.</p>",
+                "expect_html": "<p>The switch is off.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "VPN and proxy apps",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Settings, General, VPN and Device Management",
+                  "kind": "page"
+                },
+                "body_html": "<p>Remove any VPN or proxy profile and app other than the home VPN and the filter's DNS profile.</p>",
+                "expect_html": "<p>Only the home VPN and the filter profile remain.</p>"
+              },
+              {
+                "id": "2.4",
+                "title": "Test",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Safari and Chrome on the iPhone",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open a listed site in each.</p>",
+                "expect_html": "<p>Blocked in both.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "It opens in one browser",
+                    "fix": "That browser has its own secure DNS: switch it off in its settings."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "The Pixel",
+            "minutes": 11,
+            "needs": [
+              "The Pixel"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Chrome secure DNS",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Chrome on the Pixel, Settings, Privacy and security, Use secure DNS",
+                  "kind": "page"
+                },
+                "body_html": "<p>Set to use the current provider (it then follows Private DNS) or Off.</p>",
+                "expect_html": "<p>Chrome shows the current provider or Off.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "VPN and proxy apps",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Settings, Network and internet, VPN; Apps",
+                  "kind": "page"
+                },
+                "body_html": "<p>Remove any VPN or proxy app other than the home VPN.</p>",
+                "expect_html": "<p>Only the home VPN remains.</p>"
+              },
+              {
+                "id": "3.3",
+                "title": "Test",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Chrome on the Pixel",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open a listed site.</p>",
+                "expect_html": "<p>Blocked.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "2.4": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.07",
+      "title": "Same filter away from home: a DNS profile on the iPhone and the Pixel",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil installs the filter's encrypted DNS on both phones so the Phil profile follows him off home Wi-Fi: on the iPhone, the filter's DNS configuration profile (installed under Settings, General, VPN and Device Management); on the Pixel, Private DNS set to the filter's hostname. He tests on mobile data. If the filter is self-hosted with no public address, this is done through the home VPN instead (net.21) and the step says so.\n\n## Why\nSection 9 answer 12: the same filter everywhere, via a profile on each phone.\n\n## Done looks like\nOn mobile data both phones block a listed site and open everything else.\n\n## Unlocks\nblock.21 (test run).\n\n## Depends on\nblock.03 (the Phil profile).",
+      "after": [
+        "block.03"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "phone"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-07-away-from-home",
+        "kind": "guide",
+        "title": "The filter on both phones away from home",
+        "version": 1,
+        "intro": {
+          "answer": "One profile on each phone and the filter follows you everywhere.",
+          "unlocks": [
+            "block.21"
+          ],
+          "to_hand": [
+            "Both phones",
+            "The filter's profile link and hostname (from its dashboard; not secrets)"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Apple: DNS settings payload",
+              "url": "https://support.apple.com/guide/deployment/dep7e19a4b12/web",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Android: Private DNS",
+              "url": "https://android-developers.googleblog.com/2018/04/dns-over-tls-support-in-android-p.html",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Both phones",
+            "minutes": 12,
+            "needs": [
+              "Both phones"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "iPhone: install the profile",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Safari on the iPhone, then Settings, General, VPN and Device Management",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the filter's profile link from its dashboard in Safari, allow the download, then install it under <strong>VPN and Device Management</strong>.</p>",
+                "expect_html": "<p>The profile shows as installed, and Settings, General, VPN and Device Management, DNS shows it selected.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "Mobile data stops working",
+                    "fix": "Remove the profile in the same place; note it here (reported on some iOS 18 phones)."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Pixel: Private DNS",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Settings, Network and internet, Private DNS",
+                  "kind": "page"
+                },
+                "body_html": "<p>Choose <strong>Private DNS provider hostname</strong> and enter the filter's hostname.</p>",
+                "expect_html": "<p>Private DNS shows the hostname and no error.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Test on mobile data",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Each phone, Wi-Fi off",
+                  "kind": "page"
+                },
+                "body_html": "<p>Turn Wi-Fi off; open a listed site and an ordinary one.</p>",
+                "expect_html": "<p>Listed blocked, ordinary opens, on both phones.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.08",
+      "title": "Emails and app notifications from listed outlets cleared in the sender sweep; apps removed",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nUsing the approved outlet list from block.01, Phil unsubscribes from every newsletter from a listed outlet (the Gmail pass in mail.27 carries most of them), turns off notifications and removes the outlet's apps on the iPhone, the Pixel and the PC.\n\n## Why\nSection 9 answer 21: emails and app notifications from listed outlets cleared in the email migration's sender sweep; apps removed.\n\n## Done looks like\nNo listed outlet's app on any of his devices; no listed outlet in the unsubscribe list still sending.\n\n## Unlocks\nblock.23 (done check).\n\n## Depends on\nblock.01 (the approved list).",
+      "after": [
+        "block.01"
+      ],
+      "links": [
+        "mail.27"
+      ],
+      "tags": [
+        "security",
+        "block",
+        "communication"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-08-emails-apps",
+        "kind": "guide",
+        "title": "Clear listed outlets from email and apps",
+        "version": 1,
+        "intro": {
+          "answer": "Their emails stop and their apps go.",
+          "unlocks": [
+            "block.23"
+          ],
+          "to_hand": [
+            "The approved outlet list",
+            "Both phones"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Sweep",
+            "minutes": 12,
+            "needs": [
+              "Both phones"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Emails",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Gmail and the IONOS mailboxes",
+                  "kind": "page"
+                },
+                "body_html": "<p>Search each listed outlet's name; unsubscribe from each sender (mail.27 does most in Gmail).</p>",
+                "expect_html": "<p>No newsletter from a listed outlet left subscribed.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Apps on the phones",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Home screens of both phones",
+                  "kind": "page"
+                },
+                "body_html": "<p>Delete every app from a listed outlet (BBC News, BBC Sport, iPlayer, Sounds, Daily Mail, ITVX and any others approved).</p>",
+                "expect_html": "<p>None left.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "The PC",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Windows Settings, Apps; browser bookmarks",
+                  "kind": "page"
+                },
+                "body_html": "<p>Remove any outlet app and bookmark.</p>",
+                "expect_html": "<p>None left.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.09",
+      "title": "Built-in news feeds off: Discover (Pixel), Apple News and widgets (iPhone), Windows widgets and start pages (PC)",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil turns off every built-in news feed on his devices, one sitting per device: Google Discover on the Pixel home screen and in the Google app; Apple News, its widgets and the Today view news on the iPhone; Windows widgets, the Edge new-tab news and any browser start page with headlines on the PC.\n\n## Why\nSection 9 answer 20: built-in news feeds turned off entirely, a ticket per device.\n\n## Done looks like\nNo headlines anywhere on the home screens, lock screens, widgets or browser start pages of the three devices.\n\n## Unlocks\nblock.23 (done check).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "phone",
+        "pc"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-09-news-feeds",
+        "kind": "guide",
+        "title": "Built-in news feeds off on every device",
+        "version": 1,
+        "intro": {
+          "answer": "No headline will appear unless you went looking.",
+          "unlocks": [
+            "block.23"
+          ],
+          "to_hand": [
+            "The Pixel, the iPhone, the PC"
+          ],
+          "time": [
+            "About 30 minutes over three short sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The Pixel",
+            "minutes": 6,
+            "needs": [
+              "Pixel"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Discover off",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Pixel home screen, long-press, Home settings",
+                  "kind": "page"
+                },
+                "body_html": "<p>Turn off <strong>Swipe to access Google app</strong> (Discover).</p>",
+                "expect_html": "<p>Swiping right shows nothing.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Google app Discover off",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Google app, profile, Settings, General",
+                  "kind": "page"
+                },
+                "body_html": "<p>Turn <strong>Discover</strong> off.</p>",
+                "expect_html": "<p>No feed under the search bar.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The iPhone",
+            "minutes": 6,
+            "needs": [
+              "iPhone"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Apple News off",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Home screen and Settings, Apps, News",
+                  "kind": "page"
+                },
+                "body_html": "<p>Delete the News app; remove News widgets from the home screen and Today view.</p>",
+                "expect_html": "<p>No News app or widget.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Safari start page",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Safari, new tab, Edit",
+                  "kind": "page"
+                },
+                "body_html": "<p>Turn off any suggestions or headlines sections.</p>",
+                "expect_html": "<p>A plain start page.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "The PC",
+            "minutes": 7,
+            "needs": [
+              "PC"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Windows widgets off",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Settings, Personalisation, Taskbar",
+                  "kind": "page"
+                },
+                "body_html": "<p>Turn <strong>Widgets</strong> off.</p>",
+                "expect_html": "<p>No weather or news button on the taskbar.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Edge and Chrome new tab",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Edge new tab, settings cog; Chrome new tab",
+                  "kind": "page"
+                },
+                "body_html": "<p>In Edge set content to <strong>Off</strong>; in Chrome hide shortcuts and cards.</p>",
+                "expect_html": "<p>New tabs show no headlines.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.10",
+      "title": "YouTube: channel blocking on the PC, \"don't recommend\" on phones and TVs",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOn the PC, Phil installs a channel-blocking browser extension and adds every listed outlet's YouTube channels (Claude lists them from block.01). On the phones and his own TVs, he uses \"Don't recommend channel\" on each listed outlet's videos when they appear, and clears YouTube's watch history of them. Shared TVs only as block.16 agrees.\n\n## Why\nSection 9 answer 15: channel blocking on the PC; \"don't recommend\" on phones and TVs.\n\n## Done looks like\nThe extension blocks the listed channels on the PC; a week later no listed channel shows in the phones' YouTube home feed.\n\n## Unlocks\nblock.23 (done check).\n\n## Depends on\nblock.01 (the channel list).",
+      "after": [
+        "block.01"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "video",
+        "browser"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-10-youtube",
+        "kind": "guide",
+        "title": "YouTube without the listed outlets",
+        "version": 1,
+        "intro": {
+          "answer": "Blocked on the PC, unrecommended everywhere else.",
+          "unlocks": [
+            "block.23"
+          ],
+          "to_hand": [
+            "The channel list from block.01"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "PC and phones",
+            "minutes": 13,
+            "needs": [
+              "Channel list"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Install a channel blocker",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Chrome Web Store on the PC",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Install a channel-blocking extension Claude names on the ticket (open source, well reviewed).</p>",
+                "expect_html": "<p>The extension icon in the toolbar.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Add the channels",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The extension's settings",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Paste each channel name from the list.</p>",
+                "expect_html": "<p>Listed channels vanish from search and home on the PC.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Phones: don't recommend",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "YouTube app on each phone",
+                  "kind": "page"
+                },
+                "body_html": "<p>On any listed outlet's video in your feed, use the three dots, <strong>Don't recommend channel</strong>.</p>",
+                "expect_html": "<p>That channel leaves the feed.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.11",
+      "title": "Search: a results-filter extension on the PC",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil installs a search results filter extension on the PC's browsers that hides listed outlets' domains from Google and Bing results (Claude names an open-source one on the ticket and turns block.01's domains into its list). Phones rely on the block page.\n\n## Why\nSection 9 answer 16: a results-filter extension on the PC; phones rely on the block page.\n\n## Done looks like\nA search for a news topic on the PC shows no listed outlet in results.\n\n## Unlocks\nblock.23 (done check).\n\n## Depends on\nblock.01 (the domains).",
+      "after": [
+        "block.01"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "browser"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-11-search-filter",
+        "kind": "guide",
+        "title": "Search results without the listed outlets",
+        "version": 1,
+        "intro": {
+          "answer": "Search on the PC never offers a listed outlet.",
+          "unlocks": [
+            "block.23"
+          ],
+          "to_hand": [
+            "The domain list from block.01"
+          ],
+          "time": [
+            "About 10 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Install and fill",
+            "minutes": 8,
+            "needs": [
+              "Domain list"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Install the extension",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Chrome Web Store and Edge Add-ons on the PC",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Install the results-filter extension Claude named on the ticket in each browser.</p>",
+                "expect_html": "<p>The extension icon in each toolbar.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Paste the domains",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The extension's settings",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Paste the domain list Claude prepared.</p>",
+                "expect_html": "<p>The list saved.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Test",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Google on the PC",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Search a current news topic.</p>",
+                "expect_html": "<p>No listed outlet in the results.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.12",
+      "title": "Alexa: default news and radio providers changed, listed skills disabled",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nIn the Alexa app Phil changes the Flash Briefing and news sources away from listed outlets, changes the default radio provider if it is a listed outlet's, and disables any skill from a listed outlet. Shared Echo devices: Kirsty told first; she can keep her own sources on her profile if Alexa profiles are set.\n\n## Why\nSection 9 answer 22: change the default news and radio providers, disable listed skills.\n\n## Done looks like\n\"Alexa, what's the news\" plays no listed outlet; no listed skill enabled.\n\n## Unlocks\nblock.23 (done check).\n\n## Depends on\nblock.01 (the list).",
+      "after": [
+        "block.01"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "home"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-12-alexa",
+        "kind": "guide",
+        "title": "Alexa without the listed outlets",
+        "version": 1,
+        "intro": {
+          "answer": "Alexa's news and radio come only from sources you chose.",
+          "unlocks": [
+            "block.23"
+          ],
+          "to_hand": [
+            "The Alexa app",
+            "Kirsty told"
+          ],
+          "time": [
+            "About 10 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Alexa app",
+            "minutes": 10,
+            "needs": [
+              "Alexa app"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "News sources",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Alexa app, More, Settings, News",
+                  "kind": "page"
+                },
+                "body_html": "<p>Remove each listed outlet from the news sources; add sources you chose.</p>",
+                "expect_html": "<p>No listed outlet in the list.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Skills and radio",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Alexa app, More, Skills and Games, Your Skills; Settings, Music and Podcasts",
+                  "kind": "page"
+                },
+                "body_html": "<p>Disable each listed outlet's skill; set the default radio to a service that is not listed.</p>",
+                "expect_html": "<p>No listed skill enabled.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Test",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "An Echo",
+                  "kind": "page"
+                },
+                "body_html": "<p>Say \"Alexa, what's the news\".</p>",
+                "expect_html": "<p>No listed outlet plays.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.13",
+      "title": "Podcasts and radio from listed outlets: unfollow, remove the apps",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhil unfollows every podcast from a listed outlet in his podcast apps, and removes radio apps of listed outlets (for example BBC Sounds) from both phones and the PC.\n\n## Why\nSection 9 answer 23: podcasts and radio from listed outlets, unfollow and remove the apps.\n\n## Done looks like\nNo listed outlet's podcast followed; no listed radio app installed.\n\n## Unlocks\nblock.23 (done check).\n\n## Depends on\nblock.01 (the list).",
+      "after": [
+        "block.01"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "phone"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-13-podcasts",
+        "kind": "guide",
+        "title": "Podcasts and radio without the listed outlets",
+        "version": 1,
+        "intro": {
+          "answer": "Your podcast list holds only shows you chose.",
+          "unlocks": [
+            "block.23"
+          ],
+          "to_hand": [
+            "Both phones"
+          ],
+          "time": [
+            "About 10 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Unfollow and remove",
+            "minutes": 8,
+            "needs": [
+              "Both phones"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Unfollow",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Each podcast app (Apple Podcasts, Spotify, Pocket Casts)",
+                  "kind": "page"
+                },
+                "body_html": "<p>Unfollow every show from a listed outlet.</p>",
+                "expect_html": "<p>None left in your library.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Remove radio apps",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Both phones",
+                  "kind": "page"
+                },
+                "body_html": "<p>Delete listed outlets' radio apps.</p>",
+                "expect_html": "<p>None left.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.14",
+      "title": "Sky Glass: research what can be hidden before any change",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude finds out from Sky's own help pages and current community reports what Sky Glass lets a household hide or lock: whether rails or apps can be hidden (community consensus says the home screen cannot be customised), what Settings, Parental, Manage parental settings can PIN per app, and what a DNS block of the BBC and ITV would do on the TV for everyone. The note goes to Kirsty's conversation in block.02 and to block.16.\n\n## Why\nSection 9 answer 18: Sky Glass, research what can be hidden before any change.\n\n## Done looks like\nA short note on the ticket with what can and cannot be done, sources dated.\n\n## Unlocks\nblock.16 (shared TVs).\n\n## Depends on\nblock.02 (Kirsty asked).",
+      "after": [
+        "block.02"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "research",
+        "video"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "block.15",
+      "title": "TV licence: the current rules for his set-up, from the official source",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude reads TV Licensing's own pages and writes the rules as they apply to the house: a licence is needed for live TV on any channel or service and for anything on BBC iPlayer, on any device; none for on-demand viewing elsewhere; one licence per address. Blocking the BBC on Phil's devices does not change the household's need while any live TV or iPlayer is watched in the house. The note recommends nothing beyond a check of the current licence's renewal date.\n\n## Why\nSection 9 answer 19: a research ticket on the current rules for his set-up, from the official source.\n\n## Done looks like\nA note on the ticket quoting TV Licensing with the date checked.\n\n## Unlocks\nfin.14 (the renewal date look-up can include the licence).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [
+        "fin.14"
+      ],
+      "tags": [
+        "security",
+        "block",
+        "research",
+        "admin"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "block.16",
+      "title": "Shared TVs: apply what Kirsty agreed (LG, Samsung, Fire Stick)",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PK",
+      "description": "## What\nPhil applies on each shared TV only what Kirsty agreed in block.02, using what block.14 found for Sky Glass: for example hiding or removing a listed app, a PIN on an app, \"don't recommend\" in YouTube on the TV. One TV per step; Kirsty checks each still does what she uses it for.\n\n## Why\nSection 9 answer 17: shared TVs, ask Kirsty first; the technical tickets wait on it.\n\n## Done looks like\nEach shared TV changed as agreed and nothing else; Kirsty happy with each.\n\n## Unlocks\nblock.21 (test run).\n\n## Depends on\nblock.02 (Kirsty's answer) and block.14 (Sky Glass research).",
+      "after": [
+        "block.02",
+        "block.14"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "house",
+        "video"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-16-shared-tvs",
+        "kind": "guide",
+        "title": "Shared TVs: only what Kirsty agreed",
+        "version": 1,
+        "intro": {
+          "answer": "Each TV changed exactly as agreed, and Kirsty checks it.",
+          "unlocks": [
+            "block.21"
+          ],
+          "to_hand": [
+            "Kirsty's answer (block.02)",
+            "Each TV's remote"
+          ],
+          "time": [
+            "Two sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Internet Matters: Sky Glass parental controls",
+              "url": "https://www.internetmatters.org/parental-controls/smartphones-and-other-devices/sky-glass/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "LG and Samsung",
+            "minutes": 12,
+            "needs": [
+              "Remotes",
+              "Kirsty's answer"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "LG",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "LG TV, home screen, Edit",
+                  "kind": "page"
+                },
+                "body_html": "<p>Do only what Kirsty agreed (for example remove or hide a listed app).</p>",
+                "expect_html": "<p>The agreed change made; nothing else.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Samsung",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Samsung TV, Apps, Settings",
+                  "kind": "page"
+                },
+                "body_html": "<p>The same, for the Samsung.</p>",
+                "expect_html": "<p>The agreed change made; nothing else.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Fire Stick and Sky Glass",
+            "minutes": 13,
+            "needs": [
+              "Remotes",
+              "Kirsty's answer"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Fire Stick",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Fire TV, Settings, Applications, Manage installed applications",
+                  "kind": "page"
+                },
+                "body_html": "<p>Only what Kirsty agreed.</p>",
+                "expect_html": "<p>The agreed change made.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Sky Glass",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Sky Glass, Settings, Parental, Manage parental settings",
+                  "kind": "page"
+                },
+                "body_html": "<p>Only what block.14 found possible and Kirsty agreed (for example a PIN on a listed app).</p>",
+                "expect_html": "<p>The agreed change made.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Kirsty checks",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Each TV",
+                  "kind": "page"
+                },
+                "body_html": "<p>Kirsty uses each TV the way she normally does.</p>",
+                "expect_html": "<p>She is happy with all four.</p>",
+                "fields": [
+                  {
+                    "key": "kirsty_tvs",
+                    "label": "Kirsty happy? (yes / what to undo)",
+                    "placeholder": "yes"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.17",
+      "title": "Social app limits: a daily minute allowance per app and blocked hours, tightest in the four weak spots",
+      "kind": "setup",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nTwo parts, because DNS cannot count minutes. On the filter, Phil's profile blocks the chosen social apps' domains during set hours covering the four weak spots (in bed in the morning, breaks during work, evenings on the sofa, late at night). On the phones, Screen Time App Limits (iPhone) and Digital Wellbeing app timers (Pixel) set a daily minute allowance per app. Phil picks the apps, the hours and the minutes in the first step.\n\n## Why\nSection 9 answer 26 and 9b: time limits on social apps, a daily minute allowance per app and blocked during set hours, tightest in the four weak spots.\n\n## Done looks like\nThe schedule live on the filter; app limits set on both phones; a test inside a blocked hour shows the app blocked.\n\n## Unlocks\nblock.20 (the weekly count can include limit hits).\n\n## Depends on\nblock.03 (Phil's profile).",
+      "after": [
+        "block.03"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "phone",
+        "schedule"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-17-social-limits",
+        "kind": "setup",
+        "title": "Social app limits: hours and minutes",
+        "version": 1,
+        "intro": {
+          "answer": "Blocked in the weak spots by the filter, rationed the rest of the day by the phones.",
+          "unlocks": [
+            "block.20"
+          ],
+          "to_hand": [
+            "Both phones",
+            "The filter's admin sign-in"
+          ],
+          "time": [
+            "Two sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Choose and set the hours",
+            "minutes": 10,
+            "needs": [
+              "Filter admin sign-in"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Choose apps, hours and minutes",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "This page",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Write the apps, the blocked hours for each weak spot, and a daily minute allowance per app.</p>",
+                "expect_html": "<p>Three answers in the boxes.</p>",
+                "fields": [
+                  {
+                    "key": "apps",
+                    "label": "Apps",
+                    "placeholder": "e.g. X, Reddit, Instagram"
+                  },
+                  {
+                    "key": "hours",
+                    "label": "Blocked hours",
+                    "placeholder": "e.g. 06:00-08:00, 22:30-07:00"
+                  },
+                  {
+                    "key": "minutes",
+                    "label": "Daily minutes per app",
+                    "placeholder": "e.g. 20"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Schedule on the filter",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The filter's dashboard (where net.03 decided)",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>On Phil's profile, block those apps' services during the hours chosen (the filter's schedule or recreation-time feature).</p>",
+                "expect_html": "<p>The schedule shows on the profile.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Minutes on the phones",
+            "minutes": 12,
+            "needs": [
+              "Both phones"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "iPhone Screen Time",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Settings, Screen Time, App Limits",
+                  "kind": "page"
+                },
+                "body_html": "<p>Add a limit per app with the minutes chosen.</p>",
+                "expect_html": "<p>Each app listed with its limit.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Pixel Digital Wellbeing",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Settings, Digital Wellbeing and parental controls, Dashboard",
+                  "kind": "page"
+                },
+                "body_html": "<p>Set an app timer per app.</p>",
+                "expect_html": "<p>Each app shows its timer.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Test in a blocked hour",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Either phone",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open one of the apps during a blocked hour.</p>",
+                "expect_html": "<p>It does not load.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.18",
+      "title": "The weekly digest: sources Phil chooses, grouped by the four topics, read in the Sunday close-out beside Finds",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude builds the weekly digest: Phil chooses the sources (none from the listed outlets), a feed reader on Substrate collects them, and Mycelium shows every item from the week grouped by the four topics (technology and AI; the health service and his own field; Doncaster and South Yorkshire; national and world affairs) in the Sunday close-out beside Finds.\n\n## Why\nSection 9 answers 3 and 27, and 9b: a weekly digest from sources he chooses, as many items as there are, grouped by topic, read in the Sunday close-out beside Finds.\n\n## Done looks like\nThe Sunday close-out shows the digest grouped by the four topics from Phil's sources.\n\n## Unlocks\nblock.23 (news replaced, not only removed).\n\n## Depends on\nsub.14 (the feed reader on Substrate).\n\n## Red team\n- Finding 38: First slice from Mycelium's existing feed pipeline (Finds); the Substrate reader (sub.14) becomes its source when it exists.\n",
+      "after": [
+        "block.01"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "block.19",
+      "title": "Official alerts only (weather warnings, government emergency alerts) pushed through Mycelium",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude adds the official need-to-know feeds only, Met Office weather warnings for the area and the government's emergency alerts (which phones already receive natively; Mycelium only mirrors where a feed exists), pushed through Mycelium inside the interruption budget, severe warnings at once.\n\n## Why\n9b need-to-know: official alerts only, weather warnings and government emergency alerts, pushed through Mycelium.\n\n## Done looks like\nA test warning from the feed arrives as one Mycelium push.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "feature",
+        "reminder"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "block.20",
+      "title": "Weekly count in the Sunday close-out: hits per list, open-anyways, owner-only; the Boys raise a bad week bluntly",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude adds to the Sunday close-out an owner-only count: hits per list from the filter's logs, how many times Phil opened anyway, per list. A week over a threshold (Phil sets it) has the Boys raise it bluntly and ask why, and lengthens next week's open-anyway wait. Never on the wall, never shared.\n\n## Why\nSection 9 answers 24 and 25, and 9b: a weekly count in the Sunday close-out, owner-only; a week with many open-anyways is raised bluntly and the wait grows.\n\n## Done looks like\nThe close-out shows the counts to Phil only; a staged heavy week triggers the Boys' message and a longer wait.\n\n## Unlocks\nblock.23 (done check reads the counts).\n\n## Depends on\nblock.05 (the open-anyway records).",
+      "after": [
+        "block.05"
+      ],
+      "links": [
+        "PW-139"
+      ],
+      "tags": [
+        "security",
+        "block",
+        "feature",
+        "dev"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "block.21",
+      "title": "Test run from every device and profile; added to the monthly review",
+      "kind": "test",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nFrom each device and profile (Phil's PC, iPhone, Pixel, his own TVs; Kirsty's phone; a guest phone on Guests; mobile data on both his phones) Phil tries a listed news site, an adult test site and a known malware test page, and records the result. The same run is added to the monthly network review (net.24).\n\n## Why\nSection 9 answer 29: a test run from every device and profile, re-run in the monthly review.\n\n## Done looks like\nA table of device, profile and the three results, all as intended.\n\n## Unlocks\nblock.23 (done check), net.24 (monthly).\n\n## Depends on\nblock.06, block.07 and block.16 (devices set up).",
+      "after": [
+        "block.06",
+        "block.07",
+        "block.16"
+      ],
+      "links": [
+        "net.24"
+      ],
+      "tags": [
+        "security",
+        "block",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-21-test-run",
+        "kind": "test",
+        "title": "Blocking test run, every device and profile",
+        "version": 1,
+        "intro": {
+          "answer": "Three test sites, every device: the results show the filter is doing what you decided.",
+          "unlocks": [
+            "block.23",
+            "net.24"
+          ],
+          "to_hand": [
+            "Every device",
+            "A guest phone or Kirsty's on Guests"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Run",
+            "minutes": 13,
+            "needs": [
+              "Every device"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Your devices",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "PC, iPhone, Pixel, your TVs",
+                  "kind": "page"
+                },
+                "body_html": "<p>On each, try a listed news site, the filter's adult test name and its malware test page.</p>",
+                "expect_html": "<p>All three blocked on each.</p>",
+                "fields": [
+                  {
+                    "key": "phil_results",
+                    "label": "Any that opened (device and site)",
+                    "placeholder": "none"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Kirsty and guests",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Kirsty's phone; a phone on Guests",
+                  "kind": "page"
+                },
+                "body_html": "<p>Kirsty: news opens, malware blocked. Guests: news opens, adult and malware blocked.</p>",
+                "expect_html": "<p>As described.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Mobile data",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Both your phones, Wi-Fi off",
+                  "kind": "page"
+                },
+                "body_html": "<p>Repeat the three tests.</p>",
+                "expect_html": "<p>All blocked.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.22",
+      "title": "Yearly review of the list against the same criteria",
+      "kind": "audit",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOnce a year, dated a year after block.04 went live: Claude re-checks each listed outlet against the four criteria (regulator rulings and corrections, fact-checker records, ownership and funding, Phil's examples) and proposes keep or remove per outlet; Phil decides each.\n\n## Why\n9b: coming off the list, a yearly review against the same criteria.\n\n## Done looks like\nEvery outlet marked keep or remove with this year's reason; the list file updated and dated.\n\n## Unlocks\nNothing.\n\n## Depends on\nblock.04 (the live list and its date).",
+      "after": [
+        "block.04"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "schedule"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-22-yearly-review",
+        "kind": "audit",
+        "title": "Yearly review of the blocked outlets",
+        "version": 1,
+        "intro": {
+          "answer": "Each outlet earns its place again, or comes off.",
+          "unlocks": [],
+          "to_hand": [
+            "Claude's yearly check"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Review",
+            "minutes": 13,
+            "needs": [
+              "Claude's check"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Claude Code checks the outlets",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code for the yearly check.</p>",
+                "expect_html": "<p>A table with keep or remove proposed per outlet.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Re-check each outlet on the news list against the four criteria in block.01 for the past year and propose keep or remove with a reason and source each.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Decide each",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Mark keep or remove per outlet.</p>",
+                "expect_html": "<p>Every row marked.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Apply",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Approve the commit that updates the list.</p>",
+                "expect_html": "<p>The list file dated today.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "block.23",
+      "title": "Done check: 30 days without seeing a listed outlet unless chosen",
+      "kind": "test",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nAfter the test run passes, Phil keeps a 30-day watch: Claude reads the filter logs and the open-anyway records; any listed outlet seen without an open-anyway is a gap to fix. On day 30 Phil confirms he has not seen a listed outlet unless he chose to.\n\n## Why\nSection 9 answer 30: done means 30 days without seeing a listed outlet unless he chose to.\n\n## Done looks like\nDay 30 reached with no unchosen sighting, or each gap fixed and the 30 days restarted.\n\n## Unlocks\nCloses E.block.\n\n## Depends on\nblock.21 (the test run).",
+      "after": [
+        "block.21"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "block",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sec-block-23-done-check",
+        "kind": "test",
+        "title": "Thirty days without a listed outlet",
+        "version": 1,
+        "intro": {
+          "answer": "Thirty days, and the only outlets you saw were ones you chose.",
+          "unlocks": [],
+          "to_hand": [
+            "Claude's log summary"
+          ],
+          "time": [
+            "Two short checks"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Start and finish",
+            "minutes": 10,
+            "needs": [
+              "Claude's log summary"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Start the 30 days",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This page",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write today's date.</p>",
+                "expect_html": "<p>The start date recorded.</p>",
+                "fields": [
+                  {
+                    "key": "start",
+                    "label": "Start date",
+                    "placeholder": "YYYY-MM-DD"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Day 30: read the summary",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Ask Claude Code for the 30-day summary.</p>",
+                "expect_html": "<p>Sightings listed, each with chosen or not.</p>",
+                "blocks": [
+                  {
+                    "label": "Prompt",
+                    "text": "Summarise the last 30 days of filter logs and open-anyway records for Phil's profile: any listed outlet reached without an open-anyway is a gap. List gaps with device and how it got through.",
+                    "kind": "prompt"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Confirm",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Confirm no unchosen sighting, or note each gap.</p>",
+                "expect_html": "<p>Confirmed, or gaps listed for fixing.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    }
+  ],
+  "existing": []
+}

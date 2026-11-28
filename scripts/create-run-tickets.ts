@@ -87,6 +87,8 @@ type TicketIn = {
   links?: string[];
   tags?: string[];
   steps_definition?: StepsDefinition | null;
+  /** The epic this ticket sits under when it is not its file's (an epic sid). */
+  epic_sid?: string;
 };
 type ExistingIn = { key: string; set_epic?: boolean; append?: string };
 type EpicFile = {
@@ -476,7 +478,7 @@ for (const e of epics) {
     if (!KEY_RE.test(x.key)) continue;
     totals.existing += 1;
     if (!APPLY || !epicKey) continue;
-    let current: { ticket: { description: string | null; epic: { key: string | null } | null } } | null = null;
+    let current: { ticket: { description: string | null; epic: { key: string | null } | null } };
     try {
       current = await api("GET", `/api/work/tickets/${encodeURIComponent(x.key)}`);
     } catch {
@@ -505,6 +507,14 @@ console.log("\n== dependencies and links");
 for (const e of epics) {
   for (const t of e.tickets) {
     const key = createdKeyBySid.get(t.sid);
+    // a ticket that sits under another epic than its file's (red team 50)
+    if (t.epic_sid && key && APPLY) {
+      const otherEpic = createdKeyBySid.get(t.epic_sid);
+      if (otherEpic) {
+        const cur = await api<{ ticket: { epic: { key: string | null } | null } }>("GET", `/api/work/tickets/${encodeURIComponent(key)}`);
+        if (cur.ticket.epic?.key !== otherEpic) await api("PATCH", `/api/work/tickets/${encodeURIComponent(key)}`, { epic: otherEpic });
+      }
+    }
     for (const a of t.after ?? []) {
       const blocker = await resolveRef(a);
       if (!blocker) {

@@ -1,0 +1,3504 @@
+{
+  "epic": {
+    "sid": "E.sub",
+    "project": "SUB",
+    "title": "Substrate: DNS and VPN first, 30 days untouched before June",
+    "description": "Substrate is a separate, silent, always-on box built from spare parts beside the routers, for cutting monthly costs, privacy and owning the data, not depending on companies, and the enjoyment of learning (not to cancel anything). Nothing is exposed to the internet: VPN only. House basics fail safe, Kirsty never notices it, anything she uses changes only in one weekend window with a rehearsed revert, and backups go to a second drive and an encrypted drive at a family member's house.\n\n## Order\nFirst the costed list and power measurement (sub.01) and the platform choice (sub.02), then the build and power-cut test (sub.03), the first service by hand then as code (sub.04) and the names and certificates (sub.05). Network needs come next: the DNS filter where net.03 decided (sub.06) and the VPN on net.04's route with Kirsty's phone (sub.07). Then Home Assistant (sub.08), monitoring (sub.09, sub.21), cameras (sub.10), backups (sub.11), photos (sub.12), files (sub.13), media, books and feeds (sub.14), paperwork (sub.15), git and runners (sub.16) and the PC worker question (sub.17). Alongside: the off test (sub.18), Kirsty's phone weeks (sub.19), the family rule (sub.20), monthly updates (sub.22), restore tests (sub.23) and the printed page (sub.24). The 30-day proof runs hands off from 2027-04-24 and is checked 2027-05-24 (sub.25); the done check (sub.26) closes the epic. H2.3 (a better home than IONOS) is keys.14 and the old VPS check is keys.08, both in E.keys and linked here.\n\n## Done means\nEvery chosen service runs 30 days without Phil touching it, Kirsty's services have each worked a week untouched on her phone, and the printed page is by the routers.\n\n## Flags\nNo [claude] flags touch this epic. The old VPS items (H2.5, assumed) are checked in keys.08; nothing is switched off without Phil's word.\n\n## Dossier\nThe research dossier is attached in Docs (link added by the integrator).",
+    "dossier": "dossiers/sub.md",
+    "links": [
+      "MYC-182",
+      "MYC-187",
+      "MYC-200",
+      "MCU-12"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "sub.01",
+      "title": "Costed list: the spare parts as a whole machine, silence, a plug-in meter's week of power, monthly running figure; budget decided after",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude Code writes the costed list for Substrate in Docs: every spare part Phil has (CPU and whether it has integrated graphics, board, RAM, drives, PSU and its wattage, case, fans, any graphics card), what is missing to make a whole machine, and a priced line for each missing part (to be priced, nothing bought). It adds the silence plan (large fans on a slow BIOS curve, a PSU whose fan stays off at light load, SSD for the system, any hard drive spinning down) and an estimated idle draw. Phil's part is two short sittings: list the parts (photos of the labels are fine) and, once a plug-in meter is in the house, leave the bench-assembled machine on it for a week. The monthly figure uses about 24p per watt per month (Ofgem cap 32.69p per kWh from 1 January 2027; Phil's own tariff replaces it if known). The list states the figure with and without any graphics card.\n\n## Why\nPhil: \"decide after a costed list\"; \"measure first with a plug-in meter for a week, then set a limit\"; noise \"silent or near it\" shapes which parts are used.\n\n## Done looks like\nA Docs page with the parts table, the missing parts priced, the measured or estimated idle watts, a monthly and yearly running figure, and one line for Phil: the budget he sets and the power limit.\n\n## Unlocks\nsub.03 (the build uses this list); sub.10 (the camera plan depends on whether the CPU has integrated graphics); sub.17 (the graphics card question).\n\n## Depends on\nNothing.\n\n## Cost\nParts, drives and a plug-in meter are to be priced on the list. Nothing is bought in this run.",
+      "after": [],
+      "links": [
+        "MYC-182"
+      ],
+      "tags": [
+        "research",
+        "pc",
+        "planning",
+        "shopping",
+        "sub"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "sub.02",
+      "title": "Platform research: plain Linux with containers against a VM host (the VM question folded in); Phil approves",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude Code writes a one-page comparison in Docs of two shapes for Substrate: plain Debian with Docker Compose (Home Assistant as a container, no add-ons, filesystem snapshots and pinned versions for revert), and Proxmox VE 9.2 with a Home Assistant OS VM plus one Debian VM running Docker Compose (per-VM snapshots and backups). It scores them on: the family rule's snapshot and one-step revert, Home Assistant add-ons and updates, camera detection on the integrated graphics, idle power and RAM on the spare parts, upkeep in evenings, and learning. The H5 \"VM question\" is answered here. Phil reads it and writes his choice on the ticket.\n\n## Why\nPhil: \"research, then he approves\" (plain Linux with containers versus a VM host); H5 folded the VM question into this research.\n\n## Done looks like\nThe Docs page exists and the ticket carries Phil's choice in one line (for example \"Proxmox, two VMs\" or \"Debian and Compose\").\n\n## Unlocks\nsub.03 (what gets installed); sub.08 (the Home Assistant install method); sub.20 (how the snapshot and revert work).\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "research",
+        "planning",
+        "devops",
+        "sub"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "sub.03",
+      "title": "Build the box beside the routers; power-cut restart tested by pulling the plug",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "P",
+      "description": "## What\nBuild Substrate from the sub.01 parts, place it beside the routers on a wired connection, set the BIOS to power on after a power cut and to a quiet fan curve, install the platform Phil chose in sub.02, then pull the plug once and confirm it starts by itself.\n\n## Why\nPhil: a separate always-on box \"beside the routers\"; power cut: \"restart cleanly by itself; tested by pulling the plug once\".\n\n## Done looks like\nSubstrate sits beside the routers, near silent, on a fixed house address, and the pulled-plug test is ticked with \"started by itself: yes\".\n\n## Unlocks\nsub.04 (services as code); sub.05 (names and certificates).\n\n## Depends on\nsub.01 (the parts and budget); sub.02 (which platform).",
+      "after": [
+        "sub.01",
+        "sub.02"
+      ],
+      "links": [],
+      "tags": [
+        "pc",
+        "home",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-build-box",
+        "kind": "guide",
+        "title": "Build Substrate and test the power-cut restart",
+        "version": 1,
+        "intro": {
+          "answer": "Build the box, set the BIOS to power on after a power cut, install the platform, pull the plug once.",
+          "unlocks": [
+            "sub.04",
+            "sub.05"
+          ],
+          "to_hand": [
+            "The spare parts",
+            "A USB stick",
+            "Keyboard and screen",
+            "Proton Pass"
+          ],
+          "time": "About four sittings of 15 minutes",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "ASUS, BIOS item Restore AC Power Loss",
+              "url": "https://www.asus.com/uk/support/faq/1049855/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Intel, after power failure setting",
+              "url": "https://www.intel.com/content/www/us/en/support/articles/000059976.html",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Proxmox VE 9.2 release",
+              "url": "https://www.proxmox.com/en/about/press-releases/proxmox-virtual-environment-9-2",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "3.2",
+            "why": "The installer wipes the system SSD; check it is the right drive."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Build the box",
+            "minutes": 15,
+            "needs": [
+              "The parts on the costed list",
+              "A screwdriver",
+              "An Ethernet cable"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Assemble the machine",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Bench or table",
+                  "kind": "page"
+                },
+                "body_html": "<p>Build the machine from the parts on the sub.01 list. Fit the system SSD. Leave any graphics card out unless sub.01 says it stays.</p>",
+                "expect_html": "<p>All parts fitted, case closed, fans connected to the board's fan headers.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Place it beside the routers",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Beside the routers",
+                  "kind": "page"
+                },
+                "body_html": "<p>Put Substrate in a ventilated spot beside the routers. Connect one Ethernet cable from the RT-AX86U's LAN port to the box. Plug the power into the wall, not a switched extension.</p>",
+                "expect_html": "<p>Box in place, cable in a LAN port, link light on.</p>",
+                "fields": [
+                  {
+                    "key": "lan_port",
+                    "label": "RT-AX86U LAN port number used",
+                    "placeholder": "1 to 4"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "BIOS settings",
+            "minutes": 15,
+            "needs": [
+              "Keyboard and screen plugged into the box"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Power on after a power cut",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "BIOS: Advanced or Power Management, \"Restore on AC Power Loss\"",
+                  "kind": "page"
+                },
+                "body_html": "<p>Set <strong>Restore on AC Power Loss</strong> (also called AC Power Recovery or After Power Loss) to <strong>Power On</strong>.</p>",
+                "expect_html": "<p>The setting reads Power On.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "No such setting",
+                    "fix": "Look under Chipset or APM; on some boards it is under Advanced, APM Configuration. Write the board model on the ticket and Claude finds it."
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Quiet fan curve and power saving",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "BIOS: fan control and CPU power settings",
+                  "kind": "page"
+                },
+                "body_html": "<p>Set the case and CPU fans to a quiet or silent curve. Turn on C-states and ASPM if the BIOS offers them. Save and exit.</p>",
+                "expect_html": "<p>The box is near silent at idle.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Record the board",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "BIOS main page",
+                  "kind": "page"
+                },
+                "body_html": "<p>Note the board model and BIOS version.</p>",
+                "expect_html": "<p>Both written in the fields.</p>",
+                "fields": [
+                  {
+                    "key": "board",
+                    "label": "Board model",
+                    "placeholder": "as printed in the BIOS"
+                  },
+                  {
+                    "key": "bios",
+                    "label": "BIOS version",
+                    "placeholder": "for example 1402"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Install the platform chosen in sub.02",
+            "minutes": 15,
+            "needs": [
+              "A USB stick",
+              "Phil's choice on sub.02"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Write the installer",
+                "actor": "claude-code",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code downloads the installer for the platform Phil chose (Proxmox VE 9.2 or Debian 13) and writes it to the USB stick, checking the checksum.</p>",
+                "expect_html": "<p>A bootable stick and a matching checksum.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Install",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "Substrate, booted from the USB stick",
+                  "kind": "page"
+                },
+                "body_html": "<p>Boot from the stick and install to the system SSD with the defaults Claude's note gives (host name <code>substrate</code>, a fixed house address agreed in E.net). Save the root or admin password in Proton Pass.</p>",
+                "expect_html": "<p>Substrate reboots and shows its login prompt with its address.</p>",
+                "blocks": [
+                  {
+                    "label": "Host name",
+                    "text": "substrate",
+                    "kind": "value"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Save the password in Proton Pass only. Never paste it into a chat, a ticket or the config repo.</p>"
+                  }
+                ],
+                "irreversible": true
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Pull the plug once",
+            "minutes": 7,
+            "needs": [
+              "Five minutes when nobody needs the internet"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Pull the plug",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Substrate's wall socket",
+                  "kind": "page"
+                },
+                "body_html": "<p>With Substrate running, switch off at the wall or pull the plug. Wait 30 seconds.</p>",
+                "expect_html": "<p>The box is fully off.</p>"
+              },
+              {
+                "id": "4.2",
+                "title": "Plug back in and wait",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Substrate",
+                  "kind": "page"
+                },
+                "body_html": "<p>Plug it back in. Do not press the power button.</p>",
+                "expect_html": "<p>Substrate starts by itself and reaches its login prompt within about five minutes.</p>",
+                "fields": [
+                  {
+                    "key": "restart_ok",
+                    "label": "Started by itself?",
+                    "placeholder": "yes or no"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "It stays off",
+                    "fix": "Check step 2.1 again; ASUS advises leaving the PSU off about 30 seconds before testing."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "4.1": "untested",
+          "4.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.04",
+      "title": "The first service by hand with a guide, then everything as code: the config repo and a runbook per service in Docs",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude Code writes a short guide and Phil builds the first service by hand on Substrate: Uptime Kuma, the status checker, chosen because a mistake there breaks nothing Kirsty uses. Then Claude Code creates the private config repo (Compose files or VM definitions, pinned versions, no secret values; secrets in a separate file on Substrate only), rebuilds the same service from the repo to prove it, and writes the runbook template in Docs (what it is, where it lives, how to update, how to revert, how to restore, who uses it). Every later service gets a runbook from the template.\n\n## Why\nPhil: \"build the first service by hand with a guide, then everything as code\"; docs are \"config in a git repo plus a runbook per service in Docs\".\n\n## Done looks like\nUptime Kuma runs from the repo; the repo has no secret values; the runbook template and Uptime Kuma's runbook are in Docs.\n\n## Unlocks\nsub.06, sub.07, sub.11, sub.16, sub.22 (every service and the update routine build on the repo).\n\n## Depends on\nsub.03 (the box and platform).",
+      "after": [
+        "sub.03"
+      ],
+      "links": [],
+      "tags": [
+        "devops",
+        "documentation",
+        "sub"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "sub.05",
+      "title": "Names under sporebit.com with real certificates, resolving only inside the house or over the VPN",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nGive Substrate's services names under sporebit.com with a real wildcard certificate from Let's Encrypt, issued by the DNS-01 challenge through the IONOS DNS API (sporebit.com's DNS is at IONOS). No public A record is created; the names resolve only through the house DNS filter or over the VPN. A wildcard keeps service names out of the public certificate logs. Phil creates the IONOS API key and keeps it in Proton Pass; Claude Code configures the proxy.\n\n## Why\nPhil: \"names under sporebit.com with real certificates, resolving only inside the house or over the VPN\".\n\n## Done looks like\nstatus.(pattern) opens with a padlock at home; it does not resolve on mobile data; the certificate renews by itself; the IONOS key is in Proton Pass and named in the E.keys inventory.\n\n## Unlocks\nsub.06 onwards (every service gets a name); sub.21 (the status page address).\n\n## Depends on\nsub.03 (the box). The inside-only answer needs sub.06's local names; until then the proxy is checked by address.",
+      "after": [
+        "sub.03"
+      ],
+      "links": [
+        "MYC-211"
+      ],
+      "tags": [
+        "security",
+        "secrets",
+        "devops",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-names-certs",
+        "kind": "guide",
+        "title": "Names and certificates under sporebit.com",
+        "version": 1,
+        "intro": {
+          "answer": "A wildcard certificate by DNS-01 at IONOS, names that resolve only at home.",
+          "unlocks": [
+            "sub.06",
+            "sub.21"
+          ],
+          "to_hand": [
+            "IONOS sign-in",
+            "Proton Pass",
+            "A phone on mobile data"
+          ],
+          "time": "About 20 minutes over two sittings",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "lego, IONOS DNS provider",
+              "url": "https://go-acme.github.io/lego/dns/ionos/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "IONOS help, API key prefix and secret",
+              "url": "https://www.ionos.co.uk/help/domains/configuring-your-ip-address/set-up-dynamic-dns-with-company-name/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Cloudflare, partial (CNAME) set-up plans",
+              "url": "https://developers.cloudflare.com/dns/zone-setups/partial-setup/",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "1.2",
+            "why": "The key's reach decides how much damage a leaked key could do."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Choose the names and the key's reach",
+            "minutes": 6,
+            "needs": [
+              "sub.03 done"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Pick the name pattern",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Choose between service names directly under sporebit.com (for example <code>photos.sporebit.com</code>) or under a house subdomain (<code>photos.home.sporebit.com</code>). The house subdomain keeps them apart from public sites.</p>",
+                "expect_html": "<p>Your choice written in the field.</p>",
+                "fields": [
+                  {
+                    "key": "pattern",
+                    "label": "Name pattern",
+                    "placeholder": "*.sporebit.com or *.home.sporebit.com"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Pick the key's reach",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>The IONOS DNS API key can change DNS records in the account. Choose: <strong>A</strong> one IONOS key used directly, or <strong>B</strong> a CNAME from <code>_acme-challenge</code> to a small separate zone, so the key only ever touches that zone. B is safer and takes Claude Code about 30 minutes more.</p>",
+                "expect_html": "<p>A or B written in the field.</p>",
+                "fields": [
+                  {
+                    "key": "reach",
+                    "label": "Key reach",
+                    "placeholder": "A or B"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "<p>Cloudflare is not used here: its free plan needs the whole sporebit.com zone moved, mail records included.</p>"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Make the key and the certificate",
+            "minutes": 13,
+            "needs": [
+              "Proton Pass open",
+              "IONOS sign-in"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Create the IONOS DNS API key",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "IONOS developer area, API keys",
+                  "kind": "browser",
+                  "url": "https://developer.hosting.ionos.com/"
+                },
+                "body_html": "<p>Create a new API key named <code>substrate-acme</code>. Copy the prefix and the secret into a new Proton Pass item called <strong>IONOS DNS API key (Substrate)</strong>.</p>",
+                "expect_html": "<p>The key is listed in IONOS and saved in Proton Pass.</p>",
+                "blocks": [
+                  {
+                    "label": "Key name",
+                    "text": "substrate-acme",
+                    "kind": "value"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Save the password in Proton Pass only. Never paste it into a chat, a ticket or the config repo.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Put the key on Substrate",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Substrate terminal, the secrets file Claude names",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Paste the key into the secrets file on Substrate that Claude Code's note names, by typing it there yourself. It never goes into the config repo or a chat.</p>",
+                "expect_html": "<p>The file exists and only root can read it.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Add this key to the E.keys inventory (keys.01) by name.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Issue the wildcard certificate",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code configures the reverse proxy for a wildcard certificate by the DNS-01 challenge at IONOS (lego's <code>ionos</code> provider or Caddy's ionos module) and adds the name for Uptime Kuma.</p>",
+                "expect_html": "<p>A Let's Encrypt wildcard certificate is issued and renews by itself.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Check it resolves only at home",
+            "minutes": 5,
+            "needs": [
+              "Phone with mobile data"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Open the status name at home",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Browser on the PC",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Open the Uptime Kuma name (for example <code>status.home.sporebit.com</code>).</p>",
+                "expect_html": "<p>The page opens with a padlock and no certificate warning.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Check it is invisible outside",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Phone on mobile data, VPN off",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Open the same name with Wi-Fi off and the VPN off.</p>",
+                "expect_html": "<p>The name does not resolve. Nothing at home is reachable.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.06",
+      "title": "Service: the DNS filter, wherever net.03 decided (Substrate, the router or hosted)",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nRun the house DNS filter on Substrate if net.03 chose Substrate (AdGuard Home or Pi-hole as net.03 says), from the config repo, with local names for every Substrate service, a fallback resolver agreed before the house is switched over, and the router's DHCP pointed at it in a weekend window.\n\n## Why\nPhil's order: \"network needs first: DNS filter and VPN\"; house basics fail safe: \"internet and light switches work with the server off\".\n\n## Done looks like\nEvery device in the house uses the filter; the fallback is written down and works (proved in sub.18); the runbook is in Docs.\n\n## Unlocks\nsub.08 and sub.09 (they follow the filter); E.block's block.03 and block.04 (blocking on the filter); sub.25 (part of the 30-day proof).\n\n## Depends on\nnet.03 (where the filter runs and which one); sub.04 (the config repo).\n\n## Red team\n- Finding 30: Moves epic if net.03's answer is not Substrate.\n",
+      "after": [
+        "net.03",
+        "sub.04"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-dns-filter",
+        "kind": "guide",
+        "title": "The DNS filter on Substrate",
+        "version": 1,
+        "intro": {
+          "answer": "Install the filter, agree a fallback, test one device, then switch the house in a weekend window.",
+          "unlocks": [
+            "sub.08",
+            "sub.09",
+            "block.03"
+          ],
+          "to_hand": [
+            "net.03's decision",
+            "Proton Pass",
+            "Router admin login"
+          ],
+          "time": "About 35 minutes over three sittings",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "AdGuard Home vs Pi-hole in 2026",
+              "url": "https://www.wundertech.net/adguard-home-vs-pi-hole-best-ad-blocker/",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "2.1",
+            "why": "Without a fallback the house loses the internet whenever Substrate is off."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Install the filter and sign in",
+            "minutes": 12,
+            "needs": [
+              "net.03's decision",
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Install the filter as code",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code adds the DNS filter net.03 chose (AdGuard Home or Pi-hole) to the config repo, with the upstream resolvers net.03 names, and starts it on Substrate.</p>",
+                "expect_html": "<p>The filter's page answers at its sporebit.com name.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Set the admin login",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The filter's web page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Create the admin login and save it in Proton Pass as <strong>Substrate DNS filter</strong>.</p>",
+                "expect_html": "<p>You are signed in to the dashboard.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Save the password in Proton Pass only. Never paste it into a chat, a ticket or the config repo.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Add the local names",
+                "actor": "claude-code",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code adds the local DNS answers for every Substrate service name (DNS rewrites or local DNS records).</p>",
+                "expect_html": "<p>The status name resolves to Substrate's house address.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Fallback, then one device by hand",
+            "minutes": 10,
+            "needs": [
+              "The PC"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Agree the fallback",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "net.03's ticket and this one",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Write down what answers DNS when Substrate is off: a second filter, the router, or nothing. Without a fallback, the whole house loses the internet when Substrate is off.</p>",
+                "expect_html": "<p>The fallback is written in the field.</p>",
+                "fields": [
+                  {
+                    "key": "fallback",
+                    "label": "Fallback resolver",
+                    "placeholder": "for example the RT-AX86U, or a second filter"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Test on the PC only",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Windows network settings on the PC",
+                  "kind": "page"
+                },
+                "body_html": "<p>Set the PC's DNS by hand to Substrate's address. Browse for a few minutes, then open a test address from the blocking epic's list.</p>",
+                "expect_html": "<p>Ordinary sites load; the test address is blocked.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Switch the house over (weekend window)",
+            "minutes": 10,
+            "needs": [
+              "A weekend daytime slot",
+              "The revert below to hand"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Point the router's DHCP at Substrate",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "RT-AX86U: LAN, DHCP Server, DNS Server 1 and 2",
+                  "kind": "dashboard",
+                  "url": "http://router.asus.com"
+                },
+                "body_html": "<p>Set DNS Server 1 to Substrate's address and DNS Server 2 to the fallback from step 2.1. Apply.</p>",
+                "expect_html": "<p>The router shows the new DNS servers.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "<p>Family service: change it only in the set weekend window, snapshot first, revert rehearsed (sub.20). Never on a weeknight.</p>"
+                  },
+                  {
+                    "kind": "info",
+                    "html": "<p>Revert: clear both fields and Apply; devices go back to the router's own DNS on their next renewal or a Wi-Fi toggle.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "3.2",
+                "title": "Check a phone and a TV",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Your phone and one TV",
+                  "kind": "page"
+                },
+                "body_html": "<p>Toggle Wi-Fi on your phone, browse, then start something on one TV.</p>",
+                "expect_html": "<p>Both work; the filter's dashboard shows their queries.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.07",
+      "title": "Service: the VPN; Kirsty's phone gets it",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nMake Substrate the VPN node on the route net.04 chose, so phones and laptops reach the house services and cameras from outside with nothing exposed to the internet. Phil's phone is tested on mobile data first, then Kirsty's phone gets the app.\n\n## Why\nPhil: exposure \"nothing; VPN only. Kirsty's phone gets the VPN.\"\n\n## Done looks like\nFrom mobile data with the VPN on, the status page opens; with it off, nothing at home answers; Kirsty's phone shows connected.\n\n## Unlocks\nsub.19 (Kirsty's untouched week); sub.24 (the printed page); net.21 (the remote access guide); sub.25.\n\n## Depends on\nsub.04 (the config repo); net.04 (which VPN route).",
+      "after": [
+        "sub.04",
+        "net.04"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "phone",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-vpn",
+        "kind": "guide",
+        "title": "The VPN on Substrate, and Kirsty's phone",
+        "version": 1,
+        "intro": {
+          "answer": "Substrate becomes the VPN node; Phil's phone tested outside, then Kirsty's phone set up.",
+          "unlocks": [
+            "sub.19",
+            "sub.24",
+            "net.21"
+          ],
+          "to_hand": [
+            "net.04's decision",
+            "Both phones",
+            "Kirsty, for ten minutes"
+          ],
+          "time": "About 25 minutes over two sittings",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Tailscale pricing, Personal plan",
+              "url": "https://tailscale.com/pricing?plan=personal",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Tailscale, subnet routers",
+              "url": "https://tailscale.com/kb/1019/subnets",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Substrate as the VPN node, and Phil's phone",
+            "minutes": 13,
+            "needs": [
+              "net.04's decision",
+              "Your phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Set up the VPN on Substrate",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code sets Substrate up as the route net.04 chose (for example a Tailscale subnet router advertising the house network, with the house DNS filter as the VPN's DNS, or a WireGuard server). No port is opened unless net.04 says so.</p>",
+                "expect_html": "<p>Substrate shows as connected in the VPN's admin page.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Approve the route",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The VPN's admin console",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Approve Substrate's advertised house route (and turn off key expiry for Substrate only).</p>",
+                "expect_html": "<p>The route shows as approved.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Test from your phone outside",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Your phone on mobile data",
+                  "kind": "page"
+                },
+                "body_html": "<p>Turn Wi-Fi off, turn the VPN on, open the status page name.</p>",
+                "expect_html": "<p>The status page opens. With the VPN off it does not.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Kirsty's phone (with Kirsty)",
+            "minutes": 10,
+            "needs": [
+              "Kirsty and her phone",
+              "Ten minutes at a time that suits her"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Install and sign in",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "Kirsty's phone, App Store",
+                  "kind": "page"
+                },
+                "body_html": "<p>Install the VPN app and sign it into the household account. Set it to connect on demand or always on, whichever net.04 chose.</p>",
+                "expect_html": "<p>The app shows connected.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Show her the one thing",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Kirsty's phone",
+                  "kind": "page"
+                },
+                "body_html": "<p>Show Kirsty where the app is and that she never needs to touch it.</p>",
+                "expect_html": "<p>Kirsty knows it is there. sub.19 then counts the untouched week.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.08",
+      "title": "Service: Home Assistant",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nInstall Home Assistant on Substrate the way sub.02 chose, create the owner account, add the house's devices by room, put its backups in the backup set, and list what must keep working when it is off. The baby monitor is added for live view only, never recorded.\n\n## Why\nPhil: Home Assistant is part of the house services; it is the control route for the wall dashboard; house basics fail safe.\n\n## Done looks like\nHome Assistant opens at its sporebit.com name, every device has a room, a backup exists, and the must-work list is on the ticket for sub.18.\n\n## Unlocks\nsub.10 (cameras); sub.18 (the off test); E.wall's wall.17, E.home's home.24, E.baby's baby.12 (controls, scenes and the monitor); sub.25.\n\n## Depends on\nsub.06 (the DNS filter first, Phil's order); sub.02 fixes the install method.",
+      "after": [
+        "sub.06"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-home-assistant",
+        "kind": "guide",
+        "title": "Home Assistant on Substrate",
+        "version": 1,
+        "intro": {
+          "answer": "Install, owner account, devices by room, backups, and the must-work-without-it list.",
+          "unlocks": [
+            "sub.10",
+            "sub.18",
+            "wall.17"
+          ],
+          "to_hand": [
+            "Proton Pass",
+            "A list of rooms"
+          ],
+          "time": "About 35 minutes over two sittings",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Home Assistant installation methods",
+              "url": "https://community.home-assistant.io/t/installation-methods-community-guides-wiki/199545",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Install and create the owner",
+            "minutes": 15,
+            "needs": [
+              "sub.02's choice",
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Install Home Assistant",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code installs Home Assistant the way sub.02 chose (Home Assistant OS in a VM, or the container) and gives it its sporebit.com name.</p>",
+                "expect_html": "<p>The onboarding page opens.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Create the owner account",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Home Assistant onboarding page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Create the owner account, set the home location, units (metric) and time zone (Europe/London). Save the login in Proton Pass as <strong>Home Assistant (Substrate)</strong>.</p>",
+                "expect_html": "<p>The Overview dashboard shows.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Save the password in Proton Pass only. Never paste it into a chat, a ticket or the config repo.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Add discovered devices",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Settings, Devices and services",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Accept each discovered integration you recognise. Skip the baby monitor's recording options: it is live view only.</p>",
+                "expect_html": "<p>Your devices show under Devices.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Rooms and backups",
+            "minutes": 16,
+            "needs": [
+              "A list of rooms"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Name rooms",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Settings, Areas",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Create the rooms and put each device in one.</p>",
+                "expect_html": "<p>Every device has a room.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Back-ups into the backup set",
+                "actor": "claude-code",
+                "minutes": 4,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code turns on Home Assistant's scheduled backups and adds them to sub.11's backup job.</p>",
+                "expect_html": "<p>A first backup exists.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "List what must work without it",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Write the devices that must still work with Home Assistant off (light switches, heating, doorbell). sub.18 tests them.</p>",
+                "expect_html": "<p>The list is in the field.</p>",
+                "fields": [
+                  {
+                    "key": "must_work",
+                    "label": "Must work with Home Assistant off",
+                    "placeholder": "for example hall lights, heating"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.09",
+      "title": "Service: network monitoring and device alerts",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nRun uptime checks for every Substrate service, both routers and the internet line (Uptime Kuma from sub.04), and host the device monitor E.net uses for new or unknown devices and unusual traffic (the 2am camera test). Phil names every device once.\n\n## Why\nPhil: house services include \"network monitoring and device alerts\".\n\n## Done looks like\nEvery service and router has a check; every device on the network has a name; one test alert arrived and cleared.\n\n## Unlocks\nsub.21 (the push and status page read these checks); E.net's monthly review.\n\n## Depends on\nsub.06 (the filter first).",
+      "after": [
+        "sub.06"
+      ],
+      "links": [],
+      "tags": [
+        "security",
+        "home",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-monitoring",
+        "kind": "guide",
+        "title": "Monitoring and device alerts",
+        "version": 1,
+        "intro": {
+          "answer": "Checks for every service, a name for every device, one test alert.",
+          "unlocks": [
+            "sub.21"
+          ],
+          "to_hand": [
+            "Router admin login"
+          ],
+          "time": "About 25 minutes over two sittings",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Uptime Kuma README",
+              "url": "https://raw.githubusercontent.com/louislam/uptime-kuma/master/README.md",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Checks for every service",
+            "minutes": 10,
+            "needs": [
+              "sub.04's Uptime Kuma"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Add the checks",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code adds a check for each Substrate service, both routers and the internet, in the config repo.</p>",
+                "expect_html": "<p>Uptime Kuma lists them, all green.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Review the list",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Uptime Kuma at its sporebit.com name",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Read the list. Add anything missing in the field.</p>",
+                "expect_html": "<p>Every service you rely on has a check.</p>",
+                "fields": [
+                  {
+                    "key": "missing",
+                    "label": "Checks to add",
+                    "placeholder": "none, or names"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Device alerts",
+            "minutes": 15,
+            "needs": [
+              "The router's client list"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Name every device",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "The device monitor's list (the tool E.net chose)",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Give each device on the network a name and mark it known. Unknown ones go in the field for E.net's monthly review.</p>",
+                "expect_html": "<p>Every device is named or listed.</p>",
+                "fields": [
+                  {
+                    "key": "unknown",
+                    "label": "Unknown devices",
+                    "placeholder": "count, or none"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Test one alert",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Substrate",
+                  "kind": "page"
+                },
+                "body_html": "<p>Ask Claude Code to stop the test check's target for two minutes, or unplug a spare plug.</p>",
+                "expect_html": "<p>An alert arrives, then a recovery.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.10",
+      "title": "Service: local camera recording, motion clips for a set number of days, doorbell and outdoor only",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nRecord the doorbell and outdoor cameras locally on Substrate with Frigate, keeping motion clips for a number of days Phil sets. Detection runs on the CPU's integrated graphics where it has them (Frigate no longer recommends a Coral for new installs). The baby monitor is never recorded; it is live view through Home Assistant only. First check each camera offers a local stream.\n\n## Why\nPhil: \"motion clips for a set number of days, doorbell and outdoor cameras only; the baby monitor is live view, never recorded\"; cameras local only, no cloud.\n\n## Done looks like\nA walk past an outdoor camera gives a clip; clips older than the set days are gone; the baby monitor is not in Frigate.\n\n## Unlocks\nE.wall's doorbell pop-up on the shared-room screen; sub.18 (off test).\n\n## Depends on\nsub.08 (Home Assistant first); sub.01 (whether the CPU has integrated graphics).",
+      "after": [
+        "sub.08"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "video",
+        "security",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-cameras",
+        "kind": "guide",
+        "title": "Local camera recording",
+        "version": 1,
+        "intro": {
+          "answer": "Doorbell and outdoor cameras, motion clips for a set number of days, never the baby monitor.",
+          "unlocks": [
+            "wall.17"
+          ],
+          "to_hand": [
+            "Camera apps",
+            "The days to keep"
+          ],
+          "time": "About 25 minutes over two sittings",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Frigate, recommended hardware",
+              "url": "https://docs.frigate.video/frigate/hardware",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Frigate, recording",
+              "url": "https://docs.frigate.video/configuration/record",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Camera check and the number of days",
+            "minutes": 10,
+            "needs": [
+              "Each camera's make and model",
+              "The camera apps"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Record the cameras",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Each camera's app or label",
+                  "kind": "page"
+                },
+                "body_html": "<p>For the doorbell and each outdoor camera, write the make and model and whether its settings offer a local RTSP stream.</p>",
+                "expect_html": "<p>Every camera listed with yes or no for RTSP.</p>",
+                "fields": [
+                  {
+                    "key": "cameras",
+                    "label": "Cameras (make, model, RTSP yes or no)",
+                    "placeholder": "doorbell: ..., front: ..."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Pick the days kept",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Choose how many days motion clips are kept.</p>",
+                "expect_html": "<p>A number in the field.</p>",
+                "fields": [
+                  {
+                    "key": "days",
+                    "label": "Days to keep motion clips",
+                    "placeholder": "for example 7"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Recording on",
+            "minutes": 12,
+            "needs": [
+              "Claude Code's set-up done"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Set up Frigate",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code adds Frigate to the config repo with detection on the integrated graphics (OpenVINO) if sub.01 says the CPU has them, motion-only retention for the chosen days, and the doorbell and outdoor cameras only. The baby monitor is not added.</p>",
+                "expect_html": "<p>Frigate shows each camera live.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Walk past a camera",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Outside, then Frigate's review page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Walk past one outdoor camera, then open Frigate's review page.</p>",
+                "expect_html": "<p>A clip of you is there.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Confirm the baby monitor is not recorded",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Frigate's camera list",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Check the baby monitor does not appear in Frigate.</p>",
+                "expect_html": "<p>It is not listed.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.11",
+      "title": "Service: backups, second drive plus an encrypted off-site drive at a family member's house",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nBack Substrate up nightly to a second drive and periodically to an encrypted off-site drive kept at a family member's house, with restic or borg (both encrypt on the client). The set covers the config repo, each service's data with proper database dumps, and Home Assistant's backups. The backup password lives in Proton Pass and a sealed printed copy.\n\n## Why\nPhil: \"second drive plus an encrypted off-site copy\"; off-site \"a drive at a family member's house\"; worry: a data-loss scare.\n\n## Done looks like\nA nightly snapshot on the second drive, one complete off-site copy at the family member's house, the password in Proton Pass and on paper, and the refresh interval written down.\n\n## Unlocks\nsub.12, sub.13 (photos and files need backups first); sub.23 (restore tests).\n\n## Depends on\nsub.04 (the config repo); MYC-182 (Phil's answer about the backup drive).\n\n## Cost\nThe second drive and the off-site drive are to be priced on sub.01 if not spare. Nothing is bought in this run.\n\n## Red team\n- Finding 28: Drives bought only from the approved costed list (sub.01); MYC-182 asks about the backup drive.\n- Finding 67: The backup encryption key is in Proton Pass and on paper in a second place; a backup whose key is lost is not a backup.\n",
+      "after": [
+        "sub.04",
+        "sub.01"
+      ],
+      "links": [
+        "MYC-182"
+      ],
+      "tags": [
+        "computer",
+        "maintenance",
+        "security",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-backups",
+        "kind": "guide",
+        "title": "Backups: second drive and off-site drive",
+        "version": 1,
+        "intro": {
+          "answer": "Nightly to a second drive, an encrypted copy at a family member's house, the password kept twice.",
+          "unlocks": [
+            "sub.12",
+            "sub.13",
+            "sub.23"
+          ],
+          "to_hand": [
+            "Both drives",
+            "Proton Pass",
+            "A printer"
+          ],
+          "time": "About 40 minutes over three sittings",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "restic vs BorgBackup",
+              "url": "https://dev.to/selfhostingsh/restic-vs-borgbackup-which-backup-tool-to-use-4cmn",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Immich, backup and restore",
+              "url": "https://docs.immich.app/administration/backup-and-restore",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "2.1",
+            "why": "The backups are useless without this password."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The drives",
+            "minutes": 13,
+            "needs": [
+              "The second drive",
+              "The off-site drive",
+              "MYC-182's answer"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Record the drives",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The drive labels",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the model and size of the second drive and the off-site drive.</p>",
+                "expect_html": "<p>Both in the fields.</p>",
+                "fields": [
+                  {
+                    "key": "drive2",
+                    "label": "Second drive (model, size)",
+                    "placeholder": "for example 4 TB"
+                  },
+                  {
+                    "key": "offsite",
+                    "label": "Off-site drive (model, size)",
+                    "placeholder": "for example 4 TB USB"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Fit the second drive",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Substrate",
+                  "kind": "page"
+                },
+                "body_html": "<p>Shut Substrate down from its menu, fit the second drive, start it again.</p>",
+                "expect_html": "<p>Substrate starts and Claude Code sees the drive.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "<p>Do this in a weekend window: the DNS filter is off while the box is.</p>"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The backup job and its password",
+            "minutes": 13,
+            "needs": [
+              "Proton Pass",
+              "A printer and an envelope"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Create the backup password",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Proton Pass",
+                  "kind": "browser",
+                  "url": "https://pass.proton.me"
+                },
+                "body_html": "<p>Create a new Proton Pass item <strong>Substrate backup password</strong> with a generated password.</p>",
+                "expect_html": "<p>Saved in Proton Pass.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Losing this password loses every backup. It is never in git or a chat.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Print a sealed copy",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Printer",
+                  "kind": "page"
+                },
+                "body_html": "<p>Print the password, seal it in an envelope marked \"Substrate backups\" and keep it where you keep important papers.</p>",
+                "expect_html": "<p>The envelope is filed.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Set the nightly job",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code sets the backup tool (restic or borg) to back up the config repo, each service's data and proper database dumps, and Home Assistant's backups to the second drive nightly, with alerts to sub.21.</p>",
+                "expect_html": "<p>A first snapshot exists.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "The off-site copy",
+            "minutes": 10,
+            "needs": [
+              "The off-site drive",
+              "A visit to the family member"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Make the first off-site copy",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Substrate's USB port",
+                  "kind": "page"
+                },
+                "body_html": "<p>Plug the off-site drive into Substrate and ask Claude Code to run the off-site copy.</p>",
+                "expect_html": "<p>Claude Code reports a complete encrypted copy.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Take it to the family member",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The family member's house",
+                  "kind": "page"
+                },
+                "body_html": "<p>Label the drive \"Substrate backup, encrypted\" and leave it there. Write when it comes back for refreshing.</p>",
+                "expect_html": "<p>The drive is there; the refresh month is in the field.</p>",
+                "fields": [
+                  {
+                    "key": "who_where",
+                    "label": "Whose house (first name only)",
+                    "placeholder": "first name"
+                  },
+                  {
+                    "key": "refresh",
+                    "label": "Refresh every",
+                    "placeholder": "for example 3 months"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.12",
+      "title": "Service: photo library with phone upload, run beside the phones' cloud for three months, then a tested restore and a decision",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nRun Immich on Substrate with upload from the phones, beside iCloud or Google Photos (nothing in the phones' cloud changes). Immich's own docs say its database dump holds no photos, so the backup is the upload folder plus a proper dump. After three months, restore both to a spare place, check, and decide. Kirsty's phone follows through sub.19.\n\n## Why\nPhil: \"run beside the phones' cloud photos first, decide after three months and a tested restore\".\n\n## Done looks like\nPhil's photos upload; after three months a restore opens ten random photos; the decision is on the ticket.\n\n## Unlocks\nsub.19 (Kirsty's phone); sub.20 (photos are a family service); a later wider-family ticket if photos take off.\n\n## Depends on\nsub.11 (backups first). MYC-200 (Cloudflare R2 for Mycelium's family photos) is separate and only related.\n\n## Red team\n- Finding 45: Nothing deleted from iCloud or staging (MCU-6) until the three-month decision.\n",
+      "after": [
+        "sub.11"
+      ],
+      "links": [
+        "MYC-200",
+        "MCU-3",
+        "MCU-4",
+        "MCU-5",
+        "MCU-6"
+      ],
+      "tags": [
+        "photos",
+        "phone",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-photos",
+        "kind": "guide",
+        "title": "Photo library beside the phones' cloud",
+        "version": 1,
+        "intro": {
+          "answer": "Immich with phone upload, three months beside iCloud, then a restore and a decision.",
+          "unlocks": [
+            "sub.19",
+            "sub.20"
+          ],
+          "to_hand": [
+            "Your iPhone",
+            "Proton Pass"
+          ],
+          "time": "About 45 minutes over three sittings, three months apart at the end",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Immich, backup and restore",
+              "url": "https://docs.immich.app/administration/backup-and-restore",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Immich, mobile backup",
+              "url": "https://docs.immich.app/features/mobile-backup",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "3.1",
+            "why": "A restore needs both the files and the database dump."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Install and accounts",
+            "minutes": 11,
+            "needs": [
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Install Immich",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code adds Immich to the config repo, puts its library on the data drive, and adds its upload folder and database dump to sub.11's backups.</p>",
+                "expect_html": "<p>Immich's welcome page opens.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Create the admin and two users",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Immich at its sporebit.com name",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Create the admin account, then a user for you and one for Kirsty. Save each login in Proton Pass.</p>",
+                "expect_html": "<p>Three accounts listed.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Save the password in Proton Pass only. Never paste it into a chat, a ticket or the config repo.</p>"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Your phone first",
+            "minutes": 14,
+            "needs": [
+              "Your iPhone on Wi-Fi",
+              "The phone charging"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Install and sign in",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Your iPhone, App Store, Immich",
+                  "kind": "page"
+                },
+                "body_html": "<p>Install Immich, sign in to your user at the sporebit.com name, choose the albums to back up. Leave iCloud Photos as it is.</p>",
+                "expect_html": "<p>The app shows the backup screen.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "First upload in the foreground",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Immich app, Backup",
+                  "kind": "page"
+                },
+                "body_html": "<p>Start the backup and keep the app open on charge and Wi-Fi until it finishes or for an evening. iOS does not promise background uploads.</p>",
+                "expect_html": "<p>Your photos appear on the web page.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "After three months: restore and decide",
+            "minutes": 20,
+            "needs": [
+              "Three months of running"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Restore to a spare place",
+                "actor": "claude-code",
+                "minutes": 10,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code restores the upload folder and the database dump from the backup to a spare place and starts a second Immich on it.</p>",
+                "expect_html": "<p>The restored library opens with your photos and albums.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Check the restore",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The restored Immich",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Open ten random photos, including recent ones and a video.</p>",
+                "expect_html": "<p>All ten open.</p>"
+              },
+              {
+                "id": "3.3",
+                "title": "Decide",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Decide: keep Immich beside the phones' cloud, rely on it more, or stop it.</p>",
+                "expect_html": "<p>Your decision in the field.</p>",
+                "fields": [
+                  {
+                    "key": "decision",
+                    "label": "Decision after three months",
+                    "placeholder": "keep beside, rely on it, or stop"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.13",
+      "title": "Service: files and sync; phone and computer backups",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nChoose and run the files service on Substrate (Syncthing, Nextcloud, or both), sync the folders Phil lists between the PC, laptop and Substrate, give the phones access over the VPN, and settle what \"phone backup\" means: photos through Immich, files through this tool, full device backups where they already are unless a copied PC backup is chosen (check first).\n\n## Why\nPhil: personal data includes \"files and sync\" and \"backups of phones and computers\".\n\n## Done looks like\nA file made on the PC appears on the laptop and opens on the phone; the folders and the phone-backup line are written on the ticket; the data is in the nightly backup.\n\n## Unlocks\nsub.14, sub.15 (they use the same data drive and backups); sub.19 if Kirsty uses it.\n\n## Depends on\nsub.11 (backups first).",
+      "after": [
+        "sub.11"
+      ],
+      "links": [
+        "MCU-7",
+        "MCU-9"
+      ],
+      "tags": [
+        "computer",
+        "phone",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-files",
+        "kind": "guide",
+        "title": "Files and sync",
+        "version": 1,
+        "intro": {
+          "answer": "Choose the tool, sync the computers, reach files from the phone, settle phone backups.",
+          "unlocks": [
+            "sub.14",
+            "sub.15"
+          ],
+          "to_hand": [
+            "The laptop",
+            "Your iPhone"
+          ],
+          "time": "About 35 minutes over three sittings",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Nextcloud vs Syncthing (2026)",
+              "url": "https://selfhosting.sh/compare/nextcloud-vs-syncthing/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Choose the tool",
+            "minutes": 10,
+            "needs": [
+              "The dossier's section on files"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Choose",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Choose: Syncthing between PC, laptop and Substrate with phones reaching files over the VPN; or Nextcloud with its phone app; or both. Syncthing has no official iPhone app.</p>",
+                "expect_html": "<p>Your choice in the field.</p>",
+                "fields": [
+                  {
+                    "key": "tool",
+                    "label": "Files tool",
+                    "placeholder": "Syncthing, Nextcloud or both"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "List the folders",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "File Explorer on the PC",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write which folders sync and which are only backed up.</p>",
+                "expect_html": "<p>The list in the field.</p>",
+                "fields": [
+                  {
+                    "key": "folders",
+                    "label": "Folders",
+                    "placeholder": "Documents, Desktop, ..."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "PC and laptop",
+            "minutes": 15,
+            "needs": [
+              "The laptop"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Set up on Substrate",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code adds the chosen tool to the config repo, with its data in sub.11's backups.</p>",
+                "expect_html": "<p>The tool answers at its sporebit.com name.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Connect the PC and laptop",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The tool's app on each computer",
+                  "kind": "page"
+                },
+                "body_html": "<p>Install the app, sign in or pair, and add the folders from step 1.2.</p>",
+                "expect_html": "<p>A test file made on the PC appears on the laptop.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Phones, and what \"phone backup\" means",
+            "minutes": 10,
+            "needs": [
+              "Your iPhone"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Phone access",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "Your iPhone",
+                  "kind": "page"
+                },
+                "body_html": "<p>Install the chosen app, or add the Files app connection Claude Code gives, over the VPN.</p>",
+                "expect_html": "<p>You can open a PC file on the phone.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Decide the phone backup line",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Photos go through Immich and files through this tool. A full iPhone device backup cannot go straight to a Linux server (check first); it stays in iCloud or in a PC backup copied to Substrate. Write which.</p>",
+                "expect_html": "<p>Your choice in the field.</p>",
+                "fields": [
+                  {
+                    "key": "device_backup",
+                    "label": "Full phone backup",
+                    "placeholder": "iCloud, or PC backup copied to Substrate"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.14",
+      "title": "Service: media library for the TVs (large, a proper library); ebook and audiobook library; the feed reader for the digest",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nRun a proper media server for the TVs (Plex or Jellyfin, chosen here, with MCU-12's existing Plex plan in view), an audiobook library (Audiobookshelf), an ebook library (Calibre-Web Automated) and the feed reader for the digest's sources (FreshRSS or Miniflux), all from the config repo with data on the data drive.\n\n## Why\nPhil: media library \"large; worth a proper library\"; 7b also run \"a feed reader for the digest's sources, an ebook and audiobook library\".\n\n## Done looks like\nA film plays on every TV; an audiobook plays on Phil's phone over the VPN; the feed reader shows the digest's sources; logins are in Proton Pass.\n\n## Unlocks\nMycelium's digest reads the feed reader; sub.19 if Kirsty uses the TVs' app.\n\n## Depends on\nsub.13 (files and the data drive).",
+      "after": [
+        "sub.13"
+      ],
+      "links": [
+        "MCU-12",
+        "block.18",
+        "MCU-11"
+      ],
+      "tags": [
+        "video",
+        "home",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-media",
+        "kind": "guide",
+        "title": "Media, books and feeds",
+        "version": 1,
+        "intro": {
+          "answer": "A media server for the TVs, audiobooks and ebooks, and the digest's feed reader.",
+          "unlocks": [
+            "sub.19"
+          ],
+          "to_hand": [
+            "Each TV's remote",
+            "Proton Pass",
+            "The digest's feed list"
+          ],
+          "time": "About 45 minutes over three sittings",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Jellyfin vs Plex 2026",
+              "url": "https://www.tech-insider.org/jellyfin-vs-plex-2026/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Calibre-Web Automated, Kobo sync",
+              "url": "https://github.com/crocodilestick/Calibre-Web-Automated/wiki/Kobo-Integration-&-Sync",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "FreshRSS vs Miniflux (2026)",
+              "url": "https://selfhosting-sh.pages.dev/compare/freshrss-vs-miniflux/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The media server",
+            "minutes": 13,
+            "needs": [
+              "MCU-12's plan",
+              "Where the films and TV live"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Choose Plex or Jellyfin",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "This ticket and MCU-12",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Choose the media server. Jellyfin's hardware transcoding and remote access are free; on Plex they need paid passes (prices to check on plex.tv). MCU-12 already plans Plex.</p>",
+                "expect_html": "<p>Your choice in the field.</p>",
+                "fields": [
+                  {
+                    "key": "media",
+                    "label": "Media server",
+                    "placeholder": "Plex or Jellyfin"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Set it up",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code adds the server to the config repo with hardware transcoding where the CPU allows, and points it at the library folders.</p>",
+                "expect_html": "<p>The library shows films and TV.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Admin login",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The media server's page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Create the admin login and save it in Proton Pass.</p>",
+                "expect_html": "<p>Signed in.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Save the password in Proton Pass only. Never paste it into a chat, a ticket or the config repo.</p>"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The TVs",
+            "minutes": 12,
+            "needs": [
+              "Each TV's remote"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Install on each TV",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "Each TV or streaming stick's app store",
+                  "kind": "page"
+                },
+                "body_html": "<p>Install the media app, connect it to Substrate, play one film for a minute.</p>",
+                "expect_html": "<p>A film plays on every TV.</p>",
+                "fields": [
+                  {
+                    "key": "tvs",
+                    "label": "TVs done",
+                    "placeholder": "count"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Books and feeds",
+            "minutes": 18,
+            "needs": [
+              "The digest's feed list"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Books and audiobooks",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code adds Audiobookshelf and Calibre-Web Automated to the config repo, with their libraries on the data drive.</p>",
+                "expect_html": "<p>Both pages open.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Feed reader",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code adds the feed reader (FreshRSS or Miniflux) and imports the digest's sources.</p>",
+                "expect_html": "<p>The feeds show new items.</p>"
+              },
+              {
+                "id": "3.3",
+                "title": "Sign in and save logins",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Each service's page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Create a login for each of the three and save them in Proton Pass. Install the Audiobookshelf app on your phone.</p>",
+                "expect_html": "<p>You can play an audiobook on the phone over the VPN.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Save the password in Proton Pass only. Never paste it into a chat, a ticket or the config repo.</p>"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "3.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.15",
+      "title": "Service: paperwork archive that reads and files scanned documents",
+      "kind": "guide",
+      "points": 3,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nRun Paperless-ngx on Substrate: the scanner saves into a shared consume folder, Paperless reads (OCR) and files each document, and its data is in the nightly backup. Phil scans ten household documents to prove it.\n\n## Why\nPhil, 7b: also run \"a paperwork archive that reads and files scanned documents\".\n\n## Done looks like\nTen scanned documents are searchable by a word inside them and tagged; the archive is in the backup.\n\n## Unlocks\nMycelium's household paperwork import (E.brain) can read from it.\n\n## Depends on\nsub.13 (files and the data drive).",
+      "after": [
+        "sub.13"
+      ],
+      "links": [],
+      "tags": [
+        "admin",
+        "documentation",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-paperwork",
+        "kind": "guide",
+        "title": "Paperwork archive",
+        "version": 1,
+        "intro": {
+          "answer": "Scanner to a folder, Paperless reads and files each document.",
+          "unlocks": [],
+          "to_hand": [
+            "The scanner",
+            "Ten documents",
+            "Proton Pass"
+          ],
+          "time": "About 25 minutes over two sittings",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Paperless-ngx, usage",
+              "url": "https://docs.paperless-ngx.com/usage",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Install and the scanner",
+            "minutes": 10,
+            "needs": [
+              "The scanner's model",
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Install Paperless-ngx",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code adds Paperless-ngx (web, worker, Redis) to the config repo, English OCR, the consume folder shared on the house network, and its data and dump in sub.11's backups.</p>",
+                "expect_html": "<p>Paperless opens at its sporebit.com name.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Admin login and the scanner",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Paperless page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Create the admin login, save it in Proton Pass, and write the scanner's model.</p>",
+                "expect_html": "<p>Signed in; model in the field.</p>",
+                "fields": [
+                  {
+                    "key": "scanner",
+                    "label": "Scanner model",
+                    "placeholder": "as on the label"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Save the password in Proton Pass only. Never paste it into a chat, a ticket or the config repo.</p>"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "First documents",
+            "minutes": 15,
+            "needs": [
+              "Ten letters or bills"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Point the scanner at the folder",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The scanner's settings page or app",
+                  "kind": "page"
+                },
+                "body_html": "<p>Add the network folder Claude Code names as a scan destination (SMB, or email if the scanner cannot).</p>",
+                "expect_html": "<p>The destination is saved.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "Nothing arrives",
+                    "fix": "Folder permissions are the usual cause; tell Claude Code the scanner model."
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Scan ten documents",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Scanner, then Paperless",
+                  "kind": "page"
+                },
+                "body_html": "<p>Scan ten household documents, then check them in Paperless.</p>",
+                "expect_html": "<p>Each one is readable, searchable by a word in it, and tagged.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.16",
+      "title": "Service: git hosting and build runners",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nRun a git server on Substrate (Forgejo or Gitea, chosen here) reachable only at home or over the VPN, mirror the Substrate config repo there, and register one build runner limited to Phil's own repos.\n\n## Why\nPhil: his projects on Substrate include \"git hosting and build runners\".\n\n## Done looks like\nThe config repo is mirrored; a test workflow ran green on the runner; the admin login is in Proton Pass.\n\n## Unlocks\nsub.17 (the PC worker and FixForward jobs question).\n\n## Depends on\nsub.04 (the config repo).",
+      "after": [
+        "sub.04"
+      ],
+      "links": [],
+      "tags": [
+        "dev",
+        "devops",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-git",
+        "kind": "guide",
+        "title": "Git hosting and a runner",
+        "version": 1,
+        "intro": {
+          "answer": "A git server at home, the config repo mirrored, one runner.",
+          "unlocks": [
+            "sub.17"
+          ],
+          "to_hand": [
+            "Proton Pass",
+            "The PC's SSH key"
+          ],
+          "time": "About 20 minutes over two sittings",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Forgejo in a home lab",
+              "url": "https://www.virtualizationhowto.com/2026/09/i-tried-forgejo-in-my-home-lab-it-might-be-the-easiest-self-hosted-git-server-yet/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Choose and install",
+            "minutes": 12,
+            "needs": [
+              "Proton Pass"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Choose Forgejo or Gitea",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Forgejo is community run (GPL), Gitea company run (MIT); they work much the same.</p>",
+                "expect_html": "<p>Your choice in the field.</p>",
+                "fields": [
+                  {
+                    "key": "forge",
+                    "label": "Git server",
+                    "placeholder": "Forgejo or Gitea"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Install",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code adds the git server to the config repo, behind its sporebit.com name, VPN only.</p>",
+                "expect_html": "<p>The sign-up page opens.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Admin login",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The git server's page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Create the admin login, save it in Proton Pass, add an SSH key from the PC.</p>",
+                "expect_html": "<p>Signed in; key added.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>Save the password in Proton Pass only. Never paste it into a chat, a ticket or the config repo.</p>"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Mirror and one runner",
+            "minutes": 10,
+            "needs": [],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Mirror the config repo",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code mirrors the Substrate config repo there and registers one runner in its own container, limited to Phil's repos.</p>",
+                "expect_html": "<p>The repo and the runner show as online.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "<p>A runner with Docker access can control Substrate's containers; it only runs Phil's own repos.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Run a test workflow",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The git server, the repo's Actions tab",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Start the test workflow Claude Code added.</p>",
+                "expect_html": "<p>It finishes green.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.17",
+      "title": "The Mycelium PC worker and FixForward's jobs on Substrate: power cost against benefit (RTX 4070 stays on the PC or a spare GPU)",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude Code writes a short costed comparison in Docs: (a) move the Mycelium PC worker's queue and FixForward's background jobs to Substrate and leave AI work on the main PC's RTX 4070 (the PC then wakes or stays on for AI only), against (b) a spare GPU in Substrate. Each line gives the extra watts (about 24p per watt per month), noise, what breaks when the PC is off, and the work to move. Phil picks one on the ticket; no move happens in this ticket.\n\n## Why\nPhil: AI if the worker moves, \"research power cost against benefit\" (queue on the server with AI left on the PC's RTX 4070, versus a spare GPU in the server).\n\n## Done looks like\nThe Docs comparison exists with monthly figures, and Phil's choice is on the ticket.\n\n## Unlocks\nA later move ticket in E.brain or MYC once Phil chooses.\n\n## Depends on\nsub.16 (git and runners on Substrate); sub.01 (the measured idle figure).\n\n## Cost\nA spare GPU, if chosen, is to be priced. Nothing is bought in this run.",
+      "after": [
+        "sub.16"
+      ],
+      "links": [
+        "MYC-187"
+      ],
+      "tags": [
+        "research",
+        "pc",
+        "dev",
+        "sub"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "sub.18",
+      "title": "Each house service: a \"what happens when it is off\" test; internet and light switches work with the server off",
+      "kind": "test",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nWith Substrate shut down in a weekend daytime slot, check the internet, light switches, heating and doorbell all still work; then start it and confirm every service returns by itself. Anything that does not work becomes a fix on the service's ticket before the 30-day proof.\n\n## Why\nPhil: \"house basics fail safe: internet and light switches work with the server off; each house service gets a 'what happens when it is off' test\".\n\n## Done looks like\nEvery item ticked with the server off, and every service green again five minutes after starting.\n\n## Unlocks\nsub.25 (the 30-day proof only starts after this passes).\n\n## Depends on\nsub.08 (Home Assistant and the must-work list).",
+      "after": [
+        "sub.08"
+      ],
+      "links": [],
+      "tags": [
+        "testing",
+        "home",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-off-test",
+        "kind": "test",
+        "title": "What happens when Substrate is off",
+        "version": 1,
+        "intro": {
+          "answer": "Switch it off, check the house basics, switch it on, check it all comes back.",
+          "unlocks": [
+            "sub.25"
+          ],
+          "to_hand": [
+            "The must-work list"
+          ],
+          "time": "About 15 minutes",
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Server off (weekend daytime)",
+            "minutes": 11,
+            "needs": [
+              "sub.08's must-work list",
+              "A weekend daytime slot"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Shut Substrate down",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Substrate's menu or power button (short press)",
+                  "kind": "page"
+                },
+                "body_html": "<p>Shut Substrate down cleanly.</p>",
+                "expect_html": "<p>The box is off.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Internet",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Your phone and one TV",
+                  "kind": "page"
+                },
+                "body_html": "<p>Toggle Wi-Fi, browse, start something on a TV.</p>",
+                "expect_html": "<p>Both work through the fallback DNS.</p>",
+                "fields": [
+                  {
+                    "key": "internet",
+                    "label": "Internet works?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Lights, heating, doorbell",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Around the house",
+                  "kind": "page"
+                },
+                "body_html": "<p>Try each item on sub.08's must-work list: light switches, heating, doorbell.</p>",
+                "expect_html": "<p>Each works.</p>",
+                "fields": [
+                  {
+                    "key": "house",
+                    "label": "Anything that did not work",
+                    "placeholder": "none, or the item"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Server back on",
+            "minutes": 5,
+            "needs": [],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Start it and wait",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Substrate's power button",
+                  "kind": "page"
+                },
+                "body_html": "<p>Start Substrate and wait five minutes.</p>",
+                "expect_html": "<p>The status page shows every service green without touching anything.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.19",
+      "title": "Each family service: \"set up on Kirsty's phone\", not done until untouched for a week",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "PK",
+      "description": "## What\nSet each family service up on Kirsty's phone with her, then leave it a week. A service is not done until it has worked on her phone for a week with nobody touching it. If anything needed touching, it goes back to its service ticket and the week restarts.\n\n## Why\nPhil: \"invisible to her; each family service has a 'set up on Kirsty's phone' ticket and is not done until it works there untouched for a week\".\n\n## Done looks like\nEvery family service is listed as set up on Kirsty's phone, and a week later the untouched answer is yes.\n\n## Unlocks\nsub.25 and sub.26 (the proof and the done check).\n\n## Depends on\nsub.07 (the VPN on her phone first); sub.12 when photos are ready.",
+      "after": [
+        "sub.07"
+      ],
+      "links": [],
+      "tags": [
+        "phone",
+        "home",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-kirsty-phone",
+        "kind": "guide",
+        "title": "Family services on Kirsty's phone",
+        "version": 1,
+        "intro": {
+          "answer": "Set up with Kirsty, then a week untouched.",
+          "unlocks": [
+            "sub.25",
+            "sub.26"
+          ],
+          "to_hand": [
+            "Kirsty and her phone"
+          ],
+          "time": "About 15 minutes, a week apart",
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Set up with Kirsty",
+            "minutes": 11,
+            "needs": [
+              "Kirsty and her phone",
+              "The list of family services"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Install each family app",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Kirsty's phone",
+                  "kind": "page"
+                },
+                "body_html": "<p>For each family service that is ready (VPN, photos, any others), install the app, sign in to Kirsty's account, and set it running.</p>",
+                "expect_html": "<p>Each app opens and works on her phone.</p>",
+                "fields": [
+                  {
+                    "key": "apps",
+                    "label": "Services set up on Kirsty's phone",
+                    "placeholder": "VPN, photos, ..."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Note the day",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Write today's date. The week counts from here.</p>",
+                "expect_html": "<p>Date in the field.</p>",
+                "fields": [
+                  {
+                    "key": "start",
+                    "label": "Set-up date",
+                    "placeholder": "YYYY-MM-DD"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "One week later",
+            "minutes": 3,
+            "needs": [
+              "Kirsty, two minutes"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Ask, do not touch",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Kirsty",
+                  "kind": "page"
+                },
+                "body_html": "<p>Ask Kirsty whether anything asked her for anything or stopped working. Check her photos arrived in Immich.</p>",
+                "expect_html": "<p>Nothing needed touching all week.</p>",
+                "fields": [
+                  {
+                    "key": "untouched",
+                    "label": "Untouched for the week?",
+                    "placeholder": "yes, or what needed touching"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.20",
+      "title": "Family group of services: one set window, snapshot, rehearsed one-step revert, never on a weeknight",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude Code marks the family group in the config repo (the VPN, DNS filter, photos, Home Assistant, media and anything else Kirsty uses), sets one change window (a weekend daytime slot Phil names, in the monthly review only), and writes the one-step revert for each (snapshot taken first, revert to it in one command or one click), then rehearses one revert on photos and records how long it took. Each family runbook in Docs gains a \"revert\" line.\n\n## Why\nPhil, 7b: \"no change without a tested way back and never on a weeknight (one set window, snapshot, rehearsed one-step revert); and a separate 'family' group of services touched only in the monthly review\".\n\n## Done looks like\nThe family group is listed; the window is on the ticket; one revert was rehearsed and timed; every family runbook has its revert line.\n\n## Unlocks\nsub.22 (monthly updates follow this rule); sub.25.\n\n## Depends on\nsub.12 (photos, the first family service the rehearsal uses); sub.02 (how snapshots work on the chosen platform).",
+      "after": [
+        "sub.12"
+      ],
+      "links": [],
+      "tags": [
+        "devops",
+        "home",
+        "sub"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "sub.21",
+      "title": "Monitoring: a push through Mycelium and a status page",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nClaude Code wires Uptime Kuma's alerts to a push through Mycelium (a webhook into a Mycelium endpoint that raises a notification, reusing the alerts address for backup and server reports where E.mail set it up), and publishes one status page reachable only at home or over the VPN. Backup job results from sub.11 report through the same route. No Mycelium endpoint is opened to Substrate from outside; Substrate calls out.\n\n## Why\nPhil: monitoring \"both: a push through Mycelium and a status page\".\n\n## Done looks like\nStopping a test service sends a push to Phil's phone through Mycelium within a few minutes; the status page shows every service; a backup result arrives each night.\n\n## Unlocks\nsub.25 (the proof is read from the status page history).\n\n## Depends on\nsub.09 (the checks).",
+      "after": [
+        "sub.09"
+      ],
+      "links": [],
+      "tags": [
+        "devops",
+        "feature",
+        "dev",
+        "sub"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "sub.22",
+      "title": "Updates in the monthly review, snapshot first (recurring)",
+      "kind": "audit",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nEvery month, inside the monthly review, snapshot Substrate, update the non-family services and the host, then update the family services only in the set weekend window with the revert ready. The April 2027 review only reads the status page, because the 30-day proof runs from 2027-04-24 to 2027-05-24.\n\n## Why\nPhil: updates \"in the monthly review, snapshot first\".\n\n## Done looks like\nEach month: snapshots dated, every service green, any revert noted.\n\n## Unlocks\nSteady running for sub.25 and sub.26.\n\n## Depends on\nsub.04 (the config repo). It sits beside E.net's monthly review (net.24).",
+      "after": [
+        "sub.04"
+      ],
+      "links": [],
+      "tags": [
+        "maintenance",
+        "devops",
+        "schedule",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-monthly-updates",
+        "kind": "audit",
+        "title": "Substrate's monthly updates",
+        "version": 1,
+        "intro": {
+          "answer": "Snapshot, update, family services in the window only; April 2027 is read only.",
+          "unlocks": [],
+          "to_hand": [
+            "The status page"
+          ],
+          "time": "About 15 minutes",
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Monthly Substrate updates",
+            "minutes": 18,
+            "needs": [
+              "The status page",
+              "The family window, for family services"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Check the month first",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The status page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Is this the April 2027 review? If so, only read the status page and stop here: the 30-day proof (sub.25) runs from 2027-04-24 to 2027-05-24.</p>",
+                "expect_html": "<p>You know whether to update.</p>",
+                "fields": [
+                  {
+                    "key": "month",
+                    "label": "Review month",
+                    "placeholder": "YYYY-MM"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Snapshot",
+                "actor": "claude-code",
+                "minutes": 3,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code takes the snapshot of each guest or volume.</p>",
+                "expect_html": "<p>Snapshots listed with today's date.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Update the non-family services",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code updates the non-family services and the host, one at a time, checking each.</p>",
+                "expect_html": "<p>All green.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Approve the family updates",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>In the family window only (weekend daytime), approve the family updates. Claude Code runs them with the revert ready.</p>",
+                "expect_html": "<p>All green, or reverted.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "<p>Family service: change it only in the set weekend window, snapshot first, revert rehearsed (sub.20). Never on a weeknight.</p>"
+                  }
+                ]
+              },
+              {
+                "id": "1.5",
+                "title": "Note anything odd",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Write anything that needed a revert or a fix.</p>",
+                "expect_html": "<p>A line in the field.</p>",
+                "fields": [
+                  {
+                    "key": "notes",
+                    "label": "Anything odd",
+                    "placeholder": "none, or what"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.23",
+      "title": "Restore test per service at set-up; a yearly timed rebuild drill on a spare drive",
+      "kind": "test",
+      "points": 3,
+      "due": null,
+      "who": "P",
+      "description": "## What\nEach service gets one restore test when it is set up (its data restored from the backup to a spare place and checked), recorded in its runbook. Once a year, Substrate is rebuilt from scratch on a spare drive from the config repo and the backups, timed, and the gaps in the runbooks written down.\n\n## Why\nPhil, 7b rebuild promise, both: \"a restore test per service at set-up, and a yearly timed rebuild drill on a spare drive\".\n\n## Done looks like\nEvery runbook shows a \"restore tested\" date; the yearly drill has a time in minutes and a gaps line.\n\n## Unlocks\nsub.26 (the done check trusts the backups because of this).\n\n## Depends on\nsub.11 (backups).",
+      "after": [
+        "sub.11"
+      ],
+      "links": [],
+      "tags": [
+        "testing",
+        "maintenance",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-restore-drill",
+        "kind": "test",
+        "title": "Restore tests and the yearly rebuild drill",
+        "version": 1,
+        "intro": {
+          "answer": "Restore each service once at set-up; rebuild the lot on a spare drive once a year, timed.",
+          "unlocks": [
+            "sub.26"
+          ],
+          "to_hand": [
+            "A spare drive",
+            "The backup drive"
+          ],
+          "time": "About 17 minutes per service; the drill about an hour over three sittings",
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "restic vs BorgBackup",
+              "url": "https://dev.to/selfhostingsh/restic-vs-borgbackup-which-backup-tool-to-use-4cmn",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "2.2",
+            "why": "Install to the spare drive only; the installer wipes the drive it is given."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Restore test at set-up (one per service)",
+            "minutes": 17,
+            "needs": [
+              "The service's runbook"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Restore to a spare place",
+                "actor": "claude-code",
+                "minutes": 10,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code restores the service's data and database dump from last night's backup to a spare place and starts a copy.</p>",
+                "expect_html": "<p>The copy runs.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Check it",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The restored copy",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Open the copy and check three recent things (a photo, a document, a setting).</p>",
+                "expect_html": "<p>All three are there.</p>",
+                "fields": [
+                  {
+                    "key": "service",
+                    "label": "Service tested",
+                    "placeholder": "name"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Record it",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The service's runbook in Docs",
+                  "kind": "page"
+                },
+                "body_html": "<p>Add the date and \"restore tested\" to the runbook.</p>",
+                "expect_html": "<p>The runbook shows the date.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Yearly drill: rebuild on a spare drive (1 of 3)",
+            "minutes": 13,
+            "needs": [
+              "The spare drive",
+              "A stopwatch"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Start the clock",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Stopwatch",
+                  "kind": "page"
+                },
+                "body_html": "<p>Start timing.</p>",
+                "expect_html": "<p>Clock running.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Install the platform on the spare drive",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "A spare machine or Substrate in the window",
+                  "kind": "page"
+                },
+                "body_html": "<p>Install the platform from scratch on the spare drive, as in sub.03 phase 3.</p>",
+                "expect_html": "<p>It boots to its login.</p>",
+                "irreversible": true
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Yearly drill (2 of 3): restore",
+            "minutes": 20,
+            "needs": [
+              "The backup drive"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Restore the config repo and data",
+                "actor": "claude-code",
+                "minutes": 15,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code clones the config repo, restores each service's data from the backup, and starts them.</p>",
+                "expect_html": "<p>Services start on the spare drive.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Watch and note",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Note anything the runbooks did not cover.</p>",
+                "expect_html": "<p>A line in the field.</p>",
+                "fields": [
+                  {
+                    "key": "gaps",
+                    "label": "Gaps in the runbooks",
+                    "placeholder": "none, or what"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Yearly drill (3 of 3): verify and stop the clock",
+            "minutes": 10,
+            "needs": [],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Check every service",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The rebuilt services",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Open each service on the rebuilt drive.</p>",
+                "expect_html": "<p>Each opens with its data.</p>"
+              },
+              {
+                "id": "4.2",
+                "title": "Stop the clock",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Stopwatch",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the total time.</p>",
+                "expect_html": "<p>Time in the field.</p>",
+                "fields": [
+                  {
+                    "key": "minutes",
+                    "label": "Rebuild time in minutes",
+                    "placeholder": "number"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "4.1": "untested",
+          "4.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.24",
+      "title": "Printed \"if it breaks\" page for Kirsty",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nOne printed A4 page by the routers telling Kirsty, in plain words, what to do if the internet or a house service stops while Phil is away: the simple mode switch, turning Substrate off and on, the wall switches, who to call. No passwords on it.\n\n## Why\nPhil, 7b bus test: \"it needs nothing for a month, and there is a printed 'if it breaks' page for Kirsty\".\n\n## Done looks like\nThe page is by the routers and Kirsty has seen it.\n\n## Unlocks\nsub.25 (the proof assumes the page is there).\n\n## Depends on\nsub.07 (the VPN, so every service on the page exists).",
+      "after": [
+        "sub.07"
+      ],
+      "links": [],
+      "tags": [
+        "home",
+        "documentation",
+        "guide",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-if-it-breaks",
+        "kind": "guide",
+        "title": "The \"if it breaks\" page",
+        "version": 1,
+        "intro": {
+          "answer": "One plain page by the routers for Kirsty.",
+          "unlocks": [
+            "sub.25"
+          ],
+          "to_hand": [
+            "A printer",
+            "Kirsty"
+          ],
+          "time": "About 10 minutes",
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The page",
+            "minutes": 15,
+            "needs": [
+              "A printer",
+              "Kirsty, five minutes"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Draft the page",
+                "actor": "claude-code",
+                "minutes": 5,
+                "where": {
+                  "label": "Claude Code on the PC",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude Code drafts one A4 page in plain words: if the internet stops, flip the simple mode switch (E.net) or switch Substrate off at the wall, wait 30 seconds, switch on, wait five minutes; if the lights or heating act up, use the wall switches; who to call; nothing else to do. No passwords on it.</p>",
+                "expect_html": "<p>A one-page draft.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Read and print",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The draft in Docs",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read it as Kirsty would, correct anything unclear, print it.</p>",
+                "expect_html": "<p>One printed page.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Put it by the routers and show Kirsty",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Beside the routers",
+                  "kind": "page"
+                },
+                "body_html": "<p>Fix the page by the routers and show Kirsty in two minutes.</p>",
+                "expect_html": "<p>Kirsty has seen it.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.25",
+      "title": "The 30-day proof: hands off from 2027-04-24, checked 2027-05-24",
+      "kind": "test",
+      "points": 1,
+      "due": "2027-05-24",
+      "who": "P",
+      "description": "## What\nLeave Substrate completely alone from Saturday 2027-04-24 to Monday 2027-05-24 (30 days), then read the status page history and the alerts and ask Kirsty. The April 2027 monthly review (2027-04-28) only reads the status page; no router, broadband or Substrate change goes in during the window. This ticket is dated 2027-05-24, with hands-off starting 2027-04-24. Anything touched restarts the count and is noted.\n\n## Why\nPhil, 7b bus test: \"it needs nothing for a month\" and \"a dated ticket before June proves it by leaving it untouched for 30 days\".\n\n## Done looks like\nOn 2027-05-24 the ticket shows \"nothing touched\" and Kirsty's \"fine\", or what was touched.\n\n## Unlocks\nsub.26 (the done check).\n\n## Depends on\nsub.06, sub.07, sub.08 (the DNS filter, the VPN and Home Assistant, the first three services); sub.18 and sub.24 should be done before 2027-04-24.",
+      "after": [
+        "sub.06",
+        "sub.07",
+        "sub.08"
+      ],
+      "links": [],
+      "tags": [
+        "testing",
+        "schedule",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-30-day-proof",
+        "kind": "test",
+        "title": "The 30-day proof",
+        "version": 1,
+        "intro": {
+          "answer": "Hands off from 2027-04-24, checked 2027-05-24.",
+          "unlocks": [
+            "sub.26"
+          ],
+          "to_hand": [
+            "The status page"
+          ],
+          "time": "About 12 minutes, a month apart",
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Saturday 2027-04-24: hands off",
+            "minutes": 5,
+            "needs": [
+              "The status page"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Everything green",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The status page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Check every service is green and note the uptime.</p>",
+                "expect_html": "<p>All green.</p>",
+                "fields": [
+                  {
+                    "key": "start",
+                    "label": "Hands off from",
+                    "placeholder": "2027-04-24"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Hold changes",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Hold every Substrate change until 2027-05-24: the April review (2027-04-28) only reads the status page, and no router or broadband change goes in during the window.</p>",
+                "expect_html": "<p>Noted.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Monday 2027-05-24: the check",
+            "minutes": 7,
+            "needs": [
+              "The status page history",
+              "The alerts"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Read the month",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The status page history and Mycelium's alerts",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Read the 30 days: outages, alerts, and anything you or Kirsty had to touch.</p>",
+                "expect_html": "<p>You know whether it ran untouched.</p>",
+                "fields": [
+                  {
+                    "key": "touched",
+                    "label": "Anything touched in 30 days",
+                    "placeholder": "nothing, or what"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Ask Kirsty",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Kirsty",
+                  "kind": "page"
+                },
+                "body_html": "<p>Ask whether anything stopped or asked her for anything.</p>",
+                "expect_html": "<p>Her answer in the field.</p>",
+                "fields": [
+                  {
+                    "key": "kirsty",
+                    "label": "Kirsty's answer",
+                    "placeholder": "fine, or what"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "sub.26",
+      "title": "Done check: every chosen service runs 30 days untouched",
+      "kind": "test",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nThe epic's done check: every service Phil chose (not only the first three) has run 30 days without him touching it, read from the status page history. Services added after the 30-day proof get their own 30 days before this closes.\n\n## Why\nPhil: done means \"every chosen service runs 30 days without him touching it\".\n\n## Done looks like\nEvery chosen service shows 30 untouched days, and the epic closes.\n\n## Unlocks\nNothing; it closes E.sub.\n\n## Depends on\nsub.25 (the dated proof first).",
+      "after": [
+        "sub.25"
+      ],
+      "links": [],
+      "tags": [
+        "testing",
+        "sub"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "sub-done-check",
+        "kind": "test",
+        "title": "Done check: 30 days untouched",
+        "version": 1,
+        "intro": {
+          "answer": "Every chosen service has run 30 days untouched.",
+          "unlocks": [],
+          "to_hand": [
+            "The status page"
+          ],
+          "time": "About 12 minutes",
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Every chosen service",
+            "minutes": 12,
+            "needs": [
+              "The status page history",
+              "The service list"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Read each service's 30 days",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The status page history",
+                  "kind": "browser"
+                },
+                "body_html": "<p>For each service Phil chose, read its last 30 days.</p>",
+                "expect_html": "<p>Each ran without a touch.</p>",
+                "fields": [
+                  {
+                    "key": "services",
+                    "label": "Services that ran 30 days untouched",
+                    "placeholder": "count of total"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Close or carry",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>If every service passed, close the epic. If not, name the ones that need another 30 days.</p>",
+                "expect_html": "<p>Closed, or a list.</p>",
+                "fields": [
+                  {
+                    "key": "carry",
+                    "label": "Services needing another 30 days",
+                    "placeholder": "none, or names"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested"
+        }
+      }
+    }
+  ],
+  "existing": [
+    {
+      "key": "MYC-182",
+      "set_epic": false,
+      "append": "\n\n## Unlocks\nsub.11: the backup drive answer sets the second drive for Substrate's backups."
+    },
+    {
+      "key": "MCU-12",
+      "set_epic": false,
+      "append": "\n\n## Related\nsub.14 chooses the media server for Substrate (Plex or Jellyfin); this ticket's Plex plan is an input, not overruled."
+    }
+  ]
+}

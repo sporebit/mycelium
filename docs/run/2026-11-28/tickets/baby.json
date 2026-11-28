@@ -1,0 +1,4397 @@
+{
+  "epic": {
+    "sid": "E.baby",
+    "project": "BABY",
+    "title": "Baby: everything essential in the house a month before June 2027",
+    "description": "First child for both Phil and Kirsty. Safety items (car seat and bases, every mattress) are bought new and the rest used or handed down; the budget is set with Kirsty after the starter lists are priced, and paid from a shared baby pot with a running total on the Family page and in the payday summary. Every list item is Need, Nice or Wait, and only Need is bought before the birth. Tickets are for decisions and jobs; the items themselves stay as rows on the Family section's three prep lists (Buying list, Nursery, Hospital bag; 0171), which keep price, link and bought. Every ticket is dated, worked back from a working due date of **2027-06-15**, with essentials in the house by **2027-05-15**. **MYC-182 asks Phil the real due date; when he answers, every date in this epic moves with it.**\n\n## Order\nThe safety rules page comes first (baby.01), then pricing and the budget (baby.02), the family ask (baby.04) and three recent parents (baby.05), the pot (baby.03) and Need, Nice or Wait (baby.06). The nursery is cleared after the storage ticket (home.10, then baby.07). The comparison guides follow (car seat baby.08, pram baby.09, where the baby sleeps baby.10, cot and mattress baby.11, monitor baby.12), with the gift list (baby.35) and price watch (baby.36) built alongside. Paternity leave notice (baby.18) and Kirsty's own items (baby.20) go before the legal 15-week deadline. Big items are bought early (car seat baby.13, pram baby.14), then the nursery design (baby.15), cot and mattress (baby.16), feeding (baby.17), antenatal classes (baby.19), the monitor after the cameras network (baby.21 after net.14), the starter set (baby.23), first aid (baby.25), nursery set-up (baby.22), the nights talk (baby.28), the dry run (baby.24) and care basics (baby.26), labour support (baby.27), the house (baby.30), the done check on 2027-05-15 (baby.39), the hospital bag (baby.29), the first weeks (baby.31), the handover (baby.33) and the quiet fortnight (baby.37), then registration (baby.34) and the Wait review (baby.38). The hand-made thing (baby.32) is chosen in February.\n\n## Done means\nEverything essential in the house and set up a month before the due date (baby.39 passes).\n\n## Flags\n- 5.12 `[claude]`: the gift list is a deliberately public GET; unguessable link, items only, revocable (baby.35). Not reopened.\n- 5.20 `[claude]`: tickets live in Phil's space until Kirsty joins; moving a project between spaces later re-keys its tickets (tickets-spec §17.7). Not reopened.\n\n## Dossier\nThe research dossier is attached in Docs (link added by the integrator); source file `docs/run/2026-11-28/dossiers/baby.md`.",
+    "dossier": "dossiers/baby.md",
+    "links": [
+      "MYC-182",
+      "MYC-186"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "baby.01",
+      "title": "Safety guardrail page: a researched rules page from official UK sources (car seat law, safe sleep, mattress, monitor); each item ticket links its rule",
+      "kind": "task",
+      "points": 3,
+      "due": "2026-12-13",
+      "who": "C",
+      "description": "## What\nClaude writes one page in Mycelium Docs titled \"Baby: safety rules (official UK sources)\". Each rule is numbered (R1, R2 and so on), says the rule in one line, names the source and the day it was checked. It covers at least: car seats (height-based R129 or weight-based ECE R44 labels, rear-facing until over 15 months for R129 seats, a front airbag off before any rear-facing seat in a front seat, no second-hand seat unless from family with a known history and its instructions), safe sleep (on the back, same room for at least the first six months, clear cot, 16 to 20°C with a room thermometer, no pillows, bumpers or weighted products), mattresses (new, firm, flat, waterproof cover, fits with no gaps, labelled BS EN 16890:2017+A1:2021 and BS 7177:2008+A1:2011; sleeping bags BS EN 16781:2018), cots (BS EN 716-1:2017), and monitors (no evidence they prevent sudden infant death; never a substitute for being in the room). The starting text is section 3 of the dossier `dossiers/baby.md`. Sources are only GOV.UK, the NHS, the Lullaby Trust, RoSPA's childcarseats.org.uk and BSI. When the page exists, Claude adds the matching rule numbers to baby.08, baby.09, baby.11, baby.12, baby.13, baby.14, baby.16, baby.21, baby.22, baby.24 and baby.26.\n\n## Why\nPhil: \"one guardrail ticket first: a researched rules page from official UK sources; each item ticket links its rule.\" His worry is forgetting something essential.\n\n## Done looks like\nThe Docs page exists with every rule numbered, sourced and dated, nothing from a retailer or forum, and each item ticket listed above carries a line \"Rule: R…\" with a link to the page.\n\n## Unlocks\nbaby.02 (pricing knows which rows must be new), baby.08, baby.09, baby.10 and baby.12 (each comparison guide starts from its rules).\n\n## Depends on\nNothing.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "research",
+        "documentation",
+        "medical"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "baby.02",
+      "title": "Price the starter lists, then set the total budget with Kirsty",
+      "kind": "guide",
+      "points": 1,
+      "due": "2026-12-20",
+      "who": "PK",
+      "description": "## What\nTwo short sittings on the Family page's Lists tab. First Phil puts a rough new price on the big rows of the Buying list and the Nursery list (pram, car seat, a second ISOFIX base, cot or crib, mattress, monitor, chest of drawers, changing bag), using one retailer's website for all of them so the figures compare. Small rows stay blank. Then, with Kirsty, he reads the running total and agrees one total budget figure, which he types into this ticket's field.\n\n## Why\nPhil: \"Total budget: not yet. First ticket prices the starter lists, then set with Kirsty.\" Cost is the first of his three worries.\n\n## Done looks like\nThe big rows on both lists have a price, the running total shows at the foot of each list, and the agreed total is in this ticket's \"Total budget\" field.\n\n## Unlocks\nbaby.03 (the pot's running total reads the agreed figure), baby.06 (Need, Nice or Wait is set against the budget).\n\n## Depends on\nbaby.01 (the rules page says which rows must be bought new, so they are priced new).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.01"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "shopping",
+        "planning",
+        "payment"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-price-starter-lists",
+        "kind": "guide",
+        "title": "Price the starter lists, then set the budget",
+        "version": 1,
+        "intro": {
+          "answer": "Put a rough price on the eight big rows, then agree one total with Kirsty.",
+          "unlocks": [
+            "baby.03 running total",
+            "baby.06 Need, Nice or Wait"
+          ],
+          "to_hand": [
+            "The Family page open on a laptop",
+            "One retailer's website in a second tab",
+            "Kirsty, for the second sitting"
+          ],
+          "time": [
+            "About 30 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "RoSPA Child Car Seats: second-hand child seats",
+              "url": "https://childcarseats.org.uk/choosing-using/second-hand-child-seats/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "The Lullaby Trust: mattresses and bedding",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/baby-product-information/mattresses-and-bedding/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Rough prices on the big rows",
+            "minutes": 14,
+            "needs": [
+              "Laptop",
+              "One retailer site"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Open the Buying list",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Open the Lists tab and choose <strong>Buying list</strong>. Click the first cell of the <strong>Price</strong> column.</p>",
+                "expect_html": "<p>The sheet with rows such as <em>Pram or pushchair</em> and <em>Car seat</em>, and an empty Price column.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Add the second base as its own row",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Add a row titled exactly the text below, so the two bases (one per car) are both priced.</p>",
+                "expect_html": "<p>A new row under <em>Car seat</em>.</p>",
+                "blocks": [
+                  {
+                    "label": "Row title",
+                    "text": "ISOFIX base, second car",
+                    "kind": "value"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Price the big Buying rows",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The retailer's website, then the Price cells",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Look up a typical <strong>new</strong> price for: pram or pushchair, car seat, ISOFIX base (both rows), changing bag. Type whole pounds into Price. Use the middle of the range, not the cheapest.</p>",
+                "expect_html": "<p>Five rows priced; the running total at the foot of the list shows a figure.</p>",
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Rough is fine. The comparison guides (baby.08, baby.09) set the real figures later."
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Price the big Nursery rows",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Switch to <strong>Nursery</strong>. Price: cot or Moses basket, new mattress, baby monitor, chest of drawers. Leave the rest blank.</p>",
+                "expect_html": "<p>Four rows priced and a Nursery running total.</p>",
+                "fields": [
+                  {
+                    "key": "rough_total",
+                    "label": "Both running totals added together, in pounds",
+                    "placeholder": "a number, for example 1200"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Agree the total with Kirsty",
+            "minutes": 15,
+            "needs": [
+              "Kirsty",
+              "The two running totals"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Show Kirsty the two totals",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Open both lists side by side and read the totals out. Say which rows are safety rows that must be new (car seat, bases, mattress).</p>",
+                "expect_html": "<p>Kirsty has seen both lists.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Agree one figure",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "A conversation",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Agree one total budget for everything before the birth. A useful frame: the priced total, plus a margin for the small rows, minus what family may hand down (baby.04).</p>",
+                "expect_html": "<p>One number you both said yes to.</p>",
+                "fields": [
+                  {
+                    "key": "total_budget",
+                    "label": "Total budget agreed, in pounds",
+                    "placeholder": "a number, for example 1500"
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Tell Claude",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Leave the figure in the field above. Claude reads it when it builds the pot's running total (baby.03).</p>",
+                "expect_html": "<p>The field shows the figure.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.03",
+      "title": "Shared baby pot, who paid what in the household budget, running total on the Family page and the payday summary",
+      "kind": "task",
+      "points": 3,
+      "due": "2027-01-10",
+      "who": "C",
+      "description": "## What\nClaude builds the baby pot view. On the Family page's Budget tab a \"Baby pot\" card shows the agreed total (from baby.02's field), what has been spent (the bought rows on the three prep lists with a price, plus household costs marked as baby), what is left, and who paid what between Phil and Kirsty. The payday summary gets one line: \"Baby pot: £spent of £total, £left left\". The figures come only from the family space's own tables (`family_list_items`, the household costs); nothing from Phil's private Finance section is read or shown, and finance never appears on the wall.\n\n## Why\nPhil: \"Paid from a shared baby pot; the household budget records who paid what\" and \"Running total: on the Family page plus a line in the payday summary.\"\n\n## Done looks like\nWith two test rows bought (one by each of them) the card shows the right spent, left and per-person figures; the payday summary carries the one line; a unit test covers the sums; nothing from Finance is touched.\n\n## Unlocks\nbaby.06 and every Buy ticket (each purchase moves the total), baby.38 (the review reads what is left).\n\n## Depends on\nbaby.02 (the total budget figure). Related, not blocking: fin.08 (named pots, including the baby pot, in Finance).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.\n\n## Red team\n- Finding 36: Open the pot at the bank and start paying in now; the Mycelium tracking (fin.08) follows.\n",
+      "after": [
+        "baby.02"
+      ],
+      "links": [
+        "fin.08"
+      ],
+      "tags": [
+        "baby",
+        "dev",
+        "feature",
+        "payment"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "baby.04",
+      "title": "Ask family about hand-me-downs before anything is bought",
+      "kind": "guide",
+      "points": 1,
+      "due": "2026-12-20",
+      "who": "P",
+      "description": "## What\nOne message to the family, sent before anything is bought, listing what would be welcome used (pram, clothes, Moses basket or crib frame, chest of drawers, bath, sling) and what must be new (car seat and bases, any mattress). Replies are written into the Buying and Nursery lists as a note on the row, with the price set to 0.\n\n## Why\nPhil: \"Hand-me-downs: unknown. A ticket to ask family before anything is bought.\" Buying: \"safety items new (car seat, mattress), the rest used or handed down.\"\n\n## Done looks like\nThe message has gone, and every offer that comes back sits on its list row as \"Hand-me-down: name\".\n\n## Unlocks\nbaby.06 (Need, Nice or Wait knows what is already coming), baby.13, baby.14, baby.16 (nothing is bought that is on its way).\n\n## Depends on\nNothing.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "shopping",
+        "communication"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-ask-hand-me-downs",
+        "kind": "guide",
+        "title": "Ask family about hand-me-downs",
+        "version": 1,
+        "intro": {
+          "answer": "Send one message listing what is welcome used and what must be new.",
+          "unlocks": [
+            "baby.06",
+            "every Buy ticket"
+          ],
+          "to_hand": [
+            "Your phone",
+            "The family group chat or the people you would ask"
+          ],
+          "time": [
+            "About 15 minutes, then a few minutes per reply"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "RoSPA Child Car Seats: second-hand child seats",
+              "url": "https://childcarseats.org.uk/choosing-using/second-hand-child-seats/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "The Lullaby Trust: mattresses and bedding",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/baby-product-information/mattresses-and-bedding/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Send the ask",
+            "minutes": 11,
+            "needs": [
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Decide who to ask",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Your phone's contacts",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Pick the family group, or the two to four people most likely to have baby things.</p>",
+                "expect_html": "<p>A short list of names.</p>",
+                "fields": [
+                  {
+                    "key": "asked",
+                    "label": "Who you asked",
+                    "placeholder": "names, for example Mum, Sarah"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Send the message",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Your messaging app",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Copy the message below, change anything you like, and send it.</p>",
+                "expect_html": "<p>The message shows as sent.</p>",
+                "blocks": [
+                  {
+                    "label": "Message",
+                    "text": "We're starting to get ready for the baby and want to reuse what we can before we buy anything. If you have any of these and would be happy to pass them on, we'd love to hear: pram or pushchair, Moses basket or crib (frame only), baby clothes (newborn and 0 to 3 months), chest of drawers, baby bath, sling or carrier, changing mat. The car seat and any mattress we'll buy new for safety, so no need for those. Thank you!",
+                    "kind": "value"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Car seat, bases and every mattress stay new, whatever is offered (rules R1 and the mattress rule on the guardrail page). A car seat from family with a known history is the only exception RoSPA allows, and Phil chose new anyway."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Set up where replies go",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Open the Buying list. When someone offers a thing, type <code>Hand-me-down: name</code> in that row's note and 0 in Price.</p>",
+                "expect_html": "<p>You know where each reply goes.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Log the replies (when they come)",
+            "minutes": 5,
+            "needs": [
+              "The replies"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Write each offer on its row",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>For each offer, find the row on the Buying or Nursery list, add the note and a price of 0. If an offer has no row, add one.</p>",
+                "expect_html": "<p>Every offer is on a row.</p>",
+                "fields": [
+                  {
+                    "key": "offers",
+                    "label": "Number of things offered",
+                    "placeholder": "a count"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.05",
+      "title": "Ask three recent parents what they wish they had and had not bought",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-01-10",
+      "who": "P",
+      "description": "## What\nPhil asks three people who had a baby in the last two or three years two questions: what they wish they had bought, and what they wish they had not. Their answers go on the Family timeline as one note, and any row they mention gets a word in its note on the list.\n\n## Why\nPhil (5b): \"Ask three recent parents what they wish they had and had not bought, before the big buys.\"\n\n## Done looks like\nThree people asked, one timeline note holding their answers, and the rows they named marked on the lists.\n\n## Unlocks\nbaby.06 (the Need, Nice or Wait pass uses their answers), and so the big buys from baby.13 onwards.\n\n## Depends on\nNothing.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "shopping",
+        "communication",
+        "research"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-ask-three-parents",
+        "kind": "guide",
+        "title": "Ask three recent parents",
+        "version": 1,
+        "intro": {
+          "answer": "Two questions to three people, the answers kept on the timeline.",
+          "unlocks": [
+            "baby.06"
+          ],
+          "to_hand": [
+            "Your phone",
+            "Three names"
+          ],
+          "time": [
+            "About 15 minutes, then the replies"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Ask and keep the answers",
+            "minutes": 13,
+            "needs": [
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Pick three people",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Your contacts",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Three people whose baby is under about three years old. Mix them if you can (one from work, one friend, one family).</p>",
+                "expect_html": "<p>Three names.</p>",
+                "fields": [
+                  {
+                    "key": "who",
+                    "label": "The three people",
+                    "placeholder": "first names only"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Send the two questions",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Your messaging app",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Send each of them the message below.</p>",
+                "expect_html": "<p>Three messages sent.</p>",
+                "blocks": [
+                  {
+                    "label": "Message",
+                    "text": "Quick one: we're getting ready for the baby. Looking back, what's the one thing you're glad you bought, and the one thing you wish you hadn't bothered with?",
+                    "kind": "value"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Keep the answers",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Mycelium: Family, Timeline tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=timeline"
+                },
+                "body_html": "<p>As answers arrive, add one timeline note titled <code>What recent parents said</code> and paste them in. Add <code>Recommended</code> or <code>Skip, said name</code> to the note of any list row they named.</p>",
+                "expect_html": "<p>One timeline note with up to three answers.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.06",
+      "title": "Need, Nice or Wait on every list item; only Need before the birth",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-01-17",
+      "who": "PK",
+      "description": "## What\nPhil and Kirsty go down the Buying, Nursery and Hospital bag lists together and mark every row Need, Nice or Wait. Need means a safety item or used in the first fortnight; Nice means wanted but not essential; Wait means decide after the birth. Only Need rows are bought before the birth. Until the sheet has a column for it, the mark is the first word of the row's note.\n\n## Why\nPhil's overspend guard (5b): \"every item marked Need, Nice or Wait; only Need is bought before the birth; Wait reviewed a month after.\"\n\n## Done looks like\nEvery row on the three lists starts its note with Need, Nice or Wait, and the number of Need rows is in this ticket's field.\n\n## Unlocks\nbaby.13, baby.14, baby.16, baby.23 (only Need rows are bought), baby.35 (Nice rows suit the gift list), baby.38 (the Wait review).\n\n## Depends on\nbaby.02 (the budget the marks are set against). Best done after baby.04 and baby.05 have answers, which their dates allow.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.02"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "shopping",
+        "planning"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-need-nice-wait",
+        "kind": "guide",
+        "title": "Need, Nice or Wait on every row",
+        "version": 1,
+        "intro": {
+          "answer": "Mark every row with Kirsty; only Need is bought before the birth.",
+          "unlocks": [
+            "every Buy ticket",
+            "baby.38"
+          ],
+          "to_hand": [
+            "Kirsty",
+            "The Family page on a laptop"
+          ],
+          "time": [
+            "About 30 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "The Lullaby Trust: safer sleep information",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/safer-sleep-information/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The Buying list",
+            "minutes": 13,
+            "needs": [
+              "Kirsty",
+              "Laptop"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Agree the three words",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "A conversation",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Need: a safety item, or used in the first two weeks. Nice: wanted, not essential. Wait: decide after the birth.</p>",
+                "expect_html": "<p>You both use the words the same way.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Mark every Buying row",
+                "actor": "you",
+                "minutes": 11,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Open the Buying list. For each row, type Need, Nice or Wait as the first word of the note. Car seat, both bases and nappies are Need.</p>",
+                "expect_html": "<p>Every Buying row starts its note with one of the three words.</p>",
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Until the list sheet has its own Need, Nice or Wait column, the mark goes as the first word of the row's <strong>note</strong> cell, for example <code>Need</code> or <code>Wait: after the birth</code>."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The Nursery and Hospital bag lists",
+            "minutes": 13,
+            "needs": [
+              "Kirsty",
+              "Laptop"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Mark every Nursery row",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Same on the Nursery list. The mattress is Need; remember the baby sleeps in your room for the first six months (Lullaby Trust), so a full cot may be Wait if you choose a crib.</p>",
+                "expect_html": "<p>Every Nursery row marked.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Mark the Hospital bag",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Most hospital bag rows are Need. Mark them anyway so the count is right.</p>",
+                "expect_html": "<p>Every Hospital bag row marked.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Count the Need rows",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Count the rows marked Need across the three lists.</p>",
+                "expect_html": "<p>A number.</p>",
+                "fields": [
+                  {
+                    "key": "need_count",
+                    "label": "How many rows are Need",
+                    "placeholder": "a count"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.07",
+      "title": "Clear-out weekend booked with Kirsty; the nursery emptied (nothing for the room bought until it is empty)",
+      "kind": "guide",
+      "points": 2,
+      "due": "2027-01-09",
+      "who": "PK",
+      "description": "## What\nPhil and Kirsty book one weekend on the Phirsty Life calendar and empty the smallest bedroom (the nursery). Everything in it goes to one of four places: the storage places agreed in home.10, sell (a SELL or FIXF ticket per item worth selling), charity, or the tip. The room is empty, hoovered and photographed at the end. Nothing for the nursery is bought until this ticket is done.\n\n## Why\nPhil (5b): what he would kick himself over is \"the nursery still full\". \"Clearing it is the first dated ticket of the epic (after the home epic's storage ticket), nothing for the room bought until it is empty, and a clear-out weekend booked with Kirsty.\"\n\n## Done looks like\nThe weekend is on the family calendar, the room is empty, and a photo of the empty room is on the Family timeline.\n\n## Unlocks\nbaby.15 (the nursery design needs an empty room to measure), baby.22 (set-up).\n\n## Depends on\nhome.10 (house-wide storage: where the nursery's contents go).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.\n\n## Red team\n- Finding 70: A list of what left the room and where it went; nothing thrown away without both agreeing.\n",
+      "after": [
+        "home.10"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "home",
+        "house",
+        "cleaning",
+        "chore"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-nursery-clear-out",
+        "kind": "guide",
+        "title": "The nursery clear-out weekend",
+        "version": 1,
+        "intro": {
+          "answer": "Book the weekend, then empty the room into four piles: store, sell, charity, tip.",
+          "unlocks": [
+            "baby.15",
+            "baby.22"
+          ],
+          "to_hand": [
+            "Kirsty",
+            "Bin bags and boxes",
+            "The storage plan from home.10"
+          ],
+          "time": [
+            "Four short sittings plus the weekend itself"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [],
+          "hard_part": {
+            "step_id": "3.1",
+            "why": "Starting is the hard part; one corner makes the rest follow."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Book the weekend",
+            "minutes": 10,
+            "needs": [
+              "Kirsty",
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Pick the weekend with Kirsty",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Mycelium: Family, Calendar tab",
+                  "kind": "decision",
+                  "url": "https://mycelium.sporebit.com/family?tab=calendar"
+                },
+                "body_html": "<p>Look at the next three weekends together and pick one with nothing else in it. Before 2027-01-31 if you can.</p>",
+                "expect_html": "<p>A weekend you both said yes to.</p>",
+                "fields": [
+                  {
+                    "key": "weekend",
+                    "label": "The Saturday of the weekend",
+                    "placeholder": "a date, for example 2027-01-23"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Put it on the calendar",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium: Family, Calendar tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=calendar"
+                },
+                "body_html": "<p>Add an all-day event on both days titled below.</p>",
+                "expect_html": "<p>The event shows on Phirsty Life on both phones.</p>",
+                "blocks": [
+                  {
+                    "label": "Event title",
+                    "text": "Nursery clear-out",
+                    "kind": "value"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Check home.10 is done",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The home.10 ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open home.10 and read where the nursery's things are meant to go. If it is not done, do it first.</p>",
+                "expect_html": "<p>You know where each kind of thing is stored.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Get ready (the week before)",
+            "minutes": 10,
+            "needs": [
+              "Bin bags",
+              "Boxes",
+              "A marker pen"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Get bags, boxes and labels",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "At home or the shop",
+                  "kind": "decision"
+                },
+                "body_html": "<p>A roll of bin bags, six to ten boxes, a marker. Label four boxes: <code>Store</code>, <code>Sell</code>, <code>Charity</code>, <code>Tip</code>.</p>",
+                "expect_html": "<p>Four labelled boxes in the room.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Check the tip and charity shop",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Your council's household waste recycling centre page, and a local charity shop",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Check the tip's opening hours and whether it needs a booking, and that the charity shop takes what you have.</p>",
+                "expect_html": "<p>You know when you can drop things off.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "The first quarter-hour on the day",
+            "minutes": 15,
+            "needs": [
+              "Kirsty",
+              "The four boxes"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Start with the easiest corner",
+                "actor": "you",
+                "minutes": 15,
+                "where": {
+                  "label": "The nursery",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Clear one corner or one cupboard only, sorting into the four boxes. Then carry on at your own pace; the rest of the day is not a sitting.</p>",
+                "expect_html": "<p>One corner empty and the habit of the four boxes set.</p>",
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Anything worth selling gets a quick photo and its own SELL or FIXF ticket later, not now."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Check it is empty",
+            "minutes": 10,
+            "needs": [
+              "Phone camera"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Empty, hoovered, photographed",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The nursery",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Hoover the floor and take one photo from the doorway.</p>",
+                "expect_html": "<p>An empty room.</p>"
+              },
+              {
+                "id": "4.2",
+                "title": "Put the photo on the timeline",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Timeline tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=timeline"
+                },
+                "body_html": "<p>Add the photo with the title <code>Nursery empty</code>.</p>",
+                "expect_html": "<p>The photo on the Family timeline.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "4.1": "untested",
+          "4.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.08",
+      "title": "Comparison guide: car seat (fit both cars, a base in each, one seat)",
+      "kind": "task",
+      "points": 3,
+      "due": "2027-01-24",
+      "who": "C",
+      "description": "## What\nClaude writes a house-style comparison guide (a Field guide with a comparison table) for one infant car seat and two ISOFIX bases, one base per car: the Mercedes C220 and the Mercedes EQA. Shortlist only new R129 (i-Size) infant carriers whose base the maker lists as fitting both cars (Britax Römer's Fit Finder, the Maxi-Cosi vehicle advisor, Cybex's per-seat vehicle lists). Columns: seat and base model, price of seat plus two bases, fit-list result for each car, support leg or not, carrier weight, child height range, pram adapters for the baby.09 shortlist, Which? result, any recall. Before shortlisting, Claude takes from Phil (one comment on this ticket, answered when he next looks) the two cars' model years and body styles, because the C220 may be the W205 or the W206 generation and a saloon or an estate, and fit lists are per generation. The guide ends with one pick and a runner-up.\n\n## Why\nPhil: \"Car seat: check fit in both cars (C220 and EQA), a base in each, one seat\" and \"safety items new\". 5.13: a house-style comparison guide per big item.\n\n## Done looks like\nA comparison guide attached to this ticket with three to five seats, both cars' fit-list results per seat, the rule numbers from baby.01, and a single pick.\n\n## Unlocks\nbaby.13 (buying the seat and bases), baby.09 (the pram must take this seat if a travel system is wanted), baby.24 (the dry run).\n\n## Depends on\nbaby.01 (the car seat rules).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.01"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "research",
+        "car",
+        "shopping"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "baby.09",
+      "title": "Comparison guide: pram, against both boots, the streets and the budget",
+      "kind": "task",
+      "points": 3,
+      "due": "2027-01-31",
+      "who": "C",
+      "description": "## What\nClaude writes a comparison guide for a pram or pushchair, new or used (it is not a safety item in Phil's rule, except that any carrycot mattress is bought new). Every shortlisted pram is checked against both boots: the EQA (about 340 litres) and the C220 (about 455 litres as a W206 saloon; estates are larger), using the folded size with and without wheels and the carrycot separately. Boot litres are not enough, so the guide's first line asks Phil for the boots' opening width, height and floor depth, measured with a tape (a field on baby.24 can carry them). Columns also cover the streets (wheel size, suspension, kerbs and hills), one-hand fold, weight, carrycot from birth, adapters for the baby.08 seat, new and used prices.\n\n## Why\nPhil: \"Pram: research first against the car boots, streets and budget.\" Which? found 12 per cent of parents said their pushchair did not fit their boot.\n\n## Done looks like\nA comparison guide with three to five prams, each with folded measurements set against both boots' measurements, a used-price line, and one pick.\n\n## Unlocks\nbaby.14 (buying the pram), baby.24 (the boot dry run).\n\n## Depends on\nbaby.01 (rules), and the boot measurements from Phil.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.01"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "research",
+        "car",
+        "shopping"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "baby.10",
+      "title": "Where the baby sleeps the first six months: options researched, one conversation ticket",
+      "kind": "task",
+      "points": 2,
+      "due": "2027-02-07",
+      "who": "C",
+      "description": "## What\nClaude lays out the options for the first six months, when the Lullaby Trust says the baby should sleep in the same room as the parents: a Moses basket, a bedside (next-to-me) crib, or a full cot in the main bedroom, with the size each needs against the bedroom's free floor, price new and used (frame only; mattress always new), how long each lasts, and the Lullaby Trust's points on co-sleeping. The output is a one-page options sheet on this ticket and one dated PK conversation ticket for Phil and Kirsty to choose, made the week after.\n\n## Why\nPhil: \"Where the baby sleeps first six months: undecided, research the options.\" 5b: nights and first weeks need options laid out.\n\n## Done looks like\nThe options sheet is on this ticket with sources, and the conversation ticket exists with a date.\n\n## Unlocks\nbaby.11 (cot and mattress depends on what the baby sleeps in), baby.16, baby.28 (nights).\n\n## Depends on\nbaby.01 (safe sleep rules).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.\n\n## Red team\n- Finding 61: Research only; the conversation is baby.28.\n",
+      "after": [
+        "baby.01"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "research",
+        "home"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "baby.11",
+      "title": "Comparison guide: cot and mattress (mattress new)",
+      "kind": "task",
+      "points": 3,
+      "due": "2027-02-14",
+      "who": "C",
+      "description": "## What\nClaude writes a comparison guide for whatever baby.10 decided (crib, Moses basket or cot) and its mattress. The frame may be used or handed down; the mattress is always new. Shortlist mattresses labelled BS EN 16890:2017+A1:2021 and BS 7177:2008+A1:2011, firm and flat with a waterproof cover, in the exact size of the chosen frame; cots to BS EN 716-1:2017. Columns: frame, mattress, exact sizes, price, Which? result, any recall. If a crib is chosen, the guide says whether a cot is a Wait item.\n\n## Why\nPhil: safety items new, \"(car seat, mattress)\". 5.13: a comparison guide per big item.\n\n## Done looks like\nA comparison guide naming one frame and one matching new mattress with the label numbers checked.\n\n## Unlocks\nbaby.16 (buying them).\n\n## Depends on\nbaby.10 (where the baby sleeps decides which frame).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.10"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "research",
+        "shopping",
+        "home"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "baby.12",
+      "title": "Comparison guide: monitor, a local camera through Home Assistant; the evidence on baby technology first",
+      "kind": "task",
+      "points": 2,
+      "due": "2027-02-21",
+      "who": "C",
+      "description": "## What\nClaude first writes half a page on the evidence: the Lullaby Trust says there is no research showing monitors prevent sudden infant death, that a monitor never replaces a parent in the room, and that its own CONI programme does not use Wi-Fi monitors or vital-sign trackers because the detail can raise anxiety. Then a comparison of cameras that work locally in Home Assistant with no cloud account (a local stream such as RTSP or ONVIF), night vision, two-way audio, a room temperature reading if any, price. The pick is viewed live only, never recorded, and reached away from home only over the VPN.\n\n## Why\nPhil: \"Monitor: a local camera through Home Assistant (depends on the self-hosting epic)\" and 5b: \"Baby technology: research the evidence before any of it.\"\n\n## Done looks like\nAn evidence note and a comparison guide with one pick that runs without a cloud account.\n\n## Unlocks\nbaby.21 (buying and setting it up).\n\n## Depends on\nbaby.01 (rules). Related: sub.08 (Home Assistant itself).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.01"
+      ],
+      "links": [
+        "sub.08"
+      ],
+      "tags": [
+        "baby",
+        "research",
+        "home",
+        "security"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "baby.13",
+      "title": "Buy: car seat and bases",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-02-28",
+      "who": "P",
+      "description": "## What\nPhil buys the pick from baby.08: one new R129 infant car seat and two matching ISOFIX bases, from a retailer (not a marketplace second-hand listing). On arrival he checks the R129 label is on each item and registers the seat with the maker for recall notices, then marks the rows bought on the Buying list with price and link.\n\n## Why\nPhil: \"a base in each, one seat\", safety items new, big items early.\n\n## Done looks like\nThe seat and two bases are in the house, their labels checked, the seat registered, and the three rows on the Buying list show bought, price and link.\n\n## Unlocks\nbaby.24 (the timed dry run in both cars), baby.29 (the car seat is part of \"go\").\n\n## Depends on\nbaby.08 (the pick), baby.06 (the car seat is marked Need).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.08",
+        "baby.06"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "shopping",
+        "car",
+        "payment"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-buy-car-seat",
+        "kind": "guide",
+        "title": "Buy the car seat and two bases",
+        "version": 1,
+        "intro": {
+          "answer": "Buy the pick from baby.08 new, check the labels, register it.",
+          "unlocks": [
+            "baby.24 dry run"
+          ],
+          "to_hand": [
+            "The baby.08 guide",
+            "A payment card"
+          ],
+          "time": [
+            "About 15 minutes, then 10 on delivery"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "GOV.UK: Child car seats, the rules",
+              "url": "https://www.gov.uk/child-car-seats-the-rules",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "RoSPA Child Car Seats: second-hand child seats",
+              "url": "https://childcarseats.org.uk/choosing-using/second-hand-child-seats/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "RoSPA Child Car Seats: fitting and compatibility",
+              "url": "https://www.childcarseats.org.uk/choosing-using/child-car-seat-fitting-and-compatibility/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Buy it",
+            "minutes": 15,
+            "needs": [
+              "The baby.08 guide",
+              "Payment card"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Read the pick",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The baby.08 ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open baby.08's guide and note the seat and base model of the pick.</p>",
+                "expect_html": "<p>The exact model names.</p>",
+                "fields": [
+                  {
+                    "key": "seat_model",
+                    "label": "Seat model",
+                    "placeholder": "for example the maker and model name"
+                  },
+                  {
+                    "key": "base_model",
+                    "label": "Base model",
+                    "placeholder": "the matching ISOFIX base"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Check both cars once more",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The maker's vehicle fit list",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Look both cars up on the maker's fit list for that base, by model year and body style.</p>",
+                "expect_html": "<p>Both cars listed as fitting.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "If either car is not listed, stop and take the runner-up from baby.08."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Buy one seat and two bases",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "A UK retailer's website or shop",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Buy new from a retailer. Check the return window before paying.</p>",
+                "expect_html": "<p>An order confirmation for one seat and two bases.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Never second-hand, and not a marketplace seller (rule R1)."
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "1.4",
+                "title": "Mark the rows bought",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>On the Buying list, tick bought on Car seat and both base rows, with the price paid and the order link.</p>",
+                "expect_html": "<p>The running total moves.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "On delivery",
+            "minutes": 9,
+            "needs": [
+              "The boxes"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Check the labels",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The boxes, at home",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Find the orange approval label on the seat and on each base: it should show a capital E in a circle and R129.</p>",
+                "expect_html": "<p>Three R129 labels.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Register the seat",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The maker's product registration page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Register the seat with its serial number so you hear about any recall.</p>",
+                "expect_html": "<p>A registration confirmation email.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.14",
+      "title": "Buy: pram",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-03-07",
+      "who": "P",
+      "description": "## What\nPhil gets the pick from baby.09, new or used, unless family has offered one (baby.04). A used pram is checked in person: it folds, the brakes hold, the harness clicks, the carrycot sits firmly. Any carrycot mattress is bought new. The row is marked bought on the Buying list.\n\n## Why\nPhil: \"the rest used or handed down\"; the pram was researched against the boots, streets and budget.\n\n## Done looks like\nThe pram is in the house, it folds, and the Buying row shows bought with price.\n\n## Unlocks\nbaby.24 (fold it into each boot).\n\n## Depends on\nbaby.09 (the pick), baby.06 (marked Need).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.09",
+        "baby.06"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "shopping",
+        "payment"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-buy-pram",
+        "kind": "guide",
+        "title": "Get the pram",
+        "version": 1,
+        "intro": {
+          "answer": "Hand-me-down first, then used or new; any carrycot mattress new.",
+          "unlocks": [
+            "baby.24"
+          ],
+          "to_hand": [
+            "The baby.09 guide",
+            "A tape measure for a used one"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Which?: parents reveal biggest pushchair purchase regrets",
+              "url": "https://www.which.co.uk/news/article/parents-reveal-biggest-pushchair-purchase-regrets-agNDi5V1iu1V",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "The Lullaby Trust: mattresses and bedding",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/baby-product-information/mattresses-and-bedding/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Get it",
+            "minutes": 15,
+            "needs": [
+              "The baby.09 guide"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Check for a hand-me-down",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Look at the Pram row's note on the Buying list: if family offered one, use that and skip to 1.4.</p>",
+                "expect_html": "<p>You know whether one is coming.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Find the pick",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "baby.09's guide, then a retailer or a used listing",
+                  "kind": "browser"
+                },
+                "body_html": "<p>New: buy the pick. Used: find the same model locally to see in person.</p>",
+                "expect_html": "<p>A pram to buy.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Check a used pram in person",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The seller's door",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Fold and unfold it, push it with the brakes on, click the harness, lift the carrycot to see it sits firmly.</p>",
+                "expect_html": "<p>All four work.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "If it has a carrycot mattress, buy that mattress new (the mattress rule)."
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "1.4",
+                "title": "Mark the row bought",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Tick bought with the price and a link.</p>",
+                "expect_html": "<p>The total moves.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.15",
+      "title": "Nursery designed in the editor, Kirsty picks the mood board",
+      "kind": "guide",
+      "points": 2,
+      "due": "2027-03-14",
+      "who": "PK",
+      "description": "## What\nPhil measures the empty nursery and puts the measurements in this ticket. The room is then laid out in the Home room editor if home.17 is ready, or on squared paper as the stopgap (one square is 10 cm). Claude prepares three mood boards from the measurements; Kirsty picks one. The baby sleeps in the main bedroom for the first six months, so the nursery's first job is changing, storage and feeding, with the sleep place moved in later.\n\n## Why\nPhil: nursery design before June (8.30), Kirsty picks; tickets for decisions.\n\n## Done looks like\nMeasurements in the fields, a layout (editor or paper photo) on the timeline, and Kirsty's chosen board named here.\n\n## Unlocks\nbaby.16 (the cot must fit the layout), baby.22 (set-up).\n\n## Depends on\nbaby.07 (an empty room). Related: home.17 (the editor's nursery design).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.07"
+      ],
+      "links": [
+        "home.17"
+      ],
+      "tags": [
+        "baby",
+        "home",
+        "planning"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-nursery-design",
+        "kind": "guide",
+        "title": "Design the nursery",
+        "version": 1,
+        "intro": {
+          "answer": "Measure the empty room, lay it out, Kirsty picks a board.",
+          "unlocks": [
+            "baby.16",
+            "baby.22"
+          ],
+          "to_hand": [
+            "A tape measure",
+            "Squared paper if the editor is not ready",
+            "Kirsty"
+          ],
+          "time": [
+            "About 30 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "The Lullaby Trust: safer sleep information",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/safer-sleep-information/",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "1.2",
+            "why": "Door swing and radiator are what usually stop furniture fitting."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Measure the room",
+            "minutes": 15,
+            "needs": [
+              "Tape measure",
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Walls",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The nursery",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Measure each wall at skirting height, in centimetres, clockwise from the door.</p>",
+                "expect_html": "<p>Four numbers.</p>",
+                "fields": [
+                  {
+                    "key": "walls",
+                    "label": "Wall lengths, clockwise from the door, cm",
+                    "placeholder": "for example 270, 240, 270, 240"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Window, door, radiator, sockets",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "The nursery",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Note where each sits along its wall, its width, and which way the door swings.</p>",
+                "expect_html": "<p>Positions written down.</p>",
+                "fields": [
+                  {
+                    "key": "fixtures",
+                    "label": "Window, door, radiator and sockets: wall and distance from the corner",
+                    "placeholder": "free text"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Photo from each corner",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The nursery",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=timeline"
+                },
+                "body_html": "<p>Four photos onto the Family timeline titled <code>Nursery measurements</code>.</p>",
+                "expect_html": "<p>Four photos on the timeline.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Kirsty picks",
+            "minutes": 13,
+            "needs": [
+              "Kirsty",
+              "The three boards from Claude"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Look at the layout",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Home room editor, or the paper sketch",
+                  "kind": "page"
+                },
+                "body_html": "<p>Check the changing area, drawers and a chair fit with the door open.</p>",
+                "expect_html": "<p>A layout you both like.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Kirsty chooses a board",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The three boards on this ticket",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Kirsty picks one board, or mixes two.</p>",
+                "expect_html": "<p>One board chosen.</p>",
+                "fields": [
+                  {
+                    "key": "board",
+                    "label": "Board chosen",
+                    "placeholder": "A, B or C"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.16",
+      "title": "Buy: cot and mattress",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-03-21",
+      "who": "P",
+      "description": "## What\nPhil gets the frame picked in baby.11 (used or handed down is fine) and buys the matching mattress new. On arrival he checks the mattress label shows BS EN 16890 and BS 7177, takes off all plastic wrapping, and checks the mattress fits the frame with no gaps. Both rows are marked bought.\n\n## Why\nPhil: safety items new, \"(car seat, mattress)\", the rest used.\n\n## Done looks like\nFrame and new mattress in the house, labels checked, no gaps, rows bought.\n\n## Unlocks\nbaby.22 (nursery set-up), baby.39 (done check).\n\n## Depends on\nbaby.11 (the pick), baby.15 (it fits the layout).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.11",
+        "baby.15"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "shopping",
+        "home",
+        "payment"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-buy-cot-mattress",
+        "kind": "guide",
+        "title": "Get the cot or crib and a new mattress",
+        "version": 1,
+        "intro": {
+          "answer": "Frame used is fine, mattress always new, labels and fit checked.",
+          "unlocks": [
+            "baby.22"
+          ],
+          "to_hand": [
+            "baby.11's guide",
+            "A tape measure"
+          ],
+          "time": [
+            "About 15 minutes, then 10 on delivery"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "The Lullaby Trust: mattresses and bedding",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/baby-product-information/mattresses-and-bedding/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "The Lullaby Trust: safer sleep information",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/safer-sleep-information/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Buy",
+            "minutes": 12,
+            "needs": [
+              "baby.11's guide"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Measure the frame inside",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The frame (or its listing)",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Inside length and width of the sleeping base, in cm.</p>",
+                "expect_html": "<p>Two numbers.</p>",
+                "fields": [
+                  {
+                    "key": "inside",
+                    "label": "Inside length by width, cm",
+                    "placeholder": "for example 120 by 60"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Buy the mattress new in that size",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "A UK retailer",
+                  "kind": "browser"
+                },
+                "body_html": "<p>The baby.11 pick, in exactly the size above.</p>",
+                "expect_html": "<p>An order confirmation.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Never second-hand, even from family (the mattress rule)."
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "1.3",
+                "title": "Mark both rows bought",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Frame and mattress on the Nursery list, with prices.</p>",
+                "expect_html": "<p>Both ticked.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "On delivery",
+            "minutes": 8,
+            "needs": [
+              "The mattress"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Labels and wrapping",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "At home",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Find BS EN 16890 and BS 7177 on the label. Remove all plastic packaging.</p>",
+                "expect_html": "<p>Both numbers on the label, no plastic.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Fit check",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "At home",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Put it in the frame and push it to one side: there should be no gaps around the edges.</p>",
+                "expect_html": "<p>No gaps.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "A gap at one end",
+                    "fix": "Wrong size: return it for the exact size, do not pad the gap."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.17",
+      "title": "Feeding kit: Kirsty decides; a minimal either-route kit meanwhile",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-03-28",
+      "who": "K",
+      "description": "## What\nKirsty's ticket. She decides how she would like to feed (breast, bottle, both, or wait and see), and marks the feeding rows on the Buying list (\"Bottles and steriliser, if using\", \"Breast pump, if using\", breast pads, muslins) Need or Wait to match. Until she decides, only the rows that suit either route are Need: muslins and bibs, breast pads in the hospital bag.\n\n## Why\nPhil: \"Feeding kit: Kirsty decides (a ticket for her); a minimal either-route kit until then.\"\n\n## Done looks like\nKirsty's choice is in the field and the feeding rows carry Need or Wait to match.\n\n## Unlocks\nbaby.23 (the starter set), baby.29 (the hospital bag).\n\n## Depends on\nNothing.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "shopping",
+        "medical",
+        "personal"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-feeding-kit",
+        "kind": "guide",
+        "title": "Feeding kit: Kirsty's call",
+        "version": 1,
+        "intro": {
+          "answer": "Kirsty chooses; the list follows her choice.",
+          "unlocks": [
+            "baby.23"
+          ],
+          "to_hand": [
+            "The NHS feeding pages",
+            "The Buying list"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Decide and mark",
+            "minutes": 14,
+            "needs": [
+              "Phone or laptop"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Read the NHS pages",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "NHS: breastfeeding and bottle feeding",
+                  "kind": "browser",
+                  "url": "https://www.nhs.uk/baby/breastfeeding-and-bottle-feeding/"
+                },
+                "body_html": "<p>Read the NHS start page and ask the midwife at the next appointment if anything is unclear.</p>",
+                "expect_html": "<p>The options in mind.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Choose",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Your own call",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Breast, bottle, both, or wait and see.</p>",
+                "expect_html": "<p>A choice.</p>",
+                "fields": [
+                  {
+                    "key": "route",
+                    "label": "Feeding plan",
+                    "placeholder": "breast, bottle, both, or wait and see"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Mark the feeding rows",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Mark the bottle, steriliser and pump rows Need or Wait to fit.</p>",
+                "expect_html": "<p>The rows match the choice.</p>",
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Until the list sheet has its own Need, Nice or Wait column, the mark goes as the first word of the row's <strong>note</strong> cell, for example <code>Need</code> or <code>Wait: after the birth</code>."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.18",
+      "title": "Paternity leave notice to work",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-02-21",
+      "who": "P",
+      "description": "## What\nPhil tells his employer, in writing, the expected due date, the day he wants paternity leave to start (the birth, or a set number of days after) and whether he wants one or two weeks. GOV.UK says this must be given at least 15 weeks before the baby is expected: for a due date of Tuesday 2027-06-15 the expected week of childbirth starts Sunday 2027-06-13, and the 15th week before it runs from 2027-02-28 to Saturday 2027-03-06, so the notice must be in by 2027-03-06 at the latest. The dates of each block are confirmed at least 28 days before it starts. He also reads his employer's own policy for any enhanced pay. Only the fact the notice went in is kept here, nothing from work.\n\n## Why\nPhil: admin tickets, \"paternity leave notice to work\". Paternity leave is a right from the first day of employment; Statutory Paternity Pay needs 26 weeks with the employer by the end of the qualifying week (the 15th week before the due week).\n\n## Done looks like\nThe written notice is sent, the date it went is in the field, and the employer's acknowledgement has come back.\n\n## Unlocks\nfin.17 (leave pay terms feed the lower-income months), baby.33 (handover before leave).\n\n## Depends on\nNothing. The real due date from MYC-182 moves the deadline: take the Sunday on or before the due date, go back 15 weeks, and the deadline is the Saturday of that week.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [
+        "MYC-182",
+        "fin.17"
+      ],
+      "tags": [
+        "baby",
+        "admin",
+        "work",
+        "form"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-paternity-notice",
+        "kind": "guide",
+        "title": "Give paternity leave notice",
+        "version": 1,
+        "intro": {
+          "answer": "Tell work in writing by the end of the 15th week before the due week: 2027-03-06 for a 2027-06-15 due date.",
+          "unlocks": [
+            "fin.17",
+            "baby.33"
+          ],
+          "to_hand": [
+            "The due date",
+            "Your employer's HR page or policy"
+          ],
+          "time": [
+            "About 15 minutes, then a reminder 28 days before leave"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "GOV.UK: Paternity pay and leave, how to claim",
+              "url": "https://www.gov.uk/paternity-pay-leave/how-to-claim",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "GOV.UK: Paternity pay and leave, eligibility",
+              "url": "https://www.gov.uk/paternity-pay-leave/eligibility",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "1.3",
+            "why": "The deadline is fixed by law and is earlier than it feels: the 15th week before the due week."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Send the notice",
+            "minutes": 15,
+            "needs": [
+              "Laptop",
+              "The due date"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Find work's own policy",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Your employer's HR system or handbook",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Find the paternity or parental leave policy and any form it asks for. Note whether it pays more than statutory pay.</p>",
+                "expect_html": "<p>The policy, and whether there is a form.</p>",
+                "fields": [
+                  {
+                    "key": "enhanced",
+                    "label": "Does work pay more than statutory? yes or no",
+                    "placeholder": "yes or no, no figures needed"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Check the GOV.UK rules",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "GOV.UK: Paternity pay and leave",
+                  "kind": "browser",
+                  "url": "https://www.gov.uk/paternity-pay-leave/how-to-claim"
+                },
+                "body_html": "<p>Read the How to claim page so the wording below still matches.</p>",
+                "expect_html": "<p>15 weeks for the notice, 28 days to confirm dates.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Send it in writing",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Email to your manager or HR, or work's form",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Use work's form if there is one; otherwise send the text below, filled in.</p>",
+                "expect_html": "<p>A sent email or submitted form.</p>",
+                "blocks": [
+                  {
+                    "label": "Notice text",
+                    "text": "I'm writing to give notice that I intend to take paternity leave. Our baby is due on [due date]. I would like my leave to start on [the day of the birth / a date], for [one / two] weeks. I'd also like to claim Statutory Paternity Pay. I'll confirm the exact dates at least 28 days before. Please let me know if you need a particular form.",
+                    "kind": "value"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "1.4",
+                "title": "Note the date sent",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Put the date you sent it below.</p>",
+                "expect_html": "<p>The field filled.</p>",
+                "fields": [
+                  {
+                    "key": "sent_on",
+                    "label": "Date the notice was sent",
+                    "placeholder": "a date, for example 2027-02-21"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Confirm the dates (28 days before leave)",
+            "minutes": 5,
+            "needs": [
+              "The acknowledgement"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Confirm the block dates",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Email to HR",
+                  "kind": "browser"
+                },
+                "body_html": "<p>At least 28 days before you want leave to start, confirm the dates in writing.</p>",
+                "expect_html": "<p>HR has your dates.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "2.1": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.19",
+      "title": "Antenatal classes booked",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-03-14",
+      "who": "PK",
+      "description": "## What\nPhil and Kirsty choose and book antenatal classes. The NHS classes are free, usually start 8 to 10 weeks before the birth (about 2027-04-06 to 2027-04-20 for a 2027-06-15 due date), welcome a partner, and are found through the midwife. NCT runs paid courses in Sheffield and Rotherham for set due-date ranges; NCT says most people book around 16 weeks (about 2026-12-29) and courses fill. The dates go on the Phirsty Life calendar.\n\n## Why\nPhil: admin tickets, \"antenatal classes\".\n\n## Done looks like\nClasses booked, every session on the family calendar.\n\n## Unlocks\nbaby.26 and baby.27 (the skills tickets build on what the classes cover).\n\n## Depends on\nNothing.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "medical",
+        "calendar",
+        "schedule"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-antenatal-classes",
+        "kind": "guide",
+        "title": "Book antenatal classes",
+        "version": 1,
+        "intro": {
+          "answer": "Ask the midwife about the free NHS classes; look at NCT if you want a paid course too.",
+          "unlocks": [
+            "baby.26",
+            "baby.27"
+          ],
+          "to_hand": [
+            "Kirsty",
+            "The due date"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "NHS: antenatal classes",
+              "url": "https://www.nhs.uk/pregnancy/labour-and-birth/preparing-for-the-birth/antenatal-classes/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "NCT: Sheffield and Rotherham antenatal classes",
+              "url": "https://www.nct.org.uk/courses-workshops/locations/sheffield-rotherham-antenatal-classes",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Choose and book",
+            "minutes": 15,
+            "needs": [
+              "Kirsty",
+              "Laptop"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Ask about the NHS classes",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Kirsty's midwife, at the next appointment or by phone",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Ask for the dates of the free hospital or community antenatal classes for your due date, and whether partners come.</p>",
+                "expect_html": "<p>A set of dates or a booking route.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Look at NCT",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "NCT: Sheffield and Rotherham classes",
+                  "kind": "browser",
+                  "url": "https://www.nct.org.uk/courses-workshops/locations/sheffield-rotherham-antenatal-classes"
+                },
+                "body_html": "<p>Find a course for your due-date range and note the price.</p>",
+                "expect_html": "<p>One course or none that suits.</p>",
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "NCT courses cost money (about £239 was listed for some Sheffield courses on 2026-11-28). Nothing is booked in this run."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Book",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The NHS route or NCT",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Book one, or both.</p>",
+                "expect_html": "<p>A booking confirmation.</p>",
+                "fields": [
+                  {
+                    "key": "which",
+                    "label": "Booked",
+                    "placeholder": "NHS, NCT, or both"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "1.4",
+                "title": "Put the sessions on the calendar",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium: Family, Calendar tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=calendar"
+                },
+                "body_html": "<p>Add each session as an appointment.</p>",
+                "expect_html": "<p>All sessions on Phirsty Life.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.20",
+      "title": "Kirsty's own items: leave notice, appointments, paperwork (one ticket each, hers)",
+      "kind": "task",
+      "points": 2,
+      "due": "2027-02-14",
+      "who": "K",
+      "description": "## What\nClaude makes Kirsty's own tickets, one per item, in Phil's space until she joins (then they move with the project). At least: her maternity leave notice to her employer (due date and leave start date, at least 15 weeks before the due date, so by 2027-03-06 for a 2027-06-15 due date); her MATB1 certificate from the midwife (issued no more than 20 weeks before the due date, so from about 2027-01-26) for Statutory Maternity Pay, with SMP notice at least 28 days before it starts; her antenatal appointments onto the family calendar; any paperwork she names. Each ticket is dated and assigned to her.\n\n## Why\nPhil: \"Kirsty's own items (her leave notice, appointments, paperwork): ticket them all.\"\n\n## Done looks like\nOne ticket per item exists, dated, with the maternity notice ticket due before 2027-03-06.\n\n## Unlocks\nfin.17 (both employers' leave pay terms).\n\n## Depends on\nNothing.\n\n## Flag\nTickets live in Phil's space until Kirsty joins (5.20 `[claude]`: moving a project between spaces later re-keys its tickets, tickets-spec §17.7). Not reopened.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.\n\n## Red team\n- Finding 23: Statutory leave notice must be given by the end of the 15th week before the expected week of childbirth: 2027-03-06 for a 15 June due date, moving with MYC-182. MAT B1 is available from 20 weeks (about 2027-01-26).\n- Finding 40: Kirsty cannot see this ticket until unblock.03 (her invite) is done; until then it is held in Phil's space marked 'for Kirsty'.\n",
+      "after": [],
+      "links": [
+        "fin.17"
+      ],
+      "tags": [
+        "baby",
+        "admin",
+        "form",
+        "medical"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "baby.21",
+      "title": "Buy: monitor; local only over the VPN",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-04-11",
+      "who": "P",
+      "description": "## What\nPhil buys the camera picked in baby.12 and adds it to Home Assistant on the cameras network that net.14 set up. It is viewed live only (no recording, no cloud account), and away from home only over the VPN. He checks the live view at home and once over the VPN from mobile data.\n\n## Why\nPhil: \"a local camera through Home Assistant\"; the baby monitor is local only, live view over the VPN, never recorded.\n\n## Done looks like\nThe camera shows live in Home Assistant at home and over the VPN, nothing records, and no cloud account was made.\n\n## Unlocks\nbaby.39 (done check).\n\n## Depends on\nbaby.12 (the pick), net.14 (cameras local only, viewed over the VPN).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.\n\n## Red team\n- Finding 24: If net.14 is not done by 2027-04-11, buy a camera that works local-only on the LAN with no cloud account and add it to Home Assistant later. A cloud monitor is never the fallback. The net.14 dependency is a soft link.\n",
+      "after": [
+        "baby.12"
+      ],
+      "links": [
+        "net.14"
+      ],
+      "tags": [
+        "baby",
+        "shopping",
+        "home",
+        "security"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-monitor-setup",
+        "kind": "guide",
+        "title": "Buy and set up the baby monitor",
+        "version": 1,
+        "intro": {
+          "answer": "Buy baby.12's pick, add it to Home Assistant on the cameras network, view live only.",
+          "unlocks": [
+            "baby.39"
+          ],
+          "to_hand": [
+            "baby.12's guide",
+            "Phone with the VPN set up"
+          ],
+          "time": [
+            "About 30 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "The Lullaby Trust: baby monitors",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/baby-product-information/baby-monitors/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Buy it",
+            "minutes": 8,
+            "needs": [
+              "baby.12's guide"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Buy the pick",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "A UK retailer",
+                  "kind": "browser"
+                },
+                "body_html": "<p>The exact model from baby.12.</p>",
+                "expect_html": "<p>An order confirmation.</p>",
+                "irreversible": true
+              },
+              {
+                "id": "1.2",
+                "title": "Mark the row bought",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Baby monitor on the Nursery list.</p>",
+                "expect_html": "<p>Ticked.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Set it up and test",
+            "minutes": 14,
+            "needs": [
+              "The camera",
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Join it to the cameras network",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "net.14's guide",
+                  "kind": "page"
+                },
+                "body_html": "<p>Follow net.14's steps for a camera. Do not make a cloud account in the maker's app.</p>",
+                "expect_html": "<p>The camera on the cameras network.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "No cloud account and no recording, as decided."
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Add it to Home Assistant",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Home Assistant",
+                  "kind": "dashboard"
+                },
+                "body_html": "<p>Add the camera's local stream as baby.12 describes.</p>",
+                "expect_html": "<p>A live picture.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Test over the VPN",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Phone on mobile data",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Turn Wi-Fi off, connect the VPN, open the camera.</p>",
+                "expect_html": "<p>Live picture; with the VPN off, nothing.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.22",
+      "title": "Nursery set-up: furniture in, the room finished",
+      "kind": "guide",
+      "points": 3,
+      "due": "2027-04-25",
+      "who": "PK",
+      "description": "## What\nPhil and Kirsty finish the nursery to the chosen layout: furniture built and in place, the chest of drawers fixed to the wall with an anti-tip strap, blind cords out of reach, a room thermometer on the wall, night light, changing area stocked. The Nursery list rows are ticked as each goes in.\n\n## Why\nPhil: family prep list \"nursery set-up\" becomes tickets; nursery bought and finished before June (8.30).\n\n## Done looks like\nThe room matches the layout, every Need row on the Nursery list is bought, and a photo is on the timeline.\n\n## Unlocks\nbaby.39 (done check).\n\n## Depends on\nbaby.16 (cot and mattress), baby.15 (the layout).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.16",
+        "baby.15"
+      ],
+      "links": [
+        "home.18"
+      ],
+      "tags": [
+        "baby",
+        "home",
+        "house"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-nursery-setup",
+        "kind": "guide",
+        "title": "Set up the nursery",
+        "version": 1,
+        "intro": {
+          "answer": "Furniture in, fixed and safe, the room finished.",
+          "unlocks": [
+            "baby.39"
+          ],
+          "to_hand": [
+            "Screwdriver set",
+            "Anti-tip wall straps",
+            "Kirsty"
+          ],
+          "time": [
+            "Three sittings of about 15 minutes each, plus building time"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "The Lullaby Trust: room temperature",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/safer-sleep-information/room-temperature/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "The Lullaby Trust: safer sleep information",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/safer-sleep-information/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Furniture in",
+            "minutes": 15,
+            "needs": [
+              "Screwdriver",
+              "The layout from baby.15"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Place to the layout",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The nursery",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Mark where each piece goes and carry it in.</p>",
+                "expect_html": "<p>Pieces in place.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Fix the chest of drawers to the wall",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The nursery",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Fit the anti-tip strap or bracket into the wall behind it.</p>",
+                "expect_html": "<p>Pulling the top drawer out does not tip it.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Safety checks",
+            "minutes": 12,
+            "needs": [
+              "Cleats for blind cords",
+              "Room thermometer"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Blind cords out of reach",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The nursery window",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Tie up or cleat any cord high, away from where the cot or changing area will be.</p>",
+                "expect_html": "<p>No cord hangs low.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Room thermometer",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The nursery",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Put it on an inside wall away from the radiator.</p>",
+                "expect_html": "<p>Reads a temperature; 16 to 20°C is the aim.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Nothing above the cot",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The nursery",
+                  "kind": "decision"
+                },
+                "body_html": "<p>No shelves, pictures or cords within reach of the cot.</p>",
+                "expect_html": "<p>A clear space.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Finish",
+            "minutes": 8,
+            "needs": [
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Tick the Nursery list",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Tick every row that is now in the room.</p>",
+                "expect_html": "<p>Every Need row ticked.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Photo on the timeline",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Timeline tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=timeline"
+                },
+                "body_html": "<p>Title it <code>Nursery ready</code>.</p>",
+                "expect_html": "<p>On the timeline.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.23",
+      "title": "Buy: the minimal starter set of clothing and kit",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-04-18",
+      "who": "PK",
+      "description": "## What\nPhil and Kirsty buy only the Need rows left on the Buying list after hand-me-downs: a small set of vests and sleepsuits in newborn and 0 to 3 months, muslins and bibs, disposable newborn nappies, wipes or cotton wool, nappy cream, a baby thermometer, bath support and towels, nail clippers, and the feeding rows Kirsty marked Need.\n\n## Why\nPhil: \"A minimal starter set of clothing and kit\"; nappies disposable; only Need before the birth.\n\n## Done looks like\nEvery Need row on the Buying list is bought, priced and ticked, and no Nice or Wait row was bought.\n\n## Unlocks\nbaby.29 (the hospital bag takes some of it), baby.39.\n\n## Depends on\nbaby.06 (the Need marks). Best after baby.17 (Kirsty's feeding choice).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.06"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "shopping"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-starter-set",
+        "kind": "guide",
+        "title": "Buy the minimal starter set",
+        "version": 1,
+        "intro": {
+          "answer": "Only the Need rows still open, after hand-me-downs.",
+          "unlocks": [
+            "baby.29"
+          ],
+          "to_hand": [
+            "The Buying list",
+            "Kirsty"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Buy the Need rows",
+            "minutes": 15,
+            "needs": [
+              "Laptop"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "List the open Need rows",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Read down the Buying list for rows whose note starts Need and that are not ticked bought.</p>",
+                "expect_html": "<p>A short list.</p>",
+                "fields": [
+                  {
+                    "key": "open_need",
+                    "label": "Open Need rows",
+                    "placeholder": "a count"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Buy them in one basket",
+                "actor": "you",
+                "minutes": 9,
+                "where": {
+                  "label": "One retailer, or two",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Small quantities: a few of each size, nappies in the newborn size.</p>",
+                "expect_html": "<p>An order.</p>",
+                "irreversible": true
+              },
+              {
+                "id": "1.3",
+                "title": "Tick them bought",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>With the price.</p>",
+                "expect_html": "<p>No open Need rows left.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.24",
+      "title": "Dry run: fit the car seat in both cars, timed; fold the pram into each boot",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-05-02",
+      "who": "P",
+      "description": "## What\nPhil fits a base in each car on a rear outer seat, clicks the carrier in and out, and times it; then folds the pram (and carrycot) into each boot, timed. He also measures both boots' openings, which baby.09 asked for if it was not done earlier. The times go in the fields.\n\n## Why\nPhil (5b): \"fit the car seat in both cars, timed; fold the pram into each boot.\"\n\n## Done looks like\nBoth bases fitted with every indicator green, the carrier clicks in both, the pram fits both boots, and four times are written down.\n\n## Unlocks\nbaby.29 (\"go\" checklist), baby.39 (done check).\n\n## Depends on\nbaby.13 (seat and bases), baby.14 (pram).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.13",
+        "baby.14"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "car",
+        "testing"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-dry-run-cars",
+        "kind": "guide",
+        "title": "Dry run in both cars",
+        "version": 1,
+        "intro": {
+          "answer": "Base in each car, carrier clicks in, pram in each boot, all timed.",
+          "unlocks": [
+            "baby.29",
+            "baby.39"
+          ],
+          "to_hand": [
+            "Seat, both bases, pram",
+            "Both cars' handbooks",
+            "A phone timer"
+          ],
+          "time": [
+            "Three sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "GOV.UK: Child car seats, the rules",
+              "url": "https://www.gov.uk/child-car-seats-the-rules",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "RoSPA Child Car Seats: fitting and compatibility",
+              "url": "https://www.childcarseats.org.uk/choosing-using/child-car-seat-fitting-and-compatibility/",
+              "checked_on": "2026-11-28"
+            }
+          ],
+          "hard_part": {
+            "step_id": "1.2",
+            "why": "Finding the anchor loops the first time; after that it is seconds."
+          }
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The C220",
+            "minutes": 15,
+            "needs": [
+              "Seat and one base",
+              "The C220 handbook"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Read the handbook page",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The C220's owner's manual, the children in the vehicle section",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Find which rear seats have ISOFIX or i-Size anchor points and any note on support legs and the floor.</p>",
+                "expect_html": "<p>You know the two outer rear seats' anchor points and whether a leg may stand there.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Fit the base, timed",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The C220, rear outer seat",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Start the timer. Find the two anchor loops between the seat cushion and backrest, click the base's arms on, push it home, lower the support leg to the floor.</p>",
+                "expect_html": "<p>Every indicator on the base shows green.</p>",
+                "fields": [
+                  {
+                    "key": "c220_base",
+                    "label": "Time to fit the base in the C220, minutes",
+                    "placeholder": "a number"
+                  }
+                ],
+                "troubleshooting": [
+                  {
+                    "symptom": "An indicator stays red",
+                    "fix": "Push the base firmly back against the seat and re-click; check the leg touches the floor."
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Carrier in and out",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The C220",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Click the carrier on and lift it off, three times.</p>",
+                "expect_html": "<p>A click and a green indicator each time.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Pram in the boot, timed",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The C220 boot",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Fold the pram and put it in, with the carrycot.</p>",
+                "expect_html": "<p>It fits with the boot shut.</p>",
+                "fields": [
+                  {
+                    "key": "c220_boot",
+                    "label": "Pram in the C220 boot, minutes, and did the carrycot fit",
+                    "placeholder": "for example 2, yes"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The EQA",
+            "minutes": 14,
+            "needs": [
+              "Seat and the second base",
+              "The EQA handbook"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Fit the base, timed",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "The EQA, rear outer seat",
+                  "kind": "decision"
+                },
+                "body_html": "<p>As 1.2, after checking the EQA's handbook page.</p>",
+                "expect_html": "<p>Every indicator green.</p>",
+                "fields": [
+                  {
+                    "key": "eqa_base",
+                    "label": "Time to fit the base in the EQA, minutes",
+                    "placeholder": "a number"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Carrier in and out",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The EQA",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Three times.</p>",
+                "expect_html": "<p>Green each time.</p>"
+              },
+              {
+                "id": "2.3",
+                "title": "Pram in the boot, timed",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The EQA boot",
+                  "kind": "decision"
+                },
+                "body_html": "<p>The smaller boot: try it with and without the carrycot attached.</p>",
+                "expect_html": "<p>It fits.</p>",
+                "fields": [
+                  {
+                    "key": "eqa_boot",
+                    "label": "Pram in the EQA boot, minutes, and did the carrycot fit",
+                    "placeholder": "for example 3, separately"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Boot measurements (if baby.09 still needs them)",
+            "minutes": 8,
+            "needs": [
+              "Tape measure"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Measure both boot openings",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Both cars",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Opening width and height, and floor depth, in cm.</p>",
+                "expect_html": "<p>Six numbers.</p>",
+                "fields": [
+                  {
+                    "key": "boots",
+                    "label": "Boot opening width, height, floor depth, cm: C220 then EQA",
+                    "placeholder": "for example 100, 45, 105; 95, 70, 85"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested",
+          "3.1": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.25",
+      "title": "Baby first-aid course",
+      "kind": "guide",
+      "points": 2,
+      "due": "2027-04-18",
+      "who": "P",
+      "description": "## What\nPhil books and goes to a baby and child first-aid course (Kirsty is welcome too). Providers around South Yorkshire found on 2026-11-28, names only: Mini First Aid (Sheffield, Rotherham, Barnsley and Wakefield), Daisy First Aid (Rotherham), KeepaBeat First Aid (Doncaster), British Red Cross baby and child courses, and St John Ambulance. The British Red Cross also has free baby and child first-aid pages and an app for a refresher. Afterwards he writes the steps for choking and for CPR on a baby in his own words as a comment on this ticket.\n\n## Why\nPhil (5b): his own skills, tickets for all three, \"a baby first-aid course\".\n\n## Done looks like\nThe course is done, and his own-words notes on choking and baby CPR are on this ticket.\n\n## Unlocks\nbaby.39.\n\n## Depends on\nNothing.\n\n## Cost\nTo be priced; Mini First Aid listed about £25 a person for a two-hour class on 2026-11-28 (UNVERIFIED for the baby class). Nothing is booked or bought in this run.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.\n\n## Red team\n- Finding 69: Cost shown before booking.\n",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "medical",
+        "personal",
+        "schedule"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-first-aid-course",
+        "kind": "guide",
+        "title": "Baby first-aid course",
+        "version": 1,
+        "intro": {
+          "answer": "Book a two-hour baby and child class nearby, then write the two key steps in your own words.",
+          "unlocks": [
+            "baby.39"
+          ],
+          "to_hand": [
+            "Diary",
+            "Payment card"
+          ],
+          "time": [
+            "About 15 minutes to book, the course itself, then 10 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Mini First Aid Sheffield",
+              "url": "https://sheffield.minifirstaid.co.uk/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "British Red Cross: first aid for babies and children",
+              "url": "https://www.redcross.org.uk/first-aid/learn-first-aid-for-babies-and-children",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Book it",
+            "minutes": 12,
+            "needs": [
+              "Laptop"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Pick a provider",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The providers' websites",
+                  "kind": "browser",
+                  "url": "https://sheffield.minifirstaid.co.uk/"
+                },
+                "body_html": "<p>Look at Mini First Aid's Sheffield site first, then the others named on this ticket, for a baby and child class before mid-April.</p>",
+                "expect_html": "<p>A date and place that suit.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Book",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The provider's booking page",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Book one or two places.</p>",
+                "expect_html": "<p>A confirmation email.</p>",
+                "fields": [
+                  {
+                    "key": "course",
+                    "label": "Provider and date",
+                    "placeholder": "for example Mini First Aid, 2027-04-10"
+                  }
+                ],
+                "irreversible": true
+              },
+              {
+                "id": "1.3",
+                "title": "On the calendar",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Calendar tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=calendar"
+                },
+                "body_html": "<p>Add it as an appointment.</p>",
+                "expect_html": "<p>On Phirsty Life.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "After the course",
+            "minutes": 10,
+            "needs": [
+              "Your notes"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Write the two key steps",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "This ticket, as a comment",
+                  "kind": "page"
+                },
+                "body_html": "<p>Choking in a baby, and CPR on a baby, in your own words, in the order you were taught.</p>",
+                "expect_html": "<p>A comment you could follow in a panic.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.26",
+      "title": "Nappies, bathing and safe-sleep basics",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-05-02",
+      "who": "P",
+      "description": "## What\nPhil reads the NHS newborn care pages and the Lullaby Trust safer sleep page, and practises a nappy change on a teddy with a real newborn disposable nappy. The safe-sleep points to remember: on the back for every sleep, feet to the foot of the cot, a clear cot, the room at 16 to 20°C, no hat indoors.\n\n## Why\nPhil (5b): his own skills, \"nappies, bathing and safe-sleep basics\".\n\n## Done looks like\nThe pages read, one practice nappy done, and the safe-sleep points said back to Kirsty.\n\n## Unlocks\nbaby.39.\n\n## Depends on\nNothing. Antenatal classes (baby.19) may cover some of it.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "medical",
+        "personal"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-care-basics",
+        "kind": "guide",
+        "title": "Nappies, bathing and safe sleep",
+        "version": 1,
+        "intro": {
+          "answer": "Read the two pages, practise one nappy, know the safe-sleep points by heart.",
+          "unlocks": [
+            "baby.39"
+          ],
+          "to_hand": [
+            "A newborn nappy",
+            "A teddy"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "The Lullaby Trust: safer sleep information",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/safer-sleep-information/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "The Lullaby Trust: room temperature",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/safer-sleep-information/room-temperature/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Learn and practise",
+            "minutes": 13,
+            "needs": [
+              "Laptop",
+              "A nappy and a teddy"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "NHS newborn care pages",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "NHS: caring for a newborn",
+                  "kind": "browser",
+                  "url": "https://www.nhs.uk/baby/caring-for-a-newborn/"
+                },
+                "body_html": "<p>Read the nappy changing and bathing sections.</p>",
+                "expect_html": "<p>You know the order of a change and how to test bath water.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Lullaby Trust safer sleep",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The Lullaby Trust: safer sleep",
+                  "kind": "browser",
+                  "url": "https://www.lullabytrust.org.uk/baby-safety/safer-sleep-information/"
+                },
+                "body_html": "<p>Read the main page.</p>",
+                "expect_html": "<p>Back to sleep, same room for six months, clear cot, 16 to 20°C.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "One practice nappy",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "At home",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Change a teddy with a newborn nappy, tabs and all.</p>",
+                "expect_html": "<p>A nappy that stays on.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.27",
+      "title": "Supporting Kirsty in labour",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-05-09",
+      "who": "P",
+      "description": "## What\nPhil reads the NHS pages on the signs of labour and on being a birth partner, talks through Kirsty's birth preferences with her, saves the maternity unit's triage number in his phone, and checks the route and parking at the hospital.\n\n## Why\nPhil (5b): his own skills, \"supporting Kirsty in labour\".\n\n## Done looks like\nKirsty's preferences known to him, the triage number saved, the route and parking known.\n\n## Unlocks\nbaby.29 (the \"go\" checklist uses the route and parking).\n\n## Depends on\nNothing.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "medical",
+        "personal"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-labour-support",
+        "kind": "guide",
+        "title": "Supporting Kirsty in labour",
+        "version": 1,
+        "intro": {
+          "answer": "Know the signs, her preferences, the number to ring and the way in.",
+          "unlocks": [
+            "baby.29"
+          ],
+          "to_hand": [
+            "Kirsty",
+            "Phone"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Get ready",
+            "minutes": 15,
+            "needs": [
+              "Kirsty",
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "NHS signs of labour",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "NHS: signs that labour has begun",
+                  "kind": "browser",
+                  "url": "https://www.nhs.uk/pregnancy/labour-and-birth/signs-of-labour/signs-that-labour-has-begun/"
+                },
+                "body_html": "<p>Read it once.</p>",
+                "expect_html": "<p>You know when to ring the unit.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Kirsty's preferences",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "A conversation",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Ask what she wants from you: pain relief wishes, who to tell and when, what she does not want.</p>",
+                "expect_html": "<p>Three or four points you can repeat.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Save the triage number",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Phone contacts",
+                  "kind": "decision"
+                },
+                "body_html": "<p>From her maternity notes, saved as <code>Maternity triage</code>.</p>",
+                "expect_html": "<p>Saved.</p>",
+                "fields": [
+                  {
+                    "key": "saved",
+                    "label": "Triage number saved? yes or no",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              },
+              {
+                "id": "1.4",
+                "title": "Route and parking",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Maps on the phone",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Check the route and where to park at the maternity unit.</p>",
+                "expect_html": "<p>Known.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.28",
+      "title": "Nights and first weeks: one conversation with the options laid out",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-04-25",
+      "who": "PK",
+      "description": "## What\nClaude lays out the options on one page before the talk (shifts, split nights, who does which feed if bottles are used, how paternity leave weeks are used, what family help is offered, and the money side from fin.17); Phil and Kirsty have one 15-minute conversation and write the plan in the field.\n\n## Why\nPhil (5b): \"Nights and first weeks: one conversation ticket with the options laid out.\"\n\n## Done looks like\nA short plan in the field, both agreed.\n\n## Unlocks\nbaby.31 (help rota), baby.37 (first fortnight).\n\n## Depends on\nbaby.10 (where the baby sleeps). Related: fin.17 (lower-income months).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.10"
+      ],
+      "links": [
+        "fin.17"
+      ],
+      "tags": [
+        "baby",
+        "planning",
+        "personal"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-nights-conversation",
+        "kind": "guide",
+        "title": "Nights and first weeks",
+        "version": 1,
+        "intro": {
+          "answer": "One conversation with the options in front of you.",
+          "unlocks": [
+            "baby.31",
+            "baby.37"
+          ],
+          "to_hand": [
+            "Kirsty",
+            "Claude's options page on this ticket"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The conversation",
+            "minutes": 15,
+            "needs": [
+              "Kirsty"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Read the options page together",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Claude's one page, attached here before the date.</p>",
+                "expect_html": "<p>Both have read it.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Agree a plan",
+                "actor": "you",
+                "minutes": 9,
+                "where": {
+                  "label": "A conversation",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Nights, the leave weeks, help offered. Keep it to a few lines.</p>",
+                "expect_html": "<p>A plan you both agreed.</p>",
+                "fields": [
+                  {
+                    "key": "plan",
+                    "label": "The plan in a few lines",
+                    "placeholder": "free text"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Set a check-in",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Calendar tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=calendar"
+                },
+                "body_html": "<p>A 10-minute check-in a week after the birth to adjust.</p>",
+                "expect_html": "<p>On the calendar as a note.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.29",
+      "title": "Hospital bag packed; bags in the car with a \"go\" checklist by the door",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-05-09",
+      "who": "PK",
+      "description": "## What\nPhil and Kirsty pack the bag from the Family page's Hospital bag list, ticking each row as it goes in, then put a short \"go\" card by the front door: bags, maternity notes, phones and chargers, car seat base fitted, keys, parking change, the triage number.\n\n## Why\nPhil: the hospital bag is one of the four prep lists to ticket; 5b: \"bags in the car with a go checklist by the door\" (not the night drive).\n\n## Done looks like\nEvery Hospital bag row ticked, the bag by the door or in the boot, the card on the door.\n\n## Unlocks\nbaby.39.\n\n## Depends on\nNothing; best after baby.23 (starter set) and baby.24 (base fitted).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "home",
+        "planning"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-hospital-bag",
+        "kind": "guide",
+        "title": "Pack the hospital bag and the go card",
+        "version": 1,
+        "intro": {
+          "answer": "Pack from the list, put a go card by the door.",
+          "unlocks": [
+            "baby.39"
+          ],
+          "to_hand": [
+            "Kirsty",
+            "The bag",
+            "A card and a pen"
+          ],
+          "time": [
+            "Two sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Pack from the list",
+            "minutes": 14,
+            "needs": [
+              "Kirsty",
+              "Phone with the Family page"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Pack row by row",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Open the Hospital bag list on a phone and tick each row as it goes in.</p>",
+                "expect_html": "<p>Every row ticked.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Bag by the door",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The hallway",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Where you will not move it.</p>",
+                "expect_html": "<p>In place.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The go card",
+            "minutes": 8,
+            "needs": [
+              "Card",
+              "Pen"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Write the card",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The front door",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Write the list below on a card and stick it at eye height inside the door.</p>",
+                "expect_html": "<p>On the door.</p>",
+                "blocks": [
+                  {
+                    "label": "The go card",
+                    "text": "Bags. Maternity notes. Phones and chargers. Keys. Parking change. Car seat (base already fitted). Ring triage first.",
+                    "kind": "value"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Base in the car you will use",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The car",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Check the base is fitted and green.</p>",
+                "expect_html": "<p>Green.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.30",
+      "title": "Getting the house ready",
+      "kind": "guide",
+      "points": 2,
+      "due": "2027-05-09",
+      "who": "PK",
+      "description": "## What\nTwo sittings around the house: first the safety checks (smoke and carbon monoxide alarms tested, a first-aid kit stocked, a room thermometer in the main bedroom where the baby sleeps first), then the stocks and set-up (a changing spot downstairs, freezer space cleared for baby.31, cleaning and laundry stocks).\n\n## Why\nPhil: \"getting the house ready\" is one of the four Family prep lists to become tickets.\n\n## Done looks like\nAlarms tested, kit stocked, thermometer in the bedroom, a changing spot downstairs, freezer space clear.\n\n## Unlocks\nbaby.31 (freezer meals), baby.39.\n\n## Depends on\nNothing.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "home",
+        "house",
+        "chore"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-house-ready",
+        "kind": "guide",
+        "title": "Get the house ready",
+        "version": 1,
+        "intro": {
+          "answer": "Safety checks first, then the stocks and a changing spot downstairs.",
+          "unlocks": [
+            "baby.31",
+            "baby.39"
+          ],
+          "to_hand": [
+            "A step ladder",
+            "Kirsty"
+          ],
+          "time": [
+            "Two sittings of about 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "The Lullaby Trust: room temperature",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/safer-sleep-information/room-temperature/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Safety checks",
+            "minutes": 13,
+            "needs": [
+              "Step ladder"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Test every alarm",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Each smoke and carbon monoxide alarm",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Press the test button on each.</p>",
+                "expect_html": "<p>Each one sounds.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "One stays silent",
+                    "fix": "Change its battery, test again; replace it if still silent."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "First-aid kit",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The kitchen cupboard",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Check it has plasters, a digital thermometer and anything the course (baby.25) suggested.</p>",
+                "expect_html": "<p>Stocked.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Thermometer in the main bedroom",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Your bedroom",
+                  "kind": "decision"
+                },
+                "body_html": "<p>The baby sleeps here for the first six months.</p>",
+                "expect_html": "<p>A reading; 16 to 20°C is the aim.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Stocks and set-up",
+            "minutes": 12,
+            "needs": [
+              "Kirsty"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Changing spot downstairs",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The living room",
+                  "kind": "decision"
+                },
+                "body_html": "<p>A mat, nappies, wipes in a basket.</p>",
+                "expect_html": "<p>One spot ready.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Clear freezer space",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The freezer",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Use up or move enough to clear a drawer or two for baby.31.</p>",
+                "expect_html": "<p>Space ready.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.31",
+      "title": "Freezer meals, a help rota, a visitor plan (three sittings)",
+      "kind": "guide",
+      "points": 2,
+      "due": "2027-05-23",
+      "who": "PK",
+      "description": "## What\nThree sittings: cook and freeze a batch of meals (labelled with the date); a help rota of who brings food or does a job in the first fortnight; a visitor plan saying when visitors are welcome and for how long, sent to family.\n\n## Why\nPhil: \"First weeks: freezer meals, a help rota, a visitor plan (three tickets)\", planned as one ticket in three sittings.\n\n## Done looks like\nMeals in the freezer, a rota agreed with family, the visitor plan sent.\n\n## Unlocks\nbaby.37 (a quiet first fortnight).\n\n## Depends on\nbaby.30 (freezer space). Related: baby.28 (the nights plan).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.30"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "home",
+        "planning",
+        "recipe"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-first-weeks-plan",
+        "kind": "guide",
+        "title": "Freezer meals, help rota, visitor plan",
+        "version": 1,
+        "intro": {
+          "answer": "Three sittings: a batch in the freezer, a rota, a plan for visitors.",
+          "unlocks": [
+            "baby.37"
+          ],
+          "to_hand": [
+            "Kirsty",
+            "Phone"
+          ],
+          "time": [
+            "Three sittings of about 15 minutes, plus cooking"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Freezer meals",
+            "minutes": 12,
+            "needs": [
+              "Recipes",
+              "Containers"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Pick three meals that freeze",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Your recipes",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Three you both like that reheat well.</p>",
+                "expect_html": "<p>Three names.</p>",
+                "fields": [
+                  {
+                    "key": "meals",
+                    "label": "The three meals",
+                    "placeholder": "free text"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Shopping list",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Mycelium shopping list",
+                  "kind": "page"
+                },
+                "body_html": "<p>Add the ingredients for a double batch of each.</p>",
+                "expect_html": "<p>On the list.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Cook day on the calendar",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Calendar tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=calendar"
+                },
+                "body_html": "<p>One afternoon.</p>",
+                "expect_html": "<p>Booked.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The help rota",
+            "minutes": 14,
+            "needs": [
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Ask who can help",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The family group chat",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Send the message below.</p>",
+                "expect_html": "<p>Sent.</p>",
+                "blocks": [
+                  {
+                    "label": "Message",
+                    "text": "For the first two weeks after the baby comes we'd love help with meals or a job rather than visits. If you can bring a meal or do one thing (a shop, a load of washing), tell us which and we'll put you on the rota.",
+                    "kind": "value"
+                  }
+                ]
+              },
+              {
+                "id": "2.2",
+                "title": "Write the rota",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Mycelium: Family, Timeline tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=timeline"
+                },
+                "body_html": "<p>One note titled <code>Help rota</code>, by day.</p>",
+                "expect_html": "<p>A rota.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "The visitor plan",
+            "minutes": 10,
+            "needs": [
+              "Kirsty"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Agree the rule",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "A conversation",
+                  "kind": "decision"
+                },
+                "body_html": "<p>When visitors are welcome, for how long, and who comes first.</p>",
+                "expect_html": "<p>A rule you both agreed.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Send it",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The family group chat",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Send the rule kindly, once.</p>",
+                "expect_html": "<p>Sent.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.32",
+      "title": "Make one thing by hand: choose it (then a dated finish)",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-02-14",
+      "who": "P",
+      "description": "## What\nPhil chooses one thing to make by hand for the baby (for example a shelf, a mobile hung well out of reach, a name sign, a 3D-printed part once a printer exists). He writes three ideas, picks one, and sets a finish date before the done check; Claude then makes the dated finish ticket.\n\n## Why\nPhil (5b): \"Make one thing by hand: a ticket to choose it and a dated ticket to finish it.\"\n\n## Done looks like\nOne thing chosen, a finish date in the field, and the finish ticket made by Claude.\n\n## Unlocks\nThe finish ticket.\n\n## Depends on\nNothing.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "project",
+        "personal",
+        "idea"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-make-by-hand",
+        "kind": "guide",
+        "title": "Choose the thing to make",
+        "version": 1,
+        "intro": {
+          "answer": "Three ideas, one choice, a finish date.",
+          "unlocks": [
+            "the finish ticket"
+          ],
+          "to_hand": [
+            "Ten quiet minutes"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Choose",
+            "minutes": 12,
+            "needs": [
+              "Notebook or phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Three ideas",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "A notebook",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Write three things you could make in a few evenings.</p>",
+                "expect_html": "<p>Three ideas.</p>",
+                "fields": [
+                  {
+                    "key": "ideas",
+                    "label": "Three ideas",
+                    "placeholder": "free text"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Pick one",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Your call",
+                  "kind": "decision"
+                },
+                "body_html": "<p>The one you would most like to tell the child about.</p>",
+                "expect_html": "<p>One chosen.</p>",
+                "fields": [
+                  {
+                    "key": "choice",
+                    "label": "The one",
+                    "placeholder": "free text"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Finish date",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>A date before 2027-05-15.</p>",
+                "expect_html": "<p>A date.</p>",
+                "fields": [
+                  {
+                    "key": "finish_by",
+                    "label": "Finish by",
+                    "placeholder": "a date before 2027-05-15"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "info",
+                    "html": "Claude makes the finish ticket from this date."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.33",
+      "title": "Handover note before paternity leave (personal ticket; no work content)",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-05-30",
+      "who": "P",
+      "description": "## What\nA personal reminder to write his work handover note, in work's own systems, before paternity leave, and to have the out-of-office ready. Nothing about the work itself is written in Mycelium: this ticket only records that the note was written and shared.\n\n## Why\nPhil: \"A handover-note ticket before paternity leave (personal ticket only; work content stays out).\"\n\n## Done looks like\nThe two yes fields ticked.\n\n## Unlocks\nA clean start to leave; baby.37.\n\n## Depends on\nbaby.18 (leave notice given).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.18"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "work",
+        "personal",
+        "reminder"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-handover-note",
+        "kind": "guide",
+        "title": "Handover note before leave",
+        "version": 1,
+        "intro": {
+          "answer": "Write it in work's systems; only tick it here.",
+          "unlocks": [],
+          "to_hand": [
+            "Your work laptop"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Write and share",
+            "minutes": 13,
+            "needs": [
+              "Work laptop"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Write the note in work's systems",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Your work's own tools",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Write the handover where work keeps such things. Nothing from it goes into Mycelium.</p>",
+                "expect_html": "<p>A note your cover can follow.</p>",
+                "fields": [
+                  {
+                    "key": "written",
+                    "label": "Handover written and shared? yes or no",
+                    "placeholder": "yes or no"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Work content stays out of Mycelium, as decided."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Out-of-office ready",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Your work email",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Draft it with the leave dates; switch it on the day.</p>",
+                "expect_html": "<p>Drafted.</p>",
+                "fields": [
+                  {
+                    "key": "ooo",
+                    "label": "Out-of-office drafted? yes or no",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.34",
+      "title": "Birth registration and documents; GP and insurance (the steps ready, done after)",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-06-15",
+      "who": "P",
+      "description": "## What\nThe steps are ready before the birth and done after it. Registration: every birth in England is registered within 42 days at the register office for the area where the baby was born, or at the hospital if it offers it; take the red book and proof of identity. If Phil and Kirsty are not married or in a civil partnership, both go together for both names to be on the certificate (or one completes a statutory declaration of parentage). GP: register the baby with the family's surgery (online, through the NHS App, or the surgery's form) so the GP can book the 6 to 8 week check. Insurance: add the baby to any policy that covers family members, from a list made in the first sitting. Child Benefit is fin.21's job (claim from 48 hours after registration; backdated up to 3 months): this ticket only points to it.\n\n## Why\nPhil: admin tickets, \"birth registration and documents, adding the baby to GP and insurance\".\n\n## Done looks like\nBefore: the register office, the booking route and the policy list ready. After: the birth registered within 42 days, certificates in hand, the baby registered with the GP, policies updated, and fin.21 told.\n\n## Unlocks\nfin.21 (Child Benefit needs the registration).\n\n## Depends on\nNothing.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [
+        "fin.21"
+      ],
+      "tags": [
+        "baby",
+        "admin",
+        "form",
+        "medical"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-registration-gp",
+        "kind": "guide",
+        "title": "Registration, GP and insurance",
+        "version": 1,
+        "intro": {
+          "answer": "Ready the steps now; register within 42 days of the birth, then GP and insurance.",
+          "unlocks": [
+            "fin.21"
+          ],
+          "to_hand": [
+            "Kirsty",
+            "The red book",
+            "Proof of identity"
+          ],
+          "time": [
+            "One sitting before, three short ones after"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "GOV.UK: Register a birth",
+              "url": "https://www.gov.uk/register-birth",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "GOV.UK: Who can register a birth",
+              "url": "https://www.gov.uk/register-birth/who-can-register-a-birth",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "NHS: How to register with a GP surgery",
+              "url": "https://www.nhs.uk/nhs-services/gps/how-to-register-with-a-gp-surgery/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "NHS: newborn physical examination",
+              "url": "https://www.nhs.uk/conditions/baby/newborn-screening/physical-examination/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "GOV.UK: Child Benefit, how to claim",
+              "url": "https://www.gov.uk/child-benefit/how-to-claim",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Ready before the birth",
+            "minutes": 12,
+            "needs": [
+              "Laptop"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Find the register office",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "GOV.UK: Register a birth",
+                  "kind": "browser",
+                  "url": "https://www.gov.uk/register-birth"
+                },
+                "body_html": "<p>Enter the area where the hospital is; note the office and how to book. Ask the maternity unit whether it registers births on the ward.</p>",
+                "expect_html": "<p>An office and a booking route.</p>",
+                "fields": [
+                  {
+                    "key": "office",
+                    "label": "Register office",
+                    "placeholder": "office name"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Who goes",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "GOV.UK: Who can register a birth",
+                  "kind": "decision",
+                  "url": "https://www.gov.uk/register-birth/who-can-register-a-birth"
+                },
+                "body_html": "<p>Married or in a civil partnership: either of you can go. Not: go together for both names, or use the statutory declaration form.</p>",
+                "expect_html": "<p>You know who goes.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "List the policies",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Your insurance documents",
+                  "kind": "decision"
+                },
+                "body_html": "<p>List each policy that might cover a child (life, health, travel).</p>",
+                "expect_html": "<p>A short list.</p>",
+                "fields": [
+                  {
+                    "key": "policies",
+                    "label": "Policies to update",
+                    "placeholder": "names only, no policy numbers"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "After the birth: register",
+            "minutes": 11,
+            "needs": [
+              "Kirsty",
+              "Red book",
+              "ID"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Book and go",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The register office",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Within 42 days of the birth. Buy the certificate copies you need.</p>",
+                "expect_html": "<p>A birth certificate.</p>",
+                "irreversible": true
+              },
+              {
+                "id": "2.2",
+                "title": "Tell fin.21",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "The fin.21 ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Tick here so the Child Benefit claim can start.</p>",
+                "expect_html": "<p>fin.21 unblocked.</p>"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "After the birth: GP and insurance",
+            "minutes": 14,
+            "needs": [
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Register the baby with the GP",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The NHS App or your surgery's website",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Fill in the child's registration form.</p>",
+                "expect_html": "<p>A confirmation, usually within 5 days.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Update each policy",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "Each insurer's website",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Add the baby where it applies.</p>",
+                "expect_html": "<p>Each policy updated.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.35",
+      "title": "Gift list: a shareable read-only page from the buying list, unguessable link, items only",
+      "kind": "task",
+      "points": 5,
+      "due": "2027-02-07",
+      "who": "C",
+      "description": "## What\nClaude builds a public, read-only gift list page made from the Family prep lists. This is the one deliberately public endpoint in the plan, so its invariants are fixed: (1) the link carries a long random token (at least 128 bits from a secure random source), never a list id, space id or anything guessable, and is not listed or linked anywhere public; (2) the page shows items only: title, quantity and an optional shop link for rows the family chooses to include, and never prices, who bought what, notes, names, the due date, the space, or any other data; bought rows drop off the page; (3) it is a plain GET with no writes, no sign-in and no cookies, served with noindex and a no-referrer policy and rate-limited; (4) it is revocable: one tap on the Lists tab revokes the token, after which the old link returns a plain not-found at once, and a new link is a new token. Tests: an isolation test that a token reads only its own space's chosen rows, a test that a revoked token gives 404, and a test that no field beyond the three is ever in the response.\n\n## Why\nPhil: \"Gift list: a shareable read-only page from the buying list.\" The flag on 5.12 records that endpoints are not public unless decided, and this one was decided: unguessable link, no personal data beyond the items.\n\n## Done looks like\nA family member can open the link on a phone and see only the chosen items; revoking it makes the link 404 straight away; the tests pass; nothing else in the app became public.\n\n## Unlocks\nFamily and friends can see what is wanted; Nice rows from baby.06 are the natural candidates.\n\n## Depends on\nNothing (it reads the existing lists). Better after baby.06 so the right rows are chosen.\n\n## Flag\n5.12 `[claude]`: this is a deliberately public GET (invariant: endpoints are not public unless decided); unguessable link, no personal data beyond the items. Decided by Phil, not reopened.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.\n\n## Red team\n- Finding 67: Revocable link; no names, dates or address; items, prices and bought state only.\n",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "dev",
+        "feature",
+        "security",
+        "shopping"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "baby.36",
+      "title": "Price watch: alert on a real drop below a level he sets",
+      "kind": "task",
+      "points": 3,
+      "due": "2027-01-31",
+      "who": "C",
+      "description": "## What\nClaude builds a price watch on chosen list rows: Phil sets a target price on a row that has a shop link, and he gets one push when the price is at or below the target and also below the lowest price seen in the last 90 days, so an inflated \"was\" price does not count as a drop. The list rows have no target-price field today, so the build adds one. Before any fetching is written, Claude checks how prices may be read without breaking a retailer's terms (a price-comparison site's own alerts read through the mail import is one route) and writes that choice on this ticket for Phil to approve.\n\n## Why\nPhil: \"Price watch: yes, alert on a real drop below a level he sets.\" Cost is his first worry.\n\n## Done looks like\nPhil sets a target on a row; a test with a fake price feed sends exactly one push for a real drop and none for a rise or a cut from an inflated price; the reading route is approved on this ticket.\n\n## Unlocks\nbaby.13, baby.14, baby.16, baby.21 (buy at the right moment).\n\n## Depends on\nNothing.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "baby",
+        "dev",
+        "feature",
+        "shopping"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "baby.37",
+      "title": "First fortnight at home: Mycelium goes quiet, only the baby log and Kirsty's nudges; nothing counts as slipped",
+      "kind": "task",
+      "points": 3,
+      "due": "2027-05-30",
+      "who": "C",
+      "description": "## What\nClaude builds a \"first fortnight\" mode. Phil (or Kirsty) switches it on the day of the birth from the Family page; for 14 days only the baby log and Kirsty's nudges can notify him; due dates falling in those 14 days are not shown as late and streaks are held; the wall shows the baby log and the family board. On day 15 it ends by itself with one gentle summary of what moved, and the paused dates move on by 14 days.\n\n## Why\nPhil (5b): \"First fortnight at home: Mycelium goes quiet, only the baby log and Kirsty's nudges; nothing counts as slipped.\"\n\n## Done looks like\nWith the mode on in a test, a normal reminder is held, a nudge and a baby-log reminder come through, no ticket shows as late, and the mode ends on day 15.\n\n## Unlocks\nA quiet start at home.\n\n## Depends on\nNothing. Related: wall.07 (the baby log panel).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [],
+      "links": [
+        "wall.07"
+      ],
+      "tags": [
+        "baby",
+        "dev",
+        "feature",
+        "schedule"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "baby.38",
+      "title": "Wait items reviewed a month after the birth",
+      "kind": "guide",
+      "points": 1,
+      "due": "2027-07-15",
+      "who": "PK",
+      "description": "## What\nA month after the birth, Phil and Kirsty go through every row marked Wait and decide each: buy it now (it becomes Need), drop it, or keep waiting with a date.\n\n## Why\nPhil (5b): \"Wait reviewed a month after.\"\n\n## Done looks like\nNo row is left marked Wait without a decision.\n\n## Unlocks\nNothing further.\n\n## Depends on\nbaby.06 (the marks).\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.06"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "shopping",
+        "planning"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-wait-review",
+        "kind": "guide",
+        "title": "Review the Wait rows",
+        "version": 1,
+        "intro": {
+          "answer": "Buy, drop or keep waiting, for every Wait row.",
+          "unlocks": [],
+          "to_hand": [
+            "Kirsty",
+            "The lists"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Review",
+            "minutes": 15,
+            "needs": [
+              "Kirsty",
+              "Laptop"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Find the Wait rows",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Read down the three lists for notes starting Wait.</p>",
+                "expect_html": "<p>A short list.</p>",
+                "fields": [
+                  {
+                    "key": "wait_count",
+                    "label": "How many Wait rows",
+                    "placeholder": "a count"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Decide each",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>Change Wait to Need (buy), delete the row (drop), or write <code>Wait until</code> and a date.</p>",
+                "expect_html": "<p>No bare Wait left.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Check the pot",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Mycelium: Family, Budget tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=budget"
+                },
+                "body_html": "<p>See what is left in the baby pot.</p>",
+                "expect_html": "<p>The figure.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "baby.39",
+      "title": "Done check: everything essential in the house and set up a month before",
+      "kind": "test",
+      "points": 1,
+      "due": "2027-05-15",
+      "who": "PK",
+      "description": "## What\nA walk round the house and both cars on 2027-05-15 checking each essential is there and set up: the bases in both cars, the seat, the pram, the sleep place with its new mattress in the main bedroom, the nursery, the monitor live, the starter set and nappies, the hospital bag and go card, the notices given.\n\n## Why\nPhil: \"Done means: everything essential in the house and set up a month before the due date.\"\n\n## Done looks like\nEvery step ticked; anything not ready gets its own dated ticket that day.\n\n## Unlocks\nThe epic closes.\n\n## Depends on\nEverything above. Not written as blockers so the check runs on its date whatever is open.\n\n## Date\nWorked back from the working due date of 2027-06-15. MYC-182 asks Phil the real due date; when he answers, this date moves with it.",
+      "after": [
+        "baby.29"
+      ],
+      "links": [],
+      "tags": [
+        "baby",
+        "testing",
+        "home"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "baby-done-check",
+        "kind": "test",
+        "title": "Done check a month before",
+        "version": 1,
+        "intro": {
+          "answer": "Walk round and tick each essential; anything missing gets a ticket today.",
+          "unlocks": [],
+          "to_hand": [
+            "Kirsty",
+            "Both cars at home"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "The Lullaby Trust: safer sleep information",
+              "url": "https://www.lullabytrust.org.uk/baby-safety/safer-sleep-information/",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "GOV.UK: Child car seats, the rules",
+              "url": "https://www.gov.uk/child-car-seats-the-rules",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The walk round",
+            "minutes": 15,
+            "needs": [
+              "Kirsty",
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Cars",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Both cars",
+                  "kind": "decision"
+                },
+                "body_html": "<p>A base in each, green; the seat in the house.</p>",
+                "expect_html": "<p>Both green.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Sleep place",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Main bedroom",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Crib or cot with the new mattress, nothing else in it, thermometer on the wall.</p>",
+                "expect_html": "<p>Clear and ready.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Nursery and monitor",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The nursery and a phone",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Room finished; the camera live in Home Assistant.</p>",
+                "expect_html": "<p>Both ready.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Kit and bag",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Mycelium: Family, Lists tab",
+                  "kind": "page",
+                  "url": "https://mycelium.sporebit.com/family?tab=lists"
+                },
+                "body_html": "<p>No open Need rows; the hospital bag ticked; the go card on the door.</p>",
+                "expect_html": "<p>All ticked.</p>"
+              },
+              {
+                "id": "1.5",
+                "title": "Paperwork",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "baby.18, baby.20, baby.34",
+                  "kind": "page"
+                },
+                "body_html": "<p>Both leave notices in; the register office known.</p>",
+                "expect_html": "<p>All three ready.</p>"
+              },
+              {
+                "id": "1.6",
+                "title": "Anything missing",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "This ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write what is missing; Claude makes a dated ticket for each.</p>",
+                "expect_html": "<p>Nothing, or a list.</p>",
+                "fields": [
+                  {
+                    "key": "missing",
+                    "label": "What is missing",
+                    "placeholder": "free text, or none"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested",
+          "1.5": "untested",
+          "1.6": "untested"
+        }
+      }
+    }
+  ],
+  "existing": [
+    {
+      "key": "MYC-182",
+      "set_epic": false,
+      "append": "\n\n## Unlocks\nE.baby: every Baby ticket (baby.01 to baby.39) is dated from a working due date of 2027-06-15. The real due date answered here moves all of them, including the legal paternity and maternity notice deadline (the end of the 15th week before the expected week of childbirth)."
+    }
+  ]
+}

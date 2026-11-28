@@ -1,0 +1,1176 @@
+{
+  "epic": {
+    "sid": "E.repairs",
+    "project": "HOME",
+    "title": "Repairs, odd jobs and the house next door",
+    "description": "The repairs and odd jobs Phil wants as tickets: the missing fence panel, the boiler flue extension to keep steam off the security camera (a Gas Safe engineer, flue diameter noted first), render patching and paint, the derelict property next door reported (photographs first, then Doncaster Council's current route), the rattling air-conditioning unit, fly screens before summer, and the cast iron weights. The metal gate restoration is not wanted.\n\n## Order\nNo order is forced. repairs.01 comes before garden.11 (fence treatment, 1 May 2027). repairs.06 has a soft target of May 2027. The rest fit any sitting, with repairs.03 in mild dry weather.\n\n## Done means\nAll seven closed: the panel in, the flue job booked or done, render patched and painted, the report sent, the rattle gone, screens up, weights indoors.\n\n## Flags\nNone touch this epic.\n\n## Dossier\nThe dossier is attached in Docs (link filled by the integrator).",
+    "dossier": "dossiers/repairs.md",
+    "links": []
+  },
+  "tickets": [
+    {
+      "sid": "repairs.01",
+      "title": "Missing fence panel (about £20 to £30)",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nMeasure the gap and check the posts are firm, match the style of the neighbouring panels, price and buy a matching panel with clips, and fit it with a helper. Phil's figure was about £20 to £30; two UK suppliers listed a 6 ft by 6 ft overlap panel at about £31 to £35 in 2026 (dossiers/repairs.md, section 3.1).\n\n## Why\nPhil wanted the missing fence panel as a ticket.\n\n## Done looks like\nThe panel fitted, level and firm.\n\n## Unlocks\ngarden.11: the fence is treated after the panel.\n\n## Depends on\nNothing.\n\n## Cost\nAbout £20 to £35 for the panel plus clips. Nothing is bought in this run.\n\n## Red team\n- Finding 68: The panel is a boundary repair outside the garden design rule (H4); Phil confirms on the decisions review.\n",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "repairs",
+        "maintenance",
+        "garden"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "repairs-fence-panel",
+        "kind": "guide",
+        "title": "Missing fence panel",
+        "version": 1,
+        "intro": {
+          "answer": "Measure the gap, buy a matching panel, and fit it between the posts.",
+          "unlocks": [
+            "garden.11: fence treatment"
+          ],
+          "to_hand": [
+            "Tape",
+            "Panel clips or screws",
+            "Drill",
+            "A second pair of hands"
+          ],
+          "time": [
+            "About 35 minutes over three sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Less.co.uk: fence panel cost (April 2026 figures)",
+              "url": "https://less.co.uk/home-improvements/fencing/panel-cost",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Atkinsons Fencing: 6ft by 6ft overlap panel",
+              "url": "https://www.atkinsonsfencing.co.uk/?p=337132",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Carvers: lap fence panel listing",
+              "url": "https://www.carvers.co.uk/apps/aeo/ai/md/default/products/15909611012445.md",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Measure",
+            "minutes": 11,
+            "needs": [
+              "Tape"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Measure the gap",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The fence",
+                  "kind": "page"
+                },
+                "body_html": "<p>Measure between the posts at top and bottom, and the height of the panels either side.</p>",
+                "expect_html": "<p>Width and height.</p>",
+                "fields": [
+                  {
+                    "key": "gap",
+                    "label": "Gap width and height",
+                    "placeholder": "for example 1830 by 1830 mm"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Check the posts",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The fence",
+                  "kind": "page"
+                },
+                "body_html": "<p>Push each post. If one moves, the post needs fixing first (a new ticket).</p>",
+                "expect_html": "<p>Both firm, or a loose one noted.</p>",
+                "fields": [
+                  {
+                    "key": "posts",
+                    "label": "Posts firm?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Match the style",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The fence",
+                  "kind": "page"
+                },
+                "body_html": "<p>Photograph a neighbouring panel: overlap, closeboard or lap.</p>",
+                "expect_html": "<p>A style named.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Buy",
+            "minutes": 10,
+            "needs": [
+              "The sizes"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Price and order",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "UK retailer sites",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Price a matching panel at two or three retailers. A 6 ft by 6 ft overlap panel was about £30 to £35 at two suppliers in 2026; budget lines run lower. Order with clips.</p>",
+                "expect_html": "<p>An order placed.</p>",
+                "fields": [
+                  {
+                    "key": "price",
+                    "label": "Price paid",
+                    "placeholder": "pounds"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Fit",
+            "minutes": 13,
+            "needs": [
+              "Panel",
+              "Clips",
+              "Drill",
+              "Helper"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Fit the clips",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "The fence",
+                  "kind": "page"
+                },
+                "body_html": "<p>Fix two or three clips to each post at the panel's height.</p>",
+                "expect_html": "<p>Clips level.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Lift in and fix",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The fence",
+                  "kind": "page"
+                },
+                "body_html": "<p>Lift the panel in with a helper, check it is level with its neighbours, and screw through the clips.</p>",
+                "expect_html": "<p>Panel firm and level.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "3.1": "untested",
+          "3.2": "untested"
+        }
+      }
+    },
+    {
+      "sid": "repairs.02",
+      "title": "Boiler flue extension to keep steam off the camera: note the flue diameter first, then a Gas Safe engineer",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nSteam from the boiler flue clouds the security camera. First note the flue's outside diameter (many are 60/100 mm concentric), the boiler make and model, and photograph the terminal with the camera. Then book a Gas Safe registered engineer and ask whether the boiler maker's plume management kit for that model can redirect the plume away from the camera. Phil does not fit it himself.\n\n## Why\nPhil wanted the boiler flue extension to keep steam off the security camera, by a Gas Safe engineer, noting the flue diameter first.\n\n## Done looks like\nThe flue size, boiler model and photos on this ticket, and an engineer booked with a quote.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.\n\n## Cost\nA plume kit plus an engineer's visit; to be priced by the quote. Nothing is bought in this run.\n\n## Red team\n- Finding 69: Quote first; Phil approves before booking.\n",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "repairs",
+        "maintenance",
+        "house"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "repairs-boiler-flue",
+        "kind": "guide",
+        "title": "Boiler flue extension: the facts first, then a Gas Safe engineer",
+        "version": 1,
+        "intro": {
+          "answer": "Note the flue size and the boiler model, then book a Gas Safe registered engineer; never fit it yourself.",
+          "unlocks": [],
+          "to_hand": [
+            "Tape",
+            "Phone for photos"
+          ],
+          "time": [
+            "About 25 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Registered Gas Engineer (Gas Safe Register magazine): plume management kits and flue position",
+              "url": "https://issuu.com/registeredgasengineer/docs/rge_mar_2023_web/s/20032983",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Gas Safe Register technical bulletin on plume kits (Registered Gas Engineer site)",
+              "url": "https://registeredgasengineer.co.uk/?p=1543",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Screwfix: Baxi plume kit with 1 m extension, 60 mm (Gas Safe fitting note)",
+              "url": "https://screwfix.com/p/baxi-plume-kit-inc-1m-extension-brackets/2090g",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Screwfix: Vaillant plume management kit 100 mm",
+              "url": "https://www.screwfix.com/p/vaillant-plume-management-kit-100mm/599kk",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Gas Safe Register home page (engineer search and ID card check)",
+              "url": "https://www.gassaferegister.co.uk/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The facts",
+            "minutes": 10,
+            "needs": [
+              "Tape",
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Measure the flue terminal",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Outside, at the flue",
+                  "kind": "page"
+                },
+                "body_html": "<p>Measure the outside diameter of the flue pipe where it leaves the wall, from the ground if you can (do not climb). Many boilers use a 60/100 mm concentric flue.</p>",
+                "expect_html": "<p>A diameter in mm.</p>",
+                "fields": [
+                  {
+                    "key": "flue_mm",
+                    "label": "Flue outside diameter, mm",
+                    "placeholder": "for example 100"
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Boiler make and model",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The boiler's data badge",
+                  "kind": "page"
+                },
+                "body_html": "<p>Read the make and model from the boiler's front or data badge.</p>",
+                "expect_html": "<p>Make and model.</p>",
+                "fields": [
+                  {
+                    "key": "boiler",
+                    "label": "Boiler make and model",
+                    "placeholder": "for example Worcester 30i"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Photograph the problem",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Outside",
+                  "kind": "page"
+                },
+                "body_html": "<p>Photograph the terminal and the camera together, and a camera still showing the steam.</p>",
+                "expect_html": "<p>Two photos.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Book the engineer",
+            "minutes": 15,
+            "needs": [
+              "The facts from phase 1"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Find a Gas Safe engineer",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Gas Safe Register",
+                  "kind": "browser",
+                  "url": "https://www.gassaferegister.co.uk/"
+                },
+                "body_html": "<p>Search the register for a local engineer, and check their ID card when they arrive.</p>",
+                "expect_html": "<p>One or two engineers to call.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Ask the right question",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Phone or email",
+                  "kind": "page"
+                },
+                "body_html": "<p>Give the make, model and flue size. Ask: does the boiler maker offer a plume management kit for this model, can the terminal be redirected away from the camera within the maker's rules, and what is the price?</p>",
+                "expect_html": "<p>A quote and a date.</p>",
+                "fields": [
+                  {
+                    "key": "quote",
+                    "label": "Quote",
+                    "placeholder": "pounds"
+                  }
+                ],
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Flue work is gas work: it must be done by a Gas Safe registered engineer, to the boiler maker's instructions. A plume kit cannot be used to get round a flue that is in the wrong place."
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Book",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Phone or email",
+                  "kind": "page"
+                },
+                "body_html": "<p>Book the visit and add the date to this ticket.</p>",
+                "expect_html": "<p>A date.</p>",
+                "fields": [
+                  {
+                    "key": "visit",
+                    "label": "Visit date",
+                    "placeholder": "date"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "repairs.03",
+      "title": "Render patching and paint",
+      "kind": "guide",
+      "points": 2,
+      "due": null,
+      "who": "P",
+      "description": "## What\nTap the render to find hollow areas, check whether it is cement or lime (lime must not be patched with cement), knock off the hollow render, bond with SBR, patch with sand and cement in one or two coats, let it cure three to four weeks, then paint with masonry paint. Mild dry weather only.\n\n## Why\nPhil wanted render patching and paint as a ticket.\n\n## Done looks like\nAll hollow areas patched and the walls painted.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing. home.20 (plastering) is the learn-it-or-hire-it decision if the areas are large.\n\n## Cost\nBonding agent, mortar and masonry paint; to be priced. Nothing is bought in this run.\n\n## Red team\n- Finding 68: Garden-side repair outside the design rule (H4); Phil confirms on the decisions review.\n",
+      "after": [],
+      "links": [
+        "home.20"
+      ],
+      "tags": [
+        "home",
+        "repairs",
+        "maintenance",
+        "house"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "repairs-render",
+        "kind": "guide",
+        "title": "Render patching and paint",
+        "version": 1,
+        "intro": {
+          "answer": "Find the hollow render, check what it is made of, patch it, let it cure, then paint.",
+          "unlocks": [],
+          "to_hand": [
+            "Hammer and bolster",
+            "SBR bonding agent",
+            "Sand and cement or a repair mortar",
+            "Wooden float",
+            "Masonry paint",
+            "Safety glasses"
+          ],
+          "time": [
+            "About 1 hour over four sittings, with three to four weeks of curing before paint"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Homebuilding: render repair",
+              "url": "https://www.homebuilding.co.uk/advice/render-repair",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "DIY Doctor: repairing render",
+              "url": "https://www.diydoctor.org.uk/projects/repair-render.htm",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Everest Paints: repairing blown render before painting",
+              "url": "https://everestpaints.com/blogs/masonry-preparation/repairing-blown-render-patching-holes-before-painting",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Survey",
+            "minutes": 14,
+            "needs": [
+              "A screwdriver handle"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Tap and mark",
+                "actor": "you",
+                "minutes": 8,
+                "where": {
+                  "label": "The rendered walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>Tap the render; hollow sounds mean it has come away. Mark each area with chalk and photograph it.</p>",
+                "expect_html": "<p>Areas marked.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Cement or lime?",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "A test spot",
+                  "kind": "page"
+                },
+                "body_html": "<p>Look at a broken edge: hard grey and brittle is cement render; soft, crumbly and off-white may be lime. Lime render must not be patched with cement. If unsure, stop and ask Claude with a photo.</p>",
+                "expect_html": "<p>A type named.</p>",
+                "fields": [
+                  {
+                    "key": "render_type",
+                    "label": "Render type",
+                    "placeholder": "cement, lime or unsure"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Weather",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "Weather forecast",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Patch only in mild, dry weather with no frost forecast.</p>",
+                "expect_html": "<p>A dry week picked.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "Hack off",
+            "minutes": 12,
+            "needs": [
+              "Hammer and bolster",
+              "Glasses"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Remove hollow render",
+                "actor": "you",
+                "minutes": 12,
+                "where": {
+                  "label": "The walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>Knock off the hollow render back to sound edges. Brush the masonry clean of dust.</p>",
+                "expect_html": "<p>Sound edges and clean masonry.</p>",
+                "irreversible": true
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "title": "Patch",
+            "minutes": 13,
+            "needs": [
+              "SBR",
+              "Mortar",
+              "Float"
+            ],
+            "steps": [
+              {
+                "id": "3.1",
+                "title": "Bond",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>Prime with SBR as its label says (PVA is not for outside).</p>",
+                "expect_html": "<p>Tacky bond coat.</p>"
+              },
+              {
+                "id": "3.2",
+                "title": "Fill",
+                "actor": "you",
+                "minutes": 10,
+                "where": {
+                  "label": "The walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>Fill with a 4 to 1 sand and cement mix or a repair mortar; two coats if deeper than about 20 mm. Finish with a wooden float, feathering the edges.</p>",
+                "expect_html": "<p>Patch flush.</p>"
+              }
+            ]
+          },
+          {
+            "id": "4",
+            "title": "Paint, three to four weeks later",
+            "minutes": 14,
+            "needs": [
+              "Masonry paint",
+              "Brush and roller"
+            ],
+            "steps": [
+              {
+                "id": "4.1",
+                "title": "Paint",
+                "actor": "you",
+                "minutes": 14,
+                "where": {
+                  "label": "The walls",
+                  "kind": "page"
+                },
+                "body_html": "<p>Once the patch has cured three to four weeks (fresh cement burns through paint), paint the patched walls with masonry paint.</p>",
+                "expect_html": "<p>Even colour.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "3.1": "untested",
+          "3.2": "untested",
+          "4.1": "untested"
+        }
+      }
+    },
+    {
+      "sid": "repairs.04",
+      "title": "Derelict property next door: photographs first (the shed on the fence, the exposed sockets), then Doncaster Council's current route, then the report",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nPhotograph from Phil's own side only: the shed against his fence and the exposed sockets. Then check Doncaster Council's current route (as checked on 2026-11-28: the Nuisance Team for empty or insecure properties and rubbish; Building Control's 24-hour service for a dangerous structure, by phone; the public health team for run-down buildings under section 215), and send the report to the right team with the photos.\n\n## Why\nPhil had not yet reported it; the ticket is photographs first, then the report, with the first step checking the council's current route.\n\n## Done looks like\nA report sent with photos and a reference or sent date on this ticket.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "repairs",
+        "maintenance",
+        "admin",
+        "communication"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "repairs-derelict-next-door",
+        "kind": "guide",
+        "title": "Derelict property next door: photographs, then the council's route, then the report",
+        "version": 1,
+        "intro": {
+          "answer": "Photograph from your own side, check which Doncaster Council team handles it, then report.",
+          "unlocks": [],
+          "to_hand": [
+            "Phone"
+          ],
+          "time": [
+            "About 30 minutes over two sittings"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Doncaster Council: empty properties (Nuisance Team)",
+              "url": "https://www.doncaster.gov.uk/services/housing/empty-properties",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Doncaster Council: dangerous structures (Building Control, 24-hour service)",
+              "url": "https://www.doncaster.gov.uk/services/planning/dangerous-structures",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Doncaster Council: unsatisfactory condition or appearance of buildings and land (public health team, section 215)",
+              "url": "https://www.doncaster.gov.uk/services/environmental/unsatisfactory-condition-and-or-appearance-of-buildings-and-land",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Photographs",
+            "minutes": 12,
+            "needs": [
+              "Phone"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "The shed on the fence",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Your garden",
+                  "kind": "page"
+                },
+                "body_html": "<p>Photograph the shed leaning on your fence from your own side, with the fence in shot.</p>",
+                "expect_html": "<p>Two or three photos.</p>",
+                "notes": [
+                  {
+                    "kind": "warn",
+                    "html": "Do not go onto the property."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "The exposed sockets",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Your side of the boundary",
+                  "kind": "page"
+                },
+                "body_html": "<p>Photograph the exposed sockets only if visible from your side. Do not touch anything.</p>",
+                "expect_html": "<p>A photo, or a note of where they are.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Date and describe",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Mycelium, this ticket",
+                  "kind": "page"
+                },
+                "body_html": "<p>Write the date and one sentence per photo.</p>",
+                "expect_html": "<p>Each photo described.</p>"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "title": "The route and the report",
+            "minutes": 15,
+            "needs": [
+              "The photos"
+            ],
+            "steps": [
+              {
+                "id": "2.1",
+                "title": "Check the current route",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Doncaster Council website",
+                  "kind": "browser",
+                  "url": "https://www.doncaster.gov.uk/services/housing/empty-properties"
+                },
+                "body_html": "<p>Check the council's pages are as below (they change): empty or insecure properties and rubbish go to the Nuisance Team; a dangerous structure goes to Building Control (24-hour phone line, and they say phone rather than email for danger); a run-down building harming the area goes to the public health team (section 215).</p>",
+                "expect_html": "<p>The right team for each problem.</p>"
+              },
+              {
+                "id": "2.2",
+                "title": "Danger first",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>If the shed could fall or the sockets could be live and reachable, phone Building Control first.</p>",
+                "expect_html": "<p>A yes or no on danger.</p>",
+                "fields": [
+                  {
+                    "key": "danger",
+                    "label": "Immediate danger?",
+                    "placeholder": "yes or no"
+                  }
+                ]
+              },
+              {
+                "id": "2.3",
+                "title": "Send the report",
+                "actor": "you",
+                "minutes": 7,
+                "where": {
+                  "label": "The council's contact route",
+                  "kind": "page"
+                },
+                "body_html": "<p>Send the report to the right team with the photos, the address of the empty property, and what it affects. Keep a copy.</p>",
+                "expect_html": "<p>A reference number or a sent email.</p>",
+                "fields": [
+                  {
+                    "key": "ref",
+                    "label": "Council reference",
+                    "placeholder": "reference or date sent"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "2.1": "untested",
+          "2.2": "untested",
+          "2.3": "untested"
+        }
+      }
+    },
+    {
+      "sid": "repairs.05",
+      "title": "Rattling air-conditioning unit: check the right-side panel fixings before wedging",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nWith the power off at the isolator, check and tighten the right-side panel's screws on the outdoor unit, check the rubber pads and level, and test. Only wedge something if it still rattles; if it rattles with everything tight, it is an engineer's job.\n\n## Why\nPhil wanted the rattling air-conditioning unit as an odd job: check the right-side panel fixings before wedging anything.\n\n## Done looks like\nThe unit runs without the rattle.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "repairs",
+        "maintenance",
+        "house"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "repairs-aircon-rattle",
+        "kind": "guide",
+        "title": "Rattling air-conditioning unit",
+        "version": 1,
+        "intro": {
+          "answer": "Power off, check and tighten the right-side panel fixings first; wedge only if it still rattles.",
+          "unlocks": [],
+          "to_hand": [
+            "Screwdriver set",
+            "Spare screws to match"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Fujitsu General: vibrating outdoor unit mounting rubber",
+              "url": "https://assist.fujitsugeneral.com.au/support/solutions/articles/6000223441-vibrating-outdoor-unit-mounting-rubber",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "LG: why vibration noise can be heard from the outdoor unit",
+              "url": "https://www.lg.com/ae/support/product-help/CT32003026-1434693648562",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Rattling air-conditioning unit",
+            "minutes": 15,
+            "needs": [
+              "Screwdriver set",
+              "Spare screws to match"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Power off",
+                "actor": "you",
+                "minutes": 2,
+                "where": {
+                  "label": "The unit's isolator or the fuse box",
+                  "kind": "page"
+                },
+                "body_html": "<p>Switch the unit off at its isolator or breaker.</p>",
+                "expect_html": "<p>Fan stopped, display off.</p>",
+                "notes": [
+                  {
+                    "kind": "security",
+                    "html": "Never open panels with the power on."
+                  }
+                ]
+              },
+              {
+                "id": "1.2",
+                "title": "Right-side panel",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "The outdoor unit",
+                  "kind": "page"
+                },
+                "body_html": "<p>Check every screw on the right-side panel; tighten any loose one and replace any missing one.</p>",
+                "expect_html": "<p>No screw turns and the panel does not move when pressed.</p>",
+                "fields": [
+                  {
+                    "key": "missing",
+                    "label": "Screws missing or loose",
+                    "placeholder": "a number"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Pads and level",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The outdoor unit",
+                  "kind": "page"
+                },
+                "body_html": "<p>Check the rubber feet or pads are there and the unit sits level.</p>",
+                "expect_html": "<p>Pads in place, level.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Test",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "The outdoor unit",
+                  "kind": "page"
+                },
+                "body_html": "<p>Power on and listen. Only if the rattle remains, wedge a rubber pad where the panel touches, and note where.</p>",
+                "expect_html": "<p>No rattle.</p>",
+                "troubleshooting": [
+                  {
+                    "symptom": "Still rattles with the panel tight",
+                    "fix": "It may be the fan or the compressor; that is a job for an air-conditioning engineer."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "repairs.06",
+      "title": "Fly screens before next summer",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nList the windows and doors opened in summer, measure each, choose magnetic (no drilling, cheapest) or roller (screwed in, retracting) screens, and order. Soft target: May 2027, so they are up before summer. No due date.\n\n## Why\nPhil wanted fly screens before next summer.\n\n## Done looks like\nScreens fitted on each listed opening.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.\n\n## Cost\nAbout £15 to £45 per door off the shelf; to be priced per window. Nothing is bought in this run.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "repairs",
+        "maintenance",
+        "house",
+        "shopping"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "repairs-fly-screens",
+        "kind": "guide",
+        "title": "Fly screens before next summer",
+        "version": 1,
+        "intro": {
+          "answer": "Measure the windows and doors that open, choose magnetic or roller screens, and order by May.",
+          "unlocks": [],
+          "to_hand": [
+            "Tape"
+          ],
+          "time": [
+            "About 15 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "B&Q: magnetic fly screen door listing",
+              "url": "https://www.diy.com/departments/magnetic-fly-screen-heavy-duty-door-screen-easy-installation-insect-proof-mesh-net-keep-bugs-flys-mosquitos-out-100-x-210cm-/5056490618435_BQ.prd",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Newblinds: roller fly screens",
+              "url": "https://newblinds.co.uk/roller-fly-screens",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Moskera: made-to-measure fly screens",
+              "url": "https://moskera.com/en-gb/pages/made-to-measure-fly-screen",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Fly screens before next summer",
+            "minutes": 15,
+            "needs": [
+              "Tape"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "List the openings",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Around the house",
+                  "kind": "page"
+                },
+                "body_html": "<p>List which windows and doors are opened in summer.</p>",
+                "expect_html": "<p>A list.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Measure each",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "Around the house",
+                  "kind": "page"
+                },
+                "body_html": "<p>Measure the inside width and height of each opening in millimetres.</p>",
+                "expect_html": "<p>Sizes for each.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Choose the type",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Decision",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Magnetic screens fit without drilling and cost least (about £15 to £45 for a door off the shelf); roller screens screw in and cost more but retract. Nursery window: pick one a child cannot pull down.</p>",
+                "expect_html": "<p>A type per opening.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Order",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "UK retailer sites",
+                  "kind": "browser"
+                },
+                "body_html": "<p>Order by May 2027.</p>",
+                "expect_html": "<p>An order placed.</p>",
+                "fields": [
+                  {
+                    "key": "ordered",
+                    "label": "Ordered on",
+                    "placeholder": "date"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "repairs.07",
+      "title": "Cast iron weights: de-rust, oil, store indoors",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nThe cast iron weights left outside: brush off loose rust with a brass or nylon brush, soak heavy rust in diluted vinegar for a day, dry immediately and fully, oil thinly, and store indoors off the floor.\n\n## Why\nPhil wanted the cast iron weights de-rusted, oiled and stored indoors.\n\n## Done looks like\nThe weights clean, oiled and indoors.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "home",
+        "repairs",
+        "maintenance",
+        "fitness",
+        "chore"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "repairs-cast-iron-weights",
+        "kind": "guide",
+        "title": "Cast iron weights: de-rust, oil, store indoors",
+        "version": 1,
+        "intro": {
+          "answer": "Brush off loose rust, soak if needed, dry fully, oil thinly, and store them indoors.",
+          "unlocks": [],
+          "to_hand": [
+            "Brass or nylon brush",
+            "White vinegar and a tub",
+            "Rags",
+            "Light oil"
+          ],
+          "time": [
+            "About 15 minutes, plus a 24-hour soak"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": [
+            {
+              "label": "Jenolite: how to clean rusty weights",
+              "url": "https://www.jenolite.com/blogs/rust-corrosion/how-to-clean-rusty-weights",
+              "checked_on": "2026-11-28"
+            },
+            {
+              "label": "Two Rep Cave: restoring rusty weight plates (brush hardness)",
+              "url": "https://www.tworepcave.com/2754/breathing-life-back-into-rusty-weight-plates/",
+              "checked_on": "2026-11-28"
+            }
+          ]
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "Cast iron weights: de-rust, oil, store indoors",
+            "minutes": 15,
+            "needs": [
+              "Brass or nylon brush",
+              "White vinegar and a tub",
+              "Rags",
+              "Light oil"
+            ],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Brush",
+                "actor": "you",
+                "minutes": 5,
+                "where": {
+                  "label": "Outside",
+                  "kind": "page"
+                },
+                "body_html": "<p>Brush off loose rust with a brass or nylon brush (steel scratches cast iron).</p>",
+                "expect_html": "<p>Loose rust gone.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Soak if needed",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Outside",
+                  "kind": "page"
+                },
+                "body_html": "<p>For heavy rust soak in half vinegar, half water for 24 hours, then scrub.</p>",
+                "expect_html": "<p>Bare metal showing.</p>"
+              },
+              {
+                "id": "1.3",
+                "title": "Dry fully",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "Indoors",
+                  "kind": "page"
+                },
+                "body_html": "<p>Rinse and dry completely straight away; bare iron rusts again within hours if left wet.</p>",
+                "expect_html": "<p>Dry to the touch.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Oil and store",
+                "actor": "you",
+                "minutes": 4,
+                "where": {
+                  "label": "Indoors",
+                  "kind": "page"
+                },
+                "body_html": "<p>Wipe on a thin coat of light oil, then store indoors off the floor.</p>",
+                "expect_html": "<p>Weights stored indoors.</p>",
+                "fields": [
+                  {
+                    "key": "stored",
+                    "label": "Where stored",
+                    "placeholder": "place"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    }
+  ],
+  "existing": []
+}

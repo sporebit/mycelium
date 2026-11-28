@@ -1,0 +1,49 @@
+{
+  "epic": {
+    "sid": "E.guide",
+    "project": "MYC",
+    "title": "Field guide follow-ons: public link, voice, authoring",
+    "description": "The Field guide is the final format, built in this run by Stream U. Three things are left: whether a public read-only link exists (D4 kept the shareable link behind sign-in), the format's side of guides by voice through the glasses, and adopting the global Claude instructions prompt in every project.\n\n## Order\nguide.03 first, once Stream U has shipped the prompt (a 15-minute read and a choice). guide.01 next: the design note, Phil's decision, then the build if yes. guide.02 when glass.12 is close.\n\n## Done means\nEvery project writes guides to the Field guide format, the public link question is decided (built or declined), and glass.12 knows the fields it reads.\n\n## Flags\nNone. D4 (no public link without Phil's decision) is a run decision, recorded in decisions.md, not a `[claude]` flag.\n\n## Dossier\nThe research dossier is attached in Docs.",
+    "dossier": "dossiers/guide.md",
+    "links": [
+      "glass.12"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "guide.01",
+      "title": "Public read-only guide link: unguessable token, no answers shown, revocable; a decision before build",
+      "kind": "task",
+      "points": 5,
+      "due": null,
+      "who": "C",
+      "description": "## What\nDesign note first, then the build only on Phil's yes. The note (from `dossiers/guide.md` 3.1) proposes: a random share token of at least 128 bits per share (never the ticket key), stored hashed, with an expiry (30 days unless he picks otherwise) and a Revoke button on the ticket; a page at a public path that shows the steps and ticks but never the answers, never prompt blocks and never what Claude did; \"for someone else\" mode on by default; `Referrer-Policy: no-referrer` and `noindex`; read-only (visitors ticking steps is a separate later decision); every view logged on the ticket's activity. Phil approves or changes it in a comment; then Claude builds it with tests.\n\n## Why\nPhil wants guides delivered as a ticket, a shareable link and a downloadable file (12.20); D4 built the shareable link behind sign-in and left a public link as a decision, because the brief never said public and AGENTS.md allows no public GET unless decided.\n\n## Done looks like\nPhil's decision is on the ticket. If yes: a share link opens in a private window without signing in, shows no answers, stops working after Revoke and after its expiry, and an e2e spec proves all three.\n\n## Unlocks\nGuides handed to Kirsty or family (for example the printed \"if it breaks\" page, sub.24) can be opened without an account.\n\n## Depends on\nNothing to write the note. The build waits on Phil's decision on this ticket.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "guide",
+        "feature",
+        "security"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "guide.03",
+      "title": "Global Claude instructions prompt for the Field guide format: review and adopt in every project's CLAUDE.md",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nRead the global Claude instructions prompt for the Field guide format that this run writes in `docs/guides/` (Stream U's deliverable). Then choose one of two ways to adopt it and say so in a comment: paste it into his global Claude instructions once, or have each project's CLAUDE.md point at the single copy in the Mycelium repo so it cannot drift. Claude makes the repo edits for the projects on the PC after he chooses.\n\n## Why\nThis is the final format: write the global Claude instructions prompt with the template change (12.30); H10 noted the prompt was waiting on \"declare the format final\".\n\n## Done looks like\nHis choice is a comment on the ticket and the prompt is in place (his global instructions, or a line in each project's CLAUDE.md pointing at the one copy).\n\n## Unlocks\nEvery later guide in every project is written to the Field guide format.\n\n## Depends on\nStream U's ship of `docs/guides/` with the prompt (not yet on main on 2026-11-28).",
+      "after": [],
+      "links": [],
+      "tags": [
+        "guide",
+        "documentation",
+        "planning"
+      ],
+      "steps_definition": null
+    }
+  ],
+  "existing": []
+}

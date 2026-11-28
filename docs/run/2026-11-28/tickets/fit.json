@@ -1,0 +1,229 @@
+{
+  "epic": {
+    "sid": "E.fit",
+    "project": "MYC",
+    "title": "Fitness and health: PTP restart, supplements, nutrition, rehab",
+    "description": "Restart the PTP with Kirsty, settle the supplements list and the nutrition targets, save Joe's rehab sessions and the excluded lifts into Fitness, check the May logger before it is retired, and build one private owner-only habit. Health threads beyond these are not ticketed. Nothing in this epic is medical advice.\n\n## Order\nfit.01 (restart) and fit.04 (the excluded lifts) first, as the restarted plan should respect the exclusions; fit.02 and fit.03 at any time; fit.05 when the May page is found; fit.06 at any time. PW-23 (write the review for Joe PT) is linked, not recreated.\n\n## Done means\nThe PTP is running again with the exclusions in place, the supplements and targets match reality, the rehab notes live in Fitness, and the private habit works for Phil only.\n\n## Flags\nNone.\n\n## Dossier\nThe dossier is attached in Docs: (link filled by the integrator).\n\n## Red team\n- Finding 29: Every ticket in this epic is owner-only, not only the habit.\n",
+    "dossier": "dossiers/fit.md",
+    "links": [
+      "PW-23"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "fit.01",
+      "title": "Restart the PTP with Kirsty from wherever makes sense",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "PK",
+      "description": "## What\nA short conversation with Kirsty to choose where the PTP restarts, then one change in Fitness to match. The programme in Mycelium is `PTP, Phase 1: Restore and Stabilise` (active since 2026-W37, open-ended, five afternoon sessions Monday to Friday); no sessions were logged in the week before 2026-10-29. Options: resume Phase 1 from its first week, resume where it stopped, or move to Phase 2 using the procedure in `docs/ptp-report.md`. Also close the two loose ends the backlog carries: confirm the 15 September cutover was verified and record the week-3 review outcome (or that it did not happen). Phil and Kirsty decide; nothing here is medical advice.\n\n## Why\nH5: the PTP is paused or stopped; \"a ticket to restart with Kirsty from wherever makes sense\".\n\n## Done looks like\nThe restart point written on this ticket; Fitness Today shows the right session on the restart day; the cutover and week-3 lines closed in the backlog.\n\n## Unlocks\nfit.03 (targets reviewed alongside the restart), fit.04 (the excluded lifts are respected in the restarted plan).\n\n## Depends on\nNothing.\n\n## Red team\n- Finding 29: Owner-only: never on the wall, never in a shared export, not visible to any other account (the run rule for H5 health tickets).\n",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fit",
+        "fitness",
+        "schedule",
+        "personal",
+        "owner-only"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fit.02",
+      "title": "Supplements schedule: first step, Phil gives his list",
+      "kind": "guide",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOne sitting where Phil lists the supplements he actually takes now (name, dose, time of day, with or without food), on the guide's fields. Claude then updates the schedule on Health, Supplements (/health/supplements, seeded in 0081) to match, so the daily checklist and the dashboard card show the real list. Nothing here is medical advice; any question about combinations goes to a pharmacist or GP.\n\n## Why\nH5: \"the supplements schedule (first step: Phil gives his list)\".\n\n## Done looks like\nThe list filled on the guide; the Supplements page matches it; the daily checklist shows only what he takes.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.\n\n## Red team\n- Finding 29: Owner-only: never on the wall, never in a shared export, not visible to any other account (the run rule for H5 health tickets).\n",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fit",
+        "fitness",
+        "guide",
+        "medical",
+        "nutrition",
+        "owner-only"
+      ],
+      "steps_definition": {
+        "format": "field-guide",
+        "slug": "fit-supplements-list",
+        "kind": "guide",
+        "title": "Your supplements list",
+        "version": 1,
+        "intro": {
+          "answer": "Write down what you take now; Claude makes the schedule match.",
+          "unlocks": [
+            "An accurate daily supplements checklist"
+          ],
+          "to_hand": [
+            "The supplements themselves, to read the labels"
+          ],
+          "time": [
+            "about 10 minutes"
+          ],
+          "last_verified": "2026-11-28",
+          "sources": []
+        },
+        "phases": [
+          {
+            "id": "1",
+            "title": "The list",
+            "minutes": 10,
+            "needs": [],
+            "steps": [
+              {
+                "id": "1.1",
+                "title": "Gather the tubs",
+                "actor": "you",
+                "minutes": 3,
+                "where": {
+                  "label": "The kitchen or wherever they live",
+                  "kind": "decision"
+                },
+                "body_html": "<p>Put every supplement you take now in front of you. Leave out anything you have stopped.</p>",
+                "expect_html": "<p>Every one you take, to hand.</p>"
+              },
+              {
+                "id": "1.2",
+                "title": "Write each one",
+                "actor": "you",
+                "minutes": 6,
+                "where": {
+                  "label": "This guide",
+                  "kind": "decision"
+                },
+                "body_html": "<p>One per line: name, dose, morning or evening, with food or not.</p>",
+                "expect_html": "<p>Every tub has a line.</p>",
+                "fields": [
+                  {
+                    "key": "list",
+                    "label": "Supplements, one per line",
+                    "placeholder": "name, dose, time, with food or not"
+                  }
+                ]
+              },
+              {
+                "id": "1.3",
+                "title": "Claude updates the schedule",
+                "actor": "claude-code",
+                "minutes": 0,
+                "where": {
+                  "label": "Claude Code",
+                  "kind": "terminal"
+                },
+                "body_html": "<p>Claude updates Health, Supplements to match the list and archives anything not on it.</p>",
+                "expect_html": "<p>The page matches the list.</p>"
+              },
+              {
+                "id": "1.4",
+                "title": "Check the page",
+                "actor": "you",
+                "minutes": 1,
+                "where": {
+                  "label": "Mycelium, Health, Supplements (/health/supplements)",
+                  "kind": "page"
+                },
+                "body_html": "<p>Open the page and check it matches.</p>",
+                "expect_html": "<p>The same list, in the right time slots.</p>"
+              }
+            ]
+          }
+        ],
+        "tested": {
+          "1.1": "untested",
+          "1.2": "untested",
+          "1.3": "untested",
+          "1.4": "untested"
+        }
+      }
+    },
+    {
+      "sid": "fit.03",
+      "title": "One settled set of nutrition targets and the review (September's figures stand)",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nThe current nutrition targets row (effective 2026-09-07) has had its review date, 28 September, pass, and the nutritionist agent reads that date on every turn. September's figures stand as the settled set (2600 kcal, 200 g protein, 80 g fat, 270 g carbs, 30 to 35 g fibre, 2.5 to 3 L water; from Kirsty's plan with Phil's protein amendment, replacing the earlier trainer's). Claude prepares a short review (the 7-day and 30-day averages against each target, body weight trend if logged); Phil, with Kirsty if he wants, keeps or adjusts each figure; Claude writes a new targets row with today's `effective_from` and a new review date Phil picks. The old row is kept, not backdated or edited. Any older hard-coded fallbacks stay fallbacks only.\n\n## Why\nH5: \"one settled set of nutrition targets and the review that is due (September's figures replaced the earlier trainer's)\".\n\n## Done looks like\nA new targets row exists with a future review date; the nutritionist no longer quotes a past review date; the review's figures are on this ticket.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing; it sits well alongside fit.01.\n\n## Red team\n- Finding 29: Owner-only: never on the wall, never in a shared export, not visible to any other account (the run rule for H5 health tickets).\n",
+      "after": [],
+      "links": [
+        "fit.01",
+        "PW-141"
+      ],
+      "tags": [
+        "fit",
+        "fitness",
+        "nutrition",
+        "owner-only"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fit.04",
+      "title": "Joe's rehab sessions and the excluded lifts saved into Fitness",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nCopy Joe's rehab sessions and the list of excluded lifts out of the old chat where they are the only copy, into Mycelium: the excluded lifts into the PTP programme's guardrails (`workout_programmes.guardrails`, shown as a pinned banner while logging) and, where an exercise is excluded, a note on that template exercise; the rehab sessions as a workout in the library (or a Docs page if they are notes rather than sets). Phil points Claude at the chat (its title or a pasted export); the chat is not deleted. A per-exercise \"excluded\" flag that blocks logging would be a new build: written here as an option only, not chosen.\n\n## Why\nH5: \"Joe's rehab sessions and the excluded lifts saved into Fitness so the only copy is not an old chat\".\n\n## Done looks like\nThe banner shows the excluded lifts when logging a PTP session; the rehab sessions open in Fitness; this ticket names where each went.\n\n## Unlocks\nfit.01 (the restarted plan respects the exclusions).\n\n## Depends on\nPhil supplying the chat or its export (a comment on this ticket).\n\n## Red team\n- Finding 29: Owner-only: never on the wall, never in a shared export, not visible to any other account (the run rule for H5 health tickets).\n",
+      "after": [],
+      "links": [
+        "PW-23"
+      ],
+      "tags": [
+        "fit",
+        "fitness",
+        "medical",
+        "owner-only"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fit.05",
+      "title": "The May workout logger: rest timer and Apple Watch interval lists worth copying? Then retire it",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nCompare the May workout logger page (retired by decision) with Fitness: its rest timer against Mycelium's (default 90 s, minimise state remembered, chime and vibration logic frozen), and its Apple Watch interval lists against what Fitness can send or show. Write a short list of anything worth copying, each as a candidate ticket for Phil to accept or drop. Then mark the May page retired (a note at its top and a link to Fitness). Nothing is deleted in this run.\n\n## Why\nH5: the May workout logger page is retired; \"one ticket checks whether its rest timer and Apple Watch interval lists are worth copying\".\n\n## Done looks like\nA comparison on this ticket with a keep or drop line per feature; the May page carries a retired note.\n\n## Unlocks\nAny copy tickets Phil accepts.\n\n## Depends on\nFinding the May page (the harvest or the archive in `claude/archive/`, E.rescue).\n\n## Red team\n- Finding 29: Owner-only: never on the wall, never in a shared export, not visible to any other account (the run rule for H5 health tickets).\n",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fit",
+        "fitness",
+        "dev",
+        "owner-only"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "fit.06",
+      "title": "A private owner-only habit, tied to sleep",
+      "kind": "task",
+      "points": 3,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBuild a private habit for Phil that only he can see. Phil gives the habit's name and what to record to Claude in a private session; neither appears in this ticket, its comments, commits or any report. Where it lives: an owner-only store in Phil's personal space that no direct grant or team can reach (the same handling as Finance), not a Fitness, Health or Habits row and not a ticket, because Kirsty's planned grant covers Fitness and Work. It shows only on a page Phil opens, alongside his sleep data where that exists. It never appears on the wall, on a dashboard card, in a briefing, push or digest, in the Boys' or any agent's shared context, in a shared or team export, or in the backlog export. Commit messages and reports call it \"the private habit\" only.\n\n## Why\nH5: an owner-only habit, never on the wall, never shared, not in any shared export.\n\n## Done looks like\nPhil can record the habit and see it beside his sleep; a second user with every grant Phil can give sees nothing; the wall, briefing, pushes, shared exports and the MYC backlog export contain nothing about it beyond this neutral title; the isolation test covers the new table.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.\n\n## Red team\n- Finding 29: Owner-only: never on the wall, never in a shared export, not visible to any other account (the run rule for H5 health tickets).\n",
+      "after": [],
+      "links": [],
+      "tags": [
+        "fit",
+        "fitness",
+        "personal",
+        "dev",
+        "owner-only"
+      ],
+      "steps_definition": null
+    }
+  ],
+  "existing": [
+    {
+      "key": "PW-23",
+      "set_epic": true,
+      "append": "\n\n## Note from the 2026-11-28 run\nThis is fit.07 in the plan; linked to E.fit, not recreated. fit.04 saves Joe's rehab sessions into Fitness."
+    }
+  ]
+}

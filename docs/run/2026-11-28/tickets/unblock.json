@@ -1,0 +1,129 @@
+{
+  "epic": {
+    "sid": "E.unblock",
+    "project": "MYC",
+    "title": "Unblock Mycelium: the 15-minute gates, worked first",
+    "description": "Phil's own gating jobs, each a 15-minute ticket worked before anything else, each naming what it unlocks (11.7). The order of everything is the unblock queue, then voice capture, notes, the connector and imports (11.29).\n\n## Order\nFirst, needing nothing from Phil: unblock.01, which runs keys.06 (Claude's census of credential files on the PC; report only, nothing deleted). Then Phil's queue, top to bottom:\n1. MYC-195, Enable Banking sign-up: unlocks every Finance ticket that reads transactions.\n2. MYC-201, the mailbox Mycelium reads: unlocks the parcels panel and the owed-replies feed.\n3. MYC-197, the iPhone Shortcuts: unlocks voice capture from the phone, Spores and the glasses prototype.\n4. MYC-182, the three answers (backup drive, due date, photo frame): unlocks the real baby dates, the frame tickets and the off-site backup.\n5. MYC-196, rotate the two exposed secrets: unlocks the Mycelium part of rotate everything.\n6. MYC-194, the email service: unlocks invite emails, so Kirsty can be invited.\n7. MYC-205, the wall PIN and Kitchen wall: unlocks living with the wall on the frame.\n8. MYC-180, the cron-job.org job: unlocks timed prompts when the PC is off.\n9. MYC-210, the 2026-11-24 overnight report: unlocks the PhirstMaxx confirmations.\n10. MYC-198, who may switch on paid AI: unlocks a new person's AI settings.\n11. MYC-204, the two per-person AI model choices: unlocks the per-person model settings.\n12. MYC-203, the Boys' seven bots: unlocks the Boys speaking in the group chat.\n13. MYC-192, the UI calls: unlocks the Home design question round.\n14. MYC-200, Cloudflare R2 for family photos: unlocks family photos in storage.\n15. MYC-202, the GitHub token (optional): unlocks the GitHub watcher at full rate (optional).\n\nunblock.02 checks this order is set on production.\n\n## Done means\nEvery ticket under this epic is Done, and each one's Unlocks list has moved forward.\n\n## Flags\nNone raised against this epic. Key rotation stays after the new Shortcuts and the API_SECRET caller list (MYC-209), as Phil instructed on 2026-11-24.\n\n## Dossier\nThe research dossier is attached in Docs.\n\n## Red team\n- Finding 50: keys.06 (the census files check) is the first item and sits under this epic; MYC-182 (the due date) is the second because 39 dates hang on it.\n",
+    "dossier": "dossiers/unblock.md",
+    "links": [
+      "keys.06",
+      "MYC-209",
+      "MYC-6"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "unblock.02",
+      "title": "Order of the queue written on the epic: bank sign-up, mailbox, Shortcuts, frame, key rotation; each with what it unlocks",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "C",
+      "description": "## What\nAfter the create script runs, check on production that the Unblock epic's description carries the order (census check first for Claude, then MYC-195, MYC-201, MYC-197, MYC-182, MYC-196, then the rest), that all fifteen queue tickets sit under the epic, and that each has its \"## Unlocks\" section. Set the tickets' rank in that order so the epic's list reads top to bottom as the order. Fix any that are missing.\n\n## Why\nPhil decided his gating jobs become one epic of 15-minute tickets, worked first, each naming what it unlocks (11.7), and the order starts with the unblock queue (11.29).\n\n## Done looks like\nThe epic page lists the tickets in the written order and every one shows its Unlocks section.\n\n## Unlocks\nEvery Phil's-queue ticket reads in order, so the next one is always the top one.\n\n## Depends on\nNothing.",
+      "after": [],
+      "links": [],
+      "tags": [
+        "unblock",
+        "planning"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "unblock.03",
+      "title": "Kirsty's invite: what it waits on and what needs her (baby, budget, kitchen screen); a decision ticket",
+      "kind": "task",
+      "points": 1,
+      "due": "2027-01-17",
+      "who": "P",
+      "description": "## What\nClaude writes on this ticket what the invite waits on today (the UI rebuild, MYC-194 so the invite email is sent, MYC-198 on paid AI for a new person) and what already needs her: baby prep, the household budget (fin.18) and the kitchen screen (wall.26). Phil reads it and comments with his decision: keep waiting for the UI rebuild, or invite her earlier for the parts that need her.\n\n## Why\nPhil decided Kirsty's invite keeps waiting for the UI rebuild (11.17); the question also noted that baby prep, the household budget and the kitchen screen all need her.\n\n## Done looks like\nPhil's decision is a comment on this ticket, and the dependent tickets are updated to match.\n\n## Unlocks\nfin.18 (shared costs), the baby tickets that need her, wall.26 (both use the kitchen screen).\n\n## Depends on\nNothing to decide. Sending an invite needs MYC-194 and MYC-198.\n\n## Flag\n`[claude]` 11.17: the rebuild waits on a direction he is still thinking about, and baby prep, the budget and the kitchen screen all need her. Raised once; Phil's answer stands until he changes it here.\n\n## Red team\n- Finding 40: Until Kirsty has an account, her tickets are held in Phil's space marked 'for Kirsty'. Dated before baby.20 because baby prep, the household budget and the kitchen screen all need her (11.17).\n",
+      "after": [],
+      "links": [
+        "MYC-194",
+        "MYC-198"
+      ],
+      "tags": [
+        "planning",
+        "personal",
+        "unblock"
+      ],
+      "steps_definition": null
+    }
+  ],
+  "existing": [
+    {
+      "key": "MYC-195",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nfin.01, fin.03 and fin.11 directly, and through fin.03 every Finance ticket that reads transactions (fin.04 to fin.10, fin.17, fin.18, fin.23, fin.27, fin.31). brain.07 (Finance search gets real data). Bank transactions are the feed Phil named first (11.16)."
+    },
+    {
+      "key": "MYC-201",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nwall.11 (parcels expected, from the mail import); brain.20 (the owed-replies feed from email); the email import's live check under MYC-193. mail.12 is the address side of the same mailbox."
+    },
+    {
+      "key": "MYC-197",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nglass.02 (the weekend voice prototype may ride on a phone Shortcut); brain.01 (Spores from the quick-note Shortcut); brain.12 (a Shortcut is the bulk route for Apple Notes); brain.19 and brain.26 (capture wherever he is). MYC-196 waits for this (the new Shortcuts stop using the master secret)."
+    },
+    {
+      "key": "MYC-182",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nThe due date moves every dated baby ticket (baby.01 to baby.39; the working date 2027-06-15 is a guess). The frame answer unlocks wall.01 and wall.02 (the frame identified, then lived with). The backup drive answer unlocks sub.11 and brain.17 (the off-site copy)."
+    },
+    {
+      "key": "MYC-196",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nThe Mycelium part of keys.01 (rotate everything) and MYC-6; MYC-209 (every API_SECRET caller moved before the day it rotates). Nothing is rotated until Phil does it in the places this ticket names."
+    },
+    {
+      "key": "MYC-194",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nInvite emails and rundowns by email: brain.24 (Kirsty's invite can be sent), the partner live check under MYC-193 (it needs the invite email), mail.13 (noreply@ and mycelium@ for app mail)."
+    },
+    {
+      "key": "MYC-205",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nwall.02 (the existing wall on the frame, lived with for a week) and wall.17 (cameras and heating behind the PIN)."
+    },
+    {
+      "key": "MYC-180",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nTimed jobs when the PC is off (Vercel Hobby runs crons once a day): brain.19 (the evening prompt and the morning call-out), reminders and rundowns at their times."
+    },
+    {
+      "key": "MYC-210",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nphm.01 (did the PhirstMaxx import run before the old database was deleted) and through it phm.02 and phm.03."
+    },
+    {
+      "key": "MYC-198",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nbrain.24 (Kirsty's invite: what a new person may switch on) and the partner set-up (MYC-185)."
+    },
+    {
+      "key": "MYC-204",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nThe per-person AI model settings for Kirsty's first run (brain.24) and the Settings live check under MYC-193."
+    },
+    {
+      "key": "MYC-203",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nThe Boys' group chat: the Sunday scoreline (brain.18), the morning money line (fin.04) and the blocking weekly count (block.20) can be said by the Boys in the group."
+    },
+    {
+      "key": "MYC-192",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nbrain.22 (the Home design direction question round) and the UI rebuild that Kirsty's invite waits on (brain.24)."
+    },
+    {
+      "key": "MYC-200",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nFamily photos in storage: wall.14 (photo slideshow), wall.16 (from the archive), the Family timeline's photos, and the Family photos in the monthly export (brain.16)."
+    },
+    {
+      "key": "MYC-202",
+      "set_epic": true,
+      "append": "\n\n## Unlocks\nThe Finds feed's GitHub watcher at the full rate limit (optional; Finds works without it)."
+    }
+  ]
+}

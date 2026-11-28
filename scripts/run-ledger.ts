@@ -32,6 +32,8 @@ const RATES: Record<string, Record<number, number>> = {
 };
 /** Claude's own working hours per point (for the "Claude hours" column; free on his plan, but it is still elapsed time). */
 const CLAUDE: Record<number, number> = { 1: 0.25, 2: 0.5, 3: 1.5, 5: 4, 8: 10, 13: 20 };
+/** Red team finding 71: points visibly low; counted at double in the ledger. */
+const UNDER_POINTED = new Set(["home.14", "rescue.04", "rescue.03", "net.07", "mail.24"]);
 
 const files = readdirSync(DIR).filter((f) => f.endsWith(".json")).sort();
 const rows: Array<{ epic: string; project: string; tickets: number; phil: number; claude: number; pounds: string[]; dated: number; sittings: number }> = [];
@@ -48,7 +50,9 @@ for (const f of files) {
   for (const t of data.tickets) {
     const who = (t.who ?? "C").toUpperCase();
     const rate = RATES[who] ?? RATES.C;
-    phil += rate[t.points] ?? t.points;
+    // red team 71: five tickets are visibly under-pointed; the ledger doubles them
+    const under = UNDER_POINTED.has(t.sid) ? 2 : 1;
+    phil += (rate[t.points] ?? t.points) * under;
     if (who.includes("C")) claude += CLAUDE[t.points] ?? t.points;
     if (who.startsWith("P") && t.points <= 2) sittings += t.points;
     if (t.due) dated += 1;

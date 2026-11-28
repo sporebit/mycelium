@@ -1,0 +1,130 @@
+{
+  "epic": {
+    "sid": "E.vent",
+    "project": "LIFE",
+    "title": "Ventures behind the FixForward rule, and one-off research",
+    "description": "The rule before June 2027: **FixForward only, until its first slice ships** (fixf.34). Everything else waits. Behind the rule sits Alex's site, the AI website agency's first client at no charge to prove the process: rescue his brochure page and plan now, ask him before building, build once he says yes. Alongside it, one piece of one-off research that is not a venture: a sourced, neutral briefing on the Fabian Society and government, which first asks Phil which angle he meant. DropShipAuto is kept alive separately (E.dsa). Everything else in Alex's project is Alex's own backlog and is not ticketed.\n\n## Order\nvent.01 holds the rule and lifts the block when fixf.34 closes. vent.02 can run now (after rescue.02 exports the files). vent.03 waits for vent.02 and for fixf.34; vent.04 waits for vent.03. vent.05 is independent of the rule and can run any time.\n\n## Done means\nAlex's brochure and plan are in `claude/archive/`; after the first slice, Alex has said yes or no; if yes, his site is live at no charge; Phil has the Fabian Society briefing from the angle he chose.\n\n## Flags\n- H6 / H9 flag 6 `[claude]`: DropShipAuto alive while the venture rule says FixForward only. Not reopened; it lives in E.dsa.\n\n## Dossier\nThe dossier is attached in Docs: (link filled by the integrator).",
+    "dossier": "dossiers/vent.md",
+    "links": [
+      "SELL-2"
+    ]
+  },
+  "tickets": [
+    {
+      "sid": "vent.01",
+      "title": "The rule before June: FixForward only until its first slice ships; every venture ticket here is blocked by fixf.34",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "C",
+      "description": "## What\nHold the H6 rule in the tickets. Every venture ticket in this epic that builds or sells (vent.03, vent.04) is blocked by fixf.34, the FixForward first-slice done check. When fixf.34 closes, Claude reads this epic, confirms each blocked ticket's next step still stands, and comments on each that it is now free to start. Research (vent.05) and rescue (vent.02) are not ventures and are not blocked.\n\n## Why\nH6: \"Rule before June: FixForward only, until its first slice ships. Everything else waits.\"\n\n## Done looks like\nvent.03 and vent.04 show fixf.34 as their blocker until it closes; after it closes, each carries a comment saying it can start.\n\n## Unlocks\n- vent.03, vent.04: start once the first slice ships\n\n## Depends on\n- fixf.34: the FixForward first slice",
+      "after": [
+        "fixf.34"
+      ],
+      "links": [],
+      "tags": [
+        "planning",
+        "vent"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "vent.02",
+      "title": "Alex's site: rescue the brochure page and plan from the old chat into claude/archive/",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "C",
+      "description": "## What\nTwo files exist only in the Basis Holistics chat \"Corporate breathwork branding and business launch plan\" (May 2026): the brochure page `basis_breathwork_brochure.html` and the six-month launch plan (a Word document). No session can read an old chat, so Phil exports them in rescue.02; this ticket files them. Claude puts them in `claude/archive/basis-holistics/` (or, if the repo is not private, outside the repo as rescue.02 decides), checks the brochure opens in a browser with its fonts and sections, converts the plan to Markdown beside the original, and adds a short `README.md` listing what is there and the build notes below. Notes for the build, from the harvest of the Basis Holistics project (May 2026): the brochure lists £500 a session, £1,200 a workshop and £400 a session on the monthly programme, while the six-month plan still uses the older £275 anchor retainer and a £200 to £250 pilot rate; the brochure says the work is delivered to NHS teams, written before any such session had happened; it carries Alex's personal phone number and a biography; the domain in it (basis-breathwork.co.uk) was a placeholder; one statistic (\"6x ROI\") was never checked.\n\n## Why\nH6: now, rescue his brochure page and plan from the old chat. H8.1 lists Alex's brochure and plan among the files that live only in chats.\n\n## Done looks like\n`claude/archive/basis-holistics/` holds the brochure HTML, the plan (original and Markdown) and a README with the build notes; the brochure opens and looks like the chat's version.\n\n## Unlocks\n- vent.03: Phil can show Alex what exists\n- vent.04: the build starts from the rescued page\n\n## Depends on\n- rescue.02: Phil exports the two files from the chat",
+      "after": [
+        "rescue.02"
+      ],
+      "links": [
+        "SELL-2"
+      ],
+      "tags": [
+        "documentation",
+        "vent"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "vent.03",
+      "title": "Alex's site: ask Alex whether he wants it and whether he owns a domain; note the price disagreement, the NHS claim, the personal phone number and biography",
+      "kind": "task",
+      "points": 1,
+      "due": null,
+      "who": "P",
+      "description": "## What\nOne conversation with Alex, after the FixForward first slice. Ask: (1) does he want a site, built at no charge as the agency's first client; (2) does he own a domain, and which (the one in the brochure was a placeholder); (3) which prices are right, the brochure's or the plan's; (4) may the NHS line stay, now or once it is true; (5) may his phone number and biography go public, or should the site use a contact form only. Write his answers in a comment here. Notes for the build, from the harvest of the Basis Holistics project (May 2026): the brochure lists £500 a session, £1,200 a workshop and £400 a session on the monthly programme, while the six-month plan still uses the older £275 anchor retainer and a £200 to £250 pilot rate; the brochure says the work is delivered to NHS teams, written before any such session had happened; it carries Alex's personal phone number and a biography; the domain in it (basis-breathwork.co.uk) was a placeholder; one statistic (\"6x ROI\") was never checked.\n\n## Why\nH6: before building, ask Alex whether he wants it and whether he owns a domain; the brochure and the plan disagree on prices, the NHS claim, the personal phone number and biography need his say before going public.\n\n## Done looks like\nA comment with Alex's five answers, or his \"no thanks\" (then vent.04 closes as not wanted).\n\n## Unlocks\n- vent.04: the build, if he says yes\n\n## Depends on\n- vent.02: the rescued brochure to show him\n- fixf.34: the H6 rule",
+      "after": [
+        "vent.02",
+        "fixf.34"
+      ],
+      "links": [],
+      "tags": [
+        "communication",
+        "vent"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "vent.04",
+      "title": "Alex's site: build as the agency's first client at no charge, once he says yes",
+      "kind": "task",
+      "points": 8,
+      "due": null,
+      "who": "C",
+      "description": "## What\nBuild Alex's site from the rescued brochure (brand, palette, Cormorant Garamond and DM Sans, the breathing-grid cover, the chakra section) and the landing content the plan suggested (what he does, who it is for, a contact form, a WhatsApp link), using only what Alex approved on vent.03: his prices, his domain, his choice on the phone number, biography and the NHS line. Write each step of the process down as it happens, because the point is to prove the agency's process: brief, first draft, Alex's changes, launch, hand-over. Alex's own business backlog (the launch plan's tasks) is not part of this.\n\n## Why\nH6: Alex's site is the first client of the AI website agency, at no charge, to prove the process.\n\n## Done looks like\nThe site is live on Alex's domain with his approved content; Alex has said it is right; the process notes sit beside the archive in `claude/archive/basis-holistics/`.\n\n## Unlocks\n- The AI website company row in review.02: a real first client to judge the plan by\n\n## Depends on\n- vent.03: Alex's yes and his answers\n\n## Cost\nHosting and, if Alex has none, a domain: to be priced in the build plan and agreed with Phil first (who pays is part of \"no charge\"). Nothing is bought in this run.\n\n## Red team\n- Finding 69: Phil buys no domain.\n",
+      "after": [
+        "vent.03"
+      ],
+      "links": [
+        "SELL-2"
+      ],
+      "tags": [
+        "project",
+        "dev",
+        "vent"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "vent.05",
+      "title": "Fabian Society and government briefing: first ask which angle Phil meant, then a sourced neutral briefing",
+      "kind": "task",
+      "points": 2,
+      "due": null,
+      "who": "PC",
+      "description": "## What\nA July 2026 request that was never done. Step one is a question for Phil, in a comment here: which angle did he mean? For example (a) what the Society is and how it relates to the Labour Party; (b) its influence on the current government's policy; (c) MPs and ministers who are members; (d) its history since 1884. Step two, once he answers: a briefing of one to two pages, neutral, every claim sourced with the date checked, using the Society's own description and independent sources side by side, saved to Docs and linked here. The Society's own page (checked 2026-11-28) calls itself an independent, left-leaning think tank and membership society, founded in 1884, affiliated to the Labour Party and one of its founders, editorially, organisationally and financially independent of the party, holding no collective policy positions.\n\n## Why\nH6: one-off research, the Fabian Society and government (July request, never done): a sourced, neutral briefing; the ticket first asks which angle he meant.\n\n## Done looks like\nPhil's chosen angle is in a comment; the briefing is in Docs with a source and a checked date on every claim, linked from this ticket.\n\n## Unlocks\nNothing\n\n## Depends on\nNothing",
+      "after": [],
+      "links": [],
+      "tags": [
+        "research",
+        "vent"
+      ],
+      "steps_definition": null
+    },
+    {
+      "sid": "vent.06",
+      "title": "Watch and file the YouTube video pasted beside Copilot Money in July",
+      "kind": "task",
+      "points": 1,
+      "who": "P",
+      "description": "## What\nTwo minutes: watch youtube.com/watch?v=CxdqE83kxxw and file one line on what it was and whether it changes anything (H3).\n\n## Why\nA decided answer with no ticket (red team finding 54).\n\n## Done looks like\nOne line on this ticket.\n\n## Unlocks\nNothing.\n\n## Depends on\nNothing.",
+      "tags": [
+        "vent"
+      ],
+      "after": [],
+      "links": [],
+      "steps_definition": null,
+      "due": null
+    }
+  ],
+  "existing": [
+    {
+      "key": "SELL-2",
+      "set_epic": false,
+      "append": "\n\n## Related\nAlex's site is E.vent (vent.02 to vent.04): rescued now, built after the FixForward first slice, at no charge."
+    }
+  ]
+}
