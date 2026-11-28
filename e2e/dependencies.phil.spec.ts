@@ -66,7 +66,7 @@ test("a blocker is written once, read both ways, refused in reverse, and removed
   const c = await ticket("third");
   await page.getByLabel("Direction").selectOption("blocks");
   await page.getByLabel("Other ticket key").fill(c.key);
-  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByTestId("dependencies").getByRole("button", { name: "Add", exact: true }).click();
   await expect(page.getByTestId("dependencies").getByRole("list", { name: "Blocks" }).getByText(c.key)).toBeVisible();
 
   // remove
