@@ -15,6 +15,9 @@
  *   tix link KEY URL [--kind commit] [--label text]
  *   tix answers KEY                  (steps answers; the checklists habit)
  *   tix steps KEY [--tick 1.3] [--untick 1.3] [--answer key=value] [--toggle route=direct] [--definition-file checklist.json]
+ *   tix steps KEY --failed 2.3 "what you saw"   (Field guide: "This did not work" on a step)
+ *   tix steps KEY --park 2.3 "where you stopped" (Field guide: park; back on tomorrow's list) · --unpark
+ *   tix guide KEY                    (Field guide: the flight plan, sittings and minutes)
  *   tix plan KEY [--body-file plan.md] (code rundown written by Claude Code)
  *   tix review                       (weekly-review counts)
  *   tix templates [--sync]
@@ -212,8 +215,43 @@ switch (cmd) {
       const [k, v] = String(kv).split("=");
       patch.toggles[k] = v;
     }
+    // Field guide: the note is the positional argument after the key ("tix steps KEY --failed 2.3 'note'").
+    const note = pos[1] !== undefined ? String(pos[1]) : "";
+    if (opts.failed !== undefined) {
+      if (opts.failed === true) die('tix steps KEY --failed STEP "what you saw"');
+      patch.failures = { [String(opts.failed)]: { note } };
+    }
+    if (opts.park !== undefined) {
+      if (opts.park === true) die('tix steps KEY --park STEP "where you stopped"');
+      patch.park = { step_id: String(opts.park), note };
+    }
+    if (opts.unpark) patch.park = null;
     const j = await api("PATCH", `/api/tickets/${encodeURIComponent(key)}/steps`, patch);
-    console.log(`${j.counts.done}/${j.counts.total}`);
+    console.log(`${j.counts.done}/${j.counts.total}${patch.park ? ` · parked, back on ${j.scheduled_on}` : ""}${patch.failures ? " · noted" : ""}`);
+    break;
+  }
+  case "guide": {
+    const key = pos[0] ?? die("tix guide KEY");
+    const j = await api("GET", `/api/tickets/${encodeURIComponent(key)}/steps`);
+    if (!j.definition || !j.guide) die(`${key} has no guide`);
+    const { plan, overall, resume } = j.guide;
+    const words = { done: "finished", open: "open now", later: "later" };
+    console.log(`${j.key}  ${j.definition.title ?? j.title}`);
+    console.log(`${overall.pct}% · ${overall.done}/${overall.total} steps · about ${overall.minutes_left_est} min left · ${plan.summary}`);
+    if (plan.ratio !== 1) console.log(`(estimates scaled by ${plan.ratio.toFixed(2)} from real ticks)`);
+    console.log("");
+    for (const r of plan.rows) {
+      console.log(`${String(r.n).padStart(2)}. ${r.title.padEnd(40)} ${(r.state === "done" ? "" : "about ") + r.minutes + " min"}  ${words[r.state]}`);
+      if (r.needs.length) console.log(`    needs: ${r.needs.join(", ")}`);
+      if (r.hard_part) console.log(`    the tricky bit: ${r.hard_part}`);
+    }
+    if (j.state.park) console.log(`\nParked at ${j.state.park.step_id}${j.state.park.note ? `: ${j.state.park.note}` : ""}`);
+    if (resume) console.log(`\n${resume.line}`);
+    const failures = Object.entries(j.state.failures ?? {});
+    if (failures.length) {
+      console.log("\ndid not work:");
+      for (const [id, f] of failures) console.log(`  ${id}  ${f.at.slice(0, 16)}  ${f.note}`);
+    }
     break;
   }
   case "plan": {
