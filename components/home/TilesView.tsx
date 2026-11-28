@@ -25,6 +25,10 @@ const BODY = "font-[family-name:var(--fg-font-body)]";
 const MONO = "font-[family-name:var(--fg-font-mono)] tabular-nums";
 const INK = "text-[color:var(--fg-ink)]";
 const SOFT = "text-[color:var(--fg-ink-soft)]";
+/** Moss for words and the Done button: the Field shell maps --glow to a moss a step darker on light paper, so small text holds 4.5:1. */
+const MOSS = "text-[color:var(--glow)]";
+/** The global h1..h6 rule sits outside the utility layer and would win over a class; the Field face is set inline. */
+const FACE = { fontFamily: "var(--fg-font-body)" } as const;
 
 const hm = (minutes: number) => `${Math.floor(minutes / 60)}:${String(Math.round(minutes % 60)).padStart(2, "0")}`;
 
@@ -38,7 +42,7 @@ function Tile({ span, label, testId, children, className = "" }: { span: string;
 }
 
 function TileHeading({ children }: { children: ReactNode }) {
-  return <h2 className={`${BODY} text-[19px] font-medium leading-tight tracking-[-0.005em] ${INK}`}>{children}</h2>;
+  return <h2 style={FACE} className={`${BODY} text-[19px] font-medium leading-tight tracking-[-0.005em] ${INK}`}>{children}</h2>;
 }
 
 const STATE_WORD: Record<HomeItem["state"], string> = { open: "to do", started: "started", done: "done" };
@@ -56,7 +60,7 @@ function TodayTile({ data, day }: { data: HomeData; day: Day }) {
   return (
     <Tile span="col-span-4 row-span-2" label="Today" testId="tile-today" className="gap-5 p-7">
       <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <h1 className={`${BODY} text-[34px] font-medium leading-[1.1] tracking-[-0.01em] ${INK}`} data-testid="tiles-greeting">
+        <h1 style={FACE} className={`${BODY} text-[34px] font-medium leading-[1.1] tracking-[-0.01em] ${INK}`} data-testid="tiles-greeting">
           {greeting(hour, data.who.name)}
         </h1>
         <p className={SOFT}>
@@ -66,8 +70,8 @@ function TodayTile({ data, day }: { data: HomeData; day: Day }) {
 
       {main ? (
         <div className="flex flex-col gap-3" data-testid="tiles-main">
-          <p className={`text-[13px] font-semibold uppercase tracking-[0.06em] ${main.state === "done" ? "text-[color:var(--fg-moss)]" : SOFT}`}>{main.is_win ? "The day's one thing" : "If there is time"}</p>
-          <h2 className={`${BODY} field-flip max-w-[38ch] text-[30px] font-medium leading-[1.15] [text-wrap:balance] ${main.state === "done" ? "text-[color:var(--fg-moss)]" : INK}`} data-testid="tiles-title">
+          <p className={`text-[13px] font-semibold uppercase tracking-[0.06em] ${main.state === "done" ? MOSS : SOFT}`}>{main.is_win ? "The day's one thing" : "If there is time"}</p>
+          <h2 style={{ ...FACE, color: main.state === "done" ? "var(--glow)" : "var(--fg-ink)" }} className={`${BODY} field-flip max-w-[38ch] text-[30px] font-medium leading-[1.15] [text-wrap:balance] ${main.state === "done" ? MOSS : INK}`} data-testid="tiles-title">
             {main.title}
           </h2>
           <p className={`${BODY} max-w-[60ch] text-[18px] leading-snug [text-wrap:pretty]`}>
@@ -79,7 +83,7 @@ function TodayTile({ data, day }: { data: HomeData; day: Day }) {
             {main.section ? <span className={SOFT}>{main.section}</span> : null}
           </p>
           {main.state === "done" ? (
-            <p role="status" className={`${BODY} text-[19px] text-[color:var(--fg-moss)]`} data-testid="tiles-done">
+            <p role="status" className={`${BODY} text-[19px] text-[color:var(--glow)]`} data-testid="tiles-done">
               {main.is_win || won ? "Done. The day is won." : "Done."}
             </p>
           ) : (
@@ -88,7 +92,7 @@ function TodayTile({ data, day }: { data: HomeData; day: Day }) {
                 type="button"
                 disabled={busy}
                 onClick={() => void act(main, "done")}
-                className="field-press min-h-[48px] rounded-[10px] bg-[var(--fg-moss)] px-6 text-[16px] font-semibold text-[color:var(--fg-paper)] disabled:opacity-60"
+                className="field-press min-h-[48px] rounded-[10px] bg-[var(--glow)] px-6 text-[16px] font-semibold text-[color:var(--fg-paper)] disabled:opacity-60"
               >
                 Done
               </button>
@@ -113,21 +117,21 @@ function TodayTile({ data, day }: { data: HomeData; day: Day }) {
         </div>
       ) : (
         <div className="flex flex-col gap-1" data-testid="tiles-empty">
-          <h2 className={`${BODY} text-[26px] font-medium ${INK}`}>Nothing lined up for today.</h2>
+          <h2 style={FACE} className={`${BODY} text-[26px] font-medium ${INK}`}>Nothing lined up for today.</h2>
           <p className={SOFT}>Capture something, or line one thing up from Work.</p>
         </div>
       )}
 
       {rest.length ? (
         <div className="mt-auto flex flex-col gap-1 border-t border-[color:var(--fg-line)] pt-4">
-          <h3 className={`${BODY} text-[17px] font-medium ${INK}`}>The rest of today</h3>
+          <h3 style={FACE} className={`${BODY} text-[17px] font-medium ${INK}`}>The rest of today</h3>
           <ul className="flex flex-col" data-testid="tiles-rest">
             {rest.slice(0, 6).map((r) => (
               <li key={r.item_id}>
-                <button type="button" onClick={() => setPicked(r.item_id)} className="flex min-h-[44px] w-full items-baseline justify-between gap-4 rounded-[6px] px-1 text-left hover:bg-[var(--fg-paper-3)]">
-                  <span className={`${BODY} min-w-0 truncate text-[17px] ${r.state === "done" ? "text-[color:var(--fg-moss)]" : INK}`}>{r.title}</span>
+                <button type="button" onClick={() => setPicked(r.item_id)} className="-mx-1 flex min-h-[44px] w-[calc(100%+0.5rem)] items-baseline justify-between gap-4 rounded-[6px] px-1 text-left hover:bg-[var(--fg-paper-3)]">
+                  <span className={`${BODY} min-w-0 truncate text-[17px] ${r.state === "done" ? MOSS : INK}`}>{r.title}</span>
                   <span className="flex shrink-0 items-baseline gap-3 text-[14px]">
-                    <span className={r.state === "done" ? "text-[color:var(--fg-moss)]" : SOFT}>{STATE_WORD[r.state]}</span>
+                    <span className={r.state === "done" ? MOSS : SOFT}>{STATE_WORD[r.state]}</span>
                     <span className={`${MONO} ${SOFT}`}>{r.minutes} min</span>
                   </span>
                 </button>
@@ -241,9 +245,9 @@ function GuidesTile() {
   );
 }
 
-function CapturesTile({ count }: { count: number }) {
+function CapturesTile({ count, wide }: { count: number; wide: boolean }) {
   return (
-    <Tile span="col-span-1" label="Captures waiting" testId="tile-captures">
+    <Tile span={wide ? "col-span-2" : "col-span-1"} label="Captures waiting" testId="tile-captures">
       <TileHeading>Captures</TileHeading>
       {count > 0 ? (
         <p>
@@ -310,7 +314,8 @@ export function TilesView({ data, chime = true }: { data: HomeData; chime?: bool
         <WeekTile data={data} weekCount={day.weekCount} lifetime={day.lifetime} />
         {data.hours ? <HoursTile hours={data.hours} /> : null}
         <GuidesTile />
-        <CapturesTile count={data.captures_waiting} />
+        {/* With no Hours tile beside Today, Captures takes its two columns so the grid has no hole. */}
+        <CapturesTile count={data.captures_waiting} wide={!data.hours} />
         {day.notes.length ? <NudgesTile notes={day.notes} onNotToday={(id) => void day.notToday(id)} /> : null}
         {data.quiet.length ? <QuietTile quiet={data.quiet} /> : null}
       </div>

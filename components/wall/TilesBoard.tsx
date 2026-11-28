@@ -20,6 +20,8 @@ import { WeekFill, hoursLine, showBabyTaps, todayLine } from "./Board";
 const BODY = "font-[family-name:var(--fg-font-body)]";
 const MONO = "font-[family-name:var(--fg-font-mono)] tabular-nums";
 const SOFT = "text-[color:var(--fg-ink-soft)]";
+/** The global h1..h6 rule sits outside the utility layer and would win over a class; the Field face is set inline. */
+const FACE = { fontFamily: "var(--fg-font-body)" } as const;
 
 function Tile({ span, label, children, testId, className = "" }: { span: string; label: string; children: ReactNode; testId: string; className?: string }) {
   return (
@@ -38,7 +40,7 @@ function TodayTile({ glance }: { glance: WallGlance }) {
   const later = (fam?.upcoming ?? []).filter((e) => !e.when.startsWith("Today")).slice(0, 3);
   return (
     <Tile span="col-span-4 row-span-2" label="Today" testId="wall-tile-today" className="gap-5 p-8">
-      <h2 className={`${BODY} text-[30px] font-medium leading-tight`}>Today</h2>
+      <h2 style={FACE} className={`${BODY} text-[30px] font-medium leading-tight`}>Today</h2>
       {fam?.countdown ? <p className={`${BODY} text-[44px] leading-[1.1] [text-wrap:balance]`}>{fam.countdown}</p> : null}
       {today.length ? (
         <ul className="flex flex-col gap-3" aria-label="On today">
@@ -57,11 +59,11 @@ function TodayTile({ glance }: { glance: WallGlance }) {
       )}
       {later.length ? (
         <div className="mt-auto flex flex-col gap-2 border-t border-[color:var(--fg-line)] pt-4">
-          <h3 className={`${BODY} text-[20px] font-medium`}>Coming up</h3>
+          <h3 style={FACE} className={`${BODY} text-[20px] font-medium`}>Coming up</h3>
           <ul className="flex flex-col gap-1.5" aria-label="Coming up">
             {later.map((e) => (
               <li key={e.id} className="flex items-baseline gap-4 text-[20px]">
-                <span className={`${MONO} w-[8.5rem] shrink-0 text-[18px] ${SOFT}`}>{e.when}</span>
+                <span className={`${MONO} w-[11rem] shrink-0 text-[18px] ${SOFT}`}>{e.when}</span>
                 <span className={BODY}>{e.title}</span>
                 {e.place ? <span className={`text-[17px] ${SOFT}`}>{e.place}</span> : null}
               </li>
@@ -109,7 +111,7 @@ export function TilesBoard({ glance, onOpen, onBaby }: { glance: WallGlance; onO
       ))}
       {glance.weather ? (
         <Tile span="col-span-1" label="Weather" testId="wall-tile-weather">
-          <h2 className={`${BODY} text-[20px] font-medium`}>Weather</h2>
+          <h2 style={FACE} className={`${BODY} text-[20px] font-medium`}>Weather</h2>
           <p className="text-[20px] leading-snug">{glance.weather.conditions}</p>
           <p className={`${MONO} mt-auto text-[24px]`}>
             {Math.round(glance.weather.hi)}° <span className={SOFT}>/ {Math.round(glance.weather.lo)}°</span>
@@ -118,14 +120,14 @@ export function TilesBoard({ glance, onOpen, onBaby }: { glance: WallGlance; onO
       ) : null}
       {glance.bins ? (
         <Tile span="col-span-1" label="Bins" testId="wall-tile-bins">
-          <h2 className={`${BODY} text-[20px] font-medium`}>Bins</h2>
+          <h2 style={FACE} className={`${BODY} text-[20px] font-medium`}>Bins</h2>
           <p className="text-[20px] leading-snug">{glance.bins.days === 0 ? "Today" : glance.bins.days === 1 ? "Tomorrow" : <>In <span className={MONO}>{glance.bins.days}</span> days</>}</p>
           <p className={`mt-auto text-[17px] ${SOFT}`}>{glance.bins.label}</p>
         </Tile>
       ) : null}
       {fam && showBabyTaps(glance) ? (
         <Tile span="col-span-2" label="Baby log" testId="wall-tile-baby">
-          <h2 className={`${BODY} text-[20px] font-medium`}>Baby log</h2>
+          <h2 style={FACE} className={`${BODY} text-[20px] font-medium`}>Baby log</h2>
           {fam.baby_line ? <p className="text-[20px]">{fam.baby_line}</p> : null}
           <div className="mt-auto flex gap-3" role="group" aria-label="Baby log">
             {(["feed", "nappy", "sleep"] as const).map((k) => (

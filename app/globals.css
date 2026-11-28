@@ -1006,6 +1006,12 @@ html[data-shell="field"] h3 {
   font-weight: 500;
   letter-spacing: -0.01em;
 }
+/* Small uppercase section labels stay in the sans face (design D11: Inter Tight for small labels). */
+html[data-shell="field"] :is(h2, h3, h4, h5, h6).uppercase {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
 /* Capture lives in the top menu bar, as in the new shell. */
 html[data-shell="field"] .capture-fab {
   display: none;
